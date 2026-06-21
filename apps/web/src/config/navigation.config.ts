@@ -13,6 +13,7 @@ import {
   Activity,
   HeartHandshake,
   Truck,
+  Vote,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -135,6 +136,12 @@ export const adminNavItems: NavItem[] = [
     titleKey: 'drivers',
     href: '/admin/drivers',
     icon: Truck,
+    roles: [UserRole.ADMIN],
+  },
+  {
+    titleKey: 'voting',
+    href: '/admin/voting',
+    icon: Vote,
     roles: [UserRole.ADMIN],
   },
   {
