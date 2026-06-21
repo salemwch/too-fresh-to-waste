@@ -1,0 +1,114 @@
+import { CycleStatus, PrizeCategory } from '@foodwaste/shared';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
+
+@Schema()
+export class PrizeOption {
+  _id!: Types.ObjectId;
+
+  @Prop({ required: true })
+  name!: string;
+
+  @Prop({ required: true })
+  description!: string;
+
+  @Prop({ required: true })
+  imageUrl!: string;
+
+  @Prop({ required: true, enum: PrizeCategory })
+  category!: PrizeCategory;
+
+  @Prop({ required: true })
+  value!: string;
+}
+
+export const PrizeOptionSchema = SchemaFactory.createForClass(PrizeOption);
+
+@Schema({ _id: false })
+export class VotingWinner {
+  @Prop({ type: Types.ObjectId, required: true })
+  prizeId!: Types.ObjectId;
+
+  @Prop({ required: true })
+  name!: string;
+
+  @Prop({ required: true })
+  totalWeightedVotes!: number;
+
+  @Prop({ required: true })
+  voterCount!: number;
+
+  @Prop({ type: Date, required: true })
+  announcedAt!: Date;
+}
+
+export const VotingWinnerSchema = SchemaFactory.createForClass(VotingWinner);
+
+@Schema({ timestamps: true })
+export class VotingCycle {
+  @Prop({ required: true })
+  name!: string;
+
+  @Prop({ type: Date, required: true })
+  cycleStartDate!: Date;
+
+  @Prop({ type: Date, required: true })
+  cycleEndDate!: Date;
+
+  @Prop({ required: true })
+  communityGoalTarget!: number;
+
+  @Prop({ type: Date })
+  communityGoalMetAt?: Date | undefined;
+
+  @Prop({ type: Date })
+  ballotOpensAt?: Date | undefined;
+
+  @Prop({ type: Date })
+  ballotClosesAt?: Date | undefined;
+
+  @Prop({ required: true })
+  cycleNumber!: number;
+
+  @Prop({
+    type: String,
+    enum: Object.values(CycleStatus),
+    default: CycleStatus.DRAFT,
+  })
+  status!: string;
+
+  @Prop({ default: 50 })
+  minimumBags!: number;
+
+  @Prop({ default: 5 })
+  recipientCount!: number;
+
+  @Prop({ type: [PrizeOptionSchema] })
+  prizes!: PrizeOption[];
+
+  @Prop({ type: VotingWinnerSchema })
+  winner?: VotingWinner | undefined;
+
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  createdBy!: Types.ObjectId;
+
+  @Prop({ type: Boolean, default: null })
+  isLive?: boolean | null;
+
+  @Prop({ type: Boolean, default: false })
+  snapshotReady!: boolean;
+
+  @Prop({ default: 0 })
+  communityGoalProgress!: number;
+
+  @Prop({ type: Types.ObjectId })
+  winnerPrizeId?: Types.ObjectId | undefined;
+}
+
+export type VotingCycleDocument = VotingCycle & Document;
+export const VotingCycleSchema = SchemaFactory.createForClass(VotingCycle);
+
+VotingCycleSchema.index({ cycleNumber: 1 }, { unique: true });
+VotingCycleSchema.index({ status: 1 });
+VotingCycleSchema.index({ isLive: 1 }, { unique: true, partialFilterExpression: { isLive: true } });
+VotingCycleSchema.index({ winnerPrizeId: 1 }, { sparse: true });
