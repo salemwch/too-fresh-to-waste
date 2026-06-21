@@ -17,6 +17,7 @@ import { plainToClass } from 'class-transformer';
 import { OrderCompletedEvent } from '../../common/events';
 import { CommunityGoalService } from '../../community-goal/community-goal.service';
 import { LeaderboardCacheService } from '../../leaderboard/leaderboard-cache.service';
+import { VotingService } from '../../voting/voting.service';
 import { LoyaltyService } from '../loyalty.service';
 import { GamificationService } from '../services/gamification.service';
 
@@ -30,6 +31,7 @@ export class OrderEventsListener {
     private readonly gamificationService: GamificationService,
     private readonly communityGoalService: CommunityGoalService,
     private readonly leaderboardCache: LeaderboardCacheService,
+    private readonly votingService: VotingService,
   ) {}
 
   // ============================================
@@ -152,6 +154,15 @@ export class OrderEventsListener {
       } catch (goalError) {
         this.logger.warn(
           `Community goal increment failed for order ${event.orderId}: ${(goalError as Error).message}`,
+        );
+      }
+
+      // Increment voting cycle community goal progress (non-blocking)
+      try {
+        await this.votingService.incrementCommunityGoalProgress(totalBags);
+      } catch (votingError) {
+        this.logger.warn(
+          `Voting goal increment failed for order ${event.orderId}: ${(votingError as Error).message}`,
         );
       }
 

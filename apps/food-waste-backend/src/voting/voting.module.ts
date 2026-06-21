@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { LoyaltyModule } from '../loyalty/loyalty.module';
@@ -22,7 +22,7 @@ import { VotingService } from './voting.service';
       { name: VotingAuditLog.name, schema: VotingAuditLogSchema },
       { name: Counter.name, schema: CounterSchema },
     ]),
-    LoyaltyModule,
+    forwardRef(() => LoyaltyModule),
   ],
   controllers: [VotingController, VotingAdminController],
   providers: [VotingService, VotingCron],

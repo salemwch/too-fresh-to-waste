@@ -13,6 +13,7 @@ import { LeaderboardModule } from '../leaderboard/leaderboard.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
+import { VotingModule } from '../voting/voting.module';
 
 import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
 import { OrderEventsListener } from './listeners/order-events.listener';
@@ -38,6 +39,7 @@ import { PrizeClaimService } from './services/prize-claim.service';
       { name: CommunityBagGoal.name, schema: CommunityBagGoalSchema },
     ]),
     forwardRef(() => DonationsModule),
+    forwardRef(() => VotingModule),
     CommunityGoalModule,
     LeaderboardModule,
     NotificationsModule,
