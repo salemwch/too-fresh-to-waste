@@ -14,7 +14,15 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Platform, Pressable, StyleSheet, View } from 'react-native';
+import {
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+  type DimensionValue,
+} from 'react-native';
 
 import { Icon, Text } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -121,8 +129,6 @@ const GlowCard: React.FC<GlowCardProps> = ({ children, variant }) => {
       style={[
         styles.card,
         {
-          borderColor: baseColor,
-          borderWidth: 1.5,
           opacity: 1,
         },
         Platform.OS === 'ios' && {
@@ -150,7 +156,7 @@ const GlowCard: React.FC<GlowCardProps> = ({ children, variant }) => {
 
 // ── Confetti Particle ──
 
-const ConfettiParticle: React.FC<{ emoji: string; delay: number; left: string }> = ({
+const ConfettiParticle: React.FC<{ emoji: string; delay: number; left: DimensionValue }> = ({
   emoji,
   delay,
   left,
@@ -186,7 +192,7 @@ const ConfettiParticle: React.FC<{ emoji: string; delay: number; left: string }>
       style={[
         styles.confetti,
         {
-          left: left as unknown as number,
+          left,
           transform: [{ translateY }, { rotate }],
           opacity,
         },

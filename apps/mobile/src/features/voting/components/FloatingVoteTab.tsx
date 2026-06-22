@@ -59,7 +59,7 @@ export const FloatingVoteTab: React.FC<FloatingVoteTabProps> = ({ navigation }) 
     if (!expanded) {
       expand();
     } else {
-      navigation.navigate('Profile' as never);
+      navigation.navigate('Loyalty' as never);
     }
   }, [expanded, expand, navigation]);
 
