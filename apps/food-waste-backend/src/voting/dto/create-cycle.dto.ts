@@ -7,7 +7,7 @@ import {
   IsDateString,
   IsEnum,
   IsArray,
-  IsOptional,
+  ValidateIf,
   ValidateNested,
   Min,
   Max,
@@ -28,7 +28,7 @@ export class CreatePrizeOptionDto {
   description!: string;
 
   @ApiProperty({ example: 'https://res.cloudinary.com/...', required: false })
-  @IsOptional()
+  @ValidateIf((_o, value) => value !== undefined && value !== null && value !== '')
   @IsString()
   @Matches(CDN_IMAGE_PATTERN, { message: 'imageUrl must match a trusted CDN domain' })
   imageUrl?: string;

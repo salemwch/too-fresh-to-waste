@@ -391,10 +391,15 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
       exceptionFactory: errors => {
-        const messages = errors.map(err => Object.values(err.constraints ?? {}).join(', '));
-        return new BadRequestException(messages.join('; '));
+        const extractMessages = (errs: typeof errors): string[] =>
+          errs.flatMap(err => [
+            ...Object.values(err.constraints ?? {}),
+            ...(err.children?.length ? extractMessages(err.children) : []),
+          ]);
+        const messages = extractMessages(errors);
+        logger.warn(`Validation failed: ${messages.join('; ')}`, 'ValidationPipe');
+        return new BadRequestException(messages);
       },
-      disableErrorMessages: appConfigService.get('NODE_ENV') === 'production',
     }),
   );
 

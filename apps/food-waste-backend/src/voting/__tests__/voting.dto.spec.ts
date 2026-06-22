@@ -226,6 +226,21 @@ describe('CreateCycleDto', () => {
       expect(errors).toHaveLength(0);
     });
 
+    it('passes when a prize imageUrl is omitted (optional)', async () => {
+      const noImagePrize = validPrize();
+      delete noImagePrize['imageUrl'];
+      const errors = await validateCycle(validCyclePlain({ prizes: [noImagePrize, validPrize()] }));
+      expect(errors).toHaveLength(0);
+    });
+
+    it('passes when a prize imageUrl is an empty string (skipped)', async () => {
+      const emptyImagePrize = validPrize({ imageUrl: '' });
+      const errors = await validateCycle(
+        validCyclePlain({ prizes: [emptyImagePrize, validPrize()] }),
+      );
+      expect(errors).toHaveLength(0);
+    });
+
     it('fails when a prize has an invalid category enum', async () => {
       const badPrize = validPrize({ category: 'NOT_A_CATEGORY' });
       const errors = await validateCycle(validCyclePlain({ prizes: [validPrize(), badPrize] }));
