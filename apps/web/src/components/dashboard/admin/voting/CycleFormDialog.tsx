@@ -101,9 +101,9 @@ export function CycleFormDialog({
       communityGoalTarget: goalTarget,
       minimumBags,
       recipientCount,
-      prizes: prizes.map(p => ({
-        ...p,
-        ...(p.imageUrl ? { imageUrl: p.imageUrl } : {}),
+      prizes: prizes.map(({ imageUrl, ...rest }) => ({
+        ...rest,
+        ...(imageUrl ? { imageUrl } : {}),
       })),
     });
   }

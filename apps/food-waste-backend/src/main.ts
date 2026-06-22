@@ -397,8 +397,9 @@ async function bootstrap() {
             ...(err.children?.length ? extractMessages(err.children) : []),
           ]);
         const messages = extractMessages(errors);
-        logger.warn(`Validation failed: ${messages.join('; ')}`, 'ValidationPipe');
-        return new BadRequestException(messages);
+        const detail = messages.join('; ');
+        logger.warn(`Validation failed: ${detail}`, 'ValidationPipe');
+        return new BadRequestException(`Validation failed: ${detail}`);
       },
     }),
   );
