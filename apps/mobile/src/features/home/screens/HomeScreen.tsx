@@ -62,6 +62,7 @@ import {
   COMMUNITY_GOAL_QUERY_KEY,
 } from '../hooks';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
+import { FloatingVoteTab } from '@/features/voting/components/FloatingVoteTab';
 
 import type { LocationItem } from '@/navigation/components';
 import type { HomeScreenNavigationProp } from '@/navigation/types';
@@ -808,6 +809,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <FloatingVoteTab navigation={navigation} />
       <FlatList<Section>
         ref={flatListRef}
         data={sections}
