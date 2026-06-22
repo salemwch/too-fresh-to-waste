@@ -29,12 +29,14 @@ interface PremiumPointsCardProps {
   availablePoints: number;
   lifetimePointsEarned: number;
   currentTier: TierName;
+  votingLive?: boolean;
 }
 
 const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
   availablePoints,
   lifetimePointsEarned,
   currentTier,
+  votingLive,
 }) => {
   const user = useAppSelector(selectAuthUser);
   const userImageUri = user?.profileImage ?? user?.avatar ?? undefined;
@@ -55,6 +57,48 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
       useNativeDriver: false,
     }).start();
   }, [progress, progressAnim]);
+
+  // Sparkle animation for the voting star
+  const [starRotate] = useState(() => new Animated.Value(0));
+  const [starScale] = useState(() => new Animated.Value(1));
+  const [starOpacity] = useState(() => new Animated.Value(0.7));
+
+  useEffect(() => {
+    if (!votingLive) {
+      starRotate.setValue(0);
+      starScale.setValue(1);
+      starOpacity.setValue(0.7);
+      return;
+    }
+
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(starRotate, { toValue: 15, duration: 500, useNativeDriver: true }),
+          Animated.timing(starScale, { toValue: 1.2, duration: 500, useNativeDriver: true }),
+          Animated.timing(starOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(starRotate, { toValue: -15, duration: 500, useNativeDriver: true }),
+          Animated.timing(starScale, { toValue: 1.2, duration: 500, useNativeDriver: true }),
+          Animated.timing(starOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(starRotate, { toValue: 0, duration: 500, useNativeDriver: true }),
+          Animated.timing(starScale, { toValue: 1, duration: 500, useNativeDriver: true }),
+          Animated.timing(starOpacity, { toValue: 0.7, duration: 500, useNativeDriver: true }),
+        ]),
+        Animated.delay(2500),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [votingLive, starRotate, starScale, starOpacity]);
+
+  const starRotateInterp = starRotate.interpolate({
+    inputRange: [-15, 0, 15],
+    outputRange: ['-15deg', '0deg', '15deg'],
+  });
 
   const progressWidth = useMemo(
     () =>
@@ -100,6 +144,19 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
           <Text variant='body' size='sm' weight='bold' style={styles.tierBadgeText}>
             {currentTier}
           </Text>
+          {votingLive && (
+            <Animated.Text
+              style={[
+                styles.starIcon,
+                {
+                  transform: [{ rotate: starRotateInterp }, { scale: starScale }],
+                  opacity: starOpacity,
+                },
+              ]}
+            >
+              ⭐
+            </Animated.Text>
+          )}
         </View>
       </View>
 
@@ -178,6 +235,12 @@ const styles = StyleSheet.create({
   tierBadgeText: {
     color: INVERSE_TEXT,
     marginLeft: 4,
+  },
+  starIcon: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    fontSize: 14,
   },
   pointsSection: {
     alignItems: 'center',
