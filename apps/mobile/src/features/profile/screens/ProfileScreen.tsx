@@ -465,12 +465,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               onPress={handleNavigateToSecurity}
               accessibilityHint='Manage password and security settings'
             />
-            <MenuItem
-              icon='trophy-outline'
-              label={t('profile.leaderboard')}
-              onPress={() => navigation.navigate('Leaderboard')}
-              accessibilityHint='View the community loyalty points leaderboard'
-            />
           </View>
         </Card>
 
