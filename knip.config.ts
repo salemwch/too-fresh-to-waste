@@ -68,7 +68,7 @@ const config: KnipConfig = {
 
     // ─── Mobile (React Native) ──────────────────────────────────────────────
     'apps/mobile': {
-      entry: ['src/App.tsx'],
+      entry: ['src/App.tsx', 'src/**/types/*.ts'],
       project: ['src/**/*.{ts,tsx}'],
       jest: {
         entry: ['src/**/*.test.{ts,tsx}', 'src/**/*.spec.{ts,tsx}'],
