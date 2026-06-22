@@ -1,4 +1,4 @@
-export interface PrizeOptionData {
+interface PrizeOptionData {
   _id: string;
   name: string;
   description: string;
@@ -7,7 +7,7 @@ export interface PrizeOptionData {
   value: string;
 }
 
-export interface VotingWinnerData {
+interface VotingWinnerData {
   prizeId: string;
   name: string;
   totalWeightedVotes: number;

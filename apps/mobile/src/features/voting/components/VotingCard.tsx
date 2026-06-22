@@ -134,6 +134,7 @@ export const VotingCard: React.FC = () => {
           onPress={() => setShowVoteSheet(true)}
           accessibilityRole='button'
           accessibilityLabel='Vote Now'
+          accessibilityHint='Opens the prize selection sheet to cast your vote'
         >
           <Text variant='body' size='sm' weight='semibold' style={styles.voteButtonText}>
             {'Vote Now'}

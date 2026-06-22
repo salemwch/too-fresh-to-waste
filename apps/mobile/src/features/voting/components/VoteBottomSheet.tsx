@@ -107,9 +107,15 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
         onPress={handleClose}
         accessibilityRole='button'
         accessibilityLabel='Close vote sheet'
+        accessibilityHint='Dismisses the voting sheet without casting a vote'
       >
         {/* Sheet — inner TouchableOpacity stops backdrop tap from closing when tapping inside */}
-        <TouchableOpacity activeOpacity={1} style={styles.sheet} onPress={() => undefined}>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.sheet}
+          onPress={() => undefined}
+          accessibilityRole='none'
+        >
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerTextBlock}>
@@ -126,6 +132,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
               style={styles.closeButton}
               accessibilityRole='button'
               accessibilityLabel='Close'
+              accessibilityHint='Dismisses the voting sheet'
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Icon name='close' family='Ionicons' size={24} color={TEXT_SECONDARY} />
@@ -150,11 +157,13 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
                   accessibilityRole='radio'
                   accessibilityState={{ checked: isSelected }}
                   accessibilityLabel={`${prize.name} — ${prize.value}`}
+                  accessibilityHint='Selects this prize as your vote choice'
                 >
                   <Image
                     source={{ uri: prize.imageUrl }}
                     style={styles.prizeImage}
                     resizeMode='cover'
+                    accessibilityIgnoresInvertColors
                   />
 
                   <View style={styles.prizeInfo}>
@@ -206,6 +215,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
                 ? 'Casting your vote…'
                 : `Cast my final vote (${pointsSnapshot} pts)`
             }
+            accessibilityHint='Submits your vote for the selected prize'
           >
             <Text variant='body' size='md' weight='semibold' style={styles.castButtonText}>
               {voteMutation.isPending

@@ -7,7 +7,7 @@ export interface PrizeOption {
   value: string;
 }
 
-export interface VotingWinner {
+interface VotingWinner {
   prizeId: string;
   name: string;
   totalWeightedVotes: number;
@@ -51,7 +51,7 @@ export interface ActiveVotingResponse {
   myVote: MyVoteData | null;
 }
 
-export interface VotingResultItem {
+interface VotingResultItem {
   prizeId: string;
   name: string;
   totalWeightedVotes: number;
