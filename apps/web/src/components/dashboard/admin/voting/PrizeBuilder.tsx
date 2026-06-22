@@ -18,7 +18,7 @@ import { Trash2, Plus } from 'lucide-react';
 export interface PrizeFormItem {
   name: string;
   description: string;
-  imageUrl: string;
+  imageUrl?: string;
   category: string;
   value: string;
 }

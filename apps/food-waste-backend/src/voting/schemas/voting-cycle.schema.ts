@@ -12,8 +12,8 @@ export class PrizeOption {
   @Prop({ required: true })
   description!: string;
 
-  @Prop({ required: true })
-  imageUrl!: string;
+  @Prop({ type: String })
+  imageUrl?: string;
 
   @Prop({ required: true, enum: PrizeCategory })
   category!: PrizeCategory;

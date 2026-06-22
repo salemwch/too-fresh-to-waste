@@ -73,7 +73,7 @@ export function CycleFormDialog({
         editingCycle.prizes.map(p => ({
           name: p.name,
           description: p.description,
-          imageUrl: p.imageUrl,
+          ...(p.imageUrl ? { imageUrl: p.imageUrl } : {}),
           category: p.category,
           value: p.value,
         })),
@@ -101,7 +101,10 @@ export function CycleFormDialog({
       communityGoalTarget: goalTarget,
       minimumBags,
       recipientCount,
-      prizes,
+      prizes: prizes.map(p => ({
+        ...p,
+        ...(p.imageUrl ? { imageUrl: p.imageUrl } : {}),
+      })),
     });
   }
 

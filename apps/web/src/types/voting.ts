@@ -2,7 +2,7 @@ interface PrizeOptionData {
   _id: string;
   name: string;
   description: string;
-  imageUrl: string;
+  imageUrl?: string;
   category: string;
   value: string;
 }
@@ -44,7 +44,7 @@ export interface CreateCyclePayload {
   prizes: Array<{
     name: string;
     description: string;
-    imageUrl: string;
+    imageUrl?: string;
     category: string;
     value: string;
   }>;
