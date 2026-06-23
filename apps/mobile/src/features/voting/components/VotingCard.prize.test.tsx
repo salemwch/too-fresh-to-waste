@@ -176,4 +176,31 @@ describe('VotingCard — voting prize', () => {
     render(<VotingCard />);
     expect(screen.queryByTestId('discount-claim-modal')).toBeNull();
   });
+
+  it('does not show the Claim CTA for a non-winner', () => {
+    jest
+      .spyOn(
+        jest.requireMock('../hooks/useVotingPrize') as {
+          useVotingPrizeStatus: () => { data: object };
+        },
+        'useVotingPrizeStatus',
+      )
+      .mockReturnValueOnce({
+        data: {
+          isWinner: false,
+          rank: null,
+          recipientCount: 5,
+          cycleId: 'c1',
+          cycleName: 'Eco 3',
+          prizeName: null,
+          hasClaimed: false,
+          voucherCode: null,
+          establishmentName: null,
+          status: null,
+        },
+      });
+    render(<VotingCard />);
+    expect(screen.queryByText('Claim Your Prize')).toBeNull();
+    expect(screen.queryByText('View Your Voucher')).toBeNull();
+  });
 });
