@@ -18,6 +18,7 @@ import {
 import { CastVoteDto } from './dto/cast-vote.dto';
 import { CreateCycleDto } from './dto/create-cycle.dto';
 import { UpdateCycleDto } from './dto/update-cycle.dto';
+import { VotingPrizeService } from './services/voting-prize.service';
 import {
   BALLOT_DURATION_MS,
   VOTING_COUNTER_ID,
@@ -71,6 +72,7 @@ export class VotingService {
     private readonly counterModel: Model<CounterDocument>,
     @InjectModel(LoyaltyAccount.name)
     private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
+    private readonly votingPrizeService: VotingPrizeService,
   ) {}
 
   // ── Audit helper ──────────────────────────────────────────────────────────
@@ -434,6 +436,15 @@ export class VotingService {
       CycleStatus.TALLYING,
       CycleStatus.COMPLETED,
     );
+
+    if (completed.winnerPrizeId) {
+      void this.votingPrizeService.notifyWinners(
+        (completed._id as Types.ObjectId).toString(),
+        completed.winnerPrizeId,
+        completed.recipientCount,
+        completed.winner?.name ?? 'the winning prize',
+      );
+    }
 
     return completed;
   }

@@ -20,6 +20,7 @@ import {
   PrizeSource,
   PrizeType,
 } from '../../loyalty/schemas/prize-claim.schema';
+import { PushNotificationService } from '../../notifications/services/push-notification.service';
 import { Vote, type VoteDocument } from '../schemas/vote.schema';
 import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
 
@@ -65,6 +66,7 @@ export class VotingPrizeService {
     @InjectModel(PrizeClaim.name) private readonly prizeClaimModel: Model<PrizeClaimDocument>,
     @InjectModel(Establishment.name)
     private readonly establishmentModel: Model<EstablishmentDocument>,
+    private readonly pushNotificationService: PushNotificationService,
   ) {}
 
   /**
@@ -227,5 +229,53 @@ export class VotingPrizeService {
     }
     // Fallback: base-36 timestamp suffix (extremely unlikely to reach this path)
     return `TFW-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+  }
+
+  /**
+   * Fire one push notification per winning voter. Swallows all errors — never
+   * blocks tally. Call fire-and-forget with `void` from runTally.
+   */
+  async notifyWinners(
+    cycleId: string,
+    winnerPrizeId: Types.ObjectId,
+    recipientCount: number,
+    prizeName: string,
+  ): Promise<void> {
+    try {
+      const winners = await this.getWinningVoterRanks(cycleId, winnerPrizeId, recipientCount);
+
+      const sendPromises = winners.map(async winner => {
+        const result = await this.pushNotificationService.send(
+          {
+            title: '🎉 You won a prize!',
+            body: `You ranked #${winner.rank} in the community vote and won a ${prizeName} discount. Claim your prize now!`,
+            data: { type: 'voting_prize', cycleId, rank: String(winner.rank) },
+          },
+          { userId: winner.userId },
+        );
+        return result;
+      });
+      const results = await Promise.allSettled(sendPromises);
+
+      const succeeded = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+
+      this.logger.log(
+        `notifyWinners cycleId=${cycleId}: ${succeeded} sent, ${failed} failed out of ${winners.length} winners`,
+      );
+
+      results.forEach((result, idx) => {
+        if (result.status === 'rejected') {
+          this.logger.warn(
+            `Winner push failed for user ${winners[idx]?.userId ?? 'unknown'}: ${String((result as PromiseRejectedResult).reason)}`,
+          );
+        }
+      });
+    } catch (err) {
+      this.logger.error(
+        `notifyWinners failed for cycle ${cycleId}: ${(err as Error).message}`,
+        (err as Error).stack,
+      );
+    }
   }
 }

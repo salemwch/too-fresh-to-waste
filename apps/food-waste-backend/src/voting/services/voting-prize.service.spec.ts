@@ -270,3 +270,83 @@ describe('VotingPrizeService.claimPrize', () => {
     expect(result.voucherCode).toBe('TFW-NEW222');
   });
 });
+
+describe('VotingPrizeService.notifyWinners', () => {
+  const winningPrizeId = new Types.ObjectId();
+  const u1 = new Types.ObjectId();
+  const u2 = new Types.ObjectId();
+
+  const voteModel = { aggregate: jest.fn() };
+  const push = { send: jest.fn().mockResolvedValue({ success: true }) };
+
+  async function buildService() {
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        VotingPrizeService,
+        { provide: getModelToken(Vote.name), useValue: voteModel },
+        { provide: getModelToken(VotingCycle.name), useValue: {} },
+        { provide: getModelToken(PrizeClaim.name), useValue: {} },
+        { provide: getModelToken(Establishment.name), useValue: {} },
+        { provide: PushNotificationService, useValue: push },
+      ],
+    }).compile();
+    return moduleRef;
+  }
+
+  beforeEach(() => jest.clearAllMocks());
+
+  it('sends one push per winner with userId target', async () => {
+    voteModel.aggregate.mockResolvedValue([
+      { userId: u1, pointsSnapshot: 100 },
+      { userId: u2, pointsSnapshot: 90 },
+    ]);
+    const moduleRef = await buildService();
+    const service = moduleRef.get(VotingPrizeService);
+
+    await service.notifyWinners(new Types.ObjectId().toString(), winningPrizeId, 5, 'Smart Garden');
+
+    expect(push.send).toHaveBeenCalledTimes(2);
+    expect(push.send).toHaveBeenCalledWith(
+      expect.objectContaining({ title: expect.any(String), body: expect.any(String) }),
+      { userId: u1.toString() },
+    );
+  });
+
+  it('never throws when a push fails', async () => {
+    voteModel.aggregate.mockResolvedValue([{ userId: u1, pointsSnapshot: 100 }]);
+    push.send.mockRejectedValueOnce(new Error('fcm down'));
+    const moduleRef = await buildService();
+    const service = moduleRef.get(VotingPrizeService);
+
+    await expect(
+      service.notifyWinners(new Types.ObjectId().toString(), winningPrizeId, 5, 'Smart Garden'),
+    ).resolves.toBeUndefined();
+  });
+
+  it('resolves immediately with no pushes when there are no winners', async () => {
+    voteModel.aggregate.mockResolvedValue([]);
+    const moduleRef = await buildService();
+    const service = moduleRef.get(VotingPrizeService);
+
+    await service.notifyWinners(new Types.ObjectId().toString(), winningPrizeId, 5, 'Smart Garden');
+
+    expect(push.send).not.toHaveBeenCalled();
+  });
+
+  it('includes correct rank in the notification body', async () => {
+    voteModel.aggregate.mockResolvedValue([
+      { userId: u1, pointsSnapshot: 100 },
+      { userId: u2, pointsSnapshot: 90 },
+    ]);
+    const moduleRef = await buildService();
+    const service = moduleRef.get(VotingPrizeService);
+
+    await service.notifyWinners(new Types.ObjectId().toString(), winningPrizeId, 5, 'Smart Garden');
+
+    // rank 1 → u1, rank 2 → u2
+    const firstCall = push.send.mock.calls[0] as [{ title: string; body: string }, unknown];
+    expect(firstCall[0].body).toContain('#1');
+    const secondCall = push.send.mock.calls[1] as [{ title: string; body: string }, unknown];
+    expect(secondCall[0].body).toContain('#2');
+  });
+});
