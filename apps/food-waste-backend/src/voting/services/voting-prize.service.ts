@@ -8,9 +8,6 @@ import {
 } from '../../establishments/schemas/establishment.schema';
 import { PushNotificationService } from '../../notifications/services/push-notification.service';
 import { PrizeClaim, type PrizeClaimDocument } from '../../loyalty/schemas/prize-claim.schema';
-
-// Re-exported for use in Tasks 5-7 that extend this same file.
-export { PrizeClaimStatus, PrizeSource, PrizeType } from '../../loyalty/schemas/prize-claim.schema';
 import { Vote, type VoteDocument } from '../schemas/vote.schema';
 import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
 
@@ -31,14 +28,7 @@ export class VotingPrizeService {
     @InjectModel(Establishment.name)
     private readonly establishmentModel: Model<EstablishmentDocument>,
     private readonly pushNotificationService: PushNotificationService,
-  ) {
-    // Fields below are scaffold placeholders consumed by Tasks 5-7.
-    void this.logger;
-    void this.cycleModel;
-    void this.prizeClaimModel;
-    void this.establishmentModel;
-    void this.pushNotificationService;
-  }
+  ) {}
 
   /**
    * Top `recipientCount` voters for the winning prize, ranked by pointsSnapshot
@@ -50,6 +40,10 @@ export class VotingPrizeService {
     winnerPrizeId: Types.ObjectId,
     recipientCount: number,
   ): Promise<VotingWinnerRow[]> {
+    if (recipientCount <= 0) {
+      return [];
+    }
+
     const rows = await this.voteModel.aggregate<{
       userId: Types.ObjectId;
       pointsSnapshot: number;
@@ -61,7 +55,7 @@ export class VotingPrizeService {
         },
       },
       { $sort: { pointsSnapshot: -1, votedAt: 1, _id: 1 } },
-      { $limit: Math.max(recipientCount, 0) },
+      { $limit: recipientCount },
       { $project: { _id: 0, userId: 1, pointsSnapshot: 1 } },
     ]);
 

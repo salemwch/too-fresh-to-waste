@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voting UI Enhancements — Preview</title>
+<style>
+  :root {
+    --primary-50: #EBF3F4;
+    --primary-100: #C2DDE0;
+    --primary-200: #8BC4CB;
+    --primary-300: #54ACB5;
+    --primary-500: #1E4448;
+    --primary-600: #18363A;
+    --primary-800: #0B1819;
+    --accent-500: #F55449;
+    --gold: #FFD700;
+    --success: #2E7D32;
+    --surface: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #64748B;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F3F4F6;
+    color: var(--text-primary);
+    padding: 24px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: var(--primary-500);
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 40px 0 16px;
+    color: var(--primary-500);
+    border-bottom: 2px solid var(--primary-200);
+    padding-bottom: 8px;
+  }
+
+  .section-desc {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  /* ── Phone Frame ── */
+  .phone-frame {
+    width: 375px;
+    height: auto;
+    min-height: 200px;
+    background: #FFFFFF;
+    border-radius: 24px;
+    border: 3px solid #E5E7EB;
+    overflow: hidden;
+    position: relative;
+    margin: 0 auto 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  }
+
+  .phone-frame.dark-bg {
+    background: #F9FAFB;
+  }
+
+  .phone-status-bar {
+    height: 44px;
+    background: #FAFAFA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid #E5E7EB;
+  }
+
+  .phone-content {
+    padding: 16px;
+    position: relative;
+  }
+
+  /* ── Grid for side-by-side ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .card-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .state-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  /* ═══════════════════════════════════════════════
+     COMPONENT 1: FloatingVoteTab
+     ═══════════════════════════════════════════════ */
+
+  .floating-tab-collapsed {
+    width: 48px;
+    height: 40px;
+    background: var(--primary-500);
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 44px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    box-shadow: 0 4px 12px rgba(30,68,72,0.3);
+    cursor: pointer;
+    font-size: 20px;
+    z-index: 10;
+    animation: breathe 3s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: translateX(-50%) translateY(-20px); }
+    50% { transform: translateX(-50%) translateY(-16px); }
+  }
+
+  .floating-tab-expanded {
+    width: 280px;
+    height: 40px;
+    background: var(--primary-500);
+    border-radius: 0 0 16px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: absolute;
+    top: 44px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    box-shadow: 0 6px 20px rgba(30,68,72,0.35);
+    z-index: 10;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from { width: 48px; transform: translateX(-50%) translateY(-20px); opacity: 0.8; }
+    to { width: 280px; transform: translateX(-50%) translateY(0); opacity: 1; }
+  }
+
+  .floating-tab-expanded span {
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .floating-tab-expanded .trophy { font-size: 18px; }
+
+  .floating-tab-expanded .arrow {
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+  }
+
+  /* ═══════════════════════════════════════════════
+     COMPONENT 2: VotingLiveDot on Tab Bar
+     ═══════════════════════════════════════════════ */
+
+  .tab-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0 20px;
+    background: white;
+    border-top: 1px solid #E5E7EB;
+  }
+
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+
+  .tab-icon {
+    font-size: 22px;
+    color: var(--text-secondary);
+  }
+
+  .tab-item.active .tab-icon {
+    color: var(--primary-500);
+  }
+
+  .tab-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+  }
+
+  .tab-item.active .tab-label {
+    color: var(--primary-500);
+    font-weight: 600;
+  }
+
+  .live-dot {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    background: var(--primary-500);
+    border-radius: 50%;
+    animation: pulseDot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.6; }
+  }
+
+  /* ═══════════════════════════════════════════════
+     COMPONENT 3: VotingCard — Glassmorphism
+     ═══════════════════════════════════════════════ */
+
+  .voting-card {
+    background: transparent;
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    border: 1.5px solid var(--primary-300);
+    box-shadow:
+      0 0 15px rgba(84,172,181,0.3),
+      0 0 5px rgba(84,172,181,0.15);
+    animation: neonPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes neonPulse {
+    0%, 100% { border-color: rgba(84,172,181,0.5); box-shadow: 0 0 15px rgba(84,172,181,0.2), 0 0 5px rgba(84,172,181,0.1); }
+    50% { border-color: rgba(84,172,181,1); box-shadow: 0 0 25px rgba(84,172,181,0.4), 0 0 8px rgba(84,172,181,0.2); }
+  }
+
+  .voting-card .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--primary-300);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  .voting-card .header-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .voting-card .header-row .emoji { font-size: 22px; }
+
+  .voting-card .heading {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-500);
+  }
+
+  .voting-card .sub-text {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .voting-card .subtle-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* Progress bar */
+  .progress-track {
+    height: 8px;
+    background: var(--primary-50);
+    border-radius: 4px;
+    margin: 12px 0 8px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--primary-300);
+    border-radius: 4px;
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Vote Now button */
+  .vote-now-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px;
+    background: var(--accent-500);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    margin-top: 12px;
+    box-shadow: 0 0 12px rgba(245,84,73,0.35);
+    transition: transform 0.15s ease;
+  }
+
+  .vote-now-btn:active { transform: scale(0.96); }
+
+  /* Voted state */
+  .voting-card.voted {
+    animation: neonPulseSlow 6s ease-in-out infinite;
+  }
+
+  @keyframes neonPulseSlow {
+    0%, 100% { border-color: rgba(84,172,181,0.4); }
+    50% { border-color: rgba(84,172,181,0.7); }
+  }
+
+  .voting-card .heading.success { color: var(--success); }
+
+  /* Not eligible — static glow */
+  .voting-card.locked {
+    animation: none;
+    border-color: rgba(84,172,181,0.3);
+    box-shadow: 0 0 10px rgba(84,172,181,0.1), 0 4px 16px rgba(11,24,25,0.25);
+  }
+
+  .voting-card .heading.muted { color: var(--text-secondary); }
+
+  /* Winner / Victory Lap */
+  .voting-card.victory {
+    border-color: var(--gold);
+    animation: goldPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes goldPulse {
+    0%, 100% { border-color: rgba(255,215,0,0.4); box-shadow: 0 0 15px rgba(255,215,0,0.15), 0 4px 16px rgba(11,24,25,0.25); }
+    50% { border-color: rgba(255,215,0,0.9); box-shadow: 0 0 30px rgba(255,215,0,0.3), 0 4px 16px rgba(11,24,25,0.25); }
+  }
+
+  .voting-card .heading.gold { color: #B8860B; }
+
+  /* Floating confetti emoji */
+  .confetti-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .confetti {
+    position: absolute;
+    font-size: 16px;
+    animation: floatUp 5s ease-out infinite;
+    opacity: 0;
+  }
+
+  .confetti:nth-child(1) { left: 15%; animation-delay: 0s; }
+  .confetti:nth-child(2) { left: 45%; animation-delay: 1.2s; }
+  .confetti:nth-child(3) { left: 70%; animation-delay: 2.5s; }
+  .confetti:nth-child(4) { left: 88%; animation-delay: 3.8s; }
+
+  @keyframes floatUp {
+    0% { transform: translateY(80px) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 0.6; }
+    100% { transform: translateY(-30px) rotate(25deg); opacity: 0; }
+  }
+
+  /* Eligibility hint */
+  .eligibility-hint {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* ═══════════════════════════════════════════════
+     COMPONENT 4: PremiumPointsCard + Star
+     ═══════════════════════════════════════════════ */
+
+  .points-card {
+    background: linear-gradient(135deg, #005251 0%, #2DB89B 100%);
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0,82,81,0.25);
+  }
+
+  .points-card .top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .points-card .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .points-card .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .points-card .name {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .points-card .tier {
+    font-size: 12px;
+    opacity: 0.75;
+  }
+
+  .points-card .star-badge {
+    position: relative;
+  }
+
+  .points-card .tier-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .animated-star {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 16px;
+    animation: sparkle 4s ease-in-out infinite;
+  }
+
+  @keyframes sparkle {
+    0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.7; }
+    25% { transform: rotate(15deg) scale(1.2); opacity: 1; }
+    50% { transform: rotate(-15deg) scale(1.2); opacity: 1; }
+    75% { transform: rotate(0deg) scale(1); opacity: 0.7; }
+  }
+
+  .points-card .points-display {
+    text-align: center;
+    margin: 16px 0;
+  }
+
+  .points-card .points-value {
+    font-size: 36px;
+    font-weight: 800;
+  }
+
+  .points-card .points-label {
+    font-size: 12px;
+    opacity: 0.75;
+  }
+
+  .points-card .progress-section {
+    margin-top: 12px;
+  }
+
+  .points-card .progress-track {
+    background: rgba(255,255,255,0.25);
+  }
+
+  .points-card .progress-fill {
+    background: white;
+  }
+
+  .points-card .progress-text {
+    font-size: 11px;
+    opacity: 0.75;
+    margin-top: 4px;
+  }
+
+  /* ═══════════════════════════════════════════════
+     COMPONENT 5: Anticipation Hook Card
+     ═══════════════════════════════════════════════ */
+
+  .teaser-card {
+    background: var(--primary-500);
+    border-radius: 16px;
+    padding: 18px 20px;
+    border: 1.5px solid var(--gold);
+    animation: goldPulseSlow 6s ease-in-out infinite;
+    position: relative;
+  }
+
+  @keyframes goldPulseSlow {
+    0%, 100% { border-color: rgba(255,215,0,0.3); }
+    50% { border-color: rgba(255,215,0,0.6); }
+  }
+
+  .teaser-card .header-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .teaser-card .heading {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .teaser-card .sub-text {
+    font-size: 12px;
+    color: var(--primary-100);
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════════════════
+     Interactive Demo
+     ═══════════════════════════════════════════════ */
+
+  .demo-toggle-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .demo-toggle {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1.5px solid var(--primary-200);
+    background: white;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-500);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .demo-toggle.active {
+    background: var(--primary-500);
+    color: white;
+    border-color: var(--primary-500);
+  }
+</style>
+</head>
+<body>
+
+<h1>Voting UI Enhancements</h1>
+<p class="subtitle">Too Fresh To Waste — Mobile App Preview (Pure Animated API, No New Dependencies)</p>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 1: FloatingVoteTab
+     ═══════════════════════════════════════════════════════════ -->
+
+<h2 class="section-title">1. FloatingVoteTab — Home Screen</h2>
+<p class="section-desc">Peeks from the top center of the Home screen when voting is live. Tap to expand into a horizontal banner.</p>
+
+<div class="card-grid">
+  <!-- Collapsed -->
+  <div>
+    <p class="state-label">Collapsed (default — breathing animation)</p>
+    <div class="phone-frame" style="height: 280px;">
+      <div class="phone-status-bar">9:41</div>
+      <div class="floating-tab-collapsed">🏆</div>
+      <div class="phone-content" style="padding-top: 40px;">
+        <div style="background: #F3F4F6; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+          <div style="height: 12px; background: #E5E7EB; border-radius: 6px; width: 60%; margin-bottom: 8px;"></div>
+          <div style="height: 10px; background: #E5E7EB; border-radius: 6px; width: 80%;"></div>
+        </div>
+        <div style="background: #F3F4F6; border-radius: 12px; padding: 16px;">
+          <div style="height: 12px; background: #E5E7EB; border-radius: 6px; width: 50%; margin-bottom: 8px;"></div>
+          <div style="height: 10px; background: #E5E7EB; border-radius: 6px; width: 70%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expanded -->
+  <div>
+    <p class="state-label">Expanded (on tap — slides down & widens)</p>
+    <div class="phone-frame" style="height: 280px;">
+      <div class="phone-status-bar">9:41</div>
+      <div class="floating-tab-expanded">
+        <span class="trophy">🏆</span>
+        <span>Voting Is Live! Vote Now</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="phone-content" style="padding-top: 40px;">
+        <div style="background: #F3F4F6; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+          <div style="height: 12px; background: #E5E7EB; border-radius: 6px; width: 60%; margin-bottom: 8px;"></div>
+          <div style="height: 10px; background: #E5E7EB; border-radius: 6px; width: 80%;"></div>
+        </div>
+        <div style="background: #F3F4F6; border-radius: 12px; padding: 16px;">
+          <div style="height: 12px; background: #E5E7EB; border-radius: 6px; width: 50%; margin-bottom: 8px;"></div>
+          <div style="height: 10px; background: #E5E7EB; border-radius: 6px; width: 70%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 2: VotingLiveDot
+     ═══════════════════════════════════════════════════════════ -->
+
+<h2 class="section-title">2. VotingLiveDot — Profile Tab Badge</h2>
+<p class="section-desc">A pulsing 8px dot on the Profile tab icon when any voting cycle is active.</p>
+
+<div class="card-grid">
+  <!-- With dot -->
+  <div>
+    <p class="state-label">Voting Active — Pulsing Dot</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="tab-bar">
+        <div class="tab-item">
+          <span class="tab-icon">🏠</span>
+          <span class="tab-label">Home</span>
+        </div>
+        <div class="tab-item">
+          <span class="tab-icon">🔍</span>
+          <span class="tab-label">Search</span>
+        </div>
+        <div class="tab-item">
+          <span class="tab-icon">❤️</span>
+          <span class="tab-label">Favorites</span>
+        </div>
+        <div class="tab-item">
+          <span class="tab-icon">🧾</span>
+          <span class="tab-label">Orders</span>
+        </div>
+        <div class="tab-item active">
+          <span class="tab-icon">👤</span>
+          <div class="live-dot"></div>
+          <span class="tab-label">Profile</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Without dot -->
+  <div>
+    <p class="state-label">No Active Cycle — No Dot</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="tab-bar">
+        <div class="tab-item">
+          <span class="tab-icon">🏠</span>
+          <span class="tab-label">Home</span>
+        </div>
+        <div class="tab-item">
+          <span class="tab-icon">🔍</span>
+          <span class="tab-label">Search</span>
+        </div>
+        <div class="tab-item">
+          <span class="tab-icon">❤️</span>
+          <span class="tab-label">Favorites</span>
+        </div>
+        <div class="tab-item">
+          <span class="tab-icon">🧾</span>
+          <span class="tab-label">Orders</span>
+        </div>
+        <div class="tab-item active">
+          <span class="tab-icon">👤</span>
+          <span class="tab-label">Profile</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 3: PremiumPointsCard + Animated Star
+     ═══════════════════════════════════════════════════════════ -->
+
+<h2 class="section-title">3. PremiumPointsCard — Animated Star</h2>
+<p class="section-desc">Subtle sparkling star near the tier badge when a voting cycle is active. Draws the eye toward the VotingCard below.</p>
+
+<div class="card-grid">
+  <div>
+    <p class="state-label">Voting Active — Star Sparkles</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <div class="points-card">
+          <div class="top-row">
+            <div class="user-info">
+              <div class="avatar">SW</div>
+              <div>
+                <div class="name">Salem W.</div>
+                <div class="tier">Green Saver</div>
+              </div>
+            </div>
+            <div class="star-badge">
+              <span class="tier-badge">🌿 Gold</span>
+              <span class="animated-star">⭐</span>
+            </div>
+          </div>
+          <div class="points-display">
+            <div class="points-value">12,450</div>
+            <div class="points-label">Available Points</div>
+          </div>
+          <div class="progress-section">
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 62%;"></div>
+            </div>
+            <div class="progress-text">3,550 points to Platinum</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="state-label">No Voting — Static (No Star Animation)</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <div class="points-card">
+          <div class="top-row">
+            <div class="user-info">
+              <div class="avatar">SW</div>
+              <div>
+                <div class="name">Salem W.</div>
+                <div class="tier">Green Saver</div>
+              </div>
+            </div>
+            <div class="star-badge">
+              <span class="tier-badge">🌿 Gold</span>
+            </div>
+          </div>
+          <div class="points-display">
+            <div class="points-value">12,450</div>
+            <div class="points-label">Available Points</div>
+          </div>
+          <div class="progress-section">
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 62%;"></div>
+            </div>
+            <div class="progress-text">3,550 points to Platinum</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 4: VotingCard — All States
+     ═══════════════════════════════════════════════════════════ -->
+
+<h2 class="section-title">4. VotingCard — Glassmorphism (All States)</h2>
+<p class="section-desc">Dark gradient with frosted overlay, green neon glow border. Each state has distinct visual treatment.</p>
+
+<!-- State: ACTIVE (Community Challenge) -->
+<div class="card-grid-3">
+  <div>
+    <p class="state-label">ACTIVE — Community Challenge</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <div class="voting-card">
+          <div class="section-label">COMMUNITY CHALLENGE</div>
+          <div class="header-row">
+            <span class="emoji">🌍</span>
+            <span class="heading">Summer Eco Championship</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: 68%;"></div>
+          </div>
+          <div class="subtle-text">20,400 / 30,000 bags — 68%</div>
+          <div class="eligibility-hint">Save 12 more bags to unlock voting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- State: BALLOT_OPEN + Can Vote -->
+  <div>
+    <p class="state-label">BALLOT_OPEN — Vote Now</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <div class="voting-card">
+          <div class="section-label">COMMUNITY VOTE</div>
+          <div class="header-row">
+            <span class="emoji">🏆</span>
+            <span class="heading">Voting is Live!</span>
+          </div>
+          <div class="subtle-text">23h 45m left</div>
+          <button class="vote-now-btn">Vote Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- State: BALLOT_OPEN + Voted -->
+  <div>
+    <p class="state-label">BALLOT_OPEN — You Voted</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <div class="voting-card voted">
+          <div class="section-label">COMMUNITY VOTE</div>
+          <div class="header-row">
+            <span class="emoji">✓</span>
+            <span class="heading success">You Voted!</span>
+          </div>
+          <div class="sub-text">Smartphone Reconditionne</div>
+          <div class="subtle-text">23h 45m left</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card-grid" style="margin-top: 20px;">
+  <!-- State: BALLOT_OPEN + Not Eligible -->
+  <div>
+    <p class="state-label">BALLOT_OPEN — Not Eligible (Locked)</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <div class="voting-card locked">
+          <div class="section-label">COMMUNITY VOTE</div>
+          <div class="header-row">
+            <span class="emoji">🔒</span>
+            <span class="heading muted">Voting is Live!</span>
+          </div>
+          <div class="sub-text">Save 15 more bags to participate</div>
+          <div class="subtle-text">23h 45m left</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- State: COMPLETED + Winner (Victory Lap) -->
+  <div>
+    <p class="state-label">COMPLETED — Victory Lap (Days 1-7)</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <div class="voting-card victory">
+          <div class="confetti-container">
+            <span class="confetti">🎉</span>
+            <span class="confetti">✨</span>
+            <span class="confetti">🎊</span>
+            <span class="confetti">✨</span>
+          </div>
+          <div class="section-label" style="color: #B8860B;">COMMUNITY CHAMPION</div>
+          <div class="header-row">
+            <span class="emoji">🏆</span>
+            <span class="heading gold">The Community Has Spoken!</span>
+          </div>
+          <div class="sub-text">Smartphone Reconditionne won the Eco-Championship!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 5: Anticipation Hook (Post-Cycle Teaser)
+     ═══════════════════════════════════════════════════════════ -->
+
+<h2 class="section-title">5. Anticipation Hook — Post-Cycle Teaser</h2>
+<p class="section-desc">After the Victory Lap ends (day 8+), this minimal teaser card keeps the voting section alive with a slow-pulsing gold border.</p>
+
+<div class="card-grid">
+  <div>
+    <p class="state-label">Anticipation Hook (Day 8 to Next Cycle)</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <div class="teaser-card">
+          <div class="header-row">
+            <span style="font-size: 18px;">🏆</span>
+            <span class="heading">Next community championship vote coming soon</span>
+          </div>
+          <div class="sub-text">Keep your login streaks alive and save surplus boxes to maximize your voting power!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="state-label">Full Loyalty Screen Flow (Simplified)</p>
+    <div class="phone-frame" style="height: auto;">
+      <div class="phone-content">
+        <!-- Mini PremiumPointsCard -->
+        <div style="background: linear-gradient(135deg, #005251, #2DB89B); border-radius: 12px; padding: 14px; color: white; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 13px; font-weight: 600;">12,450 Points</div>
+            <div style="font-size: 10px; opacity: 0.7;">🌿 Gold</div>
+          </div>
+        </div>
+        <!-- Impact Stats placeholder -->
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <div style="flex:1; background: #F3F4F6; border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 16px; font-weight: 700; color: var(--primary-500);">42</div>
+            <div style="font-size: 9px; color: var(--text-secondary);">Bags Saved</div>
+          </div>
+          <div style="flex:1; background: #F3F4F6; border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 16px; font-weight: 700; color: var(--primary-500);">8.4kg</div>
+            <div style="font-size: 9px; color: var(--text-secondary);">CO₂ Saved</div>
+          </div>
+          <div style="flex:1; background: #F3F4F6; border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 16px; font-weight: 700; color: var(--primary-500);">126 TND</div>
+            <div style="font-size: 9px; color: var(--text-secondary);">Saved</div>
+          </div>
+        </div>
+        <!-- Teaser card in context -->
+        <div class="teaser-card" style="margin-bottom: 12px;">
+          <div class="header-row">
+            <span style="font-size: 16px;">🏆</span>
+            <span class="heading" style="font-size: 12px;">Next community championship vote coming soon</span>
+          </div>
+          <div class="sub-text" style="font-size: 10px;">Keep your streaks alive & save boxes to maximize voting power!</div>
+        </div>
+        <!-- How You Earn placeholder -->
+        <div style="background: #F3F4F6; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 10px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">HOW YOU EARN</div>
+          <div style="height: 8px; background: #E5E7EB; border-radius: 4px; width: 70%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     LEGEND
+     ═══════════════════════════════════════════════════════════ -->
+
+<h2 class="section-title">Color & Animation Legend</h2>
+
+<div style="max-width: 600px; margin: 0 auto; font-size: 13px;">
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="border-bottom: 2px solid var(--primary-200);">
+        <th style="text-align: left; padding: 8px; color: var(--primary-500);">Element</th>
+        <th style="text-align: left; padding: 8px; color: var(--primary-500);">Animation</th>
+        <th style="text-align: left; padding: 8px; color: var(--primary-500);">Duration</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #E5E7EB;">
+        <td style="padding: 8px;">FloatingVoteTab expand</td>
+        <td style="padding: 8px;">width 48→280px (sticky, no movement)</td>
+        <td style="padding: 8px;">300ms once</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #E5E7EB;">
+        <td style="padding: 8px;">VotingLiveDot pulse</td>
+        <td style="padding: 8px;">scale 1→1.4, opacity 1→0.6</td>
+        <td style="padding: 8px;">2s loop</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #E5E7EB;">
+        <td style="padding: 8px;">Neon border glow</td>
+        <td style="padding: 8px;">opacity 0.5→1.0</td>
+        <td style="padding: 8px;">3s loop</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #E5E7EB;">
+        <td style="padding: 8px;">Voted state glow (slower)</td>
+        <td style="padding: 8px;">opacity 0.4→0.7</td>
+        <td style="padding: 8px;">6s loop</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #E5E7EB;">
+        <td style="padding: 8px;">Gold border (Victory/Teaser)</td>
+        <td style="padding: 8px;">opacity 0.3→0.9 / 0.3→0.6</td>
+        <td style="padding: 8px;">3s / 6s loop</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #E5E7EB;">
+        <td style="padding: 8px;">Confetti float</td>
+        <td style="padding: 8px;">translateY +80→-30, fade in/out</td>
+        <td style="padding: 8px;">5s loop</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px;">Star sparkle</td>
+        <td style="padding: 8px;">rotate ±15°, scale 1→1.2</td>
+        <td style="padding: 8px;">4s loop</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align: center; margin-top: 48px; padding: 24px; color: var(--text-secondary); font-size: 12px;">
+  Too Fresh To Waste — Voting UI Enhancements Preview<br>
+  All animations use React Native Animated API (no new dependencies)<br>
+  Green neon glow: primary palette (#1E4448 family)
+</div>
+
+</body>
+</html>

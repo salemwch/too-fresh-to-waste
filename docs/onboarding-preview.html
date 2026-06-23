@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Too Fresh To Waste — Onboarding</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #1E4448;
+    --accent:  #F55449;
+    --amber:   #FFC107;
+    --green:   #2E7D32;
+    --white:   #FFFFFF;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0c0c0f;
+    color: #fff;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    padding: 52px 24px 36px;
+  }
+  .header h1 {
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .header p { font-size: 14px; color: #555; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 24px 48px;
+  }
+  .tab {
+    padding: 9px 22px;
+    border-radius: 100px;
+    border: 1.5px solid #2a2a2a;
+    background: transparent;
+    color: #555;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+
+  /* ── Section ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── Phone row ── */
+  .row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 0 24px 80px;
+    align-items: flex-start;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .col-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #444;
+  }
+
+  /* ── Phone frame ── */
+  .phone {
+    width: 240px;
+    height: 500px;
+    border-radius: 40px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 0 2px #222, 0 0 0 4px #181818, 0 28px 64px rgba(0,0,0,0.6);
+    flex-shrink: 0;
+  }
+  /* notch */
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 72px; height: 18px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 100px;
+    z-index: 10;
+  }
+  /* home bar */
+  .phone::after {
+    content: '';
+    position: absolute;
+    bottom: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 72px; height: 4px;
+    border-radius: 2px;
+    z-index: 10;
+  }
+
+  /* ── Screen layout ── */
+  .screen {
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  /* top skip */
+  .skip {
+    position: absolute;
+    top: 20px; right: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 5;
+  }
+
+  /* large illustration zone — top 55% */
+  .illus {
+    width: 100%;
+    height: 55%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* text zone — bottom portion */
+  .copy {
+    flex: 1;
+    width: 100%;
+    padding: 0 24px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .headline {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+
+  .sub {
+    font-size: 13px;
+    line-height: 1.55;
+    margin-bottom: 20px;
+    opacity: 0.65;
+  }
+
+  .dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .d { width: 6px; height: 6px; border-radius: 50%; opacity: 0.25; }
+  .d.on { width: 18px; border-radius: 3px; opacity: 1; }
+
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .arrow {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .arrow svg { width: 18px; height: 18px; }
+
+  .cta {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+
+
+  /* ══════════════════════════════════════════
+     STYLE A — DARK TEAL
+     One consistent deep teal across all 3 screens.
+     Clean white text. Accent pops of color.
+  ══════════════════════════════════════════ */
+
+  .a-bg { background: var(--primary); }
+
+  .a-bg .phone::after { background: rgba(255,255,255,0.2); }
+
+  .a1 .screen { background: linear-gradient(180deg, #1a3c40 0%, var(--primary) 100%); }
+  .a2 .screen { background: linear-gradient(180deg, #1a3c40 0%, var(--primary) 100%); }
+  .a3 .screen { background: linear-gradient(180deg, #1a3c40 0%, var(--primary) 100%); }
+
+  .a-bg .skip { color: rgba(255,255,255,0.35); }
+  .a-bg .headline { color: #fff; }
+  .a-bg .sub { color: rgba(255,255,255,0.65); }
+  .a-bg .d { background: #fff; }
+  .a-bg .d.on { background: var(--accent); }
+
+  .a-bg .arrow { background: var(--accent); box-shadow: 0 6px 20px rgba(245,84,73,0.35); }
+
+  .a-bg .cta {
+    background: #fff;
+    color: var(--primary);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  }
+
+  /* A illustrations */
+  .a-emoji { font-size: 96px; line-height: 1; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3)); }
+
+  .a1 .accent-stat {
+    position: absolute;
+    bottom: 12px; right: 16px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.3px;
+  }
+
+  .a2 .prize-badge {
+    position: absolute;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: #1a1a1a;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 100px;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  /* ══════════════════════════════════════════
+     STYLE B — PURE WHITE
+     Clean, airy, Apple-ish. Teal headings.
+  ══════════════════════════════════════════ */
+
+  .b-bg .phone { box-shadow: 0 0 0 2px #ddd, 0 0 0 4px #eee, 0 28px 64px rgba(0,0,0,0.2); }
+  .b-bg .phone::before { background: #ccc; }
+  .b-bg .phone::after { background: rgba(0,0,0,0.15); }
+
+  .b1 .screen { background: #ffffff; }
+  .b2 .screen { background: #ffffff; }
+  .b3 .screen { background: #ffffff; }
+
+  .b-bg .skip { color: #bbb; }
+  .b-bg .headline { color: var(--primary); }
+  .b-bg .sub { color: #999; }
+  .b-bg .d { background: #ddd; }
+  .b-bg .d.on { background: var(--primary); }
+  .b-bg .arrow { background: var(--primary); box-shadow: 0 6px 20px rgba(30,68,72,0.25); }
+  .b-bg .cta { background: var(--primary); color: #fff; box-shadow: 0 6px 20px rgba(30,68,72,0.25); }
+
+  .b-bg .a-emoji { filter: none; }
+
+  /* tinted circle behind emoji */
+  .b-illus-wrap {
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: #EBF3F4;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+    line-height: 1;
+  }
+  .b2 .b-illus-wrap { background: #FFF8E1; }
+  .b3 .b-illus-wrap { background: #E8F5E8; }
+
+  .b2 .prize-badge {
+    position: absolute;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: #1a1a1a;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 100px;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  /* ══════════════════════════════════════════
+     STYLE C — PER-SCREEN COLOR
+     Each screen has its own brand color world.
+     S1=Teal, S2=Amber, S3=Green
+  ══════════════════════════════════════════ */
+
+  .c1 .screen { background: linear-gradient(160deg, #0d2426 0%, #1E4448 100%); }
+  .c2 .screen { background: linear-gradient(160deg, #1a1200 0%, #3d2d00 100%); }
+  .c3 .screen { background: linear-gradient(160deg, #071408 0%, #0e2d10 100%); }
+
+  .c-bg .phone::after { background: rgba(255,255,255,0.18); }
+  .c-bg .skip { color: rgba(255,255,255,0.3); }
+  .c-bg .headline { color: #fff; }
+  .c-bg .sub { color: rgba(255,255,255,0.55); }
+
+  .c1 .d { background: rgba(255,255,255,0.25); }
+  .c1 .d.on { background: #54ACB5; }
+  .c1 .arrow { background: #54ACB5; box-shadow: 0 6px 20px rgba(84,172,181,0.3); }
+
+  .c2 .d { background: rgba(255,255,255,0.25); }
+  .c2 .d.on { background: var(--amber); }
+  .c2 .arrow { background: var(--amber); box-shadow: 0 6px 20px rgba(255,193,7,0.3); }
+
+  .c3 .d { background: rgba(255,255,255,0.25); }
+  .c3 .d.on { background: #4caf50; }
+  .c3 .cta { background: #4caf50; color: #fff; box-shadow: 0 6px 20px rgba(76,175,80,0.3); }
+
+  .c2 .prize-badge {
+    position: absolute;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: #1a1a1a;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 100px;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  /* footer */
+  .foot {
+    text-align: center;
+    padding: 32px 24px 56px;
+    border-top: 1px solid #161616;
+    font-size: 13px;
+    color: #444;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Onboarding Screens</h1>
+  <p>3 screens · 3 style options — click a tab to compare</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('a',this)">A — Dark Teal</button>
+  <button class="tab" onclick="show('b',this)">B — Clean White</button>
+  <button class="tab" onclick="show('c',this)">C — Per-Screen Color</button>
+</div>
+
+
+<!-- ═══════ STYLE A: DARK TEAL ═══════════════════════════ -->
+<div class="section active" id="s-a">
+<div class="row a-bg">
+
+  <!-- Screen 1 -->
+  <div class="col">
+    <div class="col-label">Screen 1</div>
+    <div class="phone a1">
+      <div class="screen">
+        <span class="skip">Skip</span>
+
+        <div class="illus" style="position:relative;">
+          <div class="a-emoji">🗑️</div>
+          <div class="accent-stat">1 in 3 meals wasted</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Food is going<br/>to waste.</div>
+          <div class="sub">Millions of fresh meals are thrown away every day while families go hungry.</div>
+          <div class="nav-row">
+            <div class="dots">
+              <div class="d on"></div>
+              <div class="d"></div>
+              <div class="d"></div>
+            </div>
+            <div class="arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2 -->
+  <div class="col">
+    <div class="col-label">Screen 2</div>
+    <div class="phone a2">
+      <div class="screen">
+        <span class="skip">Skip</span>
+
+        <div class="illus" style="position:relative;">
+          <div class="prize-badge">🏆 First 5 win a phone</div>
+          <div class="a-emoji">📱</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Save bags.<br/>Win big.</div>
+          <div class="sub">Every 6 months, when we reach 30,000 saved bags together — the top 5 win a smartphone.</div>
+          <div class="nav-row">
+            <div class="dots">
+              <div class="d"></div>
+              <div class="d on"></div>
+              <div class="d"></div>
+            </div>
+            <div class="arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3 -->
+  <div class="col">
+    <div class="col-label">Screen 3</div>
+    <div class="phone a3">
+      <div class="screen">
+
+        <div class="illus">
+          <div class="a-emoji">🤲</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Every bag feeds<br/>a family.</div>
+          <div class="sub">Your purchase turns food waste into a meal on someone's table tonight.</div>
+          <div class="dots">
+            <div class="d"></div>
+            <div class="d"></div>
+            <div class="d on"></div>
+          </div>
+          <div class="cta">Get Started 🚀</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+
+<!-- ═══════ STYLE B: CLEAN WHITE ═════════════════════════ -->
+<div class="section" id="s-b">
+<div class="row b-bg">
+
+  <!-- Screen 1 -->
+  <div class="col">
+    <div class="col-label">Screen 1</div>
+    <div class="phone b1">
+      <div class="screen">
+        <span class="skip">Skip</span>
+
+        <div class="illus">
+          <div class="b-illus-wrap">🗑️</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Food is going<br/>to waste.</div>
+          <div class="sub">Millions of fresh meals are thrown away every day while families go hungry.</div>
+          <div class="nav-row">
+            <div class="dots">
+              <div class="d on"></div>
+              <div class="d"></div>
+              <div class="d"></div>
+            </div>
+            <div class="arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2 -->
+  <div class="col">
+    <div class="col-label">Screen 2</div>
+    <div class="phone b2">
+      <div class="screen">
+        <span class="skip">Skip</span>
+
+        <div class="illus" style="position:relative;">
+          <div class="prize-badge">🏆 First 5 win a phone</div>
+          <div class="b-illus-wrap">📱</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Save bags.<br/>Win big.</div>
+          <div class="sub">Every 6 months, when we reach 30,000 saved bags together — the top 5 win a smartphone.</div>
+          <div class="nav-row">
+            <div class="dots">
+              <div class="d"></div>
+              <div class="d on"></div>
+              <div class="d"></div>
+            </div>
+            <div class="arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3 -->
+  <div class="col">
+    <div class="col-label">Screen 3</div>
+    <div class="phone b3">
+      <div class="screen">
+
+        <div class="illus">
+          <div class="b-illus-wrap">🤲</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Every bag feeds<br/>a family.</div>
+          <div class="sub">Your purchase turns food waste into a meal on someone's table tonight.</div>
+          <div class="dots">
+            <div class="d"></div>
+            <div class="d"></div>
+            <div class="d on"></div>
+          </div>
+          <div class="cta">Get Started 🚀</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+
+<!-- ═══════ STYLE C: PER-SCREEN COLOR ════════════════════ -->
+<div class="section" id="s-c">
+<div class="row c-bg">
+
+  <!-- Screen 1 -->
+  <div class="col">
+    <div class="col-label">Screen 1</div>
+    <div class="phone c1">
+      <div class="screen">
+        <span class="skip">Skip</span>
+
+        <div class="illus">
+          <div class="a-emoji">🗑️</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Food is going<br/>to waste.</div>
+          <div class="sub">Millions of fresh meals are thrown away every day while families go hungry.</div>
+          <div class="nav-row">
+            <div class="dots">
+              <div class="d on"></div>
+              <div class="d"></div>
+              <div class="d"></div>
+            </div>
+            <div class="arrow" style="background:#54ACB5;box-shadow:0 6px 20px rgba(84,172,181,0.3);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2 -->
+  <div class="col">
+    <div class="col-label">Screen 2</div>
+    <div class="phone c2">
+      <div class="screen">
+        <span class="skip">Skip</span>
+
+        <div class="illus" style="position:relative;">
+          <div class="prize-badge">🏆 First 5 win a phone</div>
+          <div class="a-emoji">📱</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Save bags.<br/>Win big.</div>
+          <div class="sub">Every 6 months, when we reach 30,000 saved bags together — the top 5 win a smartphone.</div>
+          <div class="nav-row">
+            <div class="dots">
+              <div class="d"></div>
+              <div class="d on"></div>
+              <div class="d"></div>
+            </div>
+            <div class="arrow" style="background:var(--amber);box-shadow:0 6px 20px rgba(255,193,7,0.3);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3 -->
+  <div class="col">
+    <div class="col-label">Screen 3</div>
+    <div class="phone c3">
+      <div class="screen">
+
+        <div class="illus">
+          <div class="a-emoji">🤲</div>
+        </div>
+
+        <div class="copy">
+          <div class="headline">Every bag feeds<br/>a family.</div>
+          <div class="sub">Your purchase turns food waste into a meal on someone's table tonight.</div>
+          <div class="dots">
+            <div class="d"></div>
+            <div class="d"></div>
+            <div class="d on"></div>
+          </div>
+          <div class="cta">Get Started 🚀</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="foot">Pick a style — then we implement it in React Native.</div>
+
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('s-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

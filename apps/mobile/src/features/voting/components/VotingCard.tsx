@@ -113,7 +113,7 @@ const GlowCard: React.FC<GlowCardProps> = ({ children, variant }) => {
               : [0.4, 0.9]
             : variant === 'neon-slow'
               ? [0.4, 0.7]
-              : [0.5, 1.0],
+              : [0.6, 1.0],
         });
 
   const shadowOpacity =
@@ -128,17 +128,11 @@ const GlowCard: React.FC<GlowCardProps> = ({ children, variant }) => {
     <Animated.View
       style={[
         styles.card,
-        {
-          opacity: 1,
-        },
         Platform.OS === 'ios' && {
           shadowColor: shadowColor,
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: shadowOpacity as unknown as number,
           shadowRadius: 15,
-        },
-        Platform.OS === 'android' && {
-          elevation: 4,
         },
       ]}
     >
@@ -210,10 +204,12 @@ export const VotingCard: React.FC = () => {
   const [showVoteSheet, setShowVoteSheet] = useState(false);
 
   if (isLoading || !cycle) return null;
+  if (cycle.status === 'ARCHIVED' || cycle.status === 'EXPIRED') return null;
 
   // ── Phase determination ──
   const isCompleted = cycle.status === 'COMPLETED';
   const isBallotOpen = cycle.status === 'BALLOT_OPEN';
+  const isTallying = cycle.status === 'TALLYING';
   const daysSinceAnnounced = isCompleted ? getDaysSinceAnnounced(cycle.winner?.announcedAt) : 0;
   const isVictoryLap = isCompleted && cycle.winner && daysSinceAnnounced <= VICTORY_LAP_DAYS;
   const isAnticipationHook = isCompleted && !isVictoryLap;
@@ -397,6 +393,36 @@ export const VotingCard: React.FC = () => {
     );
   }
 
+  // ── Tallying ──
+  if (isTallying) {
+    const votedPrizeName = myVote
+      ? (cycle.prizes.find(p => p._id === myVote.prizeId)?.name ?? 'Your choice')
+      : null;
+    return (
+      <View style={styles.container}>
+        <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
+          COMMUNITY VOTE
+        </Text>
+        <GlowCard variant='neon-slow'>
+          <View style={styles.iconRow}>
+            <Text style={styles.emoji}>⏳</Text>
+            <Text variant='body' size='md' weight='bold' style={styles.headingText}>
+              Votes are being counted…
+            </Text>
+          </View>
+          {votedPrizeName !== null && (
+            <Text variant='body' size='sm' style={styles.subText}>
+              {`You voted for ${votedPrizeName}`}
+            </Text>
+          )}
+          <Text variant='body' size='xs' style={styles.subtleText}>
+            Results will be announced soon
+          </Text>
+        </GlowCard>
+      </View>
+    );
+  }
+
   // ── ACTIVE: Community Challenge ──
   const progress = cycle.communityGoalProgress;
   const target = cycle.communityGoalTarget;
@@ -456,7 +482,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   card: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
     position: 'relative',
