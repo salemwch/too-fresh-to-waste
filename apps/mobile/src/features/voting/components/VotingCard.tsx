@@ -26,9 +26,16 @@ import {
 
 import { Icon, Text } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { useAppSelector } from '@/hooks/redux';
 
 import { useActiveVotingCycle } from '../hooks/useVoting';
+import {
+  useClaimVotingPrize,
+  useVotingPrizeStatus,
+  votingPrizeToClaimData,
+} from '../hooks/useVotingPrize';
 
+import { DiscountClaimModal } from '@/features/leaderboard/components/DiscountClaimModal';
 import { VoteBottomSheet } from './VoteBottomSheet';
 
 // Colors from design system
@@ -202,6 +209,14 @@ const ConfettiParticle: React.FC<{ emoji: string; delay: number; left: Dimension
 export const VotingCard: React.FC = () => {
   const { cycle, eligibility, myVote, isLoading } = useActiveVotingCycle();
   const [showVoteSheet, setShowVoteSheet] = useState(false);
+  const [showPrizeModal, setShowPrizeModal] = useState(false);
+
+  // Prize hooks — must be declared before any early return (rules-of-hooks).
+  // isCompletedCycle uses optional chaining so it's safe when cycle is null.
+  const isCompletedCycle = cycle?.status === 'COMPLETED';
+  const { data: votingPrize } = useVotingPrizeStatus(isCompletedCycle);
+  const claimVotingPrize = useClaimVotingPrize();
+  const firstName = useAppSelector(state => state.auth.user?.firstName ?? '');
 
   if (isLoading || !cycle) return null;
   if (cycle.status === 'ARCHIVED' || cycle.status === 'EXPIRED') return null;
@@ -216,6 +231,10 @@ export const VotingCard: React.FC = () => {
 
   // ── Victory Lap ──
   if (isVictoryLap) {
+    const isPrizeWinner = votingPrize?.isWinner === true;
+    const prizeClaimed = votingPrize?.hasClaimed === true;
+    const claimData = votingPrize ? votingPrizeToClaimData(votingPrize) : null;
+
     return (
       <View style={styles.container}>
         <Text
@@ -247,7 +266,34 @@ export const VotingCard: React.FC = () => {
           <Text variant='body' size='sm' style={styles.subText}>
             {cycle.winner?.name ?? 'Winner announced!'} won the Eco-Championship!
           </Text>
+
+          {isPrizeWinner && (
+            <Pressable
+              style={({ pressed }) => [styles.voteButton, pressed && styles.voteButtonPressed]}
+              onPress={() => setShowPrizeModal(true)}
+              accessibilityRole='button'
+              accessibilityLabel={prizeClaimed ? 'View Your Voucher' : 'Claim Your Prize'}
+            >
+              <Text variant='body' size='sm' weight='bold' style={styles.voteButtonText}>
+                {prizeClaimed ? 'View Your Voucher' : 'Claim Your Prize'}
+              </Text>
+            </Pressable>
+          )}
         </GlowCard>
+
+        {isPrizeWinner && (
+          <DiscountClaimModal
+            visible={showPrizeModal}
+            onClose={() => setShowPrizeModal(false)}
+            rank={votingPrize?.rank ?? 0}
+            hasClaimed={prizeClaimed}
+            claimData={claimData}
+            onClaim={establishmentId => claimVotingPrize.mutate(establishmentId)}
+            isClaiming={claimVotingPrize.isPending}
+            error={claimVotingPrize.error != null ? claimVotingPrize.error.message : null}
+            firstName={firstName}
+          />
+        )}
       </View>
     );
   }

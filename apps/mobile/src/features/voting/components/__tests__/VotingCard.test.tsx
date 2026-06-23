@@ -55,6 +55,25 @@ jest.mock('../../hooks/useVoting', () => ({
   useVoteMutation: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
 
+// Mock prize hooks — default to non-winner so they are transparent for
+// non-prize tests; the prize test file uses its own overrides.
+jest.mock('../../hooks/useVotingPrize', () => ({
+  useVotingPrizeStatus: () => ({ data: undefined }),
+  useClaimVotingPrize: () => ({ mutate: jest.fn(), isPending: false, error: null }),
+  votingPrizeToClaimData: () => null,
+}));
+
+// Mock useAppSelector (only firstName needed in VotingCard)
+jest.mock('@/hooks/redux', () => ({
+  useAppSelector: () => '',
+}));
+
+// Mock DiscountClaimModal — only rendered when isPrizeWinner, so a no-op
+// stub keeps the rest of the test suite fast and dependency-free.
+jest.mock('@/features/leaderboard/components/DiscountClaimModal', () => ({
+  DiscountClaimModal: () => null,
+}));
+
 jest.mock('../VoteBottomSheet', () => {
   const mockReact = jest.requireActual<typeof import('react')>('react');
   const mockRN = jest.requireActual<typeof import('react-native')>('react-native');
