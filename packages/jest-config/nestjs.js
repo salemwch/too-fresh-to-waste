@@ -25,8 +25,6 @@ module.exports = {
           esModuleInterop: true,
           allowSyntheticDefaultImports: true,
           skipLibCheck: true,
-          noUnusedLocals: false,
-          noUnusedParameters: false,
         },
       },
     ],

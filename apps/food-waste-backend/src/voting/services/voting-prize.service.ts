@@ -1,15 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
-import {
-  Establishment,
-  type EstablishmentDocument,
-} from '../../establishments/schemas/establishment.schema';
-import { PushNotificationService } from '../../notifications/services/push-notification.service';
-import { PrizeClaim, type PrizeClaimDocument } from '../../loyalty/schemas/prize-claim.schema';
 import { Vote, type VoteDocument } from '../schemas/vote.schema';
-import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
 
 export interface VotingWinnerRow {
   userId: string;
@@ -19,16 +12,7 @@ export interface VotingWinnerRow {
 
 @Injectable()
 export class VotingPrizeService {
-  private readonly logger = new Logger(VotingPrizeService.name);
-
-  constructor(
-    @InjectModel(Vote.name) private readonly voteModel: Model<VoteDocument>,
-    @InjectModel(VotingCycle.name) private readonly cycleModel: Model<VotingCycleDocument>,
-    @InjectModel(PrizeClaim.name) private readonly prizeClaimModel: Model<PrizeClaimDocument>,
-    @InjectModel(Establishment.name)
-    private readonly establishmentModel: Model<EstablishmentDocument>,
-    private readonly pushNotificationService: PushNotificationService,
-  ) {}
+  constructor(@InjectModel(Vote.name) private readonly voteModel: Model<VoteDocument>) {}
 
   /**
    * Top `recipientCount` voters for the winning prize, ranked by pointsSnapshot
