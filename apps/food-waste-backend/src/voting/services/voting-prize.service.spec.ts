@@ -1,3 +1,4 @@
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
@@ -169,5 +170,103 @@ describe('VotingPrizeService.getMyPrize', () => {
     const result = await service.getMyPrize(winnerUser.toString());
     expect(result.isWinner).toBe(false);
     expect(result.cycleId).toBeNull();
+  });
+});
+
+describe('VotingPrizeService.claimPrize', () => {
+  const winningPrizeId = new Types.ObjectId();
+  const winnerUser = new Types.ObjectId();
+  const cycleId = new Types.ObjectId();
+  const estId = new Types.ObjectId();
+
+  const voteModel = { aggregate: jest.fn() };
+  const cycleModel = { findOne: jest.fn() };
+  const prizeClaimModel = { findOne: jest.fn(), exists: jest.fn(), create: jest.fn() };
+  const establishmentModel = { findById: jest.fn() };
+
+  async function buildService() {
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        VotingPrizeService,
+        { provide: getModelToken(Vote.name), useValue: voteModel },
+        { provide: getModelToken(VotingCycle.name), useValue: cycleModel },
+        { provide: getModelToken(PrizeClaim.name), useValue: prizeClaimModel },
+        { provide: getModelToken(Establishment.name), useValue: establishmentModel },
+        { provide: PushNotificationService, useValue: { send: jest.fn() } },
+      ],
+    }).compile();
+    return moduleRef;
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    cycleModel.findOne.mockReturnValue({
+      sort: jest.fn().mockReturnValue({
+        lean: jest.fn().mockResolvedValue({
+          _id: cycleId,
+          name: 'Eco Cycle 3',
+          cycleNumber: 3,
+          recipientCount: 5,
+          winnerPrizeId: winningPrizeId,
+          winner: { prizeId: winningPrizeId, name: 'Smart Garden' },
+        }),
+      }),
+    });
+    voteModel.aggregate.mockResolvedValue([{ userId: winnerUser, pointsSnapshot: 200 }]);
+  });
+
+  it('throws when the user is not a winner', async () => {
+    voteModel.aggregate.mockResolvedValue([{ userId: new Types.ObjectId(), pointsSnapshot: 5 }]);
+    const moduleRef = await buildService();
+    const service = moduleRef.get(VotingPrizeService);
+    await expect(
+      service.claimPrize(winnerUser.toString(), estId.toString()),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('throws NotFound for a missing establishment', async () => {
+    prizeClaimModel.findOne.mockResolvedValue(null);
+    establishmentModel.findById.mockResolvedValue(null);
+    const moduleRef = await buildService();
+    const service = moduleRef.get(VotingPrizeService);
+    await expect(
+      service.claimPrize(winnerUser.toString(), estId.toString()),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('throws Conflict when already claimed', async () => {
+    prizeClaimModel.findOne.mockResolvedValue({ voucherCode: 'TFW-OLD111', status: 'pending' });
+    const moduleRef = await buildService();
+    const service = moduleRef.get(VotingPrizeService);
+    await expect(
+      service.claimPrize(winnerUser.toString(), estId.toString()),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('creates a voting PrizeClaim and returns claimed status', async () => {
+    prizeClaimModel.findOne
+      .mockResolvedValueOnce(null) // duplicate check inside claimPrize
+      .mockResolvedValueOnce({
+        voucherCode: 'TFW-NEW222',
+        establishmentName: 'Green Cafe',
+        status: 'pending',
+      }); // getMyPrize re-read
+    establishmentModel.findById.mockResolvedValue({ _id: estId, name: 'Green Cafe' });
+    prizeClaimModel.exists.mockResolvedValue(null);
+    prizeClaimModel.create.mockResolvedValue({ voucherCode: 'TFW-NEW222' });
+
+    const moduleRef = await buildService();
+    const service = moduleRef.get(VotingPrizeService);
+    const result = await service.claimPrize(winnerUser.toString(), estId.toString());
+
+    expect(prizeClaimModel.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'voting',
+        prizeType: 'discount',
+        establishmentName: 'Green Cafe',
+      }),
+    );
+    expect(result.hasClaimed).toBe(true);
+    expect(result.voucherCode).toBe('TFW-NEW222');
   });
 });

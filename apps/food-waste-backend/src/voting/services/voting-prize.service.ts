@@ -1,14 +1,27 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { randomBytes } from 'crypto';
 import { Model, Types } from 'mongoose';
 
-import { Vote, type VoteDocument } from '../schemas/vote.schema';
-import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
+import {
+  Establishment,
+  type EstablishmentDocument,
+} from '../../establishments/schemas/establishment.schema';
 import {
   PrizeClaim,
   PrizeClaimDocument,
+  PrizeClaimStatus,
   PrizeSource,
+  PrizeType,
 } from '../../loyalty/schemas/prize-claim.schema';
+import { Vote, type VoteDocument } from '../schemas/vote.schema';
+import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
 
 export interface VotingWinnerRow {
   userId: string;
@@ -50,6 +63,8 @@ export class VotingPrizeService {
     @InjectModel(Vote.name) private readonly voteModel: Model<VoteDocument>,
     @InjectModel(VotingCycle.name) private readonly cycleModel: Model<VotingCycleDocument>,
     @InjectModel(PrizeClaim.name) private readonly prizeClaimModel: Model<PrizeClaimDocument>,
+    @InjectModel(Establishment.name)
+    private readonly establishmentModel: Model<EstablishmentDocument>,
   ) {}
 
   /**
@@ -144,5 +159,73 @@ export class VotingPrizeService {
       establishmentName: existing?.establishmentName ?? null,
       status: existing?.status ?? null,
     };
+  }
+
+  /** Claims a voting prize voucher for a winner user at the chosen establishment. */
+  async claimPrize(userId: string, establishmentId: string): Promise<VotingPrizeStatus> {
+    const cycle = await this.getLatestCompletedCycle();
+    if (!cycle?.winnerPrizeId) {
+      throw new BadRequestException('No completed voting cycle is available to claim.');
+    }
+
+    const cycleId = (cycle._id as Types.ObjectId).toString();
+    const ranks = await this.getWinningVoterRanks(
+      cycleId,
+      cycle.winnerPrizeId,
+      cycle.recipientCount,
+    );
+    const mine = ranks.find(r => r.userId === userId);
+    if (!mine) {
+      throw new BadRequestException('You are not among the winning voters for this cycle.');
+    }
+
+    const duplicate = await this.prizeClaimModel.findOne({
+      userId: new Types.ObjectId(userId),
+      votingCycleId: new Types.ObjectId(cycleId),
+      source: PrizeSource.VOTING,
+    });
+    if (duplicate) {
+      throw new ConflictException('You have already claimed your voting prize for this cycle.');
+    }
+
+    const establishment = await this.establishmentModel.findById(establishmentId);
+    if (!establishment) {
+      throw new NotFoundException('Establishment not found');
+    }
+
+    const voucherCode = await this.generateVoucherCode();
+
+    await this.prizeClaimModel.create({
+      userId: new Types.ObjectId(userId),
+      prizeType: PrizeType.DISCOUNT,
+      status: PrizeClaimStatus.PENDING,
+      rank: mine.rank,
+      totalPoints: mine.pointsSnapshot,
+      cycleNumber: cycle.cycleNumber,
+      source: PrizeSource.VOTING,
+      votingCycleId: new Types.ObjectId(cycleId),
+      establishmentId: new Types.ObjectId(establishmentId),
+      establishmentName: establishment.name,
+      voucherCode,
+    });
+
+    this.logger.log(
+      `Voting prize claimed by user ${userId} (rank ${mine.rank}) at ${establishment.name} for cycle ${cycleId}`,
+    );
+
+    return this.getMyPrize(userId);
+  }
+
+  /** Generates a unique TFW-XXXXXX voucher code, retrying up to 10 times on collision. */
+  private async generateVoucherCode(): Promise<string> {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const code = `TFW-${randomBytes(3).toString('hex').toUpperCase()}`;
+      const exists = await this.prizeClaimModel.exists({ voucherCode: code });
+      if (!exists) {
+        return code;
+      }
+    }
+    // Fallback: base-36 timestamp suffix (extremely unlikely to reach this path)
+    return `TFW-${Date.now().toString(36).toUpperCase().slice(-6)}`;
   }
 }

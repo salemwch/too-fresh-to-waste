@@ -6,6 +6,7 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { CastVoteDto } from '../dto/cast-vote.dto';
 import { CreateCycleDto } from '../dto/create-cycle.dto';
 import { UpdateCycleDto } from '../dto/update-cycle.dto';
+import { VotingPrizeService } from '../services/voting-prize.service';
 import { VotingAdminController } from '../voting-admin.controller';
 import { VotingController } from '../voting.controller';
 import { VotingService } from '../voting.service';
@@ -47,9 +48,17 @@ describe('VotingController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VotingController],
-      providers: [{ provide: VotingService, useValue: service }],
+      providers: [
+        { provide: VotingService, useValue: service },
+        {
+          provide: VotingPrizeService,
+          useValue: { getMyPrize: jest.fn(), claimPrize: jest.fn() },
+        },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
+      .useValue(noopGuard)
+      .overrideGuard(RolesGuard)
       .useValue(noopGuard)
       .overrideGuard(ThrottlerGuard)
       .useValue(noopGuard)
