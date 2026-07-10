@@ -13,7 +13,7 @@
  * - Main brand identity
  * - Success states (where appropriate)
  *
- * ACCENT (Coral #ff7973 / #F55449):
+ * ACCENT (Coral #F04535 / #F55449):
  * - Call-to-action elements (Add New Meal, Special Offers)
  * - Limited stock indicators
  * - Item expires soon warnings
@@ -50,7 +50,7 @@ const baseColors = {
     50: '#FFF5F4', // HSL(3°, 100%, 97%) - Very light coral for subtle backgrounds
     100: '#FFE0DD', // HSL(3°, 100%, 87%) - Light coral for hover states
     200: '#FFC4BF', // HSL(3°, 100%, 75%) - Medium-light coral for borders
-    300: '#ff7973', // HSL(3°, 100%, 73%) - Light coral (user preference) for highlights
+    300: '#F04535', // HSL(4°, 86%, 57%) - Brand accent for highlights and CTAs
     400: '#FF5A52', // HSL(3°, 100%, 66%) - Medium coral for interactive elements
     500: '#F55449', // HSL(3°, 90%, 62%) - Main accent color - WCAG AA compliant (4.5:1)
     600: '#E03D31', // HSL(3°, 75%, 54%) - Dark coral for pressed states
