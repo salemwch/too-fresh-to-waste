@@ -24,6 +24,8 @@ import { RegisterScreen } from '@/features/auth/screens/RegisterScreen';
 import { ResetPasswordScreen } from '@/features/auth/screens/ResetPasswordScreen';
 import { VerifyEmailScreen } from '@/features/auth/screens/VerifyEmailScreen';
 import { VerifyPhoneScreen } from '@/features/auth/screens/VerifyPhoneScreen';
+import { OnboardingScreen2 } from '@/features/auth/screens/OnboardingScreen2';
+import { OnboardingScreen3 } from '@/features/auth/screens/OnboardingScreen3';
 import { WelcomeScreen } from '@/features/auth/screens/WelcomeScreen';
 import { useAppSelector } from '@/hooks/redux';
 import { onboardingStorage } from '@/storage/onboardingStorage';
@@ -128,6 +130,34 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
             title: 'Welcome',
             // Prevent going back from welcome screen
             gestureEnabled: false,
+          }}
+        />
+      )}
+
+      {/* Onboarding Step 2 — only shown during first-run onboarding */}
+      {!hasSeenWelcome && (
+        <Stack.Screen
+          name='Onboarding2'
+          component={OnboardingScreen2}
+          options={{
+            headerShown: false,
+            title: 'Get Started',
+            gestureEnabled: false,
+            animation: 'fade',
+          }}
+        />
+      )}
+
+      {/* Onboarding Step 3 — bag + CTA, only shown during first-run */}
+      {!hasSeenWelcome && (
+        <Stack.Screen
+          name='Onboarding3'
+          component={OnboardingScreen3}
+          options={{
+            headerShown: false,
+            title: 'Get Started',
+            gestureEnabled: false,
+            animation: 'fade',
           }}
         />
       )}

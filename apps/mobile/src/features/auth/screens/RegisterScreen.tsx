@@ -52,7 +52,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
       referralCode: referralCode ?? 'NONE',
       allParams: JSON.stringify(route.params ?? {}),
     });
-  }, []);
+  }, [referralCode, route.params]);
 
   // Memoized selector to prevent unnecessary re-renders
   // Only re-render when isLoading or error actually changes
@@ -261,7 +261,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
         }
       }
     },
-    [isPasswordValid, setError, dispatch, navigation, isMountedRef],
+    [isPasswordValid, setError, dispatch, navigation, isMountedRef, referralCode, t],
   );
 
   /**
