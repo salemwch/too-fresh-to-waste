@@ -1,7 +1,7 @@
-import { Controller, Get, Query, Req, Res, Logger } from '@nestjs/common';
+import { Controller, Get, Query, Res, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
 import { CookieSecurityUtil } from '../common/utils/cookie-security.util';
 
@@ -10,14 +10,19 @@ import { AuthService } from './auth.service';
 /**
  * AuthRedirectController
  *
- * Email-link handlers. Verifies server-side and 302-redirects to the Next.js
- * frontend. No HTML is rendered here — the frontend owns all UI.
+ * Browser-based email verification endpoint. Verifies server-side and
+ * 302-redirects to the Next.js frontend. No HTML is rendered here — the
+ * frontend owns all UI.
  *
- * Flow (verify-email):
+ * Flow:
  *   1. User clicks email link → GET /api/v1/auth/verify-email?token=...
  *   2. Controller verifies token, issues auth cookies
  *   3. 302 redirect → WEB_FRONTEND_URL/verify-email?status=success
  *      (or ?status=error on failure — Next.js page reads this)
+ *
+ * Mobile deep links (verify-email, reset-password) are handled by Android
+ * App Links and iOS Universal Links — they point directly to the frontend
+ * domain and the OS opens the app natively.
  */
 @ApiTags('auth-redirect')
 @Controller('auth')
@@ -29,10 +34,6 @@ export class AuthRedirectController {
     private readonly authService: AuthService,
   ) {}
 
-  /**
-   * Strip any characters that aren't valid in opaque hex/base64/JWT tokens.
-   * The DB lookup hashes the token, so any tampered value will fail to match.
-   */
   private sanitizeToken(token: string): string {
     return token.replace(/[^a-zA-Z0-9\-_.=]/g, '');
   }
@@ -44,76 +45,6 @@ export class AuthRedirectController {
 
   private redirectToFrontend(res: Response, path: string, status: 'success' | 'error'): void {
     const target = `${this.getWebFrontendUrl()}${path}?status=${status}`;
-    res.redirect(302, target);
-  }
-
-  private getClientPlatform(req: Request): 'android' | 'ios' | 'other' {
-    const userAgentHeader = req.headers['user-agent'];
-    const ua = Array.isArray(userAgentHeader) ? userAgentHeader.join(' ') : (userAgentHeader ?? '');
-
-    if (/Android/i.test(ua)) {
-      return 'android';
-    }
-
-    if (/iPhone|iPad|iPod/i.test(ua)) {
-      return 'ios';
-    }
-
-    return 'other';
-  }
-
-  /**
-   * Fallback email-link redirect for clients without App Links support.
-   *
-   * Primary flow: email links point directly to the frontend domain, and
-   * Android App Links / iOS Universal Links open the mobile app natively.
-   * This endpoint serves as a fallback — it detects Android via user-agent
-   * and sends an intent URI, while iOS and desktop continue to the web page.
-   *
-   * The token is NOT consumed here — the actual verification + auto-login
-   * happens client-side via POST /auth/verify-email.
-   */
-  @Get('email-link')
-  @ApiOperation({
-    summary: 'Smart redirect for email verification links',
-    description:
-      'Sends Android users to an intent URI with browser fallback, and routes iOS/desktop users to the web frontend. Does not verify the token.',
-  })
-  @ApiQuery({ name: 'token', required: true, description: 'Email verification token' })
-  emailLinkRedirect(
-    @Query('token') rawToken: string | undefined,
-    @Req() req: Request,
-    @Res() res: Response,
-  ): void {
-    if (!rawToken || typeof rawToken !== 'string') {
-      this.logger.warn('email-link redirect called without token');
-      this.redirectToFrontend(res, '/verify-email', 'error');
-      return;
-    }
-
-    const safeToken = encodeURIComponent(this.sanitizeToken(rawToken));
-
-    const target = `${this.getWebFrontendUrl()}/verify-email?token=${safeToken}`;
-    const platform = this.getClientPlatform(req);
-
-    if (platform === 'android') {
-      const webFallback = encodeURIComponent(target);
-      // Android Intent URL with browser fallback for when the app isn't installed
-      const intentUrl =
-        `intent://verify-email?token=${safeToken}` +
-        `#Intent;scheme=foodwaste;package=com.toofreshtowaste.app;` +
-        `S.browser_fallback_url=${webFallback};end`;
-
-      this.logger.log('Email link redirect → Android app intent');
-      res.redirect(302, intentUrl);
-      return;
-    }
-
-    this.logger.log(
-      platform === 'ios'
-        ? 'Email link redirect → iOS web verification fallback'
-        : 'Email link redirect → web frontend',
-    );
     res.redirect(302, target);
   }
 
@@ -167,44 +98,5 @@ export class AuthRedirectController {
       });
       this.redirectToFrontend(res, '/verify-email', 'error');
     }
-  }
-
-  @Get('reset-password')
-  @ApiOperation({
-    summary: 'Password reset link handler — redirects to mobile app (Android) or web frontend',
-  })
-  @ApiQuery({ name: 'token', required: true, description: 'Password reset token' })
-  resetPasswordRedirect(
-    @Query('token') rawToken: string | undefined,
-    @Req() req: Request,
-    @Res() res: Response,
-  ): void {
-    if (!rawToken || typeof rawToken !== 'string') {
-      this.logger.warn('reset-password redirect called without token');
-      res.redirect(302, `${this.getWebFrontendUrl()}/forgot-password?status=error`);
-      return;
-    }
-    const safeToken = encodeURIComponent(this.sanitizeToken(rawToken));
-    const target = `${this.getWebFrontendUrl()}/reset-password?token=${safeToken}`;
-    const platform = this.getClientPlatform(req);
-
-    if (platform === 'android') {
-      const webFallback = encodeURIComponent(target);
-      const intentUrl =
-        `intent://reset-password?token=${safeToken}` +
-        `#Intent;scheme=foodwaste;package=com.toofreshtowaste.app;` +
-        `S.browser_fallback_url=${webFallback};end`;
-
-      this.logger.log('Reset password redirect → Android app intent');
-      res.redirect(302, intentUrl);
-      return;
-    }
-
-    this.logger.log(
-      platform === 'ios'
-        ? 'Reset password redirect → iOS universal link fallback'
-        : 'Reset password redirect → web frontend',
-    );
-    res.redirect(302, target);
   }
 }
