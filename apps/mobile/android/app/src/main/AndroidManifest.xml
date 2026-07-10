@@ -83,7 +83,7 @@
                   android:pathPrefix="/verify-email" />
         </intent-filter>
 
-        <!-- Password reset link (backend redirects here after validating the token) -->
+        <!-- Password reset link -->
         <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
@@ -91,6 +91,16 @@
             <data android:scheme="https"
                   android:host="toofreshtowaste.com"
                   android:pathPrefix="/reset-password" />
+        </intent-filter>
+
+        <!-- Login link (OAuth sign-in email redirects here) -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https"
+                  android:host="toofreshtowaste.com"
+                  android:pathPrefix="/login" />
         </intent-filter>
       </activity>
     </application>

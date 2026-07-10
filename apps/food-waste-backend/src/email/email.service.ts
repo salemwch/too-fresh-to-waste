@@ -286,7 +286,7 @@ export class EmailService implements IEmailService {
       apple: 'Apple',
     };
     const providerLabel = providerLabels[provider] ?? provider;
-    const loginUrl = this.getFrontendUrl();
+    const loginUrl = `${this.getFrontendUrl()}/login`;
 
     const html = await render(
       React.createElement(OAuthSignInEmail, { firstName, provider, loginUrl }),
