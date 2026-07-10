@@ -31,7 +31,8 @@
     "total": "Total",
     "subtotal": "Subtotal",
     "quantity": "Qty",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "tomorrow": "TOMORROW"
   },
   "update": {
     "forceTitle": "Update Required",
@@ -52,7 +53,35 @@
     "saveMoney": "Save money",
     "tagline": "Buy surplus food\nat lower prices",
     "getStarted": "Get Started",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "skipForNow": "Skip for now",
+    "skip": "Skip",
+    "bodyText": "Delicious food from local businesses at a lower price. Together, we waste less and do more.",
+    "headline": {
+      "line1": "GOOD FOOD",
+      "line2": "LESS WASTE",
+      "line3": "MORE IMPACT"
+    }
+  },
+  "onboarding2": {
+    "saveMoney": "SAVE MONEY",
+    "saveMoneyDesc": "Enjoy tasty meals for less.",
+    "reduceWaste": "REDUCE WASTE",
+    "reduceWasteDesc": "Help reduce food waste in your community.",
+    "makeImpact": "MAKE IMPACT",
+    "makeImpactDesc": "Small actions, big change.",
+    "earnPrizes": "EARN PRIZES",
+    "earnPrizesDesc": "Vote, win discounts & rewards.",
+    "createAccount": "Create Account",
+    "logIn": "Log In"
+  },
+  "onboarding3": {
+    "headline1": "READY TO",
+    "headline2": "MAKE A",
+    "headline3": "DIFFERENCE?",
+    "bodyText": "Join thousands of people who are saving food and saving the planet.",
+    "createAccount": "Create Account",
+    "logIn": "Log In"
   },
   "auth": {
     "welcomeBack": "Welcome Back",
@@ -264,7 +293,11 @@
     "prizeDropLabel": "PRIZE DROP",
     "daysRemaining": "days remaining",
     "prizeDropSubtitle": "Grand prize draw at the end of the season",
-    "rewardEarnPoints": "Reach target — everyone earns {{points}} pts"
+    "rewardEarnPoints": "Reach target — everyone earns {{points}} pts",
+    "mascotUrgent": "SOS! Please don't let\nthem throw me away 🥺",
+    "mascotHottest": "I'm worth so much more!\nAdopt me? 😎",
+    "mascotToday": "Packed up and\nwaiting for you! 🎒",
+    "mascotTomorrow": "Catching some sleep\nfor tomorrow 💤"
   },
   "offers": {
     "reserve": "Reserve",
@@ -296,7 +329,8 @@
     "slotLimit": "This restaurant allows up to {{count}} bag per offer",
     "slotLimitPlural": "This restaurant allows up to {{count}} bags per offer",
     "addToFavorites": "Add to favorites",
-    "removeFromFavorites": "Remove from favorites"
+    "removeFromFavorites": "Remove from favorites",
+    "opensAt": "Opens at {{time}}"
   },
   "orders": {
     "active": "Active",
@@ -412,7 +446,9 @@
     "languageDescription": "Choose your preferred language",
     "currentLanguage": "Current: {{language}}",
     "restartRequired": "Restart Required",
-    "restartMessage": "The app needs to restart to apply the new layout direction. Please close and reopen the app."
+    "restartMessage": "The app needs to restart to apply the new layout direction. Please close and reopen the app.",
+    "restartNow": "Restart Now",
+    "restartLater": "Later"
   },
   "favorites": {
     "all": "All",

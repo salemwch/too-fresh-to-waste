@@ -31,7 +31,8 @@
     "total": "Total",
     "subtotal": "Sous-total",
     "quantity": "Qté",
-    "dismiss": "Fermer"
+    "dismiss": "Fermer",
+    "tomorrow": "DEMAIN"
   },
   "update": {
     "forceTitle": "Mise à jour requise",
@@ -52,7 +53,35 @@
     "saveMoney": "Économisez de l'argent",
     "tagline": "Achetez des surplus alimentaires\nà prix réduits",
     "getStarted": "Commencer",
-    "signUp": "S'inscrire"
+    "signUp": "S'inscrire",
+    "skipForNow": "Passer pour l'instant",
+    "skip": "Passer",
+    "bodyText": "Des aliments délicieux des commerces locaux à prix réduit. Ensemble, gaspillons moins et faisons plus.",
+    "headline": {
+      "line1": "BONNE BOUFFE",
+      "line2": "MOINS DE GASPILLAGE",
+      "line3": "PLUS D'IMPACT"
+    }
+  },
+  "onboarding2": {
+    "saveMoney": "ÉCONOMISEZ",
+    "saveMoneyDesc": "Dégustez de bons repas à prix réduit.",
+    "reduceWaste": "MOINS DE GASPILLAGE",
+    "reduceWasteDesc": "Réduisez le gaspillage alimentaire dans votre communauté.",
+    "makeImpact": "FAITES UN IMPACT",
+    "makeImpactDesc": "De petites actions, un grand changement.",
+    "earnPrizes": "GAGNEZ DES PRIX",
+    "earnPrizesDesc": "Votez, gagnez des réductions et récompenses.",
+    "createAccount": "Créer un compte",
+    "logIn": "Se connecter"
+  },
+  "onboarding3": {
+    "headline1": "PRÊT À",
+    "headline2": "FAIRE LA",
+    "headline3": "DIFFÉRENCE ?",
+    "bodyText": "Rejoignez des milliers de personnes qui sauvent de la nourriture et la planète.",
+    "createAccount": "Créer un compte",
+    "logIn": "Se connecter"
   },
   "auth": {
     "welcomeBack": "Bon retour",
@@ -264,7 +293,11 @@
     "prizeDropLabel": "TIRAGE AU SORT",
     "daysRemaining": "jours restants",
     "prizeDropSubtitle": "Grand tirage au sort à la fin de la saison",
-    "rewardEarnPoints": "Objectif atteint — chacun gagne {{points}} pts"
+    "rewardEarnPoints": "Objectif atteint — chacun gagne {{points}} pts",
+    "mascotUrgent": "SOS ! Ne les laisse pas\nme jeter à la poubelle 🥺",
+    "mascotHottest": "Je vaux bien plus que ça !\nAdopte-moi ? 😎",
+    "mascotToday": "Prêt et t'attendant\npour ce soir ! 🎒",
+    "mascotTomorrow": "Je somnole jusqu'à\ndemain 💤"
   },
   "offers": {
     "reserve": "Réserver",
@@ -296,7 +329,8 @@
     "slotLimit": "Ce restaurant autorise jusqu'à {{count}} sac par offre",
     "slotLimitPlural": "Ce restaurant autorise jusqu'à {{count}} sacs par offre",
     "addToFavorites": "Ajouter aux favoris",
-    "removeFromFavorites": "Retirer des favoris"
+    "removeFromFavorites": "Retirer des favoris",
+    "opensAt": "Ouvre à {{time}}"
   },
   "orders": {
     "active": "En cours",
@@ -412,7 +446,9 @@
     "languageDescription": "Choisissez votre langue préférée",
     "currentLanguage": "Actuelle : {{language}}",
     "restartRequired": "Redémarrage requis",
-    "restartMessage": "L'application doit redémarrer pour appliquer la nouvelle direction de mise en page. Veuillez fermer et rouvrir l'application."
+    "restartMessage": "L'application doit redémarrer pour appliquer la nouvelle direction de mise en page. Veuillez fermer et rouvrir l'application.",
+    "restartNow": "Redémarrer",
+    "restartLater": "Plus tard"
   },
   "favorites": {
     "all": "Tous",
