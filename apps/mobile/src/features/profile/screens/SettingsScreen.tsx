@@ -6,6 +6,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
+  I18nManager,
   View,
   StyleSheet,
   ScrollView,
@@ -14,6 +16,7 @@ import {
   InteractionManager,
   Pressable,
 } from 'react-native';
+import RNRestart from 'react-native-restart';
 
 import { Text, Card } from '@/design-system/components/atoms';
 import { SUPPORTED_LANGUAGES, setStoredLanguage, getCurrentLanguage } from '@/i18n';
@@ -41,11 +44,35 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
   const handleLanguageChange = useCallback(
     (lang: AppLanguage) => {
       if (lang === currentLang) return;
+
+      const wasRTL = I18nManager.isRTL;
+      const willBeRTL = lang === 'ar';
+      const directionChanges = wasRTL !== willBeRTL;
+
       setStoredLanguage(lang);
       void i18n.changeLanguage(lang);
       setCurrentLang(lang);
+
+      if (directionChanges) {
+        // Save the RTL preference so it applies on the next launch
+        I18nManager.forceRTL(willBeRTL);
+        I18nManager.allowRTL(willBeRTL);
+
+        // Android requires Activity recreation for layout direction to take effect.
+        // Prompt the user to restart now — on relaunch the correct RTL/LTR layout loads.
+        setTimeout(() => {
+          Alert.alert(t('settings.restartRequired'), t('settings.restartMessage'), [
+            { text: t('settings.restartLater'), style: 'cancel' },
+            {
+              text: t('settings.restartNow'),
+              style: 'destructive',
+              onPress: () => RNRestart.restart(),
+            },
+          ]);
+        }, 300);
+      }
     },
-    [currentLang, i18n],
+    [currentLang, i18n, t],
   );
 
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
