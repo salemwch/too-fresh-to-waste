@@ -279,6 +279,24 @@ done without running the relevant check.
 
 ---
 
+## Scenario Coverage — Required Before Completing Any Task
+
+Before marking any task done, explicitly verify behavior for all relevant actor
+variants. Do not assume the happy path covers all users.
+
+| Domain                   | Variants to check                                                                         |
+| ------------------------ | ----------------------------------------------------------------------------------------- |
+| **Auth flows**           | `authProvider`: local / google / facebook / apple — see `.claude/rules/auth-scenarios.md` |
+| **User-facing features** | `isEmailVerified`, `isActive`, `role` (consumer / merchant / admin / moderator)           |
+| **Offers / Orders**      | `status` transitions — every terminal state must be handled, not just the success path    |
+| **Payments**             | success / failure / timeout / webhook-received-twice (idempotency)                        |
+| **Notifications**        | user has notifications disabled / device token missing / locale is Arabic (RTL)           |
+
+If a variant reaches an unhandled code path, either handle it explicitly or
+document it as a known limitation in this file — never leave it silent.
+
+---
+
 ## Hard Rules — Never Do These
 
 1. **Never enable `@nestjs/swagger` CLI plugin** in `nest-cli.json` — it
