@@ -55,8 +55,10 @@ const offerKeys = {
   list: (filters: OfferSearchParams) => [...offerKeys.lists(), filters] as const,
   details: () => [...offerKeys.all, 'detail'] as const,
   detail: (id: string) => [...offerKeys.details(), id] as const,
-  pickupToday: (limit: number) => [...offerKeys.all, 'pickup-today', limit] as const,
-  pickupTomorrow: (limit: number) => [...offerKeys.all, 'pickup-tomorrow', limit] as const,
+  pickupToday: (limit: number, dateStr: string) =>
+    [...offerKeys.all, 'pickup-today', limit, dateStr] as const,
+  pickupTomorrow: (limit: number, dateStr: string) =>
+    [...offerKeys.all, 'pickup-tomorrow', limit, dateStr] as const,
 };
 
 // ============================================================================
@@ -203,8 +205,11 @@ export function usePickupTodayOffers(
   filters?: Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories'>,
   options?: Omit<UseQueryOptions<OfferListItem[], Error>, 'queryKey' | 'queryFn'>,
 ) {
+  // Include Tunisia-local date so the cache key changes at midnight and the
+  // offer moves from "tomorrow" to "today" without a manual refresh.
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Tunis' });
   return useQuery<OfferListItem[], Error>({
-    queryKey: [...offerKeys.pickupToday(limit), userLocation, filters],
+    queryKey: [...offerKeys.pickupToday(limit, todayStr), userLocation, filters],
     queryFn: async ({ signal }) => {
       Logger.info('Fetching pickup today offers', { limit, userLocation, filters });
       const offers = await offersService.getPickupTodayOffers(limit, userLocation, signal);
@@ -236,8 +241,11 @@ export function usePickupTomorrowOffers(
   filters?: Pick<OfferSearchParams, 'type' | 'establishmentTypes' | 'cuisineTypes' | 'categories'>,
   options?: Omit<UseQueryOptions<OfferListItem[], Error>, 'queryKey' | 'queryFn'>,
 ) {
+  const tomorrowStr = new Date(Date.now() + 86_400_000).toLocaleDateString('en-CA', {
+    timeZone: 'Africa/Tunis',
+  });
   return useQuery<OfferListItem[], Error>({
-    queryKey: [...offerKeys.pickupTomorrow(limit), userLocation, filters],
+    queryKey: [...offerKeys.pickupTomorrow(limit, tomorrowStr), userLocation, filters],
     queryFn: async ({ signal }) => {
       Logger.info('Fetching pickup tomorrow offers', { limit, userLocation, filters });
       const offers = await offersService.getPickupTomorrowOffers(limit, userLocation, signal);

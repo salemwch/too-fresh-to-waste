@@ -36,7 +36,7 @@ import { Logger } from '@/utils/logger';
 import { ReviewSummarySection } from '../components/ReviewSummarySection';
 import { SkeletonOfferDetails } from '../components/SkeletonOfferDetails';
 import { useOffer } from '../hooks/useOffers';
-import { isOfferActive } from '../types/offer.types';
+import { isOfferActive, OfferStatus } from '../types/offer.types';
 
 import type { Offer } from '../types/offer.types';
 import type { MainStackParamList } from '@/navigation/types';
@@ -372,10 +372,45 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
   }
 
   const canReserve = isOfferActive(offer) && (offer.availableQuantity ?? 0) > 0;
+  const isNotStarted =
+    offer.status === OfferStatus.ACTIVE &&
+    offer.isActive &&
+    offer.isExpired !== true &&
+    offer.isSoldOut !== true &&
+    new Date() < new Date(offer.availableFrom);
+
+  let startTimeText: string | null = null;
+  if (isNotStarted && offer.availableFrom) {
+    try {
+      startTimeText = new Date(offer.availableFrom).toLocaleTimeString('en-US', {
+        timeZone: 'Africa/Tunis',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+    } catch {
+      startTimeText = null;
+    }
+  }
+
+  const pickupDayLabel = (() => {
+    try {
+      const toTunisDate = (d: Date) => d.toLocaleDateString('en-US', { timeZone: 'Africa/Tunis' });
+      const offerDay = toTunisDate(new Date(offer.availableFrom));
+      const todayStr = toTunisDate(new Date());
+      const tomorrowStr = toTunisDate(new Date(Date.now() + 86400000));
+      if (offerDay === tomorrowStr) return t('common.tomorrow');
+      if (offerDay === todayStr) return t('common.today');
+      return t('common.today');
+    } catch {
+      return t('common.today');
+    }
+  })();
+
   const todayBadgeStyle = { backgroundColor: theme.colors.primary };
   const footerStyle = { borderTopColor: theme.colors.outline };
   const reserveButtonStyle = {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: isNotStarted ? INDIGO : theme.colors.primary,
     opacity: canReserve ? 1 : 0.6,
   };
 
@@ -555,7 +590,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
             </Text>
             <View style={[styles.todayBadge, todayBadgeStyle]}>
               <Text weight='bold' style={styles.todayBadgeText}>
-                {t('common.today')}
+                {pickupDayLabel}
               </Text>
             </View>
           </View>
@@ -723,7 +758,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           disabled={!canReserve}
         >
           <Text weight='bold' style={styles.reserveButtonText}>
-            {canReserve ? t('offers.reserve') : t('offers.soldOut')}
+            {canReserve
+              ? t('offers.reserve')
+              : isNotStarted && startTimeText != null
+                ? t('offers.opensAt', { time: startTimeText })
+                : t('offers.soldOut')}
           </Text>
         </Pressable>
       </View>
