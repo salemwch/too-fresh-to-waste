@@ -27,10 +27,12 @@ export interface RootNavigatorParamList extends Record<string, object | undefine
  */
 export interface AuthStackParamList extends Record<string, object | undefined> {
   Welcome: undefined;
+  Onboarding2: undefined;
+  Onboarding3: undefined;
   Login: undefined;
   Register: { referralCode?: string } | undefined;
   ForgotPassword: undefined;
-  ResetPassword: { email: string; token: string };
+  ResetPassword: { email?: string; token: string };
   // email is optional: Universal Link magic links carry only the token.
   // status is set by web fallback redirect (foodwaste://verify-email?status=success).
   VerifyEmail: { email?: string; token?: string; status?: string };
@@ -149,6 +151,14 @@ export interface FavoritesStackParamList extends Record<string, object | undefin
  * Navigation Props for Auth Stack Screens
  */
 export type WelcomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Welcome'>;
+export type Onboarding2ScreenNavigationProp = NativeStackNavigationProp<
+  AuthStackParamList,
+  'Onboarding2'
+>;
+export type Onboarding3ScreenNavigationProp = NativeStackNavigationProp<
+  AuthStackParamList,
+  'Onboarding3'
+>;
 
 export type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 

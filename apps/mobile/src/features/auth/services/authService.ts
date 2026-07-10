@@ -469,7 +469,7 @@ class AuthService {
     Logger.info('Confirming password reset');
 
     await this.makeRequest<void>('POST', '/reset-password', {
-      email: request.email,
+      ...(request.email ? { email: request.email } : {}),
       token: request.token,
       newPassword: request.newPassword,
     });
