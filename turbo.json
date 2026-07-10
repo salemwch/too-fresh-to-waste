@@ -3,6 +3,9 @@
   "globalDependencies": ["package.json", "pnpm-lock.yaml", "tsconfig.base.json"],
   "globalEnv": ["NODE_ENV", "CI"],
   "globalPassThroughEnv": [
+    "RESEND_API_KEY",
+    "EMAIL_FROM_ADDRESS",
+    "EMAIL_FROM_NAME",
     "BREVO_API_KEY",
     "BREVO_API_BASE_URL",
     "BREVO_LIST_ID",

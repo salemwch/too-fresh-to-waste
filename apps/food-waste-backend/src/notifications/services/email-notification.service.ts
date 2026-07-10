@@ -15,8 +15,8 @@ import type Mail from 'nodemailer/lib/mailer';
 @Injectable()
 export class EmailNotificationService implements INotificationProvider {
   private readonly logger = new Logger(EmailNotificationService.name);
-  private readonly brevoClient: AxiosInstance;
-  private readonly brevoApiUrl: string;
+  private readonly resendClient: AxiosInstance;
+  private readonly resendApiUrl = 'https://api.resend.com/emails';
 
   constructor(
     @InjectModel(NotificationPreference.name)
@@ -25,20 +25,17 @@ export class EmailNotificationService implements INotificationProvider {
   ) {
     void this.preferencesModel;
 
-    const apiKey = this.getRequiredConfigValue('BREVO_API_KEY');
-    const apiBaseUrl =
-      this.getNonEmptyConfigValue('BREVO_API_BASE_URL') ?? 'https://api.brevo.com/v3';
-    this.brevoApiUrl = `${apiBaseUrl.replace(/\/$/, '')}/smtp/email`;
-    this.brevoClient = axios.create({
+    const apiKey = this.getRequiredConfigValue('RESEND_API_KEY');
+    this.resendClient = axios.create({
       timeout: 10_000,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'api-key': apiKey,
+        Authorization: `Bearer ${apiKey}`,
       },
     });
 
-    this.logger.log('Brevo notification email service initialized');
+    this.logger.log('Resend notification email service initialized');
   }
 
   private getNonEmptyConfigValue(key: string): string | undefined {
@@ -54,7 +51,7 @@ export class EmailNotificationService implements INotificationProvider {
   private getRequiredConfigValue(key: string): string {
     const value = this.getNonEmptyConfigValue(key);
     if (!value) {
-      throw new Error(`${key} is required for Brevo email delivery`);
+      throw new Error(`${key} is required for Resend email delivery`);
     }
     return value;
   }
@@ -73,15 +70,11 @@ export class EmailNotificationService implements INotificationProvider {
         };
       }
 
-      return await this.sendViaBrevo({
-        to: [{ email: emailAddress }],
+      return await this.sendViaResend({
+        to: [emailAddress],
         subject: payload.title,
-        htmlContent: this.buildHtmlBody(payload),
-        textContent: payload.body,
-        headers: {
-          'X-Mailer': 'TooFreshToWaste-Platform',
-          'X-Priority': '3',
-        },
+        html: this.buildHtmlBody(payload),
+        text: payload.body,
       });
     } catch (error) {
       this.logger.error(
@@ -137,26 +130,17 @@ export class EmailNotificationService implements INotificationProvider {
         };
       }
 
-      const from = this.parseAddress(
-        options?.from ?? this.getDefaultFromAddress(),
-        this.getDefaultSenderEmail(),
-      );
-      const replyTo = options?.replyTo
-        ? this.parseAddress(options.replyTo, this.getDefaultSenderEmail())
-        : undefined;
+      const from = options?.from ?? this.getDefaultFromAddress();
+      const attachments = this.mapAttachments(options?.attachments ?? []);
 
-      const result = await this.sendViaBrevo({
-        sender: from,
-        to: [{ email: emailAddress }],
+      const result = await this.sendViaResend({
+        from,
+        to: [emailAddress],
         subject: templateData.subject,
-        htmlContent: templateData.htmlBody,
-        textContent: templateData.textBody ?? this.stripHtml(templateData.htmlBody),
-        attachment: this.mapAttachments(options?.attachments ?? []),
-        headers: {
-          'X-Mailer': 'TooFreshToWaste-Platform',
-          'X-Priority': '3',
-        },
-        ...(replyTo ? { replyTo } : {}),
+        html: templateData.htmlBody,
+        text: templateData.textBody ?? this.stripHtml(templateData.htmlBody),
+        ...(attachments.length > 0 ? { attachments } : {}),
+        ...(options?.replyTo ? { reply_to: options.replyTo } : {}),
       });
 
       return result;
@@ -205,42 +189,40 @@ export class EmailNotificationService implements INotificationProvider {
     return result;
   }
 
-  private async sendViaBrevo(payload: {
-    sender?: { name?: string; email: string };
-    to: Array<{ email: string; name?: string }>;
-    replyTo?: { name?: string; email: string };
+  private async sendViaResend(payload: {
+    from?: string;
+    to: string[];
+    reply_to?: string;
     subject: string;
-    htmlContent: string;
-    textContent?: string;
-    attachment?: Array<{ name: string; content: string }>;
-    headers?: Record<string, string>;
+    html: string;
+    text?: string;
+    attachments?: Array<{ filename: string; content: string }>;
   }): Promise<NotificationResult> {
     try {
-      const sender =
-        payload.sender ??
-        this.parseAddress(this.getDefaultFromAddress(), this.getDefaultSenderEmail());
-      const headers = {
-        ...(payload.headers ?? {}),
-        'Idempotency-Key': payload.headers?.['Idempotency-Key'] ?? randomUUID(),
-      };
+      const from = payload.from ?? this.getDefaultFromAddress();
 
-      const response = await this.brevoClient.post<{
-        messageId?: string;
-      }>(this.brevoApiUrl, {
-        ...payload,
-        headers,
-        sender,
+      const response = await this.resendClient.post<{ id?: string }>(this.resendApiUrl, {
+        from,
+        to: payload.to,
+        subject: payload.subject,
+        html: payload.html,
+        ...(payload.text ? { text: payload.text } : {}),
+        ...(payload.reply_to ? { reply_to: payload.reply_to } : {}),
+        ...(payload.attachments ? { attachments: payload.attachments } : {}),
+        headers: {
+          'X-Mailer': 'TooFreshToWaste-Platform',
+          'Idempotency-Key': randomUUID(),
+        },
       });
 
-      const recipients = payload.to.map(recipient => recipient.email);
-      const messageId = response.data.messageId ?? 'unknown';
+      const messageId = response.data.id ?? 'unknown';
 
       return {
         success: true,
         messageId,
         deliveryStatus: 'sent',
         metadata: {
-          accepted: recipients,
+          accepted: payload.to,
           rejected: [],
           response: messageId,
         },
@@ -252,11 +234,11 @@ export class EmailNotificationService implements INotificationProvider {
             ? error.response.data
             : JSON.stringify(error.response?.data ?? {});
         this.logger.error(
-          `Brevo email request failed with status ${error.response?.status ?? 'unknown'}: ${responseData}`,
+          `Resend email request failed with status ${error.response?.status ?? 'unknown'}: ${responseData}`,
         );
       } else {
         this.logger.error(
-          `Brevo email request failed: ${(error as Error).message}`,
+          `Resend email request failed: ${(error as Error).message}`,
           (error as Error).stack,
         );
       }
@@ -315,44 +297,17 @@ export class EmailNotificationService implements INotificationProvider {
   }
 
   private getDefaultSenderEmail(): string {
-    return this.getRequiredConfigValue('BREVO_FROM_EMAIL');
+    return this.getRequiredConfigValue('EMAIL_FROM_ADDRESS');
   }
 
   private getDefaultFromAddress(): string {
-    const fromName = this.configService.get<string>('BREVO_FROM_NAME', 'Too Fresh To Waste');
+    const fromName = this.configService.get<string>('EMAIL_FROM_NAME', 'Too Fresh To Waste');
     const fromEmail = this.getDefaultSenderEmail();
-    return `"${fromName}" <${fromEmail}>`;
-  }
-
-  private parseAddress(
-    rawAddress: string,
-    fallbackEmail: string,
-  ): {
-    name?: string;
-    email: string;
-  } {
-    const trimmed = rawAddress.trim();
-    const namedMatch = /^"?([^"]+)"?\s*<([^>]+)>$/.exec(trimmed);
-
-    if (namedMatch) {
-      const name = namedMatch[1]?.trim();
-      const email = namedMatch[2]?.trim();
-
-      if (email) {
-        return {
-          ...(name ? { name } : {}),
-          email,
-        };
-      }
-    }
-
-    return {
-      email: trimmed.length > 0 ? trimmed : fallbackEmail,
-    };
+    return `${fromName} <${fromEmail}>`;
   }
 
   private mapAttachments(attachments: Mail.Attachment[]): Array<{
-    name: string;
+    filename: string;
     content: string;
   }> {
     return attachments
@@ -371,7 +326,7 @@ export class EmailNotificationService implements INotificationProvider {
         },
       )
       .map(attachment => ({
-        name: attachment.filename,
+        filename: attachment.filename,
         content:
           typeof attachment.content === 'string'
             ? Buffer.from(attachment.content).toString('base64')

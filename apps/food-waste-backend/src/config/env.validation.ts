@@ -50,15 +50,14 @@ export const envValidationSchema = Joi.object({
     otherwise: Joi.string().optional(),
   }),
 
-  // ── Email / SMTP ─────────────────────────────────────────────────────
-  BREVO_API_KEY: Joi.string().required().messages({
-    'any.required': 'BREVO_API_KEY is required for Brevo email delivery',
+  // ── Email (Resend) ───────────────────────────────────────────────────
+  RESEND_API_KEY: Joi.string().required().messages({
+    'any.required': 'RESEND_API_KEY is required for Resend email delivery',
   }),
-  BREVO_API_BASE_URL: Joi.string().uri().default('https://api.brevo.com/v3'),
-  BREVO_FROM_EMAIL: Joi.string().email().required().messages({
-    'any.required': 'BREVO_FROM_EMAIL is required for Brevo email delivery',
+  EMAIL_FROM_ADDRESS: Joi.string().email().required().messages({
+    'any.required': 'EMAIL_FROM_ADDRESS is required for email delivery',
   }),
-  BREVO_FROM_NAME: Joi.string().default('Too Fresh To Waste'),
+  EMAIL_FROM_NAME: Joi.string().default('Too Fresh To Waste'),
 
   // ── URLs ─────────────────────────────────────────────────────────────
   BACKEND_URL: Joi.string().uri().required().messages({
