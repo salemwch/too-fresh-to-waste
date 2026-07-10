@@ -125,6 +125,8 @@ export enum ReviewRating {
   FIVE = 5,
 }
 
+const REVIEW_RATING_LABELS = ['unknown', 'one', 'two', 'three', 'four', 'five'] as const;
+
 export interface ReviewMetrics {
   helpfulCount: number;
   notHelpfulCount: number;
@@ -472,16 +474,12 @@ ReviewSchema.statics['getAverageRating'] = function (establishmentId: string) {
         totalReviews: { $sum: 1 },
         ratingDistribution: {
           $push: {
-            $switch: {
-              branches: [
-                { case: { $eq: ['$overallRating', 1] }, then: 'one' },
-                { case: { $eq: ['$overallRating', 2] }, then: 'two' },
-                { case: { $eq: ['$overallRating', 3] }, then: 'three' },
-                { case: { $eq: ['$overallRating', 4] }, then: 'four' },
-                { case: { $eq: ['$overallRating', 5] }, then: 'five' },
-              ],
-              default: 'unknown',
-            },
+            $ifNull: [
+              {
+                $arrayElemAt: [REVIEW_RATING_LABELS, '$overallRating'],
+              },
+              'unknown',
+            ],
           },
         },
       },
