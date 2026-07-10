@@ -15,6 +15,11 @@ export enum PrizeClaimStatus {
   REJECTED = 'rejected',
 }
 
+export enum PrizeSource {
+  BAG_GOAL = 'bag_goal',
+  VOTING = 'voting',
+}
+
 @Schema({ timestamps: true })
 export class PrizeClaim {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
@@ -52,6 +57,12 @@ export class PrizeClaim {
 
   @Prop({ type: Date })
   deliveredAt?: Date;
+
+  @Prop({ type: String, enum: PrizeSource, default: PrizeSource.BAG_GOAL })
+  source!: PrizeSource;
+
+  @Prop({ type: Types.ObjectId, ref: 'VotingCycle' })
+  votingCycleId?: Types.ObjectId;
 }
 
 export const PrizeClaimSchema = SchemaFactory.createForClass(PrizeClaim);
@@ -59,3 +70,7 @@ export const PrizeClaimSchema = SchemaFactory.createForClass(PrizeClaim);
 PrizeClaimSchema.index({ userId: 1, cycleNumber: 1 }, { unique: true });
 PrizeClaimSchema.index({ status: 1, prizeType: 1 });
 PrizeClaimSchema.index({ cycleNumber: -1 });
+PrizeClaimSchema.index(
+  { userId: 1, votingCycleId: 1 },
+  { unique: true, partialFilterExpression: { source: PrizeSource.VOTING } },
+);

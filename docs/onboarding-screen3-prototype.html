@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Too Fresh To Waste — Screen 3</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --deep:#050A0B;
+  --screen:#0A1E22;
+  --coral:#F04535;
+  --coral-glow:rgba(240,69,53,0.45);
+  --white:#FFFFFF;
+  --mist:rgba(255,255,255,0.65);
+  --mist-faint:rgba(255,255,255,0.32);
+  --outline:rgba(255,255,255,0.85);
+}
+
+body{
+  background:var(--deep);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Phone shell ── */
+.phone{
+  width:390px;
+  height:844px;
+  background:#0A1E22;
+  border-radius:54px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 10px #111,
+    0 0 0 12px #1e1e1e,
+    0 60px 120px rgba(0,0,0,.9),
+    0 20px 40px rgba(0,0,0,.6);
+}
+
+/* ── Wall + Floor scene ── */
+.scene-wall{
+  position:absolute;
+  top:0;left:0;right:0;
+  bottom:280px;
+  background:url('../apps/mobile/src/assets/images/wall.svg') bottom center/cover no-repeat;
+  z-index:0;
+}
+.scene-floor{
+  position:absolute;
+  left:0;right:0;
+  bottom:0;
+  height:290px;
+  background:url('../apps/mobile/src/assets/images/surface.svg') center/cover no-repeat;
+  z-index:0;
+}
+
+/* Dynamic island */
+.pill{
+  position:absolute;
+  top:13px;left:50%;
+  transform:translateX(-50%);
+  width:120px;height:34px;
+  background:#000;
+  border-radius:20px;
+  z-index:200;
+}
+
+/* ── Status bar ── */
+.statusbar{
+  position:absolute;
+  top:0;left:0;right:0;
+  height:54px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  padding:0 28px 8px;
+  z-index:100;
+}
+.sb-time{
+  font-size:15px;
+  font-weight:600;
+  color:var(--white);
+  letter-spacing:-.3px;
+}
+.sb-icons{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.sb-icons svg{fill:var(--white)}
+
+/* ── Headline ── */
+.headline{
+  position:absolute;
+  top:70px;
+  left:24px;right:24px;
+  z-index:10;
+}
+.headline .line{
+  font-family:Impact,'Arial Narrow','Bebas Neue',sans-serif;
+  font-weight:400;
+  font-size:42px;
+  letter-spacing:1.5px;
+  display:block;
+  line-height:0.95;
+  text-transform:uppercase;
+}
+.headline .white{color:var(--white)}
+.headline .coral{color:var(--coral)}
+
+/* ── Body text ── */
+.bodytext{
+  position:absolute;
+  top:246px;
+  left:24px;
+  width:195px;
+  font-size:14.5px;
+  color:var(--mist);
+  line-height:1.58;
+  font-weight:400;
+  z-index:10;
+}
+
+/* ── Wall shadow (cast to the right behind the bag) ── */
+.bag-wall-shadow{
+  position:absolute;
+  top:260px;
+  left:50%;
+  transform:translateX(-5%);
+  width:320px;
+  height:400px;
+  z-index:4;
+  pointer-events:none;
+  background:radial-gradient(ellipse at 30% 50%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 45%, transparent 75%);
+  border-radius:20px;
+  filter:blur(22px);
+}
+
+/* ── Bag hero ── */
+.bag-hero{
+  position:absolute;
+  top:240px;
+  left:50%;
+  transform:translateX(-42%);
+  width:340px;
+  height:440px;
+  z-index:5;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+.bag-hero img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+
+/* ── Contact shadow on the floor under the bag ── */
+.bag-contact-shadow{
+  position:absolute;
+  bottom:210px;
+  left:40%;
+  transform:translateX(-40%);
+  width:320px;
+  height:30px;
+  background:radial-gradient(ellipse, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 45%, transparent 75%);
+  z-index:6;
+  pointer-events:none;
+  filter:blur(6px);
+}
+
+/* ── Shapes decoration ── */
+.shapes-decor{
+  position:absolute;
+  top:300px;
+  right:18px;
+  width:90px;
+  height:60px;
+  z-index:8;
+  pointer-events:none;
+  transform:rotate(12deg);
+  opacity:0.95;
+}
+
+/* ── Bottom chrome ── */
+.bottom{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  padding:0 24px 38px;
+  z-index:20;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
+}
+
+.btn-create{
+  width:100%;
+  background:var(--coral);
+  color:var(--white);
+  border:none;
+  border-radius:50px;
+  padding:17px 24px;
+  font-size:17px;
+  font-weight:700;
+  font-family:inherit;
+  letter-spacing:.02em;
+  cursor:pointer;
+  box-shadow:
+    0 8px 28px var(--coral-glow),
+    0 2px 8px rgba(0,0,0,.3);
+  margin-bottom:12px;
+  transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-create:hover{
+  transform:scale(1.02);
+  box-shadow:0 12px 36px var(--coral-glow),0 4px 12px rgba(0,0,0,.4);
+}
+.btn-create:active{transform:scale(0.97)}
+
+.btn-login{
+  width:100%;
+  background:transparent;
+  color:var(--outline);
+  border:1.5px solid var(--outline);
+  border-radius:50px;
+  padding:16px 24px;
+  font-size:17px;
+  font-weight:600;
+  font-family:inherit;
+  letter-spacing:.01em;
+  cursor:pointer;
+  margin-bottom:18px;
+  transition:background 0.15s ease;
+}
+.btn-login:hover{background:rgba(255,255,255,.08)}
+.btn-login:active{background:rgba(255,255,255,.12)}
+
+.dots{
+  display:flex;
+  gap:7px;
+  align-items:center;
+}
+.dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--mist-faint);
+}
+.dot.active{
+  background:var(--coral);
+  width:22px;
+  border-radius:4px;
+}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <!-- Wall + Floor scene -->
+  <div class="scene-wall"></div>
+  <div class="scene-floor"></div>
+
+  <div class="pill"></div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span class="sb-time">9:41</span>
+    <div class="sb-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="8" width="3" height="4" rx=".8"/><rect x="4.5" y="5.5" width="3" height="6.5" rx=".8"/><rect x="9" y="3" width="3" height="9" rx=".8"/><rect x="13.5" y="0" width="3" height="12" rx=".8"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 9.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/><path d="M3.8 6.4a6 6 0 018.4 0" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><path d="M1 3.6A10 10 0 0115 3.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" stroke="#fff" stroke-width="1" fill="none"/><rect x="22" y="3.5" width="2.5" height="5" rx="1.2" fill="rgba(255,255,255,.5)"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#fff"/></svg>
+    </div>
+  </div>
+
+  <!-- Headline -->
+  <div class="headline">
+    <span class="line white">READY TO</span>
+    <span class="line white">MAKE A</span>
+    <span class="line coral">DIFFERENCE?</span>
+  </div>
+
+  <!-- Body text -->
+  <p class="bodytext">Join thousands of people who are saving food and saving the planet.</p>
+
+  <!-- Shapes decoration (the 3 coral swoosh marks) -->
+  <img class="shapes-decor"
+       src="../apps/mobile/src/assets/images/shapes.svg"
+       alt="decorative shapes"/>
+
+  <!-- Wall shadow (cast to the right behind the bag) -->
+  <div class="bag-wall-shadow"></div>
+
+  <!-- Contact shadow on floor under bag -->
+  <div class="bag-contact-shadow"></div>
+
+  <!-- Bag with food (the actual project asset) -->
+  <div class="bag-hero">
+    <img src="../apps/mobile/src/assets/images/bag-food.svg"
+         alt="Tote bag with fresh food — Too Fresh To Waste"/>
+  </div>
+
+  <!-- Bottom -->
+  <div class="bottom">
+    <button class="btn-create">Create Account</button>
+    <button class="btn-login">Log In</button>
+    <div class="dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot active"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

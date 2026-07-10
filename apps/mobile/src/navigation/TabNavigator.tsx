@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { VotingLiveDot } from '@/features/voting/components/VotingLiveDot';
 
 import { FavoritesStack } from './FavoritesStack';
 import { HomeStack } from './HomeStack';
@@ -76,6 +77,14 @@ const TabNavigatorComponent: React.FC = () => {
         lazy: true,
         tabBarIcon: ({ focused, color, size }) => {
           const iconName = getTabIcon(route.name, focused);
+          if (route.name === 'Profile') {
+            return (
+              <View style={{ position: 'relative' }}>
+                <Icon name={iconName} family='Ionicons' size={size} color={color} />
+                <VotingLiveDot />
+              </View>
+            );
+          }
           return <Icon name={iconName} family='Ionicons' size={size} color={color} />;
         },
         tabBarActiveTintColor: theme.colors.primary,

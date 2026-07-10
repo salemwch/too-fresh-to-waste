@@ -13,6 +13,7 @@
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
 import { View, Image, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
+import Svg, { Circle, Ellipse, G, Path, Polygon, Rect } from 'react-native-svg';
 
 import { CtaState } from '@/features/offers/types';
 import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
@@ -33,7 +34,7 @@ import {
   offerTypeLabels,
 } from './OfferCard.types';
 
-import type { OfferCardProps } from './OfferCard.types';
+import type { MascotVariant, OfferCardProps } from './OfferCard.types';
 
 /**
  * Placeholder image for missing offer images
@@ -54,6 +55,155 @@ const COLORS = {
   SOLD_OUT_OVERLAY: 'rgba(0, 0, 0, 0.5)',
   NOT_STARTED_OVERLAY: 'rgba(0, 82, 80, 0.45)', // Brand teal overlay for not-yet-available
 } as const;
+
+// ── Mascot configuration ─────────────────────────────────────────────────────
+
+const MASCOT_CONFIG: Record<MascotVariant, { color: string }> = {
+  urgent: { color: '#EF4444' },
+  hottest: { color: '#D97706' },
+  today: { color: '#16A34A' },
+  tomorrow: { color: '#6366F1' },
+};
+
+const BagMascotSvg: React.FC<{ variant: MascotVariant }> = ({ variant }) => (
+  <Svg width={44} height={52} viewBox='0 0 44 52'>
+    {/* Handle */}
+    <Path
+      d='M15 20 Q15 8 22 8 Q29 8 29 20'
+      stroke='white'
+      strokeWidth='3'
+      fill='none'
+      strokeLinecap='round'
+    />
+    {/* Bag body */}
+    <Rect x='3' y='18' width='38' height='32' rx='9' fill='white' fillOpacity={0.95} />
+    {/* Shine highlight */}
+    <Ellipse
+      cx='11'
+      cy='24'
+      rx='5'
+      ry='2.5'
+      fill='white'
+      fillOpacity={0.3}
+      transform='rotate(-20 11 24)'
+    />
+
+    {variant === 'urgent' && (
+      <G>
+        {/* Worried brows */}
+        <Path
+          d='M11 27 Q14 24 17 26'
+          stroke='#EF4444'
+          strokeWidth='2'
+          fill='none'
+          strokeLinecap='round'
+        />
+        <Path
+          d='M27 26 Q30 24 33 27'
+          stroke='#EF4444'
+          strokeWidth='2'
+          fill='none'
+          strokeLinecap='round'
+        />
+        {/* Eyes */}
+        <Circle cx='14' cy='31' r='4' fill='#FCA5A5' />
+        <Circle cx='30' cy='31' r='4' fill='#FCA5A5' />
+        <Circle cx='13.5' cy='30' r='2.2' fill='#7F1D1D' />
+        <Circle cx='29.5' cy='30' r='2.2' fill='#7F1D1D' />
+        {/* Frown */}
+        <Path
+          d='M15 42 Q22 37 29 42'
+          stroke='#EF4444'
+          strokeWidth='2.5'
+          fill='none'
+          strokeLinecap='round'
+        />
+        {/* Tear drop */}
+        <Ellipse cx='12' cy='37' rx='1.8' ry='2.8' fill='#93C5FD' fillOpacity={0.9} />
+        {/* Sweat drop top-right */}
+        <Ellipse cx='37' cy='22' rx='2' ry='3' fill='#BFDBFE' fillOpacity={0.85} />
+      </G>
+    )}
+
+    {variant === 'hottest' && (
+      <G>
+        {/* Sunglass lenses */}
+        <Rect x='8' y='27' rx='4' ry='4' width='12' height='9' fill='#1a1a1a' />
+        <Rect x='24' y='27' rx='4' ry='4' width='12' height='9' fill='#1a1a1a' />
+        {/* Bridge + arms */}
+        <Rect x='20' y='30' width='4' height='3' fill='#1a1a1a' />
+        <Rect x='5' y='30' width='3' height='2' rx='1' fill='#1a1a1a' />
+        <Rect x='36' y='30' width='3' height='2' rx='1' fill='#1a1a1a' />
+        {/* Lens shine */}
+        <Rect x='9' y='28' width='4' height='2' rx='1' fill='white' fillOpacity={0.45} />
+        <Rect x='25' y='28' width='4' height='2' rx='1' fill='white' fillOpacity={0.45} />
+        {/* Smirk */}
+        <Path
+          d='M17 41 Q24 47 31 41'
+          stroke='#D97706'
+          strokeWidth='2.5'
+          fill='none'
+          strokeLinecap='round'
+        />
+      </G>
+    )}
+
+    {variant === 'today' && (
+      <G>
+        {/* Happy eyes */}
+        <Circle cx='15' cy='30' r='4.5' fill='#BBF7D0' />
+        <Circle cx='29' cy='30' r='4.5' fill='#BBF7D0' />
+        <Circle cx='15' cy='30' r='2.5' fill='#14532D' />
+        <Circle cx='29' cy='30' r='2.5' fill='#14532D' />
+        {/* Sparkle highlights */}
+        <Circle cx='16.5' cy='28.5' r='1' fill='white' />
+        <Circle cx='30.5' cy='28.5' r='1' fill='white' />
+        {/* Wide smile */}
+        <Path
+          d='M12 39 Q22 49 32 39'
+          stroke='#16A34A'
+          strokeWidth='3'
+          fill='none'
+          strokeLinecap='round'
+        />
+      </G>
+    )}
+
+    {variant === 'tomorrow' && (
+      <G>
+        {/* Nightcap */}
+        <Polygon points='22,2 13,21 31,21' fill='#4338CA' />
+        <Rect x='12' y='19' width='20' height='5' rx='2.5' fill='#4F46E5' />
+        <Circle cx='22' cy='3' r='3' fill='white' fillOpacity={0.9} />
+        {/* Sleeping eyes (closed arcs) */}
+        <Path
+          d='M10 30 Q15 26 20 30'
+          stroke='#6366F1'
+          strokeWidth='2.5'
+          fill='none'
+          strokeLinecap='round'
+        />
+        <Path
+          d='M24 30 Q29 26 34 30'
+          stroke='#6366F1'
+          strokeWidth='2.5'
+          fill='none'
+          strokeLinecap='round'
+        />
+        {/* Drooping mouth */}
+        <Path
+          d='M18 40 Q22 38 26 40'
+          stroke='#818CF8'
+          strokeWidth='2'
+          fill='none'
+          strokeLinecap='round'
+        />
+      </G>
+    )}
+  </Svg>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const HeartIcon: React.FC<{ filled: boolean; size?: number; color?: string }> = ({
   filled,
@@ -91,6 +241,8 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
   testID = 'offer-card',
   accessibilityLabel,
   accessibilityHint,
+  mascotVariant,
+  mascotCopy,
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme, orientation, layout, imageAspectRatio);
@@ -210,7 +362,13 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
    * Render image section with overlays
    */
   const renderImage = () => (
-    <View style={[styles.imageContainer, imageStyle]}>
+    <View
+      style={[
+        styles.imageContainer,
+        imageStyle,
+        mascotVariant != null ? styles.imageContainerWithStrip : undefined,
+      ]}
+    >
       <Image
         source={imageSource}
         style={styles.image}
@@ -424,6 +582,8 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
    */
   const renderBottomRow = () => {
     const hasDiscount = offer.pricing.originalPrice !== offer.pricing.discountedPrice;
+    const priceColor =
+      mascotVariant != null ? MASCOT_CONFIG[mascotVariant].color : theme.colors.primary;
 
     return (
       <View style={styles.bottomRow}>
@@ -439,16 +599,27 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
               {offer.pricing.originalPrice.toFixed(2)}
             </Text>
           )}
-          <Text
-            variant='body.medium'
-            weight='bold'
-            color={theme.colors.primary}
-            style={styles.currentPrice}
-          >
+          <Text variant='body.medium' weight='bold' color={priceColor} style={styles.currentPrice}>
             {offer.pricing.currency}
             {offer.pricing.discountedPrice.toFixed(2)}
           </Text>
         </View>
+      </View>
+    );
+  };
+
+  /**
+   * Solid-color personality strip with bag mascot — shown only when mascotVariant is set
+   */
+  const renderMascotStrip = () => {
+    if (mascotVariant == null || mascotCopy == null) return null;
+    const config = MASCOT_CONFIG[mascotVariant];
+    return (
+      <View style={[styles.mascotStrip, { backgroundColor: config.color }]}>
+        <BagMascotSvg variant={mascotVariant} />
+        <Text variant='label.small' style={styles.mascotCopy} numberOfLines={3}>
+          {mascotCopy}
+        </Text>
       </View>
     );
   };
@@ -467,6 +638,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       accessibilityRole='button'
     >
       {renderImage()}
+      {renderMascotStrip()}
 
       <View style={[styles.content, contentStyle]}>
         {renderEstablishment()}
@@ -646,6 +818,27 @@ const createStyles = (
     pickupOnlyText: {
       color: '#FFFFFF',
       fontWeight: '600',
+    },
+    imageContainerWithStrip: {
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    },
+    mascotStrip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 7,
+      gap: 8,
+      borderBottomLeftRadius: 10,
+      borderBottomRightRadius: 10,
+      minHeight: 62,
+    },
+    mascotCopy: {
+      flex: 1,
+      color: COLORS.WHITE,
+      fontSize: 11,
+      fontWeight: '700',
+      lineHeight: 15,
     },
     content: {
       flex: 1,

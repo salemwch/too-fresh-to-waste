@@ -12,3 +12,6 @@ export type { WaitlistEmailProps } from './templates/WaitlistEmail';
 
 export { GoogleLinkedEmail } from './templates/GoogleLinkedEmail';
 export type { GoogleLinkedEmailProps } from './templates/GoogleLinkedEmail';
+
+export { OAuthSignInEmail } from './templates/OAuthSignInEmail';
+export type { OAuthSignInEmailProps } from './templates/OAuthSignInEmail';

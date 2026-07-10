@@ -62,6 +62,7 @@ import {
   COMMUNITY_GOAL_QUERY_KEY,
 } from '../hooks';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
+import { FloatingVoteTab } from '@/features/voting/components/FloatingVoteTab';
 
 import type { LocationItem } from '@/navigation/components';
 import type { HomeScreenNavigationProp } from '@/navigation/types';
@@ -711,6 +712,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               emptySubtext={t('home.urgentSubtext')}
               variant={OFFER_SECTIONS.urgent.variant}
               testIDPrefix={OFFER_SECTIONS.urgent.testIDPrefix}
+              mascotVariant='urgent'
+              mascotCopy={t('home.mascotUrgent')}
             />
           );
 
@@ -728,6 +731,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               emptySubtext={t('home.hottestSubtext')}
               variant={OFFER_SECTIONS.hottest.variant}
               testIDPrefix={OFFER_SECTIONS.hottest.testIDPrefix}
+              mascotVariant='hottest'
+              mascotCopy={t('home.mascotHottest')}
             />
           );
 
@@ -745,6 +750,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               emptySubtext={t('home.pickupSubtext')}
               variant={OFFER_SECTIONS.pickupToday.variant}
               testIDPrefix={OFFER_SECTIONS.pickupToday.testIDPrefix}
+              mascotVariant='today'
+              mascotCopy={t('home.mascotToday')}
             />
           );
 
@@ -762,6 +769,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               emptySubtext={t('home.pickupSubtext')}
               variant={OFFER_SECTIONS.pickupTomorrow.variant}
               testIDPrefix={OFFER_SECTIONS.pickupTomorrow.testIDPrefix}
+              mascotVariant='tomorrow'
+              mascotCopy={t('home.mascotTomorrow')}
             />
           );
 
@@ -808,6 +817,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <FloatingVoteTab />
       <FlatList<Section>
         ref={flatListRef}
         data={sections}

@@ -75,16 +75,12 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
    */
   useEffect(() => {
     Logger.info('ResetPasswordScreen mounted', {
-      email: `${email.substring(0, 3)}***`, // Partial email for privacy
+      email: email ? `${email.substring(0, 3)}***` : 'not provided',
       hasToken: !!token,
     });
 
-    // Validate params on mount
-    if (!email || !token) {
-      Logger.error('ResetPasswordScreen: Missing required params', {
-        email: !!email,
-        token: !!token,
-      });
+    if (!token) {
+      Logger.error('ResetPasswordScreen: Missing token param');
       setError(t('resetPassword.invalidLink'));
     }
 
@@ -101,10 +97,9 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
       // Clear previous errors
       setError(null);
 
-      // Validation checks
-      if (!email || !token) {
+      if (!token) {
         setError(t('resetPassword.requestNewReset'));
-        Logger.error('ResetPassword: Missing email or token');
+        Logger.error('ResetPassword: Missing token');
         return;
       }
 
@@ -118,16 +113,18 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
       }
 
       setIsLoading(true);
-      Logger.info('Attempting password reset', { email: `${email.substring(0, 3)}***` });
+      Logger.info('Attempting password reset', {
+        email: email ? `${email.substring(0, 3)}***` : 'not provided',
+      });
 
       try {
         await authService.confirmPasswordReset({
-          email: email.trim().toLowerCase(),
+          ...(email ? { email: email.trim().toLowerCase() } : {}),
           token: token.trim(),
           newPassword: formData.password,
         });
 
-        Logger.info('Password reset successful', { email: `${email.substring(0, 3)}***` });
+        Logger.info('Password reset successful');
 
         // Show success screen
         setIsSuccess(true);
@@ -339,28 +336,30 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             {t('resetPassword.description')}
           </Text>
 
-          {/* Email Display */}
-          <View
-            style={[
-              styles.emailContainer,
-              { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.outline },
-            ]}
-          >
-            <Icon
-              name='mail-outline'
-              family='Ionicons'
-              size={16}
-              color={theme.colors.onSurfaceVariant}
-            />
-            <View style={styles.emailTextContainer}>
-              <Text variant='body' size='xs' color='secondary'>
-                Resetting password for:
-              </Text>
-              <Text variant='body' size='sm' weight='semibold' style={styles.emailText}>
-                {email}
-              </Text>
+          {/* Email Display — only shown when email is available (in-app navigation) */}
+          {email ? (
+            <View
+              style={[
+                styles.emailContainer,
+                { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.outline },
+              ]}
+            >
+              <Icon
+                name='mail-outline'
+                family='Ionicons'
+                size={16}
+                color={theme.colors.onSurfaceVariant}
+              />
+              <View style={styles.emailTextContainer}>
+                <Text variant='body' size='xs' color='secondary'>
+                  Resetting password for:
+                </Text>
+                <Text variant='body' size='sm' weight='semibold' style={styles.emailText}>
+                  {email}
+                </Text>
+              </View>
             </View>
-          </View>
+          ) : null}
 
           {/* Error Message */}
           {error && (
@@ -426,7 +425,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
           <PasswordStrengthIndicator
             password={password}
             context={{
-              email,
+              ...(email ? { email } : {}),
             }}
             dropdownMode
             autoHideWhenValid

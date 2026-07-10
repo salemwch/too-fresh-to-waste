@@ -15,6 +15,7 @@ import { Vote } from '../schemas/vote.schema';
 import { VotingAuditLog } from '../schemas/voting-audit-log.schema';
 import { VotingCycle } from '../schemas/voting-cycle.schema';
 import { VotingEligibility } from '../schemas/voting-eligibility.schema';
+import { VotingPrizeService } from '../services/voting-prize.service';
 import { VotingService } from '../voting.service';
 
 const mockCycleId = new Types.ObjectId();
@@ -72,6 +73,10 @@ describe('VotingService', () => {
         { provide: getModelToken(VotingAuditLog.name), useValue: auditLogModel },
         { provide: getModelToken(Counter.name), useValue: counterModel },
         { provide: getModelToken(LoyaltyAccount.name), useValue: loyaltyModel },
+        {
+          provide: VotingPrizeService,
+          useValue: { notifyWinners: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 

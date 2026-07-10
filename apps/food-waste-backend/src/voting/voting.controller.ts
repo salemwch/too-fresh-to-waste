@@ -10,11 +10,16 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { UserRole } from '@foodwaste/shared';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 
 import { CastVoteDto } from './dto/cast-vote.dto';
+import { ClaimVotingPrizeDto } from './dto/claim-voting-prize.dto';
+import { VotingPrizeService } from './services/voting-prize.service';
 import { VotingService } from './voting.service';
 
 @ApiTags('Voting')
@@ -22,7 +27,10 @@ import { VotingService } from './voting.service';
 @UseGuards(JwtAuthGuard)
 @Controller('voting')
 export class VotingController {
-  constructor(private readonly votingService: VotingService) {}
+  constructor(
+    private readonly votingService: VotingService,
+    private readonly votingPrizeService: VotingPrizeService,
+  ) {}
 
   @Get('active')
   @HttpCode(HttpStatus.OK)
@@ -66,5 +74,31 @@ export class VotingController {
   async getHistory() {
     const data = await this.votingService.getHistory();
     return { status: 'success', message: 'Voting history retrieved', data };
+  }
+
+  @Get('my-prize')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.CONSUMER)
+  @ApiOperation({ summary: 'Check if the user won the latest completed voting cycle prize' })
+  @ApiResponse({ status: 200, description: 'Voting prize status for the current user' })
+  async getMyPrize(@GetUser('id') userId: string) {
+    const data = await this.votingPrizeService.getMyPrize(userId);
+    return { status: 'success', message: 'Voting prize status retrieved', data };
+  }
+
+  @Post('claim-prize')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(RolesGuard, ThrottlerGuard)
+  @Roles(UserRole.CONSUMER)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({ summary: 'Claim a discount voucher as a voting winner' })
+  @ApiResponse({ status: 201, description: 'Voucher claimed' })
+  @ApiResponse({ status: 400, description: 'Not a winner / no completed cycle' })
+  @ApiResponse({ status: 404, description: 'Establishment not found' })
+  @ApiResponse({ status: 409, description: 'Already claimed' })
+  async claimPrize(@GetUser('id') userId: string, @Body() dto: ClaimVotingPrizeDto) {
+    const data = await this.votingPrizeService.claimPrize(userId, dto.establishmentId);
+    return { status: 'success', message: 'Voting prize claimed', data };
   }
 }

@@ -679,6 +679,19 @@ export class AuthService {
       };
     }
 
+    // OAuth accounts have no password — send a "sign in with <provider>" email instead
+    // of a reset link that would fail at the reset step.
+    if (user.authProvider !== 'local') {
+      this.logger.warn('Password reset requested for OAuth account', {
+        email,
+        authProvider: user.authProvider,
+      });
+      await this.emailService.sendOAuthSignInEmail(user);
+      return {
+        message: 'If an account with this email exists, you will receive a password reset link.',
+      };
+    }
+
     const resetToken = CryptoUtil.generateRandomToken(32);
     const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 

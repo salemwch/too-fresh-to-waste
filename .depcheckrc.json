@@ -1,5 +1,10 @@
 {
-  "ignores": ["@commitlint/cli", "@commitlint/config-conventional", "lint-staged"],
+  "ignores": [
+    "@commitlint/cli",
+    "@commitlint/config-conventional",
+    "lint-staged",
+    "@react-email/preview-server"
+  ],
   "ignore-patterns": ["dist/**", "build/**", "coverage/**", "node_modules/**", "*.d.ts"],
   "ignore-path": ".gitignore"
 }

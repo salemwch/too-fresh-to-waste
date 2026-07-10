@@ -7,6 +7,11 @@ import type { OfferListItem, OfferType } from '@/features/offers/types';
 import type { ViewStyle, ImageStyle } from 'react-native';
 
 /**
+ * Mascot strip variant — maps to the four HomeScreen offer sections
+ */
+export type MascotVariant = 'urgent' | 'hottest' | 'today' | 'tomorrow';
+
+/**
  * Card variant determines visual emphasis and badge display
  */
 type OfferCardVariant = 'nearby' | 'featured' | 'surprise' | 'default';
@@ -181,6 +186,20 @@ export interface OfferCardProps {
    * Accessibility hint override
    */
   accessibilityHint?: string;
+
+  /**
+   * Bag mascot strip variant — shows the personality strip below the photo.
+   * Maps to the four HomeScreen sections: urgent, hottest, today, tomorrow.
+   * Omit for cards rendered outside those sections (e.g., favorites, search).
+   */
+  mascotVariant?: MascotVariant;
+
+  /**
+   * Translated copy for the mascot strip. Required when mascotVariant is set.
+   * Provided by the caller (e.g. HomeScreen via t('home.mascotUrgent')) so the
+   * OfferCard design-system component stays decoupled from the app's i18n instance.
+   */
+  mascotCopy?: string;
 }
 
 /**

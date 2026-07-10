@@ -15,11 +15,11 @@
  */
 export const HOME_API_CONFIG = {
   /** Hours threshold for urgent offers (offers expiring within X hours) */
-  URGENT_OFFERS_HOURS_THRESHOLD: 1,
+  URGENT_OFFERS_HOURS_THRESHOLD: 2,
   /** Maximum number of urgent offers to fetch */
   URGENT_OFFERS_LIMIT: 10,
   /** Minimum discount percentage for hottest deals */
-  HOTTEST_DEALS_MIN_DISCOUNT: 70,
+  HOTTEST_DEALS_MIN_DISCOUNT: 60,
   /** Maximum number of hottest deals to fetch */
   HOTTEST_DEALS_LIMIT: 10,
   /** Maximum distance for hottest deals geolocation (in meters) */
@@ -76,7 +76,7 @@ export const OFFER_SECTIONS = {
   urgent: {
     title: 'Urgent Deals ⚡',
     emptyMessage: 'No urgent deals right now',
-    emptySubtext: 'Offers expiring within 1 hour will appear here',
+    emptySubtext: 'Offers expiring within 2 hours will appear here',
     variant: 'featured' as const,
     testIDPrefix: 'urgent',
     priority: 1, // Highest priority - load first
@@ -84,7 +84,7 @@ export const OFFER_SECTIONS = {
   hottest: {
     title: 'Hottest Deals 🔥',
     emptyMessage: 'No hottest deals for now',
-    emptySubtext: 'Check back soon for offers with 70%+ discount',
+    emptySubtext: 'Check back soon for offers with 60%+ discount',
     variant: 'default' as const,
     testIDPrefix: 'hottest',
     priority: 2,

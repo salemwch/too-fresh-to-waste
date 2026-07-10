@@ -31,7 +31,8 @@
     "total": "المجموع",
     "subtotal": "المجموع الفرعي",
     "quantity": "الكمية",
-    "dismiss": "تجاهل"
+    "dismiss": "تجاهل",
+    "tomorrow": "غداً"
   },
   "update": {
     "forceTitle": "تحديث مطلوب",
@@ -52,7 +53,35 @@
     "saveMoney": "وفّر المال",
     "tagline": "اشترِ فائض الطعام\nبأسعار مخفّضة",
     "getStarted": "ابدأ الآن",
-    "signUp": "إنشاء حساب"
+    "signUp": "إنشاء حساب",
+    "skipForNow": "تخطّي الآن",
+    "skip": "تخطّي",
+    "bodyText": "طعام لذيذ من المحلات المحلية بأسعار مخفضة. معاً نهدر أقل ونفعل أكثر.",
+    "headline": {
+      "line1": "أكل جيد",
+      "line2": "أقل هدراً",
+      "line3": "أكثر تأثيراً"
+    }
+  },
+  "onboarding2": {
+    "saveMoney": "وفّر المال",
+    "saveMoneyDesc": "استمتع بوجبات لذيذة بأسعار أقل.",
+    "reduceWaste": "قلّل الهدر",
+    "reduceWasteDesc": "ساعد في تقليل هدر الطعام في مجتمعك.",
+    "makeImpact": "اصنع فرقاً",
+    "makeImpactDesc": "أفعال صغيرة، تغيير كبير.",
+    "earnPrizes": "اربح جوائز",
+    "earnPrizesDesc": "صوّت واربح خصومات ومكافآت.",
+    "createAccount": "إنشاء حساب",
+    "logIn": "تسجيل الدخول"
+  },
+  "onboarding3": {
+    "headline1": "هل أنت مستعد",
+    "headline2": "لإحداث",
+    "headline3": "الفرق؟",
+    "bodyText": "انضم إلى آلاف الأشخاص الذين ينقذون الطعام ويحافظون على الكوكب.",
+    "createAccount": "إنشاء حساب",
+    "logIn": "تسجيل الدخول"
   },
   "auth": {
     "welcomeBack": "مرحباً بعودتك",
@@ -264,7 +293,11 @@
     "prizeDropLabel": "السحب الكبير",
     "daysRemaining": "يوم متبقي",
     "prizeDropSubtitle": "سحب الجائزة الكبرى في نهاية الموسم",
-    "rewardEarnPoints": "حقّقوا الهدف — الجميع يحصل على {{points}} نقطة"
+    "rewardEarnPoints": "حقّقوا الهدف — الجميع يحصل على {{points}} نقطة",
+    "mascotUrgent": "نجدة! لا تتركني\nأُرمى في القمامة 🥺",
+    "mascotHottest": "أنا يستاهل أكثر بكثير!\nتبنّاني؟ 😎",
+    "mascotToday": "جاهز وبانتظارك\nالليلة! 🎒",
+    "mascotTomorrow": "آخذ قيلولة حتى\nالغد 💤"
   },
   "offers": {
     "reserve": "حجز",
@@ -296,7 +329,8 @@
     "slotLimit": "يسمح هذا المطعم بحد أقصى {{count}} كيس لكل عرض",
     "slotLimitPlural": "يسمح هذا المطعم بحد أقصى {{count}} أكياس لكل عرض",
     "addToFavorites": "إضافة إلى المفضلة",
-    "removeFromFavorites": "إزالة من المفضلة"
+    "removeFromFavorites": "إزالة من المفضلة",
+    "opensAt": "يفتح في {{time}}"
   },
   "orders": {
     "active": "نشطة",
@@ -412,7 +446,9 @@
     "languageDescription": "اختر لغتك المفضلة",
     "currentLanguage": "الحالية: {{language}}",
     "restartRequired": "يتطلب إعادة التشغيل",
-    "restartMessage": "يحتاج التطبيق إلى إعادة التشغيل لتطبيق اتجاه التخطيط الجديد. يرجى إغلاق التطبيق وإعادة فتحه."
+    "restartMessage": "يحتاج التطبيق إلى إعادة التشغيل لتطبيق اتجاه التخطيط الجديد. يرجى إغلاق التطبيق وإعادة فتحه.",
+    "restartNow": "إعادة التشغيل الآن",
+    "restartLater": "لاحقاً"
   },
   "favorites": {
     "all": "الكل",

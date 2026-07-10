@@ -3,9 +3,7 @@
  * TanStack Query hooks for the community voting feature.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-
-import { useQueryWithFocus } from '@/lib/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { votingService } from '../services/votingService';
 import type { ActiveVotingResponse } from '../types/voting.types';
@@ -19,11 +17,12 @@ const VOTING_KEYS = {
  * Auto-refetches on screen focus; stale after 60 seconds.
  */
 export function useActiveVotingCycle() {
-  const { data, isLoading, error, refetch, isRefetching } = useQueryWithFocus<ActiveVotingResponse>(
-    VOTING_KEYS.active,
-    () => votingService.getActiveCycle(),
-    { staleTime: 60_000 },
-  );
+  const { data, isLoading, error, refetch, isRefetching } = useQuery<ActiveVotingResponse>({
+    queryKey: VOTING_KEYS.active,
+    queryFn: () => votingService.getActiveCycle(),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
 
   return {
     cycle: data?.cycle ?? null,

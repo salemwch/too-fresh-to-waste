@@ -24,10 +24,15 @@ import { useLoginStreak } from '../hooks/useLoginStreak';
 import { useLoyalty } from '../hooks/useLoyalty';
 import { ReferralBottomSheet } from '../components/ReferralBottomSheet';
 import { VotingCard } from '../../voting/components/VotingCard';
+import { useActiveVotingCycle } from '../../voting/hooks/useVoting';
 
 export const LoyaltyScreen: React.FC = () => {
   const theme = useTheme();
   const { account, gamification, isLoading, isRefetching, error, refetch } = useLoyalty();
+  const { cycle: votingCycle } = useActiveVotingCycle();
+  const votingLive =
+    votingCycle !== null &&
+    (votingCycle.status === 'ACTIVE' || votingCycle.status === 'BALLOT_OPEN');
 
   // Fire-and-forget: record daily login streak
   useLoginStreak();
@@ -89,6 +94,7 @@ export const LoyaltyScreen: React.FC = () => {
           availablePoints={account.availablePoints}
           lifetimePointsEarned={account.lifetimePointsEarned}
           currentTier={account.currentTier}
+          votingLive={votingLive}
         />
 
         {/* Impact Stats — uses totalBagsSaved; falls back to totalOrdersCount for legacy accounts */}

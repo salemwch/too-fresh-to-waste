@@ -63,12 +63,12 @@ export class AuthRedirectController {
   }
 
   /**
-   * Smart email-link redirect (Brevo tracking bypass).
+   * Fallback email-link redirect for clients without App Links support.
    *
-   * Brevo rewrites all links through its tracking domain, which breaks Android
-   * App Links. By routing the email link through the backend first, we can
-   * send Android users to an intent URI with a web fallback, while iOS and
-   * desktop continue through the web verification page.
+   * Primary flow: email links point directly to the frontend domain, and
+   * Android App Links / iOS Universal Links open the mobile app natively.
+   * This endpoint serves as a fallback — it detects Android via user-agent
+   * and sends an intent URI, while iOS and desktop continue to the web page.
    *
    * The token is NOT consumed here — the actual verification + auto-login
    * happens client-side via POST /auth/verify-email.
@@ -170,15 +170,41 @@ export class AuthRedirectController {
   }
 
   @Get('reset-password')
-  @ApiOperation({ summary: 'Password reset link handler — forwards to frontend (no email in URL)' })
+  @ApiOperation({
+    summary: 'Password reset link handler — redirects to mobile app (Android) or web frontend',
+  })
   @ApiQuery({ name: 'token', required: true, description: 'Password reset token' })
-  resetPasswordRedirect(@Query('token') rawToken: string | undefined, @Res() res: Response): void {
+  resetPasswordRedirect(
+    @Query('token') rawToken: string | undefined,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): void {
     if (!rawToken || typeof rawToken !== 'string') {
       this.logger.warn('reset-password redirect called without token');
       res.redirect(302, `${this.getWebFrontendUrl()}/forgot-password?status=error`);
       return;
     }
     const safeToken = encodeURIComponent(this.sanitizeToken(rawToken));
-    res.redirect(302, `${this.getWebFrontendUrl()}/reset-password?token=${safeToken}`);
+    const target = `${this.getWebFrontendUrl()}/reset-password?token=${safeToken}`;
+    const platform = this.getClientPlatform(req);
+
+    if (platform === 'android') {
+      const webFallback = encodeURIComponent(target);
+      const intentUrl =
+        `intent://reset-password?token=${safeToken}` +
+        `#Intent;scheme=foodwaste;package=com.toofreshtowaste.app;` +
+        `S.browser_fallback_url=${webFallback};end`;
+
+      this.logger.log('Reset password redirect → Android app intent');
+      res.redirect(302, intentUrl);
+      return;
+    }
+
+    this.logger.log(
+      platform === 'ios'
+        ? 'Reset password redirect → iOS universal link fallback'
+        : 'Reset password redirect → web frontend',
+    );
+    res.redirect(302, target);
   }
 }

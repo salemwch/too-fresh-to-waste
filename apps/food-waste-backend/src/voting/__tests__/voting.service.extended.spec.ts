@@ -21,6 +21,7 @@ import { VotingAuditLog } from '../schemas/voting-audit-log.schema';
 import { VotingCycle } from '../schemas/voting-cycle.schema';
 import { VotingEligibility } from '../schemas/voting-eligibility.schema';
 import { BALLOT_DURATION_MS, VOTING_AUDIT_ACTIONS, VOTING_ERROR_CODES } from '../voting.constants';
+import { VotingPrizeService } from '../services/voting-prize.service';
 import { VotingService } from '../voting.service';
 
 // ── Shared IDs ────────────────────────────────────────────────────────────────
@@ -69,6 +70,7 @@ describe('VotingService (extended)', () => {
   let auditLogModel: ReturnType<typeof createMockModel>;
   let counterModel: ReturnType<typeof createMockModel>;
   let loyaltyModel: ReturnType<typeof createMockModel>;
+  let votingPrizeServiceMock: { notifyWinners: jest.Mock };
 
   beforeEach(async () => {
     cycleModel = createMockModel();
@@ -77,6 +79,7 @@ describe('VotingService (extended)', () => {
     auditLogModel = createMockModel();
     counterModel = createMockModel();
     loyaltyModel = createMockModel();
+    votingPrizeServiceMock = { notifyWinners: jest.fn().mockResolvedValue(undefined) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -87,6 +90,7 @@ describe('VotingService (extended)', () => {
         { provide: getModelToken(VotingAuditLog.name), useValue: auditLogModel },
         { provide: getModelToken(Counter.name), useValue: counterModel },
         { provide: getModelToken(LoyaltyAccount.name), useValue: loyaltyModel },
+        { provide: VotingPrizeService, useValue: votingPrizeServiceMock },
       ],
     }).compile();
 
@@ -428,6 +432,53 @@ describe('VotingService (extended)', () => {
         fromStatus: CycleStatus.BALLOT_OPEN,
         toStatus: CycleStatus.TALLYING,
       });
+    });
+
+    it('should call notifyWinners fire-and-forget when completed cycle has a winnerPrizeId', async () => {
+      const tallyingCycle = buildTallyingCycle();
+      const winnerPrizeId = mockPrizeId1;
+      const completedCycleWithWinner = {
+        ...buildCompletedCycle({ prizeId: winnerPrizeId, name: 'Phone' }),
+        winnerPrizeId,
+        recipientCount: 3,
+        winner: { name: 'Phone', prizeId: winnerPrizeId },
+      };
+
+      cycleModel.findOneAndUpdate
+        .mockResolvedValueOnce(tallyingCycle)
+        .mockResolvedValueOnce(completedCycleWithWinner);
+      cycleModel.findById.mockResolvedValue(tallyingCycle);
+      voteModel.aggregate.mockResolvedValue([
+        { _id: winnerPrizeId, totalWeightedVotes: 500, voterCount: 3 },
+      ]);
+      auditLogModel.create.mockResolvedValue({});
+
+      const result = await service.closeBallotAndTally(mockCycleId.toString());
+
+      expect(result?.status).toBe(CycleStatus.COMPLETED);
+      // Fire-and-forget: notifyWinners must have been called (void, no await)
+      expect(votingPrizeServiceMock.notifyWinners).toHaveBeenCalledWith(
+        mockCycleId.toString(),
+        winnerPrizeId,
+        3,
+        'Phone',
+      );
+    });
+
+    it('should NOT call notifyWinners when completed cycle has no winnerPrizeId', async () => {
+      const tallyingCycle = buildTallyingCycle();
+      const completedNoWinner = buildCompletedCycle(); // no winnerPrizeId
+
+      cycleModel.findOneAndUpdate
+        .mockResolvedValueOnce(tallyingCycle)
+        .mockResolvedValueOnce(completedNoWinner);
+      cycleModel.findById.mockResolvedValue(tallyingCycle);
+      voteModel.aggregate.mockResolvedValue([]);
+      auditLogModel.create.mockResolvedValue({});
+
+      await service.closeBallotAndTally(mockCycleId.toString());
+
+      expect(votingPrizeServiceMock.notifyWinners).not.toHaveBeenCalled();
     });
   });
 

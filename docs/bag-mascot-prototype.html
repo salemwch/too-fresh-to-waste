@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Too Fresh To Waste — Offer Card Design v3</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  background: #E8E8EC;
+  min-height: 100vh;
+  padding: 40px 24px 80px;
+}
+
+/* ── Page header ── */
+.page-header { text-align: center; margin-bottom: 36px; }
+.page-header h1 {
+  font-size: 18px; font-weight: 800; color: #1E4448;
+  letter-spacing: -0.3px;
+}
+.page-header p { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
+
+/* ── Cards row ── */
+.cards-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ════════════════════════════════
+   OFFER CARD
+════════════════════════════════ */
+.card {
+  width: 210px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.04),
+    0 8px 24px rgba(0,0,0,0.09);
+  flex-shrink: 0;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 4px 8px rgba(0,0,0,0.06),
+    0 20px 40px rgba(0,0,0,0.13);
+}
+
+/* ── Photo container ── */
+.photo-wrap {
+  position: relative;
+  margin: 6px 6px 0;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: #D1D5DB;
+}
+.photo-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Overlay badges */
+.badge {
+  position: absolute;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  line-height: 1;
+}
+.badge-left   { top: 9px; left: 9px; background: rgba(255,255,255,0.92); color: #1E4448; }
+.badge-rating { top: 9px; right: 9px; background: #1E4448; color: white; }
+.badge-shop {
+  position: absolute; bottom: 9px; left: 9px;
+  width: 34px; height: 34px; border-radius: 17px;
+  background: white; border: 2px solid white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.badge-discount {
+  position: absolute; bottom: 9px; right: 9px;
+  font-size: 12px; font-weight: 800;
+  padding: 4px 8px; border-radius: 8px;
+  color: white; line-height: 1;
+}
+
+/* ── Mascot strip ── */
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  height: 70px;
+  margin: 0 6px;
+  border-radius: 0 0 10px 10px;
+}
+.strip svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.20));
+}
+.strip-copy {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.45;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+/* ── Card body ── */
+.body {
+  padding: 11px 13px 13px;
+}
+.name-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.shop-name {
+  font-size: 15px; font-weight: 700; color: #111827;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 155px;
+}
+.heart { font-size: 18px; flex-shrink: 0; }
+.offer-type { font-size: 12px; color: #6B7280; margin-bottom: 5px; }
+.pickup {
+  font-size: 11px; color: #9CA3AF;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 10px;
+}
+.price-row {
+  border-top: 1px solid #F3F4F6;
+  padding-top: 9px;
+  display: flex; align-items: baseline;
+  justify-content: space-between;
+}
+.price-orig {
+  font-size: 11px; color: #D1D5DB;
+  text-decoration: line-through;
+}
+.price-new {
+  font-size: 20px; font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+/* ════════════════════════════════
+   URGENT animation
+════════════════════════════════ */
+@keyframes urgent-pulse {
+  0%,100% { box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.09); }
+  50%      { box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 8px 28px rgba(239,68,68,0.22); }
+}
+.card-urgent { animation: urgent-pulse 2.2s ease-in-out infinite; }
+
+/* sweat drop */
+@keyframes sweat { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(8px)} }
+.sweat { animation: sweat 1.8s ease-in infinite; }
+
+/* zzz */
+@keyframes zzz { 0%{opacity:0;transform:translateY(0) scale(.5)} 30%{opacity:1} 100%{opacity:0;transform:translateY(-10px) scale(1)} }
+.z1 { animation: zzz 2.5s 0s   ease-in-out infinite; }
+.z2 { animation: zzz 2.5s 0.8s ease-in-out infinite; }
+.z3 { animation: zzz 2.5s 1.6s ease-in-out infinite; }
+
+/* bob */
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+.bob { animation: bob 3s ease-in-out infinite; }
+
+/* glint */
+@keyframes glint { 0%,70%,100%{opacity:0} 80%{opacity:1} }
+.glint { animation: glint 2.5s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Too Fresh To Waste — Offer Cards</h1>
+  <p>4 sections · bag mascot · solid strip · soft shadow · real food photos</p>
+</div>
+
+<div class="cards-row">
+
+  <!-- ══════════════ CARD 1 — URGENT (RED) ══════════════ -->
+  <div class="card card-urgent">
+
+    <!-- Photo -->
+    <div class="photo-wrap">
+      <img
+        src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=420&h=420&fit=crop&auto=format&q=82"
+        alt="Fresh croissants"
+        onerror="this.style.display='none';this.parentNode.style.background='linear-gradient(135deg,#fed7aa,#f97316)'"
+      />
+      <span class="badge badge-left">3 left</span>
+      <span class="badge badge-rating">★ 4.8</span>
+      <span class="badge-shop">🥐</span>
+      <span class="badge badge-discount" style="background:#EF4444">−62%</span>
+    </div>
+
+    <!-- Mascot strip — red, sweating/SOS variant -->
+    <div class="strip" style="background:#EF4444">
+      <svg class="bob" width="50" height="58" viewBox="0 0 50 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Handle -->
+        <path d="M17 22 Q17 9 25 9 Q33 9 33 22" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- Body -->
+        <rect x="4" y="20" width="42" height="36" rx="10" fill="white" fill-opacity="0.95"/>
+        <!-- Shine -->
+        <ellipse cx="13" cy="27" rx="6" ry="3" fill="white" fill-opacity="0.4" transform="rotate(-20 13 27)"/>
+        <!-- Worried eyebrows -->
+        <path d="M14 28 Q17 25 20 27" stroke="#EF4444" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M30 27 Q33 25 36 28" stroke="#EF4444" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Eyes (worried, pupils up-left) -->
+        <circle cx="17" cy="32" r="4" fill="#FCA5A5"/>
+        <circle cx="33" cy="32" r="4" fill="#FCA5A5"/>
+        <circle cx="16" cy="31" r="2.2" fill="#7F1D1D"/>
+        <circle cx="32" cy="31" r="2.2" fill="#7F1D1D"/>
+        <!-- Tear left -->
+        <ellipse cx="14" cy="38" rx="2" ry="3" fill="#93C5FD" opacity="0.85"/>
+        <!-- Frown -->
+        <path d="M17 44 Q25 39 33 44" stroke="#EF4444" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- SOS tag -->
+        <rect x="28" y="4" width="18" height="10" rx="3" fill="white"/>
+        <text x="37" y="12" font-size="7" font-weight="900" fill="#EF4444" text-anchor="middle">SOS</text>
+        <!-- Sweat drop -->
+        <ellipse class="sweat" cx="40" cy="22" rx="2.5" ry="3.5" fill="#93C5FD" opacity="0.9"/>
+      </svg>
+      <span class="strip-copy">SOS! Please don't<br>let them throw me away 🥺</span>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <div class="name-row">
+        <span class="shop-name">Pâtisserie Centrale</span>
+        <span class="heart" style="color:#1E4448">♥</span>
+      </div>
+      <div class="offer-type">Mixed Pastry Box</div>
+      <div class="pickup">🕐 Today · 14:00–15:00 · 0.8 km</div>
+      <div class="price-row">
+        <span class="price-orig">TND 12.00</span>
+        <span class="price-new" style="color:#EF4444">TND 4.50</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ CARD 2 — DEAL (YELLOW) ══════════════ -->
+  <div class="card">
+
+    <div class="photo-wrap">
+      <img
+        src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=420&h=420&fit=crop&auto=format&q=82"
+        alt="Sushi platter"
+        onerror="this.style.display='none';this.parentNode.style.background='linear-gradient(135deg,#bfdbfe,#3b82f6)'"
+      />
+      <span class="badge badge-left">5+ left</span>
+      <span class="badge badge-rating">★ 4.5</span>
+      <span class="badge-shop">🍣</span>
+      <span class="badge badge-discount" style="background:#D97706;color:white">−66%</span>
+    </div>
+
+    <!-- Mascot strip — amber, sunglasses/cool variant -->
+    <div class="strip" style="background:#D97706">
+      <svg class="bob" width="50" height="58" viewBox="0 0 50 58" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation-duration:2.5s">
+        <!-- Handle -->
+        <path d="M17 22 Q17 9 25 9 Q33 9 33 22" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- Body -->
+        <rect x="4" y="20" width="42" height="36" rx="10" fill="white" fill-opacity="0.95"/>
+        <!-- Shine -->
+        <ellipse cx="13" cy="27" rx="6" ry="3" fill="white" fill-opacity="0.4" transform="rotate(-20 13 27)"/>
+        <!-- Sunglasses frame -->
+        <rect x="10" y="28" rx="4" ry="4" width="13" height="9" fill="#1a1a1a"/>
+        <rect x="27" y="28" rx="4" ry="4" width="13" height="9" fill="#1a1a1a"/>
+        <rect x="23" y="31" width="4" height="3" fill="#1a1a1a"/>
+        <rect x="7"  y="31" width="3" height="2" fill="#1a1a1a"/>
+        <rect x="40" y="31" width="3" height="2" fill="#1a1a1a"/>
+        <!-- Glint on lenses -->
+        <rect class="glint" x="11" y="29" width="5" height="2" rx="1" fill="white" opacity="0.55"/>
+        <rect class="glint" x="28" y="29" width="5" height="2" rx="1" fill="white" opacity="0.55"/>
+        <!-- Smirk -->
+        <path d="M19 42 Q27 48 34 43" stroke="#D97706" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Deal star -->
+        <text x="42" y="12" font-size="10" fill="#FDE68A">★</text>
+      </svg>
+      <span class="strip-copy">I'm worth so much<br>more! Adopt me? 😎</span>
+    </div>
+
+    <div class="body">
+      <div class="name-row">
+        <span class="shop-name">Sakura Restaurant</span>
+        <span class="heart" style="color:#9CA3AF">♡</span>
+      </div>
+      <div class="offer-type">Gourmet Sushi Set</div>
+      <div class="pickup">🕐 Today · 18:00–20:00 · 2.1 km</div>
+      <div class="price-row">
+        <span class="price-orig">TND 28.00</span>
+        <span class="price-new" style="color:#D97706">TND 9.50</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ CARD 3 — TODAY (GREEN) ══════════════ -->
+  <div class="card">
+
+    <div class="photo-wrap">
+      <img
+        src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=420&h=420&fit=crop&auto=format&q=82"
+        alt="Fresh salad bowl"
+        onerror="this.style.display='none';this.parentNode.style.background='linear-gradient(135deg,#bbf7d0,#22c55e)'"
+      />
+      <span class="badge badge-left">2 left</span>
+      <span class="badge badge-rating">★ 4.6</span>
+      <span class="badge-shop">🥗</span>
+      <span class="badge badge-discount" style="background:#16A34A">−61%</span>
+    </div>
+
+    <!-- Mascot strip — green, hiker/backpack variant -->
+    <div class="strip" style="background:#16A34A">
+      <svg class="bob" width="50" height="58" viewBox="0 0 50 58" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation-duration:2s">
+        <!-- Handle -->
+        <path d="M17 22 Q17 9 25 9 Q33 9 33 22" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- Body -->
+        <rect x="4" y="20" width="42" height="36" rx="10" fill="white" fill-opacity="0.95"/>
+        <!-- Shine -->
+        <ellipse cx="13" cy="27" rx="6" ry="3" fill="white" fill-opacity="0.4" transform="rotate(-20 13 27)"/>
+        <!-- Happy eyes -->
+        <circle cx="17" cy="32" r="4.5" fill="#BBF7D0"/>
+        <circle cx="33" cy="32" r="4.5" fill="#BBF7D0"/>
+        <circle cx="17" cy="32" r="2.5" fill="#14532D"/>
+        <circle cx="33" cy="32" r="2.5" fill="#14532D"/>
+        <!-- Eye sparkle -->
+        <circle cx="18.5" cy="30.5" r="1" fill="white"/>
+        <circle cx="34.5" cy="30.5" r="1" fill="white"/>
+        <!-- Big smile -->
+        <path d="M14 40 Q25 50 36 40" stroke="#16A34A" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Mini backpack on right side -->
+        <rect x="38" y="30" width="10" height="14" rx="3" fill="#15803D"/>
+        <rect x="39" y="27" width="8" height="5" rx="2" fill="#166534"/>
+        <rect x="40" y="33" width="8" height="6" rx="1.5" fill="none" stroke="white" stroke-width="1.2"/>
+        <!-- Excited lines left -->
+        <line x1="3" y1="28" x2="7"  y2="28" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+        <line x1="2" y1="33" x2="6"  y2="33" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <line x1="3" y1="38" x2="8"  y2="37" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+      </svg>
+      <span class="strip-copy">Packed up and<br>waiting for you! 🎒</span>
+    </div>
+
+    <div class="body">
+      <div class="name-row">
+        <span class="shop-name">Green Bowl</span>
+        <span class="heart" style="color:#9CA3AF">♡</span>
+      </div>
+      <div class="offer-type">Veggie Lunch Box</div>
+      <div class="pickup">🕐 Today · 19:00–20:00 · 1.4 km</div>
+      <div class="price-row">
+        <span class="price-orig">TND 9.00</span>
+        <span class="price-new" style="color:#16A34A">TND 3.50</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ CARD 4 — TOMORROW (PURPLE) ══════════════ -->
+  <div class="card">
+
+    <div class="photo-wrap">
+      <img
+        src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=420&h=420&fit=crop&auto=format&q=82"
+        alt="Artisan bread"
+        onerror="this.style.display='none';this.parentNode.style.background='linear-gradient(135deg,#ede9fe,#8b5cf6)'"
+      />
+      <span class="badge badge-left">5+ left</span>
+      <span class="badge badge-rating">★ 4.9</span>
+      <span class="badge-shop">🍞</span>
+      <span class="badge badge-discount" style="background:#6366F1">−64%</span>
+    </div>
+
+    <!-- Mascot strip — indigo, sleepy/nightcap variant -->
+    <div class="strip" style="background:#6366F1">
+      <svg width="50" height="58" viewBox="0 0 50 58" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation:bob 4.5s ease-in-out infinite">
+        <!-- Nightcap (drawn FIRST so it appears behind handle visual area) -->
+        <polygon points="25,2 14,22 36,22" fill="#4338CA"/>
+        <rect x="13" y="20" width="24" height="6" rx="3" fill="#4F46E5"/>
+        <!-- Cap pompom -->
+        <circle cx="25" cy="3" r="3" fill="white" opacity="0.9"/>
+        <!-- Handle -->
+        <path d="M17 22 Q17 9 25 9 Q33 9 33 22" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+        <!-- Body -->
+        <rect x="4" y="20" width="42" height="36" rx="10" fill="white" fill-opacity="0.95"/>
+        <!-- Shine -->
+        <ellipse cx="13" cy="27" rx="6" ry="3" fill="white" fill-opacity="0.3" transform="rotate(-20 13 27)"/>
+        <!-- Sleeping eyes (closed curved lines) -->
+        <path d="M12 32 Q17 28 22 32" stroke="#6366F1" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M28 32 Q33 28 38 32" stroke="#6366F1" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Small drooping mouth -->
+        <path d="M20 42 Q25 40 30 42" stroke="#818CF8" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Zzz letters -->
+        <text class="z1" x="38" y="18" font-size="8"  font-weight="900" fill="#C7D2FE">z</text>
+        <text class="z2" x="41" y="12" font-size="10" font-weight="900" fill="#C7D2FE">z</text>
+        <text class="z3" x="44" y="6"  font-size="12" font-weight="900" fill="#C7D2FE">Z</text>
+      </svg>
+      <span class="strip-copy">Catching some sleep<br>for tomorrow 💤</span>
+    </div>
+
+    <div class="body">
+      <div class="name-row">
+        <span class="shop-name">Le Four à Bois</span>
+        <span class="heart" style="color:#1E4448">♥</span>
+      </div>
+      <div class="offer-type">Artisan Bread Bundle</div>
+      <div class="pickup">🕐 Tomorrow · 09:00–11:00 · 3.2 km</div>
+      <div class="price-row">
+        <span class="price-orig">TND 7.00</span>
+        <span class="price-new" style="color:#6366F1">TND 2.50</span>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+</body>
+</html>

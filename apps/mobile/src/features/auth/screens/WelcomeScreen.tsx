@@ -1,238 +1,279 @@
-/**
- * Welcome Screen
- * First screen users see when opening the app for the first time
- * Displays branding and navigates to registration
- *
- * DEVICE-LEVEL ONBOARDING:
- * - Only shown once per device (not per user)
- * - Uses MMKV for synchronous flag persistence
- * - Survives login/logout cycles
- * - Only reset on app reinstall or manual storage clear
- */
-
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, Image, Dimensions, StatusBar, Pressable } from 'react-native';
+import { Dimensions, Image, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 
-import BagImage from '@/assets/images/Bag.webp';
-import LeafIcon from '@/assets/images/leaf.webp';
-import RocketIcon from '@/assets/images/rocket.webp';
-import { Button, Text } from '@/design-system/components/atoms';
-import { useTheme } from '@/design-system/providers';
+import LeafLogo from '@/assets/images/leaf-logo.svg';
+import ShapesIcon from '@/assets/images/shapes.svg';
+import { colorTokens } from '@/design-system/tokens/colors';
 import { onboardingStorage } from '@/storage/onboardingStorage';
 
 import type { WelcomeScreenNavigationProp } from '@/navigation/types';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: RAW_W, height: RAW_H } = Dimensions.get('window');
+
+const W = Math.max(320, Math.min(RAW_W, 430));
+const H = Math.max(640, Math.min(RAW_H, 960));
+const REAL_W = RAW_W;
+
+const sw = (n: number) => Math.round((n * W) / 390);
+const sh = (n: number) => Math.round((n * H) / 844);
+
+const PRIMARY = colorTokens.base.primary[500];
+const ACCENT = colorTokens.base.accent[300];
+const WHITE = '#FFFFFF';
+
+const FOOD_IMG = require('@/assets/images/boal.webp');
+
+const FOOD_SIZE = sw(265);
 
 interface WelcomeScreenProps {
   navigation: WelcomeScreenNavigationProp;
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
-  const theme = useTheme();
   const { t } = useTranslation();
   const [isNavigating, setIsNavigating] = useState(false);
 
-  /**
-   * Mark onboarding as complete and navigate to Register screen
-   * Uses navigation.replace to prevent going back to Welcome screen
-   */
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setIsNavigating(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleSkip = useCallback(() => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    onboardingStorage.markWelcomeSeen();
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  }, [navigation, isNavigating]);
+
   const handleGetStarted = useCallback(() => {
     if (isNavigating) return;
     setIsNavigating(true);
-    onboardingStorage.markWelcomeSeen();
-    // Reset stack to [Login, Register] so back from Register goes to Login
-    navigation.reset({ index: 1, routes: [{ name: 'Login' }, { name: 'Register' }] });
-  }, [navigation, isNavigating]);
-
-  const handleSignUp = useCallback(() => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    onboardingStorage.markWelcomeSeen();
-    navigation.reset({ index: 1, routes: [{ name: 'Login' }, { name: 'Register' }] });
+    navigation.navigate('Onboarding2');
   }, [navigation, isNavigating]);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.primary }]}>
-      <StatusBar barStyle='light-content' translucent />
+    <View style={styles.container}>
+      <StatusBar barStyle='light-content' translucent backgroundColor='transparent' />
 
-      {/* Title Text - at the top */}
-      <View style={styles.titleContainer}>
-        <Text variant='display.medium' weight='bold' style={styles.titleText}>
-          {t('welcome.saveFood')}
-        </Text>
-        <Text variant='display.medium' weight='bold' style={styles.titleText}>
-          {t('welcome.saveMoney')}
-        </Text>
+      {/* ── Top bar: logo + skip ── */}
+      <View style={styles.topBar}>
+        <View style={styles.logoRow}>
+          <LeafLogo width={sw(36)} height={sw(36)} />
+          <Text style={styles.logoName}>{t('common.appName')}</Text>
+        </View>
+        <Pressable
+          onPress={handleSkip}
+          disabled={isNavigating}
+          accessibilityRole='button'
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Text style={styles.skipText}>{t('welcome.skip')}</Text>
+        </Pressable>
       </View>
 
-      {/* Grocery Bag Image - BEHIND the white section (z-index 1) */}
-      <View style={styles.bagContainer}>
-        <Image
-          source={BagImage}
-          style={styles.bagImage}
-          resizeMode='contain'
-          accessibilityLabel='Grocery bag full of fresh food'
-          accessibilityHint='Decorative illustration'
-          accessibilityIgnoresInvertColors
-        />
+      {/* ── Headline ── */}
+      <View style={styles.headline}>
+        <Text style={styles.headlineLine}>{t('welcome.headline.line1')}</Text>
+        <Text style={[styles.headlineLine, styles.headlineAccent]}>
+          {t('welcome.headline.line2')}
+        </Text>
+        <Text style={styles.headlineLine}>{t('welcome.headline.line3')}</Text>
       </View>
 
-      {/* White Section with curved top - ON TOP of the bag (z-index 2) */}
-      <View style={styles.whiteSection}>
-        <View style={styles.bottomContent}>
-          {/* Leaf Icon */}
+      {/* ── Body text ── */}
+      <Text style={styles.bodyText}>{t('welcome.bodyText')}</Text>
+
+      {/* ── Food bowl + doodle ── */}
+      <View style={styles.foodGroup}>
+        <View style={styles.foodWrap}>
           <Image
-            source={LeafIcon}
-            style={styles.leafIcon}
-            resizeMode='contain'
-            accessibilityLabel='Leaf icon'
-            accessibilityHint='Decorative brand icon'
+            source={FOOD_IMG}
+            style={styles.foodImage}
+            resizeMode='cover'
+            accessibilityLabel={t('welcome.bodyText')}
+            accessibilityHint={t('welcome.headline.line1')}
             accessibilityIgnoresInvertColors
           />
+        </View>
+        <ShapesIcon width={sw(100)} height={sw(67)} style={styles.shapesDecor} />
+      </View>
 
-          {/* App Name */}
-          <Text
-            variant='headline.large'
-            weight='bold'
-            style={[styles.appName, { color: theme.colors.primary }]}
-          >
-            {t('common.appName')}
-          </Text>
+      {/* ── Get Started button ── */}
+      <View style={styles.getStartedWrap}>
+        <Pressable
+          style={({ pressed }) => [styles.getStartedBtn, pressed && { opacity: 0.85 }]}
+          onPress={handleGetStarted}
+          disabled={isNavigating}
+          accessibilityRole='button'
+          testID='welcome-get-started-button'
+        >
+          <Text style={styles.getStartedText}>{t('welcome.getStarted')}</Text>
+        </Pressable>
+      </View>
 
-          {/* Tagline */}
-          <Text variant='body.large' style={[styles.tagline, { color: theme.colors.primary }]}>
-            {t('welcome.tagline')}
-          </Text>
-
-          {/* Get Started Button */}
-          <Button
-            variant='primary'
-            size='lg'
-            onPress={handleGetStarted}
-            style={styles.getStartedButton}
-            textStyle={styles.getStartedButtonText}
-            rightIcon={
-              <Image
-                source={RocketIcon}
-                style={styles.rocketIcon}
-                resizeMode='contain'
-                accessibilityIgnoresInvertColors
-              />
-            }
-            disabled={isNavigating}
-            testID='welcome-get-started-button'
-          >
-            {t('welcome.getStarted')}
-          </Button>
-
-          {/* Sign Up Link */}
-          <View style={styles.signInContainer}>
-            <Pressable accessibilityRole='button' onPress={handleSignUp}>
-              <Text
-                variant='body.medium'
-                weight='semibold'
-                style={[styles.signInText, { color: theme.colors.primary }]}
-              >
-                {t('welcome.signUp')}
-              </Text>
-            </Pressable>
-          </View>
+      {/* ── Bottom nav: dots ── */}
+      <View style={styles.bottom}>
+        <View style={styles.dots}>
+          <View style={[styles.dot, styles.dotActive]} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
         </View>
       </View>
     </View>
   );
 };
 
-const WHITE = '#FFFFFF';
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: PRIMARY,
   },
-  titleContainer: {
-    alignItems: 'center',
-    paddingTop: SCREEN_HEIGHT * 0.05,
-    zIndex: 1,
-  },
-  titleText: {
-    color: WHITE,
-    textAlign: 'center',
-    lineHeight: 69,
-  },
-  // Bag is positioned to extend into the white section area
-  // z-index 1 means it's BEHIND the white section (z-index 2)
-  bagContainer: {
+
+  // ── Top bar ──
+  topBar: {
     position: 'absolute',
-    top: SCREEN_HEIGHT * -0.07,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  // Large bag that extends down past where white section starts
-  bagImage: {
-    width: SCREEN_WIDTH * 3,
-    height: SCREEN_HEIGHT * 1.1,
-  },
-  // White section with curved top edge - covers bottom of bag
-  // z-index 2 means it's ON TOP of the bag
-  whiteSection: {
-    position: 'absolute',
-    bottom: 0,
-    left: -30,
-    right: -30,
-    height: SCREEN_HEIGHT * 0.42,
-    backgroundColor: WHITE,
-    borderTopLeftRadius: SCREEN_WIDTH,
-    borderTopRightRadius: SCREEN_WIDTH,
-    zIndex: 2,
-  },
-  bottomContent: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    justifyContent: 'flex-start',
-  },
-  leafIcon: {
-    width: 48,
-    height: 40,
-    marginBottom: 8,
-    transform: [{ scale: 3.5 }], // Scale up visually without affecting layout
-  },
-  appName: {
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  tagline: {
-    textAlign: 'center',
-    lineHeight: 30,
-    marginBottom: 24,
-    fontSize: 25,
-  },
-  getStartedButton: {
-    minWidth: 200,
-    paddingHorizontal: 32,
-  },
-  getStartedButtonText: {
-    fontSize: 25, // Increase this value for bigger text
-    fontWeight: 'bold',
-  },
-  rocketIcon: {
-    width: 32,
-    height: 32,
-    transform: [{ scale: 2.5 }],
-    marginLeft: 8,
-  },
-  signInContainer: {
+    top: sh(54),
+    left: sw(16),
+    right: sw(24),
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    justifyContent: 'space-between',
+    zIndex: 10,
   },
-  signInText: {
-    fontSize: 18, // Increase this value for bigger text
-    textDecorationLine: 'underline',
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: sw(8),
+  },
+  logoName: {
+    fontSize: sw(16),
+    fontWeight: '700',
+    color: WHITE,
+    letterSpacing: -0.2,
+  },
+  skipText: {
+    fontSize: sw(14),
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '500',
+  },
+
+  // ── Headline ──
+  headline: {
+    position: 'absolute',
+    top: sh(110),
+    left: sw(20),
+    right: sw(18),
+    zIndex: 10,
+  },
+  headlineLine: {
+    fontFamily: 'BebasNeue-Regular',
+    fontSize: sw(72),
+    fontWeight: '400',
+    letterSpacing: sw(2),
+    lineHeight: sw(66),
+    color: WHITE,
+  },
+  headlineAccent: {
+    color: ACCENT,
+  },
+
+  // ── Body text ──
+  bodyText: {
+    position: 'absolute',
+    top: sh(358),
+    left: sw(24),
+    width: sw(190),
+    fontSize: sw(14),
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: sw(22),
+    fontWeight: '400',
+    zIndex: 10,
+  },
+
+  // ── Food photo ──
+  foodGroup: {
+    position: 'absolute',
+    bottom: sh(150),
+    left: (REAL_W - FOOD_SIZE) / 2,
+    width: FOOD_SIZE,
+    height: FOOD_SIZE,
+    zIndex: 5,
+  },
+  foodWrap: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: FOOD_SIZE,
+    height: FOOD_SIZE,
+    borderRadius: FOOD_SIZE / 2,
+    overflow: 'hidden',
+  },
+  foodImage: {
+    width: '100%',
+    height: '100%',
+  },
+  shapesDecor: {
+    position: 'absolute',
+    top: sw(20),
+    right: -sw(28),
+    transform: [{ rotate: '10deg' }],
+  },
+
+  // ── Get Started ──
+  getStartedWrap: {
+    position: 'absolute',
+    bottom: sh(100),
+    left: sw(24),
+    right: sw(24),
+    zIndex: 20,
+  },
+  getStartedBtn: {
+    backgroundColor: ACCENT,
+    borderRadius: sw(28),
+    paddingVertical: sh(16),
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: ACCENT,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+  },
+  getStartedText: {
+    color: WHITE,
+    fontSize: sw(17),
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+
+  // ── Bottom nav ──
+  bottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingBottom: sh(42),
+    zIndex: 20,
+    alignItems: 'center',
+  },
+  dots: {
+    flexDirection: 'row',
+    gap: 7,
+    alignItems: 'center',
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.32)',
+  },
+  dotActive: {
+    width: 22,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: ACCENT,
   },
 });

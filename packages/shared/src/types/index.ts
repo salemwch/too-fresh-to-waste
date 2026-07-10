@@ -19,6 +19,7 @@ export type {
 } from './organization.types';
 
 export * from './prize-claim.types';
+export * from './voting-prize.types';
 
 // Auto-generated types from backend OpenAPI spec
 export * from './generated';
