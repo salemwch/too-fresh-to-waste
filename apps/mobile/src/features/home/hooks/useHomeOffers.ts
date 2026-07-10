@@ -210,11 +210,11 @@ export function useHomeOffers(
   );
 
   /**
-   * PRIORITY 2: Hottest deals (70%+ discount)
+   * PRIORITY 2: Hottest deals (60%+ discount, today only)
    * Loads after 500ms delay
    */
   const {
-    data: hottestDeals,
+    data: hottestDealsRaw,
     isLoading: isHottestLoading,
     error: hottestError,
     refetch: refetchHottest,
@@ -223,14 +223,33 @@ export function useHomeOffers(
       status: Status.ACTIVE as OfferStatus,
       minDiscount: HOME_API_CONFIG.HOTTEST_DEALS_MIN_DISCOUNT,
       limit: HOME_API_CONFIG.HOTTEST_DEALS_LIMIT,
-      maxDistance: HOME_API_CONFIG.HOTTEST_DEALS_MAX_DISTANCE, // ✅ FIX: Override 5km default
+      maxDistance: HOME_API_CONFIG.HOTTEST_DEALS_MAX_DISTANCE,
       ...filterParams,
     },
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     {
-      enabled: loadSecondaryData && isAuthReady, // lazy + recovery gate
+      enabled: loadSecondaryData && isAuthReady,
     },
   );
+
+  // Exclude tomorrow's offers — Hottest Deals should only show today's bargains.
+  // Backend has no pickupDate filter, so we apply it client-side.
+  const todayDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Tunis' });
+  const hottestDeals = hottestDealsRaw
+    ? {
+        ...hottestDealsRaw,
+        data: hottestDealsRaw.data.filter(offer => {
+          try {
+            const offerDateStr = new Date(offer.availableFrom).toLocaleDateString('en-CA', {
+              timeZone: 'Africa/Tunis',
+            });
+            return offerDateStr <= todayDateStr;
+          } catch {
+            return true;
+          }
+        }),
+      }
+    : undefined;
 
   /**
    * PRIORITY 3: Pickup today offers

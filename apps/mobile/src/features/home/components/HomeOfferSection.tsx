@@ -22,6 +22,7 @@ import { FavoriteOfferCard } from '@/features/favorites';
 
 import { HOME_UI_CONFIG } from '../constants/homeConstants';
 
+import type { MascotVariant } from '@/design-system/components/organisms/OfferCard/OfferCard.types';
 import type { OfferListItem } from '@/features/offers/types/offer.types';
 
 // ============================================================================
@@ -51,6 +52,10 @@ interface HomeOfferSectionProps {
   variant?: 'featured' | 'default';
   /** Test ID prefix for testing */
   testIDPrefix: string;
+  /** Bag mascot strip variant — passed through to each OfferCard in the section */
+  mascotVariant?: MascotVariant;
+  /** Translated copy for the mascot strip (caller provides via t()) */
+  mascotCopy?: string;
 }
 
 // ============================================================================
@@ -100,6 +105,8 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
   emptySubtext,
   variant = 'default',
   testIDPrefix,
+  mascotVariant,
+  mascotCopy,
 }) => {
   // ============================================================================
   // Memoized renderItem callbacks — stable references for FlatList
@@ -125,9 +132,11 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
         onPress={offer => onOfferPress(offer.id)}
         testID={`${testIDPrefix}-offer-${item.id}`}
         style={styles.offerCardItem}
+        {...(mascotVariant != null ? { mascotVariant } : {})}
+        {...(mascotCopy != null ? { mascotCopy } : {})}
       />
     ),
-    [variant, onOfferPress, testIDPrefix],
+    [variant, onOfferPress, testIDPrefix, mascotVariant, mascotCopy],
   );
 
   // ============================================================================
