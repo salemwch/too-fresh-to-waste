@@ -49,6 +49,14 @@ export interface IEmailService {
    * @returns True if email sent successfully
    */
   sendPasswordResetEmail(user: User, resetToken: string): Promise<boolean>;
+
+  /**
+   * Send email to an OAuth-only user who triggered forgot-password.
+   * Explains they have no password and guides them to sign in with their provider.
+   * @param user User entity
+   * @returns True if email sent successfully
+   */
+  sendOAuthSignInEmail(user: User): Promise<boolean>;
 }
 
 /**
