@@ -9,7 +9,6 @@ import {
   MessageSquare,
   BarChart3,
   Flag,
-  Reply,
   MoreHorizontal,
   CheckCircle2,
   AlertCircle,
@@ -44,7 +43,6 @@ import {
   useMerchantReviews,
   useReviewAnalytics,
   useTrendingKeywords,
-  useRespondToReview,
   useReportReview,
 } from '@/hooks/use-merchant-reviews';
 import { useMyEstablishments } from '@/hooks/use-merchant-dashboard';
@@ -80,8 +78,8 @@ function StatsHeader({
 }) {
   if (isLoading) {
     return (
-      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+        {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
             className='glass rounded-xl p-4 shadow-soft h-[100px] animate-pulse bg-white/30'
@@ -106,11 +104,6 @@ function StatsHeader({
       icon: MessageSquare,
     },
     {
-      label: t('stats.responseRate'),
-      value: `${(data.responseRate ?? 0).toFixed(0)}%`,
-      icon: Reply,
-    },
-    {
       label: t('stats.ratingDistribution'),
       value: null,
       icon: BarChart3,
@@ -119,7 +112,7 @@ function StatsHeader({
   ];
 
   return (
-    <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
+    <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
@@ -245,32 +238,6 @@ function FiltersBar({
           </SelectContent>
         </Select>
       )}
-
-      {/* Response status filter */}
-      <Select
-        value={
-          filters.hasResponse === undefined
-            ? 'all'
-            : filters.hasResponse
-              ? 'responded'
-              : 'not_responded'
-        }
-        onValueChange={v =>
-          onFiltersChange(prev => {
-            const { hasResponse: _, ...rest } = prev;
-            return { ...rest, ...(v !== 'all' ? { hasResponse: v === 'responded' } : {}), page: 1 };
-          })
-        }
-      >
-        <SelectTrigger className='h-8 w-auto min-w-[110px] text-xs glass shadow-soft border-0'>
-          <SelectValue placeholder={t('filters.allStatuses')} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value='all'>{t('filters.allStatuses')}</SelectItem>
-          <SelectItem value='responded'>{t('filters.responded')}</SelectItem>
-          <SelectItem value='not_responded'>{t('filters.notResponded')}</SelectItem>
-        </SelectContent>
-      </Select>
     </div>
   );
 }
@@ -279,25 +246,20 @@ function FiltersBar({
 
 function ReviewCard({
   review,
-  onReply,
   onReport,
   t,
 }: {
   review: Review;
-  onReply: (review: Review) => void;
   onReport: (review: Review) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const hasResponse = review.responses && review.responses.length > 0;
-  const latestResponse = hasResponse ? review.responses[review.responses.length - 1] : null;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden group'
     >
-      <div className='absolute -top-10 -right-10 h-32 w-32 rounded-full bg-brand-coral/5 blur-2xl pointer-events-none' />
+      <div className='absolute -top-10 -end-10 h-32 w-32 rounded-full bg-brand-coral/5 blur-2xl pointer-events-none' />
 
       <div className='relative'>
         {/* Header: rating + date + actions */}
@@ -324,12 +286,6 @@ function ReviewCard({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>
-              {!hasResponse && (
-                <DropdownMenuItem onClick={() => onReply(review)}>
-                  <Reply size={14} className='me-2' />
-                  {t('card.reply')}
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem onClick={() => onReport(review)}>
                 <Flag size={14} className='me-2' />
                 {t('card.report')}
@@ -354,104 +310,8 @@ function ReviewCard({
             ))}
           </div>
         )}
-
-        {/* Merchant response */}
-        {latestResponse && (
-          <div className='mt-4 ps-4 border-s-2 border-primary-500/20'>
-            <div className='text-xs font-semibold text-primary-500 mb-1'>
-              {t('card.merchantResponse')}
-            </div>
-            <p className='text-sm text-primary-500/70 leading-relaxed'>
-              {latestResponse.responseText}
-            </p>
-            <div className='text-[10px] text-primary-500/40 mt-1'>
-              {t('card.respondedOn', {
-                date: new Date(latestResponse.respondedAt).toLocaleDateString(),
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Reply button for cards without response */}
-        {!hasResponse && (
-          <button
-            onClick={() => onReply(review)}
-            className='mt-4 flex items-center gap-1.5 text-xs font-medium text-brand-coral hover:text-brand-coral/80 transition-colors'
-          >
-            <Reply size={13} />
-            {t('card.reply')}
-          </button>
-        )}
       </div>
     </motion.div>
-  );
-}
-
-// ─── Reply Dialog ───────────────────────────────────────────────────────────
-
-function ReplyDialog({
-  review,
-  open,
-  onOpenChange,
-  t,
-}: {
-  review: Review | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  t: ReturnType<typeof useTranslations>;
-}) {
-  const [text, setText] = useState('');
-  const respondMutation = useRespondToReview();
-
-  const handleSubmit = useCallback(async () => {
-    if (!review || text.trim().length < 5) return;
-    try {
-      await respondMutation.mutateAsync({ reviewId: review.id, responseText: text.trim() });
-      toast.success(t('replyDialog.success'));
-      setText('');
-      onOpenChange(false);
-    } catch {
-      toast.error(t('replyDialog.error'));
-    }
-  }, [review, text, respondMutation, t, onOpenChange]);
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-md'>
-        <DialogHeader>
-          <DialogTitle>{t('replyDialog.title')}</DialogTitle>
-        </DialogHeader>
-
-        {review && (
-          <div className='rounded-lg bg-primary-500/[0.04] p-3 mb-3'>
-            <StarRating rating={review.overallRating} size={12} />
-            <p className='text-xs text-primary-500/70 mt-1 line-clamp-2'>{review.comment}</p>
-          </div>
-        )}
-
-        <Textarea
-          value={text}
-          onChange={e => setText(e.target.value)}
-          placeholder={t('replyDialog.placeholder')}
-          maxLength={1000}
-          rows={4}
-          className='resize-none'
-        />
-        <div className='text-end text-[11px] text-primary-500/40'>
-          {t('replyDialog.charLimit', { count: text.length })}
-        </div>
-
-        <DialogFooter>
-          <Button
-            onClick={handleSubmit}
-            disabled={text.trim().length < 5 || respondMutation.isPending}
-            className='bg-primary-500 hover:bg-primary-600 text-white'
-          >
-            {respondMutation.isPending ? t('replyDialog.submitting') : t('replyDialog.submit')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -691,7 +551,6 @@ export function ReviewsPage() {
     limit: 10,
   });
 
-  const [replyReview, setReplyReview] = useState<Review | null>(null);
   const [reportReview, setReportReview] = useState<Review | null>(null);
 
   const analyticsQuery = useReviewAnalytics();
@@ -740,13 +599,7 @@ export function ReviewsPage() {
         <div className='space-y-[16px]'>
           <AnimatePresence mode='popLayout'>
             {reviewsQuery.data?.reviews.map(review => (
-              <ReviewCard
-                key={review.id}
-                review={review}
-                onReply={setReplyReview}
-                onReport={setReportReview}
-                t={t}
-              />
+              <ReviewCard key={review.id} review={review} onReport={setReportReview} t={t} />
             ))}
           </AnimatePresence>
         </div>
@@ -760,15 +613,7 @@ export function ReviewsPage() {
         t={t}
       />
 
-      {/* Dialogs */}
-      <ReplyDialog
-        review={replyReview}
-        open={replyReview !== null}
-        onOpenChange={open => {
-          if (!open) setReplyReview(null);
-        }}
-        t={t}
-      />
+      {/* Report Dialog */}
       <ReportDialog
         review={reportReview}
         open={reportReview !== null}
