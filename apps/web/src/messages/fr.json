@@ -837,9 +837,12 @@
       },
       "status": {
         "collected": "Encaissé",
+        "completed": "Complété",
         "pending": "En attente",
+        "processing": "En cours",
         "refunded": "Remboursé",
-        "failed": "Échoué"
+        "failed": "Échoué",
+        "cancelled": "Annulé"
       },
       "empty": {
         "title": "Aucun paiement",

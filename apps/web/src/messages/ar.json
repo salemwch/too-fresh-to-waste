@@ -827,9 +827,12 @@
       },
       "status": {
         "collected": "محصّل",
+        "completed": "مكتمل",
         "pending": "قيد الانتظار",
+        "processing": "قيد المعالجة",
         "refunded": "مُسترد",
-        "failed": "فاشل"
+        "failed": "فاشل",
+        "cancelled": "ملغى"
       },
       "empty": { "title": "لا توجد مدفوعات", "description": "ستظهر مدفوعات طلباتك هنا." },
       "error": "فشل تحميل المدفوعات. يرجى المحاولة مرة أخرى.",

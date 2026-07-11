@@ -18,7 +18,6 @@ import {
   Bell,
   Package,
   Wallet,
-  Award,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -103,12 +102,6 @@ export const merchantNavItems: NavItem[] = [
     href: '/merchant/payments',
     icon: Wallet,
     roles: [UserRole.MERCHANT],
-  },
-  {
-    titleKey: 'loyalty',
-    href: '/merchant/loyalty',
-    icon: Award,
-    roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
   },
   {
     titleKey: 'notifications',

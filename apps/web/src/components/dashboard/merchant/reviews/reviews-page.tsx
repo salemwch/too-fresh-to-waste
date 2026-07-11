@@ -80,11 +80,11 @@ function StatsHeader({
 }) {
   if (isLoading) {
     return (
-      <div className='grid grid-cols-2 lg:grid-cols-4 gap-[20px]'>
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className='glass rounded-2xl p-[24px] shadow-soft h-[130px] animate-pulse bg-white/30'
+            className='glass rounded-xl p-4 shadow-soft h-[100px] animate-pulse bg-white/30'
           />
         ))}
       </div>
@@ -119,7 +119,7 @@ function StatsHeader({
   ];
 
   return (
-    <div className='grid grid-cols-2 lg:grid-cols-4 gap-[20px]'>
+    <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
@@ -128,22 +128,22 @@ function StatsHeader({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.06, duration: 0.5, ease: 'easeOut' }}
-            className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden group'
+            className='glass rounded-xl p-4 shadow-soft relative overflow-hidden group'
           >
-            <div className='absolute -top-10 -right-10 h-32 w-32 rounded-full bg-brand-coral/10 blur-2xl group-hover:bg-brand-coral/20 transition-colors pointer-events-none' />
+            <div className='absolute -top-6 -end-6 h-20 w-20 rounded-full bg-brand-coral/10 blur-2xl group-hover:bg-brand-coral/20 transition-colors pointer-events-none' />
 
             <div className='relative'>
-              <div className='flex items-center gap-2 mb-3'>
-                <div className='h-9 w-9 rounded-lg bg-primary-500/[0.08] grid place-items-center text-primary-500'>
-                  <Icon size={16} />
+              <div className='flex items-center gap-2 mb-2'>
+                <div className='h-7 w-7 rounded-md bg-primary-500/[0.08] grid place-items-center text-primary-500'>
+                  <Icon size={14} />
                 </div>
-                <span className='text-xs uppercase tracking-wider text-primary-500/60'>
+                <span className='text-[11px] uppercase tracking-wider text-primary-500/60'>
                   {stat.label}
                 </span>
               </div>
 
               {stat.value !== null ? (
-                <div className='font-display text-3xl text-primary-500 tracking-tight'>
+                <div className='font-display text-xl text-primary-500 tracking-tight'>
                   {stat.value}
                 </div>
               ) : null}
@@ -197,7 +197,7 @@ function FiltersBar({
   const establishmentsQuery = useMyEstablishments();
 
   return (
-    <div className='flex items-center gap-3 flex-wrap'>
+    <div className='flex items-center gap-2 flex-wrap'>
       {/* Rating filter */}
       <Select
         value={filters.rating ? String(filters.rating) : 'all'}
@@ -208,7 +208,7 @@ function FiltersBar({
           })
         }
       >
-        <SelectTrigger className='w-[140px] glass shadow-soft border-0'>
+        <SelectTrigger className='h-8 w-auto min-w-[100px] text-xs glass shadow-soft border-0'>
           <SelectValue placeholder={t('filters.allRatings')} />
         </SelectTrigger>
         <SelectContent>
@@ -232,7 +232,7 @@ function FiltersBar({
             })
           }
         >
-          <SelectTrigger className='w-[180px] glass shadow-soft border-0'>
+          <SelectTrigger className='h-8 w-auto min-w-[120px] text-xs glass shadow-soft border-0'>
             <SelectValue placeholder={t('filters.allEstablishments')} />
           </SelectTrigger>
           <SelectContent>
@@ -262,7 +262,7 @@ function FiltersBar({
           })
         }
       >
-        <SelectTrigger className='w-[160px] glass shadow-soft border-0'>
+        <SelectTrigger className='h-8 w-auto min-w-[110px] text-xs glass shadow-soft border-0'>
           <SelectValue placeholder={t('filters.allStatuses')} />
         </SelectTrigger>
         <SelectContent>

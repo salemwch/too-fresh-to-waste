@@ -350,18 +350,18 @@ function ItemsTab() {
       className='space-y-4'
     >
       {/* Filters */}
-      <div className='flex flex-col sm:flex-row gap-3'>
-        <div className='relative flex-1'>
-          <Search className='absolute start-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground' />
+      <div className='flex flex-wrap gap-2'>
+        <div className='relative flex-1 min-w-[160px]'>
+          <Search className='absolute start-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground' />
           <Input
             placeholder={t('filters.searchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className='ps-9'
+            className='ps-8 h-8 text-xs'
           />
         </div>
         <Select value={filters.status || 'all'} onValueChange={handleStatusFilter}>
-          <SelectTrigger className='w-[180px]'>
+          <SelectTrigger className='h-8 w-auto min-w-[120px] text-xs'>
             <SelectValue placeholder={t('filters.allStatuses')} />
           </SelectTrigger>
           <SelectContent>
@@ -548,7 +548,7 @@ function AnalyticsTab() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
         {metrics.map((metric, i) => {
           const Icon = metric.icon;
           return (
@@ -557,15 +557,15 @@ function AnalyticsTab() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.08, duration: 0.3 }}
-              className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden'
+              className='glass rounded-xl p-4 shadow-soft relative overflow-hidden'
             >
-              <div className='absolute -top-4 -end-4 w-20 h-20 rounded-full bg-brand-coral/10 blur-2xl' />
+              <div className='absolute -top-4 -end-4 w-16 h-16 rounded-full bg-brand-coral/10 blur-2xl' />
               <div className='relative'>
-                <div className='h-11 w-11 rounded-xl bg-primary-500/[0.08] flex items-center justify-center mb-3'>
-                  <Icon className='size-5 text-primary-500' />
+                <div className='h-8 w-8 rounded-lg bg-primary-500/[0.08] flex items-center justify-center mb-2'>
+                  <Icon className='size-4 text-primary-500' />
                 </div>
-                <p className='text-xs text-muted-foreground'>{metric.label}</p>
-                <p className='font-display text-2xl text-primary-500 font-bold mt-1'>
+                <p className='text-[11px] text-muted-foreground'>{metric.label}</p>
+                <p className='font-display text-lg text-primary-500 font-bold mt-0.5'>
                   {metric.value}
                 </p>
               </div>
@@ -616,17 +616,17 @@ export function InventoryPage() {
 
       {/* Tabs */}
       <Tabs defaultValue='items' className='w-full'>
-        <TabsList className='glass shadow-soft mb-6'>
-          <TabsTrigger value='items' className='gap-2'>
-            <Package className='size-4' />
+        <TabsList className='glass shadow-soft mb-4 h-9'>
+          <TabsTrigger value='items' className='gap-1.5 text-xs px-3 h-7'>
+            <Package className='size-3.5' />
             {t('tabs.items')}
           </TabsTrigger>
-          <TabsTrigger value='alerts' className='gap-2'>
-            <AlertTriangle className='size-4' />
+          <TabsTrigger value='alerts' className='gap-1.5 text-xs px-3 h-7'>
+            <AlertTriangle className='size-3.5' />
             {t('tabs.alerts')}
           </TabsTrigger>
-          <TabsTrigger value='analytics' className='gap-2'>
-            <BarChart3 className='size-4' />
+          <TabsTrigger value='analytics' className='gap-1.5 text-xs px-3 h-7'>
+            <BarChart3 className='size-3.5' />
             {t('tabs.analytics')}
           </TabsTrigger>
         </TabsList>

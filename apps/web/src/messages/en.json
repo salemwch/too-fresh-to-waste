@@ -824,7 +824,12 @@
     "payments": {
       "title": "Payments",
       "subtitle": "Track revenue and payment status",
+      "tndCurrency": "TND",
       "stats": {
+        "totalCollected": "Total Collected",
+        "completedOrders": "Completed",
+        "pendingCollection": "Pending",
+        "todayRevenue": "Avg / Order",
         "totalRevenue": "Total Revenue",
         "totalTransactions": "Transactions",
         "avgOrderValue": "Avg. Order Value",
@@ -834,12 +839,25 @@
       },
       "filters": {
         "allStatuses": "All Statuses",
+        "collected": "Collected",
         "completed": "Completed",
         "pending": "Pending",
         "failed": "Failed",
         "refunded": "Refunded",
+        "dateRange": "Date Range",
+        "today": "Today",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
         "fromDate": "From",
         "toDate": "To"
+      },
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "processing": "Processing",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "cancelled": "Cancelled"
       },
       "table": {
         "order": "Order",
@@ -851,6 +869,7 @@
       },
       "methods": {
         "cash": "Cash",
+        "cash_on_pickup": "Cash on Pickup",
         "card": "Card",
         "smt_gateway": "Online",
         "wallet": "Wallet"

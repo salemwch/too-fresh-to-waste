@@ -125,7 +125,7 @@ function PaymentStatsCards() {
   ];
 
   return (
-    <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+    <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
       {cards.map((card, i) => {
         const Icon = card.icon;
         return (
@@ -134,17 +134,17 @@ function PaymentStatsCards() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.08, duration: 0.3 }}
-            className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden'
+            className='glass rounded-xl p-4 shadow-soft relative overflow-hidden'
           >
-            <div className='absolute -top-4 -end-4 w-20 h-20 rounded-full bg-brand-coral/10 blur-2xl' />
+            <div className='absolute -top-4 -end-4 w-16 h-16 rounded-full bg-brand-coral/10 blur-2xl' />
             <div className='relative'>
-              <div className='h-11 w-11 rounded-xl bg-primary-500/[0.08] flex items-center justify-center mb-3'>
-                <Icon className='size-5 text-primary-500' />
+              <div className='h-8 w-8 rounded-lg bg-primary-500/[0.08] flex items-center justify-center mb-2'>
+                <Icon className='size-4 text-primary-500' />
               </div>
-              <p className='text-xs text-muted-foreground'>{card.label}</p>
-              <p className='font-display text-2xl text-primary-500 font-bold mt-1'>{card.value}</p>
+              <p className='text-[11px] text-muted-foreground'>{card.label}</p>
+              <p className='font-display text-lg text-primary-500 font-bold mt-0.5'>{card.value}</p>
               {card.subtitle && (
-                <p className='text-xs text-muted-foreground mt-0.5'>{card.subtitle}</p>
+                <p className='text-[11px] text-muted-foreground'>{card.subtitle}</p>
               )}
             </div>
           </motion.div>
@@ -267,9 +267,9 @@ export function PaymentsPage() {
       <PaymentStatsCards />
 
       {/* Filters */}
-      <div className='flex flex-col sm:flex-row gap-3'>
+      <div className='flex flex-wrap gap-2'>
         <Select value={filters.status || 'all'} onValueChange={handleStatusFilter}>
-          <SelectTrigger className='w-[180px]'>
+          <SelectTrigger className='h-8 w-auto min-w-[120px] text-xs'>
             <SelectValue placeholder={t('filters.allStatuses')} />
           </SelectTrigger>
           <SelectContent>
@@ -282,7 +282,7 @@ export function PaymentsPage() {
         </Select>
 
         <Select defaultValue='all' onValueChange={handleDateFilter}>
-          <SelectTrigger className='w-[180px]'>
+          <SelectTrigger className='h-8 w-auto min-w-[120px] text-xs'>
             <SelectValue placeholder={t('filters.dateRange')} />
           </SelectTrigger>
           <SelectContent>
