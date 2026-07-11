@@ -103,7 +103,7 @@ function PaymentStatsCards() {
   const cards = [
     {
       label: t('stats.totalCollected'),
-      value: `${stats.totalRevenue.toFixed(2)} ${t('tndCurrency')}`,
+      value: `${(stats.totalRevenue ?? 0).toFixed(2)} ${t('tndCurrency')}`,
       icon: DollarSign,
     },
     {
@@ -118,7 +118,7 @@ function PaymentStatsCards() {
     },
     {
       label: t('stats.todayRevenue'),
-      value: `${stats.averageOrderValue.toFixed(2)} ${t('tndCurrency')}`,
+      value: `${(stats.averageOrderValue ?? 0).toFixed(2)} ${t('tndCurrency')}`,
       icon: TrendingUp,
       subtitle: 'avg/order',
     },
@@ -197,7 +197,7 @@ function PaymentRow({ payment }: { payment: MerchantPayment }) {
           </div>
         </div>
         <p className='font-display text-lg font-bold text-primary-500 shrink-0 ms-4'>
-          {payment.amount.toFixed(2)}{' '}
+          {(payment.amount ?? 0).toFixed(2)}{' '}
           <span className='text-xs font-normal'>{t('tndCurrency')}</span>
         </p>
       </div>

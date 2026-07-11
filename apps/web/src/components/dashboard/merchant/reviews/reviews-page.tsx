@@ -96,9 +96,9 @@ function StatsHeader({
   const stats = [
     {
       label: t('stats.averageRating'),
-      value: data.averageRating.toFixed(1),
+      value: (data.averageRating ?? 0).toFixed(1),
       icon: Star,
-      extra: <StarRating rating={Math.round(data.averageRating)} />,
+      extra: <StarRating rating={Math.round(data.averageRating ?? 0)} />,
     },
     {
       label: t('stats.totalReviews'),
@@ -107,7 +107,7 @@ function StatsHeader({
     },
     {
       label: t('stats.responseRate'),
-      value: `${data.responseRate.toFixed(0)}%`,
+      value: `${(data.responseRate ?? 0).toFixed(0)}%`,
       icon: Reply,
     },
     {

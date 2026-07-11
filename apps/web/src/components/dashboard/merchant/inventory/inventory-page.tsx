@@ -287,10 +287,10 @@ function InventoryItemCard({
           </div>
           <div className='flex items-center gap-2 mt-2'>
             <span className='text-xs text-muted-foreground line-through'>
-              {item.originalPrice.toFixed(2)} TND
+              {(item.originalPrice ?? 0).toFixed(2)} TND
             </span>
             <span className='text-sm font-semibold text-primary-500'>
-              {item.discountedPrice.toFixed(2)} TND
+              {(item.discountedPrice ?? 0).toFixed(2)} TND
             </span>
           </div>
         </div>
@@ -529,11 +529,15 @@ function AnalyticsTab() {
 
   const metrics = [
     { label: t('totalItems'), value: analytics.totalItems, icon: Package },
-    { label: t('totalValue'), value: `${analytics.totalValue.toFixed(2)} TND`, icon: BarChart3 },
+    {
+      label: t('totalValue'),
+      value: `${(analytics.totalValue ?? 0).toFixed(2)} TND`,
+      icon: BarChart3,
+    },
     { label: t('expiringThisWeek'), value: analytics.expiringItems, icon: Clock },
     {
       label: t('wasteRate'),
-      value: `${analytics.wastePercentage.toFixed(1)}%`,
+      value: `${(analytics.wastePercentage ?? 0).toFixed(1)}%`,
       icon: TrendingDown,
     },
   ];
