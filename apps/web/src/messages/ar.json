@@ -500,71 +500,403 @@
     "profile": "الملف الشخصي",
     "security": "الأمان",
     "settings": {
-      "comingSoonTitle": "الإعدادات — قريبًا",
-      "comingSoonSubtitle": "إعدادات العمل الكاملة في طريقها إليك",
-      "comingSoonDescription": "نبني لوحة إعدادات شاملة لتخصيص كل جانب من جوانب حسابك التجاري — الإشعارات، التكاملات، الفوترة والمزيد.",
-      "notifyLabel": "سنخطرك عندما يصبح جاهزًا.",
-      "features": {
-        "notifications": {
-          "title": "تفضيلات الإشعارات",
-          "description": "اختر كيف ومتى تتلقى تنبيهات الطلبات والعروض وتحديثات النظام"
-        },
-        "integrations": {
-          "title": "التكاملات",
-          "description": "اربط نقطة البيع أو برنامج المحاسبة أو تطبيقات شركاء التوصيل"
-        },
-        "billing": {
-          "title": "الفوترة والاشتراك",
-          "description": "أدر خطتك، اطّلع على الفواتير، وحدّث طرق الدفع"
-        },
-        "team": {
-          "title": "أعضاء الفريق",
-          "description": "ادعُ موظفين، وعيّن أدوارًا، وأدر أذونات الوصول"
-        },
-        "hours": {
-          "title": "ساعات العمل",
-          "description": "حدد أوقات الفتح والإغلاق والعطل المرئية للعملاء"
-        },
-        "account": {
-          "title": "الحساب والبيانات",
-          "description": "صدّر بياناتك، انقل الملكية، أو أغلق حسابك"
-        }
+      "title": "الإعدادات",
+      "subtitle": "إدارة حسابك وتفضيلاتك",
+      "tabs": { "profile": "الملف الشخصي", "security": "الأمان", "sessions": "الجلسات" },
+      "profile": {
+        "title": "معلومات الملف الشخصي",
+        "subtitle": "تحديث بياناتك الشخصية",
+        "firstName": "الاسم الأول",
+        "lastName": "اسم العائلة",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "avatar": "صورة الملف الشخصي",
+        "uploadPhoto": "رفع صورة",
+        "save": "حفظ",
+        "saving": "جارٍ الحفظ...",
+        "saved": "تم تحديث الملف الشخصي بنجاح",
+        "error": "فشل تحديث الملف الشخصي.",
+        "authProvider": "تم تسجيل الدخول عبر {provider}"
+      },
+      "security": {
+        "title": "الأمان",
+        "subtitle": "كلمة المرور وأمان الحساب",
+        "changePassword": "تغيير كلمة المرور",
+        "currentPassword": "كلمة المرور الحالية",
+        "newPassword": "كلمة المرور الجديدة",
+        "confirmPassword": "تأكيد كلمة المرور",
+        "passwordMismatch": "كلمات المرور غير متطابقة",
+        "passwordChanged": "تم تغيير كلمة المرور بنجاح",
+        "passwordError": "فشل تغيير كلمة المرور.",
+        "oauthNote": "إدارة كلمة المرور غير متاحة لحسابات {provider}",
+        "mfa": "المصادقة الثنائية",
+        "mfaEnabled": "مفعّلة",
+        "mfaDisabled": "معطّلة",
+        "dangerZone": "منطقة الخطر",
+        "deleteAccount": "حذف الحساب",
+        "deleteWarning": "هذا الإجراء دائم ولا يمكن التراجع عنه. سيتم حذف جميع بياناتك.",
+        "deleteConfirm": "اكتب حذف للتأكيد",
+        "deleting": "جارٍ الحذف...",
+        "logoutAll": "تسجيل الخروج من جميع الأجهزة",
+        "logoutAllConfirm": "سيتم إنهاء جميع الجلسات النشطة"
+      },
+      "sessions": {
+        "title": "الجلسات النشطة",
+        "subtitle": "إدارة أجهزتك المتصلة",
+        "currentSession": "الجلسة الحالية",
+        "lastActive": "آخر نشاط {date}",
+        "terminate": "إنهاء",
+        "terminateSuccess": "تم إنهاء الجلسة",
+        "noSessions": "لا توجد جلسات نشطة أخرى",
+        "error": "فشل تحميل الجلسات"
       }
     },
     "logout": "تسجيل الخروج",
     "search": "بحث...",
     "comingSoon": "قريبًا",
     "analytics": {
-      "comingSoonTitle": "التحليلات — قريبًا",
-      "comingSoonSubtitle": "رؤى تجارية قوية في طريقها إليك",
-      "comingSoonDescription": "نبني مجموعة تحليلات متكاملة مصممة لعملك. تتبّع اتجاهات الإيرادات، سلوك العملاء، أداء العروض، وتأثيرك البيئي — كل ذلك في مكان واحد.",
-      "notifyLabel": "سنخطرك عندما يصبح جاهزًا.",
-      "features": {
-        "revenue": {
-          "title": "اتجاهات الإيرادات",
-          "description": "تفاصيل الإيرادات اليومية والأسبوعية والشهرية مع التوقعات"
+      "title": "التحليلات",
+      "subtitle": "تتبّع أداء عملك",
+      "periodToday": "اليوم",
+      "period7d": "٧ أيام",
+      "period30d": "٣٠ يوم",
+      "period90d": "٩٠ يوم",
+      "periodCustom": "مخصص",
+      "tabs": { "overview": "نظرة عامة", "customers": "العملاء", "sustainability": "الاستدامة" },
+      "kpi": {
+        "revenue": "الإيرادات",
+        "totalOrders": "إجمالي الطلبات",
+        "avgOrderValue": "متوسط قيمة الطلب",
+        "conversionRate": "معدل التحويل",
+        "foodSaved": "الطعام المُنقَذ",
+        "co2Avoided": "CO₂ المُتجنَّب"
+      },
+      "revenueChart": {
+        "title": "اتجاه الإيرادات",
+        "subtitle": "الإيرادات عبر الزمن",
+        "tooltip": { "revenue": "الإيرادات", "orders": "الطلبات" }
+      },
+      "ordersChart": { "title": "حجم الطلبات", "subtitle": "الطلبات عبر الزمن" },
+      "customerLocations": {
+        "title": "مواقع العملاء",
+        "subtitle": "أهم المدن حسب عدد الطلبات",
+        "city": "المدينة",
+        "orders": "الطلبات",
+        "noData": "لا توجد بيانات مواقع العملاء بعد"
+      },
+      "sustainability": {
+        "title": "الأثر البيئي",
+        "subtitle": "مساهمتك البيئية",
+        "foodSaved": "الطعام المُنقَذ",
+        "co2Avoided": "CO₂ المُتجنَّب",
+        "waterSaved": "المياه الموفَّرة",
+        "energySaved": "الطاقة الموفَّرة",
+        "packagingSaved": "التغليف الموفَّر"
+      },
+      "topOffers": {
+        "title": "أفضل العروض أداءً",
+        "subtitle": "أفضل العروض حسب الإيرادات",
+        "offer": "العرض",
+        "revenue": "الإيرادات",
+        "sold": "المبيعات",
+        "noData": "لا توجد بيانات أداء العروض بعد"
+      },
+      "noData": "لا توجد بيانات تحليلية لهذه الفترة",
+      "error": "فشل تحميل البيانات التحليلية. يرجى المحاولة مرة أخرى.",
+      "tndCurrency": "د.ت"
+    },
+    "reviews": {
+      "title": "التقييمات",
+      "subtitle": "إدارة ملاحظات العملاء",
+      "stats": {
+        "averageRating": "متوسط التقييم",
+        "totalReviews": "إجمالي التقييمات",
+        "responseRate": "معدل الاستجابة",
+        "ratingDistribution": "توزيع التقييمات"
+      },
+      "filters": {
+        "allRatings": "جميع التقييمات",
+        "allEstablishments": "جميع المنشآت",
+        "allStatuses": "الكل",
+        "responded": "تم الرد",
+        "notResponded": "بدون رد",
+        "stars": "{count} نجوم"
+      },
+      "card": {
+        "verifiedPurchase": "عملية شراء موثقة",
+        "reply": "رد",
+        "report": "إبلاغ",
+        "merchantResponse": "ردك",
+        "respondedOn": "تم الرد في {date}"
+      },
+      "replyDialog": {
+        "title": "الرد على التقييم",
+        "placeholder": "اكتب ردك...",
+        "submit": "إرسال الرد",
+        "submitting": "جارٍ الإرسال...",
+        "success": "تم إرسال الرد بنجاح",
+        "error": "فشل إرسال الرد. يرجى المحاولة مرة أخرى.",
+        "charLimit": "{count}/١٠٠٠ حرف"
+      },
+      "reportDialog": {
+        "title": "الإبلاغ عن التقييم",
+        "reasonLabel": "السبب",
+        "reasons": {
+          "spam": "رسائل مزعجة",
+          "inappropriate": "محتوى غير لائق",
+          "fake": "تقييم مزيف",
+          "offensive": "لغة مسيئة",
+          "irrelevant": "غير ذي صلة",
+          "other": "أخرى"
         },
-        "offers": {
-          "title": "أداء العروض",
-          "description": "معدلات التحويل، أكثر الأكياس مبيعًا، وأوقات الاستلام"
+        "detailsLabel": "تفاصيل إضافية (اختياري)",
+        "detailsPlaceholder": "قدّم المزيد من السياق...",
+        "submit": "إرسال البلاغ",
+        "submitting": "جارٍ الإرسال...",
+        "success": "تم إرسال البلاغ بنجاح",
+        "error": "فشل إرسال البلاغ. يرجى المحاولة مرة أخرى."
+      },
+      "trendingKeywords": { "title": "الكلمات الرائجة", "subtitle": "المواضيع الأكثر ذكرًا" },
+      "empty": {
+        "title": "لا توجد تقييمات بعد",
+        "description": "عندما يترك العملاء تقييمات، ستظهر هنا."
+      },
+      "error": "فشل تحميل التقييمات. يرجى المحاولة مرة أخرى.",
+      "pagination": { "previous": "السابق", "next": "التالي", "page": "صفحة {current} من {total}" }
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "subtitle": "ابقَ على اطلاع بنشاط عملك",
+      "tabs": { "inbox": "صندوق الوارد", "preferences": "التفضيلات" },
+      "filters": {
+        "all": "الكل",
+        "orders": "الطلبات",
+        "offers": "العروض",
+        "reviews": "التقييمات",
+        "system": "النظام",
+        "unreadOnly": "غير المقروءة فقط"
+      },
+      "markAllRead": "تحديد الكل كمقروء",
+      "loadMore": "تحميل المزيد",
+      "viewAll": "عرض جميع الإشعارات",
+      "empty": {
+        "title": "لا توجد إشعارات",
+        "description": "أنت على اطلاع! ستظهر الإشعارات الجديدة هنا."
+      },
+      "error": "فشل تحميل الإشعارات. يرجى المحاولة مرة أخرى.",
+      "preferences": {
+        "title": "تفضيلات الإشعارات",
+        "subtitle": "اختر كيف تريد أن يتم إشعارك",
+        "globalToggles": {
+          "push": "إشعارات الدفع",
+          "email": "إشعارات البريد الإلكتروني",
+          "sms": "إشعارات الرسائل القصيرة"
         },
-        "customers": {
-          "title": "رؤى العملاء",
-          "description": "المشترون المتكررون، خريطة المناطق الحرارية، وأوقات الذروة"
+        "channels": {
+          "order_updates": "تحديثات الطلبات",
+          "marketing": "التسويق",
+          "pickup_reminders": "تذكيرات الاستلام",
+          "security": "تنبيهات الأمان",
+          "offers": "تحديثات العروض",
+          "leaderboard": "لوحة الصدارة"
         },
-        "sustainability": {
-          "title": "مقاييس الاستدامة",
-          "description": "CO₂ الموفَّر، الطعام المُنقَذ بالكيلوغرام، ودرجة تأثيرك البيئي"
+        "quietHours": {
+          "title": "ساعات الهدوء",
+          "description": "إيقاف الإشعارات خلال ساعات محددة",
+          "startTime": "وقت البدء",
+          "endTime": "وقت الانتهاء",
+          "timezone": "المنطقة الزمنية"
         },
-        "ratings": {
-          "title": "التقييمات والمراجعات",
-          "description": "تحليل المشاعر وتتبع اتجاهات مراجعاتك"
-        },
-        "exports": {
-          "title": "تصدير البيانات",
-          "description": "تحميل التقارير بصيغة CSV أو PDF لمحاسبك"
-        }
+        "save": "حفظ التفضيلات",
+        "saving": "جارٍ الحفظ...",
+        "saved": "تم حفظ التفضيلات بنجاح",
+        "error": "فشل حفظ التفضيلات. يرجى المحاولة مرة أخرى."
+      },
+      "timeAgo": {
+        "justNow": "الآن",
+        "minutesAgo": "منذ {count} د",
+        "hoursAgo": "منذ {count} س",
+        "daysAgo": "منذ {count} ي"
       }
+    },
+    "inventory": {
+      "title": "المخزون",
+      "subtitle": "إدارة المخزون ومستويات البضائع",
+      "tabs": { "items": "المواد", "alerts": "التنبيهات", "analytics": "التحليلات" },
+      "filters": {
+        "allStatuses": "جميع الحالات",
+        "inStock": "متوفر",
+        "lowStock": "مخزون منخفض",
+        "outOfStock": "نفد المخزون",
+        "expired": "منتهي الصلاحية",
+        "searchPlaceholder": "البحث عن مواد..."
+      },
+      "item": {
+        "quantity": "الكمية",
+        "unit": "الوحدة",
+        "category": "الفئة",
+        "expiresAt": "ينتهي في",
+        "lastUpdated": "آخر تحديث",
+        "updateStock": "تحديث المخزون",
+        "status": {
+          "in_stock": "متوفر",
+          "low_stock": "منخفض",
+          "out_of_stock": "نفد",
+          "expired": "منتهي"
+        }
+      },
+      "stockUpdate": {
+        "title": "تحديث المخزون",
+        "quantity": "الكمية الجديدة",
+        "reason": "السبب",
+        "reasons": {
+          "received": "استلام",
+          "sold": "بيع",
+          "spoiled": "تالف",
+          "adjustment": "تعديل",
+          "returned": "مرتجع",
+          "donated": "تبرع"
+        },
+        "notes": "ملاحظات (اختياري)",
+        "submit": "تحديث",
+        "submitting": "جارٍ التحديث...",
+        "success": "تم تحديث المخزون بنجاح",
+        "error": "فشل تحديث المخزون"
+      },
+      "bulkUpdate": {
+        "title": "تحديث جماعي",
+        "selected": "{count} محدد",
+        "submit": "تطبيق",
+        "success": "تم تحديث المخزون لـ {count} مادة"
+      },
+      "alerts": {
+        "title": "تنبيهات المخزون",
+        "lowStock": "مخزون منخفض",
+        "expiringSoon": "ينتهي قريبًا",
+        "outOfStock": "نفد المخزون",
+        "noAlerts": "لا توجد تنبيهات نشطة",
+        "resolveAll": "حل الكل"
+      },
+      "analytics": {
+        "title": "تحليلات المخزون",
+        "totalItems": "إجمالي المواد",
+        "totalValue": "القيمة الإجمالية",
+        "expiringThisWeek": "ينتهي هذا الأسبوع",
+        "turnoverRate": "معدل الدوران",
+        "wasteRate": "معدل الهدر",
+        "stockHistory": "سجل المخزون"
+      },
+      "empty": { "title": "لا توجد مواد", "description": "أضف مواد إلى مخزونك لبدء التتبع." },
+      "error": "فشل تحميل المخزون. يرجى المحاولة مرة أخرى."
+    },
+    "payments": {
+      "title": "سجل المدفوعات",
+      "subtitle": "تتبّع ومطابقة المدفوعات النقدية",
+      "stats": {
+        "todayRevenue": "إيرادات اليوم",
+        "weekRevenue": "إيرادات الأسبوع",
+        "monthRevenue": "إيرادات الشهر",
+        "totalCollected": "إجمالي المحصّل",
+        "pendingCollection": "قيد التحصيل",
+        "completedOrders": "الطلبات المكتملة"
+      },
+      "filters": {
+        "allStatuses": "جميع الحالات",
+        "collected": "محصّل",
+        "pending": "قيد الانتظار",
+        "refunded": "مُسترد",
+        "failed": "فاشل",
+        "dateRange": "الفترة",
+        "today": "اليوم",
+        "thisWeek": "هذا الأسبوع",
+        "thisMonth": "هذا الشهر",
+        "custom": "مخصص"
+      },
+      "table": {
+        "orderId": "رقم الطلب",
+        "customer": "العميل",
+        "amount": "المبلغ",
+        "method": "الطريقة",
+        "status": "الحالة",
+        "date": "التاريخ",
+        "actions": "الإجراءات"
+      },
+      "methods": {
+        "cash": "نقدي",
+        "cash_on_pickup": "نقدي عند الاستلام"
+      },
+      "status": {
+        "collected": "محصّل",
+        "pending": "قيد الانتظار",
+        "refunded": "مُسترد",
+        "failed": "فاشل"
+      },
+      "empty": { "title": "لا توجد مدفوعات", "description": "ستظهر مدفوعات طلباتك هنا." },
+      "error": "فشل تحميل المدفوعات. يرجى المحاولة مرة أخرى.",
+      "export": "تصدير",
+      "tndCurrency": "د.ت"
+    },
+    "loyalty": {
+      "title": "برنامج الولاء",
+      "subtitle": "تتبّع النقاط والمستويات والاحتفاظ بالعملاء",
+      "stats": {
+        "totalPoints": "إجمالي النقاط",
+        "currentTier": "المستوى الحالي",
+        "bagsSaved": "الأكياس المنقذة",
+        "ordersCount": "عدد الطلبات",
+        "pointsThisMonth": "نقاط هذا الشهر",
+        "nextTier": "المستوى التالي"
+      },
+      "tiers": {
+        "bronze": "برونزي",
+        "silver": "فضي",
+        "gold": "ذهبي",
+        "platinum": "بلاتيني",
+        "progress": "{current}/{target} نقطة للوصول إلى {tier}",
+        "reached": "تم بلوغ المستوى!"
+      },
+      "badges": {
+        "title": "الشارات",
+        "subtitle": "مكافآتك",
+        "earned": "حصلت عليها",
+        "locked": "مقفلة",
+        "progress": "{current}/{target}"
+      },
+      "referral": {
+        "title": "برنامج الإحالة",
+        "subtitle": "ادعُ أصدقاءك واكسب نقاطًا",
+        "code": "رمز الإحالة",
+        "link": "رابط الإحالة",
+        "copy": "نسخ",
+        "copied": "تم النسخ!",
+        "share": "مشاركة"
+      },
+      "gamification": {
+        "title": "التقدم",
+        "subtitle": "أهدافك الحالية",
+        "streak": "سلسلة تسجيل الدخول",
+        "streakDays": "{count} يوم",
+        "weeklyGoal": "الهدف الأسبوعي",
+        "monthlyGoal": "الهدف الشهري"
+      },
+      "donations": {
+        "title": "سجل التبرعات",
+        "subtitle": "نقاطك المتبرع بها",
+        "donate": "التبرع بنقاط",
+        "amount": "عدد النقاط",
+        "anonymous": "تبرع مجهول",
+        "message": "رسالة (اختياري)",
+        "submit": "تبرع",
+        "submitting": "جارٍ التبرع...",
+        "success": "تم التبرع بنجاح!",
+        "error": "فشل التبرع. يرجى المحاولة مرة أخرى.",
+        "empty": "لم يتم إجراء أي تبرعات."
+      },
+      "empty": {
+        "title": "برنامج الولاء",
+        "description": "ابدأ بكسب النقاط من خلال إنقاذ الطعام!"
+      },
+      "error": "فشل تحميل بيانات الولاء. يرجى المحاولة مرة أخرى."
     },
     "quickActions": "إجراءات سريعة",
     "quickActionsDescription": "الإجراءات المستخدمة بشكل متكرر لعملك",
@@ -592,8 +924,14 @@
       "profile": "الملف الشخصي",
       "security": "الأمان",
       "leaderboard": "لوحة المتصدرين",
+      "reviews": "التقييمات",
+      "notifications": "الإشعارات",
       "drivers": "السائقون",
-      "communityGoal": "تحدي المجتمع"
+      "communityGoal": "تحدي المجتمع",
+      "inventory": "المخزون",
+      "payments": "المدفوعات",
+      "loyalty": "الولاء",
+      "voting": "التصويت"
     },
     "stats": {
       "activeOffers": "العروض النشطة",

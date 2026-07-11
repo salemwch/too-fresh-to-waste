@@ -500,71 +500,403 @@
     "profile": "Profile",
     "security": "Security",
     "settings": {
-      "comingSoonTitle": "Settings — Coming Soon",
-      "comingSoonSubtitle": "Full business configuration is on its way",
-      "comingSoonDescription": "We're building a comprehensive settings panel so you can customise every aspect of your business account — notifications, integrations, billing, and more.",
-      "notifyLabel": "We'll notify you when it's ready.",
-      "features": {
-        "notifications": {
-          "title": "Notification Preferences",
-          "description": "Choose how and when you receive order alerts, promotions, and system updates"
-        },
-        "integrations": {
-          "title": "Integrations",
-          "description": "Connect your POS, accounting software, or delivery partner apps"
-        },
-        "billing": {
-          "title": "Billing & Subscription",
-          "description": "Manage your plan, view invoices, and update payment methods"
-        },
-        "team": {
-          "title": "Team Members",
-          "description": "Invite staff, assign roles, and manage access permissions"
-        },
-        "hours": {
-          "title": "Business Hours",
-          "description": "Set your opening hours and holiday closures visible to customers"
-        },
-        "account": {
-          "title": "Account & Data",
-          "description": "Export your data, transfer ownership, or close your account"
-        }
+      "title": "Settings",
+      "subtitle": "Manage your account and preferences",
+      "tabs": {
+        "profile": "Profile",
+        "security": "Security",
+        "sessions": "Sessions"
+      },
+      "profile": {
+        "title": "Profile Information",
+        "subtitle": "Update your personal details",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone Number",
+        "avatar": "Profile Photo",
+        "uploadPhoto": "Upload Photo",
+        "save": "Save Changes",
+        "saving": "Saving...",
+        "saved": "Profile updated successfully",
+        "error": "Failed to update profile. Please try again.",
+        "authProvider": "Signed in with {provider}"
+      },
+      "security": {
+        "title": "Security",
+        "subtitle": "Password and account security",
+        "changePassword": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm Password",
+        "passwordMismatch": "Passwords do not match",
+        "passwordChanged": "Password changed successfully",
+        "passwordError": "Failed to change password. Please try again.",
+        "oauthNote": "Password management is not available for {provider} accounts",
+        "mfa": "Two-Factor Authentication",
+        "mfaEnabled": "Enabled",
+        "mfaDisabled": "Disabled",
+        "dangerZone": "Danger Zone",
+        "deleteAccount": "Delete Account",
+        "deleteWarning": "This action is permanent and cannot be undone. All your data will be deleted.",
+        "deleteConfirm": "Type DELETE to confirm",
+        "deleting": "Deleting...",
+        "logoutAll": "Log Out All Devices",
+        "logoutAllConfirm": "This will terminate all active sessions"
+      },
+      "sessions": {
+        "title": "Active Sessions",
+        "subtitle": "Manage your active devices",
+        "currentSession": "Current session",
+        "lastActive": "Last active {date}",
+        "terminate": "Terminate",
+        "terminateSuccess": "Session terminated",
+        "noSessions": "No other active sessions",
+        "error": "Failed to load sessions"
       }
     },
     "logout": "Log Out",
     "search": "Search...",
     "comingSoon": "Coming soon",
     "analytics": {
-      "comingSoonTitle": "Analytics — Coming Soon",
-      "comingSoonSubtitle": "Powerful business insights are on their way",
-      "comingSoonDescription": "We're building a full analytics suite tailored for your business. Track revenue trends, customer behaviour, offer performance, and sustainability impact — all in one place.",
-      "notifyLabel": "We'll notify you when it's ready.",
-      "features": {
-        "revenue": {
-          "title": "Revenue Trends",
-          "description": "Daily, weekly, and monthly revenue breakdown with forecasting"
+      "title": "Analytics",
+      "subtitle": "Track your business performance",
+      "periodToday": "Today",
+      "period7d": "7 Days",
+      "period30d": "30 Days",
+      "period90d": "90 Days",
+      "periodCustom": "Custom",
+      "tabs": {
+        "overview": "Overview",
+        "customers": "Customers",
+        "sustainability": "Sustainability"
+      },
+      "kpi": {
+        "revenue": "Revenue",
+        "totalOrders": "Total Orders",
+        "avgOrderValue": "Avg. Order Value",
+        "conversionRate": "Conversion Rate",
+        "foodSaved": "Food Saved",
+        "co2Avoided": "CO₂ Avoided"
+      },
+      "revenueChart": {
+        "title": "Revenue Trend",
+        "subtitle": "Revenue over time",
+        "tooltip": { "revenue": "Revenue", "orders": "Orders" }
+      },
+      "ordersChart": {
+        "title": "Order Volume",
+        "subtitle": "Orders over time"
+      },
+      "customerLocations": {
+        "title": "Customer Locations",
+        "subtitle": "Top cities by order count",
+        "city": "City",
+        "orders": "Orders",
+        "noData": "No customer location data yet"
+      },
+      "sustainability": {
+        "title": "Sustainability Impact",
+        "subtitle": "Your environmental contribution",
+        "foodSaved": "Food Saved",
+        "co2Avoided": "CO₂ Avoided",
+        "waterSaved": "Water Saved",
+        "energySaved": "Energy Saved",
+        "packagingSaved": "Packaging Saved"
+      },
+      "topOffers": {
+        "title": "Top Performing Offers",
+        "subtitle": "Best offers by revenue",
+        "offer": "Offer",
+        "revenue": "Revenue",
+        "sold": "Sold",
+        "noData": "No offer performance data yet"
+      },
+      "noData": "No analytics data available for this period",
+      "error": "Failed to load analytics data. Please try again.",
+      "tndCurrency": "TND"
+    },
+    "reviews": {
+      "title": "Reviews",
+      "subtitle": "Manage customer feedback",
+      "stats": {
+        "averageRating": "Average Rating",
+        "totalReviews": "Total Reviews",
+        "responseRate": "Response Rate",
+        "ratingDistribution": "Rating Distribution"
+      },
+      "filters": {
+        "allRatings": "All Ratings",
+        "allEstablishments": "All Establishments",
+        "allStatuses": "All",
+        "responded": "Responded",
+        "notResponded": "Not Responded",
+        "stars": "{count} Stars"
+      },
+      "card": {
+        "verifiedPurchase": "Verified Purchase",
+        "reply": "Reply",
+        "report": "Report",
+        "merchantResponse": "Your Response",
+        "respondedOn": "Responded on {date}"
+      },
+      "replyDialog": {
+        "title": "Reply to Review",
+        "placeholder": "Write your response...",
+        "submit": "Submit Response",
+        "submitting": "Submitting...",
+        "success": "Response submitted successfully",
+        "error": "Failed to submit response. Please try again.",
+        "charLimit": "{count}/1000 characters"
+      },
+      "reportDialog": {
+        "title": "Report Review",
+        "reasonLabel": "Reason",
+        "reasons": {
+          "spam": "Spam",
+          "inappropriate": "Inappropriate content",
+          "fake": "Fake review",
+          "offensive": "Offensive language",
+          "irrelevant": "Irrelevant",
+          "other": "Other"
         },
-        "offers": {
-          "title": "Offer Performance",
-          "description": "Conversion rates, top-selling bags, and pick-up times"
-        },
-        "customers": {
-          "title": "Customer Insights",
-          "description": "Repeat buyers, location heat-map, and peak hours"
-        },
-        "sustainability": {
-          "title": "Sustainability Metrics",
-          "description": "CO₂ saved, food rescued in kg, and your green impact score"
-        },
-        "ratings": {
-          "title": "Ratings & Reviews",
-          "description": "Sentiment analysis and trend tracking for your reviews"
-        },
-        "exports": {
-          "title": "Data Exports",
-          "description": "Download reports as CSV or PDF for your accountant"
-        }
+        "detailsLabel": "Additional details (optional)",
+        "detailsPlaceholder": "Provide more context...",
+        "submit": "Submit Report",
+        "submitting": "Submitting...",
+        "success": "Report submitted successfully",
+        "error": "Failed to submit report. Please try again."
+      },
+      "trendingKeywords": {
+        "title": "Trending Keywords",
+        "subtitle": "Most mentioned topics"
+      },
+      "empty": {
+        "title": "No reviews yet",
+        "description": "When customers leave reviews, they'll appear here."
+      },
+      "error": "Failed to load reviews. Please try again.",
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {current} of {total}"
       }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Stay updated on your business activity",
+      "tabs": { "inbox": "Inbox", "preferences": "Preferences" },
+      "filters": {
+        "all": "All",
+        "orders": "Orders",
+        "offers": "Offers",
+        "reviews": "Reviews",
+        "system": "System",
+        "unreadOnly": "Unread only"
+      },
+      "markAllRead": "Mark all as read",
+      "loadMore": "Load more",
+      "viewAll": "View All Notifications",
+      "empty": {
+        "title": "No notifications",
+        "description": "You're all caught up! New notifications will appear here."
+      },
+      "error": "Failed to load notifications. Please try again.",
+      "preferences": {
+        "title": "Notification Preferences",
+        "subtitle": "Choose how you want to be notified",
+        "globalToggles": {
+          "push": "Push Notifications",
+          "email": "Email Notifications",
+          "sms": "SMS Notifications"
+        },
+        "channels": {
+          "order_updates": "Order Updates",
+          "marketing": "Marketing",
+          "pickup_reminders": "Pickup Reminders",
+          "security": "Security Alerts",
+          "offers": "Offer Updates",
+          "leaderboard": "Leaderboard"
+        },
+        "quietHours": {
+          "title": "Quiet Hours",
+          "description": "Pause notifications during specific hours",
+          "startTime": "Start time",
+          "endTime": "End time",
+          "timezone": "Timezone"
+        },
+        "save": "Save Preferences",
+        "saving": "Saving...",
+        "saved": "Preferences saved successfully",
+        "error": "Failed to save preferences. Please try again."
+      },
+      "timeAgo": {
+        "justNow": "Just now",
+        "minutesAgo": "{count}m ago",
+        "hoursAgo": "{count}h ago",
+        "daysAgo": "{count}d ago"
+      }
+    },
+    "inventory": {
+      "title": "Inventory",
+      "subtitle": "Track stock levels and expiry dates",
+      "tabs": {
+        "items": "Items",
+        "alerts": "Alerts",
+        "analytics": "Analytics"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "available": "Available",
+        "lowStock": "Low Stock",
+        "outOfStock": "Out of Stock",
+        "expired": "Expired",
+        "expiringSoon": "Expiring Soon"
+      },
+      "item": {
+        "stock": "Stock",
+        "reserved": "Reserved",
+        "available": "Available",
+        "threshold": "Low Stock Threshold",
+        "expires": "Expires {date}",
+        "batch": "Batch: {number}",
+        "updateStock": "Update Stock",
+        "viewHistory": "View History"
+      },
+      "stockUpdate": {
+        "title": "Update Stock",
+        "quantity": "Quantity",
+        "reason": "Reason",
+        "notes": "Notes (optional)",
+        "reasons": {
+          "restock": "Restock",
+          "waste": "Waste",
+          "adjustment": "Adjustment",
+          "return": "Return",
+          "correction": "Correction"
+        },
+        "submit": "Update",
+        "submitting": "Updating...",
+        "success": "Stock updated successfully",
+        "error": "Failed to update stock"
+      },
+      "analytics": {
+        "totalItems": "Total Items",
+        "activeItems": "Active Items",
+        "lowStockItems": "Low Stock",
+        "expiringItems": "Expiring Soon",
+        "outOfStock": "Out of Stock",
+        "totalValue": "Total Value",
+        "wasteRate": "Waste Rate"
+      },
+      "alerts": {
+        "title": "Active Alerts",
+        "noAlerts": "No active alerts",
+        "lowStock": "Low stock",
+        "expiring": "Expiring soon",
+        "expired": "Expired",
+        "outOfStock": "Out of stock"
+      },
+      "empty": {
+        "title": "No inventory items",
+        "description": "Inventory items will appear here when you create offers with stock tracking."
+      },
+      "error": "Failed to load inventory. Please try again.",
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {current} of {total}"
+      }
+    },
+    "payments": {
+      "title": "Payments",
+      "subtitle": "Track revenue and payment status",
+      "stats": {
+        "totalRevenue": "Total Revenue",
+        "totalTransactions": "Transactions",
+        "avgOrderValue": "Avg. Order Value",
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "fromDate": "From",
+        "toDate": "To"
+      },
+      "table": {
+        "order": "Order",
+        "customer": "Customer",
+        "amount": "Amount",
+        "method": "Method",
+        "status": "Status",
+        "date": "Date"
+      },
+      "methods": {
+        "cash": "Cash",
+        "card": "Card",
+        "smt_gateway": "Online",
+        "wallet": "Wallet"
+      },
+      "empty": {
+        "title": "No payments yet",
+        "description": "Payment records will appear here as orders are completed."
+      },
+      "error": "Failed to load payments. Please try again.",
+      "loadMore": "Load more"
+    },
+    "loyalty": {
+      "title": "Loyalty Program",
+      "subtitle": "Your loyalty stats and rewards",
+      "stats": {
+        "totalPoints": "Total Points",
+        "availablePoints": "Available",
+        "bagsSaved": "Bags Saved",
+        "ordersCount": "Total Orders",
+        "currentTier": "Current Tier",
+        "referrals": "Referrals"
+      },
+      "tier": {
+        "title": "Tier Progress",
+        "nextTier": "Next tier: {tier} at {points} pts",
+        "maxTier": "You've reached the highest tier!",
+        "multiplier": "{multiplier}x points multiplier"
+      },
+      "badges": {
+        "title": "Badges",
+        "subtitle": "Your achievements",
+        "earned": "Earned {date}",
+        "noBadges": "Complete actions to earn badges"
+      },
+      "referral": {
+        "title": "Referral Program",
+        "subtitle": "Share your code to earn points",
+        "code": "Your Referral Code",
+        "copied": "Code copied!",
+        "copy": "Copy Code"
+      },
+      "gamification": {
+        "title": "Progress",
+        "loginStreak": "Login Streak",
+        "purchaseStreak": "Purchase Streak",
+        "reviewsWritten": "Reviews Written",
+        "days": "days"
+      },
+      "donations": {
+        "title": "Donation History",
+        "subtitle": "Points donated to food relief",
+        "noDonations": "No donations yet",
+        "meals": "{count} meals funded"
+      },
+      "empty": {
+        "title": "No loyalty account",
+        "description": "Your loyalty account will be created automatically with your first order."
+      },
+      "error": "Failed to load loyalty data. Please try again."
     },
     "quickActions": "Quick Actions",
     "quickActionsDescription": "Frequently used actions for your business",
@@ -592,6 +924,11 @@
       "profile": "Profile",
       "security": "Security",
       "leaderboard": "Leaderboard",
+      "reviews": "Reviews",
+      "inventory": "Inventory",
+      "payments": "Payments",
+      "loyalty": "Loyalty",
+      "notifications": "Notifications",
       "drivers": "Drivers",
       "communityGoal": "Community Goal"
     },

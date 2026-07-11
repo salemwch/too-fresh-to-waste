@@ -500,71 +500,416 @@
     "profile": "Profil",
     "security": "Sécurité",
     "settings": {
-      "comingSoonTitle": "Paramètres — Bientôt disponible",
-      "comingSoonSubtitle": "La configuration complète de votre commerce arrive bientôt",
-      "comingSoonDescription": "Nous construisons un panneau de paramètres complet pour personnaliser chaque aspect de votre compte — notifications, intégrations, facturation et plus encore.",
-      "notifyLabel": "Nous vous notifierons quand ce sera prêt.",
-      "features": {
-        "notifications": {
-          "title": "Préférences de notifications",
-          "description": "Choisissez comment et quand recevoir les alertes de commandes, promotions et mises à jour"
-        },
-        "integrations": {
-          "title": "Intégrations",
-          "description": "Connectez votre caisse, logiciel comptable ou applications de livraison partenaires"
-        },
-        "billing": {
-          "title": "Facturation & abonnement",
-          "description": "Gérez votre plan, consultez les factures et mettez à jour vos moyens de paiement"
-        },
-        "team": {
-          "title": "Membres de l'équipe",
-          "description": "Invitez du personnel, attribuez des rôles et gérez les permissions d'accès"
-        },
-        "hours": {
-          "title": "Horaires d'ouverture",
-          "description": "Définissez vos horaires et congés visibles par les clients"
-        },
-        "account": {
-          "title": "Compte & données",
-          "description": "Exportez vos données, transférez la propriété ou fermez votre compte"
-        }
+      "title": "Paramètres",
+      "subtitle": "Gérez votre compte et vos préférences",
+      "tabs": { "profile": "Profil", "security": "Sécurité", "sessions": "Sessions" },
+      "profile": {
+        "title": "Informations du profil",
+        "subtitle": "Mettez à jour vos données personnelles",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "email": "Email",
+        "phone": "Téléphone",
+        "avatar": "Photo de profil",
+        "uploadPhoto": "Télécharger une photo",
+        "save": "Enregistrer",
+        "saving": "Enregistrement...",
+        "saved": "Profil mis à jour avec succès",
+        "error": "Échec de la mise à jour du profil.",
+        "authProvider": "Connecté via {provider}"
+      },
+      "security": {
+        "title": "Sécurité",
+        "subtitle": "Mot de passe et sécurité du compte",
+        "changePassword": "Changer le mot de passe",
+        "currentPassword": "Mot de passe actuel",
+        "newPassword": "Nouveau mot de passe",
+        "confirmPassword": "Confirmer le mot de passe",
+        "passwordMismatch": "Les mots de passe ne correspondent pas",
+        "passwordChanged": "Mot de passe modifié avec succès",
+        "passwordError": "Échec du changement de mot de passe.",
+        "oauthNote": "La gestion du mot de passe n'est pas disponible pour les comptes {provider}",
+        "mfa": "Authentification à deux facteurs",
+        "mfaEnabled": "Activée",
+        "mfaDisabled": "Désactivée",
+        "dangerZone": "Zone dangereuse",
+        "deleteAccount": "Supprimer le compte",
+        "deleteWarning": "Cette action est permanente et irréversible. Toutes vos données seront supprimées.",
+        "deleteConfirm": "Tapez SUPPRIMER pour confirmer",
+        "deleting": "Suppression...",
+        "logoutAll": "Déconnecter tous les appareils",
+        "logoutAllConfirm": "Cela terminera toutes les sessions actives"
+      },
+      "sessions": {
+        "title": "Sessions actives",
+        "subtitle": "Gérez vos appareils connectés",
+        "currentSession": "Session actuelle",
+        "lastActive": "Dernière activité {date}",
+        "terminate": "Terminer",
+        "terminateSuccess": "Session terminée",
+        "noSessions": "Aucune autre session active",
+        "error": "Échec du chargement des sessions"
       }
     },
     "logout": "Se déconnecter",
     "search": "Rechercher...",
     "comingSoon": "Bientôt disponible",
     "analytics": {
-      "comingSoonTitle": "Analytique — Bientôt disponible",
-      "comingSoonSubtitle": "Des insights commerciaux puissants arrivent bientôt",
-      "comingSoonDescription": "Nous construisons une suite analytique complète adaptée à votre commerce. Suivez les tendances de revenus, le comportement des clients, la performance des offres et votre impact environnemental — tout en un seul endroit.",
-      "notifyLabel": "Nous vous notifierons quand ce sera prêt.",
-      "features": {
-        "revenue": {
-          "title": "Tendances des revenus",
-          "description": "Détail des revenus quotidiens, hebdomadaires et mensuels avec prévisions"
+      "title": "Analytique",
+      "subtitle": "Suivez la performance de votre commerce",
+      "periodToday": "Aujourd'hui",
+      "period7d": "7 Jours",
+      "period30d": "30 Jours",
+      "period90d": "90 Jours",
+      "periodCustom": "Personnalisé",
+      "tabs": { "overview": "Aperçu", "customers": "Clients", "sustainability": "Durabilité" },
+      "kpi": {
+        "revenue": "Chiffre d'affaires",
+        "totalOrders": "Total des commandes",
+        "avgOrderValue": "Panier moyen",
+        "conversionRate": "Taux de conversion",
+        "foodSaved": "Nourriture sauvée",
+        "co2Avoided": "CO₂ évité"
+      },
+      "revenueChart": {
+        "title": "Tendance du chiffre d'affaires",
+        "subtitle": "Revenus au fil du temps",
+        "tooltip": { "revenue": "Revenus", "orders": "Commandes" }
+      },
+      "ordersChart": { "title": "Volume de commandes", "subtitle": "Commandes au fil du temps" },
+      "customerLocations": {
+        "title": "Localisation des clients",
+        "subtitle": "Villes principales par nombre de commandes",
+        "city": "Ville",
+        "orders": "Commandes",
+        "noData": "Aucune donnée de localisation client"
+      },
+      "sustainability": {
+        "title": "Impact environnemental",
+        "subtitle": "Votre contribution environnementale",
+        "foodSaved": "Nourriture sauvée",
+        "co2Avoided": "CO₂ évité",
+        "waterSaved": "Eau économisée",
+        "energySaved": "Énergie économisée",
+        "packagingSaved": "Emballages économisés"
+      },
+      "topOffers": {
+        "title": "Meilleures offres",
+        "subtitle": "Meilleures offres par revenus",
+        "offer": "Offre",
+        "revenue": "Revenus",
+        "sold": "Vendus",
+        "noData": "Aucune donnée de performance des offres"
+      },
+      "noData": "Aucune donnée analytique disponible pour cette période",
+      "error": "Échec du chargement des données analytiques. Veuillez réessayer.",
+      "tndCurrency": "TND"
+    },
+    "reviews": {
+      "title": "Avis",
+      "subtitle": "Gérez les retours clients",
+      "stats": {
+        "averageRating": "Note moyenne",
+        "totalReviews": "Total des avis",
+        "responseRate": "Taux de réponse",
+        "ratingDistribution": "Répartition des notes"
+      },
+      "filters": {
+        "allRatings": "Toutes les notes",
+        "allEstablishments": "Tous les établissements",
+        "allStatuses": "Tous",
+        "responded": "Répondu",
+        "notResponded": "Sans réponse",
+        "stars": "{count} Étoiles"
+      },
+      "card": {
+        "verifiedPurchase": "Achat vérifié",
+        "reply": "Répondre",
+        "report": "Signaler",
+        "merchantResponse": "Votre réponse",
+        "respondedOn": "Répondu le {date}"
+      },
+      "replyDialog": {
+        "title": "Répondre à l'avis",
+        "placeholder": "Écrivez votre réponse...",
+        "submit": "Envoyer la réponse",
+        "submitting": "Envoi...",
+        "success": "Réponse envoyée avec succès",
+        "error": "Échec de l'envoi. Veuillez réessayer.",
+        "charLimit": "{count}/1000 caractères"
+      },
+      "reportDialog": {
+        "title": "Signaler l'avis",
+        "reasonLabel": "Raison",
+        "reasons": {
+          "spam": "Spam",
+          "inappropriate": "Contenu inapproprié",
+          "fake": "Faux avis",
+          "offensive": "Langage offensant",
+          "irrelevant": "Hors sujet",
+          "other": "Autre"
         },
-        "offers": {
-          "title": "Performance des offres",
-          "description": "Taux de conversion, sacs les plus vendus et horaires de retrait"
-        },
-        "customers": {
-          "title": "Insights clients",
-          "description": "Acheteurs fidèles, carte thermique des lieux et heures de pointe"
-        },
-        "sustainability": {
-          "title": "Métriques de durabilité",
-          "description": "CO₂ économisé, nourriture sauvée en kg et votre score d'impact vert"
-        },
-        "ratings": {
-          "title": "Notes & avis",
-          "description": "Analyse des sentiments et suivi des tendances de vos avis"
-        },
-        "exports": {
-          "title": "Exports de données",
-          "description": "Téléchargez des rapports en CSV ou PDF pour votre comptable"
-        }
+        "detailsLabel": "Détails supplémentaires (optionnel)",
+        "detailsPlaceholder": "Donnez plus de contexte...",
+        "submit": "Envoyer le signalement",
+        "submitting": "Envoi...",
+        "success": "Signalement envoyé avec succès",
+        "error": "Échec du signalement. Veuillez réessayer."
+      },
+      "trendingKeywords": {
+        "title": "Mots-clés tendance",
+        "subtitle": "Sujets les plus mentionnés"
+      },
+      "empty": {
+        "title": "Aucun avis",
+        "description": "Les avis de vos clients apparaîtront ici."
+      },
+      "error": "Échec du chargement des avis. Veuillez réessayer.",
+      "pagination": {
+        "previous": "Précédent",
+        "next": "Suivant",
+        "page": "Page {current} sur {total}"
       }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Restez informé de l'activité de votre commerce",
+      "tabs": { "inbox": "Boîte de réception", "preferences": "Préférences" },
+      "filters": {
+        "all": "Toutes",
+        "orders": "Commandes",
+        "offers": "Offres",
+        "reviews": "Avis",
+        "system": "Système",
+        "unreadOnly": "Non lues uniquement"
+      },
+      "markAllRead": "Tout marquer comme lu",
+      "loadMore": "Charger plus",
+      "viewAll": "Voir toutes les notifications",
+      "empty": {
+        "title": "Aucune notification",
+        "description": "Vous êtes à jour ! Les nouvelles notifications apparaîtront ici."
+      },
+      "error": "Échec du chargement des notifications. Veuillez réessayer.",
+      "preferences": {
+        "title": "Préférences de notification",
+        "subtitle": "Choisissez comment être notifié",
+        "globalToggles": {
+          "push": "Notifications push",
+          "email": "Notifications par email",
+          "sms": "Notifications SMS"
+        },
+        "channels": {
+          "order_updates": "Mises à jour des commandes",
+          "marketing": "Marketing",
+          "pickup_reminders": "Rappels de retrait",
+          "security": "Alertes de sécurité",
+          "offers": "Mises à jour des offres",
+          "leaderboard": "Classement"
+        },
+        "quietHours": {
+          "title": "Heures calmes",
+          "description": "Suspendre les notifications pendant certaines heures",
+          "startTime": "Heure de début",
+          "endTime": "Heure de fin",
+          "timezone": "Fuseau horaire"
+        },
+        "save": "Enregistrer les préférences",
+        "saving": "Enregistrement...",
+        "saved": "Préférences enregistrées avec succès",
+        "error": "Échec de l'enregistrement. Veuillez réessayer."
+      },
+      "timeAgo": {
+        "justNow": "À l'instant",
+        "minutesAgo": "Il y a {count}min",
+        "hoursAgo": "Il y a {count}h",
+        "daysAgo": "Il y a {count}j"
+      }
+    },
+    "inventory": {
+      "title": "Inventaire",
+      "subtitle": "Gérez le stock et les niveaux d'inventaire",
+      "tabs": { "items": "Articles", "alerts": "Alertes", "analytics": "Analytique" },
+      "filters": {
+        "allStatuses": "Tous les statuts",
+        "inStock": "En stock",
+        "lowStock": "Stock faible",
+        "outOfStock": "Rupture de stock",
+        "expired": "Expiré",
+        "searchPlaceholder": "Rechercher des articles..."
+      },
+      "item": {
+        "quantity": "Quantité",
+        "unit": "Unité",
+        "category": "Catégorie",
+        "expiresAt": "Expire le",
+        "lastUpdated": "Dernière mise à jour",
+        "updateStock": "Mettre à jour le stock",
+        "status": {
+          "in_stock": "En stock",
+          "low_stock": "Stock faible",
+          "out_of_stock": "Rupture",
+          "expired": "Expiré"
+        }
+      },
+      "stockUpdate": {
+        "title": "Mettre à jour le stock",
+        "quantity": "Nouvelle quantité",
+        "reason": "Raison",
+        "reasons": {
+          "received": "Réception",
+          "sold": "Vente",
+          "spoiled": "Détérioré",
+          "adjustment": "Ajustement",
+          "returned": "Retour",
+          "donated": "Don"
+        },
+        "notes": "Notes (optionnel)",
+        "submit": "Mettre à jour",
+        "submitting": "Mise à jour...",
+        "success": "Stock mis à jour avec succès",
+        "error": "Échec de la mise à jour du stock"
+      },
+      "bulkUpdate": {
+        "title": "Mise à jour en masse",
+        "selected": "{count} sélectionné(s)",
+        "submit": "Appliquer",
+        "success": "Stock mis à jour pour {count} articles"
+      },
+      "alerts": {
+        "title": "Alertes d'inventaire",
+        "lowStock": "Stock faible",
+        "expiringSoon": "Expire bientôt",
+        "outOfStock": "Rupture de stock",
+        "noAlerts": "Aucune alerte active",
+        "resolveAll": "Tout résoudre"
+      },
+      "analytics": {
+        "title": "Analytique d'inventaire",
+        "totalItems": "Total des articles",
+        "totalValue": "Valeur totale",
+        "expiringThisWeek": "Expire cette semaine",
+        "turnoverRate": "Taux de rotation",
+        "wasteRate": "Taux de gaspillage",
+        "stockHistory": "Historique du stock"
+      },
+      "empty": {
+        "title": "Aucun article",
+        "description": "Ajoutez des articles à votre inventaire pour commencer le suivi."
+      },
+      "error": "Échec du chargement de l'inventaire. Veuillez réessayer."
+    },
+    "payments": {
+      "title": "Historique des paiements",
+      "subtitle": "Suivez et conciliez les paiements en espèces",
+      "stats": {
+        "todayRevenue": "Revenu du jour",
+        "weekRevenue": "Revenu de la semaine",
+        "monthRevenue": "Revenu du mois",
+        "totalCollected": "Total encaissé",
+        "pendingCollection": "En attente d'encaissement",
+        "completedOrders": "Commandes complétées"
+      },
+      "filters": {
+        "allStatuses": "Tous les statuts",
+        "collected": "Encaissé",
+        "pending": "En attente",
+        "refunded": "Remboursé",
+        "failed": "Échoué",
+        "dateRange": "Période",
+        "today": "Aujourd'hui",
+        "thisWeek": "Cette semaine",
+        "thisMonth": "Ce mois",
+        "custom": "Personnalisé"
+      },
+      "table": {
+        "orderId": "N° commande",
+        "customer": "Client",
+        "amount": "Montant",
+        "method": "Méthode",
+        "status": "Statut",
+        "date": "Date",
+        "actions": "Actions"
+      },
+      "methods": {
+        "cash": "Espèces",
+        "cash_on_pickup": "Espèces au retrait"
+      },
+      "status": {
+        "collected": "Encaissé",
+        "pending": "En attente",
+        "refunded": "Remboursé",
+        "failed": "Échoué"
+      },
+      "empty": {
+        "title": "Aucun paiement",
+        "description": "Les paiements de vos commandes apparaîtront ici."
+      },
+      "error": "Échec du chargement des paiements. Veuillez réessayer.",
+      "export": "Exporter",
+      "tndCurrency": "TND"
+    },
+    "loyalty": {
+      "title": "Programme de fidélité",
+      "subtitle": "Suivez les points, niveaux et fidélisation client",
+      "stats": {
+        "totalPoints": "Points totaux",
+        "currentTier": "Niveau actuel",
+        "bagsSaved": "Sacs sauvés",
+        "ordersCount": "Nombre de commandes",
+        "pointsThisMonth": "Points ce mois",
+        "nextTier": "Prochain niveau"
+      },
+      "tiers": {
+        "bronze": "Bronze",
+        "silver": "Argent",
+        "gold": "Or",
+        "platinum": "Platine",
+        "progress": "{current}/{target} points pour {tier}",
+        "reached": "Niveau atteint !"
+      },
+      "badges": {
+        "title": "Badges",
+        "subtitle": "Vos récompenses",
+        "earned": "Obtenu",
+        "locked": "Verrouillé",
+        "progress": "{current}/{target}"
+      },
+      "referral": {
+        "title": "Programme de parrainage",
+        "subtitle": "Invitez des amis et gagnez des points",
+        "code": "Code de parrainage",
+        "link": "Lien de parrainage",
+        "copy": "Copier",
+        "copied": "Copié !",
+        "share": "Partager"
+      },
+      "gamification": {
+        "title": "Progression",
+        "subtitle": "Vos objectifs en cours",
+        "streak": "Série de connexions",
+        "streakDays": "{count} jours",
+        "weeklyGoal": "Objectif hebdomadaire",
+        "monthlyGoal": "Objectif mensuel"
+      },
+      "donations": {
+        "title": "Historique des dons",
+        "subtitle": "Vos points donnés",
+        "donate": "Donner des points",
+        "amount": "Nombre de points",
+        "anonymous": "Don anonyme",
+        "message": "Message (optionnel)",
+        "submit": "Donner",
+        "submitting": "En cours...",
+        "success": "Don effectué avec succès !",
+        "error": "Échec du don. Veuillez réessayer.",
+        "empty": "Aucun don effectué."
+      },
+      "empty": {
+        "title": "Programme de fidélité",
+        "description": "Commencez à gagner des points en sauvant de la nourriture !"
+      },
+      "error": "Échec du chargement de la fidélité. Veuillez réessayer."
     },
     "quickActions": "Actions rapides",
     "quickActionsDescription": "Actions fréquemment utilisées pour votre entreprise",
@@ -592,8 +937,14 @@
       "profile": "Profil",
       "security": "Sécurité",
       "leaderboard": "Classement",
+      "reviews": "Avis",
+      "notifications": "Notifications",
       "drivers": "Chauffeurs",
-      "communityGoal": "Défi Communautaire"
+      "communityGoal": "Défi Communautaire",
+      "inventory": "Inventaire",
+      "payments": "Paiements",
+      "loyalty": "Fidélité",
+      "voting": "Votes"
     },
     "stats": {
       "activeOffers": "Offres actives",
