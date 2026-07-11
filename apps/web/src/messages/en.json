@@ -747,6 +747,8 @@
       },
       "filters": {
         "allStatuses": "All Statuses",
+        "searchPlaceholder": "Search items...",
+        "inStock": "In Stock",
         "available": "Available",
         "lowStock": "Low Stock",
         "outOfStock": "Out of Stock",
@@ -760,6 +762,9 @@
         "threshold": "Low Stock Threshold",
         "expires": "Expires {date}",
         "batch": "Batch: {number}",
+        "quantity": "Qty",
+        "category": "Category",
+        "expiresAt": "Expires",
         "updateStock": "Update Stock",
         "viewHistory": "View History"
       },
@@ -770,9 +775,13 @@
         "notes": "Notes (optional)",
         "reasons": {
           "restock": "Restock",
+          "received": "Received",
           "waste": "Waste",
+          "sold": "Sold",
+          "spoiled": "Spoiled",
           "adjustment": "Adjustment",
           "return": "Return",
+          "returned": "Returned",
           "correction": "Correction"
         },
         "submit": "Update",
@@ -781,19 +790,23 @@
         "error": "Failed to update stock"
       },
       "analytics": {
+        "title": "Analytics",
         "totalItems": "Total Items",
         "activeItems": "Active Items",
         "lowStockItems": "Low Stock",
         "expiringItems": "Expiring Soon",
+        "expiringThisWeek": "Expiring This Week",
         "outOfStock": "Out of Stock",
         "totalValue": "Total Value",
-        "wasteRate": "Waste Rate"
+        "wasteRate": "Waste Rate",
+        "stockHistory": "Stock Breakdown"
       },
       "alerts": {
         "title": "Active Alerts",
         "noAlerts": "No active alerts",
         "lowStock": "Low stock",
         "expiring": "Expiring soon",
+        "expiringSoon": "Expiring soon",
         "expired": "Expired",
         "outOfStock": "Out of stock"
       },
