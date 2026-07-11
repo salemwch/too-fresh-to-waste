@@ -14,6 +14,11 @@ import {
   HeartHandshake,
   Truck,
   Vote,
+  Star,
+  Bell,
+  Package,
+  Wallet,
+  Award,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -64,6 +69,12 @@ export const merchantNavItems: NavItem[] = [
     roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
   },
   {
+    titleKey: 'reviews',
+    href: '/merchant/reviews',
+    icon: Star,
+    roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
+  },
+  {
     titleKey: 'esg',
     href: '/merchant/esg',
     icon: Leaf,
@@ -79,6 +90,30 @@ export const merchantNavItems: NavItem[] = [
     titleKey: 'leaderboard',
     href: '/merchant/leaderboard',
     icon: Trophy,
+    roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
+  },
+  {
+    titleKey: 'inventory',
+    href: '/merchant/inventory',
+    icon: Package,
+    roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
+  },
+  {
+    titleKey: 'payments',
+    href: '/merchant/payments',
+    icon: Wallet,
+    roles: [UserRole.MERCHANT],
+  },
+  {
+    titleKey: 'loyalty',
+    href: '/merchant/loyalty',
+    icon: Award,
+    roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
+  },
+  {
+    titleKey: 'notifications',
+    href: '/merchant/notifications',
+    icon: Bell,
     roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
   },
   {
