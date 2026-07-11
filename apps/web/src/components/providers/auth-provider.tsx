@@ -9,8 +9,15 @@ import { authService } from '@/services/auth.service';
 const REFRESH_INTERVAL_MS = 13 * 60 * 1000; // 13 minutes — access token TTL is 15 min
 
 // Pages that handle their own auth flow — skip rehydration to avoid
-// spurious 401s before HttpOnly cookies are set by the backend.
-const AUTH_FLOW_PAGES = ['/verify-email'];
+// spurious 401s and infinite redirect loops (rehydrate → 401 → refresh
+// fails → window.location /login → rehydrate again → loop).
+const AUTH_FLOW_PAGES = [
+  '/login',
+  '/register',
+  '/verify-email',
+  '/forgot-password',
+  '/reset-password',
+];
 
 // Returns true only when the backend explicitly rejected the token (not a network issue).
 function isHardAuthError(err: unknown): boolean {

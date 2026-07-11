@@ -682,61 +682,6 @@
         "page": "Page {current} of {total}"
       }
     },
-    "notifications": {
-      "title": "Notifications",
-      "subtitle": "Stay updated on your business activity",
-      "tabs": { "inbox": "Inbox", "preferences": "Preferences" },
-      "filters": {
-        "all": "All",
-        "orders": "Orders",
-        "offers": "Offers",
-        "reviews": "Reviews",
-        "system": "System",
-        "unreadOnly": "Unread only"
-      },
-      "markAllRead": "Mark all as read",
-      "loadMore": "Load more",
-      "viewAll": "View All Notifications",
-      "empty": {
-        "title": "No notifications",
-        "description": "You're all caught up! New notifications will appear here."
-      },
-      "error": "Failed to load notifications. Please try again.",
-      "preferences": {
-        "title": "Notification Preferences",
-        "subtitle": "Choose how you want to be notified",
-        "globalToggles": {
-          "push": "Push Notifications",
-          "email": "Email Notifications",
-          "sms": "SMS Notifications"
-        },
-        "channels": {
-          "order_updates": "Order Updates",
-          "marketing": "Marketing",
-          "pickup_reminders": "Pickup Reminders",
-          "security": "Security Alerts",
-          "offers": "Offer Updates",
-          "leaderboard": "Leaderboard"
-        },
-        "quietHours": {
-          "title": "Quiet Hours",
-          "description": "Pause notifications during specific hours",
-          "startTime": "Start time",
-          "endTime": "End time",
-          "timezone": "Timezone"
-        },
-        "save": "Save Preferences",
-        "saving": "Saving...",
-        "saved": "Preferences saved successfully",
-        "error": "Failed to save preferences. Please try again."
-      },
-      "timeAgo": {
-        "justNow": "Just now",
-        "minutesAgo": "{count}m ago",
-        "hoursAgo": "{count}h ago",
-        "daysAgo": "{count}d ago"
-      }
-    },
     "inventory": {
       "title": "Inventory",
       "subtitle": "Track stock levels and expiry dates",
@@ -960,7 +905,6 @@
       "inventory": "Inventory",
       "payments": "Payments",
       "loyalty": "Loyalty",
-      "notifications": "Notifications",
       "drivers": "Drivers",
       "communityGoal": "Community Goal"
     },

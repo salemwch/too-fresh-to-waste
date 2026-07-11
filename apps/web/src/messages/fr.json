@@ -671,61 +671,6 @@
         "page": "Page {current} sur {total}"
       }
     },
-    "notifications": {
-      "title": "Notifications",
-      "subtitle": "Restez informé de l'activité de votre commerce",
-      "tabs": { "inbox": "Boîte de réception", "preferences": "Préférences" },
-      "filters": {
-        "all": "Toutes",
-        "orders": "Commandes",
-        "offers": "Offres",
-        "reviews": "Avis",
-        "system": "Système",
-        "unreadOnly": "Non lues uniquement"
-      },
-      "markAllRead": "Tout marquer comme lu",
-      "loadMore": "Charger plus",
-      "viewAll": "Voir toutes les notifications",
-      "empty": {
-        "title": "Aucune notification",
-        "description": "Vous êtes à jour ! Les nouvelles notifications apparaîtront ici."
-      },
-      "error": "Échec du chargement des notifications. Veuillez réessayer.",
-      "preferences": {
-        "title": "Préférences de notification",
-        "subtitle": "Choisissez comment être notifié",
-        "globalToggles": {
-          "push": "Notifications push",
-          "email": "Notifications par email",
-          "sms": "Notifications SMS"
-        },
-        "channels": {
-          "order_updates": "Mises à jour des commandes",
-          "marketing": "Marketing",
-          "pickup_reminders": "Rappels de retrait",
-          "security": "Alertes de sécurité",
-          "offers": "Mises à jour des offres",
-          "leaderboard": "Classement"
-        },
-        "quietHours": {
-          "title": "Heures calmes",
-          "description": "Suspendre les notifications pendant certaines heures",
-          "startTime": "Heure de début",
-          "endTime": "Heure de fin",
-          "timezone": "Fuseau horaire"
-        },
-        "save": "Enregistrer les préférences",
-        "saving": "Enregistrement...",
-        "saved": "Préférences enregistrées avec succès",
-        "error": "Échec de l'enregistrement. Veuillez réessayer."
-      },
-      "timeAgo": {
-        "justNow": "À l'instant",
-        "minutesAgo": "Il y a {count}min",
-        "hoursAgo": "Il y a {count}h",
-        "daysAgo": "Il y a {count}j"
-      }
-    },
     "inventory": {
       "title": "Inventaire",
       "subtitle": "Gérez le stock et les niveaux d'inventaire",
@@ -941,7 +886,6 @@
       "security": "Sécurité",
       "leaderboard": "Classement",
       "reviews": "Avis",
-      "notifications": "Notifications",
       "drivers": "Chauffeurs",
       "communityGoal": "Défi Communautaire",
       "inventory": "Inventaire",

@@ -15,7 +15,6 @@ import {
   Truck,
   Vote,
   Star,
-  Bell,
   Package,
   Wallet,
   type LucideIcon,
@@ -102,12 +101,6 @@ export const merchantNavItems: NavItem[] = [
     href: '/merchant/payments',
     icon: Wallet,
     roles: [UserRole.MERCHANT],
-  },
-  {
-    titleKey: 'notifications',
-    href: '/merchant/notifications',
-    icon: Bell,
-    roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
   },
   {
     titleKey: 'settings',

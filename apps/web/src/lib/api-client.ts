@@ -93,11 +93,11 @@ export async function performRefreshOnce(): Promise<string> {
         console.error('[API] performRefreshOnce — refresh token rejected, logging out', { status });
       }
       useAuthStore.getState().logout();
-      // Hard navigation clears all JS state and lets middleware handle the
-      // redirect properly. Without this, stale HttpOnly cookies persist and
-      // the next AuthProvider rehydration retries with dead tokens.
       if (typeof window !== 'undefined') {
-        window.location.replace('/login');
+        const onLoginAlready = window.location.pathname.includes('/login');
+        if (!onLoginAlready) {
+          window.location.replace('/login');
+        }
       }
     } else if (isAccountSuspended) {
       if (process.env.NODE_ENV === 'development') {
@@ -105,7 +105,10 @@ export async function performRefreshOnce(): Promise<string> {
       }
       useAuthStore.getState().logout();
       if (typeof window !== 'undefined') {
-        window.location.replace('/login?reason=suspended');
+        const onLoginAlready = window.location.pathname.includes('/login');
+        if (!onLoginAlready) {
+          window.location.replace('/login?reason=suspended');
+        }
       }
     } else {
       if (process.env.NODE_ENV === 'development') {

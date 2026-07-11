@@ -664,61 +664,6 @@
       "error": "فشل تحميل التقييمات. يرجى المحاولة مرة أخرى.",
       "pagination": { "previous": "السابق", "next": "التالي", "page": "صفحة {current} من {total}" }
     },
-    "notifications": {
-      "title": "الإشعارات",
-      "subtitle": "ابقَ على اطلاع بنشاط عملك",
-      "tabs": { "inbox": "صندوق الوارد", "preferences": "التفضيلات" },
-      "filters": {
-        "all": "الكل",
-        "orders": "الطلبات",
-        "offers": "العروض",
-        "reviews": "التقييمات",
-        "system": "النظام",
-        "unreadOnly": "غير المقروءة فقط"
-      },
-      "markAllRead": "تحديد الكل كمقروء",
-      "loadMore": "تحميل المزيد",
-      "viewAll": "عرض جميع الإشعارات",
-      "empty": {
-        "title": "لا توجد إشعارات",
-        "description": "أنت على اطلاع! ستظهر الإشعارات الجديدة هنا."
-      },
-      "error": "فشل تحميل الإشعارات. يرجى المحاولة مرة أخرى.",
-      "preferences": {
-        "title": "تفضيلات الإشعارات",
-        "subtitle": "اختر كيف تريد أن يتم إشعارك",
-        "globalToggles": {
-          "push": "إشعارات الدفع",
-          "email": "إشعارات البريد الإلكتروني",
-          "sms": "إشعارات الرسائل القصيرة"
-        },
-        "channels": {
-          "order_updates": "تحديثات الطلبات",
-          "marketing": "التسويق",
-          "pickup_reminders": "تذكيرات الاستلام",
-          "security": "تنبيهات الأمان",
-          "offers": "تحديثات العروض",
-          "leaderboard": "لوحة الصدارة"
-        },
-        "quietHours": {
-          "title": "ساعات الهدوء",
-          "description": "إيقاف الإشعارات خلال ساعات محددة",
-          "startTime": "وقت البدء",
-          "endTime": "وقت الانتهاء",
-          "timezone": "المنطقة الزمنية"
-        },
-        "save": "حفظ التفضيلات",
-        "saving": "جارٍ الحفظ...",
-        "saved": "تم حفظ التفضيلات بنجاح",
-        "error": "فشل حفظ التفضيلات. يرجى المحاولة مرة أخرى."
-      },
-      "timeAgo": {
-        "justNow": "الآن",
-        "minutesAgo": "منذ {count} د",
-        "hoursAgo": "منذ {count} س",
-        "daysAgo": "منذ {count} ي"
-      }
-    },
     "inventory": {
       "title": "المخزون",
       "subtitle": "إدارة المخزون ومستويات البضائع",
@@ -928,7 +873,6 @@
       "security": "الأمان",
       "leaderboard": "لوحة المتصدرين",
       "reviews": "التقييمات",
-      "notifications": "الإشعارات",
       "drivers": "السائقون",
       "communityGoal": "تحدي المجتمع",
       "inventory": "المخزون",
