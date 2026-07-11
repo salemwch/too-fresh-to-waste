@@ -516,3 +516,31 @@ export interface StreakResponse {
   listedToday: boolean;
   nextFreezeAt: number;
 }
+
+// ─── Real-time Metrics (Analytics) ──────────────────────────────────────────
+
+export interface RealTimeMetrics {
+  activeUsers: number;
+  ordersToday: number;
+  revenueToday: number;
+  activeOffers: number;
+  pendingOrders: number;
+  systemHealth: {
+    responseTime: number;
+    errorRate: number;
+    uptime: number;
+  };
+  lastUpdated: string;
+}
+
+// ─── Customer Location (Analytics) ──────────────────────────────────────────
+
+export interface CustomerLocationItem {
+  city: string;
+  count: number;
+  percentage?: number;
+}
+
+// ─── Analytics Period ────────────────────────────────────────────────────────
+
+export type AnalyticsPeriod = 'today' | '7d' | '30d' | '90d' | 'custom';

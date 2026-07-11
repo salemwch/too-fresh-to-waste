@@ -22,6 +22,8 @@ import type {
   LeaderboardEntry,
   MerchantRankResponse,
   StreakResponse,
+  RealTimeMetrics,
+  CustomerLocationItem,
 } from '@/types/dashboard';
 
 const ORDERS_BASE = '/orders';
@@ -372,5 +374,24 @@ export const dashboardService = {
 
   getStreakData() {
     return apiClient.get<BackendEnvelope<StreakResponse>>(`${SUSTAINABILITY_BASE}/streak`);
+  },
+
+  // ── Analytics ─────────────────────────────────────────────────────────────
+
+  getRealTimeMetrics() {
+    return apiClient.get<BackendEnvelope<RealTimeMetrics>>(`${ANALYTICS_BASE}/real-time`);
+  },
+
+  getCustomerLocations(limit = 5, startDate?: string, establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<CustomerLocationItem[]>>(
+      `${ORDERS_BASE}/merchant-customer-locations`,
+      {
+        params: {
+          limit,
+          ...(startDate ? { startDate } : {}),
+          ...(establishmentId ? { establishmentId } : {}),
+        },
+      },
+    );
   },
 };

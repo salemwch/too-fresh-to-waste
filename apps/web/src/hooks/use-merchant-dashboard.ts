@@ -22,6 +22,11 @@ import type {
   LeaderboardEntry,
   MerchantRankResponse,
   StreakResponse,
+  BusinessMetrics,
+  BusinessMetricsRequest,
+  QuickStatsResponse,
+  RealTimeMetrics,
+  CustomerLocationItem,
 } from '@/types/dashboard';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
@@ -56,6 +61,12 @@ export const dashboardKeys = {
   leaderboard: (limit: number) => [...dashboardKeys.all, 'leaderboard', limit] as const,
   myRank: (estId?: string) => [...dashboardKeys.all, 'my-rank', estId ?? 'all'] as const,
   streak: () => [...dashboardKeys.all, 'streak'] as const,
+  businessMetrics: (startDate: string, endDate: string, estId?: string) =>
+    [...dashboardKeys.all, 'business-metrics', startDate, endDate, estId ?? 'all'] as const,
+  quickStats: (period: string) => [...dashboardKeys.all, 'quick-stats', period] as const,
+  realTimeMetrics: () => [...dashboardKeys.all, 'real-time'] as const,
+  customerLocations: (limit: number, estId?: string) =>
+    [...dashboardKeys.all, 'customer-locations', limit, estId ?? 'all'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -472,5 +483,67 @@ export function useUpdateLeaderboardPreference() {
         });
       }
     },
+  });
+}
+
+// ─── Analytics hooks ────────────────────────────────────────────────────────
+
+export function useBusinessMetrics(startDate: string, endDate: string) {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
+  return useQuery({
+    queryKey: dashboardKeys.businessMetrics(startDate, endDate, estId ?? undefined),
+    queryFn: async (): Promise<BusinessMetrics> => {
+      const request: BusinessMetricsRequest = {
+        filters: {
+          dateRange: { startDate, endDate },
+          granularity: { period: 'day' },
+          ...(estId ? { establishmentIds: [estId] } : {}),
+        },
+        includeSustainability: true,
+        options: { includeComparisons: true },
+      };
+      const response = await dashboardService.getBusinessMetrics(request);
+      return response.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useQuickStats(period: 'today' | 'week' | 'month' | 'quarter' = 'month') {
+  return useQuery({
+    queryKey: dashboardKeys.quickStats(period),
+    queryFn: async (): Promise<QuickStatsResponse> => {
+      const response = await dashboardService.getQuickStats(period);
+      return response.data.data;
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useRealTimeMetrics() {
+  return useQuery({
+    queryKey: dashboardKeys.realTimeMetrics(),
+    queryFn: async (): Promise<RealTimeMetrics> => {
+      const response = await dashboardService.getRealTimeMetrics();
+      return response.data.data;
+    },
+    staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
+  });
+}
+
+export function useCustomerLocations(limit = 5) {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
+  return useQuery({
+    queryKey: dashboardKeys.customerLocations(limit, estId ?? undefined),
+    queryFn: async (): Promise<CustomerLocationItem[]> => {
+      const response = await dashboardService.getCustomerLocations(
+        limit,
+        undefined,
+        estId ?? undefined,
+      );
+      return response.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
