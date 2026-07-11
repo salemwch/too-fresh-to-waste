@@ -9,7 +9,7 @@ import type {
   AcknowledgeAlertInput,
 } from '@foodwaste/shared';
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsOptional,
   IsString,
@@ -287,18 +287,21 @@ export class InventoryFiltersDto implements InventoryFiltersInput {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   @Min(1)
   expiringInDays?: number | undefined;
 
   @ApiProperty({ required: false, default: 1 })
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   @Min(1)
   page!: number;
 
   @ApiProperty({ required: false, default: 20 })
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   @Min(1)
   @Max(100)
   limit!: number;

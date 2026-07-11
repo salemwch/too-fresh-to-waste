@@ -84,16 +84,18 @@ function getPeriodDates(period: AnalyticsPeriod): { startDate: string; endDate: 
   return { startDate: start.toISOString(), endDate: end.toISOString() };
 }
 
-function formatCurrency(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return v.toFixed(2);
+function formatCurrency(v: number | undefined): string {
+  const n = v ?? 0;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toFixed(2);
 }
 
-function formatNumber(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return v.toLocaleString();
+function formatNumber(v: number | undefined): string {
+  const n = v ?? 0;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
 }
 
 // ─── Period Filter ──────────────────────────────────────────────────────────
@@ -204,48 +206,48 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
   const cards: Omit<KpiCardProps, 'index'>[] = [
     {
       title: t('kpi.revenue'),
-      value: formatCurrency(data.totalRevenue.value),
+      value: formatCurrency(data.totalRevenue?.value),
       unit: 'TND',
-      trend: data.totalRevenue.trend,
-      changePercent: data.totalRevenue.changePercentage,
+      trend: data.totalRevenue?.trend,
+      changePercent: data.totalRevenue?.changePercentage,
       icon: DollarSign,
     },
     {
       title: t('kpi.totalOrders'),
-      value: formatNumber(data.totalOrders.value),
-      trend: data.totalOrders.trend,
-      changePercent: data.totalOrders.changePercentage,
+      value: formatNumber(data.totalOrders?.value),
+      trend: data.totalOrders?.trend,
+      changePercent: data.totalOrders?.changePercentage,
       icon: ShoppingBag,
     },
     {
       title: t('kpi.avgOrderValue'),
-      value: formatCurrency(data.averageOrderValue.value),
+      value: formatCurrency(data.averageOrderValue?.value),
       unit: 'TND',
-      trend: data.averageOrderValue.trend,
-      changePercent: data.averageOrderValue.changePercentage,
+      trend: data.averageOrderValue?.trend,
+      changePercent: data.averageOrderValue?.changePercentage,
       icon: BarChart3,
     },
     {
       title: t('kpi.conversionRate'),
-      value: `${data.conversionRate.value.toFixed(1)}%`,
-      trend: data.conversionRate.trend,
-      changePercent: data.conversionRate.changePercentage,
+      value: `${(data.conversionRate?.value ?? 0).toFixed(1)}%`,
+      trend: data.conversionRate?.trend,
+      changePercent: data.conversionRate?.changePercentage,
       icon: Percent,
     },
     {
       title: t('kpi.foodSaved'),
-      value: formatNumber(data.foodWasteSaved.value),
+      value: formatNumber(data.foodWasteSaved?.value),
       unit: 'kg',
-      trend: data.foodWasteSaved.trend,
-      changePercent: data.foodWasteSaved.changePercentage,
+      trend: data.foodWasteSaved?.trend,
+      changePercent: data.foodWasteSaved?.changePercentage,
       icon: Leaf,
     },
     {
       title: t('kpi.co2Avoided'),
-      value: formatNumber(data.carbonFootprintReduced.value),
+      value: formatNumber(data.carbonFootprintReduced?.value),
       unit: 'kg',
-      trend: data.carbonFootprintReduced.trend,
-      changePercent: data.carbonFootprintReduced.changePercentage,
+      trend: data.carbonFootprintReduced?.trend,
+      changePercent: data.carbonFootprintReduced?.changePercentage,
       icon: Wind,
     },
   ];
@@ -266,7 +268,9 @@ function RevenueTooltip({ active, payload, label, t }: any) {
   return (
     <div className='glass rounded-xl px-[16px] py-3 shadow-elegant'>
       <div className='text-[10px] uppercase tracking-wider text-primary-500/60'>{label}</div>
-      <div className='font-display text-xl text-primary-500'>{payload[0].value.toFixed(2)} TND</div>
+      <div className='font-display text-xl text-primary-500'>
+        {(payload[0].value ?? 0).toFixed(2)} TND
+      </div>
       {payload[0].payload?.orderCount !== undefined && (
         <div className='text-[11px] font-medium text-brand-coral mt-1'>
           {t('revenueChart.tooltip.orders')}: {payload[0].payload.orderCount}
@@ -308,7 +312,7 @@ function RevenueChart({
         </div>
       ) : (
         <div className='h-64 -ms-2'>
-          <ResponsiveContainer width='100%' height='100%'>
+          <ResponsiveContainer width='100%' height='100%' minWidth={0} minHeight={0}>
             <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id='revenueGradient' x1='0' y1='0' x2='0' y2='1'>
@@ -386,7 +390,7 @@ function OrdersChart({
         </div>
       ) : (
         <div className='h-64 -ms-2'>
-          <ResponsiveContainer width='100%' height='100%'>
+          <ResponsiveContainer width='100%' height='100%' minWidth={0} minHeight={0}>
             <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <XAxis
                 dataKey='label'
