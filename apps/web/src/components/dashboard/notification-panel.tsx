@@ -127,6 +127,19 @@ export function NotificationBell() {
               ))
             )}
           </div>
+
+          {/* View all link */}
+          <div className='border-t border-slate-100'>
+            <button
+              onClick={() => {
+                setOpen(false);
+                router.push(`/${locale}/merchant/notifications`);
+              }}
+              className='w-full text-center py-2.5 text-[11px] font-semibold text-primary-600 hover:text-primary-700 hover:bg-slate-50 transition-colors'
+            >
+              View All Notifications
+            </button>
+          </div>
         </div>
       )}
     </div>
