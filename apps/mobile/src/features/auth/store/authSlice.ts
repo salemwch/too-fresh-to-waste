@@ -5,6 +5,8 @@ import { backgroundStorage } from '@/utils/backgroundStorage';
 import { ErrorHandler } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
 
+import { UserRole } from '@foodwaste/shared';
+
 import { authService } from '../services/authService';
 import { AuthFlowState } from '../types';
 
@@ -41,6 +43,25 @@ const initialState: AuthState = {
   isUserSynced: false,
 };
 
+const MOBILE_ALLOWED_ROLES = new Set<string>([
+  UserRole.CONSUMER,
+  UserRole.DRIVER,
+  'consumer',
+  'driver',
+]);
+
+function assertMobileRole(role: string | undefined): void {
+  if (!role || !MOBILE_ALLOWED_ROLES.has(role)) {
+    throw Object.assign(
+      new Error('This account cannot be used on the mobile app. Please use the web dashboard.'),
+      {
+        field: 'credentials',
+        errorCode: 'ROLE_NOT_ALLOWED',
+      },
+    );
+  }
+}
+
 // ✅ PROMISE-BASED LOCK: Prevent concurrent logout calls
 // Using Promise instead of boolean flag for true concurrency control
 let logoutLock: Promise<void> | null = null;
@@ -51,6 +72,8 @@ export const loginAsync = createAsyncThunk(
   async (request: LoginRequest, { rejectWithValue }) => {
     try {
       const response = await authService.login(request);
+
+      assertMobileRole(response.user?.role);
 
       // CRITICAL: await token write before returning.
       // The session middleware starts immediately when AUTHENTICATED fires and reads
@@ -127,6 +150,8 @@ export const googleSignInAsync = createAsyncThunk(
   ) => {
     try {
       const response = await authService.googleSignIn(idToken, referralCode);
+
+      assertMobileRole(response.user?.role);
 
       // CRITICAL: await token write before returning.
       // The session middleware starts immediately when AUTHENTICATED fires and
@@ -278,6 +303,8 @@ export const verifyMFAAsync = createAsyncThunk(
     try {
       Logger.info('MFA verification attempt started');
       const response = await authService.verifyMFA(request);
+
+      assertMobileRole(response.user?.role);
 
       // CRITICAL: Await token storage directly
       await SecureStorage.setTokens(response.tokens.accessToken, response.tokens.refreshToken);
@@ -1213,6 +1240,18 @@ const authSlice = createSlice({
           return;
         }
 
+        if (!MOBILE_ALLOWED_ROLES.has(action.payload.user.role)) {
+          state.user = null;
+          state.isAuthenticated = false;
+          state.flowState = AuthFlowState.UNAUTHENTICATED;
+          state.error =
+            'This account cannot be used on the mobile app. Please use the web dashboard.';
+          Logger.warn('[AUTH] Blocked rehydration for non-mobile role', {
+            role: action.payload.user.role,
+          });
+          return;
+        }
+
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.lastLoginTime = action.payload.lastLoginTime;
@@ -1242,6 +1281,17 @@ const authSlice = createSlice({
 
     // Sync Current User (cold-start /auth/me)
     builder.addCase(syncCurrentUserAsync.fulfilled, (state, action) => {
+      if (!MOBILE_ALLOWED_ROLES.has(action.payload.role)) {
+        state.user = null;
+        state.isAuthenticated = false;
+        state.flowState = AuthFlowState.UNAUTHENTICATED;
+        state.error =
+          'This account cannot be used on the mobile app. Please use the web dashboard.';
+        Logger.warn('[AUTH] Role changed to non-mobile role — forcing logout', {
+          role: action.payload.role,
+        });
+        return;
+      }
       state.user = action.payload;
       state.isUserSynced = true;
       Logger.info('[AUTH] User data synced from server', { userId: action.payload.userId });

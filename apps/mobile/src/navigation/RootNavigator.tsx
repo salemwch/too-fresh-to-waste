@@ -318,7 +318,7 @@ export const RootNavigator: React.FC = () => {
       // BYPASS onboarding check - authenticated users don't need it
       // DRIVER role gets the driver-specific stack; all other roles use MainStack
       case AuthFlowState.AUTHENTICATED:
-        return user?.role === UserRole.DRIVER ? (
+        return user?.role === UserRole.DRIVER || (user?.role as string) === 'driver' ? (
           <Stack.Screen
             name='DriverStack'
             component={DriverStack}
