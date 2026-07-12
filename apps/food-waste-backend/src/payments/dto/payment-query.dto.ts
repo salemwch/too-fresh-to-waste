@@ -40,13 +40,13 @@ export class PaymentQueryDto {
   toDate?: string;
 
   @IsOptional()
-  @Transform(({ value }) => parseInt(value))
+  @Transform(({ value }) => (value !== null && value !== undefined ? parseFloat(value) : undefined))
   @IsNumber()
   @Min(0.01)
   minAmount?: number;
 
   @IsOptional()
-  @Transform(({ value }) => parseInt(value))
+  @Transform(({ value }) => (value !== null && value !== undefined ? parseFloat(value) : undefined))
   @IsNumber()
   @Min(0.01)
   maxAmount?: number;
