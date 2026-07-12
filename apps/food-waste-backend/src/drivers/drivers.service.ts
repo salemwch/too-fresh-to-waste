@@ -15,6 +15,11 @@ export class DriversService {
     private readonly configService: ConfigService,
   ) {}
 
+  private static readonly CUSTOMER_POPULATE = {
+    path: 'customerId',
+    select: 'firstName lastName phoneNumber',
+  };
+
   async getAvailableOrders(query: AvailableOrdersQueryDto): Promise<OrderDocument[]> {
     const { lat, lng, page = 1, limit = 20 } = query;
     const bufferMs =
@@ -37,6 +42,7 @@ export class DriversService {
             },
           },
         })
+        .populate(DriversService.CUSTOMER_POPULATE)
         .skip((page - 1) * limit)
         .limit(limit)
         .exec();
@@ -51,21 +57,23 @@ export class DriversService {
   }
 
   async acceptOrder(orderId: string, driverId: string): Promise<OrderDocument> {
-    const order = await this.orderModel.findOneAndUpdate(
-      {
-        _id: new Types.ObjectId(orderId),
-        driverId: null,
-        status: OrderStatus.CONFIRMED,
-        deliveryMode: 'delivery',
-      },
-      {
-        $set: {
-          driverId: new Types.ObjectId(driverId),
-          status: OrderStatus.OUT_FOR_DELIVERY,
+    const order = await this.orderModel
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(orderId),
+          driverId: null,
+          status: OrderStatus.CONFIRMED,
+          deliveryMode: 'delivery',
         },
-      },
-      { new: true },
-    );
+        {
+          $set: {
+            driverId: new Types.ObjectId(driverId),
+            status: OrderStatus.OUT_FOR_DELIVERY,
+          },
+        },
+        { new: true },
+      )
+      .populate(DriversService.CUSTOMER_POPULATE);
     if (!order) {
       throw new ConflictException('Order already accepted by another driver');
     }
@@ -73,15 +81,17 @@ export class DriversService {
   }
 
   async markDelivered(orderId: string, driverId: string): Promise<OrderDocument> {
-    const order = await this.orderModel.findOneAndUpdate(
-      {
-        _id: new Types.ObjectId(orderId),
-        driverId: new Types.ObjectId(driverId),
-        status: OrderStatus.OUT_FOR_DELIVERY,
-      },
-      { $set: { status: OrderStatus.DELIVERED } },
-      { new: true },
-    );
+    const order = await this.orderModel
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(orderId),
+          driverId: new Types.ObjectId(driverId),
+          status: OrderStatus.OUT_FOR_DELIVERY,
+        },
+        { $set: { status: OrderStatus.DELIVERED } },
+        { new: true },
+      )
+      .populate(DriversService.CUSTOMER_POPULATE);
     if (!order) {
       throw new NotFoundException('Order not found or not yours');
     }
@@ -89,18 +99,20 @@ export class DriversService {
   }
 
   async unassignOrder(orderId: string, driverId: string): Promise<OrderDocument> {
-    const order = await this.orderModel.findOneAndUpdate(
-      {
-        _id: new Types.ObjectId(orderId),
-        driverId: new Types.ObjectId(driverId),
-        status: OrderStatus.OUT_FOR_DELIVERY,
-      },
-      {
-        $set: { status: OrderStatus.CONFIRMED, driverId: null },
-        $inc: { driverCancellationCount: 1 },
-      },
-      { new: true },
-    );
+    const order = await this.orderModel
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(orderId),
+          driverId: new Types.ObjectId(driverId),
+          status: OrderStatus.OUT_FOR_DELIVERY,
+        },
+        {
+          $set: { status: OrderStatus.CONFIRMED, driverId: null },
+          $inc: { driverCancellationCount: 1 },
+        },
+        { new: true },
+      )
+      .populate(DriversService.CUSTOMER_POPULATE);
     if (!order) {
       throw new NotFoundException('Order not found or not yours to unassign');
     }

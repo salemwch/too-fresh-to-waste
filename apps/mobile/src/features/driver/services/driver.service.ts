@@ -19,7 +19,14 @@ import { Logger } from '@/utils/logger';
 export interface DriverAvailableOrder {
   _id: string;
   orderNumber: string;
-  customerId: string;
+  customerId:
+    | string
+    | {
+        _id: string;
+        firstName?: string;
+        lastName?: string;
+        phoneNumber?: string;
+      };
   establishmentId: string | Record<string, any>;
   driverId: string | null;
   deliveryFee?: number;

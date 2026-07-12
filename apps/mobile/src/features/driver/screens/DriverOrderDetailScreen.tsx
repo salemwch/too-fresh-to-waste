@@ -224,6 +224,12 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
   const deliveryCity = order.deliveryAddress?.city;
   const deliveryStreet = order.deliveryAddress?.street;
   const earnings = order.driverEarnings != null ? `${order.driverEarnings.toFixed(3)} TND` : '–';
+
+  const customer = typeof order.customerId === 'object' ? order.customerId : null;
+  const customerName = customer
+    ? [customer.firstName, customer.lastName].filter(Boolean).join(' ')
+    : null;
+  const customerPhone = customer?.phoneNumber ?? null;
   const deliveryFee = order.deliveryFee != null ? `${order.deliveryFee.toFixed(3)} TND` : '–';
   const collectionDate = formatDate(order.collectionStartTime);
   const startTime = formatTime(order.collectionStartTime);
@@ -259,8 +265,16 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
         {/* ── Delivery address ── */}
         {deliveryCity || deliveryStreet ? (
           <SectionCard title='Delivery address'>
-            {deliveryCity ? <InfoRow label='City' value={deliveryCity} /> : null}
+            {deliveryCity ? <InfoRow label='Address' value={deliveryCity} /> : null}
             {deliveryStreet ? <InfoRow label='Street' value={deliveryStreet} /> : null}
+          </SectionCard>
+        ) : null}
+
+        {/* ── Customer info ── */}
+        {customerName || customerPhone ? (
+          <SectionCard title='Customer'>
+            {customerName ? <InfoRow label='Name' value={customerName} /> : null}
+            {customerPhone ? <InfoRow label='Phone' value={customerPhone} /> : null}
           </SectionCard>
         ) : null}
 

@@ -17,6 +17,7 @@ describe('DriversService', () => {
   beforeEach(async () => {
     mockOrderModel = {
       find: jest.fn().mockReturnValue({
+        populate: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
         exec: jest.fn().mockResolvedValue([]),
@@ -60,7 +61,9 @@ describe('DriversService', () => {
   describe('acceptOrder', () => {
     it('returns the order on success', async () => {
       const mockOrder = { _id: 'order1', status: OrderStatus.OUT_FOR_DELIVERY };
-      mockOrderModel.findOneAndUpdate.mockResolvedValue(mockOrder);
+      mockOrderModel.findOneAndUpdate.mockReturnValue({
+        populate: jest.fn().mockResolvedValue(mockOrder),
+      });
       const result = await service.acceptOrder(
         '66a1b2c3d4e5f6789012abcd',
         '66a1b2c3d4e5f6789012aaaa',
@@ -69,7 +72,9 @@ describe('DriversService', () => {
     });
 
     it('throws ConflictException when order already taken', async () => {
-      mockOrderModel.findOneAndUpdate.mockResolvedValue(null);
+      mockOrderModel.findOneAndUpdate.mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null),
+      });
       await expect(
         service.acceptOrder('66a1b2c3d4e5f6789012abcd', '66a1b2c3d4e5f6789012aaaa'),
       ).rejects.toThrow(ConflictException);
@@ -79,7 +84,9 @@ describe('DriversService', () => {
   describe('markDelivered', () => {
     it('returns the order on success', async () => {
       const mockOrder = { _id: 'order1', status: OrderStatus.DELIVERED };
-      mockOrderModel.findOneAndUpdate.mockResolvedValue(mockOrder);
+      mockOrderModel.findOneAndUpdate.mockReturnValue({
+        populate: jest.fn().mockResolvedValue(mockOrder),
+      });
       const result = await service.markDelivered(
         '66a1b2c3d4e5f6789012abcd',
         '66a1b2c3d4e5f6789012aaaa',
@@ -88,7 +95,9 @@ describe('DriversService', () => {
     });
 
     it('throws NotFoundException when order not found', async () => {
-      mockOrderModel.findOneAndUpdate.mockResolvedValue(null);
+      mockOrderModel.findOneAndUpdate.mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null),
+      });
       await expect(
         service.markDelivered('66a1b2c3d4e5f6789012abcd', '66a1b2c3d4e5f6789012aaaa'),
       ).rejects.toThrow(NotFoundException);
@@ -102,7 +111,9 @@ describe('DriversService', () => {
         status: OrderStatus.CONFIRMED,
         driverCancellationCount: 1,
       };
-      mockOrderModel.findOneAndUpdate.mockResolvedValue(mockOrder);
+      mockOrderModel.findOneAndUpdate.mockReturnValue({
+        populate: jest.fn().mockResolvedValue(mockOrder),
+      });
       const result = await service.unassignOrder(
         '66a1b2c3d4e5f6789012abcd',
         '66a1b2c3d4e5f6789012aaaa',
@@ -111,7 +122,9 @@ describe('DriversService', () => {
     });
 
     it('throws NotFoundException when order not found or wrong driver', async () => {
-      mockOrderModel.findOneAndUpdate.mockResolvedValue(null);
+      mockOrderModel.findOneAndUpdate.mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null),
+      });
       await expect(
         service.unassignOrder('66a1b2c3d4e5f6789012abcd', '66a1b2c3d4e5f6789012aaaa'),
       ).rejects.toThrow(NotFoundException);

@@ -263,6 +263,13 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   const startTime = order?.collectionStartTime ? formatTime(order.collectionStartTime) : '--:--';
   const endTime = order?.collectionEndTime ? formatTime(order.collectionEndTime) : '--:--';
 
+  const customer =
+    order?.customerId && typeof order.customerId === 'object' ? order.customerId : null;
+  const customerName = customer
+    ? [customer.firstName, customer.lastName].filter(Boolean).join(' ')
+    : null;
+  const customerPhone = customer?.phoneNumber ?? null;
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -290,7 +297,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         <SectionCard title='Delivery address'>
           {deliveryCity || deliveryStreet ? (
             <>
-              {deliveryCity ? <InfoRow label='City' value={deliveryCity} /> : null}
+              {deliveryCity ? <InfoRow label='Address' value={deliveryCity} /> : null}
               {deliveryStreet ? <InfoRow label='Street' value={deliveryStreet} /> : null}
             </>
           ) : (
@@ -309,6 +316,14 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           ) : null}
         </SectionCard>
+
+        {/* ── Customer info ── */}
+        {customerName || customerPhone ? (
+          <SectionCard title='Customer'>
+            {customerName ? <InfoRow label='Name' value={customerName} /> : null}
+            {customerPhone ? <InfoRow label='Phone' value={customerPhone} /> : null}
+          </SectionCard>
+        ) : null}
 
         {/* ── Pickup location ── */}
         {(pickupCity ?? pickupStreet) ? (

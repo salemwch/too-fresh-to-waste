@@ -19,6 +19,7 @@ import { Text, Button, Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { selectAuthUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
 import { offersService } from '@/features/offers/services/offersService';
+import { nearbyOffersService } from '@/features/offers/services/nearbyOffersService';
 import { useAppSelector } from '@/hooks';
 import { useLocation } from '@/hooks/useLocation';
 import { usePressGuard } from '@/hooks/usePressGuard';
@@ -96,6 +97,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   // Derived from payment method — "Pay on Delivery" implies delivery mode
   const deliveryMode = selectedPaymentMethod === 'pay_on_delivery' ? 'delivery' : 'pickup';
   const [deliveryPin, setDeliveryPin] = useState<{ lat: number; lng: number } | null>(null);
+  const [deliveryAddressText, setDeliveryAddressText] = useState<string>('');
 
   // ✅ State for success modal
   const [successModalVisible, setSuccessModalVisible] = useState(false);
@@ -180,6 +182,31 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       }
     })();
   }, [deliveryMode]);
+
+  // Reverse-geocode the delivery pin to get a real address (debounced)
+  useEffect(() => {
+    if (!deliveryPin) {
+      setDeliveryAddressText('');
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      nearbyOffersService
+        .reverseGeocode({ latitude: deliveryPin.lat, longitude: deliveryPin.lng })
+        .then(addr => {
+          const text =
+            addr.formattedAddress ||
+            [addr.street, addr.city, addr.postalCode].filter(Boolean).join(', ') ||
+            `${deliveryPin.lat.toFixed(5)}, ${deliveryPin.lng.toFixed(5)}`;
+          setDeliveryAddressText(text);
+        })
+        .catch(() => {
+          setDeliveryAddressText(`${deliveryPin.lat.toFixed(5)}, ${deliveryPin.lng.toFixed(5)}`);
+        });
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [deliveryPin]);
 
   // ✅ Use smart order creation hook with callbacks
   const {
@@ -285,7 +312,9 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       ...(deliveryMode === 'delivery' && deliveryPin
         ? {
             deliveryAddress: {
-              city: 'Customer Location',
+              city:
+                deliveryAddressText ||
+                `${deliveryPin.lat.toFixed(5)}, ${deliveryPin.lng.toFixed(5)}`,
               coordinates: deliveryPin,
             },
           }
@@ -614,6 +643,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                       latitudeDelta: 0.005,
                       longitudeDelta: 0.005,
                     }}
+                    zoomEnabled={true}
+                    zoomControlEnabled={true}
                     onRegionChangeComplete={region =>
                       setDeliveryPin({ lat: region.latitude, lng: region.longitude })
                     }
