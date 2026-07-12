@@ -3,18 +3,29 @@ import { IsEnum, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-valida
 
 import { PaymentMethod, PaymentStatus } from '../schemas/payment.schema';
 
+function toOptionalFloat({ value }: { value: unknown }): number | undefined {
+  if (value === null || value === undefined || value === '') {
+    return undefined;
+  }
+  const parsed = parseFloat(String(value));
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
 export class PaymentQueryDto {
   @IsOptional()
   @IsEnum(PaymentStatus)
   status?: PaymentStatus;
+
   @IsOptional()
   @IsString()
   after?: string;
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   limit?: number = 10;
+
   @IsOptional()
   @IsEnum(PaymentMethod)
   paymentMethod?: PaymentMethod;
@@ -40,13 +51,13 @@ export class PaymentQueryDto {
   toDate?: string;
 
   @IsOptional()
-  @Transform(({ value }) => (value !== null && value !== undefined ? parseFloat(value) : undefined))
+  @Transform(toOptionalFloat)
   @IsNumber()
   @Min(0.01)
   minAmount?: number;
 
   @IsOptional()
-  @Transform(({ value }) => (value !== null && value !== undefined ? parseFloat(value) : undefined))
+  @Transform(toOptionalFloat)
   @IsNumber()
   @Min(0.01)
   maxAmount?: number;

@@ -158,6 +158,20 @@ export class PaymentController {
     @Request() req: AuthenticatedRequest,
     @Query(new ValidationPipe({ transform: true, whitelist: true })) filters: PaymentQueryDto,
   ) {
+    this.logger.log({
+      message: 'my-merchant-payments called',
+      userId: req.user.userId,
+      filters: {
+        limit: filters.limit,
+        after: filters.after,
+        status: filters.status,
+        minAmount: filters.minAmount,
+        maxAmount: filters.maxAmount,
+        fromDate: filters.fromDate,
+        toDate: filters.toDate,
+      },
+    });
+
     const limit = Math.min(filters.limit ?? 10, 10);
     const after = filters.after;
 
