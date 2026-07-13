@@ -44,10 +44,7 @@ export interface DriverAvailableOrder {
     street: string;
     city: string;
     postalCode: string;
-    coordinates?: {
-      type: string;
-      coordinates: [number, number];
-    };
+    coordinates?: { lat: number; lng: number } | { type: string; coordinates: [number, number] };
   };
   establishmentAddress?: {
     street: string;

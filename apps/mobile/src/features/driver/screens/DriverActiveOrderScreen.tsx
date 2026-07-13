@@ -29,6 +29,7 @@ import {
 
 import Geolocation from '@react-native-community/geolocation';
 import { CommonActions } from '@react-navigation/native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
@@ -77,13 +78,23 @@ interface Coords {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Open Waze if installed, otherwise fall back to Google Maps web URL.
- * GeoJSON coordinates are stored as [longitude, latitude].
- */
-async function openNavigation(lngLatArray: [number, number]): Promise<void> {
-  // GeoJSON: coordinates = [longitude, latitude]
-  const [lng, lat] = lngLatArray;
+function extractLatLng(
+  coords:
+    | { lat: number; lng: number }
+    | { type: string; coordinates: [number, number] }
+    | undefined,
+): { latitude: number; longitude: number } | null {
+  if (!coords) return null;
+  if ('lat' in coords) return { latitude: coords.lat, longitude: coords.lng };
+  if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
+    const [lng, lat] = coords.coordinates;
+    return { latitude: lat, longitude: lng };
+  }
+  return null;
+}
+
+async function openNavigation(latLng: { latitude: number; longitude: number }): Promise<void> {
+  const { latitude: lat, longitude: lng } = latLng;
   const wazeUrl = `waze://ul?ll=${lat},${lng}&navigate=yes`;
   const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
 
@@ -148,7 +159,7 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => (
 // ---------------------------------------------------------------------------
 
 export default function DriverActiveOrderScreen({ navigation, route }: Props) {
-  const { orderId } = route.params;
+  const { orderId, order: passedOrder } = route.params;
   const [coords, setCoords] = useState<Coords | null>(null);
 
   // One-shot GPS fix to re-use the same query key as the list screen.
@@ -168,12 +179,11 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
 
   const hasCoords = coords !== null;
 
-  // Re-use the same query key as DriverOrdersListScreen to hit the cache first.
-  // OUT_FOR_DELIVERY orders are excluded from the available pool, so `order`
-  // will be undefined for MVP. We accept this and render gracefully.
+  // Try cache first, but prefer the order passed via navigation params
+  // (accepted orders are excluded from the available pool).
   const { data: orders = [] } = useAvailableOrders(coords?.lat ?? 0, coords?.lng ?? 0, hasCoords);
-
-  const order = orders.find(o => o._id === orderId);
+  const cachedOrder = orders.find(o => o._id === orderId);
+  const order = passedOrder ?? cachedOrder;
 
   const { mutate: deliver, isPending: isDelivering } = useMarkDelivered();
   const { mutate: unassign, isPending: isUnassigning } = useUnassignOrder();
@@ -240,7 +250,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   // Loading state — waiting for GPS
   // ---------------------------------------------------------------------------
 
-  if (!hasCoords) {
+  if (!hasCoords && !passedOrder) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size='large' color={PRIMARY} />
@@ -253,9 +263,8 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   // Render — order data is best-effort (may be undefined for OUT_FOR_DELIVERY)
   // ---------------------------------------------------------------------------
 
-  const deliveryCoords = order?.deliveryAddress?.coordinates?.coordinates;
-  const deliveryCity = order?.deliveryAddress?.city;
-  const deliveryStreet = order?.deliveryAddress?.street;
+  const deliveryLatLng = extractLatLng(order?.deliveryAddress?.coordinates);
+  const pickupLatLng = extractLatLng(order?.establishmentAddress?.coordinates);
   const pickupCity = order?.establishmentAddress?.city;
   const pickupStreet = order?.establishmentAddress?.street;
   const earnings = order?.driverEarnings != null ? `${order.driverEarnings.toFixed(3)} TND` : '–';
@@ -293,29 +302,48 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* ── Delivery address ── */}
-        <SectionCard title='Delivery address'>
-          {deliveryCity || deliveryStreet ? (
-            <>
-              {deliveryCity ? <InfoRow label='Address' value={deliveryCity} /> : null}
-              {deliveryStreet ? <InfoRow label='Street' value={deliveryStreet} /> : null}
-            </>
-          ) : (
-            <Text style={styles.placeholderText}>Address details unavailable</Text>
-          )}
-
-          {deliveryCoords ? (
+        {/* ── Live map: driver + pickup + delivery ── */}
+        {deliveryLatLng ? (
+          <View style={styles.liveMapCard}>
+            <MapView
+              provider={PROVIDER_GOOGLE}
+              style={styles.liveMap}
+              initialRegion={{
+                ...deliveryLatLng,
+                latitudeDelta: 0.02,
+                longitudeDelta: 0.02,
+              }}
+              showsUserLocation={true}
+              showsMyLocationButton={true}
+              zoomEnabled={true}
+              zoomControlEnabled={true}
+            >
+              <Marker
+                coordinate={deliveryLatLng}
+                pinColor='#2196F3'
+                title='Customer'
+                description='Delivery location'
+              />
+              {pickupLatLng ? (
+                <Marker
+                  coordinate={pickupLatLng}
+                  pinColor='#FF9800'
+                  title='Pickup'
+                  description={pickupCity ?? 'Establishment'}
+                />
+              ) : null}
+            </MapView>
             <TouchableOpacity
-              style={styles.navButton}
-              onPress={() => void openNavigation(deliveryCoords as [number, number])}
-              activeOpacity={0.8}
+              style={styles.navButtonFloating}
+              onPress={() => void openNavigation(deliveryLatLng)}
+              activeOpacity={0.85}
               accessibilityRole='button'
               accessibilityLabel='Open delivery address in maps'
             >
-              <Text style={styles.navButtonText}>Open in Maps</Text>
+              <Text style={styles.navButtonText}>Navigate in Maps</Text>
             </TouchableOpacity>
-          ) : null}
-        </SectionCard>
+          </View>
+        ) : null}
 
         {/* ── Customer info ── */}
         {customerName || customerPhone ? (
@@ -530,9 +558,22 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 
-  // ── Map button (inside card) ──
-  navButton: {
-    marginTop: sp.md,
+  // ── Live map ──
+  liveMapCard: {
+    height: 280,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    marginBottom: sp.xs,
+    ...CARD_SHADOW,
+  },
+  liveMap: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  navButtonFloating: {
+    position: 'absolute',
+    bottom: sp.sm,
+    left: sp.sm,
+    right: sp.sm,
     backgroundColor: PRIMARY,
     borderRadius: radius.md,
     padding: sp.sm,

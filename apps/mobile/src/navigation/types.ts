@@ -108,7 +108,10 @@ export interface ProfileStackParamList extends Record<string, object | undefined
 export interface DriverStackParamList extends Record<string, object | undefined> {
   DriverOrdersList: undefined;
   DriverOrderDetail: { orderId: string };
-  DriverActiveOrder: { orderId: string };
+  DriverActiveOrder: {
+    orderId: string;
+    order?: import('@/features/driver/services/driver.service').DriverAvailableOrder;
+  };
 }
 
 /**

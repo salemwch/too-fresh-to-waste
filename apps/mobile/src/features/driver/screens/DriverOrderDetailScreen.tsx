@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 
 import Geolocation from '@react-native-community/geolocation';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
@@ -71,6 +72,21 @@ interface Coords {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function extractLatLng(
+  coords:
+    | { lat: number; lng: number }
+    | { type: string; coordinates: [number, number] }
+    | undefined,
+): { latitude: number; longitude: number } | null {
+  if (!coords) return null;
+  if ('lat' in coords) return { latitude: coords.lat, longitude: coords.lng };
+  if ('coordinates' in coords && Array.isArray(coords.coordinates)) {
+    const [lng, lat] = coords.coordinates;
+    return { latitude: lat, longitude: lng };
+  }
+  return null;
+}
 
 function formatTime(iso: string): string {
   try {
@@ -167,8 +183,8 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
 
   const handleAccept = useCallback(() => {
     acceptOrder(orderId, {
-      onSuccess: () => {
-        navigation.navigate('DriverActiveOrder', { orderId });
+      onSuccess: acceptedOrder => {
+        navigation.navigate('DriverActiveOrder', { orderId, order: acceptedOrder });
       },
       onError: () => {
         Alert.alert('Order Unavailable', 'This order has already been taken by another driver.', [
@@ -221,8 +237,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
 
   const pickupCity = order.establishmentAddress?.city ?? 'Unknown';
   const pickupStreet = order.establishmentAddress?.street;
-  const deliveryCity = order.deliveryAddress?.city;
-  const deliveryStreet = order.deliveryAddress?.street;
+  const deliveryLatLng = extractLatLng(order.deliveryAddress?.coordinates);
   const earnings = order.driverEarnings != null ? `${order.driverEarnings.toFixed(3)} TND` : '–';
 
   const customer = typeof order.customerId === 'object' ? order.customerId : null;
@@ -262,11 +277,27 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
           <InfoRow label='Collection window' value={`${startTime} → ${endTime}`} />
         </SectionCard>
 
-        {/* ── Delivery address ── */}
-        {deliveryCity || deliveryStreet ? (
-          <SectionCard title='Delivery address'>
-            {deliveryCity ? <InfoRow label='Address' value={deliveryCity} /> : null}
-            {deliveryStreet ? <InfoRow label='Street' value={deliveryStreet} /> : null}
+        {/* ── Delivery location map ── */}
+        {deliveryLatLng ? (
+          <SectionCard title='Delivery location'>
+            <View style={styles.mapContainer}>
+              <MapView
+                provider={PROVIDER_GOOGLE}
+                style={styles.map}
+                initialRegion={{
+                  ...deliveryLatLng,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                }}
+                zoomEnabled={true}
+                zoomControlEnabled={true}
+                scrollEnabled={false}
+                pitchEnabled={false}
+                rotateEnabled={false}
+              >
+                <Marker coordinate={deliveryLatLng} pinColor='#2196F3' title='Customer location' />
+              </MapView>
+            </View>
           </SectionCard>
         ) : null}
 
@@ -467,6 +498,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: sp.sm,
+  },
+
+  // ── Map ──
+  mapContainer: {
+    height: 180,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
   },
 
   // ── Info row ──

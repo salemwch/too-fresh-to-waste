@@ -304,15 +304,15 @@ export class OrdersService {
           }
 
           const fee = this.configService.get<number>('FLAT_DELIVERY_FEE') ?? 3.0;
-          const driverCut = this.configService.get<number>('DRIVER_CUT_RATIO') ?? 0.8;
+          const driverEarnings = this.configService.get<number>('DRIVER_DELIVERY_EARNINGS') ?? 2.5;
 
           deliveryFields = {
             collectionStartTime,
             collectionEndTime,
             estimatedDistanceKm: distKm,
             deliveryFee: fee,
-            driverEarnings: fee * driverCut,
-            platformDeliveryCommission: fee * (1 - driverCut),
+            driverEarnings,
+            platformDeliveryCommission: parseFloat((fee - driverEarnings).toFixed(3)),
           };
         }
 
