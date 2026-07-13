@@ -1,39 +1,95 @@
 /**
  * Driver Orders Hooks
- * TanStack Query hooks for driver order operations with focus refetch
+ * TanStack Query hooks for the driver delivery lifecycle.
  *
- * Features:
- * - useAvailableOrders: Fetches nearby available orders with 30s auto-refetch
- * - useAcceptOrder: Accept an available order
- * - useMarkDelivered: Mark an accepted order as delivered
- * - useUnassignOrder: Unassign from a delivery (driver cancellation)
+ * Every mutation invalidates `driverOrdersKeys.all`, which covers the available
+ * pool, the active order, history and earnings — a single transition can change
+ * all four, and they are cheap to refetch.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { useQueryWithFocus } from '@/lib/react-query/hooks';
 import { Logger } from '@/utils/logger';
 
-import { driverService, type DriverAvailableOrder } from '../services/driver.service';
+import {
+  driverService,
+  type DriverAvailableOrder,
+  type DriverEarningsSummary,
+  type DriverOrderHistoryPage,
+  type DriverProfile,
+} from '../services/driver.service';
 
 /**
- * Query key factory for driver orders
- * Ensures consistent cache invalidation and refetch patterns
+ * Query key factory for driver data.
+ * All keys nest under ['driver'] so one invalidate refreshes the whole feature.
  */
-const driverOrdersKeys = {
-  all: ['driver', 'orders'] as const,
+export const driverOrdersKeys = {
+  all: ['driver'] as const,
+  profile: () => [...driverOrdersKeys.all, 'profile'] as const,
   available: (lat: number, lng: number) =>
-    [...driverOrdersKeys.all, 'available', lat, lng] as const,
+    [...driverOrdersKeys.all, 'orders', 'available', lat, lng] as const,
+  active: () => [...driverOrdersKeys.all, 'orders', 'active'] as const,
+  history: (page: number) => [...driverOrdersKeys.all, 'orders', 'history', page] as const,
+  earnings: () => [...driverOrdersKeys.all, 'earnings'] as const,
 };
 
+// ── Availability ────────────────────────────────────────────────────────────
+
+/** The driver's profile, including the online flag that gates everything else. */
+export function useDriverProfile() {
+  return useQueryWithFocus(driverOrdersKeys.profile(), () => driverService.getProfile(), {
+    staleTime: 30_000,
+  });
+}
+
 /**
- * Fetch available orders near driver's current location
+ * Online/offline toggle.
  *
- * Auto-refetches every 30 seconds to keep order list fresh
- * Also refetches when screen gains focus (via useQueryWithFocus)
+ * Optimistically flips the cached flag so the switch responds instantly, and
+ * rolls back if the request fails — a switch that lags a round-trip feels broken.
+ */
+export function useSetOnlineStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (isOnline: boolean) => driverService.setOnlineStatus(isOnline),
+
+    onMutate: async (isOnline: boolean) => {
+      await queryClient.cancelQueries({ queryKey: driverOrdersKeys.profile() });
+      const previous = queryClient.getQueryData<DriverProfile>(driverOrdersKeys.profile());
+
+      if (previous) {
+        queryClient.setQueryData<DriverProfile>(driverOrdersKeys.profile(), {
+          ...previous,
+          isOnline,
+        });
+      }
+
+      return { previous };
+    },
+
+    onError: (error, _isOnline, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(driverOrdersKeys.profile(), context.previous);
+      }
+      Logger.error('[useSetOnlineStatus] Failed to change status', undefined, error as Error);
+    },
+
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: driverOrdersKeys.all });
+    },
+  });
+}
+
+// ── Order pool ──────────────────────────────────────────────────────────────
+
+/**
+ * Available orders near the driver.
  *
- * @param lat - Driver's latitude
- * @param lng - Driver's longitude
- * @param enabled - Optional flag to enable/disable the query (default: true)
+ * Auto-refetches every 30s and on screen focus. Returns an empty list when the
+ * driver is offline or already carrying an order — the screen renders a banner
+ * for those cases rather than an empty-state.
  */
 export function useAvailableOrders(lat: number, lng: number, enabled = true) {
   return useQueryWithFocus(
@@ -41,109 +97,129 @@ export function useAvailableOrders(lat: number, lng: number, enabled = true) {
     () => driverService.getAvailableOrders(lat, lng),
     {
       enabled,
-      refetchInterval: 30_000, // Auto-refetch every 30 seconds
+      refetchInterval: 30_000,
       refetchOnWindowFocus: true,
-      staleTime: 10_000, // Consider data stale after 10 seconds
+      staleTime: 10_000,
     },
   );
 }
 
 /**
- * Accept an available order
+ * The driver's in-progress delivery.
  *
- * Invalidates available orders cache on success to ensure UI reflects reality
- * No AbortController used (fire-and-forget POST per mobile rule #2)
+ * This is the app-restart recovery path: accepted orders leave the available
+ * pool, so without this query a driver who reopens the app mid-delivery would
+ * see nothing.
+ */
+export function useActiveOrder(enabled = true) {
+  return useQueryWithFocus(driverOrdersKeys.active(), () => driverService.getActiveOrder(), {
+    enabled,
+    refetchOnWindowFocus: true,
+    staleTime: 5_000,
+  });
+}
+
+export function useDriverOrderHistory(page = 1) {
+  return useQuery<DriverOrderHistoryPage>({
+    queryKey: driverOrdersKeys.history(page),
+    queryFn: () => driverService.getOrderHistory(page),
+    staleTime: 60_000,
+  });
+}
+
+export function useDriverEarnings() {
+  return useQueryWithFocus<DriverEarningsSummary>(
+    driverOrdersKeys.earnings(),
+    () => driverService.getEarnings(),
+    { staleTime: 60_000 },
+  );
+}
+
+// ── Lifecycle mutations ─────────────────────────────────────────────────────
+
+/**
+ * Accept an available order.
  *
- * @returns Mutation hook with mutationFn(orderId: string)
+ * No AbortController — per mobile rule #2, cleanup would abort the in-flight
+ * POST and the driver would think the accept failed while the backend committed it.
  */
 export function useAcceptOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (orderId: string): Promise<DriverAvailableOrder> => {
-      Logger.debug('[useAcceptOrder] Accepting order', { orderId });
-      return driverService.acceptOrder(orderId);
-    },
+    mutationFn: (orderId: string): Promise<DriverAvailableOrder> =>
+      driverService.acceptOrder(orderId),
+
     onSuccess: data => {
-      Logger.debug('[useAcceptOrder] Order accepted successfully', {
-        orderId: data._id,
-        status: data.status,
-      });
-      // Invalidate available orders list so it removes accepted order
+      // Seed the active-order cache so the next screen renders without a refetch.
+      queryClient.setQueryData(driverOrdersKeys.active(), data);
       void queryClient.invalidateQueries({ queryKey: driverOrdersKeys.all });
     },
+
     onError: error => {
       Logger.error('[useAcceptOrder] Failed to accept order', undefined, error as Error);
     },
   });
 }
 
-/**
- * Mark an accepted order as delivered
- *
- * Invalidates available orders cache on success
- * No AbortController used (fire-and-forget POST per mobile rule #2)
- *
- * @returns Mutation hook with mutationFn(orderId: string)
- */
-export function useMarkDelivered() {
+/** Confirm collection at the store: driver_assigned → out_for_delivery. */
+export function useMarkPickedUp() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (orderId: string): Promise<DriverAvailableOrder> => {
-      Logger.debug('[useMarkDelivered] Marking order as delivered', { orderId });
-      return driverService.markDelivered(orderId);
-    },
+    mutationFn: (orderId: string): Promise<DriverAvailableOrder> =>
+      driverService.markPickedUp(orderId),
+
     onSuccess: data => {
-      Logger.debug('[useMarkDelivered] Order marked as delivered', {
-        orderId: data._id,
-        status: data.status,
-      });
-      // Invalidate available orders list
+      queryClient.setQueryData(driverOrdersKeys.active(), data);
       void queryClient.invalidateQueries({ queryKey: driverOrdersKeys.all });
     },
+
     onError: error => {
-      Logger.error(
-        '[useMarkDelivered] Failed to mark order as delivered',
-        undefined,
-        error as Error,
-      );
+      Logger.error('[useMarkPickedUp] Failed to mark picked up', undefined, error as Error);
     },
   });
 }
 
-/**
- * Unassign from a delivery (driver cancellation)
- *
- * Invalidates available orders cache on success
- * No AbortController used (fire-and-forget POST per mobile rule #2)
- *
- * @returns Mutation hook with mutationFn({ orderId, reason? })
- */
+/** Complete the delivery: out_for_delivery → delivered. */
+export function useMarkDelivered() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: string): Promise<DriverAvailableOrder> =>
+      driverService.markDelivered(orderId),
+
+    onSuccess: () => {
+      queryClient.setQueryData(driverOrdersKeys.active(), null);
+      void queryClient.invalidateQueries({ queryKey: driverOrdersKeys.all });
+    },
+
+    onError: error => {
+      Logger.error('[useMarkDelivered] Failed to mark delivered', undefined, error as Error);
+    },
+  });
+}
+
+/** Drop the order back into the pool. Allowed before and after pickup. */
 export function useUnassignOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       orderId,
       reason,
     }: {
       orderId: string;
       reason?: string;
-    }): Promise<DriverAvailableOrder> => {
-      Logger.debug('[useUnassignOrder] Unassigning from order', { orderId, reason });
-      return driverService.unassignOrder(orderId, reason);
-    },
-    onSuccess: data => {
-      Logger.debug('[useUnassignOrder] Order unassigned successfully', {
-        orderId: data._id,
-        status: data.status,
-      });
-      // Invalidate available orders list
+    }): Promise<DriverAvailableOrder> => driverService.unassignOrder(orderId, reason),
+
+    onSuccess: () => {
+      queryClient.setQueryData(driverOrdersKeys.active(), null);
       void queryClient.invalidateQueries({ queryKey: driverOrdersKeys.all });
     },
+
     onError: error => {
-      Logger.error('[useUnassignOrder] Failed to unassign from order', undefined, error as Error);
+      Logger.error('[useUnassignOrder] Failed to unassign', undefined, error as Error);
     },
   });
 }

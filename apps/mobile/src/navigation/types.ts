@@ -103,7 +103,10 @@ export interface ProfileStackParamList extends Record<string, object | undefined
 
 /**
  * Driver Stack Param List
- * Driver role navigation (order list → order details → active order)
+ * Driver role navigation (order list → order details → active order, plus earnings)
+ *
+ * `DriverActiveOrder.order` only seeds the first paint — the screen re-reads the
+ * active order from the server, so a cold deep-link with just an orderId works.
  */
 export interface DriverStackParamList extends Record<string, object | undefined> {
   DriverOrdersList: undefined;
@@ -112,6 +115,7 @@ export interface DriverStackParamList extends Record<string, object | undefined>
     orderId: string;
     order?: import('@/features/driver/services/driver.service').DriverAvailableOrder;
   };
+  DriverEarnings: undefined;
 }
 
 /**
@@ -261,6 +265,11 @@ export type DriverOrderDetailNavigationProp = NativeStackNavigationProp<
 export type DriverActiveOrderNavigationProp = NativeStackNavigationProp<
   DriverStackParamList,
   'DriverActiveOrder'
+>;
+
+export type DriverEarningsNavigationProp = NativeStackNavigationProp<
+  DriverStackParamList,
+  'DriverEarnings'
 >;
 
 /**

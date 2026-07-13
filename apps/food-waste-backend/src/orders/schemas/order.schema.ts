@@ -321,6 +321,17 @@ export class Order {
   @Prop({ type: Types.ObjectId, ref: 'User', default: null })
   driverId?: Types.ObjectId | null;
 
+  // Delivery lifecycle timestamps — set by DriversService on each transition.
+  // findOneAndUpdate bypasses pre-save hooks, so these are written explicitly.
+  @Prop({ type: Date })
+  driverAssignedAt?: Date;
+
+  @Prop({ type: Date })
+  driverPickedUpAt?: Date;
+
+  @Prop({ type: Date })
+  deliveredAt?: Date;
+
   // Financials — all computed at order creation, immutable
   @Prop({ type: Number, min: 0 })
   estimatedDistanceKm?: number;
@@ -337,6 +348,27 @@ export class Order {
   // Driver reliability — incremented on each unassign
   @Prop({ type: Number, default: 0, min: 0 })
   driverCancellationCount!: number;
+
+  // Audit trail of every unassignment — who dropped the order, why, and when.
+  // `auto` distinguishes a delivery-timeout release from a manual driver action.
+  @Prop({
+    type: [
+      {
+        _id: false,
+        driverId: { type: Types.ObjectId, ref: 'User' },
+        reason: String,
+        auto: Boolean,
+        at: Date,
+      },
+    ],
+    default: [],
+  })
+  driverUnassignments!: Array<{
+    driverId: Types.ObjectId;
+    reason?: string;
+    auto: boolean;
+    at: Date;
+  }>;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
@@ -546,6 +578,15 @@ OrderSchema.pre('save', function (next) {
         break;
       case OrderStatus.PICKED_UP:
         this.pickedUpAt = now;
+        break;
+      case OrderStatus.DRIVER_ASSIGNED:
+        this.driverAssignedAt = now;
+        break;
+      case OrderStatus.OUT_FOR_DELIVERY:
+        this.driverPickedUpAt = now;
+        break;
+      case OrderStatus.DELIVERED:
+        this.deliveredAt = now;
         break;
       case OrderStatus.CANCELLED:
         this.cancelledAt = now;

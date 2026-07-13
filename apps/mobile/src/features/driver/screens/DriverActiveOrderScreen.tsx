@@ -1,20 +1,24 @@
 /**
  * Driver Active Order Screen
- * Shown after a driver accepts an order (status: OUT_FOR_DELIVERY).
+ * The driver's in-flight delivery, in two stages:
+ *
+ *   driver_assigned   → heading to the store. Primary action: "Confirm Pickup".
+ *   out_for_delivery  → carrying the food. Primary action: "Mark as Delivered".
  *
  * Data flow:
- *   route.params.orderId → useAvailableOrders cache lookup (best-effort)
- *   NOTE: Accepted orders have status OUT_FOR_DELIVERY and are excluded from
- *   the available pool. The lookup will return `undefined` for MVP.
- *   A dedicated "my active order" endpoint is the proper fix (out of scope).
+ *   useActiveOrder() is the source of truth — it survives an app restart. The
+ *   order passed via route params only seeds the first paint so the screen has
+ *   something to show before the query resolves.
  *
  * Actions:
- *   - "Open in Maps" → deep-links to Waze (preferred) or Google Maps
- *   - "Mark as Delivered" → calls useMarkDelivered → resets stack to DriverOrdersList
- *   - "Unassign" → Alert confirmation → useUnassignOrder → resets stack to DriverOrdersList
+ *   - "Navigate in Maps" → deep-links to Waze (preferred) or Google Maps, aimed
+ *     at the store before pickup and at the customer after it
+ *   - "Confirm Pickup" → driver_assigned → out_for_delivery
+ *   - "Mark as Delivered" → out_for_delivery → delivered, resets to DriverOrdersList
+ *   - "Unassign" → Alert confirmation → returns the order to the pool
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -27,7 +31,6 @@ import {
   View,
 } from 'react-native';
 
-import Geolocation from '@react-native-community/geolocation';
 import { CommonActions } from '@react-navigation/native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
@@ -38,7 +41,12 @@ import type {
   DriverActiveOrderRouteProp,
 } from '@/navigation/types';
 
-import { useAvailableOrders, useMarkDelivered, useUnassignOrder } from '../hooks/useDriverOrders';
+import {
+  useActiveOrder,
+  useMarkDelivered,
+  useMarkPickedUp,
+  useUnassignOrder,
+} from '../hooks/useDriverOrders';
 
 // ---------------------------------------------------------------------------
 // Design tokens
@@ -67,11 +75,6 @@ const { base: sp, radius, sizing } = spacingTokens;
 interface Props {
   navigation: DriverActiveOrderNavigationProp;
   route: DriverActiveOrderRouteProp;
-}
-
-interface Coords {
-  lat: number;
-  lng: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -160,35 +163,21 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => (
 
 export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   const { orderId, order: passedOrder } = route.params;
-  const [coords, setCoords] = useState<Coords | null>(null);
 
-  // One-shot GPS fix to re-use the same query key as the list screen.
-  useEffect(() => {
-    try {
-      Geolocation.getCurrentPosition(
-        pos => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        _err => {
-          setCoords({ lat: 0, lng: 0 });
-        },
-        { enableHighAccuracy: true, timeout: 15_000 },
-      );
-    } catch {
-      setCoords({ lat: 0, lng: 0 });
-    }
-  }, []);
+  // Server-owned active order. Survives an app restart, unlike the route param,
+  // which only seeds the first paint so the screen is never briefly blank.
+  const { data: fetchedOrder, isLoading } = useActiveOrder();
+  const order = fetchedOrder ?? passedOrder;
 
-  const hasCoords = coords !== null;
-
-  // Try cache first, but prefer the order passed via navigation params
-  // (accepted orders are excluded from the available pool).
-  const { data: orders = [] } = useAvailableOrders(coords?.lat ?? 0, coords?.lng ?? 0, hasCoords);
-  const cachedOrder = orders.find(o => o._id === orderId);
-  const order = passedOrder ?? cachedOrder;
-
+  const { mutate: confirmPickup, isPending: isPickingUp } = useMarkPickedUp();
   const { mutate: deliver, isPending: isDelivering } = useMarkDelivered();
   const { mutate: unassign, isPending: isUnassigning } = useUnassignOrder();
 
-  const isBusy = isDelivering || isUnassigning;
+  const isBusy = isPickingUp || isDelivering || isUnassigning;
+
+  // Before pickup the driver is heading to the store; after it, to the customer.
+  // This drives the map focus, the nav deep-link, and the primary action.
+  const hasCollected = order?.status === 'out_for_delivery';
 
   // ---------------------------------------------------------------------------
   // Navigation helpers
@@ -209,6 +198,17 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   // Action handlers
   // ---------------------------------------------------------------------------
 
+  const handleConfirmPickup = useCallback(() => {
+    confirmPickup(orderId, {
+      onError: () => {
+        Alert.alert(
+          'Pickup Failed',
+          'Could not confirm pickup. Check your connection and try again.',
+        );
+      },
+    });
+  }, [confirmPickup, orderId]);
+
   const handleDeliver = useCallback(() => {
     deliver(orderId, {
       onSuccess: resetToList,
@@ -219,9 +219,13 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   }, [deliver, orderId, resetToList]);
 
   const handleUnassign = useCallback(() => {
+    // Dropping an order after collecting the food strands real food with the
+    // driver, so the confirmation has to say so plainly.
     Alert.alert(
       'Unassign Order',
-      'Are you sure you want to return this order to the pool? Other drivers will be able to accept it.',
+      hasCollected
+        ? 'You have already collected this order. Return it to the store before unassigning — the order will go back to the pool for another driver.'
+        : 'Return this order to the pool? Other drivers will be able to accept it.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -244,27 +248,54 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         },
       ],
     );
-  }, [unassign, orderId, resetToList]);
+  }, [unassign, orderId, resetToList, hasCollected]);
 
   // ---------------------------------------------------------------------------
-  // Loading state — waiting for GPS
+  // Loading / recovery states
   // ---------------------------------------------------------------------------
 
-  if (!hasCoords && !passedOrder) {
+  if (isLoading && !passedOrder) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size='large' color={PRIMARY} />
-        <Text style={styles.loadingText}>Locating you…</Text>
+        <Text style={styles.loadingText}>Loading your delivery…</Text>
+      </View>
+    );
+  }
+
+  // The delivery ended elsewhere (timeout auto-unassign, or an admin acted).
+  // Send the driver back rather than leaving them on a screen with no order.
+  if (!order) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.loadingText}>This delivery is no longer assigned to you.</Text>
+        <TouchableOpacity
+          style={styles.backToListButton}
+          onPress={resetToList}
+          activeOpacity={0.85}
+          accessibilityRole='button'
+          accessibilityLabel='Back to available orders'
+          accessibilityHint='Returns to the list of orders you can accept'
+        >
+          <Text style={styles.backToListText}>Back to orders</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Render — order data is best-effort (may be undefined for OUT_FOR_DELIVERY)
+  // Render
   // ---------------------------------------------------------------------------
 
   const deliveryLatLng = extractLatLng(order?.deliveryAddress?.coordinates);
   const pickupLatLng = extractLatLng(order?.establishmentAddress?.coordinates);
+
+  // Where the driver is headed next. Falls back to the other leg if one set of
+  // coordinates is missing, so the map still renders something useful.
+  const navTarget = hasCollected
+    ? (deliveryLatLng ?? pickupLatLng)
+    : (pickupLatLng ?? deliveryLatLng);
+
   const pickupCity = order?.establishmentAddress?.city;
   const pickupStreet = order?.establishmentAddress?.street;
   const earnings = order?.driverEarnings != null ? `${order.driverEarnings.toFixed(3)} TND` : '–';
@@ -298,18 +329,20 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
           </View>
           <View style={styles.statusPill}>
             <View style={styles.statusDot} />
-            <Text style={styles.statusText}>In Progress</Text>
+            <Text style={styles.statusText}>
+              {hasCollected ? 'Delivering to customer' : 'Collect from store'}
+            </Text>
           </View>
         </View>
 
-        {/* ── Live map: driver + pickup + delivery ── */}
-        {deliveryLatLng ? (
+        {/* ── Live map — centred on wherever the driver is headed next ── */}
+        {navTarget ? (
           <View style={styles.liveMapCard}>
             <MapView
               provider={PROVIDER_GOOGLE}
               style={styles.liveMap}
               initialRegion={{
-                ...deliveryLatLng,
+                ...navTarget,
                 latitudeDelta: 0.02,
                 longitudeDelta: 0.02,
               }}
@@ -318,12 +351,14 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
               zoomEnabled={true}
               zoomControlEnabled={true}
             >
-              <Marker
-                coordinate={deliveryLatLng}
-                pinColor='#2196F3'
-                title='Customer'
-                description='Delivery location'
-              />
+              {deliveryLatLng ? (
+                <Marker
+                  coordinate={deliveryLatLng}
+                  pinColor='#2196F3'
+                  title='Customer'
+                  description='Delivery location'
+                />
+              ) : null}
               {pickupLatLng ? (
                 <Marker
                   coordinate={pickupLatLng}
@@ -335,12 +370,17 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
             </MapView>
             <TouchableOpacity
               style={styles.navButtonFloating}
-              onPress={() => void openNavigation(deliveryLatLng)}
+              onPress={() => void openNavigation(navTarget)}
               activeOpacity={0.85}
               accessibilityRole='button'
-              accessibilityLabel='Open delivery address in maps'
+              accessibilityLabel={
+                hasCollected ? 'Navigate to the customer' : 'Navigate to the store'
+              }
+              accessibilityHint='Opens turn-by-turn directions in Waze or Google Maps'
             >
-              <Text style={styles.navButtonText}>Navigate in Maps</Text>
+              <Text style={styles.navButtonText}>
+                {hasCollected ? 'Navigate to customer' : 'Navigate to store'}
+              </Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -397,23 +437,43 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         <View style={{ height: sizing.button.xl * 2 + sp.xl }} />
       </ScrollView>
 
-      {/* ── Sticky footer actions ── */}
+      {/* ── Sticky footer — one primary action per stage ── */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.deliverButton, isBusy && styles.buttonDisabled]}
-          onPress={handleDeliver}
-          disabled={isBusy}
-          activeOpacity={0.85}
-          accessibilityRole='button'
-          accessibilityLabel='Mark order as delivered'
-          accessibilityState={{ disabled: isBusy }}
-        >
-          {isDelivering ? (
-            <ActivityIndicator color={WHITE} />
-          ) : (
-            <Text style={styles.deliverText}>Mark as Delivered</Text>
-          )}
-        </TouchableOpacity>
+        {hasCollected ? (
+          <TouchableOpacity
+            style={[styles.deliverButton, isBusy && styles.buttonDisabled]}
+            onPress={handleDeliver}
+            disabled={isBusy}
+            activeOpacity={0.85}
+            accessibilityRole='button'
+            accessibilityLabel='Mark order as delivered'
+            accessibilityHint='Completes the delivery and returns you to available orders'
+            accessibilityState={{ disabled: isBusy }}
+          >
+            {isDelivering ? (
+              <ActivityIndicator color={WHITE} />
+            ) : (
+              <Text style={styles.deliverText}>Mark as Delivered</Text>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.pickupButton, isBusy && styles.buttonDisabled]}
+            onPress={handleConfirmPickup}
+            disabled={isBusy}
+            activeOpacity={0.85}
+            accessibilityRole='button'
+            accessibilityLabel='Confirm you have collected the order from the store'
+            accessibilityHint='Tells the customer their order is on the way'
+            accessibilityState={{ disabled: isBusy }}
+          >
+            {isPickingUp ? (
+              <ActivityIndicator color={WHITE} />
+            ) : (
+              <Text style={styles.deliverText}>Confirm Pickup</Text>
+            )}
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={[styles.unassignButton, isBusy && styles.buttonDisabled]}
@@ -422,6 +482,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
           activeOpacity={0.85}
           accessibilityRole='button'
           accessibilityLabel='Unassign from this order'
+          accessibilityHint='Returns the order to the pool for another driver'
           accessibilityState={{ disabled: isBusy }}
         >
           {isUnassigning ? (
@@ -675,11 +736,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Pickup is a progress step, not a completion — primary blue, not success green,
+  // so "Mark as Delivered" stays the only green (terminal) action in the flow.
+  pickupButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: radius.lg,
+    height: sizing.button.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   deliverText: {
     color: WHITE,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,
+  },
+  backToListButton: {
+    marginTop: sp.lg,
+    backgroundColor: PRIMARY,
+    borderRadius: radius.lg,
+    paddingHorizontal: sp.xl,
+    paddingVertical: sp.sm,
+  },
+  backToListText: {
+    color: WHITE,
+    fontSize: 15,
+    fontWeight: '600',
   },
 
   // ── Unassign button ──

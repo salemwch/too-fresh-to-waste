@@ -358,6 +358,10 @@ export class NotificationService {
       [NotificationTrigger.ESTABLISHMENT_APPROVED]: NotificationChannel.ADMIN,
       [NotificationTrigger.LEADERBOARD_UNDER_ATTACK]: NotificationChannel.LEADERBOARD,
       [NotificationTrigger.LEADERBOARD_DETHRONED]: NotificationChannel.LEADERBOARD,
+      [NotificationTrigger.DRIVER_NEW_ORDER_NEARBY]: NotificationChannel.OFFERS,
+      [NotificationTrigger.ORDER_DRIVER_ASSIGNED]: NotificationChannel.ORDER_UPDATES,
+      [NotificationTrigger.ORDER_PICKED_UP_BY_DRIVER]: NotificationChannel.ORDER_UPDATES,
+      [NotificationTrigger.ORDER_DELIVERED]: NotificationChannel.ORDER_UPDATES,
     };
 
     return triggerChannelMap[trigger] ?? NotificationChannel.ADMIN;

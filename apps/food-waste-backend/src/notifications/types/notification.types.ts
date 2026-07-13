@@ -48,6 +48,14 @@ export enum NotificationTrigger {
   PRIZE_CLAIMED = 'prize_claimed',
   LEADERBOARD_UNDER_ATTACK = 'leaderboard_under_attack',
   LEADERBOARD_DETHRONED = 'leaderboard_dethroned',
+
+  // Delivery — driver-facing
+  DRIVER_NEW_ORDER_NEARBY = 'driver_new_order_nearby',
+
+  // Delivery — customer-facing
+  ORDER_DRIVER_ASSIGNED = 'order_driver_assigned',
+  ORDER_PICKED_UP_BY_DRIVER = 'order_picked_up_by_driver',
+  ORDER_DELIVERED = 'order_delivered',
 }
 
 export interface NotificationPayload {

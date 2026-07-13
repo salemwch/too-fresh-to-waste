@@ -14,6 +14,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Queue } from 'bull';
 import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoose';
@@ -24,6 +25,10 @@ import { AppLoggerService } from '../common/services/logger.service';
 import { haversineKm } from '../common/utils/geo.util';
 import { ORDER_LIST_FIELDS, ORDER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
+import {
+  DELIVERY_ORDER_CREATED,
+  DeliveryOrderCreatedEvent,
+} from '../drivers/listeners/delivery-order.events';
 import {
   Establishment,
   EstablishmentDocument,
@@ -187,6 +192,7 @@ export class OrdersService {
     private readonly payoutService: PayoutService,
     private readonly refundService: RefundService,
     private readonly eventBus: EventBusService,
+    private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => WebSocketService)) private readonly webSocketService: WebSocketService,
     @Inject(forwardRef(() => NotificationService))
@@ -417,6 +423,15 @@ export class OrdersService {
         );
       });
 
+      // Delivery orders enter the driver pool immediately (they are created as
+      // CONFIRMED). Announce them so nearby online drivers get a push instead of
+      // having to wait for their next 30s poll.
+      if (createdOrder.deliveryMode === 'delivery') {
+        this.eventEmitter.emit(DELIVERY_ORDER_CREATED, {
+          order: createdOrder,
+        } satisfies DeliveryOrderCreatedEvent);
+      }
+
       return createdOrder;
     } catch (error) {
       this.appLogger.error(`Order creation failed: ${(error as Error).message}`, 'OrderService');
@@ -441,15 +456,25 @@ export class OrdersService {
       [OrderStatus.RESERVED]: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
       [OrderStatus.CONFIRMED]: [
         OrderStatus.READY_FOR_PICKUP,
-        OrderStatus.OUT_FOR_DELIVERY,
+        OrderStatus.DRIVER_ASSIGNED,
         OrderStatus.CANCELLED,
       ],
       [OrderStatus.READY_FOR_PICKUP]: [
         OrderStatus.PICKED_UP,
-        OrderStatus.OUT_FOR_DELIVERY,
+        OrderStatus.DRIVER_ASSIGNED,
         OrderStatus.CANCELLED,
       ],
-      [OrderStatus.OUT_FOR_DELIVERY]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+      // Unassign returns a delivery order to CONFIRMED so it re-enters the pool.
+      [OrderStatus.DRIVER_ASSIGNED]: [
+        OrderStatus.OUT_FOR_DELIVERY,
+        OrderStatus.CONFIRMED,
+        OrderStatus.CANCELLED,
+      ],
+      [OrderStatus.OUT_FOR_DELIVERY]: [
+        OrderStatus.DELIVERED,
+        OrderStatus.CONFIRMED,
+        OrderStatus.CANCELLED,
+      ],
       [OrderStatus.PICKED_UP]: [OrderStatus.REFUNDED],
       [OrderStatus.DELIVERED]: [OrderStatus.REFUNDED],
       [OrderStatus.CANCELLED]: [],

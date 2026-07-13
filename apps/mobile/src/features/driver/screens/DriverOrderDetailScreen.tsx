@@ -35,7 +35,7 @@ import type {
 } from '@/navigation/types';
 
 import { useAvailableOrders, useAcceptOrder } from '../hooks/useDriverOrders';
-import type { DriverAvailableOrder } from '../services/driver.service';
+import { getDriverErrorMessage, type DriverAvailableOrder } from '../services/driver.service';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -186,10 +186,14 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
       onSuccess: acceptedOrder => {
         navigation.navigate('DriverActiveOrder', { orderId, order: acceptedOrder });
       },
-      onError: () => {
-        Alert.alert('Order Unavailable', 'This order has already been taken by another driver.', [
-          { text: 'Go Back', onPress: () => navigation.goBack() },
-        ]);
+      onError: error => {
+        // Accept can fail three ways — lost the race, offline, or already
+        // carrying an order — so show the backend's reason rather than guessing.
+        Alert.alert(
+          'Cannot Accept Order',
+          getDriverErrorMessage(error, 'This order has already been taken by another driver.'),
+          [{ text: 'Go Back', onPress: () => navigation.goBack() }],
+        );
       },
     });
   }, [acceptOrder, orderId, navigation]);
@@ -224,6 +228,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
           onPress={() => navigation.goBack()}
           accessibilityRole='button'
           accessibilityLabel='Go back to order list'
+          accessibilityHint='Returns to the list of orders you can accept'
         >
           <Text style={styles.backButtonText}>Back to orders</Text>
         </TouchableOpacity>
@@ -349,6 +354,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
           activeOpacity={0.85}
           accessibilityRole='button'
           accessibilityLabel='Accept order and start delivery'
+          accessibilityHint='Assigns this order to you and opens the delivery screen'
           accessibilityState={{ disabled: isPending }}
         >
           {isPending ? (

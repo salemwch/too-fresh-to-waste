@@ -6,6 +6,7 @@ import {
   Platform,
   RefreshControl,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -18,7 +19,13 @@ import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 import type { DriverOrdersListNavigationProp } from '@/navigation/types';
 
-import { useAvailableOrders } from '../hooks/useDriverOrders';
+import {
+  useActiveOrder,
+  useAvailableOrders,
+  useDriverProfile,
+  useSetOnlineStatus,
+} from '../hooks/useDriverOrders';
+import { useLocationHeartbeat } from '../hooks/useLocationHeartbeat';
 import type { DriverAvailableOrder } from '../services/driver.service';
 
 // ---------------------------------------------------------------------------
@@ -27,6 +34,7 @@ import type { DriverAvailableOrder } from '../services/driver.service';
 
 const PRIMARY = colorTokens.base.primary[500];
 const SUCCESS = colorTokens.base.success[500];
+const WARNING = colorTokens.base.warning[500];
 const SURFACE = colorTokens.light.surface;
 const SURFACE_VARIANT = colorTokens.light.surfaceVariant;
 const ON_SURFACE = colorTokens.light.onSurface;
@@ -91,6 +99,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ item, onPress }) => {
       activeOpacity={0.75}
       accessibilityRole='button'
       accessibilityLabel={`Order in ${city}, collect between ${start} and ${end}${earnings ? `, earn ${earnings} TND` : ''}`}
+      accessibilityHint='Opens the order details so you can accept it'
     >
       <View style={styles.cardRow}>
         <Text style={styles.cityText}>{city}</Text>
@@ -110,6 +119,40 @@ const OrderCard: React.FC<OrderCardProps> = ({ item, onPress }) => {
           <Text style={styles.earningsAmount}>{earnings} TND</Text>
         </View>
       ) : null}
+    </TouchableOpacity>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Active delivery banner — the app-restart recovery path
+// ---------------------------------------------------------------------------
+
+interface ActiveOrderBannerProps {
+  order: DriverAvailableOrder;
+  onResume: () => void;
+}
+
+const ActiveOrderBanner: React.FC<ActiveOrderBannerProps> = ({ order, onResume }) => {
+  const collected = order.status === 'out_for_delivery';
+
+  return (
+    <TouchableOpacity
+      style={styles.activeBanner}
+      onPress={onResume}
+      activeOpacity={0.85}
+      accessibilityRole='button'
+      accessibilityLabel='Resume your active delivery'
+      accessibilityHint='Reopens the delivery you are currently carrying'
+    >
+      <View style={styles.activeBannerBody}>
+        <Text style={styles.activeBannerTitle}>Delivery in progress</Text>
+        <Text style={styles.activeBannerSubtitle}>
+          {collected
+            ? 'You have the order — deliver it to the customer.'
+            : 'Head to the store and collect the order.'}
+        </Text>
+      </View>
+      <Text style={styles.activeBannerAction}>Resume ›</Text>
     </TouchableOpacity>
   );
 };
@@ -144,6 +187,13 @@ const PermissionView: React.FC<PermissionViewProps> = ({ state, onRetry }) => {
             : onRetry
         }
         activeOpacity={0.8}
+        accessibilityRole='button'
+        accessibilityLabel={isBlocked ? 'Open Settings' : 'Grant location access'}
+        accessibilityHint={
+          isBlocked
+            ? 'Opens system settings so you can enable location for this app'
+            : 'Asks for permission to use your location'
+        }
       >
         <Text style={styles.permissionButtonText}>
           {isBlocked ? 'Open Settings' : 'Grant Location Access'}
@@ -154,7 +204,7 @@ const PermissionView: React.FC<PermissionViewProps> = ({ state, onRetry }) => {
 };
 
 // ---------------------------------------------------------------------------
-// Empty State
+// Empty States
 // ---------------------------------------------------------------------------
 
 const EmptyState: React.FC = () => (
@@ -163,6 +213,16 @@ const EmptyState: React.FC = () => (
     <Text style={styles.emptyTitle}>No orders nearby</Text>
     <Text style={styles.emptySubtitle}>
       There are no available delivery orders near you right now.{'\n'}Pull down to refresh.
+    </Text>
+  </View>
+);
+
+const OfflineState: React.FC = () => (
+  <View style={styles.emptyContainer}>
+    <Text style={styles.emptyIcon}>🌙</Text>
+    <Text style={styles.emptyTitle}>You're offline</Text>
+    <Text style={styles.emptySubtitle}>
+      Go online to see delivery orders near you and receive new-order alerts.
     </Text>
   </View>
 );
@@ -242,7 +302,18 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── TanStack Query ───────────────────────────────────────────────────────
+  // ── Server state ─────────────────────────────────────────────────────────
+
+  const { data: profile, isLoading: profileLoading } = useDriverProfile();
+  const { mutate: setOnline, isPending: isTogglingStatus } = useSetOnlineStatus();
+  const isOnline = profile?.isOnline ?? false;
+
+  // Report position only while online — an offline driver never leaks location.
+  useLocationHeartbeat(isOnline && permState === 'granted');
+
+  // Recovers an in-flight delivery after an app restart. Accepted orders are
+  // excluded from the available pool, so this is the only way back to them.
+  const { data: activeOrder } = useActiveOrder(permState === 'granted');
 
   const hasCoords = coords !== null;
   const {
@@ -251,7 +322,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
     isRefetching,
     isError: ordersError,
     refetch,
-  } = useAvailableOrders(coords?.lat ?? 0, coords?.lng ?? 0, hasCoords);
+  } = useAvailableOrders(coords?.lat ?? 0, coords?.lng ?? 0, hasCoords && isOnline && !activeOrder);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
@@ -261,6 +332,11 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
     },
     [navigation],
   );
+
+  const handleResumeActive = useCallback(() => {
+    if (!activeOrder) return;
+    navigation.navigate('DriverActiveOrder', { orderId: activeOrder._id, order: activeOrder });
+  }, [activeOrder, navigation]);
 
   const renderItem = useCallback(
     ({ item }: { item: DriverAvailableOrder }) => (
@@ -295,39 +371,114 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
     );
   }
 
-  // Waiting for first GPS fix
-  if (!hasCoords) {
+  if (profileLoading) {
     return (
       <View style={styles.centerContainer}>
-        {gpsError ? (
-          <>
-            <Text style={styles.errorIcon}>📡</Text>
-            <Text style={styles.loadingTitle}>GPS signal weak</Text>
-            <Text style={styles.loadingSubtitle}>Move to an open area and wait a moment.</Text>
-          </>
-        ) : (
-          <>
-            <ActivityIndicator size='large' color={PRIMARY} />
-            <Text style={styles.loadingTitle}>Locating you…</Text>
-            <Text style={styles.loadingSubtitle}>Acquiring GPS signal</Text>
-          </>
-        )}
+        <ActivityIndicator size='large' color={PRIMARY} />
+        <Text style={styles.loadingTitle}>Loading your profile…</Text>
       </View>
     );
   }
 
-  // GPS acquired, first load only (not retrying)
+  // The status bar stays mounted in every state below so the driver can always
+  // go online/offline and reach their earnings.
+  const statusBar = (
+    <View style={styles.statusBar}>
+      <View
+        style={[styles.statusDot, isOnline ? styles.statusDotOnline : styles.statusDotOffline]}
+      />
+      <Text style={styles.statusText}>{isOnline ? 'Online' : 'Offline'}</Text>
+
+      <Switch
+        value={isOnline}
+        onValueChange={next => setOnline(next)}
+        disabled={isTogglingStatus}
+        trackColor={{ false: OUTLINE, true: colorTokens.base.success[300] }}
+        thumbColor={isOnline ? SUCCESS : SURFACE}
+        accessibilityLabel={isOnline ? 'Go offline' : 'Go online'}
+        accessibilityHint={
+          isOnline
+            ? 'Stops new delivery orders and alerts from reaching you'
+            : 'Starts showing nearby delivery orders and sending you alerts'
+        }
+      />
+
+      <TouchableOpacity
+        style={styles.earningsButton}
+        onPress={() => navigation.navigate('DriverEarnings')}
+        activeOpacity={0.75}
+        accessibilityRole='button'
+        accessibilityLabel='View earnings and delivery history'
+        accessibilityHint='Opens your earnings totals and past deliveries'
+      >
+        <Text style={styles.earningsButtonText}>Earnings</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // An active delivery takes over the screen: the driver may only carry one
+  // order, so showing the pool underneath would offer orders they cannot accept.
+  if (activeOrder) {
+    return (
+      <View style={styles.container}>
+        {statusBar}
+        <View style={styles.activeOnlyContainer}>
+          <ActiveOrderBanner order={activeOrder} onResume={handleResumeActive} />
+          <Text style={styles.activeHint}>Finish this delivery to see new orders again.</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (!isOnline) {
+    return (
+      <View style={styles.container}>
+        {statusBar}
+        <OfflineState />
+      </View>
+    );
+  }
+
+  // Waiting for first GPS fix
+  if (!hasCoords) {
+    return (
+      <View style={styles.container}>
+        {statusBar}
+        <View style={styles.centerContainer}>
+          {gpsError ? (
+            <>
+              <Text style={styles.errorIcon}>📡</Text>
+              <Text style={styles.loadingTitle}>GPS signal weak</Text>
+              <Text style={styles.loadingSubtitle}>Move to an open area and wait a moment.</Text>
+            </>
+          ) : (
+            <>
+              <ActivityIndicator size='large' color={PRIMARY} />
+              <Text style={styles.loadingTitle}>Locating you…</Text>
+              <Text style={styles.loadingSubtitle}>Acquiring GPS signal</Text>
+            </>
+          )}
+        </View>
+      </View>
+    );
+  }
+
   if (ordersLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size='large' color={PRIMARY} />
-        <Text style={styles.loadingTitle}>Searching nearby orders…</Text>
+      <View style={styles.container}>
+        {statusBar}
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size='large' color={PRIMARY} />
+          <Text style={styles.loadingTitle}>Searching nearby orders…</Text>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      {statusBar}
+
       <View style={styles.headerBar}>
         <View style={[styles.liveIndicator, ordersError && styles.liveIndicatorError]} />
         <Text style={styles.headerText}>
@@ -403,6 +554,55 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
   },
   permissionButtonText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+
+  // ── Status bar (online toggle + earnings) ──
+  statusBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: sp.md,
+    paddingVertical: sp.sm,
+    backgroundColor: SURFACE,
+    borderBottomWidth: 1,
+    borderBottomColor: OUTLINE,
+    gap: sp.xs,
+  },
+  statusDot: { width: 10, height: 10, borderRadius: 5 },
+  statusDotOnline: { backgroundColor: SUCCESS },
+  statusDotOffline: { backgroundColor: ON_SURFACE_VARIANT },
+  statusText: { flex: 1, fontSize: 15, fontWeight: '700', color: ON_SURFACE },
+  earningsButton: {
+    marginStart: sp.sm,
+    paddingHorizontal: sp.sm,
+    paddingVertical: sp.xxs,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: PRIMARY,
+  },
+  earningsButtonText: { fontSize: 13, fontWeight: '600', color: PRIMARY },
+
+  // ── Active delivery banner ──
+  activeOnlyContainer: { flex: 1, padding: sp.md },
+  activeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colorTokens.base.warning[50],
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: WARNING,
+    padding: sp.md,
+    ...CARD_SHADOW,
+  },
+  activeBannerBody: { flex: 1 },
+  activeBannerTitle: { fontSize: 16, fontWeight: '700', color: ON_SURFACE, marginBottom: sp.xxs },
+  activeBannerSubtitle: { fontSize: 13, color: ON_SURFACE_VARIANT, lineHeight: 18 },
+  activeBannerAction: { fontSize: 14, fontWeight: '700', color: PRIMARY, marginStart: sp.sm },
+  activeHint: {
+    marginTop: sp.md,
+    fontSize: 13,
+    color: ON_SURFACE_VARIANT,
+    textAlign: 'center',
+  },
+
   headerBar: {
     flexDirection: 'row',
     alignItems: 'center',

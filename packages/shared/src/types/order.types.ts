@@ -174,17 +174,20 @@ export interface PaginatedOrdersResponse {
 // Order status helpers — usable by any app that has { status: OrderStatus }
 // ============================================================================
 
-/** Statuses that represent an in-progress order */
+/** Statuses that represent an in-progress order (pickup and delivery modes) */
 const ACTIVE_STATUSES: ReadonlySet<string> = new Set([
   OrderStatus.PENDING,
   OrderStatus.RESERVED,
   OrderStatus.CONFIRMED,
   OrderStatus.READY_FOR_PICKUP,
+  OrderStatus.DRIVER_ASSIGNED,
+  OrderStatus.OUT_FOR_DELIVERY,
 ]);
 
-/** Statuses that represent a completed/terminal order */
+/** Statuses that represent a completed/terminal order (pickup and delivery modes) */
 const HISTORY_STATUSES: ReadonlySet<string> = new Set([
   OrderStatus.PICKED_UP,
+  OrderStatus.DELIVERED,
   OrderStatus.CANCELLED,
   OrderStatus.EXPIRED,
   OrderStatus.REFUNDED,

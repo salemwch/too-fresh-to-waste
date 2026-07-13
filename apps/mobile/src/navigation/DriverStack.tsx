@@ -9,6 +9,7 @@ import { spacingTokens } from '@/design-system/tokens/spacing';
 
 import { AppHeader } from './components/AppHeader';
 import DriverActiveOrderScreen from '@/features/driver/screens/DriverActiveOrderScreen';
+import DriverEarningsScreen from '@/features/driver/screens/DriverEarningsScreen';
 import DriverOrderDetailScreen from '@/features/driver/screens/DriverOrderDetailScreen';
 import DriverOrdersListScreen from '@/features/driver/screens/DriverOrdersListScreen';
 
@@ -47,6 +48,7 @@ function LogoutButton() {
         onPress={handleLogout}
         style={styles.logoutBtn}
         accessibilityLabel='Sign out'
+        accessibilityHint='Signs you out and returns to the login screen'
         accessibilityRole='button'
       >
         <Text style={styles.logoutText}>Sign out</Text>
@@ -84,6 +86,11 @@ export default function DriverStack() {
         name='DriverActiveOrder'
         component={DriverActiveOrderScreen}
         options={{ title: 'Active Delivery' }}
+      />
+      <Stack.Screen
+        name='DriverEarnings'
+        component={DriverEarningsScreen}
+        options={{ title: 'Earnings' }}
       />
     </Stack.Navigator>
   );
