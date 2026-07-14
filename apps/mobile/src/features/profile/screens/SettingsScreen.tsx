@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Alert,
   I18nManager,
+  Linking,
   View,
   StyleSheet,
   ScrollView,
@@ -35,6 +36,11 @@ type SettingsScreenNavigationProp = NativeStackNavigationProp<MainStackParamList
 interface SettingsScreenProps {
   navigation: SettingsScreenNavigationProp;
 }
+
+// Geoapify's free tier permits commercial use only while this attribution stays
+// visible, and requires this exact wording — do not translate the brand string.
+const GEOAPIFY_URL = 'https://www.geoapify.com/';
+const GEOAPIFY_ATTRIBUTION = 'Powered by Geoapify';
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _navigation }) => {
   const theme = useTheme();
@@ -264,6 +270,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
                   accessibilityRole='radio'
                   accessibilityState={{ selected: isSelected }}
                   accessibilityLabel={`${lang.label} (${lang.nativeLabel})`}
+                  accessibilityHint='Switches the app to this language'
                 >
                   <Text
                     variant='body.medium'
@@ -276,6 +283,35 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
               );
             })}
           </View>
+        </Card>
+
+        {/* Attributions Section */}
+        <Card style={[styles.card, styles.attributionCard]}>
+          <Text variant='headline.medium' weight='semibold' style={styles.sectionTitle}>
+            {t('settings.attributions')}
+          </Text>
+
+          <Text variant='body.small' color='secondary' style={styles.rowSubtitle}>
+            {t('settings.geocodingAttribution')}
+          </Text>
+
+          <Pressable
+            onPress={() => {
+              void Linking.openURL(GEOAPIFY_URL);
+            }}
+            style={styles.attributionLink}
+            accessibilityRole='link'
+            accessibilityLabel={GEOAPIFY_ATTRIBUTION}
+            accessibilityHint='Opens the Geoapify website in your browser'
+          >
+            <Text
+              variant='body.medium'
+              weight='medium'
+              style={[styles.attributionText, { color: theme.colors.primary }]}
+            >
+              {GEOAPIFY_ATTRIBUTION}
+            </Text>
+          </Pressable>
         </Card>
       </ScrollView>
     </View>
@@ -330,5 +366,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 10,
     borderRadius: 10,
+  },
+  attributionCard: {
+    marginTop: 16,
+  },
+  attributionLink: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+  },
+  attributionText: {
+    textDecorationLine: 'underline',
   },
 });

@@ -448,7 +448,9 @@
     "restartRequired": "Redémarrage requis",
     "restartMessage": "L'application doit redémarrer pour appliquer la nouvelle direction de mise en page. Veuillez fermer et rouvrir l'application.",
     "restartNow": "Redémarrer",
-    "restartLater": "Plus tard"
+    "restartLater": "Plus tard",
+    "attributions": "Attributions",
+    "geocodingAttribution": "La recherche d'adresses et la localisation sont fournies par :"
   },
   "favorites": {
     "all": "Tous",

@@ -448,7 +448,9 @@
     "restartRequired": "Restart Required",
     "restartMessage": "The app needs to restart to apply the new layout direction. Please close and reopen the app.",
     "restartNow": "Restart Now",
-    "restartLater": "Later"
+    "restartLater": "Later",
+    "attributions": "Attributions",
+    "geocodingAttribution": "Address search and map locations are provided by:"
   },
   "favorites": {
     "all": "All",

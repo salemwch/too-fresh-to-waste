@@ -304,7 +304,12 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
 
   // ── Server state ─────────────────────────────────────────────────────────
 
-  const { data: profile, isLoading: profileLoading } = useDriverProfile();
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError: profileError,
+    refetch: refetchProfile,
+  } = useDriverProfile();
   const { mutate: setOnline, isPending: isTogglingStatus } = useSetOnlineStatus();
   const isOnline = profile?.isOnline ?? false;
 
@@ -376,6 +381,36 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
       <View style={styles.centerContainer}>
         <ActivityIndicator size='large' color={PRIMARY} />
         <Text style={styles.loadingTitle}>Loading your profile…</Text>
+        <Text style={styles.loadingSubtitle}>
+          The server may be waking up — this can take up to a minute.
+        </Text>
+      </View>
+    );
+  }
+
+  // Without this the driver is stranded on the loading spinner forever: the rest
+  // of the screen is gated on the profile, so a failed fetch has no way out.
+  if (profileError || !profile) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorIcon}>📡</Text>
+        <Text style={styles.loadingTitle}>Can't reach the server</Text>
+        <Text style={styles.loadingSubtitle}>
+          Check your connection and try again. If you just opened the app, the server may still be
+          starting up.
+        </Text>
+        <TouchableOpacity
+          style={styles.permissionButton}
+          onPress={() => {
+            void refetchProfile();
+          }}
+          activeOpacity={0.8}
+          accessibilityRole='button'
+          accessibilityLabel='Retry loading your profile'
+          accessibilityHint='Tries to reach the server again'
+        >
+          <Text style={styles.permissionButtonText}>Try Again</Text>
+        </TouchableOpacity>
       </View>
     );
   }
