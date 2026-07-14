@@ -7,9 +7,10 @@ import { useStreakData } from '@/hooks/use-merchant-dashboard';
 
 interface StreakWidgetProps {
   onListOffer: () => void;
+  disabled?: boolean;
 }
 
-export function StreakWidget({ onListOffer }: StreakWidgetProps) {
+export function StreakWidget({ onListOffer, disabled }: StreakWidgetProps) {
   const t = useTranslations('dashboard.streak');
   const { data, isLoading } = useStreakData();
 
@@ -104,12 +105,15 @@ export function StreakWidget({ onListOffer }: StreakWidgetProps) {
         {!listedToday && (
           <div className='px-[20px] py-[20px] shrink-0'>
             <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={onListOffer}
+              {...(disabled ? {} : { whileTap: { scale: 0.95 } })}
+              onClick={disabled ? undefined : onListOffer}
+              disabled={disabled}
               className={`flex items-center gap-1.5 px-[14px] py-[8px] rounded-xl text-sm font-semibold text-white transition-colors ${
-                streakAtRisk
-                  ? 'bg-brand-coral hover:brightness-105'
-                  : 'bg-primary-500 hover:brightness-105'
+                disabled
+                  ? 'bg-primary-500/40 cursor-not-allowed'
+                  : streakAtRisk
+                    ? 'bg-brand-coral hover:brightness-105'
+                    : 'bg-primary-500 hover:brightness-105'
               }`}
             >
               {streakAtRisk ? (

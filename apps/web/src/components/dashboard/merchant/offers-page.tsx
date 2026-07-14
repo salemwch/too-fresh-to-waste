@@ -575,6 +575,7 @@ export function MerchantOffersView() {
   const offersQuery = useMerchantOffersFiltered(page, PAGE_SIZE, statusParam);
   const estabQuery = useMyEstablishment();
   const isEstablishmentApproved = estabQuery.data?.status === 'active';
+  const isSuspended = estabQuery.data?.subscriptionStatus === 'suspended';
 
   // ── Mutations ───────────────────────────────────────────────────────────────
   const updateStatus = useUpdateOfferStatus();
@@ -666,7 +667,13 @@ export function MerchantOffersView() {
             <button
               type='button'
               onClick={() => setPanelOpen(true)}
-              className='flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 active:scale-[0.97] transition-all'
+              disabled={isSuspended}
+              className={cn(
+                'flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all',
+                isSuspended
+                  ? 'bg-primary/40 cursor-not-allowed'
+                  : 'bg-primary hover:opacity-90 active:scale-[0.97]',
+              )}
             >
               <Plus className='h-4 w-4' />
               {t('merchantOffers.newOffer')}

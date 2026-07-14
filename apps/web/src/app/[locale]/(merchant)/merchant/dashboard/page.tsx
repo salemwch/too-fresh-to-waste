@@ -52,7 +52,7 @@ export default function MerchantDashboardPage() {
       <DashboardWelcomeHeader establishment={myEstablishmentQuery.data} />
 
       {/* ── Daily listing streak ── */}
-      <StreakWidget onListOffer={() => setPanelOpen(true)} />
+      <StreakWidget onListOffer={() => setPanelOpen(true)} disabled={isTrialSuspended} />
 
       {/* ── Impact KPI cards ── */}
       {orderStatsQuery.isLoading ? (
