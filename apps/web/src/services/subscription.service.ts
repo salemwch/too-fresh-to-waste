@@ -3,7 +3,8 @@ import type { BackendEnvelope } from '@/types/dashboard';
 
 interface SubscriptionStatus {
   subscriptionStatus: 'trial' | 'paid' | 'suspended';
-  subscriptionPlan?: 'monthly' | 'yearly';
+  subscriptionTier?: 'standard' | 'pro';
+  subscriptionCycle?: 'monthly' | 'yearly';
   trialEndsAt?: string;
   subscriptionExpiresAt?: string;
   canPublishOffers: boolean;
@@ -25,9 +26,10 @@ export const subscriptionService = {
     return apiClient.get<BackendEnvelope<SubscriptionStatus>>('/subscriptions/status', { params });
   },
 
-  initiatePayment(plan: 'monthly' | 'yearly', establishmentId?: string) {
+  initiatePayment(tier: 'standard' | 'pro', cycle: 'monthly' | 'yearly', establishmentId?: string) {
     return apiClient.post<BackendEnvelope<InitiatePaymentResponse>>('/subscriptions/initiate', {
-      plan,
+      tier,
+      cycle,
       ...(establishmentId ? { establishmentId } : {}),
     });
   },

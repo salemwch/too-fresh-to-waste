@@ -293,7 +293,8 @@ export interface MyEstablishment {
   /** Trial / subscription lifecycle */
   subscriptionStatus?: 'trial' | 'paid' | 'suspended';
   trialEndsAt?: string;
-  subscriptionPlan?: 'monthly' | 'yearly';
+  subscriptionTier?: 'standard' | 'pro';
+  subscriptionCycle?: 'monthly' | 'yearly';
   subscriptionExpiresAt?: string;
 }
 

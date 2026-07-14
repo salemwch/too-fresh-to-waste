@@ -84,7 +84,7 @@ export class TrialExpiryListener {
       },
       payload: {
         title: `⏰ Your free trial ends in ${event.daysRemaining} day${event.daysRemaining === 1 ? '' : 's'}`,
-        body: `Your free trial for "${event.establishmentName}" ends on ${trialEndsAtFormatted}. Contact the admin team to continue using the platform after that date.`,
+        body: `Your free trial for "${event.establishmentName}" ends on ${trialEndsAtFormatted}. Subscribe to a plan to continue using the platform without interruption.`,
         data: {
           establishmentId: event.establishmentId,
           establishmentName: event.establishmentName,
@@ -156,7 +156,7 @@ export class TrialExpiryListener {
       },
       payload: {
         title: `🛑 Your free trial for "${event.establishmentName}" has ended`,
-        body: `Your 2-month free trial has ended. You can still log in and view your dashboard, but creating new offers is paused until an admin reactivates your account. Please contact the admin team to continue.`,
+        body: `Your 2-month free trial has ended. You can still log in and view your dashboard, but creating new offers is paused. Subscribe to a plan from your dashboard to reactivate your account.`,
         data: {
           establishmentId: event.establishmentId,
           establishmentName: event.establishmentName,

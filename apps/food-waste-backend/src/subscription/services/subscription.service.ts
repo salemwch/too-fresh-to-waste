@@ -5,9 +5,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import {
@@ -18,8 +17,19 @@ import { User, UserDocument } from '../../users/schemas/user.schema';
 import { InitiatePaymentResponseDto, SubscriptionStatusResponseDto } from '../dto/subscription.dto';
 import { KonnectService } from './konnect.service';
 
-const MONTHLY_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 const YEARLY_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
+const MONTHLY_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+
+const PRICES_MILLIMES: Record<'standard' | 'pro', Record<'monthly' | 'yearly', number>> = {
+  standard: {
+    monthly: 15_500,
+    yearly: 15_500 * 12,
+  },
+  pro: {
+    monthly: 30_500,
+    yearly: 30_500 * 12,
+  },
+};
 
 @Injectable()
 export class SubscriptionService {
@@ -31,7 +41,6 @@ export class SubscriptionService {
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly konnectService: KonnectService,
-    private readonly configService: ConfigService,
     private readonly eventBus: EventBusService,
   ) {}
 
@@ -43,8 +52,11 @@ export class SubscriptionService {
 
     return {
       subscriptionStatus: establishment.subscriptionStatus,
-      ...(establishment.subscriptionPlan
-        ? { subscriptionPlan: establishment.subscriptionPlan }
+      ...(establishment.subscriptionTier
+        ? { subscriptionTier: establishment.subscriptionTier }
+        : {}),
+      ...(establishment.subscriptionCycle
+        ? { subscriptionCycle: establishment.subscriptionCycle }
         : {}),
       ...(establishment.trialEndsAt ? { trialEndsAt: establishment.trialEndsAt } : {}),
       ...(establishment.subscriptionExpiresAt
@@ -56,7 +68,8 @@ export class SubscriptionService {
 
   async initiatePayment(
     merchantId: string,
-    plan: 'monthly' | 'yearly',
+    tier: 'standard' | 'pro',
+    cycle: 'monthly' | 'yearly',
     establishmentId?: string,
   ): Promise<InitiatePaymentResponseDto> {
     const establishment = await this.findMerchantEstablishment(merchantId, establishmentId);
@@ -82,8 +95,11 @@ export class SubscriptionService {
       throw new NotFoundException('Merchant not found');
     }
 
-    const amount = this.getPriceMillimes(plan);
-    const token = `sub_${establishment._id.toString()}_${plan}_${Date.now()}`;
+    const amount = PRICES_MILLIMES[tier][cycle];
+    const token = `sub_${establishment._id.toString()}_${tier}_${cycle}_${Date.now()}`;
+
+    const tierLabel = tier === 'standard' ? 'Standard' : 'Pro';
+    const cycleLabel = cycle === 'monthly' ? 'mensuel' : 'annuel';
 
     const result = await this.konnectService.initPayment({
       amount,
@@ -91,7 +107,7 @@ export class SubscriptionService {
       lastName: merchant.lastName ?? '',
       email: merchant.email,
       orderId: token,
-      description: `Too Fresh To Waste — Abonnement ${plan === 'monthly' ? 'mensuel' : 'annuel'}`,
+      description: `Too Fresh To Waste — Abonnement ${tierLabel} (${cycleLabel})`,
     });
 
     await this.establishmentModel
@@ -101,7 +117,7 @@ export class SubscriptionService {
       .exec();
 
     this.logger.log(
-      `Payment initiated for establishment ${establishment._id.toString()}: plan=${plan}, ref=${result.paymentRef}`,
+      `Payment initiated for establishment ${establishment._id.toString()}: tier=${tier}, cycle=${cycle}, ref=${result.paymentRef}`,
     );
 
     return {
@@ -146,9 +162,12 @@ export class SubscriptionService {
       }
     }
 
+    // Token format: sub_{estabId}_{tier}_{cycle}_{timestamp}
     const token = (payload['token'] as string) ?? '';
-    const plan = token.includes('_yearly_') ? 'yearly' : 'monthly';
-    const duration = plan === 'yearly' ? YEARLY_DURATION_MS : MONTHLY_DURATION_MS;
+    const tokenParts = token.split('_');
+    const tier = (tokenParts[2] === 'pro' ? 'pro' : 'standard') as 'standard' | 'pro';
+    const cycle = (tokenParts[3] === 'yearly' ? 'yearly' : 'monthly') as 'monthly' | 'yearly';
+    const duration = cycle === 'yearly' ? YEARLY_DURATION_MS : MONTHLY_DURATION_MS;
 
     const baseDate =
       establishment.subscriptionStatus === 'paid' && establishment.subscriptionExpiresAt
@@ -161,7 +180,8 @@ export class SubscriptionService {
       .findByIdAndUpdate(establishment._id, {
         $set: {
           subscriptionStatus: 'paid',
-          subscriptionPlan: plan,
+          subscriptionTier: tier,
+          subscriptionCycle: cycle,
           subscriptionExpiresAt,
           isActive: true,
         },
@@ -172,13 +192,14 @@ export class SubscriptionService {
       establishmentId: establishment._id.toString(),
       establishmentName: establishment.name,
       ownerId: establishment.ownerId.toString(),
-      plan,
+      tier,
+      cycle,
       subscriptionExpiresAt,
       paymentRef,
     });
 
     this.logger.log(
-      `Subscription activated for establishment ${establishment._id.toString()}: plan=${plan}, expires=${subscriptionExpiresAt.toISOString()}`,
+      `Subscription activated for establishment ${establishment._id.toString()}: tier=${tier}, cycle=${cycle}, expires=${subscriptionExpiresAt.toISOString()}`,
     );
   }
 
@@ -202,30 +223,13 @@ export class SubscriptionService {
     };
   }
 
-  private getPriceMillimes(plan: 'monthly' | 'yearly'): number {
-    const envKey =
-      plan === 'monthly'
-        ? 'SUBSCRIPTION_MONTHLY_PRICE_MILLIMES'
-        : 'SUBSCRIPTION_YEARLY_PRICE_MILLIMES';
-
-    const price = Number.parseInt(this.configService.get<string>(envKey, '0'), 10);
-
-    if (!price || price <= 0) {
-      throw new BadRequestException(
-        'Subscription pricing is not configured. Please contact support.',
-      );
-    }
-
-    return price;
-  }
-
   private async findMerchantEstablishment(
     merchantId: string,
     establishmentId?: string,
   ): Promise<EstablishmentDocument> {
-    const query: Record<string, unknown> = { ownerId: merchantId };
+    const query: Record<string, unknown> = { ownerId: new Types.ObjectId(merchantId) };
     if (establishmentId) {
-      query['_id'] = establishmentId;
+      query['_id'] = new Types.ObjectId(establishmentId);
     }
 
     const establishment = await this.establishmentModel.findOne(query).exec();

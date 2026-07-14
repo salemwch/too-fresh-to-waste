@@ -3,11 +3,18 @@ import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class InitiateSubscriptionDto {
   @ApiProperty({
+    enum: ['standard', 'pro'],
+    description: 'Subscription tier',
+  })
+  @IsEnum(['standard', 'pro'])
+  tier!: 'standard' | 'pro';
+
+  @ApiProperty({
     enum: ['monthly', 'yearly'],
-    description: 'Subscription plan to purchase',
+    description: 'Billing cycle',
   })
   @IsEnum(['monthly', 'yearly'])
-  plan!: 'monthly' | 'yearly';
+  cycle!: 'monthly' | 'yearly';
 
   @ApiPropertyOptional({
     description: 'Establishment ID (required if merchant owns multiple)',
@@ -22,7 +29,10 @@ export class SubscriptionStatusResponseDto {
   subscriptionStatus!: 'trial' | 'paid' | 'suspended';
 
   @ApiPropertyOptional()
-  subscriptionPlan?: 'monthly' | 'yearly';
+  subscriptionTier?: 'standard' | 'pro';
+
+  @ApiPropertyOptional()
+  subscriptionCycle?: 'monthly' | 'yearly';
 
   @ApiPropertyOptional()
   trialEndsAt?: Date;

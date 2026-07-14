@@ -2054,7 +2054,7 @@ export class OffersService {
       throw new ForbiddenException({
         code: 'TRIAL_EXPIRED',
         message:
-          'Your free trial has ended. Contact the admin team to reactivate your account before creating new offers.',
+          'Your subscription has expired. Please renew your subscription to continue creating offers.',
       });
     }
 

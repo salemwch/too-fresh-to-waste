@@ -24,7 +24,8 @@ export interface IEstablishment {
   // Trial / subscription lifecycle
   readonly subscriptionStatus: 'trial' | 'paid' | 'suspended';
   readonly trialEndsAt?: Date;
-  readonly subscriptionPlan?: 'monthly' | 'yearly';
+  readonly subscriptionCycle?: 'monthly' | 'yearly';
+  readonly subscriptionTier?: 'standard' | 'pro';
   readonly subscriptionExpiresAt?: Date;
   readonly lastPaymentRef?: string;
 }

@@ -311,7 +311,10 @@ export class Establishment {
   trialExpiringNotifiedAt?: Date;
 
   @Prop({ type: String, enum: ['monthly', 'yearly'] })
-  subscriptionPlan?: 'monthly' | 'yearly';
+  subscriptionCycle?: 'monthly' | 'yearly';
+
+  @Prop({ type: String, enum: ['standard', 'pro'] })
+  subscriptionTier?: 'standard' | 'pro';
 
   @Prop({ type: Date })
   subscriptionExpiresAt?: Date;

@@ -14,7 +14,7 @@ import {
 import { SubscriptionService } from './services/subscription.service';
 
 interface AuthenticatedRequest {
-  user: { sub: string; role: string };
+  user: { userId: string; role: string };
 }
 
 @ApiTags('Subscriptions')
@@ -30,7 +30,7 @@ export class SubscriptionController {
     @Req() req: AuthenticatedRequest,
     @Query('establishmentId') establishmentId?: string,
   ): Promise<SubscriptionStatusResponseDto> {
-    const result = await this.subscriptionService.getStatus(req.user.sub, establishmentId);
+    const result = await this.subscriptionService.getStatus(req.user.userId, establishmentId);
     return result;
   }
 
@@ -43,8 +43,9 @@ export class SubscriptionController {
     @Body() dto: InitiateSubscriptionDto,
   ): Promise<InitiatePaymentResponseDto> {
     const result = await this.subscriptionService.initiatePayment(
-      req.user.sub,
-      dto.plan,
+      req.user.userId,
+      dto.tier,
+      dto.cycle,
       dto.establishmentId,
     );
     return result;

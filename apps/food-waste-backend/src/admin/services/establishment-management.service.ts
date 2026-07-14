@@ -1310,7 +1310,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
             ? `🎉 Your establishment "${establishment.name}" has been approved!`
             : `❌ Your establishment "${establishment.name}" application was not approved`,
           body: isApproved
-            ? `Congratulations! Your establishment is approved and you can now create offers. Your ${TRIAL_DURATION_DAYS}-day free trial runs until ${trialEndsAtFormatted}. After that, contact the admin team to continue.`
+            ? `Congratulations! Your establishment is approved and you can now create offers. Your ${TRIAL_DURATION_DAYS}-day free trial runs until ${trialEndsAtFormatted}. After that, subscribe to a plan to continue.`
             : `We regret to inform you that your establishment application was not approved. Reason: ${approveDto.reason ?? 'Not specified'}`,
           data: {
             establishmentId: establishment._id.toString(),

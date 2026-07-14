@@ -101,8 +101,6 @@ export const envValidationSchema = Joi.object({
   KONNECT_WEBHOOK_URL: Joi.string().default(
     'http://localhost:3000/api/v1/subscriptions/webhook/konnect',
   ),
-  SUBSCRIPTION_MONTHLY_PRICE_MILLIMES: Joi.number().integer().min(0).default(0),
-  SUBSCRIPTION_YEARLY_PRICE_MILLIMES: Joi.number().integer().min(0).default(0),
   KONNECT_SUBSCRIPTION_SUCCESS_URL: Joi.string().default(
     'http://localhost:3001/merchant/subscription/success',
   ),
