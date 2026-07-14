@@ -28,6 +28,8 @@ export interface IEstablishment {
   readonly subscriptionTier?: 'standard' | 'pro';
   readonly subscriptionExpiresAt?: Date;
   readonly lastPaymentRef?: string;
+  readonly pendingTier?: 'standard' | 'pro';
+  readonly pendingCycle?: 'monthly' | 'yearly';
 }
 
 export interface IEstablishmentAddress {

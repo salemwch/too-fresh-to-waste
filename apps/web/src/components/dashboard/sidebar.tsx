@@ -72,7 +72,8 @@ export function Sidebar({ items }: SidebarProps) {
           const isActive = pathname.startsWith(`/${locale}${item.href}`);
           const Icon = item.icon;
           const badge = getBadge(item, unreadOrderCount, draftOfferCount);
-          const isPro = item.titleKey === 'esg';
+          const isPro =
+            item.titleKey === 'esg' || item.titleKey === 'analytics' || item.titleKey === 'reviews';
 
           return (
             <Link

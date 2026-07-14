@@ -322,6 +322,12 @@ export class Establishment {
   @Prop({ type: String })
   lastPaymentRef?: string;
 
+  @Prop({ type: String, enum: ['standard', 'pro'] })
+  pendingTier?: 'standard' | 'pro';
+
+  @Prop({ type: String, enum: ['monthly', 'yearly'] })
+  pendingCycle?: 'monthly' | 'yearly';
+
   @Prop({ default: false })
   acceptsReservations!: boolean;
 

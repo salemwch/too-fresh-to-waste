@@ -2245,6 +2245,9 @@
     "proFeature3": "ESG & carbon footprint reports",
     "proFeature4": "ISO 14001 compliance reports",
     "proFeature5": "Priority support",
+    "proOnly": "Pro Feature",
+    "proOnlyDescription": "This feature is available exclusively with the Pro plan. Upgrade to unlock advanced analytics, ESG reports, and more.",
+    "upgradeToPro": "Upgrade to Pro",
     "errorGeneric": "Something went wrong. Please try again.",
     "tnd": "TND"
   }

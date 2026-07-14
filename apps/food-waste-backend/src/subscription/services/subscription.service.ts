@@ -96,10 +96,16 @@ export class SubscriptionService {
     }
 
     const amount = PRICES_MILLIMES[tier][cycle];
-    const token = `SUB-${tier}-${cycle}-${establishment._id.toString()}`;
+    const token = `SUB${Date.now().toString(36)}`;
 
     const tierLabel = tier === 'standard' ? 'Standard' : 'Pro';
     const cycleLabel = cycle === 'monthly' ? 'mensuel' : 'annuel';
+
+    await this.establishmentModel
+      .findByIdAndUpdate(establishment._id, {
+        $set: { pendingTier: tier, pendingCycle: cycle },
+      })
+      .exec();
 
     const result = await this.konnectService.initPayment({
       amount,
@@ -162,11 +168,12 @@ export class SubscriptionService {
       }
     }
 
-    // Token format: SUB-{tier}-{cycle}-{estabId}
-    const token = (payload['token'] as string) ?? '';
-    const tokenParts = token.split('-');
-    const tier = (tokenParts[1] === 'pro' ? 'pro' : 'standard') as 'standard' | 'pro';
-    const cycle = (tokenParts[2] === 'yearly' ? 'yearly' : 'monthly') as 'monthly' | 'yearly';
+    const tier = (establishment.get('pendingTier') === 'pro' ? 'pro' : 'standard') as
+      | 'standard'
+      | 'pro';
+    const cycle = (establishment.get('pendingCycle') === 'yearly' ? 'yearly' : 'monthly') as
+      | 'monthly'
+      | 'yearly';
     const duration = cycle === 'yearly' ? YEARLY_DURATION_MS : MONTHLY_DURATION_MS;
 
     const baseDate =
@@ -185,6 +192,7 @@ export class SubscriptionService {
           subscriptionExpiresAt,
           isActive: true,
         },
+        $unset: { pendingTier: 1, pendingCycle: 1 },
       })
       .exec();
 

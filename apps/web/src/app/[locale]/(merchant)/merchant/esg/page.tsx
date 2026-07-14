@@ -25,8 +25,7 @@ import {
 } from '@/hooks/use-merchant-dashboard';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import { dashboardService } from '@/services/dashboard.service';
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
+import { ProGate } from '@/components/dashboard/merchant/pro-gate';
 
 function fmt(n: number, decimals = 0) {
   return n.toLocaleString(undefined, { maximumFractionDigits: decimals });
@@ -52,9 +51,7 @@ function MetricRow({
   );
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
-
-export default function EsgPage() {
+function EsgContent() {
   const t = useTranslations('dashboard.merchantEsg');
   const [downloading, setDownloading] = useState(false);
   const tierQuery = useEsgTier();
@@ -89,7 +86,6 @@ export default function EsgPage() {
 
   return (
     <div className='space-y-[32px]'>
-      {/* Page header */}
       <div className='flex items-start justify-between gap-4 flex-wrap'>
         <div>
           <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
@@ -113,7 +109,6 @@ export default function EsgPage() {
         </div>
       </div>
 
-      {/* ESG Tier progression */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -191,9 +186,7 @@ export default function EsgPage() {
         )}
       </motion.div>
 
-      {/* Carbon + Social side by side */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-[24px]'>
-        {/* Carbon Metrics */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -254,7 +247,6 @@ export default function EsgPage() {
           )}
         </motion.div>
 
-        {/* Social Impact */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -296,7 +288,6 @@ export default function EsgPage() {
         </motion.div>
       </div>
 
-      {/* Monthly goal */}
       {goal && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -332,10 +323,17 @@ export default function EsgPage() {
         </motion.div>
       )}
 
-      {/* Methodology note */}
       <div className='text-[11px] text-primary-500/40 italic leading-relaxed'>
         {t('methodology')}
       </div>
     </div>
+  );
+}
+
+export default function MerchantEsgPage() {
+  return (
+    <ProGate>
+      <EsgContent />
+    </ProGate>
   );
 }

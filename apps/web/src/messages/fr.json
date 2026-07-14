@@ -2235,6 +2235,9 @@
     "proFeature3": "Rapports ESG et empreinte carbone",
     "proFeature4": "Rapports de conformité ISO 14001",
     "proFeature5": "Support prioritaire",
+    "proOnly": "Fonctionnalité Pro",
+    "proOnlyDescription": "Cette fonctionnalité est disponible exclusivement avec le plan Pro. Passez au Pro pour débloquer les analytiques avancées, les rapports ESG et plus encore.",
+    "upgradeToPro": "Passer au Pro",
     "errorGeneric": "Une erreur est survenue. Veuillez réessayer.",
     "tnd": "TND"
   }

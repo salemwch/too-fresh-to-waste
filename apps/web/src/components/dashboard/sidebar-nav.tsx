@@ -30,6 +30,8 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
       {items.map(item => {
         const isActive = pathname.startsWith(`/${locale}${item.href}`);
         const Icon = item.icon;
+        const isPro =
+          item.titleKey === 'esg' || item.titleKey === 'analytics' || item.titleKey === 'reviews';
 
         return (
           <Link
@@ -51,6 +53,16 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
                 )}
               />
               {!collapsed && <span>{t(item.titleKey)}</span>}
+              {!collapsed && isPro && (
+                <span
+                  className={cn(
+                    'text-[9px] font-bold px-1.5 py-0.5 rounded border leading-none tracking-wide',
+                    isActive ? 'border-white/50 text-white' : 'border-amber-400/50 text-amber-500',
+                  )}
+                >
+                  PRO
+                </span>
+              )}
             </div>
             {!collapsed &&
               (() => {
