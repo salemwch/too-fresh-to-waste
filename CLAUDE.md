@@ -297,6 +297,70 @@ document it as a known limitation in this file — never leave it silent.
 
 ---
 
+## Completeness Protocol — Apply to Every Change
+
+Before reporting any task as done, verify these. No exceptions.
+
+### 1. Trace every dependency chain
+
+When you add, rename, or remove anything (field, type, endpoint, translation
+key, config var), **grep the entire repo** for all references. Update every
+consumer — not just the file you're editing. If something is renamed, zero
+matches for the old name must remain.
+
+### 2. Follow existing patterns exactly
+
+Before writing new code, read 2-3 existing examples of the same pattern in the
+codebase (queries, service calls, error handling, component structure). Match
+them exactly — don't invent a new way to do the same thing.
+
+### 3. Every user-facing path must be covered
+
+For every action gated by a condition (auth, subscription, role, approval
+status), identify **all code paths** that allow that action and gate every one.
+Don't assume there's only one entry point — grep for the action and check each
+call site.
+
+### 4. No technical text reaches the user
+
+Error messages, exceptions, status codes, and stack traces must never appear in
+the UI. Every `catch` block that surfaces to the user must show a translated,
+human-readable message. Test the error path, not just the happy path.
+
+### 5. Translations are atomic
+
+Adding or modifying a translation key is a single atomic operation across all
+locale files and all registration points (namespace arrays in layouts). Never
+add a key to one locale without the others.
+
+### 6. Performance by default
+
+- Queries: only select fields you need (`.select()` / `.lean()`)
+- Components: avoid re-renders — memoize expensive computations, split state
+- API calls: never fetch data you already have in cache; use TanStack Query
+  invalidation
+- Avoid N+1 queries — batch or populate in a single call
+
+### 7. DRY at the right level
+
+Extract shared logic only when:
+
+- The same code appears 3+ times with the same shape
+- A value is used in multiple places (make it a constant)
+- A pattern has a bug — centralizing prevents fixing it in one place and missing
+  the others
+
+Don't extract prematurely — three similar lines are better than a premature
+abstraction that obscures intent.
+
+### 8. Self-review before reporting done
+
+After making changes, re-read every modified file as if reviewing someone else's
+PR. Check: unused imports, dead code, inconsistent naming, missing error
+handling, hardcoded values that should be constants or translations.
+
+---
+
 ## Hard Rules — Never Do These
 
 1. **Never enable `@nestjs/swagger` CLI plugin** in `nest-cli.json` — it
