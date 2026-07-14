@@ -38,7 +38,6 @@ const PRO_FEATURES = [
   'proFeature3',
   'proFeature4',
   'proFeature5',
-  'proFeature6',
 ] as const;
 
 function SubscriptionModal({
