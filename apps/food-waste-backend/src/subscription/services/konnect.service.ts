@@ -1,4 +1,4 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 interface KonnectInitPaymentParams {
@@ -30,7 +30,7 @@ interface KonnectPaymentDetails {
 }
 
 @Injectable()
-export class KonnectService {
+export class KonnectService implements OnModuleInit {
   private readonly logger = new Logger(KonnectService.name);
   private readonly apiKey: string;
   private readonly walletId: string;
@@ -52,6 +52,15 @@ export class KonnectService {
     this.failUrl = this.configService.get<string>(
       'KONNECT_SUBSCRIPTION_FAIL_URL',
       'http://localhost:3001/merchant/subscription/failed',
+    );
+  }
+
+  onModuleInit() {
+    const masked = this.apiKey
+      ? `${this.apiKey.slice(0, 8)}...${this.apiKey.slice(-4)}`
+      : '(empty)';
+    this.logger.log(
+      `Konnect config — apiKey: ${masked}, walletId: ${this.walletId || '(empty)'}, apiUrl: ${this.apiUrl}`,
     );
   }
 
