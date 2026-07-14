@@ -5,7 +5,7 @@ import { MerchantLayoutShell } from './merchant-layout-shell';
 
 // Only the namespaces used by merchant dashboard client components.
 // Saves ~41 % of the serialised translation payload vs. sending all messages.
-const MERCHANT_NAMESPACES = ['dashboard', 'common', 'accessibility'] as const;
+const MERCHANT_NAMESPACES = ['dashboard', 'common', 'accessibility', 'subscription'] as const;
 
 interface MerchantLayoutProps {
   children: React.ReactNode;

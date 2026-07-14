@@ -96,7 +96,7 @@ export class SubscriptionService {
     }
 
     const amount = PRICES_MILLIMES[tier][cycle];
-    const token = `sub_${establishment._id.toString()}_${tier}_${cycle}_${Date.now()}`;
+    const token = `SUB-${tier}-${cycle}-${establishment._id.toString()}`;
 
     const tierLabel = tier === 'standard' ? 'Standard' : 'Pro';
     const cycleLabel = cycle === 'monthly' ? 'mensuel' : 'annuel';
@@ -162,11 +162,11 @@ export class SubscriptionService {
       }
     }
 
-    // Token format: sub_{estabId}_{tier}_{cycle}_{timestamp}
+    // Token format: SUB-{tier}-{cycle}-{estabId}
     const token = (payload['token'] as string) ?? '';
-    const tokenParts = token.split('_');
-    const tier = (tokenParts[2] === 'pro' ? 'pro' : 'standard') as 'standard' | 'pro';
-    const cycle = (tokenParts[3] === 'yearly' ? 'yearly' : 'monthly') as 'monthly' | 'yearly';
+    const tokenParts = token.split('-');
+    const tier = (tokenParts[1] === 'pro' ? 'pro' : 'standard') as 'standard' | 'pro';
+    const cycle = (tokenParts[2] === 'yearly' ? 'yearly' : 'monthly') as 'monthly' | 'yearly';
     const duration = cycle === 'yearly' ? YEARLY_DURATION_MS : MONTHLY_DURATION_MS;
 
     const baseDate =
