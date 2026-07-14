@@ -310,6 +310,15 @@ export class Establishment {
   @Prop({ type: Date })
   trialExpiringNotifiedAt?: Date;
 
+  @Prop({ type: String, enum: ['monthly', 'yearly'] })
+  subscriptionPlan?: 'monthly' | 'yearly';
+
+  @Prop({ type: Date })
+  subscriptionExpiresAt?: Date;
+
+  @Prop({ type: String })
+  lastPaymentRef?: string;
+
   @Prop({ default: false })
   acceptsReservations!: boolean;
 

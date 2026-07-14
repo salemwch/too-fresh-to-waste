@@ -94,6 +94,22 @@ export const envValidationSchema = Joi.object({
   SMT_API_SECRET: Joi.string().optional(),
   PAYMENT_ENCRYPTION_KEY: Joi.string().optional(),
 
+  // ── Konnect Subscription Payments ──────────────────────────────────
+  KONNECT_API_KEY: Joi.string().allow('').default(''),
+  KONNECT_WALLET_ID: Joi.string().allow('').default(''),
+  KONNECT_API_URL: Joi.string().default('https://api.preprod.konnect.network/api/v2'),
+  KONNECT_WEBHOOK_URL: Joi.string().default(
+    'http://localhost:3000/api/v1/subscriptions/webhook/konnect',
+  ),
+  SUBSCRIPTION_MONTHLY_PRICE_MILLIMES: Joi.number().integer().min(0).default(0),
+  SUBSCRIPTION_YEARLY_PRICE_MILLIMES: Joi.number().integer().min(0).default(0),
+  KONNECT_SUBSCRIPTION_SUCCESS_URL: Joi.string().default(
+    'http://localhost:3001/merchant/subscription/success',
+  ),
+  KONNECT_SUBSCRIPTION_FAIL_URL: Joi.string().default(
+    'http://localhost:3001/merchant/subscription/failed',
+  ),
+
   // ── Privacy ──────────────────────────────────────────────────────────
   PRIVACY_ENCRYPTION_KEY: Joi.when('NODE_ENV', {
     is: 'production',

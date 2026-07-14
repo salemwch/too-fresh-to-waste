@@ -50,6 +50,7 @@ import { WebSocketModule } from './websocket/websocket.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { EnterpriseModule } from './enterprise/enterprise.module';
 import { AppConfigModule } from './app-config/app-config.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 import { VotingModule } from './voting/voting.module';
 //import { SocialModule } from './social/social.module';
 
@@ -165,6 +166,7 @@ import { VotingModule } from './voting/voting.module';
     EnterpriseModule,
     AppConfigModule,
     VotingModule,
+    SubscriptionModule,
   ],
   controllers: [],
   providers: [],

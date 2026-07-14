@@ -293,6 +293,8 @@ export interface MyEstablishment {
   /** Trial / subscription lifecycle */
   subscriptionStatus?: 'trial' | 'paid' | 'suspended';
   trialEndsAt?: string;
+  subscriptionPlan?: 'monthly' | 'yearly';
+  subscriptionExpiresAt?: string;
 }
 
 // ─── Created offer (response from POST /offers) ──────────────────────────────

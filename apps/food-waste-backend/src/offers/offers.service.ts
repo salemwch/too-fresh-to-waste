@@ -2014,6 +2014,14 @@ export class OffersService {
       );
     }
 
+    if (establishment.subscriptionStatus === 'suspended') {
+      throw new ForbiddenException({
+        code: 'TRIAL_EXPIRED',
+        message:
+          'Your subscription has expired. Please renew your subscription before publishing offers.',
+      });
+    }
+
     return establishment;
   }
 

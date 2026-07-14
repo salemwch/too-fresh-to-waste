@@ -52,6 +52,7 @@ export class TrialExpiryTask {
     try {
       await this.notifyExpiringSoon();
       await this.suspendExpiredTrials();
+      await this.suspendExpiredSubscriptions();
     } catch (error) {
       this.logger.error(
         `Trial-expiry scan failed: ${(error as Error).message}`,
@@ -181,6 +182,52 @@ export class TrialExpiryTask {
       );
 
       this.logger.log(`Emitted expired event for establishment ${establishment._id.toString()}`);
+    }
+  }
+
+  /**
+   * Suspends paid subscriptions that have expired.
+   */
+  private async suspendExpiredSubscriptions(): Promise<void> {
+    const now = new Date();
+
+    const expired = await this.establishmentModel
+      .find({
+        subscriptionStatus: 'paid',
+        subscriptionExpiresAt: { $lt: now },
+      })
+      .populate('ownerId', '_id email firstName lastName')
+      .select('name ownerId subscriptionExpiresAt')
+      .exec();
+
+    if (expired.length === 0) {
+      this.logger.log('No expired paid subscriptions to suspend');
+      return;
+    }
+
+    this.logger.log(`Found ${expired.length} expired paid subscriptions — suspending`);
+
+    const ids = expired.map(e => e._id);
+    await this.establishmentModel
+      .updateMany(
+        { _id: { $in: ids }, subscriptionStatus: 'paid' },
+        { $set: { subscriptionStatus: 'suspended', isActive: false } },
+      )
+      .exec();
+
+    for (const establishment of expired) {
+      const ownerId = this.extractOwnerId(establishment.ownerId);
+
+      await this.eventBus.emit('establishment.subscription.expired', {
+        establishmentId: establishment._id.toString(),
+        establishmentName: establishment.name,
+        ownerId,
+        expiredAt: establishment.subscriptionExpiresAt ?? now,
+      });
+
+      this.logger.log(
+        `Emitted subscription.expired event for establishment ${establishment._id.toString()}`,
+      );
     }
   }
 

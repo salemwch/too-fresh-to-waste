@@ -24,6 +24,9 @@ export interface IEstablishment {
   // Trial / subscription lifecycle
   readonly subscriptionStatus: 'trial' | 'paid' | 'suspended';
   readonly trialEndsAt?: Date;
+  readonly subscriptionPlan?: 'monthly' | 'yearly';
+  readonly subscriptionExpiresAt?: Date;
+  readonly lastPaymentRef?: string;
 }
 
 export interface IEstablishmentAddress {
