@@ -23,6 +23,7 @@ import {
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { GetUser } from '../../common/decorators/get-user.decorator';
+import { ProSubscriptionGuard } from '../../common/guards/pro-subscription.guard';
 import {
   BusinessMetricsRequestDto,
   UserAnalyticsRequestDto,
@@ -39,7 +40,7 @@ import { AnalyticsService } from '../services/analytics.service';
 
 @ApiTags('Analytics')
 @Controller('analytics')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ProSubscriptionGuard)
 @ApiBearerAuth()
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class AnalyticsController {

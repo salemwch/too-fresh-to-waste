@@ -30,6 +30,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthenticatedRequest } from '../common/decorators/get-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { ProSubscriptionGuard } from '../common/guards/pro-subscription.guard';
 import { GlobalExceptionFilter } from '../common/filters/http-exception.filter';
 import { AppLoggerService } from '../common/services/logger.service';
 import { SupabaseStorageService } from '../common/services/supabase-storage.service';
@@ -282,7 +283,7 @@ export class ReviewsController {
   }
 
   @Get('merchant/reviews')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, ProSubscriptionGuard)
   @Roles(UserRole.MERCHANT)
   @ApiOperation({ summary: 'Get reviews for merchant establishments' })
   @ApiResponse({ status: 200, description: 'Merchant reviews retrieved successfully' })
@@ -337,7 +338,7 @@ export class ReviewsController {
   }
 
   @Get('analytics')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, ProSubscriptionGuard)
   @Roles(UserRole.ADMIN, UserRole.MERCHANT)
   @ApiOperation({ summary: 'Get comprehensive review analytics' })
   @ApiResponse({ status: 200, description: 'Analytics retrieved successfully' })
@@ -774,7 +775,7 @@ export class ReviewsController {
   }
 
   @Get('trending/keywords')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, ProSubscriptionGuard)
   @Roles(UserRole.ADMIN, UserRole.MERCHANT)
   @ApiOperation({ summary: 'Get trending keywords from reviews' })
   @ApiResponse({ status: 200, description: 'Trending keywords retrieved successfully' })

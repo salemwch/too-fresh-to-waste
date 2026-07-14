@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import type { AuthenticatedRequest } from '../../common/decorators/get-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { ProSubscriptionGuard } from '../../common/guards/pro-subscription.guard';
 import { UpdateMonthlyGoalDto } from '../dto/sustainability.dto';
 import type {
   CarbonMetricsResponse,
@@ -35,7 +36,7 @@ import { SustainabilityService } from '../services/sustainability.service';
 @ApiTags('Sustainability')
 @ApiBearerAuth()
 @Controller('sustainability')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ProSubscriptionGuard)
 @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
 export class SustainabilityController {
   private readonly logger = new Logger(SustainabilityController.name);

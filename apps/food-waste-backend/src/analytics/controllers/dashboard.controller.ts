@@ -29,13 +29,14 @@ import {
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { GetUser } from '../../common/decorators/get-user.decorator';
+import { ProSubscriptionGuard } from '../../common/guards/pro-subscription.guard';
 import { CreateDashboardDto, CreateWidgetDto } from '../dto/analytics.dto';
 import { DashboardConfig, DashboardTemplate } from '../interfaces/analytics.interface';
 import { DashboardService } from '../services/dashboard.service';
 
 @ApiTags('Analytics Dashboards')
 @Controller('analytics/dashboards')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ProSubscriptionGuard)
 @ApiBearerAuth()
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class DashboardController {

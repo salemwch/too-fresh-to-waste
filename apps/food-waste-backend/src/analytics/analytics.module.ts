@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 // Import schemas
 import { CommonModule } from '../common/common.module';
+import { ProSubscriptionGuard } from '../common/guards/pro-subscription.guard';
 import { AppLoggerService } from '../common/services/logger.service';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
@@ -41,7 +42,7 @@ import { DashboardService } from './services/dashboard.service';
     ]),
   ],
   controllers: [AnalyticsController, DashboardController],
-  providers: [AnalyticsService, DashboardService, AppLoggerService],
+  providers: [AnalyticsService, DashboardService, AppLoggerService, ProSubscriptionGuard],
   exports: [AnalyticsService, DashboardService],
 })
 export class AnalyticsModule {

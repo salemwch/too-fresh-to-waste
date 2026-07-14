@@ -9,6 +9,7 @@ import { OrdersModule } from 'src/orders/order.module';
 
 import { CommonModule } from '../common/common.module';
 import { GlobalExceptionFilter } from '../common/filters/http-exception.filter';
+import { ProSubscriptionGuard } from '../common/guards/pro-subscription.guard';
 import { LoggingInterceptor } from '../common/interceptors/loggin.interceptor';
 import { RateLimitGuard } from '../common/validators/RateLimitGuard';
 import { EmailModule } from '../email/email.module';
@@ -113,6 +114,7 @@ import { Review, ReviewSchema } from './schemas/review.schema';
     ReviewEventListener,
     AdminUserEventsListener,
     // Guards and interceptors
+    ProSubscriptionGuard,
     RateLimitGuard,
     GlobalExceptionFilter,
     LoggingInterceptor,
