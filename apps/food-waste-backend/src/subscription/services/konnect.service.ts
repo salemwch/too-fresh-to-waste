@@ -69,7 +69,7 @@ export class KonnectService {
     const body = {
       receiverWalletId: this.walletId,
       amount: params.amount,
-      token: params.orderId,
+      token: 'TND',
       type: 'immediate',
       description: params.description,
       acceptedPaymentMethods: ['bank_card', 'e-DINAR'],
@@ -79,6 +79,7 @@ export class KonnectService {
       firstName: params.firstName,
       lastName: params.lastName,
       email: params.email,
+      orderId: params.orderId,
       silentWebhook: true,
       webhook: this.configService.get<string>(
         'KONNECT_WEBHOOK_URL',
