@@ -991,7 +991,7 @@ export class AdminAnalyticsService {
             $size: {
               $filter: {
                 input: '$orders',
-                cond: { $eq: ['$$this.status', 'completed'] },
+                cond: { $in: ['$$this.status', ['picked_up', 'completed', 'delivered']] },
               },
             },
           },
@@ -1079,7 +1079,10 @@ export class AdminAnalyticsService {
               {
                 $match: {
                   $expr: {
-                    $and: [{ $eq: ['$offerId', '$$offerId'] }, { $eq: ['$status', 'completed'] }],
+                    $and: [
+                      { $eq: ['$offerId', '$$offerId'] },
+                      { $in: ['$status', ['picked_up', 'completed', 'delivered']] },
+                    ],
                   },
                 },
               },
@@ -1177,7 +1180,10 @@ export class AdminAnalyticsService {
               {
                 $match: {
                   $expr: {
-                    $and: [{ $eq: ['$offerId', '$$offerId'] }, { $eq: ['$status', 'completed'] }],
+                    $and: [
+                      { $eq: ['$offerId', '$$offerId'] },
+                      { $in: ['$status', ['picked_up', 'completed', 'delivered']] },
+                    ],
                   },
                 },
               },

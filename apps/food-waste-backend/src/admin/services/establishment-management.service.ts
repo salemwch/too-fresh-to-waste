@@ -881,7 +881,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
           totalRevenue: { $sum: '$pricing.total' },
           completedOrders: {
             $sum: {
-              $cond: [{ $eq: ['$status', OrderStatus.PICKED_UP] }, 1, 0],
+              $cond: [{ $in: ['$status', [OrderStatus.PICKED_UP, OrderStatus.COMPLETED]] }, 1, 0],
             },
           },
           cancelledOrders: {
@@ -965,7 +965,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const matchFilter: OrderMatchFilter = {
         establishmentId,
         createdAt: dateFilter,
-        status: { $in: [OrderStatus.PICKED_UP, OrderStatus.CONFIRMED] },
+        status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.CONFIRMED] },
       };
 
       const pipeline: EstablishmentPipeline = [
@@ -1009,7 +1009,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const matchFilter: OrderMatchFilter = {
         establishmentId,
         createdAt: dateFilter,
-        status: { $in: [OrderStatus.PICKED_UP, OrderStatus.CONFIRMED] },
+        status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.CONFIRMED] },
       };
 
       const pipeline: EstablishmentPipeline = [
@@ -1067,7 +1067,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const matchFilter: OrderMatchFilter = {
         establishmentId,
         createdAt: dateFilter,
-        status: OrderStatus.PICKED_UP,
+        status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
       };
 
       const pipeline: EstablishmentPipeline = [

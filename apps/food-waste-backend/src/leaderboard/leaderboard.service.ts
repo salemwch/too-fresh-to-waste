@@ -37,7 +37,7 @@ export class LeaderboardService {
         {
           $match: {
             merchantId: new Types.ObjectId(merchantId),
-            status: OrderStatus.PICKED_UP,
+            status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
             paymentStatus: PaymentStatus.PAID,
             isDeleted: { $ne: true },
           },
@@ -58,7 +58,7 @@ export class LeaderboardService {
       .aggregate([
         {
           $match: {
-            status: OrderStatus.PICKED_UP,
+            status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
             paymentStatus: PaymentStatus.PAID,
             isDeleted: { $ne: true },
             establishmentId: { $exists: true, $ne: null },
@@ -143,7 +143,7 @@ export class LeaderboardService {
       .aggregate<LeaderboardAgg>([
         {
           $match: {
-            status: OrderStatus.PICKED_UP,
+            status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
             paymentStatus: PaymentStatus.PAID,
             isDeleted: { $ne: true },
             establishmentId: { $exists: true, $ne: null },

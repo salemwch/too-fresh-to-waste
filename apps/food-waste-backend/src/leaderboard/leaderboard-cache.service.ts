@@ -48,7 +48,7 @@ export class LeaderboardCacheService implements OnModuleInit {
       .aggregate<{ _id: Types.ObjectId; mealsSaved: number }>([
         {
           $match: {
-            status: OrderStatus.PICKED_UP,
+            status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
             paymentStatus: PaymentStatus.PAID,
             isDeleted: { $ne: true },
           },
