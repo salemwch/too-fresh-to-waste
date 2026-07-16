@@ -36,8 +36,10 @@ import {
 import { NotificationService } from '../notifications/services/notification.service';
 import { Offer, OfferDocument, OfferStatus } from '../offers/schemas/offer.schema';
 import { Payment, PaymentDocument, PaymentStatus } from '../payments/schemas/payment.schema';
+import { KonnectOrderService } from '../payments/services/konnect-order.service';
 import { PayoutService } from '../payments/services/payout.service';
 import { RefundService } from '../payments/services/refund.service';
+import { PaymentAttempt } from '../payments/schemas/payment-attempt.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { WebSocketService } from '../websocket/websocket.service';
 
@@ -187,6 +189,8 @@ export class OrdersService {
     @InjectModel(Establishment.name) readonly establishmentModel: Model<EstablishmentDocument>,
     @InjectModel(User.name) readonly userModel: Model<UserDocument>,
     @InjectModel(Payment.name) readonly paymentModel: Model<PaymentDocument>,
+    @InjectModel(PaymentAttempt.name)
+    private readonly paymentAttemptModel: Model<PaymentAttempt>,
     private readonly appLogger: AppLoggerService,
     private readonly regexSecurityUtil: RegexSecurityUtil,
     private readonly payoutService: PayoutService,
@@ -198,6 +202,8 @@ export class OrdersService {
     @Inject(forwardRef(() => NotificationService))
     private readonly notificationService: NotificationService,
     @InjectQueue('pickup-reminders') private readonly pickupReminderQueue: Queue,
+    @Inject(forwardRef(() => KonnectOrderService))
+    private readonly konnectOrderService: KonnectOrderService,
   ) {
     void this.POINTS_PER_BAG;
   }
@@ -235,17 +241,38 @@ export class OrdersService {
         // reservedQuantity and currentOrders target independent fields;
         // flatten into a single Promise.all to eliminate serial round-trips.
         // Return updated offers to check for sold-out status.
-        const updatedOffers = await Promise.all([
-          ...updates.map(update =>
-            this.offerModel.findByIdAndUpdate(
-              update.offerId,
+        // Atomic $gte guard: only increment reservedQuantity if stock is sufficient.
+        // Prevents the read-then-write race where two concurrent orders both pass
+        // the availability check in validateAndBuildOrderItems.
+        const reservationResults = await Promise.all(
+          updates.map(update =>
+            this.offerModel.findOneAndUpdate(
               {
-                $inc: { reservedQuantity: update.quantity },
+                _id: update.offerId,
+                $expr: {
+                  $lte: [
+                    { $add: ['$reservedQuantity', update.quantity] },
+                    { $subtract: ['$totalQuantity', '$soldQuantity'] },
+                  ],
+                },
               },
+              { $inc: { reservedQuantity: update.quantity } },
               { session, new: true },
             ),
           ),
-          ...updates.map(update =>
+        );
+
+        for (let i = 0; i < reservationResults.length; i++) {
+          if (!reservationResults[i]) {
+            throw new BadRequestException({
+              message: 'One or more items are no longer available',
+              code: 'INSUFFICIENT_STOCK',
+            });
+          }
+        }
+
+        await Promise.all(
+          updates.map(update =>
             this.offerModel.findOneAndUpdate(
               {
                 _id: update.offerId,
@@ -256,7 +283,9 @@ export class OrdersService {
               { session },
             ),
           ),
-        ]);
+        );
+
+        const updatedOffers = reservationResults;
 
         // Auto-transition to SOLD_OUT when all bags are reserved/sold.
         // Mongoose pre-save hooks don't fire for findByIdAndUpdate,
@@ -273,9 +302,10 @@ export class OrdersService {
         const taxAmount = 0;
         const total = subtotal + serviceFee + taxAmount;
 
-        // 5.1. Charity donation: 5% of platform's cut, based on bag price only (not delivery fee)
-        // Formula: (subtotal * 0.20 platform fee) * 0.05 donation percentage = 1% of subtotal
-        const donationAmount = parseFloat((subtotal * 0.01).toFixed(3));
+        // 5.1. Charity donation: 5% of platform's 19% commission, based on subtotal
+        // Formula: subtotal * 0.19 * 0.05 = 0.95% of subtotal
+        const platformFeeForDonation = subtotal * 0.19;
+        const donationAmount = parseFloat((platformFeeForDonation * 0.05).toFixed(3));
 
         // --- Delivery fields (computed once, never recalculated) ---
         const isDelivery = createOrderDto.deliveryMode === 'delivery';
@@ -338,10 +368,12 @@ export class OrdersService {
           establishmentId: new Types.ObjectId(createOrderDto.establishmentId),
           merchantId: establishment.ownerId,
           items: orderItems,
-          // Delivery orders skip merchant confirmation — the merchant committed
-          // to the time window when publishing the offer, and food waste is
-          // already prepared. Auto-confirm so drivers see it immediately.
-          status: isDelivery ? OrderStatus.CONFIRMED : OrderStatus.RESERVED,
+          status:
+            createOrderDto.paymentMethod === 'online'
+              ? OrderStatus.PENDING_PAYMENT
+              : isDelivery
+                ? OrderStatus.CONFIRMED
+                : OrderStatus.RESERVED,
           paymentStatus: PaymentStatus.PENDING,
           pickupDetails: {
             timeSlot: createOrderDto.pickupTimeSlot,
@@ -370,6 +402,18 @@ export class OrdersService {
           expiresAt: new Date(earliestOfferExpiry.getTime() + ORDER_GRACE_PERIOD_MS),
           // Delivery fields — set at creation, never mutated
           deliveryMode: createOrderDto.deliveryMode ?? 'pickup',
+          ...(createOrderDto.paymentMethod === 'online'
+            ? {
+                paymentProvider: 'konnect' as const,
+                paymentExpiresAt: new Date(
+                  Date.now() +
+                    this.configService.get<number>('KONNECT_PAYMENT_TIMEOUT_MINUTES', 15) *
+                      60 *
+                      1000,
+                ),
+                paymentAttemptSequence: 0,
+              }
+            : {}),
           ...(createOrderDto.deliveryAddress && {
             deliveryAddress: createOrderDto.deliveryAddress,
           }),
@@ -453,14 +497,22 @@ export class OrdersService {
   private isValidStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus): boolean {
     const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
       [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
-      [OrderStatus.RESERVED]: [OrderStatus.PICKED_UP, OrderStatus.CANCELLED],
+      [OrderStatus.PENDING_PAYMENT]: [
+        OrderStatus.RESERVED,
+        OrderStatus.CONFIRMED,
+        OrderStatus.CANCELLED,
+        OrderStatus.EXPIRED,
+      ],
+      [OrderStatus.RESERVED]: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.CANCELLED],
       [OrderStatus.CONFIRMED]: [
         OrderStatus.READY_FOR_PICKUP,
+        OrderStatus.COMPLETED,
         OrderStatus.DRIVER_ASSIGNED,
         OrderStatus.CANCELLED,
       ],
       [OrderStatus.READY_FOR_PICKUP]: [
         OrderStatus.PICKED_UP,
+        OrderStatus.COMPLETED,
         OrderStatus.DRIVER_ASSIGNED,
         OrderStatus.CANCELLED,
       ],
@@ -472,10 +524,12 @@ export class OrdersService {
       ],
       [OrderStatus.OUT_FOR_DELIVERY]: [
         OrderStatus.DELIVERED,
+        OrderStatus.COMPLETED,
         OrderStatus.CONFIRMED,
         OrderStatus.CANCELLED,
       ],
       [OrderStatus.PICKED_UP]: [OrderStatus.REFUNDED],
+      [OrderStatus.COMPLETED]: [OrderStatus.REFUNDED],
       [OrderStatus.DELIVERED]: [OrderStatus.REFUNDED],
       [OrderStatus.CANCELLED]: [],
       [OrderStatus.EXPIRED]: [],
@@ -1060,9 +1114,9 @@ export class OrdersService {
           },
           {
             $set: {
-              status: OrderStatus.PICKED_UP,
+              status:
+                order.paymentProvider === 'konnect' ? OrderStatus.COMPLETED : OrderStatus.PICKED_UP,
               'pickupDetails.actualPickupTime': new Date(),
-              // For cash/delivery payments, mark as paid when confirmed
               ...(isCashPayment && { paymentStatus: OrderPaymentStatus.PAID }),
               ...(confirmDto.notes && { customerNotes: confirmDto.notes }),
             },
@@ -1143,6 +1197,19 @@ export class OrdersService {
         }
       });
 
+      // 4b. Move wallet balance pending→available for konnect orders
+      if (order.paymentProvider === 'konnect') {
+        try {
+          const updatedOrder = await this.findById(orderId);
+          await this.konnectOrderService.processPickupConfirmation(updatedOrder);
+        } catch (walletError) {
+          this.appLogger.error(
+            `Failed to move wallet balance for order ${orderId}: ${(walletError as Error).message}`,
+            'OrderService',
+          );
+        }
+      }
+
       // 5. Emit order completed event for cross-module reactions (loyalty, donations, analytics)
       const totalBags = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -1204,9 +1271,14 @@ export class OrdersService {
   ): Promise<OrderDocument> {
     const order = await this.findById(orderId, userId, userRole);
 
-    // Cannot cancel orders that are already completed, cancelled, or expired
     if (
-      [OrderStatus.PICKED_UP, OrderStatus.CANCELLED, OrderStatus.EXPIRED].includes(order.status)
+      [
+        OrderStatus.PICKED_UP,
+        OrderStatus.COMPLETED,
+        OrderStatus.DELIVERED,
+        OrderStatus.CANCELLED,
+        OrderStatus.EXPIRED,
+      ].includes(order.status)
     ) {
       throw new BadRequestException('Order cannot be cancelled');
     }
@@ -1217,6 +1289,86 @@ export class OrdersService {
     }
     if (userRole === UserRole.MERCHANT && order.merchantId._id.toString() !== userId) {
       throw new ForbiddenException('Access denied');
+    }
+
+    // Cancel PENDING_PAYMENT order (not yet paid) — expire attempts, release inventory
+    if (order.status === OrderStatus.PENDING_PAYMENT) {
+      const session = await this.orderModel.db.startSession();
+      try {
+        await session.withTransaction(async () => {
+          await this.paymentAttemptModel.updateMany(
+            { orderId: order._id, active: true },
+            { status: 'expired', active: false, failedReason: 'Order cancelled' },
+            { session },
+          );
+
+          const releasedOffers = await Promise.all(
+            order.items.map(item =>
+              this.offerModel.findByIdAndUpdate(
+                item.offerId,
+                { $inc: { reservedQuantity: -item.quantity } },
+                { session, new: true },
+              ),
+            ),
+          );
+
+          await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[], session);
+
+          await this.orderModel.findByIdAndUpdate(
+            orderId,
+            {
+              status: OrderStatus.CANCELLED,
+              cancellationReason: cancelDto.reason,
+              merchantNotes: cancelDto.additionalNotes,
+            },
+            { session },
+          );
+        });
+        return this.findById(orderId);
+      } finally {
+        await session.endSession();
+      }
+    }
+
+    // Cancel online-paid order (RESERVED/CONFIRMED with paymentStatus PAID)
+    if (order.paymentProvider === 'konnect' && order.paymentStatus === OrderPaymentStatus.PAID) {
+      const session = await this.orderModel.db.startSession();
+      try {
+        await session.withTransaction(async () => {
+          const releasedOffers = await Promise.all(
+            order.items.map(item =>
+              this.offerModel.findByIdAndUpdate(
+                item.offerId,
+                { $inc: { reservedQuantity: -item.quantity } },
+                { session, new: true },
+              ),
+            ),
+          );
+          await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[], session);
+
+          await this.orderModel.findByIdAndUpdate(
+            orderId,
+            {
+              status: OrderStatus.CANCELLED,
+              paymentStatus: OrderPaymentStatus.REFUND_PENDING,
+              cancellationReason: cancelDto.reason,
+              merchantNotes: cancelDto.additionalNotes,
+            },
+            { session },
+          );
+
+          const isConsumer = userRole === UserRole.CONSUMER;
+          await this.konnectOrderService.processRefundRequest(
+            order,
+            new Types.ObjectId(userId),
+            isConsumer ? 'consumer_cancel' : 'merchant_cancel',
+            session,
+          );
+        });
+        return this.findById(orderId);
+      } finally {
+        await session.endSession();
+      }
     }
 
     // TGTG Model: Time-based cancellation for RESERVED orders (consumer cancellation)
@@ -1386,7 +1538,16 @@ export class OrdersService {
           totalOrders: { $sum: 1 },
           totalRevenue: {
             $sum: {
-              $cond: [{ $eq: ['$status', OrderStatus.PICKED_UP] }, '$pricing.total', 0],
+              $cond: [
+                {
+                  $in: [
+                    '$status',
+                    [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                  ],
+                },
+                '$pricing.total',
+                0,
+              ],
             },
           },
           pendingOrders: {
@@ -1399,7 +1560,18 @@ export class OrdersService {
             $sum: { $cond: [{ $eq: ['$status', OrderStatus.READY_FOR_PICKUP] }, 1, 0] },
           },
           completedOrders: {
-            $sum: { $cond: [{ $eq: ['$status', OrderStatus.PICKED_UP] }, 1, 0] },
+            $sum: {
+              $cond: [
+                {
+                  $in: [
+                    '$status',
+                    [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
           },
           cancelledOrders: {
             $sum: { $cond: [{ $eq: ['$status', OrderStatus.CANCELLED] }, 1, 0] },
@@ -1408,7 +1580,16 @@ export class OrdersService {
           // Sum actual bag quantities from items[] for picked_up orders only
           bagsSaved: {
             $sum: {
-              $cond: [{ $eq: ['$status', OrderStatus.PICKED_UP] }, { $sum: '$items.quantity' }, 0],
+              $cond: [
+                {
+                  $in: [
+                    '$status',
+                    [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                  ],
+                },
+                { $sum: '$items.quantity' },
+                0,
+              ],
             },
           },
         },
@@ -1514,7 +1695,7 @@ export class OrdersService {
       {
         $match: {
           ...matchCondition,
-          status: OrderStatus.PICKED_UP,
+          status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED] },
           createdAt: { $gte: startDate },
         },
       },
@@ -1715,6 +1896,8 @@ export class OrdersService {
             $nin: [
               OrderStatus.EXPIRED,
               OrderStatus.PICKED_UP,
+              OrderStatus.COMPLETED,
+              OrderStatus.DELIVERED,
               OrderStatus.CANCELLED,
               OrderStatus.REFUNDED,
             ],
@@ -2232,6 +2415,7 @@ export class OrdersService {
     try {
       const pendingStatuses = [
         OrderStatus.PENDING,
+        OrderStatus.PENDING_PAYMENT,
         OrderStatus.CONFIRMED,
         OrderStatus.READY_FOR_PICKUP,
       ];

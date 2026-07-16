@@ -26,6 +26,7 @@ export class OrderGateway {
           this.notifyOrderReady(update);
           break;
         case OrderStatus.PICKED_UP:
+        case OrderStatus.COMPLETED:
           this.notifyOrderCompleted(update);
           break;
         case OrderStatus.CANCELLED:
