@@ -24,6 +24,7 @@ export interface PickupTimeSlotDto {
 export type OrderPaymentMethod =
   | 'cash_on_pickup'
   | 'pay_on_delivery'
+  | 'online'
   | 'stripe'
   | 'paypal'
   | 'apple_pay'
@@ -128,6 +129,18 @@ export interface Order {
     total: number;
     currency: string;
   };
+  paymentProvider?: 'konnect' | 'smt' | 'cash';
+  paymentSession?: {
+    provider: string;
+    reference: string;
+    payUrl: string;
+    expiresAt: string;
+  };
+  paymentExpiresAt?: string;
+  paymentAttemptSequence?: number;
+  completedAt?: string;
+  pendingPaymentAt?: string;
+  deliveryMode?: 'pickup' | 'delivery';
   donationAmount: number;
   expiresAt?: string;
   customerNotes?: string;
@@ -177,6 +190,7 @@ export interface PaginatedOrdersResponse {
 /** Statuses that represent an in-progress order (pickup and delivery modes) */
 const ACTIVE_STATUSES: ReadonlySet<string> = new Set([
   OrderStatus.PENDING,
+  OrderStatus.PENDING_PAYMENT,
   OrderStatus.RESERVED,
   OrderStatus.CONFIRMED,
   OrderStatus.READY_FOR_PICKUP,
@@ -187,6 +201,7 @@ const ACTIVE_STATUSES: ReadonlySet<string> = new Set([
 /** Statuses that represent a completed/terminal order (pickup and delivery modes) */
 const HISTORY_STATUSES: ReadonlySet<string> = new Set([
   OrderStatus.PICKED_UP,
+  OrderStatus.COMPLETED,
   OrderStatus.DELIVERED,
   OrderStatus.CANCELLED,
   OrderStatus.EXPIRED,

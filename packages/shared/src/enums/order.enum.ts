@@ -14,10 +14,12 @@
  */
 export enum OrderStatus {
   PENDING = 'pending',
+  PENDING_PAYMENT = 'pending_payment',
   RESERVED = 'reserved',
   CONFIRMED = 'confirmed',
   READY_FOR_PICKUP = 'ready_for_pickup',
   PICKED_UP = 'picked_up',
+  COMPLETED = 'completed',
   DRIVER_ASSIGNED = 'driver_assigned',
   OUT_FOR_DELIVERY = 'out_for_delivery',
   DELIVERED = 'delivered',
@@ -37,6 +39,7 @@ export enum PaymentStatus {
   HELD = 'held',
   PAID = 'paid',
   FAILED = 'failed',
+  REFUND_PENDING = 'refund_pending',
   REFUNDED = 'refunded',
   PARTIALLY_REFUNDED = 'partially_refunded',
 }
