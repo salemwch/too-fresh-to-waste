@@ -35,7 +35,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { plainToInstance } from 'class-transformer';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
 import * as QRCode from 'qrcode';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -184,17 +184,13 @@ export class OrdersController {
       payUrl = payment.payUrl;
     }
 
-    const serialized = JSON.parse(
-      JSON.stringify(
-        plainToInstance(ConsumerOrderResponseDto, toPlain(order), {
-          excludeExtraneousValues: true,
-        }),
-      ),
-    ) as Record<string, unknown>;
+    const dto = plainToInstance(ConsumerOrderResponseDto, toPlain(order), {
+      excludeExtraneousValues: true,
+    });
 
     return {
       message: 'Order created successfully',
-      data: payUrl ? { ...serialized, payUrl } : serialized,
+      data: payUrl ? { ...instanceToPlain(dto), payUrl } : dto,
     };
   }
 

@@ -1,13 +1,30 @@
-import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StatusBar, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Linking,
+  Modal,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import WebView from 'react-native-webview';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { Logger } from '@/utils/logger';
 
 const DEEP_LINK_SCHEME = 'toofreshtowaste://';
+
+let WebViewComponent: React.ComponentType<Record<string, unknown>> | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  WebViewComponent = require('react-native-webview').default;
+} catch {
+  Logger.warn(
+    '[KonnectPaymentSheet] react-native-webview not available, will use external browser',
+  );
+}
 
 interface KonnectPaymentSheetProps {
   visible: boolean;
@@ -25,6 +42,27 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+
+  // Fallback: open in external browser when native WebView module is unavailable
+  useEffect(() => {
+    if (!visible || !payUrl || WebViewComponent) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        await Linking.openURL(payUrl);
+        if (!cancelled) onDismiss();
+      } catch (err) {
+        Logger.error('[KonnectPaymentSheet] Failed to open payment URL', {}, err as Error);
+        if (!cancelled) onPaymentFailed();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, payUrl, onDismiss, onPaymentFailed]);
 
   const handleShouldStartLoad = useCallback(
     (event: { url: string }): boolean => {
@@ -59,6 +97,11 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
   }, []);
 
   if (!visible || !payUrl) return null;
+
+  // No native WebView — fallback handled by useEffect above
+  if (!WebViewComponent) return null;
+
+  const WebViewEl = WebViewComponent;
 
   return (
     <Modal
@@ -95,7 +138,7 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
             </Pressable>
           </View>
         ) : (
-          <WebView
+          <WebViewEl
             key={loadError ? 'retry' : 'initial'}
             source={{ uri: payUrl }}
             style={styles.webview}
