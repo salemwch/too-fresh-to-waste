@@ -521,18 +521,20 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
     );
   };
 
-  /**
-   * Render offer title (item type)
-   */
   const renderTitle = () => (
-    <Text
-      variant='body.small'
-      color={theme.colors.onSurfaceVariant}
-      numberOfLines={1}
-      style={styles.title}
-    >
-      {offerTypeLabels[offer.type]}
-    </Text>
+    <View style={styles.titleContainer}>
+      <View style={styles.typeBadge}>
+        <Text style={styles.typeBadgeText}>{offerTypeLabels[offer.type]}</Text>
+      </View>
+      <Text
+        variant='body.small'
+        color={theme.colors.onSurface}
+        numberOfLines={1}
+        style={styles.title}
+      >
+        {offer.title}
+      </Text>
+    </View>
   );
 
   /**
@@ -863,9 +865,25 @@ const createStyles = (
       marginTop: -4,
       marginRight: -4,
     },
-    title: {
+    titleContainer: {
+      gap: 4,
       marginBottom: 4,
     },
+    typeBadge: {
+      alignSelf: 'flex-start',
+      backgroundColor: colorTokens.base.primary[50],
+      borderRadius: 6,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+    },
+    typeBadgeText: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: colorTokens.base.primary[500],
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    title: {},
     pickupTimeRow: {
       flexDirection: 'row',
       alignItems: 'center',
