@@ -133,11 +133,18 @@ export type OrderStatus =
   | 'expired'
   | 'refunded';
 
+interface OrderPaymentDetails {
+  method: 'cash' | 'online' | 'pay_on_delivery';
+  amount: number;
+  currency: string;
+}
+
 export interface MerchantOrder {
   _id: string;
   orderNumber: string;
   status: OrderStatus;
   paymentStatus: string;
+  paymentDetails: OrderPaymentDetails;
   customerId: PopulatedUser;
   establishmentId: PopulatedEstablishment | string;
   items: OrderItem[];

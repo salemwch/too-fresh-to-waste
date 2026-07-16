@@ -405,8 +405,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   const handlePaymentFailed = useCallback(() => {
     setPaymentSheetVisible(false);
     setPaymentUrl(null);
-    setValidationError(t('payment.paymentFailed'));
-  }, [t]);
+  }, []);
 
   const handlePaymentDismiss = useCallback(() => {
     setPaymentSheetVisible(false);
