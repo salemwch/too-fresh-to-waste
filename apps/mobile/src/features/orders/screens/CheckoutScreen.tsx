@@ -26,6 +26,7 @@ import { usePressGuard } from '@/hooks/usePressGuard';
 import { analytics } from '@/utils/analytics';
 import { Logger } from '@/utils/logger';
 
+import { KonnectPaymentSheet } from '../components/KonnectPaymentSheet';
 import { OrderSuccessModal } from '../components/OrderSuccessModal';
 import { PhoneVerificationModal } from '../components/PhoneVerificationModal';
 import { SkeletonCheckoutScreen } from '../components/SkeletonCheckoutScreen';
@@ -103,6 +104,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Payment sheet state for online payments
+  const [paymentSheetVisible, setPaymentSheetVisible] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
   // ✅ Fetch offer details
   const { data: offer, isLoading: isLoadingOffer } = useQuery({
@@ -218,16 +223,27 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     closePhoneVerificationModal,
   } = useCreateOrder({
     onSuccess: order => {
-      // Show success modal immediately — do not block on query invalidation.
-      setCreatedOrder(order);
-      setSuccessModalVisible(true);
-
+      // The order is placed the moment the backend accepts it — track it now for
+      // both flows. Online payment success/failure is a separate concern handled
+      // by OrderDetailsScreen polling; it is not known at this point.
       analytics.trackOrderPlaced(
         order._id,
         order.orderNumber,
         order.pricing?.total ?? 0,
         order.pricing?.currency ?? 'TND',
       );
+
+      // Online payment: open KonnectPaymentSheet instead of success modal
+      if (order.payUrl) {
+        setCreatedOrder(order);
+        setPaymentUrl(order.payUrl);
+        setPaymentSheetVisible(true);
+        return;
+      }
+
+      // Cash/pickup: show success modal immediately
+      setCreatedOrder(order);
+      setSuccessModalVisible(true);
 
       // Invalidate in the background so inventory stays fresh across the app.
       void queryClient.invalidateQueries({ queryKey: ['offer', offerId] });
@@ -349,10 +365,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     customerNotes,
     deliveryMode,
     deliveryPin,
+    deliveryAddressText,
     distanceKm,
     tooFar,
     queryClient,
     createOrder,
+    t,
   ]);
 
   // Guard confirm button — 2s cooldown prevents duplicate orders from rapid taps
@@ -369,9 +387,58 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       closePhoneVerificationModal();
       await handleConfirmOrder();
     } catch (error) {
+      Logger.error(
+        '[CheckoutScreen] Order creation failed after phone verification',
+        {},
+        error instanceof Error ? error : new Error('Unknown error'),
+      );
       setValidationError(t('checkout.orderFailed'));
     }
-  }, [closePhoneVerificationModal, handleConfirmOrder]);
+  }, [closePhoneVerificationModal, handleConfirmOrder, t]);
+
+  const handlePaymentFailed = useCallback(() => {
+    setPaymentSheetVisible(false);
+    setPaymentUrl(null);
+    setValidationError(t('payment.paymentFailed'));
+  }, [t]);
+
+  const handlePaymentDismiss = useCallback(() => {
+    setPaymentSheetVisible(false);
+    setPaymentUrl(null);
+
+    // Inventory is reserved the moment the pending-payment order is created, so
+    // refresh offer stock across the app even though payment isn't confirmed yet.
+    void queryClient.invalidateQueries({ queryKey: ['offer', offerId] });
+    void queryClient.invalidateQueries({ queryKey: ['offers'] });
+    void queryClient.invalidateQueries({ queryKey: ['nearby-offers'] });
+    void queryClient.invalidateQueries({ queryKey: ['featured-offers'] });
+
+    // Navigate to order details so user can retry later
+    if (createdOrder) {
+      const resetAction = CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'MainTabs',
+            state: {
+              routes: [
+                {
+                  name: 'Orders',
+                  state: {
+                    routes: [
+                      { name: 'OrdersList' },
+                      { name: 'OrderDetails', params: { orderId: createdOrder._id } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      });
+      navigation.dispatch(resetAction as Readonly<{ type: string }>);
+    }
+  }, [createdOrder, navigation, offerId, queryClient]);
 
   /**
    * Calculate pricing
@@ -559,16 +626,37 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 )}
               </Pressable>
 
-              {/* Online Payment — Coming Soon */}
-              <View style={[styles.paymentMethodCard, styles.paymentMethodCardDisabled]}>
-                <Icon name='card' family='Ionicons' size={28} color='#CBD5E1' />
-                <Text style={[styles.paymentCardLabel, styles.paymentCardLabelDisabled]}>
+              {/* Online Payment */}
+              <Pressable
+                style={[
+                  styles.paymentMethodCard,
+                  selectedPaymentMethod === 'online' && styles.paymentMethodCardActive,
+                ]}
+                onPress={() => setSelectedPaymentMethod('online')}
+                accessibilityLabel={t('checkout.onlinePayment')}
+                accessibilityHint='Selects online payment via Konnect'
+                accessibilityRole='button'
+              >
+                {selectedPaymentMethod === 'online' && (
+                  <View style={styles.paymentCardCheck}>
+                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                  </View>
+                )}
+                <Icon
+                  name='card'
+                  family='Ionicons'
+                  size={28}
+                  color={selectedPaymentMethod === 'online' ? BRAND_PRIMARY : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.paymentCardLabel,
+                    selectedPaymentMethod === 'online' && styles.paymentCardLabelActive,
+                  ]}
+                >
                   {t('checkout.onlinePayment')}
                 </Text>
-                <View style={styles.comingSoonBadge}>
-                  <Text style={styles.comingSoonText}>{t('checkout.soon')}</Text>
-                </View>
-              </View>
+              </Pressable>
             </View>
           </View>
 
@@ -747,6 +835,16 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
         order={createdOrder}
         onDismiss={handleSuccessModalDismiss}
       />
+
+      {/* Konnect payment WebView for online payments */}
+      {paymentUrl ? (
+        <KonnectPaymentSheet
+          visible={paymentSheetVisible}
+          payUrl={paymentUrl}
+          onPaymentFailed={handlePaymentFailed}
+          onDismiss={handlePaymentDismiss}
+        />
+      ) : null}
     </View>
   );
 };

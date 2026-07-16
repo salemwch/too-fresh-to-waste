@@ -371,9 +371,14 @@
     "statusConfirmed": "Confirmée",
     "statusReady": "Prête",
     "statusPickedUp": "Retirée",
+    "statusCompleted": "Terminée",
+    "statusPendingPayment": "En attente de paiement",
     "statusCancelled": "Annulée",
     "statusExpired": "Expirée",
     "statusRefunded": "Remboursée",
+    "awaitingPayment": "Votre commande attend le paiement. Complétez le paiement pour confirmer votre réservation.",
+    "paymentWindowExpired": "Le délai de paiement de cette commande a expiré. Veuillez passer une nouvelle commande.",
+    "payNow": "Payer maintenant",
     "order": "Commande",
     "pickupWindowEnded": "Le créneau de retrait est terminé.",
     "pickupCodeHintModal": "Entrez le code de retrait à 6 chiffres du commerçant pour gagner des <accent>points</accent>.",
@@ -405,6 +410,11 @@
     "orderFailed": "Impossible de créer la commande. Veuillez réessayer.",
     "soon": "Bientôt",
     "placingOrder": "Passage de votre commande..."
+  },
+  "payment": {
+    "securePayment": "Paiement sécurisé",
+    "loadingPayment": "Chargement de la page de paiement...",
+    "paymentFailed": "Le paiement n'a pas abouti. Vous pouvez réessayer depuis les détails de votre commande."
   },
   "profile": {
     "editProfile": "Modifier le profil",

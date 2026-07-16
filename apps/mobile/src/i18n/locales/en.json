@@ -371,9 +371,14 @@
     "statusConfirmed": "Confirmed",
     "statusReady": "Ready",
     "statusPickedUp": "Picked Up",
+    "statusCompleted": "Completed",
+    "statusPendingPayment": "Awaiting Payment",
     "statusCancelled": "Cancelled",
     "statusExpired": "Expired",
     "statusRefunded": "Refunded",
+    "awaitingPayment": "Your order is waiting for payment. Complete the payment to confirm your reservation.",
+    "paymentWindowExpired": "The payment window for this order has expired. Please place a new order.",
+    "payNow": "Pay Now",
     "order": "Order",
     "pickupWindowEnded": "The pickup window has ended.",
     "pickupCodeHintModal": "Enter the 6-digit pickup code from the merchant to earn <accent>points</accent>.",
@@ -405,6 +410,11 @@
     "orderFailed": "Could not create order. Please try again.",
     "soon": "Soon",
     "placingOrder": "Placing your order..."
+  },
+  "payment": {
+    "securePayment": "Secure Payment",
+    "loadingPayment": "Loading payment page...",
+    "paymentFailed": "Payment was not completed. You can retry from your order details."
   },
   "profile": {
     "editProfile": "Edit Profile",

@@ -50,6 +50,8 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
   [OrderStatus.CONFIRMED]: { label: 'Confirmed', bg: '#DBEAFE', text: '#1E40AF' },
   [OrderStatus.READY_FOR_PICKUP]: { label: 'Ready', bg: '#D1FAE5', text: '#065F46' },
   [OrderStatus.PICKED_UP]: { label: 'Picked Up', bg: '#D1FAE5', text: '#065F46' },
+  [OrderStatus.COMPLETED]: { label: 'Completed', bg: '#D1FAE5', text: '#065F46' },
+  [OrderStatus.PENDING_PAYMENT]: { label: 'Awaiting Payment', bg: '#FEF3C7', text: '#92400E' },
   [OrderStatus.CANCELLED]: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
   [OrderStatus.EXPIRED]: { label: 'Expired', bg: '#F3F4F6', text: '#6B7280' },
   [OrderStatus.REFUNDED]: { label: 'Refunded', bg: '#F3F4F6', text: '#6B7280' },

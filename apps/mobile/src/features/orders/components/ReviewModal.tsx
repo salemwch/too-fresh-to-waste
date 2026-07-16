@@ -133,7 +133,13 @@ export const ReviewModal: React.FC<Props> = ({
                 {storeName}
               </Text>
             ) : null}
-            <Pressable onPress={onClose} style={styles.closeBtn} accessibilityLabel='Close'>
+            <Pressable
+              onPress={onClose}
+              style={styles.closeBtn}
+              accessibilityRole='button'
+              accessibilityLabel='Close'
+              accessibilityHint='Closes the review dialog'
+            >
               <IoniconsIcon name='close' size={22} color={theme.colors.onSurfaceVariant} />
             </Pressable>
           </View>
@@ -150,6 +156,7 @@ export const ReviewModal: React.FC<Props> = ({
                   onPress={() => setRating(star)}
                   accessibilityRole='button'
                   accessibilityLabel={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                  accessibilityHint={`Sets your rating to ${star} out of 5`}
                 >
                   <IoniconsIcon
                     name={star <= rating ? 'star' : 'star-outline'}

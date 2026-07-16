@@ -179,13 +179,22 @@ export const ordersService = {
    * @returns Created order
    * @throws PhoneVerificationRequiredError if phone not verified
    */
-  async createOrder(orderData: CreateOrderDto, signal?: AbortSignal): Promise<Order> {
+  async createOrder(
+    orderData: CreateOrderDto,
+    signal?: AbortSignal,
+  ): Promise<Order & { payUrl?: string }> {
     try {
-      const response = await apiClient.post<BackendApiResponse<Order>>('/orders', orderData, {
-        ...(signal !== undefined && { signal }),
-      });
+      const response = await apiClient.post<BackendApiResponse<Order> & { payUrl?: string }>(
+        '/orders',
+        orderData,
+        {
+          ...(signal !== undefined && { signal }),
+        },
+      );
 
-      return unwrapBackendResponse(response, 'order creation');
+      const order = unwrapBackendResponse(response, 'order creation');
+      const payUrl = response.data.payUrl;
+      return { ...order, ...(payUrl ? { payUrl } : {}) };
     } catch (error) {
       throw handleApiError(error);
     }
@@ -280,6 +289,22 @@ export const ordersService = {
    * @returns Updated order with status PICKED_UP
    * @throws PickupErrorResponse for CODE_EXPIRED | PICKUP_ALREADY_DONE | PICKUP_LOCKED
    */
+  async retryPayment(orderId: string, signal?: AbortSignal): Promise<{ payUrl: string }> {
+    try {
+      const response = await apiClient.post<BackendApiResponse<{ payUrl: string }>>(
+        `/orders/${orderId}/retry-payment`,
+        {},
+        {
+          ...(signal !== undefined && { signal }),
+        },
+      );
+
+      return unwrapBackendResponse(response, 'retry payment');
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
   async confirmPickup(
     orderId: string,
     dto: ConfirmPickupDto,

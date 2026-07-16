@@ -204,7 +204,9 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
               styles.button,
               (isLoading || phoneNumber.length < PHONE_FULL_LENGTH) && styles.buttonDisabled,
             ]}
-            onPress={() => void handleSavePhone()}
+            onPress={() => {
+              void handleSavePhone();
+            }}
             disabled={isLoading || phoneNumber.length < PHONE_FULL_LENGTH}
           >
             {isLoading ? (

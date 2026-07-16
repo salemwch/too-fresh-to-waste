@@ -20,6 +20,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
 
+import { KonnectPaymentSheet } from '../components/KonnectPaymentSheet';
 import { ReviewModal } from '../components/ReviewModal';
 
 import { Text, Button, Card, Badge, Icon } from '@/design-system/components/atoms';
@@ -30,6 +31,7 @@ import { analytics } from '@/utils/analytics';
 import { mmkv } from '@/utils/mmkvStorage';
 
 import { SkeletonOrderDetailsScreen } from '../components/SkeletonOrderDetailsScreen';
+import { usePaymentPolling } from '../hooks/usePaymentPolling';
 import { ordersService } from '../services/ordersService';
 import { OrderStatus, isPickupError } from '../types/order.types';
 
@@ -69,6 +71,8 @@ const STATUS_BADGE_MAP: Record<
   [OrderStatus.CONFIRMED]: { variant: 'info', labelKey: 'orders.statusConfirmed' },
   [OrderStatus.READY_FOR_PICKUP]: { variant: 'success', labelKey: 'orders.statusReady' },
   [OrderStatus.PICKED_UP]: { variant: 'success', labelKey: 'orders.statusPickedUp' },
+  [OrderStatus.COMPLETED]: { variant: 'success', labelKey: 'orders.statusCompleted' },
+  [OrderStatus.PENDING_PAYMENT]: { variant: 'warning', labelKey: 'orders.statusPendingPayment' },
   [OrderStatus.CANCELLED]: { variant: 'error', labelKey: 'orders.statusCancelled' },
   [OrderStatus.EXPIRED]: { variant: 'error', labelKey: 'orders.statusExpired' },
   [OrderStatus.REFUNDED]: { variant: 'neutral', labelKey: 'orders.statusRefunded' },
@@ -445,6 +449,28 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
     refetch: refetchOrder,
   } = useQueryWithFocus<Order>(queryKey, () => ordersService.getOrderById(orderId));
 
+  // Poll for the webhook-driven payment status flip (see hook for full behaviour).
+  const { isPaymentExpired } = usePaymentPolling(order, refetchOrder);
+
+  // ---------------------------------------------------------------------------
+  // Retry payment
+  // ---------------------------------------------------------------------------
+
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+  const [retryPayUrl, setRetryPayUrl] = useState<string | null>(null);
+
+  const handleRetryPayment = useCallback(async () => {
+    setIsRetryingPayment(true);
+    try {
+      const { payUrl } = await ordersService.retryPayment(orderId);
+      setRetryPayUrl(payUrl);
+    } catch {
+      // Error is handled by the service layer
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  }, [orderId]);
+
   // ---------------------------------------------------------------------------
   // Confirm-pickup mutation
   // ---------------------------------------------------------------------------
@@ -537,7 +563,8 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   // Derived state
   // ---------------------------------------------------------------------------
 
-  const isPickedUp = order?.status === OrderStatus.PICKED_UP;
+  const isPickedUp =
+    order?.status === OrderStatus.PICKED_UP || order?.status === OrderStatus.COMPLETED;
 
   // Time-based expiry check: if expiresAt has passed, the pickup code is no longer valid
   const isOrderExpired = useMemo(() => {
@@ -592,7 +619,9 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
         <Button
           variant='primary'
           size='md'
-          onPress={() => void refetchOrder()}
+          onPress={() => {
+            void refetchOrder();
+          }}
           style={styles.retryButton}
           accessibilityLabel={t('common.retry')}
           accessibilityHint='Attempts to reload the order details'
@@ -661,17 +690,48 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           </Card>
         )}
 
-        {/* Rate your bag — shown for picked-up orders that haven't been reviewed */}
-        {order.status === OrderStatus.PICKED_UP && !hasReviewed && (
-          <Button
-            variant='outline'
-            size='md'
-            onPress={() => setReviewModalVisible(true)}
-            style={styles.goBackButton}
-          >
-            ⭐ {t('orders.rateBag')}
-          </Button>
+        {/* Pending payment — retry button, or expired notice once the window closes */}
+        {order.status === OrderStatus.PENDING_PAYMENT && (
+          <Card style={styles.card}>
+            <View style={styles.successRow}>
+              <Icon
+                name={isPaymentExpired ? 'close-circle-outline' : 'time-outline'}
+                family='Ionicons'
+                size={28}
+                color={isPaymentExpired ? '#EF4444' : '#F59E0B'}
+              />
+              <Text variant='body' size='md' weight='semibold' style={styles.pendingPaymentText}>
+                {isPaymentExpired ? t('orders.paymentWindowExpired') : t('orders.awaitingPayment')}
+              </Text>
+            </View>
+            {!isPaymentExpired && (
+              <Button
+                variant='primary'
+                size='md'
+                onPress={() => {
+                  void handleRetryPayment();
+                }}
+                loading={isRetryingPayment}
+                style={styles.payNowButton}
+              >
+                {t('orders.payNow')}
+              </Button>
+            )}
+          </Card>
         )}
+
+        {/* Rate your bag — shown for picked-up or completed orders that haven't been reviewed */}
+        {(order.status === OrderStatus.PICKED_UP || order.status === OrderStatus.COMPLETED) &&
+          !hasReviewed && (
+            <Button
+              variant='outline'
+              size='md'
+              onPress={() => setReviewModalVisible(true)}
+              style={styles.goBackButton}
+            >
+              ⭐ {t('orders.rateBag')}
+            </Button>
+          )}
 
         {/* Go back button */}
         <Button
@@ -695,6 +755,21 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           currency={order.pricing.currency}
         />
       )}
+
+      {/* Konnect payment WebView for retry-payment */}
+      {retryPayUrl ? (
+        <KonnectPaymentSheet
+          visible={!!retryPayUrl}
+          payUrl={retryPayUrl}
+          onPaymentFailed={() => {
+            setRetryPayUrl(null);
+          }}
+          onDismiss={() => {
+            setRetryPayUrl(null);
+            void refetchOrder();
+          }}
+        />
+      ) : null}
 
       {/* Review bottom sheet */}
       <ReviewModal
@@ -850,6 +925,13 @@ const styles = StyleSheet.create({
   },
   successText: {
     color: SUCCESS_COLOR,
+  },
+  pendingPaymentText: {
+    marginStart: 8,
+    flex: 1,
+  },
+  payNowButton: {
+    marginTop: 12,
   },
 
   // Expired state
