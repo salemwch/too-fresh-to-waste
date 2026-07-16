@@ -1,7 +1,15 @@
 name: OWASP ZAP Security Scan
 
-# Triggered automatically after a successful backend CI/CD run on develop,
-# OR manually against any environment.
+# Dynamic application security testing (DAST).
+#
+# Triggers:
+#   - Automatically after a successful backend CI/CD run on develop OR master
+#   - Weekly on a schedule (baseline, regardless of deploys)
+#   - Manually against any environment (workflow_dispatch)
+#
+# Targets (auto / scheduled runs):
+#   - api  — the NestJS API   (vars.API_STAGING_URL, falls back to the staging default)
+#   - web  — the Next.js app  (vars.WEB_STAGING_URL — the web leg is skipped when unset)
 #
 # Uses ZAP Baseline scan (passive rules only — no data modification):
 #   - Spiders the target and checks all discovered endpoints
@@ -14,27 +22,29 @@ name: OWASP ZAP Security Scan
 
 on:
   workflow_run:
-    workflows: ['Backend CI/CD Pipeline']
+    workflows: ["Backend CI/CD Pipeline"]
     types: [completed]
-    branches: [develop]
+    branches: [develop, master]
+  schedule:
+    - cron: "0 4 * * 1" # Weekly DAST baseline — Mondays 04:00 UTC
   workflow_dispatch:
     inputs:
       target_url:
-        description: 'Target URL to scan (default: staging)'
+        description: "Target URL to scan (default: staging API)"
         required: false
-        default: 'https://api-staging.foodwaste.com'
+        default: "https://api-staging.foodwaste.com"
       scan_type:
-        description: 'Scan type: baseline (passive) or full (active)'
+        description: "Scan type: baseline (passive) or full (active)"
         required: false
-        default: 'baseline'
+        default: "baseline"
         type: choice
         options:
           - baseline
           - full
       environment:
-        description: 'Environment label for the report'
+        description: "Environment label for the report"
         required: false
-        default: 'staging'
+        default: "staging"
 
 permissions:
   contents: read
@@ -42,15 +52,23 @@ permissions:
   issues: write
 
 jobs:
-  zap-baseline:
-    name: ZAP Baseline Scan (Passive)
+  zap:
+    name: ZAP Scan (${{ matrix.app }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Only run on successful backend pipeline completions
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [api, web]
+    # Manual runs scan the single provided URL on the api leg only. Auto and
+    # scheduled runs scan the API and — when WEB_STAGING_URL is set — the web app.
     if: >
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' && matrix.app == 'api') ||
+      (github.event_name == 'schedule' &&
+        (matrix.app == 'api' || vars.WEB_STAGING_URL != '')) ||
       (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success')
+        github.event.workflow_run.conclusion == 'success' &&
+        (matrix.app == 'api' || vars.WEB_STAGING_URL != ''))
 
     steps:
       - name: Checkout code
@@ -60,29 +78,39 @@ jobs:
         id: target
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "url=${{ github.event.inputs.target_url }}" >> $GITHUB_OUTPUT
-            echo "env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-            echo "type=${{ github.event.inputs.scan_type }}" >> $GITHUB_OUTPUT
+            URL="${{ github.event.inputs.target_url }}"
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "health=$URL" >> "$GITHUB_OUTPUT"
+            echo "env=${{ github.event.inputs.environment }}" >> "$GITHUB_OUTPUT"
+            echo "type=${{ github.event.inputs.scan_type }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ matrix.app }}" == "web" ]; then
+            URL="${{ vars.WEB_STAGING_URL }}"
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "health=$URL" >> "$GITHUB_OUTPUT"
+            echo "env=staging-web" >> "$GITHUB_OUTPUT"
+            echo "type=baseline" >> "$GITHUB_OUTPUT"
           else
-            echo "url=https://api-staging.foodwaste.com" >> $GITHUB_OUTPUT
-            echo "env=staging" >> $GITHUB_OUTPUT
-            echo "type=baseline" >> $GITHUB_OUTPUT
+            URL="${{ vars.API_STAGING_URL || 'https://api-staging.foodwaste.com' }}"
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "health=$URL/health/liveness" >> "$GITHUB_OUTPUT"
+            echo "env=staging-api" >> "$GITHUB_OUTPUT"
+            echo "type=baseline" >> "$GITHUB_OUTPUT"
           fi
 
-      # Wait for the staging deployment to be fully ready before scanning.
-      # The workflow_run event fires when the CI pipeline completes, but the
-      # container may still be starting up.
-      - name: Wait for staging to be ready
-        if: github.event_name == 'workflow_run'
+      # Wait for the deployment to be ready before scanning. The workflow_run
+      # event fires when the CI pipeline completes, but the container may still
+      # be starting up.
+      - name: Wait for target to be ready
+        if: github.event_name == 'workflow_run' || github.event_name == 'schedule'
         run: |
-          echo "→ Waiting for staging API to be ready..."
+          echo "→ Waiting for ${{ steps.target.outputs.url }} to be ready..."
           timeout 120 bash -c \
-            "until curl -sf https://api-staging.foodwaste.com/health/liveness \
-                --max-time 5 --silent; do
+            "until curl -sf '${{ steps.target.outputs.health }}' \
+                --max-time 5 --silent -o /dev/null; do
               echo '   not ready yet, retrying in 5s...'
               sleep 5
             done"
-          echo "✓ Staging is ready"
+          echo "✓ Target is ready"
 
       # ── ZAP Baseline Scan (passive — always safe) ─────────────────────────
       - name: ZAP Baseline Scan
@@ -139,11 +167,12 @@ jobs:
       # Create a GitHub issue for HIGH/CRITICAL findings on scheduled / auto runs.
       # Manual runs just show the report artifact — no issue spam.
       - name: Create issue for HIGH findings
-        if: failure() && github.event_name == 'workflow_run'
+        if: failure() && (github.event_name == 'workflow_run' || github.event_name == 'schedule')
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
+            const target = '${{ steps.target.outputs.env }}';
             let summary = 'See the [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for the full ZAP report.';
 
             try {
@@ -159,10 +188,10 @@ jobs:
             github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: '🔴 ZAP found HIGH/CRITICAL vulnerabilities on staging',
-              body: `## OWASP ZAP Security Scan — Staging
+              title: `🔴 ZAP found HIGH/CRITICAL vulnerabilities on ${target}`,
+              body: `## OWASP ZAP Security Scan — ${target}
 
-            ZAP baseline scan detected HIGH or CRITICAL findings on staging after the latest deploy.
+            ZAP baseline scan detected HIGH or CRITICAL findings on ${target} after the latest deploy.
 
             ### Findings (top 10)
             ${summary}

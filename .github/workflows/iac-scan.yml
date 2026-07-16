@@ -1,0 +1,83 @@
+name: IaC & Config Security Scan
+
+# Static analysis of infrastructure-as-code and CI configuration that the
+# application-code scanners (CodeQL/Semgrep) don't cover:
+#   - Dockerfile best-practices + security (hadolint)
+#   - Dockerfile / docker-compose / IaC misconfigurations (Trivy config)
+#   - GitHub Actions workflow correctness & injection risks (actionlint)
+#
+# Findings are uploaded as SARIF to the GitHub Security → Code scanning tab.
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - "**/Dockerfile"
+      - "**/Dockerfile.*"
+      - "**/docker-compose*.yml"
+      - ".github/workflows/**"
+      - ".github/workflows/iac-scan.yml"
+  pull_request:
+    branches: [main, master, develop]
+    paths:
+      - "**/Dockerfile"
+      - "**/Dockerfile.*"
+      - "**/docker-compose*.yml"
+      - ".github/workflows/**"
+  schedule:
+    - cron: "0 3 * * 2" # Weekly — Tuesdays 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  iac-security:
+    name: IaC & Config Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Dockerfile best-practices + security ──────────────────────────────
+      - name: Hadolint (backend Dockerfile)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: apps/food-waste-backend/Dockerfile
+          format: sarif
+          output-file: hadolint.sarif
+          no-fail: true # report findings, don't block the build on style rules
+
+      - name: Upload Hadolint SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint.sarif
+          category: hadolint
+        continue-on-error: true
+
+      # ── IaC / Dockerfile / compose misconfiguration scan ──────────────────
+      - name: Trivy config scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: .
+          format: sarif
+          output: trivy-config.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+          exit-code: "0" # surface findings in the Security tab, don't fail the run
+
+      - name: Upload Trivy config SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-config.sarif
+          category: trivy-config
+        continue-on-error: true
+
+      # ── GitHub Actions workflow correctness & injection risks ─────────────
+      - name: Lint GitHub Actions workflows (actionlint)
+        uses: raven-actions/actionlint@v2
+        with:
+          fail-on-error: false
