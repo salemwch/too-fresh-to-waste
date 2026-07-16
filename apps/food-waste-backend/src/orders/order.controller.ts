@@ -184,13 +184,17 @@ export class OrdersController {
       payUrl = payment.payUrl;
     }
 
+    const serialized = JSON.parse(
+      JSON.stringify(
+        plainToInstance(ConsumerOrderResponseDto, toPlain(order), {
+          excludeExtraneousValues: true,
+        }),
+      ),
+    ) as Record<string, unknown>;
+
     return {
-      statusCode: HttpStatus.CREATED,
       message: 'Order created successfully',
-      data: plainToInstance(ConsumerOrderResponseDto, toPlain(order), {
-        excludeExtraneousValues: true,
-      }),
-      ...(payUrl ? { payUrl } : {}),
+      data: payUrl ? { ...serialized, payUrl } : serialized,
     };
   }
 
