@@ -1597,6 +1597,8 @@
       "statusReady": "Prête au retrait",
       "statusPickedUp": "Retirée",
       "statusCancelled": "Annulée",
+      "statusCompleted": "Terminée",
+      "statusPendingPayment": "En attente de paiement",
       "statusExpired": "Expirée",
       "cancelOrder": "Annuler la commande",
       "cancelConfirmTitle": "Annuler cette commande ?",

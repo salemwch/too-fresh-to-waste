@@ -48,7 +48,7 @@ function sanitizeOrderError(raw: string): string {
 interface UseCreateOrderState {
   isLoading: boolean;
   error: string | null;
-  order: Order | null;
+  order: (Order & { payUrl?: string }) | null;
 }
 
 /**
@@ -64,7 +64,7 @@ interface PhoneVerificationModalState {
  * Hook options
  */
 interface UseCreateOrderOptions {
-  onSuccess?: (order: Order) => void | Promise<void>;
+  onSuccess?: (order: Order & { payUrl?: string }) => void | Promise<void>;
   onError?: (error: Error) => void | Promise<void>;
 }
 
@@ -72,12 +72,12 @@ interface UseCreateOrderOptions {
  * Hook return type
  */
 interface UseCreateOrderReturn extends UseCreateOrderState {
-  createOrder: (orderData: CreateOrderDto) => Promise<Order | null>;
+  createOrder: (orderData: CreateOrderDto) => Promise<(Order & { payUrl?: string }) | null>;
   resetError: () => void;
   phoneVerificationModal: PhoneVerificationModalState;
   openPhoneSetupModal: () => void;
   closePhoneVerificationModal: () => void;
-  retryOrderCreation: () => Promise<Order | null>;
+  retryOrderCreation: () => Promise<(Order & { payUrl?: string }) | null>;
 }
 
 /**
@@ -165,7 +165,7 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    * Core order creation logic (shared by initial call and retry)
    */
   const executeOrderCreation = useCallback(
-    async (orderData: CreateOrderDto): Promise<Order | null> => {
+    async (orderData: CreateOrderDto): Promise<(Order & { payUrl?: string }) | null> => {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
       try {
@@ -240,7 +240,8 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    * ✅ BEST PRACTICE: Optimistic call that handles phone verification gracefully
    */
   const createOrder = useCallback(
-    async (orderData: CreateOrderDto): Promise<Order | null> => executeOrderCreation(orderData),
+    async (orderData: CreateOrderDto): Promise<(Order & { payUrl?: string }) | null> =>
+      executeOrderCreation(orderData),
     [executeOrderCreation],
   );
 
@@ -248,7 +249,9 @@ export const useCreateOrder = (options?: UseCreateOrderOptions): UseCreateOrderR
    * Retry order creation after phone verification
    * ✅ CRITICAL: Called automatically by PhoneVerificationModal after successful verification
    */
-  const retryOrderCreation = useCallback(async (): Promise<Order | null> => {
+  const retryOrderCreation = useCallback(async (): Promise<
+    (Order & { payUrl?: string }) | null
+  > => {
     if (!pendingOrderDataRef.current) {
       Logger.warn('[useCreateOrder] No pending order data to retry');
       return null;

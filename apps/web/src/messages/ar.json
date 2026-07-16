@@ -1584,6 +1584,8 @@
       "statusReady": "جاهز للاستلام",
       "statusPickedUp": "تم الاستلام",
       "statusCancelled": "ملغى",
+      "statusCompleted": "مكتمل",
+      "statusPendingPayment": "في انتظار الدفع",
       "statusExpired": "منتهي",
       "cancelOrder": "إلغاء الطلب",
       "cancelConfirmTitle": "إلغاء هذا الطلب؟",

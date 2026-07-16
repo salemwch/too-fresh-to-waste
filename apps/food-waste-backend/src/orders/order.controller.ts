@@ -22,6 +22,8 @@ import {
   ExceptionFilter,
   ArgumentsHost,
   ConflictException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -44,6 +46,7 @@ import { AppVersionGuard } from '../common/guards/app-version.guard';
 import { QueryComplexityGuard, QueryComplexity } from '../common/guards/query-complexity.guard';
 import { AppLoggerService } from '../common/services/logger.service';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
+import { KonnectOrderService } from '../payments/services/konnect-order.service';
 
 import {
   CreateOrderDto,
@@ -143,6 +146,8 @@ export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
     private readonly logger: AppLoggerService,
+    @Inject(forwardRef(() => KonnectOrderService))
+    private readonly konnectOrderService: KonnectOrderService,
   ) {}
 
   @ApiOperation({
@@ -164,12 +169,28 @@ export class OrdersController {
   async create(@Body() createOrderDto: CreateOrderDto, @Request() req: AuthenticatedRequest) {
     const order = await this.ordersService.create(createOrderDto, req.user.userId);
 
+    let payUrl: string | undefined;
+    if (createOrderDto.paymentMethod === 'online') {
+      const customer = order.customerId as {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+      };
+      const payment = await this.konnectOrderService.initOrderPayment(order, {
+        firstName: customer.firstName ?? '',
+        lastName: customer.lastName ?? '',
+        email: customer.email ?? req.user.email,
+      });
+      payUrl = payment.payUrl;
+    }
+
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Order created successfully',
       data: plainToInstance(ConsumerOrderResponseDto, toPlain(order), {
         excludeExtraneousValues: true,
       }),
+      ...(payUrl ? { payUrl } : {}),
     };
   }
 
@@ -524,6 +545,40 @@ export class OrdersController {
       message: 'Pending orders retrieved successfully',
       data: result.orders,
       meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Retry payment for a pending-payment order',
+    description:
+      'Creates a new Konnect payment session or returns the existing active URL. Rate-limited to 3 requests per 5 minutes.',
+  })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the order' })
+  @ApiResponse({ status: 200, description: 'Payment URL returned' })
+  @ApiResponse({ status: 400, description: 'Order is not awaiting payment' })
+  @ApiResponse({ status: 429, description: 'Too many retry attempts' })
+  @Post(':id/retry-payment')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.CONSUMER)
+  @Throttle({ default: { limit: 3, ttl: 300000 } })
+  async retryPayment(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    const order = await this.ordersService.findById(id, req.user.userId, req.user.role);
+    const customer = order.customerId as {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+    };
+
+    const { payUrl } = await this.konnectOrderService.createRetrySession(order, {
+      firstName: customer.firstName ?? '',
+      lastName: customer.lastName ?? '',
+      email: customer.email ?? req.user.email,
+    });
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Payment session ready',
+      data: { payUrl },
     };
   }
 

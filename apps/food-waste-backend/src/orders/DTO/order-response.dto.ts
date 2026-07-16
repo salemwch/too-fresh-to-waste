@@ -132,6 +132,18 @@ export class ConsumerOrderResponseDto {
   @Expose() isRated!: boolean;
   @Expose() createdAt!: string;
   @Expose() updatedAt!: string;
+
+  @Expose() paymentProvider!: string;
+  @Expose() paymentExpiresAt!: string;
+  @Expose() paymentSession!: {
+    provider: string;
+    reference: string;
+    payUrl: string;
+    expiresAt: string;
+  };
+  @Expose() completedAt!: string;
+  @Expose() pendingPaymentAt!: string;
+  @Expose() deliveryMode!: string;
 }
 
 export class MerchantOrderResponseDto extends ConsumerOrderResponseDto {

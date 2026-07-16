@@ -9,7 +9,7 @@ export type PaymentDocument = Payment &
 export enum PaymentStatus {
   PENDING = 'pending',
   PROCESSING = 'processing',
-  HELD = 'held', // Money held in platform escrow after SMT success
+  HELD = 'held',
   EARNED = 'earned', // Merchant entitled to payout after pickup confirmation
   COMPLETED = 'completed', // Legacy - kept for backward compatibility
   FAILED = 'failed',
@@ -68,7 +68,7 @@ export interface CardInfo {
   isDebitCard?: boolean;
 }
 
-export interface SMTResponse {
+export interface GatewayResponse {
   transactionId: string;
   merchantTransactionId: string;
   status: string;
@@ -149,7 +149,7 @@ export class Payment {
       signature: String,
     },
   })
-  smtResponse!: SMTResponse;
+  smtResponse!: GatewayResponse;
 
   @Prop({ type: Object })
   metadata?: PaymentMetadata;

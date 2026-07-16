@@ -95,6 +95,18 @@ const STATUS_META: Record<
     text: 'text-green-700',
     icon: <CheckCircle2 className='h-3 w-3' />,
   },
+  completed: {
+    label: 'Completed',
+    bg: 'bg-green-100',
+    text: 'text-green-700',
+    icon: <CheckCircle2 className='h-3 w-3' />,
+  },
+  pending_payment: {
+    label: 'Awaiting Payment',
+    bg: 'bg-amber-100',
+    text: 'text-amber-700',
+    icon: <Clock className='h-3 w-3' />,
+  },
   cancelled: {
     label: 'Cancelled',
     bg: 'bg-red-100',
@@ -208,7 +220,7 @@ function PickupCodeBlock({ code, status }: { code: string | undefined; status: O
 
       {/* Status indicator */}
       <div className='mt-4'>
-        {status === 'picked_up' ? (
+        {status === 'picked_up' || status === 'completed' ? (
           <div className='flex items-center justify-center gap-2 rounded-lg bg-green-50 border border-green-200 py-2.5 px-4'>
             <CheckCircle2 className='h-4 w-4 text-green-600 shrink-0' />
             <span className='text-xs font-semibold text-green-700'>Picked up successfully</span>
@@ -345,7 +357,7 @@ function OrderDetailPanel({ orderId }: OrderDetailPanelProps) {
           </div>
           <div className='flex items-center gap-2'>
             <StatusBadge status={order.status} />
-            {isActive && order.status !== 'picked_up' && (
+            {isActive && order.status !== 'picked_up' && order.status !== 'completed' && (
               <button
                 onClick={() => setShowCancelDialog(true)}
                 className='h-7 px-2.5 rounded-lg bg-destructive/10 text-destructive text-[11px] font-semibold hover:bg-destructive/20 transition-colors flex items-center gap-1'
@@ -364,11 +376,13 @@ function OrderDetailPanel({ orderId }: OrderDetailPanelProps) {
         {isActive && <PickupCodeBlock code={pickupCode} status={order.status} />}
 
         {/* Picked-up confirmation banner */}
-        {order.status === 'picked_up' && (
+        {(order.status === 'picked_up' || order.status === 'completed') && (
           <div className='flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-3'>
             <CheckCircle2 className='h-4 w-4 text-green-600 shrink-0' />
             <span className='text-xs font-semibold text-green-700'>
-              Order picked up successfully
+              {order.status === 'completed'
+                ? 'Order completed successfully'
+                : 'Order picked up successfully'}
             </span>
           </div>
         )}

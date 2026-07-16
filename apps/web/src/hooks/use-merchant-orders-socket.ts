@@ -15,10 +15,12 @@ import type { MerchantOrder } from '@/types/dashboard';
 // Must match OrderStatus in src/types/dashboard.ts
 const orderStatusValues = [
   'pending',
+  'pending_payment',
   'reserved',
   'confirmed',
   'ready_for_pickup',
   'picked_up',
+  'completed',
   'cancelled',
   'expired',
   'refunded',

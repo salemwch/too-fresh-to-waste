@@ -3,38 +3,27 @@ import { Cron } from '@nestjs/schedule';
 
 import { PayoutBatchSummary, PayoutResult } from '../dto/create-ledger.dto';
 import { PayoutService } from '../services/payout.service';
+import { WalletPayoutService } from '../services/wallet-payout.service';
 
 /**
  * PayoutTask
  *
- * Monthly payout cron job that processes all pending merchant settlements.
- * Runs on the first Monday of each month at 8:00 AM Tunisia time.
- *
- * Cron expression breakdown:
- * - '0 7 1-7 * 1' = At 07:00 UTC on day 1-7 of month, only if Monday
- * - Note: UTC offset for Tunisia is dynamically determined (DST-aware)
- * - This ensures it runs on the FIRST Monday of each month
+ * Weekly payout cron job that processes all pending merchant settlements.
+ * Runs every Monday at 8:00 AM Africa/Tunis.
  */
 @Injectable()
 export class PayoutTask {
   private readonly logger = new Logger(PayoutTask.name);
 
-  constructor(private readonly payoutService: PayoutService) {}
+  constructor(
+    private readonly payoutService: PayoutService,
+    private readonly walletPayoutService: WalletPayoutService,
+  ) {}
 
-  /**
-   * Monthly payout processing
-   * Runs on first Monday of each month at 8:00 AM Tunisia time
-   *
-   * Process:
-   * 1. Aggregate all PENDING_SETTLEMENT entries by merchant
-   * 2. For each merchant, execute bank transfer (stubbed)
-   * 3. Update ledger entries to PAID_OUT
-   * 4. Log summary for auditing
-   */
-  @Cron('0 7 1-7 * 1') // First Monday of month at 7:00 UTC = 8:00 Tunisia
-  async processMonthlyPayouts(): Promise<PayoutBatchSummary> {
+  @Cron('0 8 * * 1', { timeZone: 'Africa/Tunis' })
+  async processWeeklyPayouts(): Promise<PayoutBatchSummary> {
     const batchId = `BATCH-${new Date().toISOString().slice(0, 7)}-${Date.now()}`;
-    this.logger.log(`Starting monthly payout batch: ${batchId}`);
+    this.logger.log(`Starting weekly payout batch: ${batchId}`);
 
     const startTime = Date.now();
 
@@ -100,6 +89,18 @@ export class PayoutTask {
         }
       }
 
+      // Wallet-based payouts for online-paid orders
+      try {
+        const walletResults = await this.walletPayoutService.processWeeklyWalletPayouts();
+        const walletSuccess = walletResults.filter(r => r.success).length;
+        const walletTotal = walletResults.reduce((s, r) => s + r.amount, 0);
+        this.logger.log(
+          `Wallet payouts: ${walletSuccess}/${walletResults.length} successful, ${walletTotal} TND`,
+        );
+      } catch (walletError) {
+        this.logger.error(`Wallet payout batch failed: ${(walletError as Error).message}`);
+      }
+
       const duration = Date.now() - startTime;
       const summary: PayoutBatchSummary = {
         batchId,
@@ -119,16 +120,12 @@ export class PayoutTask {
 
       return summary;
     } catch (error) {
-      this.logger.error(`Monthly payout batch ${batchId} failed: ${(error as Error).message}`);
+      this.logger.error(`Weekly payout batch ${batchId} failed: ${(error as Error).message}`);
       throw error;
     }
   }
 
-  /**
-   * Retry failed payouts
-   * Runs daily at 2:00 AM to retry any failed payouts from previous batches
-   */
-  @Cron('0 1 * * *') // Daily at 1:00 UTC = 2:00 Tunisia
+  @Cron('0 2 * * *', { timeZone: 'Africa/Tunis' })
   async retryFailedPayouts(): Promise<void> {
     const batchId = `RETRY-${Date.now()}`;
     this.logger.log(`Starting failed payout retry batch: ${batchId}`);
@@ -149,15 +146,9 @@ export class PayoutTask {
     }
   }
 
-  /**
-   * Manual trigger for payout processing
-   * Can be called from admin endpoints for testing or emergency processing
-   *
-   * @returns Batch summary
-   */
   async triggerManualPayout(): Promise<PayoutBatchSummary> {
     this.logger.log('Manual payout trigger initiated');
-    const result = await this.processMonthlyPayouts();
+    const result = await this.processWeeklyPayouts();
     return result;
   }
 }

@@ -88,10 +88,8 @@ export const envValidationSchema = Joi.object({
     otherwise: Joi.string().optional(),
   }),
 
-  // ── Payment (SMT) ───────────────────────────────────────────────────
+  // ── Payment ─────────────────────────────────────────────────────────
   PAYMENT_ENABLED: Joi.boolean().default(true),
-  SMT_WEBHOOK_SECRET: Joi.string().optional(),
-  SMT_API_SECRET: Joi.string().optional(),
   PAYMENT_ENCRYPTION_KEY: Joi.string().optional(),
 
   // ── Konnect Subscription Payments ──────────────────────────────────
@@ -107,6 +105,17 @@ export const envValidationSchema = Joi.object({
   KONNECT_SUBSCRIPTION_FAIL_URL: Joi.string().default(
     'http://localhost:3001/merchant/subscription/failed',
   ),
+
+  // ── Konnect Order Payments ──────────────────────────────────────────
+  KONNECT_PAYMENT_TIMEOUT_MINUTES: Joi.number().integer().min(5).max(60).default(15),
+  KONNECT_ORDER_WEBHOOK_URL: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().uri({ scheme: 'https' }).required().messages({
+      'any.required': 'KONNECT_ORDER_WEBHOOK_URL is required in production (HTTPS)',
+    }),
+    otherwise: Joi.string().default('http://localhost:3000/api/v1/payments/webhook/konnect'),
+  }),
+  MOBILE_DEEP_LINK: Joi.string().default('toofreshtowaste'),
 
   // ── Privacy ──────────────────────────────────────────────────────────
   PRIVACY_ENCRYPTION_KEY: Joi.when('NODE_ENV', {

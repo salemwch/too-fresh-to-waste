@@ -15,6 +15,7 @@ import { z } from 'zod';
 export const PAYMENT_METHODS = [
   'cash_on_pickup',
   'pay_on_delivery',
+  'online',
   'stripe',
   'paypal',
   'apple_pay',
@@ -25,6 +26,8 @@ export const UPDATABLE_ORDER_STATUSES = [
   'confirmed',
   'ready_for_pickup',
   'picked_up',
+  'completed',
+  'pending_payment',
   'cancelled',
   'expired',
 ] as const;

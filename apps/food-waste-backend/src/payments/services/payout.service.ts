@@ -37,9 +37,9 @@ interface MerchantPayoutStatusStat {
 export class PayoutService {
   private readonly logger = new Logger(PayoutService.name);
 
-  // Revenue split configuration
-  private readonly MERCHANT_SHARE = 0.75; // 75%
-  private readonly PLATFORM_FEE_RATE = 0.25; // 25%
+  // Revenue split: 81% merchant / 19% platform
+  private readonly MERCHANT_SHARE = 0.81;
+  private readonly PLATFORM_FEE_RATE = 0.19;
 
   constructor(
     @InjectModel(MerchantPayoutLedger.name)
@@ -282,7 +282,7 @@ export class PayoutService {
 
     // In production: Call actual banking API
     // Example integration points:
-    // - SMT bank transfer endpoint
+    // - Bank transfer endpoint
     // - SWIFT/IBAN transfer for international
     // - Mobile money APIs
 

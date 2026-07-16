@@ -255,6 +255,41 @@ export class Order {
     approved: boolean | null;
   };
 
+  // =============================================================================
+  // ONLINE PAYMENT FIELDS — Konnect Consumer Payment
+  // =============================================================================
+
+  @Prop({ type: String, enum: ['konnect', 'smt', 'cash'] })
+  paymentProvider?: string;
+
+  @Prop({
+    type: {
+      _id: false,
+      provider: String,
+      reference: String,
+      payUrl: String,
+      expiresAt: Date,
+    },
+  })
+  paymentSession?: {
+    provider: string;
+    reference: string;
+    payUrl: string;
+    expiresAt: Date;
+  };
+
+  @Prop({ type: Date })
+  paymentExpiresAt?: Date;
+
+  @Prop({ type: Number, default: 0 })
+  paymentAttemptSequence?: number;
+
+  @Prop({ type: Date })
+  completedAt?: Date;
+
+  @Prop({ type: Date })
+  pendingPaymentAt?: Date;
+
   // Donation tracking - 1% of order goes to community food relief
   @Prop({ default: 0, min: 0 })
   donationAmount!: number;
@@ -538,6 +573,12 @@ OrderSchema.index({
  */
 OrderSchema.index({ driverId: 1, status: 1, createdAt: -1 });
 
+/**
+ * Payment Expiry Cron Index
+ * - Query pattern: find({ status: 'pending_payment', paymentExpiresAt: { $lte: now } })
+ */
+OrderSchema.index({ status: 1, paymentExpiresAt: 1 });
+
 // Virtual for checking if order is expired
 OrderSchema.virtual('isExpired').get(function () {
   return this.expiresAt && new Date() > this.expiresAt;
@@ -593,6 +634,12 @@ OrderSchema.pre('save', function (next) {
         break;
       case OrderStatus.EXPIRED:
         this.expiredAt = now;
+        break;
+      case OrderStatus.PENDING_PAYMENT:
+        this.pendingPaymentAt = now;
+        break;
+      case OrderStatus.COMPLETED:
+        this.completedAt = now;
         break;
       case OrderStatus.PENDING:
       case OrderStatus.REFUNDED:

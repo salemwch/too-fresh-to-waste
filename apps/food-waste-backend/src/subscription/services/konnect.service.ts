@@ -10,6 +10,14 @@ interface KonnectInitPaymentParams {
   description: string;
 }
 
+export interface KonnectPaymentOverrides {
+  successUrl?: string;
+  failUrl?: string;
+  webhook?: string;
+  lifespan?: number;
+  addPaymentFeesToAmount?: boolean;
+}
+
 interface KonnectPaymentResponse {
   payUrl: string;
   paymentRef: string;
@@ -27,6 +35,20 @@ interface KonnectPaymentDetails {
       amount: number;
     }>;
   };
+}
+
+export function toMillimes(tndAmount: number): number {
+  if (!Number.isFinite(tndAmount) || tndAmount < 0) {
+    throw new Error(`Invalid TND amount: ${tndAmount}`);
+  }
+  return Math.round(tndAmount * 1000);
+}
+
+export function fromMillimes(millimes: number): number {
+  if (!Number.isInteger(millimes) || millimes < 0) {
+    throw new Error(`Invalid millimes amount: ${millimes}`);
+  }
+  return millimes / 1000;
 }
 
 @Injectable()
@@ -68,7 +90,10 @@ export class KonnectService implements OnModuleInit {
     return Boolean(this.apiKey && this.walletId);
   }
 
-  async initPayment(params: KonnectInitPaymentParams): Promise<KonnectPaymentResponse> {
+  async initPayment(
+    params: KonnectInitPaymentParams,
+    overrides?: KonnectPaymentOverrides,
+  ): Promise<KonnectPaymentResponse> {
     if (!this.isConfigured()) {
       throw new ServiceUnavailableException(
         'Payment service is not configured. Please contact support.',
@@ -82,20 +107,22 @@ export class KonnectService implements OnModuleInit {
       type: 'immediate',
       description: params.description,
       acceptedPaymentMethods: ['bank_card', 'e-DINAR'],
-      lifespan: 30,
+      lifespan: overrides?.lifespan ?? 30,
       checkoutForm: true,
-      addPaymentFeesToAmount: true,
+      addPaymentFeesToAmount: overrides?.addPaymentFeesToAmount ?? true,
       firstName: params.firstName,
       lastName: params.lastName,
       email: params.email,
       orderId: params.orderId,
       silentWebhook: true,
-      webhook: this.configService.get<string>(
-        'KONNECT_WEBHOOK_URL',
-        'http://localhost:3000/api/v1/subscriptions/webhook/konnect',
-      ),
-      successUrl: this.successUrl,
-      failUrl: this.failUrl,
+      webhook:
+        overrides?.webhook ??
+        this.configService.get<string>(
+          'KONNECT_WEBHOOK_URL',
+          'http://localhost:3000/api/v1/subscriptions/webhook/konnect',
+        ),
+      successUrl: overrides?.successUrl ?? this.successUrl,
+      failUrl: overrides?.failUrl ?? this.failUrl,
       theme: 'light',
     };
 

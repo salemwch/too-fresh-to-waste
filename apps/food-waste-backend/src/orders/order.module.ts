@@ -9,6 +9,7 @@ import { Establishment, EstablishmentSchema } from '../establishments/schemas/es
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { PaymentModule } from '../payments/payments.module';
+import { PaymentAttempt, PaymentAttemptSchema } from '../payments/schemas/payment-attempt.schema';
 import { Payment, PaymentSchema } from '../payments/schemas/payment.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { WebSocketModule } from '../websocket/websocket.module';
@@ -34,6 +35,7 @@ import { OrderExpiryTask } from './tasks/order-expiry.task';
       { name: Establishment.name, schema: EstablishmentSchema },
       { name: User.name, schema: UserSchema },
       { name: Payment.name, schema: PaymentSchema },
+      { name: PaymentAttempt.name, schema: PaymentAttemptSchema },
     ]),
   ],
   controllers: [OrdersController],

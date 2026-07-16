@@ -371,9 +371,14 @@
     "statusConfirmed": "مؤكد",
     "statusReady": "جاهز",
     "statusPickedUp": "تم الاستلام",
+    "statusCompleted": "مكتمل",
+    "statusPendingPayment": "في انتظار الدفع",
     "statusCancelled": "ملغى",
     "statusExpired": "منتهي الصلاحية",
     "statusRefunded": "مُسترد",
+    "awaitingPayment": "طلبك في انتظار الدفع. أكمل الدفع لتأكيد حجزك.",
+    "paymentWindowExpired": "انتهت مهلة الدفع لهذا الطلب. يرجى إنشاء طلب جديد.",
+    "payNow": "ادفع الآن",
     "order": "الطلب",
     "pickupWindowEnded": "انتهى وقت الاستلام.",
     "pickupCodeHintModal": "أدخل رمز الاستلام المكوّن من 6 أرقام من التاجر لكسب <accent>نقاط</accent>.",
@@ -405,6 +410,11 @@
     "orderFailed": "تعذّر إنشاء الطلب. يرجى المحاولة مرة أخرى.",
     "soon": "قريباً",
     "placingOrder": "جاري تقديم طلبك..."
+  },
+  "payment": {
+    "securePayment": "دفع آمن",
+    "loadingPayment": "جاري تحميل صفحة الدفع...",
+    "paymentFailed": "لم يكتمل الدفع. يمكنك المحاولة مرة أخرى من تفاصيل طلبك."
   },
   "profile": {
     "editProfile": "تعديل الملف الشخصي",

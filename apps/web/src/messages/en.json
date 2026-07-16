@@ -1612,6 +1612,8 @@
       "statusReady": "Ready for Pickup",
       "statusPickedUp": "Picked Up",
       "statusCancelled": "Cancelled",
+      "statusCompleted": "Completed",
+      "statusPendingPayment": "Awaiting Payment",
       "statusExpired": "Expired",
       "cancelOrder": "Cancel Order",
       "cancelConfirmTitle": "Cancel this order?",

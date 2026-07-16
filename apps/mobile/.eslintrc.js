@@ -15,6 +15,10 @@ module.exports = {
       'error',
       { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
     ],
+    // `void promise;` is the sanctioned marker for intentional fire-and-forget
+    // calls (required to satisfy no-floating-promises). Allow it in statement
+    // position while still flagging `void` misuse inside expressions.
+    'no-void': ['warn', { allowAsStatement: true }],
     // RN-specific accessibility rules
     'react-native-a11y/has-accessibility-props': 'error',
     'react-native-a11y/has-valid-accessibility-role': 'error',

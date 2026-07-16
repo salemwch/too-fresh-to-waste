@@ -208,7 +208,7 @@ export class LoyaltyService {
       {
         $match: {
           customerId: new Types.ObjectId(userId),
-          status: OrderStatus.PICKED_UP,
+          status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
         },
       },
       { $unwind: '$items' },

@@ -580,7 +580,9 @@ export class AnalyticsService {
             _id: null,
             totalOrders: { $sum: 1 },
             completedOrders: {
-              $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
+              $sum: {
+                $cond: [{ $in: ['$status', ['picked_up', 'completed', 'delivered']] }, 1, 0],
+              },
             },
           },
         },

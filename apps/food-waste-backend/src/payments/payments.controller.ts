@@ -11,11 +11,8 @@ import {
   HttpCode,
   HttpStatus,
   ValidationPipe,
-  BadRequestException,
-  Headers,
   Logger,
   Res,
-  RawBodyRequest,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -24,8 +21,6 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
-  ApiBody,
-  ApiHeader,
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -33,69 +28,24 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AuthenticatedRequest } from 'src/common/decorators/get-user.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { AppVersionGuard } from 'src/common/guards/app-version.guard';
 
-import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PaymentQueryDto } from './dto/payment-query.dto';
-import { ProcessRefundDto } from './dto/proccess-refund.dto';
-import { SMTWebhookPayloadDto } from './dto/webhook-payload.dto';
 import { PaymentService } from './payments.service';
+import { KonnectOrderService } from './services/konnect-order.service';
 
-import type { Request as ExpressRequest, Response } from 'express';
+import type { Response } from 'express';
 
 @ApiTags('Payments')
 @ApiBearerAuth('JWT-auth')
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
 export class PaymentController {
-  private readonly logger = new Logger(Controller.name);
+  private readonly logger = new Logger(PaymentController.name);
 
-  constructor(private readonly paymentService: PaymentService) {}
-
-  @ApiOperation({
-    summary: 'Create a payment',
-    description: 'Initiate a payment for an order using SMT Tunisia payment gateway',
-  })
-  @ApiBody({
-    type: CreatePaymentDto,
-    description: 'Payment details including order ID and payment method',
-  })
-  @ApiResponse({ status: 201, description: 'Payment initiated successfully with redirect URL' })
-  @ApiResponse({ status: 400, description: 'Invalid payment data or order not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Consumer access required' })
-  @Post()
-  @UseGuards(AppVersionGuard, JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.CONSUMER)
-  @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body() createPaymentDto: CreatePaymentDto,
-    @Request() req: AuthenticatedRequest,
-    @Res() res: Response,
-  ) {
-    try {
-      const payment = await this.paymentService.createPayment(createPaymentDto, req.user.userId);
-
-      return res.status(HttpStatus.CREATED).json({
-        statusCode: HttpStatus.CREATED,
-        message: 'Payment initiated successfully',
-        data: {
-          transactionId: payment.transactionId,
-          merchantTransactionId: payment.merchantTransactionId,
-          status: payment.status,
-          amount: payment.amount,
-          currency: payment.currency,
-          paymentMethod: payment.paymentMethod,
-          redirectUrl: payment.smtResponse?.redirectUrl,
-        },
-      });
-    } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: HttpStatus.BAD_REQUEST,
-        message: 'Failed to initiate payment',
-        error: (error as Error).message || 'Internal server error',
-      });
-    }
-  }
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly konnectOrderService: KonnectOrderService,
+  ) {}
 
   @ApiOperation({
     summary: 'Get all payments (Admin only)',
@@ -283,108 +233,53 @@ export class PaymentController {
     };
   }
 
-  @ApiOperation({
-    summary: 'Process payment refund',
-    description: 'Admin endpoint to process a refund for a payment',
-  })
-  @ApiBody({
-    type: ProcessRefundDto,
-    description: 'Refund details including payment ID and amount',
-  })
-  @ApiResponse({ status: 200, description: 'Refund processed successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid refund request' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Admin access required' })
-  @Post('refund')
-  @UseGuards(AppVersionGuard, JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @HttpCode(HttpStatus.OK)
-  async processRefund(
-    @Body() processRefundDto: ProcessRefundDto,
-    @Request() req: AuthenticatedRequest,
-  ) {
-    const payment = await this.paymentService.processRefund(processRefundDto, req.user.userId);
+  // ==========================================================================
+  // KONNECT ORDER PAYMENT WEBHOOKS
+  // ==========================================================================
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Refund processed successfully',
-      data: {
-        transactionId: payment.transactionId,
-        status: payment.status,
-        refundedAmount: payment.refundedAmount,
-        totalAmount: payment.amount,
-      },
-    };
-  }
-
-  @ApiOperation({
-    summary: 'Payment webhook endpoint',
-    description:
-      'Public endpoint for SMT Tunisia payment gateway webhooks. Verifies signature and processes payment status updates.',
-  })
-  @ApiBody({ type: SMTWebhookPayloadDto, description: 'SMT webhook payload' })
-  @ApiHeader({
-    name: 'x-smt-signature',
-    description: 'Webhook signature for verification',
-    required: true,
-  })
-  @ApiHeader({ name: 'x-smt-timestamp', description: 'Webhook timestamp', required: true })
-  @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
-  @ApiResponse({
-    status: 400,
-    description: 'Missing required webhook headers or invalid signature',
-  })
-  @Post('webhook')
+  @Get('webhook/konnect')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async handleWebhook(
-    @Body() webhookPayload: SMTWebhookPayloadDto,
-    @Headers('x-smt-signature') signature: string,
-    @Headers('x-smt-timestamp') timestamp: string,
-    @Request() req: RawBodyRequest<ExpressRequest>,
-  ) {
-    if (!signature || !timestamp) {
-      throw new BadRequestException('Missing required webhook headers');
+  @ApiOperation({ summary: 'Konnect order payment callback (GET)' })
+  @ApiResponse({ status: 200, description: 'Webhook acknowledged' })
+  async handleKonnectOrderWebhookGet(
+    @Query('payment_ref') paymentRef: string,
+  ): Promise<{ received: boolean }> {
+    if (!paymentRef || typeof paymentRef !== 'string' || paymentRef.length > 100) {
+      return { received: false };
     }
-
-    // Use raw body bytes for HMAC signature verification (not JSON.stringify)
-    // JSON.stringify may reorder keys or change formatting, breaking the signature
-    const rawBody = req.rawBody;
-    if (!rawBody) {
-      this.logger.error('Raw body not available for webhook signature verification');
-      throw new BadRequestException('Unable to verify webhook signature');
+    try {
+      await this.konnectOrderService.handleOrderWebhook(paymentRef);
+    } catch (error) {
+      this.logger.error(
+        `Konnect webhook GET error for ref ${paymentRef}: ${(error as Error).message}`,
+      );
     }
-
-    await this.paymentService.handleWebhook(
-      webhookPayload,
-      signature,
-      timestamp,
-      rawBody.toString('utf-8'),
-    );
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Webhook processed successfully',
-    };
+    return { received: true };
   }
-  @ApiOperation({
-    summary: 'Retry failed webhooks',
-    description: 'Admin endpoint to retry processing of failed payment webhooks',
-  })
-  @ApiResponse({ status: 200, description: 'Failed webhooks retry completed' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Admin access required' })
-  @Post('retry-webhooks')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @HttpCode(HttpStatus.OK)
-  async retryFailedWebhooks() {
-    const retriedCount = await this.paymentService.retryFailedWebhooks();
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Failed webhooks retry completed',
-      data: {
-        retriedCount,
-      },
-    };
+  @Post('webhook/konnect')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Konnect order payment callback (POST, silentWebhook)' })
+  @ApiResponse({ status: 200, description: 'Webhook acknowledged' })
+  async handleKonnectOrderWebhookPost(
+    @Body() body: { payment_ref?: string },
+  ): Promise<{ received: boolean }> {
+    if (
+      !body.payment_ref ||
+      typeof body.payment_ref !== 'string' ||
+      body.payment_ref.length > 100
+    ) {
+      return { received: false };
+    }
+    try {
+      await this.konnectOrderService.handleOrderWebhook(body.payment_ref);
+    } catch (error) {
+      this.logger.error(
+        `Konnect webhook POST error for ref ${body.payment_ref}: ${(error as Error).message}`,
+      );
+    }
+    return { received: true };
   }
 }

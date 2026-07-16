@@ -52,7 +52,7 @@ export class SustainabilityService {
   async getAllTimeBagsSaved(merchantId: string, establishmentId?: string): Promise<number> {
     const matchStage: Record<string, unknown> = {
       merchantId: new Types.ObjectId(merchantId),
-      status: OrderStatus.PICKED_UP,
+      status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
       isDeleted: { $ne: true },
     };
     if (establishmentId) {
@@ -151,7 +151,7 @@ export class SustainabilityService {
 
     const matchStage: Record<string, unknown> = {
       merchantId: new Types.ObjectId(merchantId),
-      status: OrderStatus.PICKED_UP,
+      status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
       isDeleted: { $ne: true },
       createdAt: { $gte: startOfMonth },
     };
@@ -211,7 +211,7 @@ export class SustainabilityService {
   ): Promise<CarbonMetricsResponse> {
     const matchStage: Record<string, unknown> = {
       merchantId: new Types.ObjectId(merchantId),
-      status: OrderStatus.PICKED_UP,
+      status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
       isDeleted: { $ne: true },
     };
     if (startDate) {
@@ -264,7 +264,7 @@ export class SustainabilityService {
   ): Promise<SocialImpactResponse> {
     const matchStage: Record<string, unknown> = {
       merchantId: new Types.ObjectId(merchantId),
-      status: OrderStatus.PICKED_UP,
+      status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
       isDeleted: { $ne: true },
     };
     if (startDate) {

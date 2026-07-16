@@ -149,6 +149,7 @@ export class CreateOrderDto implements Omit<CreateOrderInput, 'deliveryMode'> {
   @SanitizeEnum([
     'cash_on_pickup',
     'pay_on_delivery',
+    'online',
     'stripe',
     'paypal',
     'apple_pay',
@@ -156,10 +157,13 @@ export class CreateOrderDto implements Omit<CreateOrderInput, 'deliveryMode'> {
   ]) // SECURITY
   @IsNotEmpty()
   @IsString()
-  @IsEnum(['cash_on_pickup', 'pay_on_delivery', 'stripe', 'paypal', 'apple_pay', 'google_pay'], {
-    message:
-      'Payment method must be one of: cash_on_pickup, pay_on_delivery, stripe, paypal, apple_pay, google_pay',
-  })
+  @IsEnum(
+    ['cash_on_pickup', 'pay_on_delivery', 'online', 'stripe', 'paypal', 'apple_pay', 'google_pay'],
+    {
+      message:
+        'Payment method must be one of: cash_on_pickup, pay_on_delivery, online, stripe, paypal, apple_pay, google_pay',
+    },
+  )
   paymentMethod!: CreateOrderInput['paymentMethod'];
 
   @IsOptional()
@@ -210,9 +214,18 @@ export class ConfirmPickupDto implements ConfirmPickupInput {
 
 export class UpdateOrderStatusDto implements UpdateOrderStatusInput {
   @IsNotEmpty()
-  @IsEnum(['confirmed', 'ready_for_pickup', 'picked_up', 'cancelled', 'expired'], {
-    message: 'Invalid order status',
-  })
+  @IsEnum(
+    [
+      'confirmed',
+      'ready_for_pickup',
+      'picked_up',
+      'completed',
+      'pending_payment',
+      'cancelled',
+      'expired',
+    ],
+    { message: 'Invalid order status' },
+  )
   status!: UpdateOrderStatusInput['status'];
 
   @IsOptional()

@@ -230,7 +230,9 @@ export class ReviewsService {
             throw new ForbiddenException('Can only review your own orders');
           }
 
-          if (order.status !== OrderStatus.PICKED_UP) {
+          if (
+            ![OrderStatus.PICKED_UP, OrderStatus.COMPLETED].includes(order.status as OrderStatus)
+          ) {
             throw new BadRequestException('Can only review completed orders');
           }
 
