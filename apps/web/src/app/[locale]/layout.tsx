@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { locales, type Locale, getLocaleConfig } from '@/i18n/config';
 import { seoConfig, getLocaleSeoMetadata } from '@/config/seo.config';
+import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { AppProviders } from '@/components/providers/app-providers';
@@ -260,6 +261,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         </NextIntlClientProvider>
         <CookieConsentWrapper />
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
