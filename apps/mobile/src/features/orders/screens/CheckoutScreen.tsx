@@ -91,12 +91,16 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   // ✅ State for order configuration
   const [quantity] = useState(initialQuantity);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<CreateOrderDto['paymentMethod']>('cash_on_pickup');
+  const [selectedFulfillment, setSelectedFulfillment] = useState<'pickup' | 'delivery'>('pickup');
+  const [selectedPayment, setSelectedPayment] = useState<'cash' | 'online'>('cash');
   const [customerNotes] = useState('');
 
-  // Derived from payment method — "Pay on Delivery" implies delivery mode
-  const deliveryMode = selectedPaymentMethod === 'pay_on_delivery' ? 'delivery' : 'pickup';
+  const deliveryMode = selectedFulfillment;
+
+  const selectedPaymentMethod: CreateOrderDto['paymentMethod'] = (() => {
+    if (selectedPayment === 'online') return 'online';
+    return selectedFulfillment === 'delivery' ? 'pay_on_delivery' : 'cash_on_pickup';
+  })();
   const [deliveryPin, setDeliveryPin] = useState<{ lat: number; lng: number } | null>(null);
   const [deliveryAddressText, setDeliveryAddressText] = useState<string>('');
 
@@ -362,6 +366,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     offerId,
     quantity,
     selectedPaymentMethod,
+    selectedFulfillment,
+    selectedPayment,
     customerNotes,
     deliveryMode,
     deliveryPin,
@@ -445,7 +451,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
    * 3 TND delivery fee applies when customer selects pay_on_delivery
    */
   const subtotal = offer ? offer.pricing.discountedPrice * quantity : 0;
-  const deliveryFee = selectedPaymentMethod === 'pay_on_delivery' ? 3 : 0;
+  const deliveryFee = selectedFulfillment === 'delivery' ? 3 : 0;
   const total = subtotal + deliveryFee;
   const currency = offer?.pricing.currency ?? 'TND';
   const originalPrice = offer ? offer.pricing.originalPrice * quantity : 0;
@@ -527,71 +533,66 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       >
         {/* Main Content Card */}
         <View style={styles.mainCard}>
-          {/* Payment Method Section */}
+          {/* Fulfillment Method Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Icon name='wallet' family='Ionicons' size={20} color={BRAND_PRIMARY} />
-              <Text style={styles.sectionTitle}>{t('checkout.paymentMethod')}</Text>
+              <Icon name='bag-handle' family='Ionicons' size={20} color={BRAND_PRIMARY} />
+              <Text style={styles.sectionTitle}>{t('checkout.fulfillmentMethod')}</Text>
             </View>
 
-            {/* Payment options — three equal tiles in a single row */}
             <View style={styles.paymentMethodsRow}>
-              {/* Pay on Pickup */}
+              {/* Pickup */}
               <Pressable
                 style={[
                   styles.paymentMethodCard,
-                  selectedPaymentMethod === 'cash_on_pickup' && styles.paymentMethodCardActive,
+                  selectedFulfillment === 'pickup' && styles.paymentMethodCardActive,
                 ]}
-                onPress={() => setSelectedPaymentMethod('cash_on_pickup')}
-                accessibilityLabel='Pay on Pickup'
-                accessibilityHint='Selects pay on pickup as payment method'
+                onPress={() => setSelectedFulfillment('pickup')}
+                accessibilityLabel={t('checkout.pickup')}
+                accessibilityHint={t('checkout.pickupHint')}
                 accessibilityRole='button'
               >
-                {selectedPaymentMethod === 'cash_on_pickup' && (
+                {selectedFulfillment === 'pickup' && (
                   <View style={styles.paymentCardCheck}>
                     <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
                   </View>
                 )}
                 <Icon
-                  name='cash'
+                  name='storefront'
                   family='Ionicons'
                   size={28}
-                  color={selectedPaymentMethod === 'cash_on_pickup' ? BRAND_PRIMARY : '#64748B'}
+                  color={selectedFulfillment === 'pickup' ? BRAND_PRIMARY : '#64748B'}
                 />
                 <Text
                   style={[
                     styles.paymentCardLabel,
-                    selectedPaymentMethod === 'cash_on_pickup' && styles.paymentCardLabelActive,
+                    selectedFulfillment === 'pickup' && styles.paymentCardLabelActive,
                   ]}
                 >
-                  {t('checkout.payOnPickup')}
+                  {t('checkout.pickup')}
                 </Text>
               </Pressable>
 
-              {/* Pay on Delivery */}
+              {/* Delivery */}
               <Pressable
                 style={[
                   styles.paymentMethodCard,
-                  selectedPaymentMethod === 'pay_on_delivery' && styles.paymentMethodCardActive,
+                  selectedFulfillment === 'delivery' && styles.paymentMethodCardActive,
                   isOutsideDeliveryZone && styles.paymentMethodCardDisabled,
                 ]}
-                onPress={() =>
-                  !isOutsideDeliveryZone && setSelectedPaymentMethod('pay_on_delivery')
-                }
+                onPress={() => !isOutsideDeliveryZone && setSelectedFulfillment('delivery')}
                 accessibilityLabel={
-                  isOutsideDeliveryZone
-                    ? t('checkout.deliveryUnavailable')
-                    : t('checkout.payOnDelivery')
+                  isOutsideDeliveryZone ? t('checkout.deliveryUnavailable') : t('checkout.delivery')
                 }
                 accessibilityHint={
                   isOutsideDeliveryZone
                     ? t('checkout.pickupOnlyWarning')
-                    : t('checkout.payOnDelivery')
+                    : t('checkout.deliveryHint')
                 }
                 accessibilityRole='button'
                 accessibilityState={{ disabled: isOutsideDeliveryZone }}
               >
-                {selectedPaymentMethod === 'pay_on_delivery' && !isOutsideDeliveryZone && (
+                {selectedFulfillment === 'delivery' && !isOutsideDeliveryZone && (
                   <View style={styles.paymentCardCheck}>
                     <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
                   </View>
@@ -603,7 +604,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   color={
                     isOutsideDeliveryZone
                       ? '#CBD5E1'
-                      : selectedPaymentMethod === 'pay_on_delivery'
+                      : selectedFulfillment === 'delivery'
                         ? BRAND_PRIMARY
                         : '#64748B'
                   }
@@ -611,51 +612,19 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 <Text
                   style={[
                     styles.paymentCardLabel,
-                    selectedPaymentMethod === 'pay_on_delivery' &&
+                    selectedFulfillment === 'delivery' &&
                       !isOutsideDeliveryZone &&
                       styles.paymentCardLabelActive,
                     isOutsideDeliveryZone && styles.paymentCardLabelDisabled,
                   ]}
                 >
-                  {t('checkout.payOnDelivery')}
+                  {t('checkout.delivery')}
                 </Text>
                 {isOutsideDeliveryZone && (
                   <View style={styles.comingSoonBadge}>
                     <Text style={styles.comingSoonText}>5km+</Text>
                   </View>
                 )}
-              </Pressable>
-
-              {/* Online Payment */}
-              <Pressable
-                style={[
-                  styles.paymentMethodCard,
-                  selectedPaymentMethod === 'online' && styles.paymentMethodCardActive,
-                ]}
-                onPress={() => setSelectedPaymentMethod('online')}
-                accessibilityLabel={t('checkout.onlinePayment')}
-                accessibilityHint='Selects online payment via Konnect'
-                accessibilityRole='button'
-              >
-                {selectedPaymentMethod === 'online' && (
-                  <View style={styles.paymentCardCheck}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
-                  </View>
-                )}
-                <Icon
-                  name='card'
-                  family='Ionicons'
-                  size={28}
-                  color={selectedPaymentMethod === 'online' ? BRAND_PRIMARY : '#64748B'}
-                />
-                <Text
-                  style={[
-                    styles.paymentCardLabel,
-                    selectedPaymentMethod === 'online' && styles.paymentCardLabelActive,
-                  ]}
-                >
-                  {t('checkout.onlinePayment')}
-                </Text>
               </Pressable>
             </View>
           </View>
@@ -667,6 +636,80 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               <Text style={styles.pickupOnlyWarningText}>{t('checkout.pickupOnlyWarning')}</Text>
             </View>
           )}
+
+          {/* Payment Method Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Icon name='wallet' family='Ionicons' size={20} color={BRAND_PRIMARY} />
+              <Text style={styles.sectionTitle}>{t('checkout.paymentMethod')}</Text>
+            </View>
+
+            <View style={styles.paymentMethodsRow}>
+              {/* Cash */}
+              <Pressable
+                style={[
+                  styles.paymentMethodCard,
+                  selectedPayment === 'cash' && styles.paymentMethodCardActive,
+                ]}
+                onPress={() => setSelectedPayment('cash')}
+                accessibilityLabel={t('checkout.cashPayment')}
+                accessibilityHint={t('checkout.cashPaymentHint')}
+                accessibilityRole='button'
+              >
+                {selectedPayment === 'cash' && (
+                  <View style={styles.paymentCardCheck}>
+                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                  </View>
+                )}
+                <Icon
+                  name='cash'
+                  family='Ionicons'
+                  size={28}
+                  color={selectedPayment === 'cash' ? BRAND_PRIMARY : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.paymentCardLabel,
+                    selectedPayment === 'cash' && styles.paymentCardLabelActive,
+                  ]}
+                >
+                  {t('checkout.cashPayment')}
+                </Text>
+              </Pressable>
+
+              {/* Online Payment */}
+              <Pressable
+                style={[
+                  styles.paymentMethodCard,
+                  selectedPayment === 'online' && styles.paymentMethodCardActive,
+                ]}
+                onPress={() => setSelectedPayment('online')}
+                accessibilityLabel={t('checkout.onlinePayment')}
+                accessibilityHint={t('checkout.onlinePaymentHint')}
+                accessibilityRole='button'
+              >
+                {selectedPayment === 'online' && (
+                  <View style={styles.paymentCardCheck}>
+                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                  </View>
+                )}
+                <Icon
+                  name='card'
+                  family='Ionicons'
+                  size={28}
+                  color={selectedPayment === 'online' ? BRAND_PRIMARY : '#64748B'}
+                />
+                <Text
+                  style={[
+                    styles.paymentCardLabel,
+                    selectedPayment === 'online' && styles.paymentCardLabelActive,
+                  ]}
+                >
+                  {t('checkout.onlinePayment')}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
 
           {/* Divider */}
           <View style={styles.divider} />
@@ -687,7 +730,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 </Text>
               </View>
 
-              {/* Delivery Fee — shown only when pay on delivery is selected */}
+              {/* Delivery Fee — shown when delivery fulfillment is selected */}
               {deliveryFee > 0 && (
                 <View style={styles.priceRow}>
                   <Text style={styles.priceLabel}>{t('checkout.deliveryFee')}</Text>

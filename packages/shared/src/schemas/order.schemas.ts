@@ -90,8 +90,7 @@ export const CreateOrderSchema = z
       ),
     customerNotes: z.string().max(500).optional(),
     paymentMethod: z.enum(PAYMENT_METHODS, {
-      message:
-        'Payment method must be one of: cash_on_pickup, pay_on_delivery, stripe, paypal, apple_pay, google_pay',
+      message: `Payment method must be one of: ${PAYMENT_METHODS.join(', ')}`,
     }),
     pickupInstructions: z.string().max(1000).optional(),
     deliveryMode: z.enum(['pickup', 'delivery']).default('pickup'),
