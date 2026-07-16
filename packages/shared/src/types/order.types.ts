@@ -183,6 +183,18 @@ export interface PaginatedOrdersResponse {
   };
 }
 
+/**
+ * Cursor-paginated response from GET /orders/my-orders?cursor=...
+ */
+export interface CursorPaginatedOrdersResponse {
+  data: Order[];
+  meta: {
+    limit: number;
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
+}
+
 // ============================================================================
 // Order status helpers — usable by any app that has { status: OrderStatus }
 // ============================================================================

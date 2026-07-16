@@ -22,6 +22,7 @@ import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoos
 import { OrderCompletedEvent } from '../common/events';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { AppLoggerService } from '../common/services/logger.service';
+import { CacheService } from '../common/services/cache.service';
 import { haversineKm } from '../common/utils/geo.util';
 import { ORDER_LIST_FIELDS, ORDER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
@@ -204,8 +205,18 @@ export class OrdersService {
     @InjectQueue('pickup-reminders') private readonly pickupReminderQueue: Queue,
     @Inject(forwardRef(() => KonnectOrderService))
     private readonly konnectOrderService: KonnectOrderService,
+    private readonly cacheService: CacheService,
   ) {
     void this.POINTS_PER_BAG;
+  }
+
+  private async invalidateOrderCaches(merchantId: string, customerId: string): Promise<void> {
+    await Promise.all([
+      this.cacheService.delByPrefix(`orders:stats:${merchantId}`),
+      this.cacheService.delByPrefix(`orders:stats:${customerId}`),
+      this.cacheService.delByPrefix(`orders:chart:${merchantId}`),
+      this.cacheService.delByPrefix(`orders:chart:${customerId}`),
+    ]);
   }
   async create(createOrderDto: CreateOrderDto, customerId: string): Promise<OrderDocument> {
     const session = await this.orderModel.db.startSession();
@@ -447,12 +458,14 @@ export class OrdersService {
 
       // Donation creation is now handled via order.completed event
 
-      // Notify merchant via WebSocket + push (non-blocking — failure must not break order creation)
       if (finalOrder === null) {
         throw new InternalServerErrorException('Order was not created');
       }
 
       const createdOrder: OrderDocument = finalOrder;
+
+      void this.invalidateOrderCaches(createdOrder.merchantId.toString(), customerId);
+
       this.notifyMerchantNewOrder(createdOrder).catch((err: Error) => {
         this.appLogger.error(
           `Merchant notification failed for order ${createdOrder.orderNumber}: ${err.message}`,
@@ -753,15 +766,17 @@ export class OrdersService {
       projectStage[field] = 1;
     }
 
+    // $sort/$skip/$limit BEFORE $lookup — lookups only run on the page slice,
+    // not on every matching document (25x fewer lookups on large result sets).
     const pipeline: PipelineStage[] = [
       { $match: query },
+      { $sort: sort },
+      { $skip: skip },
+      { $limit: safeLimit },
       { $project: projectStage },
       ...this.buildCustomerLookup(),
       ...this.buildEstablishmentLookupForOrder(),
       ...this.buildItemsOfferLookup(false),
-      { $sort: sort },
-      { $skip: skip },
-      { $limit: safeLimit },
     ];
 
     const [orders, total] = await Promise.all([
@@ -894,6 +909,48 @@ export class OrdersService {
     return result;
   }
 
+  async findByCustomerCursor(
+    customerId: string,
+    limit: number = 20,
+    cursor?: string,
+  ): Promise<{ orders: OrderLean[]; hasMore: boolean; nextCursor: string | null }> {
+    const safeLimit = Math.min(limit, 50);
+    const query: Record<string, unknown> = {
+      customerId: new Types.ObjectId(customerId),
+    };
+    if (cursor) {
+      query['createdAt'] = { $lt: new Date(cursor) };
+    }
+
+    const listFields = ORDER_LIST_FIELDS.split(' ');
+    const projectStage: Record<string, 1> = {};
+    for (const field of listFields) {
+      projectStage[field] = 1;
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: query },
+      { $sort: { createdAt: -1 as const } },
+      { $limit: safeLimit + 1 },
+      { $project: projectStage },
+      ...this.buildCustomerLookup(),
+      ...this.buildEstablishmentLookupForOrder(),
+      ...this.buildItemsOfferLookup(false),
+    ];
+
+    const orders = (await this.orderModel.aggregate(pipeline).exec()) as OrderLean[];
+    const hasMore = orders.length > safeLimit;
+    if (hasMore) {
+      orders.pop();
+    }
+    const nextCursor =
+      hasMore && orders.length > 0
+        ? (orders[orders.length - 1] as unknown as { createdAt: Date }).createdAt.toISOString()
+        : null;
+
+    return { orders, hasMore, nextCursor };
+  }
+
   async findByMerchant(
     merchantId: string,
     page: number = 1,
@@ -951,6 +1008,11 @@ export class OrdersService {
     if (!updatedOrder) {
       throw new NotFoundException('Order not found');
     }
+
+    void this.invalidateOrderCaches(
+      order.merchantId._id.toString(),
+      order.customerId._id.toString(),
+    );
 
     return this.findById(updatedOrder._id.toString());
   }
@@ -1210,6 +1272,11 @@ export class OrdersService {
         }
       }
 
+      void this.invalidateOrderCaches(
+        order.merchantId._id.toString(),
+        order.customerId._id.toString(),
+      );
+
       // 5. Emit order completed event for cross-module reactions (loyalty, donations, analytics)
       const totalBags = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -1270,6 +1337,8 @@ export class OrdersService {
     userRole: UserRole,
   ): Promise<OrderDocument> {
     const order = await this.findById(orderId, userId, userRole);
+    const cancelMerchantId = order.merchantId._id.toString();
+    const cancelCustomerId = order.customerId._id.toString();
 
     if (
       [
@@ -1324,6 +1393,7 @@ export class OrdersService {
             { session },
           );
         });
+        void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
         return this.findById(orderId);
       } finally {
         await session.endSession();
@@ -1365,6 +1435,7 @@ export class OrdersService {
             session,
           );
         });
+        void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
         return this.findById(orderId);
       } finally {
         await session.endSession();
@@ -1444,6 +1515,7 @@ export class OrdersService {
           );
         });
 
+        void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
         return this.findById(orderId);
       } finally {
         await session.endSession();
@@ -1475,6 +1547,7 @@ export class OrdersService {
     // Revert sold_out → active if bags became available again
     await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[]);
 
+    void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
     return this.findById(orderId);
   }
 
@@ -1530,86 +1603,94 @@ export class OrdersService {
       matchCondition['createdAt'] = { $gte: startDate };
     }
 
-    const stats = await this.orderModel.aggregate([
-      { $match: matchCondition },
-      {
-        $group: {
-          _id: null,
-          totalOrders: { $sum: 1 },
-          totalRevenue: {
-            $sum: {
-              $cond: [
-                {
-                  $in: [
-                    '$status',
-                    [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
-                  ],
-                },
-                '$pricing.total',
-                0,
-              ],
-            },
-          },
-          pendingOrders: {
-            $sum: { $cond: [{ $eq: ['$status', OrderStatus.PENDING] }, 1, 0] },
-          },
-          confirmedOrders: {
-            $sum: { $cond: [{ $eq: ['$status', OrderStatus.CONFIRMED] }, 1, 0] },
-          },
-          readyOrders: {
-            $sum: { $cond: [{ $eq: ['$status', OrderStatus.READY_FOR_PICKUP] }, 1, 0] },
-          },
-          completedOrders: {
-            $sum: {
-              $cond: [
-                {
-                  $in: [
-                    '$status',
-                    [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
-                  ],
-                },
-                1,
-                0,
-              ],
-            },
-          },
-          cancelledOrders: {
-            $sum: { $cond: [{ $eq: ['$status', OrderStatus.CANCELLED] }, 1, 0] },
-          },
-          averageOrderValue: { $avg: '$pricing.total' },
-          // Sum actual bag quantities from items[] for picked_up orders only
-          bagsSaved: {
-            $sum: {
-              $cond: [
-                {
-                  $in: [
-                    '$status',
-                    [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
-                  ],
-                },
-                { $sum: '$items.quantity' },
-                0,
-              ],
-            },
-          },
-        },
-      },
-    ]);
+    const cacheKey = `orders:stats:${userId}:${startDate?.toISOString() ?? 'all'}:${establishmentId ?? 'all'}`;
 
-    const result: OrderStatsResult[] = stats as OrderStatsResult[];
-    return (
-      result[0] ?? {
-        totalOrders: 0,
-        totalRevenue: 0,
-        pendingOrders: 0,
-        confirmedOrders: 0,
-        readyOrders: 0,
-        completedOrders: 0,
-        cancelledOrders: 0,
-        averageOrderValue: 0,
-        bagsSaved: 0,
-      }
+    const cached = await this.cacheService.getOrSet<OrderStatsResponse>(
+      cacheKey,
+      async () => {
+        const stats = await this.orderModel.aggregate([
+          { $match: matchCondition },
+          {
+            $group: {
+              _id: null,
+              totalOrders: { $sum: 1 },
+              totalRevenue: {
+                $sum: {
+                  $cond: [
+                    {
+                      $in: [
+                        '$status',
+                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                      ],
+                    },
+                    '$pricing.total',
+                    0,
+                  ],
+                },
+              },
+              pendingOrders: {
+                $sum: { $cond: [{ $eq: ['$status', OrderStatus.PENDING] }, 1, 0] },
+              },
+              confirmedOrders: {
+                $sum: { $cond: [{ $eq: ['$status', OrderStatus.CONFIRMED] }, 1, 0] },
+              },
+              readyOrders: {
+                $sum: { $cond: [{ $eq: ['$status', OrderStatus.READY_FOR_PICKUP] }, 1, 0] },
+              },
+              completedOrders: {
+                $sum: {
+                  $cond: [
+                    {
+                      $in: [
+                        '$status',
+                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+              cancelledOrders: {
+                $sum: { $cond: [{ $eq: ['$status', OrderStatus.CANCELLED] }, 1, 0] },
+              },
+              averageOrderValue: { $avg: '$pricing.total' },
+              bagsSaved: {
+                $sum: {
+                  $cond: [
+                    {
+                      $in: [
+                        '$status',
+                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                      ],
+                    },
+                    { $sum: '$items.quantity' },
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        ]);
+
+        const result: OrderStatsResult[] = stats as OrderStatsResult[];
+        return (
+          result[0] ?? {
+            totalOrders: 0,
+            totalRevenue: 0,
+            pendingOrders: 0,
+            confirmedOrders: 0,
+            readyOrders: 0,
+            completedOrders: 0,
+            cancelledOrders: 0,
+            averageOrderValue: 0,
+            bagsSaved: 0,
+          }
+        );
+      },
+      120,
     );
+    return cached;
   }
 
   /**
@@ -1691,33 +1772,44 @@ export class OrdersService {
       }
     }
 
-    const pipeline: PipelineStage[] = [
-      {
-        $match: {
-          ...matchCondition,
-          status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED] },
-          createdAt: { $gte: startDate },
-        },
-      },
-      {
-        $group: {
-          _id: groupId,
-          revenue: { $sum: '$pricing.total' },
-          orderCount: { $sum: 1 },
-          bagCount: { $sum: { $sum: '$items.quantity' } },
-        },
-      },
-      { $sort: sortStage },
-    ];
+    const cacheKey = `orders:chart:${userId}:${granularity}:${value}:${establishmentId ?? 'all'}`;
 
-    const results = await this.orderModel.aggregate<{
-      _id: Record<string, number>;
-      revenue: number;
-      orderCount: number;
-      bagCount: number;
-    }>(pipeline);
+    const cached = await this.cacheService.getOrSet<RevenueChartResponse[]>(
+      cacheKey,
+      async () => {
+        const pipeline: PipelineStage[] = [
+          {
+            $match: {
+              ...matchCondition,
+              status: {
+                $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+              },
+              createdAt: { $gte: startDate },
+            },
+          },
+          {
+            $group: {
+              _id: groupId,
+              revenue: { $sum: '$pricing.total' },
+              orderCount: { $sum: 1 },
+              bagCount: { $sum: { $sum: '$items.quantity' } },
+            },
+          },
+          { $sort: sortStage },
+        ];
 
-    return this.fillChartGaps(granularity, value, now, results);
+        const results = await this.orderModel.aggregate<{
+          _id: Record<string, number>;
+          revenue: number;
+          orderCount: number;
+          bagCount: number;
+        }>(pipeline);
+
+        return this.fillChartGaps(granularity, value, now, results);
+      },
+      120,
+    );
+    return cached;
   }
 
   /**
@@ -2148,7 +2240,6 @@ export class OrdersService {
     const offerIds = createOrderDto.items.map(item => new Types.ObjectId(item.offerId));
     const establishmentId = new Types.ObjectId(createOrderDto.establishmentId);
 
-    // Fetch offers (no populate needed — establishment already fetched in create())
     const offers = await this.offerModel
       .find({
         _id: { $in: offerIds },
@@ -2157,6 +2248,9 @@ export class OrdersService {
         availableFrom: { $lte: pickupDate },
         availableUntil: { $gte: pickupDate },
       })
+      .select(
+        '_id title pricing totalQuantity reservedQuantity soldQuantity pickupTimeSlots availableUntil',
+      )
       .session(session);
 
     if (offers.length !== offerIds.length) {
@@ -2420,12 +2514,12 @@ export class OrdersService {
         OrderStatus.READY_FOR_PICKUP,
       ];
 
-      // Find all pending orders for this user
       const ordersToCancel = await this.orderModel
         .find({
           customerId: new Types.ObjectId(userId),
           status: { $in: pendingStatuses },
         })
+        .select('_id items merchantId')
         .lean();
 
       if (ordersToCancel.length === 0) {
@@ -2456,6 +2550,16 @@ export class OrdersService {
         `Cancelled ${result.modifiedCount} pending orders for user ${userId}. Reason: ${reason}`,
         'OrderService.cancelUserPendingOrders',
       );
+
+      const merchantIds = [...new Set(ordersToCancel.map(o => o.merchantId.toString()))];
+      void Promise.all([
+        this.cacheService.delByPrefix(`orders:stats:${userId}`),
+        this.cacheService.delByPrefix(`orders:chart:${userId}`),
+        ...merchantIds.flatMap(mid => [
+          this.cacheService.delByPrefix(`orders:stats:${mid}`),
+          this.cacheService.delByPrefix(`orders:chart:${mid}`),
+        ]),
+      ]);
 
       // Process refunds for cancelled orders
       for (const order of ordersToCancel) {

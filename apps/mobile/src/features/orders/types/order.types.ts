@@ -14,6 +14,7 @@ export type {
   ConfirmPickupDto,
   PickupErrorCode,
   PaginatedOrdersResponse,
+  CursorPaginatedOrdersResponse,
 } from '@foodwaste/shared';
 
 export {

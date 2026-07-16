@@ -15,6 +15,7 @@ import type {
   Order,
   ConfirmPickupDto,
   PaginatedOrdersResponse,
+  CursorPaginatedOrdersResponse,
 } from '../types/order.types';
 
 interface ValidationErrorMessage {
@@ -236,6 +237,48 @@ export const ordersService = {
       return {
         data: Array.isArray(orders) ? orders : [],
         meta: metaWithDefaults,
+      };
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
+  /**
+   * Get user's orders (cursor-based pagination)
+   * @param limit - Results per page (max 50)
+   * @param cursor - ISO date string of the last item's createdAt (omit for first page)
+   * @param signal - Optional AbortSignal for request cancellation
+   */
+  async getMyOrdersCursor(
+    limit: number = 20,
+    cursor?: string,
+    signal?: AbortSignal,
+  ): Promise<CursorPaginatedOrdersResponse> {
+    try {
+      const params: Record<string, unknown> = { limit };
+      if (cursor) {
+        params['cursor'] = cursor;
+      }
+
+      const response = await apiClient.get<BackendApiResponse<Order[]>>('/orders/my-orders', {
+        params,
+        ...(signal !== undefined && { signal }),
+      });
+
+      const orders = unwrapBackendResponse<Order[]>(response, 'my orders');
+      const meta = response.data.meta as unknown as {
+        limit: number;
+        hasMore: boolean;
+        nextCursor: string | null;
+      };
+
+      return {
+        data: Array.isArray(orders) ? orders : [],
+        meta: {
+          limit: meta?.limit ?? limit,
+          hasMore: meta?.hasMore ?? false,
+          nextCursor: meta?.nextCursor ?? null,
+        },
       };
     } catch (error) {
       throw handleApiError(error);

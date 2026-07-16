@@ -3,7 +3,7 @@
  * Displays the authenticated consumer's orders in two tabs: Active / History.
  *
  * Data flow:
- *   useOrders → ordersService.getMyOrders → FlatList<OrderCard>
+ *   useOrders → ordersService.getMyOrdersCursor → FlashList<OrderCard>
  *
  * Design spec: apps/check.md
  *   - Pill-style segmented control with count badge
@@ -15,7 +15,14 @@
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, RefreshControl, Platform, Pressable } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  RefreshControl,
+  Platform,
+  Pressable,
+  ActivityIndicator,
+} from 'react-native';
 
 import { Text, Icon, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -178,7 +185,15 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState<TabKey>('active');
 
-  const { activeOrders, historyOrders, isLoading, isRefetching, refetch } = useOrders();
+  const {
+    activeOrders,
+    historyOrders,
+    isLoading,
+    isRefetching,
+    refetch,
+    loadMore,
+    isFetchingNextPage,
+  } = useOrders();
   const prefetchOrder = usePrefetchOrder();
 
   const currentOrders = useMemo(
@@ -252,6 +267,13 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
           estimatedItemSize={152}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          onEndReached={selectedTab === 'history' ? loadMore : undefined}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isFetchingNextPage && selectedTab === 'history' ? (
+              <ActivityIndicator style={styles.loadingFooter} color={theme.colors.primary} />
+            ) : null
+          }
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
@@ -330,6 +352,9 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     paddingBottom: 32,
+  },
+  loadingFooter: {
+    paddingVertical: 16,
   },
 
   // Empty state

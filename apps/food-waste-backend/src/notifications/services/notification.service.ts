@@ -387,12 +387,18 @@ export class NotificationService {
       filter.type = type;
     }
 
-    const [notifications, total] = await Promise.all([
-      this.notificationModel.find(filter).sort({ createdAt: -1 }).limit(limit).skip(offset).exec(),
+    const [leanNotifications, total] = await Promise.all([
+      this.notificationModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(offset)
+        .limit(limit)
+        .lean()
+        .exec(),
       this.notificationModel.countDocuments(filter),
     ]);
 
-    return { notifications, total };
+    return { notifications: leanNotifications as unknown as Notification[], total };
   }
 
   async markAsRead(notificationId: string, userId: string): Promise<void> {

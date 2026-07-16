@@ -28,7 +28,7 @@ export class OrganizationInvitation {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
   invitedBy!: Types.ObjectId;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   token!: string;
 
   @Prop({ required: true, type: Date })

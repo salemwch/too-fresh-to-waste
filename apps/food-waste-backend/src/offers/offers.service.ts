@@ -776,14 +776,15 @@ export class OffersService {
     }
 
     // ✅ PERFORMANCE: Single aggregation pipeline replaces .find().populate().populate()
-    // Reduces 3 DB round-trips (1 find + 2 populates) → 1 aggregation
+    // $sort/$skip/$limit BEFORE $lookup — lookups only run on the page slice,
+    // not on every matching document (25x fewer lookups on large result sets).
     const pipeline: PipelineStage[] = [
       { $match: query },
-      ...this.buildEstablishmentLookup(),
-      ...this.buildMerchantLookup(),
       { $sort: sort },
       { $skip: skip },
       { $limit: safeLimit },
+      ...this.buildEstablishmentLookup(),
+      ...this.buildMerchantLookup(),
     ];
 
     const [offers, total] = await Promise.all([

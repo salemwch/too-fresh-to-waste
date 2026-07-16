@@ -259,13 +259,20 @@ export class OrdersController {
     name: 'page',
     required: false,
     type: Number,
-    description: 'Page number (default: 1)',
+    description: 'Page number (default: 1). Ignored when cursor is provided.',
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
     description: 'Results per page (default: 10, max: 50)',
+  })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    type: String,
+    description:
+      'ISO date cursor for cursor-based pagination. When provided, returns orders created before this timestamp.',
   })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Consumer access required' })
@@ -276,9 +283,23 @@ export class OrdersController {
     @Request() req: AuthenticatedRequest,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('cursor') cursor?: string,
   ) {
     if (limit > 50) {
       throw new BadRequestException('Limit cannot exceed 50');
+    }
+
+    if (cursor) {
+      const result = await this.ordersService.findByCustomerCursor(req.user.userId, limit, cursor);
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Your orders retrieved successfully',
+        data: result.orders.map(o =>
+          plainToInstance(ConsumerOrderResponseDto, toPlain(o), { excludeExtraneousValues: true }),
+        ),
+        meta: { limit, hasMore: result.hasMore, nextCursor: result.nextCursor },
+      };
     }
 
     const result = await this.ordersService.findByCustomer(req.user.userId, page, limit);
