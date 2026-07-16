@@ -283,7 +283,7 @@ export function useReactivateOffer() {
 // ─── Orders page hooks ───────────────────────────────────────────────────────
 
 /** All status values that belong to the "History" tab. */
-export const HISTORY_STATUSES: OrderStatus[] = ['picked_up', 'cancelled', 'expired'];
+export const HISTORY_STATUSES: OrderStatus[] = ['picked_up', 'completed', 'cancelled', 'expired'];
 
 /**
  * All merchant orders (up to 50) — used as the source for the orders page.

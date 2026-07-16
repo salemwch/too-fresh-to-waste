@@ -123,10 +123,12 @@ interface OrderPricing {
 
 export type OrderStatus =
   | 'pending'
+  | 'pending_payment'
   | 'reserved'
   | 'confirmed'
   | 'ready_for_pickup'
   | 'picked_up'
+  | 'completed'
   | 'cancelled'
   | 'expired'
   | 'refunded';
