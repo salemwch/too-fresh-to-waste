@@ -73,56 +73,67 @@ export class KonnectOrderService implements OnModuleInit {
     order: OrderDocument,
     user: { firstName: string; lastName: string; email: string },
   ): Promise<{ payUrl: string; paymentRef: string }> {
+    const t0 = performance.now();
     const orderId = (order._id as Types.ObjectId).toString();
     const amountInMillimes = toMillimes(order.pricing.total);
 
-    const updatedOrder = await this.orderModel.findByIdAndUpdate(
-      order._id,
-      { $inc: { paymentAttemptSequence: 1 } },
-      { new: true },
+    const [updatedOrder, result] = await Promise.all([
+      this.orderModel.findByIdAndUpdate(
+        order._id,
+        { $inc: { paymentAttemptSequence: 1 } },
+        { new: true },
+      ),
+      this.konnectService.initPayment(
+        {
+          amount: amountInMillimes,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          orderId: order.orderNumber,
+          description: `Too Fresh To Waste - ${order.orderNumber}`,
+        },
+        {
+          successUrl: `${this.mobileDeepLink}://order-payment-success?orderId=${orderId}`,
+          failUrl: `${this.mobileDeepLink}://order-payment-failed?orderId=${orderId}`,
+          webhook: this.orderWebhookUrl,
+          lifespan: this.paymentTimeoutMinutes,
+          addPaymentFeesToAmount: false,
+        },
+      ),
+    ]);
+    const tKonnect = performance.now();
+    this.logger.log(
+      `[PERF] DB increment + Konnect API (parallel): ${(tKonnect - t0).toFixed(0)}ms`,
     );
+
     const attemptNumber = updatedOrder?.paymentAttemptSequence ?? 1;
-
-    const result = await this.konnectService.initPayment(
-      {
-        amount: amountInMillimes,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        orderId: order.orderNumber,
-        description: `Too Fresh To Waste - ${order.orderNumber}`,
-      },
-      {
-        successUrl: `${this.mobileDeepLink}://order-payment-success?orderId=${orderId}`,
-        failUrl: `${this.mobileDeepLink}://order-payment-failed?orderId=${orderId}`,
-        webhook: this.orderWebhookUrl,
-        lifespan: this.paymentTimeoutMinutes,
-        addPaymentFeesToAmount: false,
-      },
-    );
-
     const providerExpiresAt = new Date(Date.now() + this.paymentTimeoutMinutes * 60 * 1000);
 
-    await this.paymentAttemptModel.create({
-      orderId: order._id,
-      attemptNumber,
-      provider: 'konnect',
-      reference: result.paymentRef,
-      amount: order.pricing.total,
-      currency: 'TND',
-      status: 'pending',
-      active: true,
-      providerExpiresAt,
-    });
-
-    await this.orderModel.findByIdAndUpdate(order._id, {
-      paymentSession: {
+    await Promise.all([
+      this.paymentAttemptModel.create({
+        orderId: order._id,
+        attemptNumber,
         provider: 'konnect',
         reference: result.paymentRef,
-        payUrl: result.payUrl,
-        expiresAt: providerExpiresAt,
-      },
-    });
+        amount: order.pricing.total,
+        currency: 'TND',
+        status: 'pending',
+        active: true,
+        providerExpiresAt,
+      }),
+      this.orderModel.findByIdAndUpdate(order._id, {
+        paymentSession: {
+          provider: 'konnect',
+          reference: result.paymentRef,
+          payUrl: result.payUrl,
+          expiresAt: providerExpiresAt,
+        },
+      }),
+    ]);
+    this.logger.log(
+      `[PERF] Post-Konnect DB writes (parallel): ${(performance.now() - tKonnect).toFixed(0)}ms`,
+    );
+    this.logger.log(`[PERF] initOrderPayment total: ${(performance.now() - t0).toFixed(0)}ms`);
 
     return { payUrl: result.payUrl, paymentRef: result.paymentRef };
   }

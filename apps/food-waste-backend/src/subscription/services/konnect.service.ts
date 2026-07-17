@@ -1,6 +1,8 @@
 import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+const KONNECT_TIMEOUT_MS = 8_000;
+
 interface KonnectInitPaymentParams {
   amount: number;
   firstName: string;
@@ -126,7 +128,11 @@ export class KonnectService implements OnModuleInit {
       theme: 'light',
     };
 
+    const t0 = performance.now();
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), KONNECT_TIMEOUT_MS);
+
       const response = await fetch(`${this.apiUrl}/payments/init-payment`, {
         method: 'POST',
         headers: {
@@ -134,7 +140,14 @@ export class KonnectService implements OnModuleInit {
           'x-api-key': this.apiKey,
         },
         body: JSON.stringify(body),
+        signal: controller.signal,
       });
+      clearTimeout(timer);
+
+      const tResponse = performance.now();
+      this.logger.log(
+        `[PERF] Konnect HTTP response: ${(tResponse - t0).toFixed(0)}ms (status=${response.status})`,
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -143,13 +156,22 @@ export class KonnectService implements OnModuleInit {
       }
 
       const data = (await response.json()) as KonnectPaymentResponse;
-      this.logger.log(`Konnect payment initiated: ref=${data.paymentRef}`);
+      this.logger.log(
+        `[PERF] Konnect total (incl. body parse): ${(performance.now() - t0).toFixed(0)}ms | ref=${data.paymentRef}`,
+      );
       return data;
     } catch (error) {
+      const elapsed = (performance.now() - t0).toFixed(0);
       if (error instanceof ServiceUnavailableException) {
         throw error;
       }
-      this.logger.error(`Konnect API error: ${(error as Error).message}`);
+      if ((error as Error).name === 'AbortError') {
+        this.logger.error(
+          `[PERF] Konnect TIMEOUT after ${elapsed}ms (limit=${KONNECT_TIMEOUT_MS}ms)`,
+        );
+        throw new ServiceUnavailableException('Payment service timed out. Please try again.');
+      }
+      this.logger.error(`Konnect API error after ${elapsed}ms: ${(error as Error).message}`);
       throw new ServiceUnavailableException('Payment service temporarily unavailable.');
     }
   }
@@ -159,12 +181,17 @@ export class KonnectService implements OnModuleInit {
       throw new ServiceUnavailableException('Payment service is not configured.');
     }
 
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), KONNECT_TIMEOUT_MS);
+
     const response = await fetch(`${this.apiUrl}/payments/${paymentId}`, {
       method: 'GET',
       headers: {
         'x-api-key': this.apiKey,
       },
+      signal: controller.signal,
     });
+    clearTimeout(timer);
 
     if (!response.ok) {
       const errorText = await response.text();

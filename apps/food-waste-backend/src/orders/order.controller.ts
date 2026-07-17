@@ -167,7 +167,11 @@ export class OrdersController {
   @Roles(UserRole.CONSUMER)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createOrderDto: CreateOrderDto, @Request() req: AuthenticatedRequest) {
+    const t0 = performance.now();
+
     const order = await this.ordersService.create(createOrderDto, req.user.userId);
+    const tOrder = performance.now();
+    this.logger.log(`[PERF] ordersService.create: ${(tOrder - t0).toFixed(0)}ms`);
 
     let payUrl: string | undefined;
     if (createOrderDto.paymentMethod === 'online') {
@@ -182,15 +186,24 @@ export class OrdersController {
         email: customer.email ?? req.user.email,
       });
       payUrl = payment.payUrl;
+      this.logger.log(`[PERF] initOrderPayment: ${(performance.now() - tOrder).toFixed(0)}ms`);
     }
 
-    const dto = plainToInstance(ConsumerOrderResponseDto, toPlain(order), {
+    const tSer = performance.now();
+    const plain = toPlain(order);
+    const dto = plainToInstance(ConsumerOrderResponseDto, plain, {
       excludeExtraneousValues: true,
     });
+    const data = payUrl ? { ...instanceToPlain(dto), payUrl } : dto;
+    this.logger.log(`[PERF] serialization: ${(performance.now() - tSer).toFixed(0)}ms`);
+
+    this.logger.log(
+      `[PERF] POST /orders total: ${(performance.now() - t0).toFixed(0)}ms (payment=${createOrderDto.paymentMethod})`,
+    );
 
     return {
       message: 'Order created successfully',
-      data: payUrl ? { ...instanceToPlain(dto), payUrl } : dto,
+      data,
     };
   }
 
