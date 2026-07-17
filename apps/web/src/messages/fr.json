@@ -1626,7 +1626,11 @@
       "paymentStatus": "Paiement",
       "orderDetails": "Détails de la commande",
       "pricing": "Tarification",
-      "close": "Fermer"
+      "close": "Fermer",
+      "historySection": "Historique ({count})",
+      "paginationPrev": "Préc",
+      "paginationNext": "Suiv",
+      "paginationInfo": "Page {current} sur {total}"
     },
     "merchantOffers": {
       "title": "Offres",

@@ -1613,7 +1613,11 @@
       "paymentStatus": "الدفع",
       "orderDetails": "تفاصيل الطلب",
       "pricing": "التسعير",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "historySection": "السجل ({count})",
+      "paginationPrev": "السابق",
+      "paginationNext": "التالي",
+      "paginationInfo": "صفحة {current} من {total}"
     },
     "merchantOffers": {
       "title": "العروض",

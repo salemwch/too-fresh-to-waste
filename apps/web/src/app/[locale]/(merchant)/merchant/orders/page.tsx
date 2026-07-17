@@ -19,6 +19,8 @@ import {
   Wifi,
   Banknote,
   CreditCard,
+  ChevronLeft,
+  ChevronRight,
   X,
 } from 'lucide-react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -256,43 +258,134 @@ function OrderCard({ order, onClick, t }: OrderCardProps) {
 
 // ─── Order Column ────────────────────────────────────────────────────────────
 
+const HISTORY_PAGE_SIZE = 10;
+
 interface OrderColumnProps {
   title: string;
   icon: React.ReactNode;
-  orders: MerchantOrder[];
+  activeOrders: MerchantOrder[];
+  historyOrders: MerchantOrder[];
+  showHistory: boolean;
   isLoading: boolean;
   onSelectOrder: (order: MerchantOrder) => void;
   t: (key: string, values?: Record<string, string | number>) => string;
 }
 
-function OrderColumn({ title, icon, orders, isLoading, onSelectOrder, t }: OrderColumnProps) {
+function OrderColumn({
+  title,
+  icon,
+  activeOrders,
+  historyOrders,
+  showHistory,
+  isLoading,
+  onSelectOrder,
+  t,
+}: OrderColumnProps) {
+  const [historyPage, setHistoryPage] = useState(1);
+
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [showHistory]);
+
+  const totalHistoryPages = Math.max(1, Math.ceil(historyOrders.length / HISTORY_PAGE_SIZE));
+  const paginatedHistory = useMemo(() => {
+    const start = (historyPage - 1) * HISTORY_PAGE_SIZE;
+    return historyOrders.slice(start, start + HISTORY_PAGE_SIZE);
+  }, [historyOrders, historyPage]);
+
+  const totalCount = activeOrders.length + (showHistory ? historyOrders.length : 0);
+  const isEmpty = activeOrders.length === 0 && (!showHistory || historyOrders.length === 0);
+
   return (
     <div className='flex-1 min-w-0 flex flex-col rounded-xl border border-border bg-background overflow-hidden'>
       {/* Column header */}
       <div className='shrink-0 flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30'>
         {icon}
         <h2 className='text-sm font-semibold text-foreground'>{title}</h2>
-        <span className='inline-flex items-center justify-center rounded-full text-[10px] font-bold w-5 h-5 bg-primary text-primary-foreground'>
-          {orders.length}
+        <span className='inline-flex items-center justify-center rounded-full text-[10px] font-bold min-w-5 h-5 px-1 bg-primary text-primary-foreground'>
+          {totalCount}
         </span>
       </div>
 
       {/* Order list */}
-      <div className='flex-1 overflow-y-auto p-3 space-y-2.5'>
+      <div className='flex-1 overflow-y-auto p-3'>
         {isLoading ? (
           <div className='flex items-center justify-center h-32'>
             <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
           </div>
-        ) : orders.length === 0 ? (
+        ) : isEmpty ? (
           <div className='flex flex-col items-center justify-center h-40 px-4 text-center'>
             <Package className='h-8 w-8 text-muted-foreground/40 mb-2' />
             <p className='text-xs font-medium text-muted-foreground'>{t('noOrders')}</p>
             <p className='text-[10px] text-muted-foreground/70 mt-1'>{t('noOrdersDesc')}</p>
           </div>
         ) : (
-          orders.map(order => (
-            <OrderCard key={order._id} order={order} onClick={() => onSelectOrder(order)} t={t} />
-          ))
+          <>
+            {/* Active orders */}
+            {activeOrders.length > 0 && (
+              <div className='space-y-2.5'>
+                {activeOrders.map(order => (
+                  <OrderCard
+                    key={order._id}
+                    order={order}
+                    onClick={() => onSelectOrder(order)}
+                    t={t}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* History section */}
+            {showHistory && historyOrders.length > 0 && (
+              <>
+                {/* Divider */}
+                <div className='flex items-center gap-3 my-4'>
+                  <div className='flex-1 h-px bg-border' />
+                  <span className='text-[10px] font-semibold uppercase tracking-wider text-muted-foreground'>
+                    {t('historySection', { count: historyOrders.length })}
+                  </span>
+                  <div className='flex-1 h-px bg-border' />
+                </div>
+
+                {/* Paginated history cards */}
+                <div className='space-y-2.5'>
+                  {paginatedHistory.map(order => (
+                    <OrderCard
+                      key={order._id}
+                      order={order}
+                      onClick={() => onSelectOrder(order)}
+                      t={t}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination controls */}
+                {totalHistoryPages > 1 && (
+                  <div className='flex items-center justify-between mt-3 pt-3 border-t border-border/60'>
+                    <button
+                      onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                      disabled={historyPage <= 1}
+                      className='h-7 px-2.5 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1'
+                    >
+                      <ChevronLeft className='h-3.5 w-3.5' />
+                      {t('paginationPrev')}
+                    </button>
+                    <span className='text-[10px] text-muted-foreground'>
+                      {t('paginationInfo', { current: historyPage, total: totalHistoryPages })}
+                    </span>
+                    <button
+                      onClick={() => setHistoryPage(p => Math.min(totalHistoryPages, p + 1))}
+                      disabled={historyPage >= totalHistoryPages}
+                      className='h-7 px-2.5 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1'
+                    >
+                      {t('paginationNext')}
+                      <ChevronRight className='h-3.5 w-3.5' />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -688,32 +781,35 @@ export default function MerchantOrdersPage() {
     markAllRead();
   }, [markAllRead]);
 
-  // Filter by history toggle
-  const visibleOrders = useMemo(() => {
-    if (showHistory) return allOrders;
-    return allOrders.filter(o => !isHistoryOrder(o.status));
-  }, [allOrders, showHistory]);
-
-  // Filter by search
+  // Apply search filter
   const searchedOrders = useMemo(() => {
-    if (!search.trim()) return visibleOrders;
+    if (!search.trim()) return allOrders;
     const q = search.toLowerCase();
-    return visibleOrders.filter(
+    return allOrders.filter(
       o =>
         o.orderNumber.toLowerCase().includes(q) ||
         getCustomerName(o.customerId).toLowerCase().includes(q),
     );
-  }, [visibleOrders, search]);
+  }, [allOrders, search]);
 
-  // Split into cash vs online
-  const { cashOrders, onlineOrders } = useMemo(() => {
-    const cash: MerchantOrder[] = [];
-    const online: MerchantOrder[] = [];
+  // Split into active vs history, then cash vs online
+  const { cashActive, cashHistory, onlineActive, onlineHistory } = useMemo(() => {
+    const cA: MerchantOrder[] = [];
+    const cH: MerchantOrder[] = [];
+    const oA: MerchantOrder[] = [];
+    const oH: MerchantOrder[] = [];
     for (const o of searchedOrders) {
-      if (isOnlinePayment(o)) online.push(o);
-      else cash.push(o);
+      const online = isOnlinePayment(o);
+      const history = isHistoryOrder(o.status);
+      if (online) {
+        if (history) oH.push(o);
+        else oA.push(o);
+      } else {
+        if (history) cH.push(o);
+        else cA.push(o);
+      }
     }
-    return { cashOrders: cash, onlineOrders: online };
+    return { cashActive: cA, cashHistory: cH, onlineActive: oA, onlineHistory: oH };
   }, [searchedOrders]);
 
   // Stats
@@ -813,7 +909,9 @@ export default function MerchantOrdersPage() {
         <OrderColumn
           title={t('columnCash')}
           icon={<Banknote className='h-4 w-4 text-green-600' />}
-          orders={cashOrders}
+          activeOrders={cashActive}
+          historyOrders={cashHistory}
+          showHistory={showHistory}
           isLoading={isLoading}
           onSelectOrder={handleSelectOrder}
           t={t}
@@ -821,7 +919,9 @@ export default function MerchantOrdersPage() {
         <OrderColumn
           title={t('columnOnline')}
           icon={<CreditCard className='h-4 w-4 text-blue-600' />}
-          orders={onlineOrders}
+          activeOrders={onlineActive}
+          historyOrders={onlineHistory}
+          showHistory={showHistory}
           isLoading={isLoading}
           onSelectOrder={handleSelectOrder}
           t={t}

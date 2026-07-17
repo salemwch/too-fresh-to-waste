@@ -1641,7 +1641,11 @@
       "paymentStatus": "Payment",
       "orderDetails": "Order Details",
       "pricing": "Pricing",
-      "close": "Close"
+      "close": "Close",
+      "historySection": "History ({count})",
+      "paginationPrev": "Prev",
+      "paginationNext": "Next",
+      "paginationInfo": "Page {current} of {total}"
     },
     "merchantOffers": {
       "title": "Offers",
