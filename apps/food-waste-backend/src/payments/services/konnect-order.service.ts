@@ -121,14 +121,18 @@ export class KonnectOrderService implements OnModuleInit {
         active: true,
         providerExpiresAt,
       }),
-      this.orderModel.findByIdAndUpdate(order._id, {
-        paymentSession: {
-          provider: 'konnect',
-          reference: result.paymentRef,
-          payUrl: result.payUrl,
-          expiresAt: providerExpiresAt,
+      this.orderModel.findByIdAndUpdate(
+        order._id,
+        {
+          paymentSession: {
+            provider: 'konnect',
+            reference: result.paymentRef,
+            payUrl: result.payUrl,
+            expiresAt: providerExpiresAt,
+          },
         },
-      }),
+        { writeConcern: { w: 1, j: false } },
+      ),
     ]);
     this.logger.log(
       `[PERF] Post-Konnect DB writes (parallel): ${(performance.now() - tKonnect).toFixed(0)}ms`,

@@ -35,7 +35,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import * as QRCode from 'qrcode';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -190,11 +190,13 @@ export class OrdersController {
     }
 
     const tSer = performance.now();
-    const plain = toPlain(order);
-    const dto = plainToInstance(ConsumerOrderResponseDto, plain, {
+    const plain = toPlain(order) as Record<string, unknown>;
+    if (payUrl) {
+      plain['payUrl'] = payUrl;
+    }
+    const data = plainToInstance(ConsumerOrderResponseDto, plain, {
       excludeExtraneousValues: true,
     });
-    const data = payUrl ? { ...instanceToPlain(dto), payUrl } : dto;
     this.logger.log(`[PERF] serialization: ${(performance.now() - tSer).toFixed(0)}ms`);
 
     this.logger.log(

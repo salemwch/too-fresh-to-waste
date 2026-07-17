@@ -98,6 +98,7 @@ export interface LogEntry {
 
 @Injectable()
 export class RequestLoggingInterceptor implements NestInterceptor {
+  private static requestCounter = 0;
   private readonly logger: AppLoggerService;
   private readonly sensitiveFields = ['password', 'token', 'secret', 'apiKey', 'creditCard', 'ssn'];
 
@@ -161,20 +162,21 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     _responseBody: unknown,
   ): void {
     const responseTime = Date.now() - (request.startTime ?? Date.now());
-    const memoryUsage = process.memoryUsage();
 
     const contentLengthHeader = response.get('content-length');
-    const metadata = {
+    const metadata: Record<string, unknown> = {
       correlationId: request.correlationId,
       userId: request.user?.userId,
       method: request.method,
       path: request.path,
       statusCode: response.statusCode,
       duration: responseTime,
-      memoryUsageMB: Math.round(memoryUsage.heapUsed / 1024 / 1024),
       contentLength:
         typeof contentLengthHeader === 'string' ? parseInt(contentLengthHeader, 10) : undefined,
     };
+    if (++RequestLoggingInterceptor.requestCounter % 50 === 0) {
+      metadata['memoryUsageMB'] = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
+    }
 
     const statusEmoji = response.statusCode >= 400 ? '⚠️' : '✓';
     const logMessage = `${statusEmoji} ${request.method} ${request.path} ${response.statusCode} - ${responseTime}ms`;

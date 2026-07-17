@@ -226,10 +226,15 @@ export class OrdersService {
 
       await session.withTransaction(async () => {
         // Fetch customer + establishment in parallel — independent queries.
+        const tFetch = performance.now();
         const [customer, establishment] = await Promise.all([
           this.userModel.findById(customerId).session(session),
           this.establishmentModel.findById(createOrderDto.establishmentId).session(session),
         ]);
+        this.appLogger.log(
+          `[PERF] fetch customer+establishment: ${(performance.now() - tFetch).toFixed(0)}ms`,
+          'OrderService',
+        );
         if (!customer) {
           throw new NotFoundException('Customer not found');
         }
@@ -247,14 +252,15 @@ export class OrdersService {
             requiresPhoneVerification: false,
           });
         }
+        const tValidate = performance.now();
         const { orderItems, subtotal, totalDiscountAmount, updates, earliestOfferExpiry } =
           await this.validateAndBuildOrderItems(createOrderDto, session);
-        // reservedQuantity and currentOrders target independent fields;
-        // flatten into a single Promise.all to eliminate serial round-trips.
-        // Return updated offers to check for sold-out status.
-        // Atomic $gte guard: only increment reservedQuantity if stock is sufficient.
-        // Prevents the read-then-write race where two concurrent orders both pass
-        // the availability check in validateAndBuildOrderItems.
+        this.appLogger.log(
+          `[PERF] validateAndBuildOrderItems: ${(performance.now() - tValidate).toFixed(0)}ms`,
+          'OrderService',
+        );
+
+        const tReserve = performance.now();
         const reservationResults = await Promise.all(
           updates.map(update =>
             this.offerModel.findOneAndUpdate(
@@ -281,9 +287,42 @@ export class OrdersService {
             });
           }
         }
+        this.appLogger.log(
+          `[PERF] stock reservation: ${(performance.now() - tReserve).toFixed(0)}ms`,
+          'OrderService',
+        );
 
-        await Promise.all(
-          updates.map(update =>
+        const tSlotAndStatus = performance.now();
+        const updatedOffers = reservationResults;
+        // Slot increment + sold-out check: independent writes, parallelized.
+        const soldOutUpdates = (updatedOffers as OfferDocument[]).flatMap(offer => {
+          if (!offer) {
+            return [];
+          }
+          const available = offer.totalQuantity - offer.reservedQuantity - offer.soldQuantity;
+          if (available <= 0 && offer.status === OfferStatus.ACTIVE) {
+            return [
+              this.offerModel.findByIdAndUpdate(
+                offer._id,
+                { status: OfferStatus.SOLD_OUT },
+                { session },
+              ),
+            ];
+          }
+          if (available > 0 && offer.status === OfferStatus.SOLD_OUT) {
+            return [
+              this.offerModel.findByIdAndUpdate(
+                offer._id,
+                { status: OfferStatus.ACTIVE },
+                { session },
+              ),
+            ];
+          }
+          return [];
+        });
+
+        await Promise.all([
+          ...updates.map(update =>
             this.offerModel.findOneAndUpdate(
               {
                 _id: update.offerId,
@@ -294,16 +333,11 @@ export class OrdersService {
               { session },
             ),
           ),
-        );
-
-        const updatedOffers = reservationResults;
-
-        // Auto-transition to SOLD_OUT when all bags are reserved/sold.
-        // Mongoose pre-save hooks don't fire for findByIdAndUpdate,
-        // so we check manually after the quantity increment.
-        await this.autoUpdateOfferSoldOutStatus(
-          updatedOffers.slice(0, updates.length) as OfferDocument[],
-          session,
+          ...soldOutUpdates,
+        ]);
+        this.appLogger.log(
+          `[PERF] slot increment + sold-out (parallel): ${(performance.now() - tSlotAndStatus).toFixed(0)}ms`,
+          'OrderService',
         );
 
         // 5. Calculate pricing
@@ -432,7 +466,12 @@ export class OrdersService {
           ...deliveryFields,
         });
 
+        const tSave = performance.now();
         const savedOrder = await order.save({ session });
+        this.appLogger.log(
+          `[PERF] order.save: ${(performance.now() - tSave).toFixed(0)}ms`,
+          'OrderService',
+        );
 
         // 8. Hydrate populated refs from already-fetched documents.
         //    customer, establishment were loaded at the top of the

@@ -144,6 +144,7 @@ export class ConsumerOrderResponseDto {
   @Expose() completedAt!: string;
   @Expose() pendingPaymentAt!: string;
   @Expose() deliveryMode!: string;
+  @Expose() payUrl?: string;
 }
 
 export class MerchantOrderResponseDto extends ConsumerOrderResponseDto {
