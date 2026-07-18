@@ -87,7 +87,7 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
   }));
 
   return (
-    <aside className='hidden xl:flex flex-col w-72 shrink-0 bg-primary-500 text-white px-[14px] py-[20px] sticky top-0 h-screen z-30'>
+    <aside className='hidden xl:flex flex-col w-72 shrink-0 bg-primary-500 text-white px-[14px] py-[20px] h-full z-30'>
       {/* Brand */}
       <div className='flex items-center gap-[10px] mb-[18px] px-[6px]'>
         <div className='h-[34px] w-[34px] shrink-0 grid place-items-center'>
@@ -106,7 +106,7 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
       </div>
 
       {/* Grouped navigation */}
-      <nav className='flex-1 flex flex-col gap-[4px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10'>
+      <nav className='flex-1 flex flex-col gap-[4px] overflow-y-auto admin-sidebar-scroll'>
         {displayGroups.map(group => {
           const open = isGroupOpen(group.groupKey);
           const hasActiveItem = group.items.some(item =>
@@ -120,7 +120,7 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
                 onClick={() => toggleGroup(group.groupKey)}
                 className={cn(
                   'w-full flex items-center justify-between px-[12px] py-[6px] text-[10px] font-semibold uppercase tracking-[0.08em] transition-colors rounded-lg',
-                  hasActiveItem ? 'text-white/70' : 'text-white/40 hover:text-white/60',
+                  hasActiveItem ? 'text-accent-500' : 'text-accent-500/60 hover:text-accent-500',
                 )}
               >
                 <span>{tGroups(group.groupKey)}</span>

@@ -56,11 +56,11 @@ export function AdminLayoutShell({ children, collapsedGroups }: AdminLayoutShell
   return (
     <AuthGuard>
       <RoleGuard allowedRoles={[UserRole.ADMIN, UserRole.MODERATOR]}>
-        <div className='fixed inset-0 flex flex-col bg-background'>
-          <AdminHeader />
+        <div className='fixed inset-0 flex bg-background'>
+          <AdminSidebar groups={adminNavGroups} collapsedGroups={collapsedGroups} />
 
-          <div className='flex flex-1 min-h-0 overflow-hidden'>
-            <AdminSidebar groups={adminNavGroups} collapsedGroups={collapsedGroups} />
+          <div className='flex flex-1 flex-col min-w-0'>
+            <AdminHeader />
             <main className='flex-1 overflow-y-auto overscroll-contain min-h-0 p-4 lg:p-6'>
               {children}
             </main>
