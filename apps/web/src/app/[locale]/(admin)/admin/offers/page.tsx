@@ -94,7 +94,6 @@ function StatCard({
   label,
   value,
   icon: Icon,
-  iconBg,
   iconColor,
   sub,
 }: {
@@ -107,19 +106,13 @@ function StatCard({
 }) {
   return (
     <Card className='border-border/60'>
-      <CardContent className='pt-4 pb-4'>
-        <div className='flex items-center gap-3'>
-          <div
-            className={cn('flex size-9 shrink-0 items-center justify-center rounded-lg', iconBg)}
-          >
-            <Icon className={cn('size-4', iconColor)} />
-          </div>
-          <div className='min-w-0'>
-            <p className='truncate text-xs text-muted-foreground'>{label}</p>
-            <p className='text-lg font-bold leading-tight'>{value}</p>
-            {sub && <p className='text-[10px] text-muted-foreground'>{sub}</p>}
-          </div>
+      <CardContent className='px-3 py-3'>
+        <div className='flex items-center gap-2.5'>
+          <Icon className={cn('size-4 shrink-0', iconColor)} />
+          <p className='truncate text-[11px] text-muted-foreground'>{label}</p>
         </div>
+        <p className='mt-1.5 text-xl font-bold tabular-nums leading-none'>{value}</p>
+        {sub && <p className='mt-1 text-[10px] text-muted-foreground'>{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -899,13 +892,13 @@ export default function AdminOffersPage() {
 
       {/* Stats row */}
       {loadingStats ? (
-        <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7'>
+        <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7'>
           {[...Array(7)].map((_, i) => (
-            <Skeleton key={i} className='h-20 rounded-xl' />
+            <Skeleton key={i} className='h-[76px] rounded-xl' />
           ))}
         </div>
       ) : (
-        <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7'>
+        <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7'>
           <StatCard
             label={t('stats.totalActive')}
             value={(stats?.countByStatus?.['active'] ?? 0).toLocaleString()}
@@ -960,56 +953,59 @@ export default function AdminOffersPage() {
 
       {/* Main content */}
       <Card className='border-border/60'>
-        <CardContent className='pt-4'>
+        <CardContent className='p-0'>
           <Tabs defaultValue='all'>
-            <div className='flex items-center justify-between gap-3 flex-wrap mb-4'>
-              <TabsList>
-                <TabsTrigger value='all'>{t('tabs.all')}</TabsTrigger>
-                <TabsTrigger value='lowPickup'>
-                  <TrendingDown className='me-1 size-3' />
-                  {t('tabs.lowPickup')}
-                </TabsTrigger>
-                <TabsTrigger value='violations'>
-                  <AlertTriangle className='me-1 size-3' />
-                  {t('tabs.violations')}
-                </TabsTrigger>
-                <TabsTrigger value='deleted'>
-                  <Trash2 className='me-1 size-3' />
-                  {t('tabs.deleted')}
-                </TabsTrigger>
+            <div className='border-b border-border/60 px-4 pt-1'>
+              <TabsList className='h-auto gap-0 rounded-none border-none bg-transparent p-0'>
+                {[
+                  { value: 'all', label: t('tabs.all'), icon: null },
+                  { value: 'lowPickup', label: t('tabs.lowPickup'), icon: TrendingDown },
+                  { value: 'violations', label: t('tabs.violations'), icon: AlertTriangle },
+                  { value: 'deleted', label: t('tabs.deleted'), icon: Trash2 },
+                ].map(tab => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className='relative rounded-none border-none bg-transparent px-3 py-2.5 text-xs font-medium text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:rounded-full after:bg-transparent data-[state=active]:after:bg-primary'
+                  >
+                    {tab.icon && <tab.icon className='me-1.5 size-3' />}
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
             </div>
-
-            {/* Bulk action bar — only on All tab */}
-            <BulkBar
-              selected={selected}
-              onAction={handleBulkAction}
-              onClear={() => setSelected([])}
-              isPending={bulkMutation.isPending}
-              t={t}
-            />
-
-            <TabsContent value='all' className='mt-3'>
-              <AllOffersTable
-                t={t}
+            <div className='p-4'>
+              {/* Bulk action bar — only on All tab */}
+              <BulkBar
                 selected={selected}
-                onToggle={toggleSelect}
-                onToggleAll={toggleAll}
-                onView={setSelectedOfferId}
+                onAction={handleBulkAction}
+                onClear={() => setSelected([])}
+                isPending={bulkMutation.isPending}
+                t={t}
               />
-            </TabsContent>
 
-            <TabsContent value='lowPickup' className='mt-3'>
-              <LowPickupTab t={t} />
-            </TabsContent>
+              <TabsContent value='all' className='mt-3'>
+                <AllOffersTable
+                  t={t}
+                  selected={selected}
+                  onToggle={toggleSelect}
+                  onToggleAll={toggleAll}
+                  onView={setSelectedOfferId}
+                />
+              </TabsContent>
 
-            <TabsContent value='violations' className='mt-3'>
-              <PriceViolationsTab t={t} />
-            </TabsContent>
+              <TabsContent value='lowPickup' className='mt-3'>
+                <LowPickupTab t={t} />
+              </TabsContent>
 
-            <TabsContent value='deleted' className='mt-3'>
-              <DeletedTab t={t} />
-            </TabsContent>
+              <TabsContent value='violations' className='mt-3'>
+                <PriceViolationsTab t={t} />
+              </TabsContent>
+
+              <TabsContent value='deleted' className='mt-3'>
+                <DeletedTab t={t} />
+              </TabsContent>
+            </div>
           </Tabs>
         </CardContent>
       </Card>
