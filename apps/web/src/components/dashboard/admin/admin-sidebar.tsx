@@ -109,9 +109,6 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
       <nav className='flex-1 flex flex-col gap-[4px] overflow-y-auto admin-sidebar-scroll'>
         {displayGroups.map(group => {
           const open = isGroupOpen(group.groupKey);
-          const hasActiveItem = group.items.some(item =>
-            pathname.startsWith(`/${locale}${item.href}`),
-          );
 
           return (
             <div key={group.groupKey}>
@@ -120,7 +117,7 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
                 onClick={() => toggleGroup(group.groupKey)}
                 className={cn(
                   'w-full flex items-center justify-between px-[12px] py-[6px] text-[10px] font-semibold uppercase tracking-[0.08em] transition-colors rounded-lg',
-                  hasActiveItem ? 'text-accent-500' : 'text-accent-500/60 hover:text-accent-500',
+                  'text-accent-500',
                 )}
               >
                 <span>{tGroups(group.groupKey)}</span>
@@ -149,8 +146,8 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
                         className={cn(
                           'relative flex items-center gap-[10px] px-[12px] py-[8px] rounded-xl text-[13px] transition-all',
                           isActive
-                            ? 'bg-white/[0.1] text-white'
-                            : 'text-white/60 hover:text-white hover:bg-white/[0.06]',
+                            ? 'bg-white/[0.12] text-white font-medium'
+                            : 'text-white/90 hover:text-white hover:bg-white/[0.06]',
                         )}
                       >
                         {isActive && (
@@ -208,8 +205,8 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
             className={cn(
               'flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] transition-colors',
               pathname.startsWith(`/${locale}${settingsItem.href}`)
-                ? 'bg-white/[0.1] text-white'
-                : 'text-white/60 hover:text-white hover:bg-white/[0.06]',
+                ? 'bg-white/[0.12] text-white font-medium'
+                : 'text-white/90 hover:text-white hover:bg-white/[0.06]',
             )}
           >
             <settingsItem.icon size={16} />
@@ -219,7 +216,7 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
 
         <button
           onClick={logout}
-          className='w-full flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors'
+          className='w-full flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] text-white/90 hover:text-white hover:bg-white/[0.06] transition-colors'
         >
           <LogOut size={16} />
           {t('logout')}
