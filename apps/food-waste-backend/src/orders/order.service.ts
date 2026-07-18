@@ -225,14 +225,18 @@ export class OrdersService {
       let finalOrder: OrderDocument | null = null;
 
       await session.withTransaction(async () => {
-        // Fetch customer + establishment in parallel — independent queries.
+        // Fetch customer + establishment + offers in ONE parallel round-trip.
+        // The offer query depends only on createOrderDto (offerIds, establishment,
+        // pickupDate) — never on the customer/establishment docs — so it is safe to
+        // issue concurrently. Collapses two sequential Atlas round-trips into one.
         const tFetch = performance.now();
-        const [customer, establishment] = await Promise.all([
+        const [customer, establishment, offers] = await Promise.all([
           this.userModel.findById(customerId).session(session),
           this.establishmentModel.findById(createOrderDto.establishmentId).session(session),
+          this.findActiveOffersForOrder(createOrderDto, session),
         ]);
         this.appLogger.log(
-          `[PERF] fetch customer+establishment: ${(performance.now() - tFetch).toFixed(0)}ms`,
+          `[PERF] fetch customer+establishment+offers: ${(performance.now() - tFetch).toFixed(0)}ms`,
           'OrderService',
         );
         if (!customer) {
@@ -254,12 +258,16 @@ export class OrdersService {
         }
         const tValidate = performance.now();
         const { orderItems, subtotal, totalDiscountAmount, updates, earliestOfferExpiry } =
-          await this.validateAndBuildOrderItems(createOrderDto, session);
+          this.validateAndBuildOrderItems(createOrderDto, offers);
         this.appLogger.log(
           `[PERF] validateAndBuildOrderItems: ${(performance.now() - tValidate).toFixed(0)}ms`,
           'OrderService',
         );
 
+        // Reserve stock AND increment the slot counter in a SINGLE atomic
+        // findOneAndUpdate per offer. The $elemMatch guarantees the positional
+        // `$` targets the exact pickup slot, while $expr enforces availability.
+        // This collapses what were two sequential Atlas round-trips into one.
         const tReserve = performance.now();
         const reservationResults = await Promise.all(
           updates.map(update =>
@@ -272,8 +280,16 @@ export class OrdersService {
                     { $subtract: ['$totalQuantity', '$soldQuantity'] },
                   ],
                 },
+                pickupTimeSlots: {
+                  $elemMatch: { startTime: update.slotStart, endTime: update.slotEnd },
+                },
               },
-              { $inc: { reservedQuantity: update.quantity } },
+              {
+                $inc: {
+                  reservedQuantity: update.quantity,
+                  'pickupTimeSlots.$.currentOrders': 1,
+                },
+              },
               { session, new: true },
             ),
           ),
@@ -288,14 +304,15 @@ export class OrdersService {
           }
         }
         this.appLogger.log(
-          `[PERF] stock reservation: ${(performance.now() - tReserve).toFixed(0)}ms`,
+          `[PERF] reserve stock + slot increment (parallel): ${(performance.now() - tReserve).toFixed(0)}ms`,
           'OrderService',
         );
 
-        const tSlotAndStatus = performance.now();
-        const updatedOffers = reservationResults;
-        // Slot increment + sold-out check: independent writes, parallelized.
-        const soldOutUpdates = (updatedOffers as OfferDocument[]).flatMap(offer => {
+        // Sold-out status is a derived display flag. It only needs a write when an
+        // offer just crossed the availability boundary — the common case is zero
+        // writes, so this rarely adds a round-trip.
+        const tStatus = performance.now();
+        const soldOutUpdates = (reservationResults as OfferDocument[]).flatMap(offer => {
           if (!offer) {
             return [];
           }
@@ -321,22 +338,11 @@ export class OrdersService {
           return [];
         });
 
-        await Promise.all([
-          ...updates.map(update =>
-            this.offerModel.findOneAndUpdate(
-              {
-                _id: update.offerId,
-                'pickupTimeSlots.startTime': update.slotStart,
-                'pickupTimeSlots.endTime': update.slotEnd,
-              },
-              { $inc: { 'pickupTimeSlots.$.currentOrders': 1 } },
-              { session },
-            ),
-          ),
-          ...soldOutUpdates,
-        ]);
+        if (soldOutUpdates.length > 0) {
+          await Promise.all(soldOutUpdates);
+        }
         this.appLogger.log(
-          `[PERF] slot increment + sold-out (parallel): ${(performance.now() - tSlotAndStatus).toFixed(0)}ms`,
+          `[PERF] sold-out status (${soldOutUpdates.length} writes): ${(performance.now() - tStatus).toFixed(0)}ms`,
           'OrderService',
         );
 
@@ -2264,18 +2270,16 @@ export class OrdersService {
     }
   }
 
-  private async validateAndBuildOrderItems(
+  /**
+   * Fetch the active, in-window offers referenced by an order. Split out from
+   * validateAndBuildOrderItems so it can be issued in parallel with the
+   * customer/establishment lookups (it depends only on the DTO).
+   */
+  private async findActiveOffersForOrder(
     createOrderDto: CreateOrderDto,
     session: ClientSession,
-  ): Promise<{
-    orderItems: OrderItemProcessed[];
-    subtotal: number;
-    totalDiscountAmount: number;
-    updates: OrderQuantityUpdate[];
-    earliestOfferExpiry: Date;
-  }> {
+  ): Promise<OfferDocument[]> {
     const pickupDate = new Date(createOrderDto.pickupDate);
-    const now = new Date();
     const offerIds = createOrderDto.items.map(item => new Types.ObjectId(item.offerId));
     const establishmentId = new Types.ObjectId(createOrderDto.establishmentId);
 
@@ -2290,9 +2294,24 @@ export class OrdersService {
       .select(
         '_id title pricing totalQuantity reservedQuantity soldQuantity pickupTimeSlots availableUntil',
       )
-      .session(session);
+      .session(session)
+      .exec();
+    return offers;
+  }
 
-    if (offers.length !== offerIds.length) {
+  private validateAndBuildOrderItems(
+    createOrderDto: CreateOrderDto,
+    offers: OfferDocument[],
+  ): {
+    orderItems: OrderItemProcessed[];
+    subtotal: number;
+    totalDiscountAmount: number;
+    updates: OrderQuantityUpdate[];
+    earliestOfferExpiry: Date;
+  } {
+    const now = new Date();
+
+    if (offers.length !== createOrderDto.items.length) {
       throw new BadRequestException('One or more offers are invalid or unavailable');
     }
 
