@@ -906,7 +906,22 @@
       "payments": "Payments",
       "loyalty": "Loyalty",
       "drivers": "Drivers",
-      "communityGoal": "Community Goal"
+      "communityGoal": "Community Goal",
+      "voting": "Voting",
+      "analyticsReports": "Analytics & Reports",
+      "ordersDisputes": "Orders & Disputes",
+      "paymentsPayouts": "Payments & Payouts",
+      "auditLog": "Audit Log",
+      "notifications": "Notifications",
+      "leaderboardsRewards": "Leaderboards & Rewards",
+      "groups": {
+        "overview": "Overview",
+        "peopleAndPlaces": "People & Places",
+        "marketplace": "Marketplace",
+        "finance": "Finance",
+        "engagement": "Engagement",
+        "system": "System"
+      }
     },
     "stats": {
       "activeOffers": "Active Offers",
@@ -2269,5 +2284,255 @@
     "upgradeToPro": "Upgrade to Pro",
     "errorGeneric": "Something went wrong. Please try again.",
     "tnd": "TND"
+  },
+  "adminOrders": {
+    "title": "Orders & Disputes",
+    "subtitle": "Manage all platform orders, resolve disputes, and process refunds",
+    "export": "Export",
+    "searchPlaceholder": "Search orders by ID, customer, or merchant...",
+    "tabs": {
+      "all": "All Orders",
+      "disputes": "Disputes",
+      "refunds": "Refunds"
+    },
+    "kpi": {
+      "totalOrders": "Total Orders",
+      "activeOrders": "Active Orders",
+      "disputeRate": "Dispute Rate",
+      "totalRevenue": "Total Revenue"
+    },
+    "columns": {
+      "order": "Order",
+      "customer": "Customer",
+      "merchant": "Merchant",
+      "status": "Status",
+      "amount": "Amount",
+      "payment": "Payment"
+    },
+    "actions": {
+      "viewDetails": "View Details",
+      "cancel": "Cancel Order",
+      "refund": "Issue Refund"
+    },
+    "cancelDialog": {
+      "title": "Cancel Order",
+      "description": "This will cancel the order and notify both the customer and merchant.",
+      "reasonLabel": "Cancellation reason",
+      "reasonPlaceholder": "Explain why this order is being cancelled..."
+    },
+    "empty": {
+      "title": "No orders found",
+      "description": "No orders match your current filters."
+    }
+  },
+  "adminAuditLog": {
+    "title": "Audit Log",
+    "subtitle": "Track all admin actions, system events, and security alerts",
+    "exportCSV": "Export CSV",
+    "searchPlaceholder": "Search by admin, action, or target...",
+    "tabs": {
+      "all": "Activity Log",
+      "adminActions": "Admin Actions",
+      "security": "Security Events"
+    },
+    "kpi": {
+      "totalEvents": "Total Events (30d)",
+      "activeAdmins": "Active Admins",
+      "topAction": "Most Active Action",
+      "securityAlerts": "Security Alerts"
+    },
+    "columns": {
+      "time": "Time",
+      "admin": "Admin",
+      "action": "Action",
+      "target": "Target",
+      "severity": "Severity"
+    },
+    "empty": {
+      "title": "No audit entries",
+      "description": "No audit log entries match your current filters."
+    }
+  },
+  "adminPayments": {
+    "title": "Payments & Payouts",
+    "subtitle": "Monitor transactions, track merchant payouts, and review revenue",
+    "searchPlaceholder": "Search by order, customer, or merchant...",
+    "searchMerchant": "Search merchants...",
+    "tabs": {
+      "transactions": "Transactions",
+      "payouts": "Merchant Payouts",
+      "revenue": "Revenue"
+    },
+    "kpi": {
+      "totalRevenue": "Total Revenue",
+      "commission": "Platform Commission",
+      "pendingPayouts": "Pending Payouts",
+      "paymentMethods": "Payment Methods"
+    },
+    "columns": {
+      "order": "Order",
+      "customer": "Customer",
+      "merchant": "Merchant",
+      "amount": "Amount",
+      "commission": "Commission",
+      "status": "Status",
+      "webhook": "Webhook Status",
+      "totalEarned": "Total Earned",
+      "netPayout": "Net Payout",
+      "lastPayout": "Last Payout"
+    },
+    "empty": {
+      "title": "No transactions",
+      "description": "No transactions match your current filters."
+    },
+    "emptyPayouts": {
+      "title": "No payouts",
+      "description": "No merchant payouts to display."
+    },
+    "revenue": {
+      "title": "Revenue Analytics",
+      "description": "Revenue charts and trend analysis will be available here. Connect backend analytics to activate."
+    }
+  },
+  "adminAnalytics": {
+    "title": "Analytics & Reports",
+    "subtitle": "Track platform impact, growth metrics, and generate stakeholder reports",
+    "export": "Export",
+    "tabs": {
+      "impact": "Impact Dashboard",
+      "growth": "Growth",
+      "retention": "Retention",
+      "reports": "Reports"
+    },
+    "kpi": {
+      "wasteSaved": "Waste Saved",
+      "co2Reduced": "CO₂ Reduced",
+      "mealsSaved": "Meals Saved",
+      "activeUsers": "Active Users"
+    },
+    "impact": {
+      "wasteTrend": "Waste Saved Over Time",
+      "wasteTrendDesc": "Monthly food waste reduction in kilograms",
+      "orderDist": "Order Status Distribution",
+      "orderDistDesc": "Breakdown of order outcomes this period",
+      "summary": "Period Summary",
+      "totalOrders": "Total Orders",
+      "completionRate": "Completion Rate",
+      "avgOrderValue": "Avg Order Value",
+      "repeatRate": "Repeat Rate"
+    },
+    "growth": {
+      "userGrowth": "User Growth",
+      "userGrowthDesc": "Total registered users over time",
+      "merchantOnboarding": "Merchant Onboarding",
+      "totalMerchants": "Total Merchants",
+      "avgOnboardingTime": "Avg Onboarding Time",
+      "approvalRate": "Approval Rate",
+      "activeRate": "Active Rate"
+    },
+    "retention": {
+      "title": "Retention Analytics",
+      "description": "Cohort analysis and retention curves will be available here. Connect backend analytics to activate."
+    }
+  },
+  "adminNotifications": {
+    "title": "Notifications Center",
+    "subtitle": "Create campaigns, manage templates, and track notification delivery",
+    "createCampaign": "New Campaign",
+    "searchCampaigns": "Search campaigns...",
+    "searchHistory": "Search sent notifications...",
+    "tabs": {
+      "campaigns": "Campaigns",
+      "history": "History",
+      "templates": "Templates"
+    },
+    "kpi": {
+      "totalSent": "Sent (30d)",
+      "deliveryRate": "Delivery Rate",
+      "openRate": "Open Rate",
+      "activeCampaigns": "Active Campaigns"
+    },
+    "columns": {
+      "campaign": "Campaign",
+      "target": "Target",
+      "channel": "Channel",
+      "status": "Status",
+      "recipients": "Recipients",
+      "performance": "Performance"
+    },
+    "segments": {
+      "all": "All Users",
+      "consumers": "Consumers",
+      "merchants": "Merchants",
+      "custom": "Custom Segment"
+    },
+    "builder": {
+      "title": "Create Campaign",
+      "subtitle": "Compose and schedule a notification campaign",
+      "campaignTitle": "Campaign Title",
+      "titlePlaceholder": "e.g., Weekend Flash Sale",
+      "message": "Message",
+      "messagePlaceholder": "Write your notification message...",
+      "targetSegment": "Target Segment",
+      "channel": "Channel",
+      "preview": "Preview",
+      "previewTitle": "Campaign Title",
+      "previewMessage": "Your message will appear here...",
+      "sendNow": "Send Now",
+      "schedule": "Schedule",
+      "saveDraft": "Save Draft"
+    },
+    "empty": {
+      "title": "No campaigns",
+      "description": "Create your first notification campaign."
+    },
+    "emptyHistory": {
+      "title": "No sent notifications",
+      "description": "Sent campaigns will appear here."
+    }
+  },
+  "adminLeaderboards": {
+    "title": "Leaderboards & Rewards",
+    "subtitle": "Track top users, manage prize distribution, and review past seasons",
+    "searchUsers": "Search users...",
+    "searchPrizes": "Search prizes...",
+    "searchSeasons": "Search seasons...",
+    "tabs": {
+      "standings": "Current Standings",
+      "prizes": "Prize Fulfillment",
+      "history": "Past Seasons"
+    },
+    "kpi": {
+      "totalParticipants": "Participants",
+      "currentSeason": "Current Season",
+      "totalPoints": "Total Points",
+      "flaggedAccounts": "Flagged Accounts"
+    },
+    "columns": {
+      "user": "User",
+      "totalPoints": "Total Points",
+      "streak": "Streak",
+      "referralPts": "Referral Pts",
+      "orders": "Orders",
+      "prize": "Prize",
+      "season": "Season",
+      "status": "Status",
+      "period": "Period",
+      "participants": "Participants",
+      "winner": "Winner",
+      "prizes": "Prizes"
+    },
+    "empty": {
+      "title": "No participants",
+      "description": "No users in the current leaderboard."
+    },
+    "emptyPrizes": {
+      "title": "No prizes",
+      "description": "No prize fulfillment records for this season."
+    },
+    "emptySeasons": {
+      "title": "No past seasons",
+      "description": "Past season records will appear here."
+    }
   }
 }

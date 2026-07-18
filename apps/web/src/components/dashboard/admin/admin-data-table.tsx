@@ -19,9 +19,11 @@ interface AdminDataTableProps<T> {
   total: number;
   onPageChange: (page: number) => void;
   // Search
-  searchValue: string;
+  searchValue?: string;
   searchPlaceholder: string;
   onSearchChange: (value: string) => void;
+  // Row click
+  onRowClick?: (item: T) => void;
   // Filters (optional slot rendered between search and table)
   filterSlot?: React.ReactNode;
   // Empty state
@@ -38,9 +40,10 @@ export function AdminDataTable<T extends { _id?: string; id?: string }>({
   totalPages,
   total,
   onPageChange,
-  searchValue,
+  searchValue = '',
   searchPlaceholder,
   onSearchChange,
+  onRowClick,
   filterSlot,
   emptyIcon: EmptyIcon,
   emptyTitle,
@@ -110,7 +113,11 @@ export function AdminDataTable<T extends { _id?: string; id?: string }>({
                 data.map((item, idx) => (
                   <tr
                     key={item._id ?? item.id ?? idx}
-                    className='transition-colors hover:bg-muted/20'
+                    className={cn(
+                      'transition-colors hover:bg-muted/20',
+                      onRowClick && 'cursor-pointer',
+                    )}
+                    onClick={() => onRowClick?.(item)}
                   >
                     {columns.map(col => (
                       <td key={col.key} className={cn('px-4 py-3 align-middle', col.className)}>

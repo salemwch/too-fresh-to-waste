@@ -17,6 +17,10 @@ import {
   Star,
   Package,
   Wallet,
+  BarChart3,
+  ScrollText,
+  Bell,
+  Medal,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -27,6 +31,11 @@ export interface NavItem {
   icon: LucideIcon;
   roles: UserRole[];
   badge?: number; // optional badge counter
+}
+
+export interface NavGroup {
+  groupKey: string; // i18n key under 'dashboard.nav.groups'
+  items: NavItem[];
 }
 
 export const merchantNavItems: NavItem[] = [
@@ -46,7 +55,7 @@ export const merchantNavItems: NavItem[] = [
     titleKey: 'organization',
     href: '/merchant/organization',
     icon: Building2,
-    roles: [UserRole.MERCHANT], // location managers are not org owners
+    roles: [UserRole.MERCHANT],
   },
   {
     titleKey: 'offers',
@@ -110,71 +119,142 @@ export const merchantNavItems: NavItem[] = [
   },
 ];
 
-export const adminNavItems: NavItem[] = [
+// ── Admin: grouped navigation ────────────────────────────────────────────────
+
+export const adminNavGroups: NavGroup[] = [
   {
-    titleKey: 'dashboard',
-    href: '/admin/dashboard',
-    icon: LayoutDashboard,
-    roles: [UserRole.ADMIN, UserRole.MODERATOR],
+    groupKey: 'overview',
+    items: [
+      {
+        titleKey: 'dashboard',
+        href: '/admin/dashboard',
+        icon: LayoutDashboard,
+        roles: [UserRole.ADMIN, UserRole.MODERATOR],
+      },
+      {
+        titleKey: 'analyticsReports',
+        href: '/admin/analytics',
+        icon: BarChart3,
+        roles: [UserRole.ADMIN],
+      },
+    ],
   },
   {
-    titleKey: 'users',
-    href: '/admin/users',
-    icon: Users,
-    roles: [UserRole.ADMIN, UserRole.MODERATOR],
+    groupKey: 'peopleAndPlaces',
+    items: [
+      {
+        titleKey: 'users',
+        href: '/admin/users',
+        icon: Users,
+        roles: [UserRole.ADMIN, UserRole.MODERATOR],
+      },
+      {
+        titleKey: 'establishments',
+        href: '/admin/establishments',
+        icon: Building2,
+        roles: [UserRole.ADMIN, UserRole.MODERATOR],
+      },
+      {
+        titleKey: 'drivers',
+        href: '/admin/drivers',
+        icon: Truck,
+        roles: [UserRole.ADMIN],
+      },
+    ],
   },
   {
-    titleKey: 'establishments',
-    href: '/admin/establishments',
-    icon: Building2,
-    roles: [UserRole.ADMIN, UserRole.MODERATOR],
+    groupKey: 'marketplace',
+    items: [
+      {
+        titleKey: 'adminOffers',
+        href: '/admin/offers',
+        icon: Tag,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'ordersDisputes',
+        href: '/admin/orders',
+        icon: ShoppingBag,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'moderation',
+        href: '/admin/moderation',
+        icon: Shield,
+        roles: [UserRole.ADMIN, UserRole.MODERATOR],
+      },
+    ],
   },
   {
-    titleKey: 'moderation',
-    href: '/admin/moderation',
-    icon: Shield,
-    roles: [UserRole.ADMIN, UserRole.MODERATOR],
+    groupKey: 'finance',
+    items: [
+      {
+        titleKey: 'paymentsPayouts',
+        href: '/admin/payments',
+        icon: Wallet,
+        roles: [UserRole.ADMIN],
+      },
+    ],
   },
   {
-    titleKey: 'adminOffers',
-    href: '/admin/offers',
-    icon: Tag,
-    roles: [UserRole.ADMIN],
+    groupKey: 'engagement',
+    items: [
+      {
+        titleKey: 'donationPool',
+        href: '/admin/donations',
+        icon: HeartHandshake,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'communityGoal',
+        href: '/admin/community-goal',
+        icon: Trophy,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'voting',
+        href: '/admin/voting',
+        icon: Vote,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'leaderboardsRewards',
+        href: '/admin/leaderboards',
+        icon: Medal,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'notifications',
+        href: '/admin/notifications',
+        icon: Bell,
+        roles: [UserRole.ADMIN],
+      },
+    ],
   },
   {
-    titleKey: 'donationPool',
-    href: '/admin/donations',
-    icon: HeartHandshake,
-    roles: [UserRole.ADMIN],
-  },
-  {
-    titleKey: 'communityGoal',
-    href: '/admin/community-goal',
-    icon: Trophy,
-    roles: [UserRole.ADMIN],
-  },
-  {
-    titleKey: 'drivers',
-    href: '/admin/drivers',
-    icon: Truck,
-    roles: [UserRole.ADMIN],
-  },
-  {
-    titleKey: 'voting',
-    href: '/admin/voting',
-    icon: Vote,
-    roles: [UserRole.ADMIN],
-  },
-  {
-    titleKey: 'health',
-    href: '/admin/health',
-    icon: Activity,
-    roles: [UserRole.ADMIN],
-  },
-  {
-    titleKey: 'settings',
-    href: '/admin/settings',
-    icon: Settings,
-    roles: [UserRole.ADMIN],
+    groupKey: 'system',
+    items: [
+      {
+        titleKey: 'auditLog',
+        href: '/admin/audit-log',
+        icon: ScrollText,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'health',
+        href: '/admin/health',
+        icon: Activity,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'settings',
+        href: '/admin/settings',
+        icon: Settings,
+        roles: [UserRole.ADMIN],
+      },
+    ],
   },
 ];
+
+// Flat array derived from groups — used by mobile nav, header, and guards
+export const adminNavItems: NavItem[] = adminNavGroups.flatMap(g => g.items);
