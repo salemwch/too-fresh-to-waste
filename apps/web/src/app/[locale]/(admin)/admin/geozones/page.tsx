@@ -118,15 +118,15 @@ export default function GeozonesPage() {
       )}
 
       {/* Filters */}
-      <div className='flex items-center gap-3'>
+      <div className='flex items-center gap-2'>
         <Input
           placeholder={t('searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className='max-w-xs'
+          className='h-9 max-w-[220px] text-sm'
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className='w-[160px]'>
+          <SelectTrigger className='h-9 w-[150px] text-sm'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -205,8 +205,8 @@ function GeozoneCard({ zone }: { zone: GeozoneRow }) {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant='ghost' size='icon' className='size-8'>
-                  <MoreHorizontal className='size-4' />
+                <Button variant='ghost' size='icon' className='size-7'>
+                  <MoreHorizontal className='size-3.5' />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end'>
@@ -266,8 +266,8 @@ function CreateGeozoneDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className='size-4 me-2' />
+        <Button size='sm'>
+          <Plus className='size-3.5 me-1.5' />
           {t('create')}
         </Button>
       </DialogTrigger>
@@ -276,34 +276,49 @@ function CreateGeozoneDialog() {
           <DialogTitle>{t('createDialog.title')}</DialogTitle>
           <DialogDescription>{t('createDialog.desc')}</DialogDescription>
         </DialogHeader>
-        <div className='space-y-4 py-2'>
-          <div>
-            <Label>{t('createDialog.name')}</Label>
+        <div className='space-y-3 py-2'>
+          <div className='space-y-1'>
+            <Label className='text-xs'>{t('createDialog.name')}</Label>
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder='tunis-center'
+              className='h-9 text-sm'
             />
           </div>
-          <div>
-            <Label>{t('createDialog.displayName')}</Label>
+          <div className='space-y-1'>
+            <Label className='text-xs'>{t('createDialog.displayName')}</Label>
             <Input
               value={displayName}
               onChange={e => setDisplayName(e.target.value)}
               placeholder='Tunis Centre'
+              className='h-9 text-sm'
             />
           </div>
           <div className='grid grid-cols-2 gap-3'>
-            <div>
-              <Label>{t('createDialog.latitude')}</Label>
-              <Input type='number' step='any' value={lat} onChange={e => setLat(e.target.value)} />
+            <div className='space-y-1'>
+              <Label className='text-xs'>{t('createDialog.latitude')}</Label>
+              <Input
+                type='number'
+                step='any'
+                value={lat}
+                onChange={e => setLat(e.target.value)}
+                className='h-9 text-sm'
+              />
             </div>
-            <div>
-              <Label>{t('createDialog.longitude')}</Label>
-              <Input type='number' step='any' value={lng} onChange={e => setLng(e.target.value)} />
+            <div className='space-y-1'>
+              <Label className='text-xs'>{t('createDialog.longitude')}</Label>
+              <Input
+                type='number'
+                step='any'
+                value={lng}
+                onChange={e => setLng(e.target.value)}
+                className='h-9 text-sm'
+              />
             </div>
           </div>
           <Button
+            size='sm'
             className='w-full'
             onClick={handleSubmit}
             disabled={!name || !displayName || !lat || !lng || create.isPending}

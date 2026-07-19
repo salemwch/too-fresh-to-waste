@@ -105,15 +105,15 @@ export default function TeamManagementPage() {
       </div>
 
       {/* Filters */}
-      <div className='flex items-center gap-3'>
+      <div className='flex items-center gap-2'>
         <Input
           placeholder={t('searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className='max-w-xs'
+          className='h-9 max-w-[220px] text-sm'
         />
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className='w-[160px]'>
+          <SelectTrigger className='h-9 w-[140px] text-sm'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -320,7 +320,12 @@ function PermissionsSheet({
 
         <Separator className='my-4' />
 
-        <Button onClick={handleSave} disabled={updatePermissions.isPending} className='w-full'>
+        <Button
+          size='sm'
+          onClick={handleSave}
+          disabled={updatePermissions.isPending}
+          className='w-full'
+        >
           {t('permissionsDialog.save')}
         </Button>
       </SheetContent>
@@ -378,8 +383,8 @@ function InviteDialog() {
   return (
     <Dialog open={open} onOpenChange={v => (v ? setOpen(true) : handleClose())}>
       <DialogTrigger asChild>
-        <Button>
-          <UserPlus className='size-4 me-2' />
+        <Button size='sm'>
+          <UserPlus className='size-3.5 me-1.5' />
           {t('invite')}
         </Button>
       </DialogTrigger>
@@ -397,40 +402,53 @@ function InviteDialog() {
             </div>
             <p className='text-xs text-muted-foreground'>{t('inviteDialog.tempPasswordNote')}</p>
             <div className='flex gap-2'>
-              <Button variant='outline' className='flex-1' onClick={handleCopy}>
-                {copied ? <Check className='size-4 me-2' /> : <Copy className='size-4 me-2' />}
+              <Button variant='outline' size='sm' className='flex-1' onClick={handleCopy}>
+                {copied ? (
+                  <Check className='size-3.5 me-1.5' />
+                ) : (
+                  <Copy className='size-3.5 me-1.5' />
+                )}
                 {copied ? t('inviteDialog.copied') : t('inviteDialog.copyPassword')}
               </Button>
-              <Button className='flex-1' onClick={handleClose}>
+              <Button size='sm' className='flex-1' onClick={handleClose}>
                 {t('inviteDialog.close')}
               </Button>
             </div>
           </div>
         ) : (
-          <div className='space-y-4 py-2'>
-            <div>
-              <Label>{t('inviteDialog.email')}</Label>
+          <div className='space-y-3 py-2'>
+            <div className='space-y-1'>
+              <Label className='text-xs'>{t('inviteDialog.email')}</Label>
               <Input
                 type='email'
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder='team@example.com'
+                className='h-9 text-sm'
               />
             </div>
             <div className='grid grid-cols-2 gap-3'>
-              <div>
-                <Label>{t('inviteDialog.firstName')}</Label>
-                <Input value={firstName} onChange={e => setFirstName(e.target.value)} />
+              <div className='space-y-1'>
+                <Label className='text-xs'>{t('inviteDialog.firstName')}</Label>
+                <Input
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
+                  className='h-9 text-sm'
+                />
               </div>
-              <div>
-                <Label>{t('inviteDialog.lastName')}</Label>
-                <Input value={lastName} onChange={e => setLastName(e.target.value)} />
+              <div className='space-y-1'>
+                <Label className='text-xs'>{t('inviteDialog.lastName')}</Label>
+                <Input
+                  value={lastName}
+                  onChange={e => setLastName(e.target.value)}
+                  className='h-9 text-sm'
+                />
               </div>
             </div>
-            <div>
-              <Label>{t('inviteDialog.role')}</Label>
+            <div className='space-y-1'>
+              <Label className='text-xs'>{t('inviteDialog.role')}</Label>
               <Select value={role} onValueChange={v => setRole(v as 'admin' | 'moderator')}>
-                <SelectTrigger>
+                <SelectTrigger className='h-9 text-sm'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -440,6 +458,7 @@ function InviteDialog() {
               </Select>
             </div>
             <Button
+              size='sm'
               className='w-full'
               onClick={handleSubmit}
               disabled={!email || !firstName || !lastName || invite.isPending}

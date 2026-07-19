@@ -84,15 +84,15 @@ export default function SupportTicketsPage() {
       )}
 
       {/* Filters */}
-      <div className='flex items-center gap-3'>
+      <div className='flex items-center gap-2'>
         <Input
           placeholder={t('searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className='max-w-xs'
+          className='h-9 max-w-[220px] text-sm'
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className='w-[160px]'>
+          <SelectTrigger className='h-9 w-[150px] text-sm'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -105,7 +105,7 @@ export default function SupportTicketsPage() {
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className='w-[140px]'>
+          <SelectTrigger className='h-9 w-[130px] text-sm'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -304,13 +304,15 @@ function TicketDetailSheet({
                 onChange={e => setReplyMsg(e.target.value)}
                 placeholder={t('replyPlaceholder')}
                 onKeyDown={e => e.key === 'Enter' && handleReply()}
+                className='h-9 text-sm'
               />
               <Button
-                size='icon'
+                size='sm'
+                className='px-3'
                 onClick={handleReply}
                 disabled={reply.isPending || !replyMsg.trim()}
               >
-                <Send className='size-4' />
+                <Send className='size-3.5' />
               </Button>
             </div>
           </div>

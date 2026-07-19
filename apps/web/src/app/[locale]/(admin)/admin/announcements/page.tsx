@@ -85,15 +85,15 @@ export default function AnnouncementsPage() {
         <CreateAnnouncementDialog />
       </div>
 
-      <div className='flex items-center gap-3'>
+      <div className='flex items-center gap-2'>
         <Input
           placeholder={t('searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className='max-w-xs'
+          className='h-9 max-w-[220px] text-sm'
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className='w-[160px]'>
+          <SelectTrigger className='h-9 w-[150px] text-sm'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -225,8 +225,8 @@ function CreateAnnouncementDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className='size-4 me-2' />
+        <Button size='sm'>
+          <Plus className='size-3.5 me-1.5' />
           {t('create')}
         </Button>
       </DialogTrigger>
@@ -235,23 +235,23 @@ function CreateAnnouncementDialog() {
           <DialogTitle>{t('createDialog.title')}</DialogTitle>
           <DialogDescription>{t('createDialog.desc')}</DialogDescription>
         </DialogHeader>
-        <div className='space-y-4 py-2'>
-          <div>
-            <Label>{t('createDialog.titleLabel')}</Label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} />
+        <div className='space-y-3 py-2'>
+          <div className='space-y-1'>
+            <Label className='text-xs'>{t('createDialog.titleLabel')}</Label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} className='h-9 text-sm' />
           </div>
-          <div>
-            <Label>{t('createDialog.content')}</Label>
+          <div className='space-y-1'>
+            <Label className='text-xs'>{t('createDialog.content')}</Label>
             <textarea
-              className='w-full rounded-md border bg-background p-2 text-sm min-h-[100px] resize-y'
+              className='w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[80px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
               value={content}
               onChange={e => setContent(e.target.value)}
             />
           </div>
-          <div>
-            <Label>{t('createDialog.type')}</Label>
+          <div className='space-y-1'>
+            <Label className='text-xs'>{t('createDialog.type')}</Label>
             <Select value={type} onValueChange={v => setType(v as AnnouncementType)}>
-              <SelectTrigger>
+              <SelectTrigger className='h-9 text-sm'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -264,6 +264,7 @@ function CreateAnnouncementDialog() {
             </Select>
           </div>
           <Button
+            size='sm'
             className='w-full'
             onClick={handleSubmit}
             disabled={!title || !content || create.isPending}
