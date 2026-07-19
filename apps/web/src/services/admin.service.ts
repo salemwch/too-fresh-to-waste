@@ -57,6 +57,28 @@ import type {
   AdminLeaderboardStats,
   AdminLeaderboardEntry,
   AdminTopMerchant,
+  TeamMemberRow,
+  TeamSearchParams,
+  InviteTeamMemberPayload,
+  UpdateTeamMemberRolePayload,
+  UpdateTeamMemberPermissionsPayload,
+  AdminPermission,
+  SupportTicketRow,
+  TicketStats,
+  TicketSearchParams,
+  UpdateTicketStatusPayload,
+  AssignTicketPayload,
+  UpdateTicketPriorityPayload,
+  ReplyToTicketPayload,
+  AnnouncementRow,
+  AnnouncementSearchParams,
+  CreateAnnouncementPayload,
+  UpdateAnnouncementPayload,
+  GeozoneRow,
+  GeozoneStats,
+  GeozoneSearchParams,
+  CreateGeozonePayload,
+  UpdateGeozonePayload,
 } from '@/types/admin';
 
 const ADMIN = '/admin';
@@ -653,5 +675,144 @@ export const adminService = {
    */
   getDrivers() {
     return apiClient.get<BackendEnvelope<DriverRow[]>>(`${ADMIN}/drivers`);
+  },
+
+  // ── Team Management ─────────────────────────────────────────────────────────
+
+  getTeamMembers(params: TeamSearchParams = {}) {
+    return apiClient.get<BackendEnvelope<TeamMemberRow[]>>(`${ADMIN}/team`, { params });
+  },
+
+  getTeamMember(id: string) {
+    return apiClient.get<BackendEnvelope<TeamMemberRow>>(`${ADMIN}/team/${id}`);
+  },
+
+  getAvailablePermissions() {
+    return apiClient.get<BackendEnvelope<AdminPermission[]>>(`${ADMIN}/team/permissions`);
+  },
+
+  inviteTeamMember(payload: InviteTeamMemberPayload) {
+    return apiClient.post<BackendEnvelope<{ member: TeamMemberRow; temporaryPassword: string }>>(
+      `${ADMIN}/team/invite`,
+      payload,
+    );
+  },
+
+  updateTeamMemberRole(id: string, payload: UpdateTeamMemberRolePayload) {
+    return apiClient.patch<BackendEnvelope<TeamMemberRow>>(`${ADMIN}/team/${id}/role`, payload);
+  },
+
+  updateTeamMemberPermissions(id: string, payload: UpdateTeamMemberPermissionsPayload) {
+    return apiClient.patch<BackendEnvelope<TeamMemberRow>>(
+      `${ADMIN}/team/${id}/permissions`,
+      payload,
+    );
+  },
+
+  removeTeamMember(id: string) {
+    return apiClient.delete<BackendEnvelope<void>>(`${ADMIN}/team/${id}`);
+  },
+
+  // ── Support Tickets ─────────────────────────────────────────────────────────
+
+  getTickets(params: TicketSearchParams = {}) {
+    return apiClient.get<BackendEnvelope<SupportTicketRow[]>>(`${ADMIN}/support-tickets`, {
+      params,
+    });
+  },
+
+  getTicketStats() {
+    return apiClient.get<BackendEnvelope<TicketStats>>(`${ADMIN}/support-tickets/stats`);
+  },
+
+  getTicket(id: string) {
+    return apiClient.get<BackendEnvelope<SupportTicketRow>>(`${ADMIN}/support-tickets/${id}`);
+  },
+
+  updateTicketStatus(id: string, payload: UpdateTicketStatusPayload) {
+    return apiClient.patch<BackendEnvelope<SupportTicketRow>>(
+      `${ADMIN}/support-tickets/${id}/status`,
+      payload,
+    );
+  },
+
+  assignTicket(id: string, payload: AssignTicketPayload) {
+    return apiClient.patch<BackendEnvelope<SupportTicketRow>>(
+      `${ADMIN}/support-tickets/${id}/assign`,
+      payload,
+    );
+  },
+
+  updateTicketPriority(id: string, payload: UpdateTicketPriorityPayload) {
+    return apiClient.patch<BackendEnvelope<SupportTicketRow>>(
+      `${ADMIN}/support-tickets/${id}/priority`,
+      payload,
+    );
+  },
+
+  replyToTicket(id: string, payload: ReplyToTicketPayload) {
+    return apiClient.post<BackendEnvelope<SupportTicketRow>>(
+      `${ADMIN}/support-tickets/${id}/reply`,
+      payload,
+    );
+  },
+
+  // ── Announcements ───────────────────────────────────────────────────────────
+
+  getAnnouncements(params: AnnouncementSearchParams = {}) {
+    return apiClient.get<BackendEnvelope<AnnouncementRow[]>>(`${ADMIN}/announcements`, { params });
+  },
+
+  getAnnouncement(id: string) {
+    return apiClient.get<BackendEnvelope<AnnouncementRow>>(`${ADMIN}/announcements/${id}`);
+  },
+
+  createAnnouncement(payload: CreateAnnouncementPayload) {
+    return apiClient.post<BackendEnvelope<AnnouncementRow>>(`${ADMIN}/announcements`, payload);
+  },
+
+  updateAnnouncement(id: string, payload: UpdateAnnouncementPayload) {
+    return apiClient.patch<BackendEnvelope<AnnouncementRow>>(
+      `${ADMIN}/announcements/${id}`,
+      payload,
+    );
+  },
+
+  publishAnnouncement(id: string) {
+    return apiClient.post<BackendEnvelope<AnnouncementRow>>(`${ADMIN}/announcements/${id}/publish`);
+  },
+
+  archiveAnnouncement(id: string) {
+    return apiClient.post<BackendEnvelope<AnnouncementRow>>(`${ADMIN}/announcements/${id}/archive`);
+  },
+
+  deleteAnnouncement(id: string) {
+    return apiClient.delete<BackendEnvelope<void>>(`${ADMIN}/announcements/${id}`);
+  },
+
+  // ── Geozones ────────────────────────────────────────────────────────────────
+
+  getGeozones(params: GeozoneSearchParams = {}) {
+    return apiClient.get<BackendEnvelope<GeozoneRow[]>>(`${ADMIN}/geozones`, { params });
+  },
+
+  getGeozoneStats() {
+    return apiClient.get<BackendEnvelope<GeozoneStats>>(`${ADMIN}/geozones/stats`);
+  },
+
+  getGeozone(id: string) {
+    return apiClient.get<BackendEnvelope<GeozoneRow>>(`${ADMIN}/geozones/${id}`);
+  },
+
+  createGeozone(payload: CreateGeozonePayload) {
+    return apiClient.post<BackendEnvelope<GeozoneRow>>(`${ADMIN}/geozones`, payload);
+  },
+
+  updateGeozone(id: string, payload: UpdateGeozonePayload) {
+    return apiClient.patch<BackendEnvelope<GeozoneRow>>(`${ADMIN}/geozones/${id}`, payload);
+  },
+
+  deleteGeozone(id: string) {
+    return apiClient.delete<BackendEnvelope<void>>(`${ADMIN}/geozones/${id}`);
   },
 };

@@ -30,9 +30,16 @@ import {
   PaymentManagementController,
   NotificationManagementController,
   LeaderboardManagementController,
+  TeamManagementController,
+  SupportTicketController,
+  AnnouncementController,
+  GeozoneController,
 } from './controllers';
 import { AdminOnlyGuard } from './guards/admin-only.guard';
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
+import { Announcement, AnnouncementSchema } from './schemas/announcement.schema';
+import { Geozone, GeozoneSchema } from './schemas/geozone.schema';
+import { SupportTicket, SupportTicketSchema } from './schemas/support-ticket.schema';
 import { SystemConfig, SystemConfigSchema } from './schemas/system-config.schema';
 // Services
 import {
@@ -46,6 +53,10 @@ import {
   PaymentManagementService,
   NotificationManagementService,
   LeaderboardManagementService,
+  TeamManagementService,
+  SupportTicketService,
+  AnnouncementService,
+  GeozoneService,
 } from './services';
 import { TrialExpiryTask } from './tasks/trial-expiry.task';
 
@@ -65,6 +76,9 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
       // Admin-specific schemas
       { name: AdminAuditLog.name, schema: AdminAuditLogSchema },
       { name: SystemConfig.name, schema: SystemConfigSchema },
+      { name: SupportTicket.name, schema: SupportTicketSchema },
+      { name: Announcement.name, schema: AnnouncementSchema },
+      { name: Geozone.name, schema: GeozoneSchema },
 
       // Existing schemas that admin services need access to
       { name: User.name, schema: UserSchema },
@@ -92,6 +106,10 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     PaymentManagementController,
     NotificationManagementController,
     LeaderboardManagementController,
+    TeamManagementController,
+    SupportTicketController,
+    AnnouncementController,
+    GeozoneController,
   ],
 
   providers: [
@@ -106,6 +124,10 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     PaymentManagementService,
     NotificationManagementService,
     LeaderboardManagementService,
+    TeamManagementService,
+    SupportTicketService,
+    AnnouncementService,
+    GeozoneService,
 
     // Scheduled tasks
     TrialExpiryTask,

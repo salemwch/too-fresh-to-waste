@@ -190,6 +190,12 @@ export class User {
   @Prop({ type: Boolean, default: false })
   requiresPasswordChange!: boolean;
 
+  @Prop({ type: [String], default: [] })
+  permissions!: string[];
+
+  @Prop({ type: String })
+  invitedBy?: string;
+
   // Mongoose timestamps automatically adds these fields
   createdAt?: Date;
   updatedAt?: Date;

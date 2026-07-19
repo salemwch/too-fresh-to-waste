@@ -24,6 +24,21 @@ import type {
   AdminOrderQuery,
   AdminCancelOrderPayload,
   AdminRefundOrderPayload,
+  TeamSearchParams,
+  InviteTeamMemberPayload,
+  UpdateTeamMemberRolePayload,
+  UpdateTeamMemberPermissionsPayload,
+  TicketSearchParams,
+  UpdateTicketStatusPayload,
+  AssignTicketPayload,
+  UpdateTicketPriorityPayload,
+  ReplyToTicketPayload,
+  AnnouncementSearchParams,
+  CreateAnnouncementPayload,
+  UpdateAnnouncementPayload,
+  GeozoneSearchParams,
+  CreateGeozonePayload,
+  UpdateGeozonePayload,
 } from '@/types/admin';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
@@ -85,6 +100,26 @@ const adminKeys = {
   leaderboardStats: () => [...adminKeys.all, 'leaderboard-stats'] as const,
   topUsers: (page: number) => [...adminKeys.all, 'top-users', page] as const,
   topMerchants: () => [...adminKeys.all, 'top-merchants'] as const,
+
+  // Team
+  teamMembers: (params: TeamSearchParams) => [...adminKeys.all, 'team-members', params] as const,
+  teamMember: (id: string) => [...adminKeys.all, 'team-member', id] as const,
+  teamPermissions: () => [...adminKeys.all, 'team-permissions'] as const,
+
+  // Support Tickets
+  tickets: (params: TicketSearchParams) => [...adminKeys.all, 'tickets', params] as const,
+  ticketStats: () => [...adminKeys.all, 'ticket-stats'] as const,
+  ticketDetail: (id: string) => [...adminKeys.all, 'ticket', id] as const,
+
+  // Announcements
+  announcements: (params: AnnouncementSearchParams) =>
+    [...adminKeys.all, 'announcements', params] as const,
+  announcementDetail: (id: string) => [...adminKeys.all, 'announcement', id] as const,
+
+  // Geozones
+  geozones: (params: GeozoneSearchParams) => [...adminKeys.all, 'geozones', params] as const,
+  geozoneStats: () => [...adminKeys.all, 'geozone-stats'] as const,
+  geozoneDetail: (id: string) => [...adminKeys.all, 'geozone', id] as const,
 
   // Offers
   offerStats: () => [...adminKeys.all, 'offer-stats'] as const,
@@ -787,6 +822,283 @@ export function useResetCommunityGoal() {
     mutationFn: () => dashboardService.resetAdminCommunityGoal().then(r => r.data.data),
     onSuccess: data => {
       qc.setQueryData<CommunityBagGoalStats>(COMMUNITY_GOAL_KEY, data);
+    },
+  });
+}
+
+// ─── Team Management hooks ───────────────────────────────────────────────────
+
+export function useTeamMembers(params: TeamSearchParams = {}) {
+  return useQuery({
+    queryKey: adminKeys.teamMembers(params),
+    queryFn: () => adminService.getTeamMembers(params).then(r => r.data.data),
+    staleTime: 60 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useTeamMember(id: string | null) {
+  return useQuery({
+    queryKey: adminKeys.teamMember(id ?? ''),
+    queryFn: () => adminService.getTeamMember(id!).then(r => r.data.data),
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useAvailablePermissions() {
+  return useQuery({
+    queryKey: adminKeys.teamPermissions(),
+    queryFn: () => adminService.getAvailablePermissions().then(r => r.data.data),
+    staleTime: 30 * 60 * 1000,
+  });
+}
+
+export function useInviteTeamMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: InviteTeamMemberPayload) =>
+      adminService.inviteTeamMember(payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'team-members'] });
+    },
+  });
+}
+
+export function useUpdateTeamMemberRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateTeamMemberRolePayload }) =>
+      adminService.updateTeamMemberRole(id, payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'team-members'] });
+    },
+  });
+}
+
+export function useUpdateTeamMemberPermissions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateTeamMemberPermissionsPayload }) =>
+      adminService.updateTeamMemberPermissions(id, payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'team-members'] });
+    },
+  });
+}
+
+export function useRemoveTeamMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.removeTeamMember(id).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'team-members'] });
+    },
+  });
+}
+
+// ─── Support Ticket hooks ────────────────────────────────────────────────────
+
+export function useTickets(params: TicketSearchParams = {}) {
+  return useQuery({
+    queryKey: adminKeys.tickets(params),
+    queryFn: () => adminService.getTickets(params).then(r => r.data.data),
+    staleTime: 30 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useTicketStats() {
+  return useQuery({
+    queryKey: adminKeys.ticketStats(),
+    queryFn: () => adminService.getTicketStats().then(r => r.data.data),
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useTicketDetail(id: string | null) {
+  return useQuery({
+    queryKey: adminKeys.ticketDetail(id ?? ''),
+    queryFn: () => adminService.getTicket(id!).then(r => r.data.data),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateTicketStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateTicketStatusPayload }) =>
+      adminService.updateTicketStatus(id, payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'tickets'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.ticketStats() });
+    },
+  });
+}
+
+export function useAssignTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: AssignTicketPayload }) =>
+      adminService.assignTicket(id, payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'tickets'] });
+    },
+  });
+}
+
+export function useUpdateTicketPriority() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateTicketPriorityPayload }) =>
+      adminService.updateTicketPriority(id, payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'tickets'] });
+    },
+  });
+}
+
+export function useReplyToTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: ReplyToTicketPayload }) =>
+      adminService.replyToTicket(id, payload).then(r => r.data.data),
+    onSuccess: (_, { id }) => {
+      void qc.invalidateQueries({ queryKey: adminKeys.ticketDetail(id) });
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'tickets'] });
+    },
+  });
+}
+
+// ─── Announcement hooks ──────────────────────────────────────────────────────
+
+export function useAnnouncements(params: AnnouncementSearchParams = {}) {
+  return useQuery({
+    queryKey: adminKeys.announcements(params),
+    queryFn: () => adminService.getAnnouncements(params).then(r => r.data.data),
+    staleTime: 60 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useAnnouncementDetail(id: string | null) {
+  return useQuery({
+    queryKey: adminKeys.announcementDetail(id ?? ''),
+    queryFn: () => adminService.getAnnouncement(id!).then(r => r.data.data),
+    enabled: !!id,
+  });
+}
+
+export function useCreateAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateAnnouncementPayload) =>
+      adminService.createAnnouncement(payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'announcements'] });
+    },
+  });
+}
+
+export function useUpdateAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateAnnouncementPayload }) =>
+      adminService.updateAnnouncement(id, payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'announcements'] });
+    },
+  });
+}
+
+export function usePublishAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.publishAnnouncement(id).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'announcements'] });
+    },
+  });
+}
+
+export function useArchiveAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.archiveAnnouncement(id).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'announcements'] });
+    },
+  });
+}
+
+export function useDeleteAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.deleteAnnouncement(id).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'announcements'] });
+    },
+  });
+}
+
+// ─── Geozone hooks ───────────────────────────────────────────────────────────
+
+export function useGeozones(params: GeozoneSearchParams = {}) {
+  return useQuery({
+    queryKey: adminKeys.geozones(params),
+    queryFn: () => adminService.getGeozones(params).then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useGeozoneStats() {
+  return useQuery({
+    queryKey: adminKeys.geozoneStats(),
+    queryFn: () => adminService.getGeozoneStats().then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useGeozoneDetail(id: string | null) {
+  return useQuery({
+    queryKey: adminKeys.geozoneDetail(id ?? ''),
+    queryFn: () => adminService.getGeozone(id!).then(r => r.data.data),
+    enabled: !!id,
+  });
+}
+
+export function useCreateGeozone() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateGeozonePayload) =>
+      adminService.createGeozone(payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'geozones'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.geozoneStats() });
+    },
+  });
+}
+
+export function useUpdateGeozone() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateGeozonePayload }) =>
+      adminService.updateGeozone(id, payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'geozones'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.geozoneStats() });
+    },
+  });
+}
+
+export function useDeleteGeozone() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.deleteGeozone(id).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'geozones'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.geozoneStats() });
     },
   });
 }

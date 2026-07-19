@@ -974,3 +974,271 @@ export interface AdminTopMerchant {
   merchantId: string;
   bagsSaved: number;
 }
+
+// ─── Team Management ─────────────────────────────────────────────────────────
+
+export type AdminPermission =
+  | 'users:view'
+  | 'users:edit'
+  | 'users:suspend'
+  | 'users:delete'
+  | 'establishments:view'
+  | 'establishments:approve'
+  | 'establishments:suspend'
+  | 'orders:view'
+  | 'orders:cancel'
+  | 'orders:refund'
+  | 'offers:view'
+  | 'offers:edit'
+  | 'offers:feature'
+  | 'offers:delete'
+  | 'moderation:view'
+  | 'moderation:action'
+  | 'analytics:view'
+  | 'analytics:export'
+  | 'notifications:view'
+  | 'notifications:broadcast'
+  | 'payments:view'
+  | 'payments:refund'
+  | 'voting:view'
+  | 'voting:manage'
+  | 'system:config'
+  | 'team:manage'
+  | 'audit:view';
+
+export interface TeamMemberRow {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: 'admin' | 'moderator';
+  permissions: AdminPermission[];
+  isActive: boolean;
+  lastLoginAt: string | null;
+  invitedBy: string | null;
+  createdAt: string;
+}
+
+export interface InviteTeamMemberPayload {
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'admin' | 'moderator';
+  permissions?: AdminPermission[];
+}
+
+export interface UpdateTeamMemberRolePayload {
+  role: 'admin' | 'moderator';
+}
+
+export interface UpdateTeamMemberPermissionsPayload {
+  permissions: AdminPermission[];
+}
+
+export interface TeamSearchParams {
+  search?: string;
+  role?: 'admin' | 'moderator';
+  page?: number;
+  limit?: number;
+}
+
+// ─── Support Tickets ─────────────────────────────────────────────────────────
+
+export type TicketStatus = 'open' | 'in_progress' | 'awaiting_user' | 'resolved' | 'closed';
+export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type TicketCategory =
+  | 'order_issue'
+  | 'payment_dispute'
+  | 'account_problem'
+  | 'establishment_complaint'
+  | 'technical_bug'
+  | 'feature_request'
+  | 'other';
+
+export interface TicketReply {
+  authorId: string;
+  authorRole: 'user' | 'admin' | 'system';
+  message: string;
+  createdAt: string;
+}
+
+export interface SupportTicketRow {
+  _id: string;
+  userId: { _id: string; firstName: string; lastName: string; email: string } | string;
+  subject: string;
+  description: string;
+  category: TicketCategory;
+  priority: TicketPriority;
+  status: TicketStatus;
+  assignedTo?: { _id: string; firstName: string; lastName: string; email: string } | string;
+  replies: TicketReply[];
+  resolvedAt?: string;
+  firstResponseAt?: string;
+  resolutionNote?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketStats {
+  open: number;
+  resolved: number;
+  total: number;
+  byStatus: Record<string, number>;
+  byPriority: Record<string, number>;
+  byCategory: Record<string, number>;
+}
+
+export interface TicketSearchParams {
+  search?: string;
+  status?: TicketStatus;
+  priority?: TicketPriority;
+  category?: TicketCategory;
+  assignedTo?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface UpdateTicketStatusPayload {
+  status: TicketStatus;
+  resolutionNote?: string;
+}
+
+export interface AssignTicketPayload {
+  assignedTo: string;
+}
+
+export interface UpdateTicketPriorityPayload {
+  priority: TicketPriority;
+}
+
+export interface ReplyToTicketPayload {
+  message: string;
+}
+
+// ─── Announcements / CMS ────────────────────────────────────────────────────
+
+export type AnnouncementType = 'banner' | 'maintenance' | 'promotion' | 'update' | 'alert';
+export type AnnouncementTarget = 'all' | 'consumers' | 'merchants' | 'specific_zone';
+export type AnnouncementStatusType = 'draft' | 'scheduled' | 'active' | 'expired' | 'archived';
+
+export interface AnnouncementRow {
+  _id: string;
+  title: string;
+  content: string;
+  type: AnnouncementType;
+  target: AnnouncementTarget;
+  status: AnnouncementStatusType;
+  startsAt?: string;
+  expiresAt?: string;
+  createdBy: { _id: string; firstName: string; lastName: string; email: string } | string;
+  dismissible: boolean;
+  actionUrl?: string;
+  actionLabel?: string;
+  zoneId?: string;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAnnouncementPayload {
+  title: string;
+  content: string;
+  type: AnnouncementType;
+  target?: AnnouncementTarget;
+  startsAt?: string;
+  expiresAt?: string;
+  dismissible?: boolean;
+  actionUrl?: string;
+  actionLabel?: string;
+  zoneId?: string;
+  priority?: number;
+}
+
+export interface UpdateAnnouncementPayload {
+  title?: string;
+  content?: string;
+  type?: AnnouncementType;
+  target?: AnnouncementTarget;
+  status?: AnnouncementStatusType;
+  startsAt?: string;
+  expiresAt?: string;
+  dismissible?: boolean;
+  actionUrl?: string;
+  actionLabel?: string;
+  zoneId?: string;
+  priority?: number;
+}
+
+export interface AnnouncementSearchParams {
+  search?: string;
+  type?: AnnouncementType;
+  status?: AnnouncementStatusType;
+  target?: AnnouncementTarget;
+  page?: number;
+  limit?: number;
+}
+
+// ─── Geozones / Coverage ────────────────────────────────────────────────────
+
+export type GeozoneStatus = 'active' | 'inactive' | 'coming_soon';
+
+export interface GeozoneRow {
+  _id: string;
+  name: string;
+  displayName: string;
+  description?: string;
+  status: GeozoneStatus;
+  boundary: { type: 'Polygon'; coordinates: number[][][] };
+  center: { latitude: number; longitude: number };
+  deliveryFee: number;
+  minimumOrder: number;
+  defaultSearchRadius: number;
+  timezone: string;
+  currency: string;
+  establishmentCount: number;
+  activeOfferCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GeozoneStats {
+  totalZones: number;
+  activeZones: number;
+  zones: Array<{
+    _id: string;
+    name: string;
+    displayName: string;
+    status: GeozoneStatus;
+    center: { latitude: number; longitude: number };
+    establishmentCount: number;
+  }>;
+}
+
+export interface CreateGeozonePayload {
+  name: string;
+  displayName: string;
+  description?: string;
+  polygonCoordinates: number[][];
+  center: { latitude: number; longitude: number };
+  deliveryFee?: number;
+  minimumOrder?: number;
+  defaultSearchRadius?: number;
+}
+
+export interface UpdateGeozonePayload {
+  displayName?: string;
+  description?: string;
+  status?: GeozoneStatus;
+  polygonCoordinates?: number[][];
+  center?: { latitude: number; longitude: number };
+  deliveryFee?: number;
+  minimumOrder?: number;
+  defaultSearchRadius?: number;
+}
+
+export interface GeozoneSearchParams {
+  search?: string;
+  status?: GeozoneStatus;
+  page?: number;
+  limit?: number;
+}

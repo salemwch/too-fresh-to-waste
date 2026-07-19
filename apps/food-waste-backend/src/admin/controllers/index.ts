@@ -8,3 +8,7 @@ export * from './order-management.controller';
 export * from './payment-management.controller';
 export * from './notification-management.controller';
 export * from './leaderboard-management.controller';
+export * from './team-management.controller';
+export * from './support-ticket.controller';
+export * from './announcement.controller';
+export * from './geozone.controller';

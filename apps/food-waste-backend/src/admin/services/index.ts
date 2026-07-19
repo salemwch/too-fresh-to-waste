@@ -8,3 +8,7 @@ export * from './order-management.service';
 export * from './payment-management.service';
 export * from './notification-management.service';
 export * from './leaderboard-management.service';
+export * from './team-management.service';
+export * from './support-ticket.service';
+export * from './announcement.service';
+export * from './geozone.service';

@@ -15,6 +15,10 @@ const ADMIN_NAMESPACES = [
   'adminNotifications',
   'adminLeaderboards',
   'adminVotingWinners',
+  'adminTeam',
+  'adminTickets',
+  'adminAnnouncements',
+  'adminGeozones',
 ] as const;
 
 const SIDEBAR_COOKIE = 'admin_sidebar_collapsed';
