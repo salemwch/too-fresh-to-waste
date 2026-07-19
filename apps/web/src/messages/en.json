@@ -917,6 +917,10 @@
       "auditLog": "Audit Log",
       "notifications": "Notifications",
       "leaderboardsRewards": "Leaderboards & Rewards",
+      "supportTickets": "Support Tickets",
+      "geozones": "Geozones",
+      "announcements": "Announcements",
+      "team": "Team Management",
       "groups": {
         "overview": "Overview",
         "peopleAndPlaces": "People & Places",

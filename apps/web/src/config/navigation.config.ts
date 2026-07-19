@@ -21,6 +21,10 @@ import {
   ScrollText,
   Bell,
   Medal,
+  MapPin,
+  Megaphone,
+  Ticket,
+  UserCog,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -160,6 +164,18 @@ export const adminNavGroups: NavGroup[] = [
         icon: Truck,
         roles: [UserRole.ADMIN],
       },
+      {
+        titleKey: 'supportTickets',
+        href: '/admin/support-tickets',
+        icon: Ticket,
+        roles: [UserRole.ADMIN, UserRole.MODERATOR],
+      },
+      {
+        titleKey: 'geozones',
+        href: '/admin/geozones',
+        icon: MapPin,
+        roles: [UserRole.ADMIN],
+      },
     ],
   },
   {
@@ -229,11 +245,23 @@ export const adminNavGroups: NavGroup[] = [
         icon: Bell,
         roles: [UserRole.ADMIN],
       },
+      {
+        titleKey: 'announcements',
+        href: '/admin/announcements',
+        icon: Megaphone,
+        roles: [UserRole.ADMIN, UserRole.MODERATOR],
+      },
     ],
   },
   {
     groupKey: 'system',
     items: [
+      {
+        titleKey: 'team',
+        href: '/admin/team',
+        icon: UserCog,
+        roles: [UserRole.ADMIN],
+      },
       {
         titleKey: 'auditLog',
         href: '/admin/audit-log',

@@ -916,6 +916,10 @@
       "auditLog": "Journal d'audit",
       "notifications": "Notifications",
       "leaderboardsRewards": "Classements & Récompenses",
+      "supportTickets": "Tickets de Support",
+      "geozones": "Géozones",
+      "announcements": "Annonces",
+      "team": "Gestion d'Équipe",
       "groups": {
         "overview": "Vue d'ensemble",
         "peopleAndPlaces": "Personnes & Lieux",

@@ -916,6 +916,10 @@
       "auditLog": "سجل المراجعة",
       "notifications": "الإشعارات",
       "leaderboardsRewards": "المتصدرون والمكافآت",
+      "supportTickets": "تذاكر الدعم",
+      "geozones": "المناطق الجغرافية",
+      "announcements": "الإعلانات",
+      "team": "إدارة الفريق",
       "groups": {
         "overview": "نظرة عامة",
         "peopleAndPlaces": "الأشخاص والأماكن",
