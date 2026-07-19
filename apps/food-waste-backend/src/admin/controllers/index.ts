@@ -5,3 +5,6 @@ export * from './establishment-management.controller';
 export * from './system-config.controller';
 export * from './offer-management.controller';
 export * from './order-management.controller';
+export * from './payment-management.controller';
+export * from './notification-management.controller';
+export * from './leaderboard-management.controller';

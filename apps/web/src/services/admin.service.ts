@@ -49,6 +49,13 @@ import type {
   AdminOrderQuery,
   AdminCancelOrderPayload,
   AdminRefundOrderPayload,
+  AdminPaymentStats,
+  AdminPayoutSummary,
+  AdminNotificationStats,
+  AdminBroadcastPayload,
+  AdminBroadcastResult,
+  AdminLeaderboardStats,
+  AdminLeaderboardEntry,
 } from '@/types/admin';
 
 const ADMIN = '/admin';
@@ -584,7 +591,45 @@ export const adminService = {
     );
   },
 
-  // ── Driver Management ──────────────────────────────────────────────────────
+  // ── Payment Management ──────────────────────────────────────────────────────
+
+  getPaymentStats() {
+    return apiClient.get<BackendEnvelope<AdminPaymentStats>>(`${ADMIN}/payments/stats`);
+  },
+
+  getPayoutSummaries(page = 1, limit = 20) {
+    return apiClient.get<BackendEnvelope<AdminPayoutSummary[]>>(`${ADMIN}/payments/payouts`, {
+      params: { page, limit },
+    });
+  },
+
+  getNotificationStats() {
+    return apiClient.get<BackendEnvelope<AdminNotificationStats>>(`${ADMIN}/notifications/stats`);
+  },
+
+  sendBroadcast(payload: AdminBroadcastPayload) {
+    return apiClient.post<BackendEnvelope<AdminBroadcastResult>>(
+      `${ADMIN}/notifications/broadcast`,
+      payload,
+    );
+  },
+
+  // ── Leaderboard Management ─────────────────────────────────────────────────
+
+  getLeaderboardStats() {
+    return apiClient.get<BackendEnvelope<AdminLeaderboardStats>>(`${ADMIN}/leaderboards/stats`);
+  },
+
+  getTopUsers(page = 1, limit = 20) {
+    return apiClient.get<BackendEnvelope<AdminLeaderboardEntry[]>>(
+      `${ADMIN}/leaderboards/top-users`,
+      {
+        params: { page, limit },
+      },
+    );
+  },
+
+  //── Driver Management ──────────────────────────────────────────────────────
 
   /**
    * POST /admin/drivers

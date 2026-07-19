@@ -1,85 +1,20 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import {
-  Leaf,
-  Users,
-  Utensils,
-  TrendingUp,
-  Download,
-  Calendar,
-  FileText,
-  Wind,
-  ArrowUpRight,
-  ArrowDownRight,
-} from 'lucide-react';
+import { Leaf, Users, Utensils, Download, Calendar, FileText, Wind } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button } from '@foodwaste/ui';
 import { AdminModuleHeader } from '@/components/dashboard/admin/admin-module-header';
 import { AdminTabNav, type AdminTab } from '@/components/dashboard/admin/admin-tab-nav';
 import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { usePlatformAnalytics } from '@/hooks/use-admin';
+import { adminService } from '@/services/admin.service';
 import type { AnalyticsPeriod } from '@/types/admin';
 
-// ─── Mock chart data ─────────────────────────────────────────────────────────
-
-const WASTE_SAVED_MONTHLY = [
-  { month: 'Jan', kg: 320 },
-  { month: 'Feb', kg: 410 },
-  { month: 'Mar', kg: 380 },
-  { month: 'Apr', kg: 520 },
-  { month: 'May', kg: 610 },
-  { month: 'Jun', kg: 740 },
-  { month: 'Jul', kg: 680 },
-];
-
-const ORDER_STATUS_DIST = [
-  { status: 'Completed', count: 1842, pct: 72, color: 'bg-emerald-500' },
-  { status: 'Cancelled', count: 384, pct: 15, color: 'bg-rose-500' },
-  { status: 'Expired', count: 204, pct: 8, color: 'bg-gray-400' },
-  { status: 'Disputed', count: 128, pct: 5, color: 'bg-orange-500' },
-];
-
-const USER_GROWTH = [
-  { month: 'Jan', users: 120 },
-  { month: 'Feb', users: 185 },
-  { month: 'Mar', users: 240 },
-  { month: 'Apr', users: 310 },
-  { month: 'May', users: 420 },
-  { month: 'Jun', users: 540 },
-  { month: 'Jul', users: 630 },
-];
-
-const REPORT_TEMPLATES = [
-  {
-    id: 'daily',
-    name: 'Daily Summary',
-    description: 'Orders, revenue, and waste saved for the day',
-    icon: Calendar,
-  },
-  {
-    id: 'weekly',
-    name: 'Weekly Impact Report',
-    description: 'Comprehensive waste reduction metrics and trends',
-    icon: Leaf,
-  },
-  {
-    id: 'monthly',
-    name: 'Monthly Revenue Report',
-    description: 'Revenue breakdown, commissions, and merchant payouts',
-    icon: FileText,
-  },
-  {
-    id: 'quarterly',
-    name: 'Quarterly ESG Report',
-    description: 'Environmental impact metrics for stakeholder reporting',
-    icon: Wind,
-  },
-];
-
-// ─── Bar Chart (CSS-based) ───────────────────────────────────────────────────
+// ─── Bar Chart (CSS-based) ──────────────────────────────────────────────────
 
 function MiniBarChart({
   data,
@@ -123,6 +58,35 @@ function MiniBarChart({
   );
 }
 
+// ─── Report Templates ───────────────────────────────────────────────────────
+
+const REPORT_TEMPLATES = [
+  {
+    id: 'daily',
+    name: 'Daily Summary',
+    description: 'Orders, revenue, and waste saved for the day',
+    icon: Calendar,
+  },
+  {
+    id: 'weekly',
+    name: 'Weekly Impact Report',
+    description: 'Comprehensive waste reduction metrics and trends',
+    icon: Leaf,
+  },
+  {
+    id: 'monthly',
+    name: 'Monthly Revenue Report',
+    description: 'Revenue breakdown, commissions, and merchant payouts',
+    icon: FileText,
+  },
+  {
+    id: 'quarterly',
+    name: 'Quarterly ESG Report',
+    description: 'Environmental impact metrics for stakeholder reporting',
+    icon: Wind,
+  },
+];
+
 // ─── Content ─────────────────────────────────────────────────────────────────
 
 function AnalyticsContent() {
@@ -131,45 +95,79 @@ function AnalyticsContent() {
   const currentTab = searchParams.get('tab') ?? 'impact';
   const [period, setPeriod] = useState<AnalyticsPeriod>('month');
 
+  const { data: analytics, isLoading } = usePlatformAnalytics(period);
+
   const tabs: AdminTab[] = [
     { key: 'impact', label: t('tabs.impact') },
     { key: 'growth', label: t('tabs.growth') },
-    { key: 'retention', label: t('tabs.retention') },
     { key: 'reports', label: t('tabs.reports') },
   ];
+
+  const wasteMetrics = analytics?.offers?.wasteReductionImpact;
+  const orderData = analytics?.orders;
+  const userAnalytics = analytics?.users;
+  const estAnalytics = analytics?.establishments;
 
   const kpis: KpiItem[] = [
     {
       label: t('kpi.wasteSaved'),
-      value: '3,660 kg',
+      value: wasteMetrics ? `${wasteMetrics.totalKgSaved.toLocaleString()} kg` : '—',
       icon: Leaf,
       iconBg: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
-      change: { value: 12, direction: 'up', label: 'vs last month' },
     },
     {
       label: t('kpi.co2Reduced'),
-      value: '9,150 kg',
+      value: wasteMetrics ? `${wasteMetrics.co2ReductionKg.toLocaleString()} kg` : '—',
       icon: Wind,
       iconBg: 'bg-sky-50',
       iconColor: 'text-sky-600',
     },
     {
       label: t('kpi.mealsSaved'),
-      value: '7,320',
+      value: wasteMetrics?.totalMealsSaved.toLocaleString() ?? '—',
       icon: Utensils,
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
     },
     {
       label: t('kpi.activeUsers'),
-      value: '2,847',
+      value: userAnalytics?.activeUsers.toLocaleString() ?? '—',
       icon: Users,
       iconBg: 'bg-violet-50',
       iconColor: 'text-violet-600',
-      change: { value: 8, direction: 'up', label: 'growth' },
     },
   ];
+
+  const handleExport = useCallback(async () => {
+    try {
+      const response = await adminService.exportAuditLogs({ format: 'csv' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analytics-${period}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      // notifications module will handle this
+    }
+  }, [period]);
+
+  const orderTrends = orderData?.orderTrends ?? [];
+  const ordersByStatus = orderData?.ordersByStatus ?? {};
+
+  const statusEntries = Object.entries(ordersByStatus).map(([status, count]) => ({
+    status,
+    count: count as number,
+  }));
+  const totalOrders = statusEntries.reduce((s, e) => s + e.count, 0);
+  const statusColors: Record<string, string> = {
+    completed: 'bg-emerald-500',
+    confirmed: 'bg-primary',
+    cancelled: 'bg-rose-500',
+    expired: 'bg-gray-400',
+    pending: 'bg-amber-500',
+  };
 
   return (
     <div className='space-y-5'>
@@ -178,74 +176,89 @@ function AnalyticsContent() {
         subtitle={t('subtitle')}
         period={period}
         onPeriodChange={setPeriod}
-        onExport={() => {}}
+        onExport={handleExport}
         exportLabel={t('export')}
       />
 
-      <AdminKpiRow items={kpis} />
+      <AdminKpiRow items={kpis} loading={isLoading} />
 
       <Card className='border-border/60'>
         <CardContent className='p-0'>
           <AdminTabNav tabs={tabs} />
           <div className='p-4'>
-            {/* ── Impact Dashboard ── */}
             {currentTab === 'impact' && (
               <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-                {/* Waste saved over time */}
-                <Card className='border-border/60'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='text-sm font-semibold'>
-                      {t('impact.wasteTrend')}
-                    </CardTitle>
-                    <CardDescription className='text-xs'>
-                      {t('impact.wasteTrendDesc')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <MiniBarChart
-                      data={WASTE_SAVED_MONTHLY}
-                      labelKey='month'
-                      valueKey='kg'
-                      unit='kg'
-                      color='bg-emerald-500'
-                    />
-                  </CardContent>
-                </Card>
+                {orderTrends.length > 0 && (
+                  <Card className='border-border/60'>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='text-sm font-semibold'>
+                        {t('impact.wasteTrend')}
+                      </CardTitle>
+                      <CardDescription className='text-xs'>
+                        {t('impact.wasteTrendDesc')}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <MiniBarChart
+                        data={orderTrends.slice(-7).map(tr => ({
+                          date: new Date(tr.date).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                          }),
+                          revenue: tr.revenue,
+                        }))}
+                        labelKey='date'
+                        valueKey='revenue'
+                        unit=' TND'
+                        color='bg-emerald-500'
+                      />
+                    </CardContent>
+                  </Card>
+                )}
 
-                {/* Order status distribution */}
-                <Card className='border-border/60'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='text-sm font-semibold'>{t('impact.orderDist')}</CardTitle>
-                    <CardDescription className='text-xs'>
-                      {t('impact.orderDistDesc')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className='space-y-3'>
-                      {ORDER_STATUS_DIST.map(item => (
-                        <div key={item.status}>
-                          <div className='flex items-center justify-between mb-1'>
-                            <span className='text-xs font-medium'>{item.status}</span>
-                            <span className='text-xs text-muted-foreground tabular-nums'>
-                              {item.count.toLocaleString()} ({item.pct}%)
-                            </span>
-                          </div>
-                          <div className='h-2 w-full rounded-full bg-muted overflow-hidden'>
-                            <div
-                              className={cn(
-                                'h-full rounded-full transition-all duration-500',
-                                item.color,
-                              )}
-                              style={{ width: `${item.pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                {statusEntries.length > 0 && (
+                  <Card className='border-border/60'>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='text-sm font-semibold'>
+                        {t('impact.orderDist')}
+                      </CardTitle>
+                      <CardDescription className='text-xs'>
+                        {t('impact.orderDistDesc')}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className='space-y-3'>
+                        {statusEntries
+                          .sort((a, b) => b.count - a.count)
+                          .map(item => {
+                            const pct = totalOrders > 0 ? (item.count / totalOrders) * 100 : 0;
+                            return (
+                              <div key={item.status}>
+                                <div className='flex items-center justify-between mb-1'>
+                                  <span className='text-xs font-medium capitalize'>
+                                    {item.status}
+                                  </span>
+                                  <span className='text-xs text-muted-foreground tabular-nums'>
+                                    {item.count.toLocaleString()} ({pct.toFixed(0)}%)
+                                  </span>
+                                </div>
+                                <div className='h-2 w-full rounded-full bg-muted overflow-hidden'>
+                                  <div
+                                    className={cn(
+                                      'h-full rounded-full transition-all duration-500',
+                                      statusColors[item.status] ?? 'bg-primary',
+                                    )}
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-                {/* Impact summary */}
                 <Card className='border-border/60 lg:col-span-2'>
                   <CardHeader className='pb-2'>
                     <CardTitle className='text-sm font-semibold'>{t('impact.summary')}</CardTitle>
@@ -255,23 +268,20 @@ function AnalyticsContent() {
                       {[
                         {
                           label: t('impact.totalOrders'),
-                          value: '2,558',
-                          change: '+12%',
-                          up: true,
+                          value: orderData?.totalOrders.toLocaleString() ?? '—',
                         },
                         {
                           label: t('impact.completionRate'),
-                          value: '72%',
-                          change: '+3%',
-                          up: true,
+                          value: orderData ? `${orderData.orderCompletionRate}%` : '—',
                         },
                         {
                           label: t('impact.avgOrderValue'),
-                          value: '8.40 TND',
-                          change: '-2%',
-                          up: false,
+                          value: orderData ? `${orderData.averageOrderValue.toFixed(2)} TND` : '—',
                         },
-                        { label: t('impact.repeatRate'), value: '34%', change: '+5%', up: true },
+                        {
+                          label: t('impact.repeatRate'),
+                          value: userAnalytics ? `${userAnalytics.retentionRate}%` : '—',
+                        },
                       ].map(stat => (
                         <div
                           key={stat.label}
@@ -279,28 +289,21 @@ function AnalyticsContent() {
                         >
                           <p className='text-xl font-bold tabular-nums'>{stat.value}</p>
                           <p className='text-[10px] text-muted-foreground mt-0.5'>{stat.label}</p>
-                          <div
-                            className={cn(
-                              'flex items-center justify-center gap-0.5 mt-1 text-[10px] font-medium',
-                              stat.up ? 'text-emerald-600' : 'text-rose-600',
-                            )}
-                          >
-                            {stat.up ? (
-                              <ArrowUpRight className='size-3' />
-                            ) : (
-                              <ArrowDownRight className='size-3' />
-                            )}
-                            {stat.change}
-                          </div>
                         </div>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
+
+                {isLoading && (
+                  <div className='lg:col-span-2 grid grid-cols-2 gap-4'>
+                    <Skeleton className='h-64 rounded-lg' />
+                    <Skeleton className='h-64 rounded-lg' />
+                  </div>
+                )}
               </div>
             )}
 
-            {/* ── Growth ── */}
             {currentTab === 'growth' && (
               <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
                 <Card className='border-border/60'>
@@ -313,12 +316,31 @@ function AnalyticsContent() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <MiniBarChart
-                      data={USER_GROWTH}
-                      labelKey='month'
-                      valueKey='users'
-                      color='bg-violet-500'
-                    />
+                    <div className='space-y-4'>
+                      {[
+                        {
+                          label: t('growth.totalUsers'),
+                          value: userAnalytics?.totalUsers.toLocaleString() ?? '—',
+                        },
+                        {
+                          label: t('growth.newThisWeek'),
+                          value: userAnalytics?.newUsersThisWeek.toLocaleString() ?? '—',
+                        },
+                        {
+                          label: t('growth.newThisMonth'),
+                          value: userAnalytics?.newUsersThisMonth.toLocaleString() ?? '—',
+                        },
+                        {
+                          label: t('growth.retentionRate'),
+                          value: userAnalytics ? `${userAnalytics.retentionRate}%` : '—',
+                        },
+                      ].map(item => (
+                        <div key={item.label} className='flex items-center justify-between'>
+                          <span className='text-xs text-muted-foreground'>{item.label}</span>
+                          <span className='text-sm font-bold tabular-nums'>{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -333,23 +355,24 @@ function AnalyticsContent() {
                       {[
                         {
                           label: t('growth.totalMerchants'),
-                          value: '142',
-                          trend: '+18 this month',
+                          value: estAnalytics?.totalEstablishments.toLocaleString() ?? '—',
                         },
                         {
-                          label: t('growth.avgOnboardingTime'),
-                          value: '2.3 days',
-                          trend: '-0.5 days',
+                          label: t('growth.activeEstablishments'),
+                          value: estAnalytics?.activeEstablishments.toLocaleString() ?? '—',
                         },
-                        { label: t('growth.approvalRate'), value: '89%', trend: '+4%' },
-                        { label: t('growth.activeRate'), value: '76%', trend: 'Stable' },
+                        {
+                          label: t('growth.pendingApproval'),
+                          value: estAnalytics?.pendingApproval.toLocaleString() ?? '—',
+                        },
+                        {
+                          label: t('growth.averageRating'),
+                          value: estAnalytics ? estAnalytics.averageRating.toFixed(1) : '—',
+                        },
                       ].map(item => (
                         <div key={item.label} className='flex items-center justify-between'>
                           <span className='text-xs text-muted-foreground'>{item.label}</span>
-                          <div className='text-end'>
-                            <p className='text-sm font-bold tabular-nums'>{item.value}</p>
-                            <p className='text-[10px] text-muted-foreground'>{item.trend}</p>
-                          </div>
+                          <span className='text-sm font-bold tabular-nums'>{item.value}</span>
                         </div>
                       ))}
                     </div>
@@ -358,18 +381,6 @@ function AnalyticsContent() {
               </div>
             )}
 
-            {/* ── Retention ── */}
-            {currentTab === 'retention' && (
-              <div className='flex flex-col items-center justify-center py-16 gap-3 text-center'>
-                <TrendingUp className='size-12 text-muted-foreground/30' />
-                <h3 className='text-md font-semibold'>{t('retention.title')}</h3>
-                <p className='text-sm text-muted-foreground max-w-xs'>
-                  {t('retention.description')}
-                </p>
-              </div>
-            )}
-
-            {/* ── Reports ── */}
             {currentTab === 'reports' && (
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                 {REPORT_TEMPLATES.map(report => {

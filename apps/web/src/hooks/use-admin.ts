@@ -74,6 +74,17 @@ const adminKeys = {
   orderList: (params: AdminOrderQuery) => [...adminKeys.all, 'order-list', params] as const,
   orderDetail: (id: string) => [...adminKeys.all, 'order-detail', id] as const,
 
+  // Payments
+  paymentStats: () => [...adminKeys.all, 'payment-stats'] as const,
+  payoutList: (page: number) => [...adminKeys.all, 'payout-list', page] as const,
+
+  // Notifications
+  notificationStats: () => [...adminKeys.all, 'notification-stats'] as const,
+
+  // Leaderboards
+  leaderboardStats: () => [...adminKeys.all, 'leaderboard-stats'] as const,
+  topUsers: (page: number) => [...adminKeys.all, 'top-users', page] as const,
+
   // Offers
   offerStats: () => [...adminKeys.all, 'offer-stats'] as const,
   offerList: (params: AdminOfferQuery) => [...adminKeys.all, 'offer-list', params] as const,
@@ -575,6 +586,15 @@ export function useAdminRefundOrder() {
 
 // ─── Audit stats & export ────────────────────────────────────────────────────
 
+export function useAuditLogs(params: AuditLogSearchParams) {
+  return useQuery({
+    queryKey: adminKeys.auditLogs(params),
+    queryFn: () => adminService.getAuditLogs(params).then(r => r.data.data),
+    staleTime: 60 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
 export function useAuditStats(days = 30) {
   return useQuery({
     queryKey: [...adminKeys.all, 'audit-stats', days],
@@ -656,6 +676,69 @@ export function useResetDonationPool() {
     onSuccess: data => {
       qc.setQueryData<DonationStats>(DONATION_POOL_KEY, data);
     },
+  });
+}
+
+// ─── Payment hooks ───────────────────────────────────────────────────────────
+
+export function useAdminPaymentStats() {
+  return useQuery({
+    queryKey: adminKeys.paymentStats(),
+    queryFn: () => adminService.getPaymentStats().then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useAdminPayouts(page = 1, limit = 20) {
+  return useQuery({
+    queryKey: adminKeys.payoutList(page),
+    queryFn: () => adminService.getPayoutSummaries(page, limit).then(r => r.data),
+    staleTime: 2 * 60 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+// ─── Notification hooks ─────────────────────────────────────────────────────
+
+export function useAdminNotificationStats() {
+  return useQuery({
+    queryKey: adminKeys.notificationStats(),
+    queryFn: () => adminService.getNotificationStats().then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useAdminBroadcast() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: {
+      title: string;
+      body: string;
+      targetSegment: 'all' | 'consumers' | 'merchants';
+      channel: 'push' | 'in_app' | 'both';
+    }) => adminService.sendBroadcast(payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: adminKeys.notificationStats() });
+    },
+  });
+}
+
+// ─── Leaderboard hooks ──────────────────────────────────────────────────────
+
+export function useAdminLeaderboardStats() {
+  return useQuery({
+    queryKey: adminKeys.leaderboardStats(),
+    queryFn: () => adminService.getLeaderboardStats().then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useAdminTopUsers(page = 1, limit = 20) {
+  return useQuery({
+    queryKey: adminKeys.topUsers(page),
+    queryFn: () => adminService.getTopUsers(page, limit).then(r => r.data),
+    staleTime: 2 * 60 * 1000,
+    placeholderData: prev => prev,
   });
 }
 

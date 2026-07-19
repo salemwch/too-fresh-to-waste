@@ -15,6 +15,10 @@ import { UsersModule } from '../users/user.module';
 
 // Schemas
 import { DriverProfile, DriverProfileSchema } from '../drivers/schemas/driver-profile.schema';
+import { LoyaltyAccount, LoyaltyAccountSchema } from '../loyalty/schemas/loyalty-account.schema';
+import { Notification, NotificationSchema } from '../notifications/schemas/notification.schema';
+import { MerchantWallet, MerchantWalletSchema } from '../payments/schemas/merchant-wallet.schema';
+import { Payment, PaymentSchema } from '../payments/schemas/payment.schema';
 import {
   AdminAnalyticsController,
   AdminDriversController,
@@ -23,6 +27,8 @@ import {
   SystemConfigController,
   OfferManagementController,
   OrderManagementController,
+  PaymentManagementController,
+  NotificationManagementController,
 } from './controllers';
 import { AdminOnlyGuard } from './guards/admin-only.guard';
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
@@ -36,6 +42,8 @@ import {
   SystemConfigService,
   OfferManagementService,
   OrderManagementService,
+  PaymentManagementService,
+  NotificationManagementService,
 } from './services';
 import { TrialExpiryTask } from './tasks/trial-expiry.task';
 
@@ -64,6 +72,10 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
       { name: Offer.name, schema: OfferSchema },
       { name: Review.name, schema: ReviewSchema },
       { name: DriverProfile.name, schema: DriverProfileSchema },
+      { name: Payment.name, schema: PaymentSchema },
+      { name: MerchantWallet.name, schema: MerchantWalletSchema },
+      { name: Notification.name, schema: NotificationSchema },
+      { name: LoyaltyAccount.name, schema: LoyaltyAccountSchema },
     ]),
   ],
 
@@ -75,6 +87,9 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     SystemConfigController,
     OfferManagementController,
     OrderManagementController,
+    PaymentManagementController,
+    NotificationManagementController,
+    LeaderboardManagementController,
   ],
 
   providers: [
@@ -86,6 +101,9 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     SystemConfigService,
     OfferManagementService,
     OrderManagementService,
+    PaymentManagementService,
+    NotificationManagementService,
+    LeaderboardManagementService,
 
     // Scheduled tasks
     TrialExpiryTask,

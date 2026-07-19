@@ -885,3 +885,84 @@ export interface EstablishmentAuditEntry {
   timestamp?: string;
   createdAt?: string;
 }
+
+// ─── Payment Management ─────────────────────────────────────────────────────
+
+export interface AdminPaymentStats {
+  totalPayments: number;
+  totalAmount: number;
+  totalRefunded: number;
+  completedPayments: number;
+  failedPayments: number;
+  pendingPayments: number;
+  refundedPayments: number;
+  averageAmount: number;
+  totalProcessingFees: number;
+  paymentMethods: Array<{ method: string; count: number; total: number }>;
+}
+
+export interface AdminPayoutSummary {
+  _id: string;
+  establishmentName: string;
+  merchantName: string;
+  merchantEmail: string;
+  availableBalance: number;
+  pendingBalance: number;
+  currency: string;
+  lastPayoutDate?: string;
+}
+
+export interface AdminPayoutListResponse {
+  data: AdminPayoutSummary[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// ─── Notification Management ────────────────────────────────────────────────
+
+export interface AdminNotificationStats {
+  totalSent: number;
+  deliveredCount: number;
+  failedCount: number;
+  pendingCount: number;
+  deliveryRate: number;
+  channelBreakdown: Array<{ channel: string; count: number }>;
+}
+
+export interface AdminBroadcastPayload {
+  title: string;
+  body: string;
+  targetSegment: 'all' | 'consumers' | 'merchants';
+  channel: 'push' | 'in_app' | 'both';
+}
+
+export interface AdminBroadcastResult {
+  totalProcessed: number;
+  successCount: number;
+  failureCount: number;
+}
+
+// ─── Leaderboard Management ─────────────────────────────────────────────────
+
+export interface AdminLeaderboardStats {
+  totalParticipants: number;
+  totalPointsDistributed: number;
+  averagePoints: number;
+  topTier: string;
+  tierBreakdown: Array<{ tier: string; count: number }>;
+}
+
+export interface AdminLeaderboardEntry {
+  _id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  totalPoints: number;
+  totalOrdersCount: number;
+  totalBagsSaved: number;
+  currentTier: string;
+  referralCount: number;
+  rank: number;
+}

@@ -502,7 +502,11 @@
     "settings": {
       "title": "Paramètres",
       "subtitle": "Gérez votre compte et vos préférences",
-      "tabs": { "profile": "Profil", "security": "Sécurité", "sessions": "Sessions" },
+      "tabs": {
+        "profile": "Profil",
+        "security": "Sécurité",
+        "sessions": "Sessions"
+      },
       "profile": {
         "title": "Informations du profil",
         "subtitle": "Mettez à jour vos données personnelles",
@@ -562,7 +566,11 @@
       "period30d": "30 Jours",
       "period90d": "90 Jours",
       "periodCustom": "Personnalisé",
-      "tabs": { "overview": "Aperçu", "customers": "Clients", "sustainability": "Durabilité" },
+      "tabs": {
+        "overview": "Aperçu",
+        "customers": "Clients",
+        "sustainability": "Durabilité"
+      },
       "kpi": {
         "revenue": "Chiffre d'affaires",
         "totalOrders": "Total des commandes",
@@ -574,9 +582,15 @@
       "revenueChart": {
         "title": "Tendance du chiffre d'affaires",
         "subtitle": "Revenus au fil du temps",
-        "tooltip": { "revenue": "Revenus", "orders": "Commandes" }
+        "tooltip": {
+          "revenue": "Revenus",
+          "orders": "Commandes"
+        }
       },
-      "ordersChart": { "title": "Volume de commandes", "subtitle": "Commandes au fil du temps" },
+      "ordersChart": {
+        "title": "Volume de commandes",
+        "subtitle": "Commandes au fil du temps"
+      },
       "customerLocations": {
         "title": "Localisation des clients",
         "subtitle": "Villes principales par nombre de commandes",
@@ -674,7 +688,11 @@
     "inventory": {
       "title": "Inventaire",
       "subtitle": "Gérez le stock et les niveaux d'inventaire",
-      "tabs": { "items": "Articles", "alerts": "Alertes", "analytics": "Analytique" },
+      "tabs": {
+        "items": "Articles",
+        "alerts": "Alertes",
+        "analytics": "Analytique"
+      },
       "filters": {
         "allStatuses": "Tous les statuts",
         "inStock": "En stock",
@@ -2149,10 +2167,22 @@
       "statLabel": "Impact mensuel moyen · partenaires actifs",
       "statDesc": "des fabricants partenaires réduisent leur taux de déchets alimentaires de 70 à 80 % en moins de 3 mois.",
       "miniStats": [
-        { "n": "+42%", "l": "revenus issus des invendus" },
-        { "n": "2.4k", "l": "utilisateurs actifs au lancement" },
-        { "n": "48h", "l": "délai d'intégration" },
-        { "n": "0 DT", "l": "frais d'installation" }
+        {
+          "n": "+42%",
+          "l": "revenus issus des invendus"
+        },
+        {
+          "n": "2.4k",
+          "l": "utilisateurs actifs au lancement"
+        },
+        {
+          "n": "48h",
+          "l": "délai d'intégration"
+        },
+        {
+          "n": "0 DT",
+          "l": "frais d'installation"
+        }
       ]
     },
     "howItWorks": {
@@ -2279,7 +2309,11 @@
     "subtitle": "Gérer les commandes, résoudre les litiges et traiter les remboursements",
     "export": "Exporter",
     "searchPlaceholder": "Rechercher par ID, client ou marchand...",
-    "tabs": { "all": "Toutes les commandes", "disputes": "Litiges", "refunds": "Remboursements" },
+    "tabs": {
+      "all": "Toutes les commandes",
+      "disputes": "Litiges",
+      "refunds": "Remboursements"
+    },
     "kpi": {
       "totalOrders": "Total commandes",
       "activeOrders": "Commandes actives",
@@ -2294,7 +2328,11 @@
       "amount": "Montant",
       "payment": "Paiement"
     },
-    "actions": { "viewDetails": "Voir détails", "cancel": "Annuler", "refund": "Rembourser" },
+    "actions": {
+      "viewDetails": "Voir détails",
+      "cancel": "Annuler",
+      "refund": "Rembourser"
+    },
     "cancelDialog": {
       "title": "Annuler la commande",
       "description": "Cela annulera la commande et notifiera le client et le marchand.",
@@ -2335,57 +2373,54 @@
       "target": "Cible",
       "severity": "Sévérité"
     },
-    "empty": { "title": "Aucune entrée", "description": "Aucune entrée du journal d'audit." }
+    "empty": {
+      "title": "Aucune entrée",
+      "description": "Aucune entrée du journal d'audit."
+    }
   },
   "adminPayments": {
     "title": "Paiements & Versements",
-    "subtitle": "Surveiller les transactions, suivre les versements marchands et analyser les revenus",
-    "searchPlaceholder": "Rechercher par commande, client ou marchand...",
+    "subtitle": "Suivre l'activité des paiements et les soldes des portefeuilles marchands",
     "searchMerchant": "Rechercher des marchands...",
     "tabs": {
-      "transactions": "Transactions",
-      "payouts": "Versements marchands",
-      "revenue": "Revenus"
+      "overview": "Aperçu",
+      "payouts": "Portefeuilles marchands"
     },
     "kpi": {
       "totalRevenue": "Revenu total",
-      "commission": "Commission plateforme",
-      "pendingPayouts": "Versements en attente",
-      "paymentMethods": "Méthodes de paiement"
+      "completedPayments": "Complétés",
+      "pendingPayments": "En attente",
+      "failedPayments": "Échoués"
     },
     "columns": {
-      "order": "Commande",
-      "customer": "Client",
       "merchant": "Marchand",
-      "amount": "Montant",
-      "commission": "Commission",
-      "status": "Statut",
-      "webhook": "Statut webhook",
-      "totalEarned": "Total gagné",
-      "netPayout": "Versement net",
-      "lastPayout": "Dernier versement"
+      "establishment": "Établissement",
+      "available": "Disponible",
+      "pending": "En attente",
+      "currency": "Devise"
     },
-    "empty": {
-      "title": "Aucune transaction",
-      "description": "Aucune transaction ne correspond à vos filtres."
+    "overview": {
+      "summary": "Résumé des paiements",
+      "totalPayments": "Total des paiements",
+      "totalRefunded": "Total remboursé",
+      "averageAmount": "Montant moyen",
+      "processingFees": "Frais de traitement",
+      "refundedCount": "Paiements remboursés"
     },
+    "methodsBreakdown": "Méthodes de paiement",
+    "noMethodData": "Aucune donnée de méthode disponible",
     "emptyPayouts": {
-      "title": "Aucun versement",
-      "description": "Aucun versement marchand à afficher."
-    },
-    "revenue": {
-      "title": "Analytique des revenus",
-      "description": "Les graphiques de revenus et l'analyse des tendances seront disponibles ici."
+      "title": "Aucun portefeuille marchand",
+      "description": "Aucun portefeuille marchand à afficher pour le moment."
     }
   },
   "adminAnalytics": {
-    "title": "Analytique & Rapports",
+    "title": "Analytiques & Rapports",
     "subtitle": "Suivre l'impact de la plateforme, les métriques de croissance et générer des rapports",
     "export": "Exporter",
     "tabs": {
       "impact": "Tableau d'impact",
       "growth": "Croissance",
-      "retention": "Rétention",
       "reports": "Rapports"
     },
     "kpi": {
@@ -2395,121 +2430,116 @@
       "activeUsers": "Utilisateurs actifs"
     },
     "impact": {
-      "wasteTrend": "Gaspillage évité dans le temps",
-      "wasteTrendDesc": "Réduction mensuelle du gaspillage alimentaire en kg",
-      "orderDist": "Distribution des commandes",
-      "orderDistDesc": "Répartition des résultats des commandes",
+      "wasteTrend": "Tendance des revenus",
+      "wasteTrendDesc": "Revenus des commandes sur les 7 dernières périodes",
+      "orderDist": "Distribution des statuts",
+      "orderDistDesc": "Répartition des résultats de commandes cette période",
       "summary": "Résumé de la période",
       "totalOrders": "Total commandes",
       "completionRate": "Taux de complétion",
       "avgOrderValue": "Valeur moyenne",
-      "repeatRate": "Taux de récurrence"
+      "repeatRate": "Taux de rétention"
     },
     "growth": {
-      "userGrowth": "Croissance utilisateurs",
-      "userGrowthDesc": "Total des utilisateurs inscrits",
-      "merchantOnboarding": "Intégration marchands",
-      "totalMerchants": "Total marchands",
-      "avgOnboardingTime": "Temps moyen d'intégration",
-      "approvalRate": "Taux d'approbation",
-      "activeRate": "Taux d'activité"
-    },
-    "retention": {
-      "title": "Analytique de rétention",
-      "description": "L'analyse de cohortes et les courbes de rétention seront disponibles ici."
+      "userGrowth": "Croissance des utilisateurs",
+      "userGrowthDesc": "Métriques d'inscription et d'activité",
+      "merchantOnboarding": "Intégration des marchands",
+      "totalUsers": "Total utilisateurs",
+      "newThisWeek": "Nouveaux cette semaine",
+      "newThisMonth": "Nouveaux ce mois",
+      "retentionRate": "Taux de rétention",
+      "totalMerchants": "Total établissements",
+      "activeEstablishments": "Actifs",
+      "pendingApproval": "En attente d'approbation",
+      "averageRating": "Note moyenne"
     }
   },
   "adminNotifications": {
     "title": "Centre de notifications",
-    "subtitle": "Créer des campagnes, gérer les modèles et suivre la livraison des notifications",
-    "createCampaign": "Nouvelle campagne",
-    "searchCampaigns": "Rechercher des campagnes...",
-    "searchHistory": "Rechercher les notifications envoyées...",
-    "tabs": { "campaigns": "Campagnes", "history": "Historique", "templates": "Modèles" },
-    "kpi": {
-      "totalSent": "Envoyées (30j)",
-      "deliveryRate": "Taux de livraison",
-      "openRate": "Taux d'ouverture",
-      "activeCampaigns": "Campagnes actives"
+    "subtitle": "Envoyer des diffusions et surveiller la livraison des notifications",
+    "sendBroadcast": "Envoyer une diffusion",
+    "tabs": {
+      "overview": "Aperçu",
+      "channels": "Canaux"
     },
-    "columns": {
-      "campaign": "Campagne",
-      "target": "Cible",
-      "channel": "Canal",
-      "status": "Statut",
-      "recipients": "Destinataires",
-      "performance": "Performance"
+    "kpi": {
+      "totalSent": "Total envoyé",
+      "deliveryRate": "Taux de livraison",
+      "pending": "En attente",
+      "failed": "Échouées"
+    },
+    "overview": {
+      "summary": "Résumé des notifications",
+      "totalSent": "Total envoyé",
+      "delivered": "Livrées",
+      "failed": "Échouées",
+      "pending": "En attente",
+      "deliveryRate": "Taux de livraison"
+    },
+    "channelBreakdown": "Répartition par canal",
+    "noChannelData": "Aucune donnée de canal disponible",
+    "channels": {
+      "orderUpdates": "Mises à jour commandes",
+      "marketing": "Marketing",
+      "pickupReminders": "Rappels de retrait",
+      "security": "Sécurité",
+      "offers": "Offres",
+      "admin": "Admin",
+      "leaderboard": "Classement"
+    },
+    "builder": {
+      "title": "Envoyer une diffusion",
+      "subtitle": "Envoyer une notification à un segment d'utilisateurs",
+      "campaignTitle": "Titre",
+      "titlePlaceholder": "Titre de la notification...",
+      "message": "Message",
+      "messagePlaceholder": "Entrez le corps de la notification...",
+      "targetSegment": "Segment cible",
+      "channel": "Type de livraison",
+      "preview": "Aperçu",
+      "previewTitle": "Votre titre ici",
+      "previewMessage": "Votre message ici",
+      "sendNow": "Envoyer maintenant",
+      "sending": "Envoi...",
+      "cancel": "Annuler",
+      "error": "Échec de l'envoi. Veuillez réessayer.",
+      "success": "Diffusion envoyée avec succès !"
     },
     "segments": {
       "all": "Tous les utilisateurs",
       "consumers": "Consommateurs",
-      "merchants": "Marchands",
-      "custom": "Segment personnalisé"
-    },
-    "builder": {
-      "title": "Créer une campagne",
-      "subtitle": "Composer et planifier une campagne de notifications",
-      "campaignTitle": "Titre de la campagne",
-      "titlePlaceholder": "ex: Vente flash du weekend",
-      "message": "Message",
-      "messagePlaceholder": "Écrivez votre message...",
-      "targetSegment": "Segment cible",
-      "channel": "Canal",
-      "preview": "Aperçu",
-      "previewTitle": "Titre de la campagne",
-      "previewMessage": "Votre message apparaîtra ici...",
-      "sendNow": "Envoyer maintenant",
-      "schedule": "Planifier",
-      "saveDraft": "Brouillon"
-    },
-    "empty": { "title": "Aucune campagne", "description": "Créez votre première campagne." },
-    "emptyHistory": {
-      "title": "Aucune notification envoyée",
-      "description": "Les campagnes envoyées apparaîtront ici."
+      "merchants": "Marchands"
     }
   },
   "adminLeaderboards": {
     "title": "Classements & Récompenses",
-    "subtitle": "Suivre les meilleurs utilisateurs, gérer la distribution des prix et consulter les saisons passées",
+    "subtitle": "Suivre les meilleurs utilisateurs par points de fidélité, distribution des niveaux et métriques d'engagement",
     "searchUsers": "Rechercher des utilisateurs...",
-    "searchPrizes": "Rechercher des prix...",
-    "searchSeasons": "Rechercher des saisons...",
     "tabs": {
-      "standings": "Classement actuel",
-      "prizes": "Distribution des prix",
-      "history": "Saisons passées"
+      "overview": "Vue d'ensemble",
+      "topUsers": "Meilleurs utilisateurs"
     },
     "kpi": {
       "totalParticipants": "Participants",
-      "currentSeason": "Saison actuelle",
       "totalPoints": "Total des points",
-      "flaggedAccounts": "Comptes signalés"
+      "averagePoints": "Points moyens",
+      "topTier": "Meilleur niveau"
     },
     "columns": {
       "user": "Utilisateur",
       "totalPoints": "Points totaux",
-      "streak": "Série",
-      "referralPts": "Pts parrainage",
+      "tier": "Niveau",
+      "bagsSaved": "Sacs sauvés",
       "orders": "Commandes",
-      "prize": "Prix",
-      "season": "Saison",
-      "status": "Statut",
-      "period": "Période",
-      "participants": "Participants",
-      "winner": "Gagnant",
-      "prizes": "Prix"
+      "referrals": "Parrainages"
     },
+    "tierDistribution": "Distribution des niveaux",
+    "users": "utilisateurs",
+    "userDetails": "Détails du classement de l'utilisateur",
+    "activityBreakdown": "Répartition de l'activité",
     "empty": {
       "title": "Aucun participant",
-      "description": "Aucun utilisateur dans le classement actuel."
-    },
-    "emptyPrizes": {
-      "title": "Aucun prix",
-      "description": "Aucun enregistrement de distribution de prix."
-    },
-    "emptySeasons": {
-      "title": "Aucune saison passée",
-      "description": "Les saisons passées apparaîtront ici."
+      "description": "Aucun utilisateur dans le programme de fidélité."
     }
   }
 }

@@ -5,3 +5,6 @@ export * from './establishment-management.service';
 export * from './system-config.service';
 export * from './offer-management.service';
 export * from './order-management.service';
+export * from './payment-management.service';
+export * from './notification-management.service';
+export * from './leaderboard-management.service';

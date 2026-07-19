@@ -502,7 +502,11 @@
     "settings": {
       "title": "الإعدادات",
       "subtitle": "إدارة حسابك وتفضيلاتك",
-      "tabs": { "profile": "الملف الشخصي", "security": "الأمان", "sessions": "الجلسات" },
+      "tabs": {
+        "profile": "الملف الشخصي",
+        "security": "الأمان",
+        "sessions": "الجلسات"
+      },
       "profile": {
         "title": "معلومات الملف الشخصي",
         "subtitle": "تحديث بياناتك الشخصية",
@@ -562,7 +566,11 @@
       "period30d": "٣٠ يوم",
       "period90d": "٩٠ يوم",
       "periodCustom": "مخصص",
-      "tabs": { "overview": "نظرة عامة", "customers": "العملاء", "sustainability": "الاستدامة" },
+      "tabs": {
+        "overview": "نظرة عامة",
+        "customers": "العملاء",
+        "sustainability": "الاستدامة"
+      },
       "kpi": {
         "revenue": "الإيرادات",
         "totalOrders": "إجمالي الطلبات",
@@ -574,9 +582,15 @@
       "revenueChart": {
         "title": "اتجاه الإيرادات",
         "subtitle": "الإيرادات عبر الزمن",
-        "tooltip": { "revenue": "الإيرادات", "orders": "الطلبات" }
+        "tooltip": {
+          "revenue": "الإيرادات",
+          "orders": "الطلبات"
+        }
       },
-      "ordersChart": { "title": "حجم الطلبات", "subtitle": "الطلبات عبر الزمن" },
+      "ordersChart": {
+        "title": "حجم الطلبات",
+        "subtitle": "الطلبات عبر الزمن"
+      },
       "customerLocations": {
         "title": "مواقع العملاء",
         "subtitle": "أهم المدن حسب عدد الطلبات",
@@ -656,18 +670,29 @@
         "success": "تم إرسال البلاغ بنجاح",
         "error": "فشل إرسال البلاغ. يرجى المحاولة مرة أخرى."
       },
-      "trendingKeywords": { "title": "الكلمات الرائجة", "subtitle": "المواضيع الأكثر ذكرًا" },
+      "trendingKeywords": {
+        "title": "الكلمات الرائجة",
+        "subtitle": "المواضيع الأكثر ذكرًا"
+      },
       "empty": {
         "title": "لا توجد تقييمات بعد",
         "description": "عندما يترك العملاء تقييمات، ستظهر هنا."
       },
       "error": "فشل تحميل التقييمات. يرجى المحاولة مرة أخرى.",
-      "pagination": { "previous": "السابق", "next": "التالي", "page": "صفحة {current} من {total}" }
+      "pagination": {
+        "previous": "السابق",
+        "next": "التالي",
+        "page": "صفحة {current} من {total}"
+      }
     },
     "inventory": {
       "title": "المخزون",
       "subtitle": "إدارة المخزون ومستويات البضائع",
-      "tabs": { "items": "المواد", "alerts": "التنبيهات", "analytics": "التحليلات" },
+      "tabs": {
+        "items": "المواد",
+        "alerts": "التنبيهات",
+        "analytics": "التحليلات"
+      },
       "filters": {
         "allStatuses": "جميع الحالات",
         "inStock": "متوفر",
@@ -731,7 +756,10 @@
         "wasteRate": "معدل الهدر",
         "stockHistory": "سجل المخزون"
       },
-      "empty": { "title": "لا توجد مواد", "description": "أضف مواد إلى مخزونك لبدء التتبع." },
+      "empty": {
+        "title": "لا توجد مواد",
+        "description": "أضف مواد إلى مخزونك لبدء التتبع."
+      },
       "error": "فشل تحميل المخزون. يرجى المحاولة مرة أخرى."
     },
     "payments": {
@@ -779,7 +807,10 @@
         "failed": "فاشل",
         "cancelled": "ملغى"
       },
-      "empty": { "title": "لا توجد مدفوعات", "description": "ستظهر مدفوعات طلباتك هنا." },
+      "empty": {
+        "title": "لا توجد مدفوعات",
+        "description": "ستظهر مدفوعات طلباتك هنا."
+      },
       "error": "فشل تحميل المدفوعات. يرجى المحاولة مرة أخرى.",
       "export": "تصدير",
       "tndCurrency": "د.ت"
@@ -2124,10 +2155,22 @@
       "statLabel": "متوسط الأثر الشهري · الشركاء النشطون",
       "statDesc": "من الشركاء المصنّعين يخفّضون نسبة نفاياتهم الغذائية بين 70 و80 % خلال أقل من 3 أشهر.",
       "miniStats": [
-        { "n": "+42%", "l": "دخل من المنتجات غير المبيعة" },
-        { "n": "2.4k", "l": "مستخدم نشط عند الإطلاق" },
-        { "n": "48h", "l": "مدة التكامل" },
-        { "n": "0 دت", "l": "رسوم الإعداد" }
+        {
+          "n": "+42%",
+          "l": "دخل من المنتجات غير المبيعة"
+        },
+        {
+          "n": "2.4k",
+          "l": "مستخدم نشط عند الإطلاق"
+        },
+        {
+          "n": "48h",
+          "l": "مدة التكامل"
+        },
+        {
+          "n": "0 دت",
+          "l": "رسوم الإعداد"
+        }
       ]
     },
     "howItWorks": {
@@ -2254,7 +2297,11 @@
     "subtitle": "إدارة الطلبات وحل النزاعات ومعالجة المبالغ المستردة",
     "export": "تصدير",
     "searchPlaceholder": "بحث بالمعرّف أو العميل أو التاجر...",
-    "tabs": { "all": "جميع الطلبات", "disputes": "النزاعات", "refunds": "المبالغ المستردة" },
+    "tabs": {
+      "all": "جميع الطلبات",
+      "disputes": "النزاعات",
+      "refunds": "المبالغ المستردة"
+    },
     "kpi": {
       "totalOrders": "إجمالي الطلبات",
       "activeOrders": "الطلبات النشطة",
@@ -2269,7 +2316,11 @@
       "amount": "المبلغ",
       "payment": "الدفع"
     },
-    "actions": { "viewDetails": "عرض التفاصيل", "cancel": "إلغاء", "refund": "استرداد" },
+    "actions": {
+      "viewDetails": "عرض التفاصيل",
+      "cancel": "إلغاء",
+      "refund": "استرداد"
+    },
     "cancelDialog": {
       "title": "إلغاء الطلب",
       "description": "سيتم إلغاء الطلب وإخطار العميل والتاجر.",
@@ -2282,7 +2333,10 @@
       "reasonLabel": "سبب الاسترداد",
       "reasonPlaceholder": "اشرح سبب إصدار هذا الاسترداد..."
     },
-    "empty": { "title": "لا توجد طلبات", "description": "لا توجد طلبات تطابق عوامل التصفية." }
+    "empty": {
+      "title": "لا توجد طلبات",
+      "description": "لا توجد طلبات تطابق عوامل التصفية."
+    }
   },
   "adminAuditLog": {
     "title": "سجل المراجعة",
@@ -2307,162 +2361,173 @@
       "target": "الهدف",
       "severity": "الخطورة"
     },
-    "empty": { "title": "لا توجد سجلات", "description": "لا توجد إدخالات في سجل المراجعة." }
+    "empty": {
+      "title": "لا توجد سجلات",
+      "description": "لا توجد إدخالات في سجل المراجعة."
+    }
   },
   "adminPayments": {
     "title": "المدفوعات والتحويلات",
-    "subtitle": "مراقبة المعاملات وتتبع تحويلات التجار وتحليل الإيرادات",
-    "searchPlaceholder": "بحث بالطلب أو العميل أو التاجر...",
-    "searchMerchant": "بحث عن تجار...",
-    "tabs": { "transactions": "المعاملات", "payouts": "تحويلات التجار", "revenue": "الإيرادات" },
+    "subtitle": "متابعة نشاط الدفع وأرصدة محافظ التجار",
+    "searchMerchant": "البحث عن التجار...",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "payouts": "محافظ التجار"
+    },
     "kpi": {
       "totalRevenue": "إجمالي الإيرادات",
-      "commission": "عمولة المنصة",
-      "pendingPayouts": "التحويلات المعلقة",
-      "paymentMethods": "طرق الدفع"
+      "completedPayments": "مكتملة",
+      "pendingPayments": "معلقة",
+      "failedPayments": "فاشلة"
     },
     "columns": {
-      "order": "الطلب",
-      "customer": "العميل",
       "merchant": "التاجر",
-      "amount": "المبلغ",
-      "commission": "العمولة",
-      "status": "الحالة",
-      "webhook": "حالة Webhook",
-      "totalEarned": "إجمالي الأرباح",
-      "netPayout": "صافي التحويل",
-      "lastPayout": "آخر تحويل"
+      "establishment": "المؤسسة",
+      "available": "المتاح",
+      "pending": "معلق",
+      "currency": "العملة"
     },
-    "empty": { "title": "لا توجد معاملات", "description": "لا توجد معاملات تطابق عوامل التصفية." },
-    "emptyPayouts": { "title": "لا توجد تحويلات", "description": "لا توجد تحويلات تجار لعرضها." },
-    "revenue": {
-      "title": "تحليلات الإيرادات",
-      "description": "رسوم الإيرادات البيانية وتحليل الاتجاهات ستكون متاحة هنا."
+    "overview": {
+      "summary": "ملخص المدفوعات",
+      "totalPayments": "إجمالي المدفوعات",
+      "totalRefunded": "إجمالي المسترد",
+      "averageAmount": "المبلغ المتوسط",
+      "processingFees": "رسوم المعالجة",
+      "refundedCount": "المدفوعات المستردة"
+    },
+    "methodsBreakdown": "طرق الدفع",
+    "noMethodData": "لا تتوفر بيانات طرق الدفع",
+    "emptyPayouts": {
+      "title": "لا توجد محافظ تجار",
+      "description": "لا توجد محافظ تجار للعرض حالياً."
     }
   },
   "adminAnalytics": {
     "title": "التحليلات والتقارير",
-    "subtitle": "تتبع تأثير المنصة ومقاييس النمو وإنشاء التقارير",
+    "subtitle": "تتبع تأثير المنصة ومقاييس النمو وإنشاء تقارير أصحاب المصلحة",
     "export": "تصدير",
     "tabs": {
       "impact": "لوحة التأثير",
       "growth": "النمو",
-      "retention": "الاحتفاظ",
       "reports": "التقارير"
     },
     "kpi": {
-      "wasteSaved": "الهدر المُنقَذ",
+      "wasteSaved": "الهدر المُوفَّر",
       "co2Reduced": "CO₂ المخفض",
-      "mealsSaved": "الوجبات المُنقَذة",
+      "mealsSaved": "الوجبات المحفوظة",
       "activeUsers": "المستخدمون النشطون"
     },
     "impact": {
-      "wasteTrend": "الهدر المُنقَذ عبر الزمن",
-      "wasteTrendDesc": "التخفيض الشهري لهدر الطعام بالكيلوغرام",
-      "orderDist": "توزيع الطلبات",
-      "orderDistDesc": "تفصيل نتائج الطلبات",
+      "wasteTrend": "اتجاه الإيرادات",
+      "wasteTrendDesc": "إيرادات الطلبات خلال آخر 7 فترات",
+      "orderDist": "توزيع حالات الطلبات",
+      "orderDistDesc": "تفصيل نتائج الطلبات لهذه الفترة",
       "summary": "ملخص الفترة",
       "totalOrders": "إجمالي الطلبات",
-      "completionRate": "نسبة الإكمال",
-      "avgOrderValue": "متوسط القيمة",
-      "repeatRate": "نسبة التكرار"
+      "completionRate": "معدل الإكمال",
+      "avgOrderValue": "متوسط قيمة الطلب",
+      "repeatRate": "معدل الاحتفاظ"
     },
     "growth": {
       "userGrowth": "نمو المستخدمين",
-      "userGrowthDesc": "إجمالي المستخدمين المسجلين",
+      "userGrowthDesc": "مقاييس التسجيل والنشاط",
       "merchantOnboarding": "تسجيل التجار",
-      "totalMerchants": "إجمالي التجار",
-      "avgOnboardingTime": "متوسط وقت التسجيل",
-      "approvalRate": "نسبة الموافقة",
-      "activeRate": "نسبة النشاط"
-    },
-    "retention": {
-      "title": "تحليلات الاحتفاظ",
-      "description": "تحليل الأفواج ومنحنيات الاحتفاظ ستكون متاحة هنا."
+      "totalUsers": "إجمالي المستخدمين",
+      "newThisWeek": "جدد هذا الأسبوع",
+      "newThisMonth": "جدد هذا الشهر",
+      "retentionRate": "معدل الاحتفاظ",
+      "totalMerchants": "إجمالي المؤسسات",
+      "activeEstablishments": "نشطة",
+      "pendingApproval": "في انتظار الموافقة",
+      "averageRating": "التقييم المتوسط"
     }
   },
   "adminNotifications": {
     "title": "مركز الإشعارات",
-    "subtitle": "إنشاء حملات وإدارة القوالب وتتبع تسليم الإشعارات",
-    "createCampaign": "حملة جديدة",
-    "searchCampaigns": "بحث عن حملات...",
-    "searchHistory": "بحث في الإشعارات المرسلة...",
-    "tabs": { "campaigns": "الحملات", "history": "السجل", "templates": "القوالب" },
-    "kpi": {
-      "totalSent": "المُرسلة (30 يوم)",
-      "deliveryRate": "نسبة التسليم",
-      "openRate": "نسبة الفتح",
-      "activeCampaigns": "الحملات النشطة"
+    "subtitle": "إرسال بث ومراقبة تسليم الإشعارات",
+    "sendBroadcast": "إرسال بث",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "channels": "القنوات"
     },
-    "columns": {
-      "campaign": "الحملة",
-      "target": "الهدف",
-      "channel": "القناة",
-      "status": "الحالة",
-      "recipients": "المستلمون",
-      "performance": "الأداء"
+    "kpi": {
+      "totalSent": "إجمالي المرسل",
+      "deliveryRate": "معدل التسليم",
+      "pending": "معلقة",
+      "failed": "فاشلة"
+    },
+    "overview": {
+      "summary": "ملخص الإشعارات",
+      "totalSent": "إجمالي المرسل",
+      "delivered": "تم التسليم",
+      "failed": "فاشلة",
+      "pending": "معلقة",
+      "deliveryRate": "معدل التسليم"
+    },
+    "channelBreakdown": "توزيع القنوات",
+    "noChannelData": "لا تتوفر بيانات القنوات",
+    "channels": {
+      "orderUpdates": "تحديثات الطلبات",
+      "marketing": "التسويق",
+      "pickupReminders": "تذكيرات الاستلام",
+      "security": "الأمان",
+      "offers": "العروض",
+      "admin": "الإدارة",
+      "leaderboard": "لوحة المتصدرين"
+    },
+    "builder": {
+      "title": "إرسال بث",
+      "subtitle": "إرسال إشعار إلى شريحة من المستخدمين",
+      "campaignTitle": "العنوان",
+      "titlePlaceholder": "عنوان الإشعار...",
+      "message": "الرسالة",
+      "messagePlaceholder": "أدخل نص الإشعار...",
+      "targetSegment": "الشريحة المستهدفة",
+      "channel": "نوع التسليم",
+      "preview": "معاينة",
+      "previewTitle": "عنوانك هنا",
+      "previewMessage": "رسالتك هنا",
+      "sendNow": "إرسال الآن",
+      "sending": "جاري الإرسال...",
+      "cancel": "إلغاء",
+      "error": "فشل إرسال البث. يرجى المحاولة مرة أخرى.",
+      "success": "تم إرسال البث بنجاح!"
     },
     "segments": {
       "all": "جميع المستخدمين",
       "consumers": "المستهلكون",
-      "merchants": "التجار",
-      "custom": "شريحة مخصصة"
-    },
-    "builder": {
-      "title": "إنشاء حملة",
-      "subtitle": "تأليف وجدولة حملة إشعارات",
-      "campaignTitle": "عنوان الحملة",
-      "titlePlaceholder": "مثال: تخفيضات نهاية الأسبوع",
-      "message": "الرسالة",
-      "messagePlaceholder": "اكتب رسالتك...",
-      "targetSegment": "الشريحة المستهدفة",
-      "channel": "القناة",
-      "preview": "معاينة",
-      "previewTitle": "عنوان الحملة",
-      "previewMessage": "ستظهر رسالتك هنا...",
-      "sendNow": "إرسال الآن",
-      "schedule": "جدولة",
-      "saveDraft": "حفظ كمسودة"
-    },
-    "empty": { "title": "لا توجد حملات", "description": "أنشئ حملتك الأولى." },
-    "emptyHistory": {
-      "title": "لا توجد إشعارات مرسلة",
-      "description": "ستظهر الحملات المرسلة هنا."
+      "merchants": "التجار"
     }
   },
   "adminLeaderboards": {
     "title": "المتصدرون والمكافآت",
-    "subtitle": "تتبع أفضل المستخدمين وإدارة توزيع الجوائز ومراجعة المواسم السابقة",
+    "subtitle": "تتبع أفضل المستخدمين حسب نقاط الولاء وتوزيع المستويات ومقاييس التفاعل",
     "searchUsers": "بحث عن مستخدمين...",
-    "searchPrizes": "بحث عن جوائز...",
-    "searchSeasons": "بحث عن مواسم...",
     "tabs": {
-      "standings": "الترتيب الحالي",
-      "prizes": "توزيع الجوائز",
-      "history": "المواسم السابقة"
+      "overview": "نظرة عامة",
+      "topUsers": "أفضل المستخدمين"
     },
     "kpi": {
       "totalParticipants": "المشاركون",
-      "currentSeason": "الموسم الحالي",
       "totalPoints": "إجمالي النقاط",
-      "flaggedAccounts": "الحسابات المُبلَّغ عنها"
+      "averagePoints": "متوسط النقاط",
+      "topTier": "أعلى مستوى"
     },
     "columns": {
       "user": "المستخدم",
       "totalPoints": "إجمالي النقاط",
-      "streak": "التسلسل",
-      "referralPts": "نقاط الإحالة",
+      "tier": "المستوى",
+      "bagsSaved": "الأكياس المحفوظة",
       "orders": "الطلبات",
-      "prize": "الجائزة",
-      "season": "الموسم",
-      "status": "الحالة",
-      "period": "الفترة",
-      "participants": "المشاركون",
-      "winner": "الفائز",
-      "prizes": "الجوائز"
+      "referrals": "الإحالات"
     },
-    "empty": { "title": "لا يوجد مشاركون", "description": "لا يوجد مستخدمون في الترتيب الحالي." },
-    "emptyPrizes": { "title": "لا توجد جوائز", "description": "لا توجد سجلات توزيع جوائز." },
-    "emptySeasons": { "title": "لا توجد مواسم سابقة", "description": "ستظهر المواسم السابقة هنا." }
+    "tierDistribution": "توزيع المستويات",
+    "users": "مستخدمين",
+    "userDetails": "تفاصيل ترتيب المستخدم",
+    "activityBreakdown": "تفصيل النشاط",
+    "empty": {
+      "title": "لا يوجد مشاركون",
+      "description": "لا يوجد مستخدمون في برنامج الولاء بعد."
+    }
   }
 }

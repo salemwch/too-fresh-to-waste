@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
@@ -12,8 +12,6 @@ import {
   User,
   Activity,
   ShieldAlert,
-  LogIn,
-  UserX,
   Settings,
 } from 'lucide-react';
 import {
@@ -31,82 +29,9 @@ import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kp
 import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface AuditEntry {
-  id: string;
-  timestamp: string;
-  adminEmail: string;
-  action: string;
-  actionType: 'user_management' | 'content_moderation' | 'system_config' | 'security' | 'login';
-  target: string;
-  targetType: 'user' | 'establishment' | 'offer' | 'order' | 'system';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  details?: string;
-  ipAddress?: string;
-}
-
-// ─── Mock data ───────────────────────────────────────────────────────────────
-
-const MOCK_ENTRIES: AuditEntry[] = [
-  {
-    id: '1',
-    timestamp: '2026-07-18T14:30:00Z',
-    adminEmail: 'admin@tftw.tn',
-    action: 'Approved establishment',
-    actionType: 'content_moderation',
-    target: 'Boulangerie Sfax',
-    targetType: 'establishment',
-    severity: 'medium',
-    details: 'Approved after document verification',
-  },
-  {
-    id: '2',
-    timestamp: '2026-07-18T13:15:00Z',
-    adminEmail: 'moderator@tftw.tn',
-    action: 'Suspended user account',
-    actionType: 'user_management',
-    target: 'user_abc123',
-    targetType: 'user',
-    severity: 'high',
-    details: 'Multiple no-show violations (5 in 7 days)',
-  },
-  {
-    id: '3',
-    timestamp: '2026-07-18T11:00:00Z',
-    adminEmail: 'admin@tftw.tn',
-    action: 'Updated system configuration',
-    actionType: 'system_config',
-    target: 'rate_limits',
-    targetType: 'system',
-    severity: 'medium',
-    details: 'Increased API rate limit from 100 to 150 req/min',
-  },
-  {
-    id: '4',
-    timestamp: '2026-07-18T09:45:00Z',
-    adminEmail: 'admin@tftw.tn',
-    action: 'Failed login attempt',
-    actionType: 'security',
-    target: 'admin@tftw.tn',
-    targetType: 'user',
-    severity: 'critical',
-    details: 'Invalid credentials from IP 192.168.1.100',
-    ipAddress: '192.168.1.100',
-  },
-  {
-    id: '5',
-    timestamp: '2026-07-17T16:20:00Z',
-    adminEmail: 'moderator@tftw.tn',
-    action: 'Removed offer listing',
-    actionType: 'content_moderation',
-    target: 'offer_xyz789',
-    targetType: 'offer',
-    severity: 'medium',
-    details: 'Misleading description reported by 3 users',
-  },
-];
+import { useAuditLogs, useAuditStats } from '@/hooks/use-admin';
+import { adminService } from '@/services/admin.service';
+import type { AuditLogItem, AuditLogSearchParams } from '@/types/admin';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -120,31 +45,19 @@ function relativeDate(iso: string) {
   return `${days}d ago`;
 }
 
-function getSeverityStyle(severity: AuditEntry['severity']) {
-  const map = {
-    low: 'bg-muted text-muted-foreground',
-    medium: 'bg-amber-50 text-amber-700 border-amber-200',
-    high: 'bg-orange-50 text-orange-700 border-orange-200',
-    critical: 'bg-rose-50 text-rose-700 border-rose-200',
-  };
-  return map[severity];
+function getActionCategoryIcon(action: string) {
+  if (action.startsWith('user_')) return ShieldAlert;
+  if (action.startsWith('establishment_')) return Shield;
+  if (action.startsWith('order_')) return Activity;
+  if (action.startsWith('review_')) return Eye;
+  if (action.startsWith('system_') || action.startsWith('bulk_')) return Settings;
+  return Activity;
 }
 
-function getActionIcon(type: AuditEntry['actionType']) {
-  switch (type) {
-    case 'user_management':
-      return UserX;
-    case 'content_moderation':
-      return Shield;
-    case 'system_config':
-      return Settings;
-    case 'security':
-      return ShieldAlert;
-    case 'login':
-      return LogIn;
-    default:
-      return Activity;
-  }
+function getActionCategory(action: string): 'admin' | 'security' | 'system' {
+  if (action.startsWith('user_suspended') || action.startsWith('user_blocked')) return 'security';
+  if (action.startsWith('system_')) return 'system';
+  return 'admin';
 }
 
 // ─── Detail Drawer ───────────────────────────────────────────────────────────
@@ -154,12 +67,12 @@ function AuditDetailDrawer({
   open,
   onClose,
 }: {
-  entry: AuditEntry | null;
+  entry: AuditLogItem | null;
   open: boolean;
   onClose: () => void;
 }) {
   if (!entry) return null;
-  const ActionIcon = getActionIcon(entry.actionType);
+  const ActionIcon = getActionCategoryIcon(entry.action);
 
   return (
     <Sheet open={open} onOpenChange={v => !v && onClose()}>
@@ -168,11 +81,13 @@ function AuditDetailDrawer({
         <div className='space-y-0'>
           <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
             <div className='flex items-start gap-3'>
-              <div className={cn('rounded-lg p-2', getSeverityStyle(entry.severity))}>
-                <ActionIcon className='size-5' />
+              <div className='rounded-lg p-2 bg-muted'>
+                <ActionIcon className='size-5 text-foreground' />
               </div>
               <div>
-                <p className='text-base font-semibold'>{entry.action}</p>
+                <p className='text-base font-semibold capitalize'>
+                  {entry.action.replace(/_/g, ' ')}
+                </p>
                 <p className='mt-0.5 text-xs text-muted-foreground'>
                   {new Date(entry.timestamp).toLocaleString('en-GB')}
                 </p>
@@ -188,13 +103,14 @@ function AuditDetailDrawer({
               {[
                 { label: 'Admin', value: entry.adminEmail, icon: User },
                 {
-                  label: 'Action Type',
-                  value: entry.actionType.replace(/_/g, ' '),
+                  label: 'Action',
+                  value: entry.action.replace(/_/g, ' '),
                   icon: Activity,
                 },
-                { label: 'Target', value: entry.target, icon: Eye },
+                ...(entry.targetId
+                  ? [{ label: 'Target ID', value: entry.targetId, icon: Eye }]
+                  : []),
                 { label: 'Target Type', value: entry.targetType, icon: ScrollText },
-                { label: 'Severity', value: entry.severity, icon: AlertTriangle },
               ].map(row => (
                 <div key={row.label} className='flex items-center justify-between'>
                   <div className='flex items-center gap-1.5 text-muted-foreground'>
@@ -212,16 +128,43 @@ function AuditDetailDrawer({
               )}
             </section>
 
-            {entry.details && (
+            {entry.reason && (
               <>
                 <Separator />
                 <section className='space-y-2'>
                   <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
-                    Details
+                    Reason
                   </h3>
                   <p className='text-xs text-foreground rounded-lg border border-border/60 bg-muted/20 p-3'>
-                    {entry.details}
+                    {entry.reason}
                   </p>
+                </section>
+              </>
+            )}
+
+            {(entry.previousValue || entry.newValue) && (
+              <>
+                <Separator />
+                <section className='space-y-2'>
+                  <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                    Changes
+                  </h3>
+                  {entry.previousValue && (
+                    <div className='space-y-1'>
+                      <p className='text-[10px] font-medium text-muted-foreground'>Before:</p>
+                      <pre className='text-[11px] rounded-lg border border-border/60 bg-muted/20 p-2 overflow-x-auto'>
+                        {JSON.stringify(entry.previousValue, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  {entry.newValue && (
+                    <div className='space-y-1'>
+                      <p className='text-[10px] font-medium text-muted-foreground'>After:</p>
+                      <pre className='text-[11px] rounded-lg border border-border/60 bg-muted/20 p-2 overflow-x-auto'>
+                        {JSON.stringify(entry.newValue, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                 </section>
               </>
             )}
@@ -238,58 +181,95 @@ function AuditLogContent() {
   const t = useTranslations('adminAuditLog');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'all';
-  const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null);
+
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [selectedEntry, setSelectedEntry] = useState<AuditLogItem | null>(null);
+
+  const queryParams: AuditLogSearchParams = {
+    page,
+    limit: 20,
+    ...(currentTab === 'admin'
+      ? { targetType: 'user' as const }
+      : currentTab === 'security'
+        ? { targetType: 'system' as const }
+        : {}),
+    ...(search ? { adminId: search } : {}),
+  };
+
+  const { data: auditResponse, isLoading } = useAuditLogs(queryParams);
+  const { data: stats } = useAuditStats(30);
+
+  const logs = auditResponse?.logs ?? [];
+  const total = auditResponse?.total ?? 0;
+  const totalPages = auditResponse?.totalPages ?? 1;
 
   const tabs: AdminTab[] = [
     { key: 'all', label: t('tabs.all') },
     { key: 'admin', label: t('tabs.adminActions') },
-    { key: 'security', label: t('tabs.security'), badge: 1 },
+    { key: 'security', label: t('tabs.security') },
   ];
 
-  const filteredEntries = MOCK_ENTRIES.filter(e => {
-    if (currentTab === 'admin')
-      return (
-        e.actionType === 'user_management' ||
-        e.actionType === 'content_moderation' ||
-        e.actionType === 'system_config'
-      );
-    if (currentTab === 'security') return e.actionType === 'security' || e.severity === 'critical';
-    return true;
-  });
+  const topAction = stats?.actionsByType
+    ? (Object.entries(stats.actionsByType)
+        .sort(([, a], [, b]) => b - a)[0]?.[0]
+        ?.replace(/_/g, ' ') ?? '—')
+    : '—';
+
+  const activeAdmins = stats?.actionsByAdmin?.length ?? 0;
 
   const kpis: KpiItem[] = [
     {
       label: t('kpi.totalEvents'),
-      value: '1,247',
+      value: stats?.totalActions.toLocaleString() ?? '—',
       icon: ScrollText,
       iconBg: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
     },
     {
       label: t('kpi.activeAdmins'),
-      value: '4',
+      value: activeAdmins.toString(),
       icon: Users,
       iconBg: 'bg-violet-50',
       iconColor: 'text-violet-600',
     },
     {
       label: t('kpi.topAction'),
-      value: 'User Mgmt',
+      value: topAction.length > 14 ? topAction.slice(0, 14) + '…' : topAction,
       icon: Activity,
       iconBg: 'bg-sky-50',
       iconColor: 'text-sky-600',
     },
     {
       label: t('kpi.securityAlerts'),
-      value: '2',
+      value: (stats?.targetsByType?.['system'] ?? 0).toString(),
       icon: AlertTriangle,
       iconBg: 'bg-rose-50',
       iconColor: 'text-rose-600',
-      highlight: true,
+      highlight: (stats?.targetsByType?.['system'] ?? 0) > 0,
     },
   ];
 
-  const columns: ColumnDef<AuditEntry>[] = [
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value);
+    setPage(1);
+  }, []);
+
+  const handleExport = useCallback(async () => {
+    try {
+      const response = await adminService.exportAuditLogs({ format: 'csv' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      // silently fail — toast would be added with notifications module
+    }
+  }, []);
+
+  const columns: ColumnDef<AuditLogItem>[] = [
     {
       key: 'timestamp',
       header: t('columns.time'),
@@ -308,17 +288,17 @@ function AuditLogContent() {
     {
       key: 'admin',
       header: t('columns.admin'),
-      render: e => <span className='text-xs truncate max-w-[140px]'>{e.adminEmail}</span>,
+      render: e => <span className='text-xs truncate max-w-[140px] block'>{e.adminEmail}</span>,
     },
     {
       key: 'action',
       header: t('columns.action'),
       render: e => {
-        const Icon = getActionIcon(e.actionType);
+        const Icon = getActionCategoryIcon(e.action);
         return (
           <div className='flex items-center gap-2'>
             <Icon className='size-3.5 text-muted-foreground shrink-0' />
-            <span className='text-xs'>{e.action}</span>
+            <span className='text-xs capitalize'>{e.action.replace(/_/g, ' ')}</span>
           </div>
         );
       },
@@ -328,24 +308,32 @@ function AuditLogContent() {
       header: t('columns.target'),
       render: e => (
         <div>
-          <p className='text-xs font-medium'>{e.target}</p>
+          <p className='text-xs font-medium'>{e.targetId ?? '—'}</p>
           <p className='text-[10px] text-muted-foreground capitalize'>{e.targetType}</p>
         </div>
       ),
     },
     {
-      key: 'severity',
+      key: 'category',
       header: t('columns.severity'),
-      render: e => (
-        <span
-          className={cn(
-            'inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize',
-            getSeverityStyle(e.severity),
-          )}
-        >
-          {e.severity}
-        </span>
-      ),
+      render: e => {
+        const cat = getActionCategory(e.action);
+        const styles = {
+          admin: 'bg-muted text-muted-foreground',
+          security: 'bg-rose-50 text-rose-700 border-rose-200',
+          system: 'bg-amber-50 text-amber-700 border-amber-200',
+        };
+        return (
+          <span
+            className={cn(
+              'inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize',
+              styles[cat],
+            )}
+          >
+            {cat}
+          </span>
+        );
+      },
     },
     {
       key: 'actions',
@@ -369,11 +357,11 @@ function AuditLogContent() {
       <AdminModuleHeader
         title={t('title')}
         subtitle={t('subtitle')}
-        onExport={() => {}}
+        onExport={handleExport}
         exportLabel={t('exportCSV')}
       />
 
-      <AdminKpiRow items={kpis} />
+      <AdminKpiRow items={kpis} loading={!stats} />
 
       <Card className='border-border/60'>
         <CardContent className='p-0'>
@@ -381,14 +369,14 @@ function AuditLogContent() {
           <div className='p-4'>
             <AdminDataTable
               columns={columns}
-              data={filteredEntries}
-              isLoading={false}
-              page={1}
-              totalPages={1}
-              total={filteredEntries.length}
-              onPageChange={() => {}}
+              data={logs}
+              isLoading={isLoading}
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              onPageChange={setPage}
               searchPlaceholder={t('searchPlaceholder')}
-              onSearchChange={() => {}}
+              onSearchChange={handleSearch}
               onRowClick={row => setSelectedEntry(row)}
               emptyIcon={ScrollText}
               emptyTitle={t('empty.title')}

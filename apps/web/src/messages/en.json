@@ -582,7 +582,10 @@
       "revenueChart": {
         "title": "Revenue Trend",
         "subtitle": "Revenue over time",
-        "tooltip": { "revenue": "Revenue", "orders": "Orders" }
+        "tooltip": {
+          "revenue": "Revenue",
+          "orders": "Orders"
+        }
       },
       "ordersChart": {
         "title": "Order Volume",
@@ -2160,10 +2163,22 @@
       "statLabel": "Average monthly impact · active partners",
       "statDesc": "of partner manufacturers reduce their food waste rate by 70 to 80% in under 3 months.",
       "miniStats": [
-        { "n": "+42%", "l": "revenue from unsold stock" },
-        { "n": "2.4k", "l": "active users at launch" },
-        { "n": "48h", "l": "integration lead time" },
-        { "n": "0 TND", "l": "setup fees" }
+        {
+          "n": "+42%",
+          "l": "revenue from unsold stock"
+        },
+        {
+          "n": "2.4k",
+          "l": "active users at launch"
+        },
+        {
+          "n": "48h",
+          "l": "integration lead time"
+        },
+        {
+          "n": "0 TND",
+          "l": "setup fees"
+        }
       ]
     },
     "howItWorks": {
@@ -2361,43 +2376,38 @@
   },
   "adminPayments": {
     "title": "Payments & Payouts",
-    "subtitle": "Monitor transactions, track merchant payouts, and review revenue",
-    "searchPlaceholder": "Search by order, customer, or merchant...",
+    "subtitle": "Monitor payment activity and merchant wallet balances",
     "searchMerchant": "Search merchants...",
     "tabs": {
-      "transactions": "Transactions",
-      "payouts": "Merchant Payouts",
-      "revenue": "Revenue"
+      "overview": "Overview",
+      "payouts": "Merchant Wallets"
     },
     "kpi": {
       "totalRevenue": "Total Revenue",
-      "commission": "Platform Commission",
-      "pendingPayouts": "Pending Payouts",
-      "paymentMethods": "Payment Methods"
+      "completedPayments": "Completed",
+      "pendingPayments": "Pending",
+      "failedPayments": "Failed"
     },
     "columns": {
-      "order": "Order",
-      "customer": "Customer",
       "merchant": "Merchant",
-      "amount": "Amount",
-      "commission": "Commission",
-      "status": "Status",
-      "webhook": "Webhook Status",
-      "totalEarned": "Total Earned",
-      "netPayout": "Net Payout",
-      "lastPayout": "Last Payout"
+      "establishment": "Establishment",
+      "available": "Available",
+      "pending": "Pending",
+      "currency": "Currency"
     },
-    "empty": {
-      "title": "No transactions",
-      "description": "No transactions match your current filters."
+    "overview": {
+      "summary": "Payment Summary",
+      "totalPayments": "Total Payments",
+      "totalRefunded": "Total Refunded",
+      "averageAmount": "Average Amount",
+      "processingFees": "Processing Fees",
+      "refundedCount": "Refunded Payments"
     },
+    "methodsBreakdown": "Payment Methods",
+    "noMethodData": "No payment method data available",
     "emptyPayouts": {
-      "title": "No payouts",
-      "description": "No merchant payouts to display."
-    },
-    "revenue": {
-      "title": "Revenue Analytics",
-      "description": "Revenue charts and trend analysis will be available here. Connect backend analytics to activate."
+      "title": "No merchant wallets",
+      "description": "No merchant wallets to display yet."
     }
   },
   "adminAnalytics": {
@@ -2407,7 +2417,6 @@
     "tabs": {
       "impact": "Impact Dashboard",
       "growth": "Growth",
-      "retention": "Retention",
       "reports": "Reports"
     },
     "kpi": {
@@ -2417,128 +2426,116 @@
       "activeUsers": "Active Users"
     },
     "impact": {
-      "wasteTrend": "Waste Saved Over Time",
-      "wasteTrendDesc": "Monthly food waste reduction in kilograms",
+      "wasteTrend": "Revenue Trend",
+      "wasteTrendDesc": "Order revenue over the last 7 data points",
       "orderDist": "Order Status Distribution",
       "orderDistDesc": "Breakdown of order outcomes this period",
       "summary": "Period Summary",
       "totalOrders": "Total Orders",
       "completionRate": "Completion Rate",
       "avgOrderValue": "Avg Order Value",
-      "repeatRate": "Repeat Rate"
+      "repeatRate": "Retention Rate"
     },
     "growth": {
       "userGrowth": "User Growth",
-      "userGrowthDesc": "Total registered users over time",
+      "userGrowthDesc": "User registration and activity metrics",
       "merchantOnboarding": "Merchant Onboarding",
-      "totalMerchants": "Total Merchants",
-      "avgOnboardingTime": "Avg Onboarding Time",
-      "approvalRate": "Approval Rate",
-      "activeRate": "Active Rate"
-    },
-    "retention": {
-      "title": "Retention Analytics",
-      "description": "Cohort analysis and retention curves will be available here. Connect backend analytics to activate."
+      "totalUsers": "Total Users",
+      "newThisWeek": "New This Week",
+      "newThisMonth": "New This Month",
+      "retentionRate": "Retention Rate",
+      "totalMerchants": "Total Establishments",
+      "activeEstablishments": "Active",
+      "pendingApproval": "Pending Approval",
+      "averageRating": "Average Rating"
     }
   },
   "adminNotifications": {
     "title": "Notifications Center",
-    "subtitle": "Create campaigns, manage templates, and track notification delivery",
-    "createCampaign": "New Campaign",
-    "searchCampaigns": "Search campaigns...",
-    "searchHistory": "Search sent notifications...",
+    "subtitle": "Send broadcasts and monitor notification delivery",
+    "sendBroadcast": "Send Broadcast",
     "tabs": {
-      "campaigns": "Campaigns",
-      "history": "History",
-      "templates": "Templates"
+      "overview": "Overview",
+      "channels": "Channels"
     },
     "kpi": {
-      "totalSent": "Sent (30d)",
+      "totalSent": "Total Sent",
       "deliveryRate": "Delivery Rate",
-      "openRate": "Open Rate",
-      "activeCampaigns": "Active Campaigns"
+      "pending": "Pending",
+      "failed": "Failed"
     },
-    "columns": {
-      "campaign": "Campaign",
-      "target": "Target",
-      "channel": "Channel",
-      "status": "Status",
-      "recipients": "Recipients",
-      "performance": "Performance"
+    "overview": {
+      "summary": "Notification Summary",
+      "totalSent": "Total Sent",
+      "delivered": "Delivered",
+      "failed": "Failed",
+      "pending": "Pending",
+      "deliveryRate": "Delivery Rate"
+    },
+    "channelBreakdown": "Channel Breakdown",
+    "noChannelData": "No notification channel data available",
+    "channels": {
+      "orderUpdates": "Order Updates",
+      "marketing": "Marketing",
+      "pickupReminders": "Pickup Reminders",
+      "security": "Security",
+      "offers": "Offers",
+      "admin": "Admin",
+      "leaderboard": "Leaderboard"
+    },
+    "builder": {
+      "title": "Send Broadcast",
+      "subtitle": "Send a notification to a user segment",
+      "campaignTitle": "Title",
+      "titlePlaceholder": "Notification title...",
+      "message": "Message",
+      "messagePlaceholder": "Enter notification body...",
+      "targetSegment": "Target Segment",
+      "channel": "Delivery Type",
+      "preview": "Preview",
+      "previewTitle": "Your title here",
+      "previewMessage": "Your message here",
+      "sendNow": "Send Now",
+      "sending": "Sending...",
+      "cancel": "Cancel",
+      "error": "Failed to send broadcast. Please try again.",
+      "success": "Broadcast sent successfully!"
     },
     "segments": {
       "all": "All Users",
       "consumers": "Consumers",
-      "merchants": "Merchants",
-      "custom": "Custom Segment"
-    },
-    "builder": {
-      "title": "Create Campaign",
-      "subtitle": "Compose and schedule a notification campaign",
-      "campaignTitle": "Campaign Title",
-      "titlePlaceholder": "e.g., Weekend Flash Sale",
-      "message": "Message",
-      "messagePlaceholder": "Write your notification message...",
-      "targetSegment": "Target Segment",
-      "channel": "Channel",
-      "preview": "Preview",
-      "previewTitle": "Campaign Title",
-      "previewMessage": "Your message will appear here...",
-      "sendNow": "Send Now",
-      "schedule": "Schedule",
-      "saveDraft": "Save Draft"
-    },
-    "empty": {
-      "title": "No campaigns",
-      "description": "Create your first notification campaign."
-    },
-    "emptyHistory": {
-      "title": "No sent notifications",
-      "description": "Sent campaigns will appear here."
+      "merchants": "Merchants"
     }
   },
   "adminLeaderboards": {
     "title": "Leaderboards & Rewards",
-    "subtitle": "Track top users, manage prize distribution, and review past seasons",
+    "subtitle": "Track top users by loyalty points, tier distribution, and engagement metrics",
     "searchUsers": "Search users...",
-    "searchPrizes": "Search prizes...",
-    "searchSeasons": "Search seasons...",
     "tabs": {
-      "standings": "Current Standings",
-      "prizes": "Prize Fulfillment",
-      "history": "Past Seasons"
+      "overview": "Overview",
+      "topUsers": "Top Users"
     },
     "kpi": {
       "totalParticipants": "Participants",
-      "currentSeason": "Current Season",
       "totalPoints": "Total Points",
-      "flaggedAccounts": "Flagged Accounts"
+      "averagePoints": "Avg Points",
+      "topTier": "Top Tier"
     },
     "columns": {
       "user": "User",
       "totalPoints": "Total Points",
-      "streak": "Streak",
-      "referralPts": "Referral Pts",
+      "tier": "Tier",
+      "bagsSaved": "Bags Saved",
       "orders": "Orders",
-      "prize": "Prize",
-      "season": "Season",
-      "status": "Status",
-      "period": "Period",
-      "participants": "Participants",
-      "winner": "Winner",
-      "prizes": "Prizes"
+      "referrals": "Referrals"
     },
+    "tierDistribution": "Tier Distribution",
+    "users": "users",
+    "userDetails": "User Leaderboard Details",
+    "activityBreakdown": "Activity Breakdown",
     "empty": {
       "title": "No participants",
-      "description": "No users in the current leaderboard."
-    },
-    "emptyPrizes": {
-      "title": "No prizes",
-      "description": "No prize fulfillment records for this season."
-    },
-    "emptySeasons": {
-      "title": "No past seasons",
-      "description": "Past season records will appear here."
+      "description": "No users in the loyalty program yet."
     }
   }
 }

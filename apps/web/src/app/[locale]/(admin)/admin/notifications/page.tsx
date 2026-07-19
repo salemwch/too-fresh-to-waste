@@ -11,11 +11,9 @@ import {
   Users,
   Store,
   Plus,
-  Eye,
   Target,
   Megaphone,
-  Copy,
-  Pencil,
+  AlertCircle,
 } from 'lucide-react';
 import {
   Card,
@@ -39,155 +37,38 @@ import {
 import { AdminModuleHeader } from '@/components/dashboard/admin/admin-module-header';
 import { AdminTabNav, type AdminTab } from '@/components/dashboard/admin/admin-tab-nav';
 import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
-import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { useAdminNotificationStats, useAdminBroadcast } from '@/hooks/use-admin';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Broadcast Builder Drawer ───────────────────────────────────────────────
 
-interface Campaign {
-  id: string;
-  title: string;
-  message: string;
-  targetSegment: 'all' | 'consumers' | 'merchants' | 'custom';
-  channel: 'push' | 'in_app' | 'both';
-  status: 'draft' | 'scheduled' | 'sent' | 'completed';
-  scheduledAt?: string;
-  sentAt?: string;
-  recipientCount: number;
-  deliveryRate?: number;
-  openRate?: number;
-}
-
-interface NotificationTemplate {
-  id: string;
-  name: string;
-  description: string;
-  category: 'welcome' | 'order' | 'promotion' | 'system';
-  lastUsed?: string;
-}
-
-// ─── Mock data ───────────────────────────────────────────────────────────────
-
-const MOCK_CAMPAIGNS: Campaign[] = [
-  {
-    id: '1',
-    title: 'Summer Savings Week',
-    message: 'Save up to 60% on fresh food this week!',
-    targetSegment: 'consumers',
-    channel: 'both',
-    status: 'completed',
-    sentAt: '2026-07-15T10:00:00Z',
-    recipientCount: 1240,
-    deliveryRate: 94,
-    openRate: 38,
-  },
-  {
-    id: '2',
-    title: 'New Merchant Welcome',
-    message: 'Welcome to TFTW! Set up your first offer today.',
-    targetSegment: 'merchants',
-    channel: 'push',
-    status: 'sent',
-    sentAt: '2026-07-17T09:00:00Z',
-    recipientCount: 12,
-    deliveryRate: 100,
-    openRate: 75,
-  },
-  {
-    id: '3',
-    title: 'Weekend Flash Sale',
-    message: 'Flash sale this weekend — extra points on every order!',
-    targetSegment: 'all',
-    channel: 'both',
-    status: 'scheduled',
-    scheduledAt: '2026-07-20T08:00:00Z',
-    recipientCount: 2800,
-  },
-  {
-    id: '4',
-    title: 'Ramadan Special',
-    message: 'Special offers for Ramadan — save food, earn rewards.',
-    targetSegment: 'consumers',
-    channel: 'push',
-    status: 'draft',
-    recipientCount: 0,
-  },
-];
-
-const MOCK_TEMPLATES: NotificationTemplate[] = [
-  {
-    id: 't1',
-    name: 'Welcome Message',
-    description: 'Sent to new users after registration',
-    category: 'welcome',
-    lastUsed: '2026-07-17T00:00:00Z',
-  },
-  {
-    id: 't2',
-    name: 'Order Ready',
-    description: 'Notifies customer their order is ready for pickup',
-    category: 'order',
-    lastUsed: '2026-07-18T00:00:00Z',
-  },
-  {
-    id: 't3',
-    name: 'Weekly Promotion',
-    description: 'Template for weekly promotional push notifications',
-    category: 'promotion',
-    lastUsed: '2026-07-15T00:00:00Z',
-  },
-  {
-    id: 't4',
-    name: 'System Maintenance',
-    description: 'Scheduled maintenance notification',
-    category: 'system',
-  },
-];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function getCampaignStatusStyle(status: Campaign['status']) {
-  const map = {
-    draft: 'bg-gray-100 text-gray-600 border-gray-200',
-    scheduled: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    sent: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    completed: 'bg-sky-50 text-sky-700 border-sky-200',
-  };
-  return map[status];
-}
-
-function getSegmentIcon(segment: Campaign['targetSegment']) {
-  switch (segment) {
-    case 'consumers':
-      return Users;
-    case 'merchants':
-      return Store;
-    case 'custom':
-      return Target;
-    default:
-      return Megaphone;
-  }
-}
-
-function getChannelLabel(channel: Campaign['channel']) {
-  const map = { push: 'Push', in_app: 'In-App', both: 'Push + In-App' };
-  return map[channel];
-}
-
-// ─── Campaign Builder Drawer ─────────────────────────────────────────────────
-
-function CampaignBuilderDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+function BroadcastBuilderDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useTranslations('adminNotifications');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
-  const [segment, setSegment] = useState('all');
-  const [channel, setChannel] = useState('both');
+  const [segment, setSegment] = useState<'all' | 'consumers' | 'merchants'>('all');
+  const [channel, setChannel] = useState<'push' | 'in_app' | 'both'>('both');
+
+  const broadcast = useAdminBroadcast();
+
+  const handleSend = () => {
+    if (!title.trim() || !message.trim()) return;
+    broadcast.mutate(
+      { title: title.trim(), body: message.trim(), targetSegment: segment, channel },
+      {
+        onSuccess: () => {
+          setTitle('');
+          setMessage('');
+          onClose();
+        },
+      },
+    );
+  };
 
   return (
     <Sheet open={open} onOpenChange={v => !v && onClose()}>
       <SheetContent className='w-full overflow-y-auto sm:max-w-xl'>
-        <SheetTitle className='sr-only'>Create Campaign</SheetTitle>
+        <SheetTitle className='sr-only'>Send Broadcast</SheetTitle>
         <div className='space-y-0'>
           <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
             <h2 className='text-base font-semibold'>{t('builder.title')}</h2>
@@ -222,7 +103,7 @@ function CampaignBuilderDrawer({ open, onClose }: { open: boolean; onClose: () =
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
                 <Label className='text-xs font-medium'>{t('builder.targetSegment')}</Label>
-                <Select value={segment} onValueChange={setSegment}>
+                <Select value={segment} onValueChange={v => setSegment(v as typeof segment)}>
                   <SelectTrigger className='h-8 text-xs'>
                     <SelectValue />
                   </SelectTrigger>
@@ -230,13 +111,12 @@ function CampaignBuilderDrawer({ open, onClose }: { open: boolean; onClose: () =
                     <SelectItem value='all'>{t('segments.all')}</SelectItem>
                     <SelectItem value='consumers'>{t('segments.consumers')}</SelectItem>
                     <SelectItem value='merchants'>{t('segments.merchants')}</SelectItem>
-                    <SelectItem value='custom'>{t('segments.custom')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className='space-y-1.5'>
                 <Label className='text-xs font-medium'>{t('builder.channel')}</Label>
-                <Select value={channel} onValueChange={setChannel}>
+                <Select value={channel} onValueChange={v => setChannel(v as typeof channel)}>
                   <SelectTrigger className='h-8 text-xs'>
                     <SelectValue />
                   </SelectTrigger>
@@ -251,7 +131,6 @@ function CampaignBuilderDrawer({ open, onClose }: { open: boolean; onClose: () =
 
             <Separator />
 
-            {/* Preview */}
             <div className='space-y-2'>
               <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 {t('builder.preview')}
@@ -272,22 +151,86 @@ function CampaignBuilderDrawer({ open, onClose }: { open: boolean; onClose: () =
             </div>
 
             <div className='flex gap-2 pt-2'>
-              <Button size='sm' className='flex-1 h-8 text-xs'>
+              <Button
+                size='sm'
+                className='flex-1 h-8 text-xs'
+                onClick={handleSend}
+                disabled={broadcast.isPending || !title.trim() || !message.trim()}
+              >
                 <Send className='me-1.5 size-3.5' />
-                {t('builder.sendNow')}
-              </Button>
-              <Button size='sm' variant='outline' className='flex-1 h-8 text-xs'>
-                <Clock className='me-1.5 size-3.5' />
-                {t('builder.schedule')}
+                {broadcast.isPending ? t('builder.sending') : t('builder.sendNow')}
               </Button>
               <Button size='sm' variant='ghost' className='h-8 text-xs' onClick={onClose}>
-                {t('builder.saveDraft')}
+                {t('builder.cancel')}
               </Button>
             </div>
+
+            {broadcast.isError && <p className='text-xs text-destructive'>{t('builder.error')}</p>}
+            {broadcast.isSuccess && (
+              <p className='text-xs text-emerald-600'>{t('builder.success')}</p>
+            )}
           </div>
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+// ─── Channel Breakdown Card ─────────────────────────────────────────────────
+
+function ChannelBreakdownCard({
+  channels,
+}: {
+  channels: Array<{ channel: string; count: number }>;
+}) {
+  const t = useTranslations('adminNotifications');
+  const totalCount = channels.reduce((s, c) => s + c.count, 0);
+
+  const channelLabels: Record<string, { label: string; icon: typeof Bell }> = {
+    order_updates: { label: t('channels.orderUpdates'), icon: CheckCircle2 },
+    marketing: { label: t('channels.marketing'), icon: Megaphone },
+    pickup_reminders: { label: t('channels.pickupReminders'), icon: Clock },
+    security: { label: t('channels.security'), icon: AlertCircle },
+    offers: { label: t('channels.offers'), icon: Target },
+    admin: { label: t('channels.admin'), icon: Users },
+    leaderboard: { label: t('channels.leaderboard'), icon: Store },
+  };
+
+  return (
+    <Card className='border-border/60'>
+      <CardContent className='p-5'>
+        <h3 className='text-sm font-semibold mb-4'>{t('channelBreakdown')}</h3>
+        <div className='space-y-3'>
+          {channels.map(ch => {
+            const pct = totalCount > 0 ? (ch.count / totalCount) * 100 : 0;
+            const info = channelLabels[ch.channel] ?? { label: ch.channel, icon: Bell };
+            const Icon = info.icon;
+            return (
+              <div key={ch.channel} className='space-y-1.5'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-1.5'>
+                    <Icon className='size-3 text-muted-foreground' />
+                    <span className='text-xs font-medium'>{info.label}</span>
+                  </div>
+                  <span className='text-xs text-muted-foreground tabular-nums'>
+                    {ch.count.toLocaleString()} ({pct.toFixed(0)}%)
+                  </span>
+                </div>
+                <div className='h-1.5 w-full rounded-full bg-muted'>
+                  <div
+                    className='h-1.5 rounded-full bg-primary transition-all'
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+          {channels.length === 0 && (
+            <p className='text-xs text-muted-foreground text-center py-4'>{t('noChannelData')}</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -296,117 +239,48 @@ function CampaignBuilderDrawer({ open, onClose }: { open: boolean; onClose: () =
 function NotificationsContent() {
   const t = useTranslations('adminNotifications');
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') ?? 'campaigns';
+  const currentTab = searchParams.get('tab') ?? 'overview';
   const [builderOpen, setBuilderOpen] = useState(false);
 
+  const { data: stats, isLoading } = useAdminNotificationStats();
+
   const tabs: AdminTab[] = [
-    { key: 'campaigns', label: t('tabs.campaigns') },
-    { key: 'history', label: t('tabs.history') },
-    { key: 'templates', label: t('tabs.templates') },
+    { key: 'overview', label: t('tabs.overview') },
+    { key: 'channels', label: t('tabs.channels') },
   ];
 
   const kpis: KpiItem[] = [
     {
       label: t('kpi.totalSent'),
-      value: '3,240',
+      value: stats?.totalSent.toLocaleString() ?? '—',
       icon: Send,
       iconBg: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
     },
     {
       label: t('kpi.deliveryRate'),
-      value: '96%',
+      value: stats ? `${stats.deliveryRate}%` : '—',
       icon: CheckCircle2,
       iconBg: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
     },
     {
-      label: t('kpi.openRate'),
-      value: '42%',
-      icon: Eye,
+      label: t('kpi.pending'),
+      value: stats?.pendingCount.toLocaleString() ?? '—',
+      icon: Clock,
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
+      highlight: (stats?.pendingCount ?? 0) > 0,
     },
     {
-      label: t('kpi.activeCampaigns'),
-      value: '2',
-      icon: Megaphone,
-      iconBg: 'bg-violet-50',
-      iconColor: 'text-violet-600',
+      label: t('kpi.failed'),
+      value: stats?.failedCount.toLocaleString() ?? '—',
+      icon: AlertCircle,
+      iconBg: 'bg-rose-50',
+      iconColor: 'text-rose-600',
+      highlight: (stats?.failedCount ?? 0) > 0,
     },
   ];
-
-  const campaignColumns: ColumnDef<Campaign>[] = [
-    {
-      key: 'title',
-      header: t('columns.campaign'),
-      render: c => (
-        <div>
-          <p className='text-xs font-semibold'>{c.title}</p>
-          <p className='text-[10px] text-muted-foreground truncate max-w-[200px]'>{c.message}</p>
-        </div>
-      ),
-    },
-    {
-      key: 'segment',
-      header: t('columns.target'),
-      render: c => {
-        const Icon = getSegmentIcon(c.targetSegment);
-        return (
-          <div className='flex items-center gap-1.5'>
-            <Icon className='size-3.5 text-muted-foreground' />
-            <span className='text-xs capitalize'>{c.targetSegment}</span>
-          </div>
-        );
-      },
-    },
-    {
-      key: 'channel',
-      header: t('columns.channel'),
-      render: c => <span className='text-xs'>{getChannelLabel(c.channel)}</span>,
-    },
-    {
-      key: 'status',
-      header: t('columns.status'),
-      render: c => (
-        <span
-          className={cn(
-            'inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize',
-            getCampaignStatusStyle(c.status),
-          )}
-        >
-          {c.status}
-        </span>
-      ),
-    },
-    {
-      key: 'recipients',
-      header: t('columns.recipients'),
-      render: c => (
-        <span className='text-xs tabular-nums'>{c.recipientCount.toLocaleString()}</span>
-      ),
-    },
-    {
-      key: 'performance',
-      header: t('columns.performance'),
-      render: c =>
-        c.deliveryRate ? (
-          <div className='text-[10px] text-muted-foreground'>
-            <span className='font-medium text-foreground'>{c.deliveryRate}%</span> delivered ·{' '}
-            <span className='font-medium text-foreground'>{c.openRate}%</span> opened
-          </div>
-        ) : (
-          <span className='text-[10px] text-muted-foreground'>—</span>
-        ),
-    },
-  ];
-
-  const templateCategoryStyles: Record<string, string> = {
-    welcome: 'bg-emerald-50 text-emerald-700',
-    order: 'bg-sky-50 text-sky-700',
-    promotion: 'bg-amber-50 text-amber-700',
-    system: 'bg-gray-100 text-gray-600',
-  };
 
   return (
     <div className='space-y-5'>
@@ -416,101 +290,66 @@ function NotificationsContent() {
         actions={
           <Button size='sm' className='h-8 text-xs' onClick={() => setBuilderOpen(true)}>
             <Plus className='me-1.5 size-3.5' />
-            {t('createCampaign')}
+            {t('sendBroadcast')}
           </Button>
         }
       />
 
-      <AdminKpiRow items={kpis} />
+      <AdminKpiRow items={kpis} loading={isLoading} />
 
       <Card className='border-border/60'>
         <CardContent className='p-0'>
           <AdminTabNav tabs={tabs} />
           <div className='p-4'>
-            {currentTab === 'campaigns' && (
-              <AdminDataTable
-                columns={campaignColumns}
-                data={MOCK_CAMPAIGNS}
-                isLoading={false}
-                page={1}
-                totalPages={1}
-                total={MOCK_CAMPAIGNS.length}
-                onPageChange={() => {}}
-                searchPlaceholder={t('searchCampaigns')}
-                onSearchChange={() => {}}
-                emptyIcon={Bell}
-                emptyTitle={t('empty.title')}
-                emptyDescription={t('empty.description')}
-              />
-            )}
-
-            {currentTab === 'history' && (
-              <AdminDataTable
-                columns={campaignColumns.filter(c => c.key !== 'channel')}
-                data={MOCK_CAMPAIGNS.filter(c => c.status === 'completed' || c.status === 'sent')}
-                isLoading={false}
-                page={1}
-                totalPages={1}
-                total={
-                  MOCK_CAMPAIGNS.filter(c => c.status === 'completed' || c.status === 'sent').length
-                }
-                onPageChange={() => {}}
-                searchPlaceholder={t('searchHistory')}
-                onSearchChange={() => {}}
-                emptyIcon={Clock}
-                emptyTitle={t('emptyHistory.title')}
-                emptyDescription={t('emptyHistory.description')}
-              />
-            )}
-
-            {currentTab === 'templates' && (
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                {MOCK_TEMPLATES.map(tmpl => (
-                  <Card key={tmpl.id} className='border-border/60'>
-                    <CardContent className='p-4'>
-                      <div className='flex items-start justify-between'>
-                        <div>
-                          <div className='flex items-center gap-2'>
-                            <p className='text-sm font-semibold'>{tmpl.name}</p>
-                            <span
-                              className={cn(
-                                'rounded-full px-2 py-0.5 text-[10px] font-medium capitalize',
-                                templateCategoryStyles[tmpl.category],
-                              )}
-                            >
-                              {tmpl.category}
-                            </span>
-                          </div>
-                          <p className='text-xs text-muted-foreground mt-0.5'>{tmpl.description}</p>
-                          {tmpl.lastUsed && (
-                            <p className='text-[10px] text-muted-foreground mt-2'>
-                              Last used: {new Date(tmpl.lastUsed).toLocaleDateString('en-GB')}
-                            </p>
-                          )}
+            {currentTab === 'overview' && (
+              <div className='grid grid-cols-1 lg:grid-cols-2 gap-5'>
+                <Card className='border-border/60'>
+                  <CardContent className='p-5'>
+                    <h3 className='text-sm font-semibold mb-4'>{t('overview.summary')}</h3>
+                    <div className='space-y-3'>
+                      {[
+                        {
+                          label: t('overview.totalSent'),
+                          value: stats?.totalSent.toLocaleString() ?? '—',
+                        },
+                        {
+                          label: t('overview.delivered'),
+                          value: stats?.deliveredCount.toLocaleString() ?? '—',
+                        },
+                        {
+                          label: t('overview.failed'),
+                          value: stats?.failedCount.toLocaleString() ?? '—',
+                        },
+                        {
+                          label: t('overview.pending'),
+                          value: stats?.pendingCount.toLocaleString() ?? '—',
+                        },
+                        {
+                          label: t('overview.deliveryRate'),
+                          value: stats ? `${stats.deliveryRate}%` : '—',
+                        },
+                      ].map(row => (
+                        <div key={row.label} className='flex items-center justify-between'>
+                          <span className='text-xs text-muted-foreground'>{row.label}</span>
+                          <span className='text-xs font-semibold tabular-nums'>{row.value}</span>
                         </div>
-                        <div className='flex gap-1'>
-                          <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
-                            <Pencil className='size-3.5' />
-                          </Button>
-                          <Button
-                            variant='ghost'
-                            size='sm'
-                            className='h-7 w-7 p-0 text-muted-foreground'
-                          >
-                            <Copy className='size-3.5' />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <ChannelBreakdownCard channels={stats?.channelBreakdown ?? []} />
               </div>
+            )}
+
+            {currentTab === 'channels' && (
+              <ChannelBreakdownCard channels={stats?.channelBreakdown ?? []} />
             )}
           </div>
         </CardContent>
       </Card>
 
-      <CampaignBuilderDrawer open={builderOpen} onClose={() => setBuilderOpen(false)} />
+      <BroadcastBuilderDrawer open={builderOpen} onClose={() => setBuilderOpen(false)} />
     </div>
   );
 }
