@@ -56,6 +56,7 @@ import type {
   AdminBroadcastResult,
   AdminLeaderboardStats,
   AdminLeaderboardEntry,
+  AdminTopMerchant,
 } from '@/types/admin';
 
 const ADMIN = '/admin';
@@ -626,6 +627,13 @@ export const adminService = {
       {
         params: { page, limit },
       },
+    );
+  },
+
+  getTopMerchants(limit = 3) {
+    return apiClient.get<BackendEnvelope<AdminTopMerchant[]>>(
+      `${ADMIN}/leaderboards/top-merchants`,
+      { params: { limit } },
     );
   },
 

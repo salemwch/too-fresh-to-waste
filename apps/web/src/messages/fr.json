@@ -2537,9 +2537,44 @@
     "users": "utilisateurs",
     "userDetails": "Détails du classement de l'utilisateur",
     "activityBreakdown": "Répartition de l'activité",
+    "topMerchants": "Top Commerçants — Jours de sponsoring",
+    "topMerchantsDesc": "Les 3 meilleurs commerçants par sacs sauvés gagnent 2 jours de sponsoring par cycle",
+    "bags": "sacs",
+    "sponsorDays": "jours sponsor",
     "empty": {
       "title": "Aucun participant",
       "description": "Aucun utilisateur dans le programme de fidélité."
     }
+  },
+  "adminVotingWinners": {
+    "title": "Gagnants & Réclamations de prix",
+    "subtitle": "Voir les gagnants du cycle de vote et gérer la distribution des prix",
+    "tabs": {
+      "winners": "Gagnants",
+      "claims": "Réclamations"
+    },
+    "winnersDesc": "Les meilleurs votants ayant gagné des prix dans le cycle terminé",
+    "claimsDesc": "Toutes les réclamations de prix des programmes de vote et d'objectifs",
+    "noCompletedCycle": "Aucun cycle terminé",
+    "noCompletedCycleDesc": "Les gagnants apparaîtront ici après la fin d'un cycle de vote.",
+    "noWinners": "Aucun gagnant",
+    "noWinnersDesc": "Aucun gagnant n'a été déterminé pour ce cycle.",
+    "notClaimed": "Non réclamé",
+    "allClaims": "Tous",
+    "noClaims": "Aucune réclamation",
+    "noClaimsDesc": "Les réclamations apparaîtront ici quand les utilisateurs réclameront leurs prix.",
+    "claimDetails": "Détails de la réclamation",
+    "rank": "Rang",
+    "points": "Points",
+    "source": "Source",
+    "prizeType": "Type de prix",
+    "voucherCode": "Code promo",
+    "establishment": "Établissement",
+    "currentStatus": "Statut actuel",
+    "verify": "Vérifier",
+    "reject": "Rejeter",
+    "markDelivered": "Marquer livré",
+    "prev": "Précédent",
+    "next": "Suivant"
   }
 }

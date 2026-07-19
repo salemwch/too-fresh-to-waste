@@ -43,4 +43,16 @@ export class LeaderboardManagementController {
       meta: QueryOptimizer.getPaginationMeta(result.total, result.page, result.limit),
     };
   }
+
+  @Get('top-merchants')
+  @ApiOperation({ summary: 'Top merchants by bags saved (sponsor day eligibility)' })
+  @ApiResponse({ status: 200, description: 'Top merchants retrieved' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async getTopMerchants(@Query('limit', new DefaultValuePipe(3), ParseIntPipe) limit: number) {
+    const data = await this.leaderboardService.getTopMerchants(limit);
+    return {
+      message: 'Top merchants retrieved successfully',
+      data,
+    };
+  }
 }

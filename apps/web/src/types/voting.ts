@@ -71,3 +71,38 @@ export interface CycleStatsData {
   totalEligible: number;
   participationRate: number;
 }
+
+export interface AdminWinnerRow {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  rank: number;
+  pointsSnapshot: number;
+  hasClaimed: boolean;
+  claimStatus: string | null;
+  voucherCode: string | null;
+  establishmentName: string | null;
+}
+
+export interface PrizeClaimRow {
+  _id: string;
+  userId: { _id: string; firstName: string; lastName: string; email: string } | string;
+  prizeType: 'smartphone' | 'discount';
+  status: 'pending' | 'verified' | 'delivered' | 'rejected';
+  rank: number;
+  totalPoints: number;
+  cycleNumber: number;
+  source: 'bag_goal' | 'voting';
+  establishmentName?: string;
+  voucherCode?: string;
+  adminNotes?: string;
+  verifiedAt?: string;
+  deliveredAt?: string;
+  createdAt: string;
+}
+
+export interface UpdatePrizeClaimPayload {
+  status: 'verified' | 'delivered' | 'rejected';
+  adminNotes?: string;
+}

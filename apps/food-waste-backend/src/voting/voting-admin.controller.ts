@@ -23,6 +23,8 @@ import { Roles } from '../common/decorators/roles.decorator';
 
 import { CreateCycleDto } from './dto/create-cycle.dto';
 import { UpdateCycleDto } from './dto/update-cycle.dto';
+import { UpdatePrizeClaimDto } from './dto/update-prize-claim.dto';
+import { VotingPrizeAdminService } from './services/voting-prize-admin.service';
 import { VotingService } from './voting.service';
 
 @ApiTags('Voting Admin')
@@ -31,7 +33,10 @@ import { VotingService } from './voting.service';
 @Roles(UserRole.ADMIN, UserRole.MODERATOR)
 @Controller('voting/admin')
 export class VotingAdminController {
-  constructor(private readonly votingService: VotingService) {}
+  constructor(
+    private readonly votingService: VotingService,
+    private readonly votingPrizeAdminService: VotingPrizeAdminService,
+  ) {}
 
   @Get('cycles')
   @HttpCode(HttpStatus.OK)
@@ -120,5 +125,44 @@ export class VotingAdminController {
   async retrySnapshot(@Param('id') id: string, @GetUser('id') adminId: string) {
     const count = await this.votingService.retrySnapshot(id, adminId);
     return { status: 'success', message: `Snapshot created for ${count} users`, data: { count } };
+  }
+
+  // ── Prize Winners & Claims ──────────────────────────────────────────────────
+
+  @Get('cycles/:id/winners')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List prize winners for a completed cycle' })
+  @ApiResponse({ status: 200, description: 'Winners list with claim status' })
+  async getCycleWinners(@Param('id') id: string) {
+    const data = await this.votingPrizeAdminService.getCycleWinners(id);
+    return { status: 'success', message: 'Winners retrieved', data };
+  }
+
+  @Get('prize-claims')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List all prize claims (paginated, filterable)' })
+  @ApiResponse({ status: 200, description: 'Paginated prize claims' })
+  async listPrizeClaims(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('status') status?: string,
+    @Query('source') source?: string,
+  ) {
+    const data = await this.votingPrizeAdminService.listPrizeClaims(page, limit, status, source);
+    return {
+      status: 'success',
+      message: 'Prize claims retrieved',
+      data: data.claims,
+      meta: { page, limit, total: data.total, totalPages: Math.ceil(data.total / limit) },
+    };
+  }
+
+  @Patch('prize-claims/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update prize claim status (verify, deliver, reject)' })
+  @ApiResponse({ status: 200, description: 'Prize claim updated' })
+  async updatePrizeClaim(@Param('id') id: string, @Body() dto: UpdatePrizeClaimDto) {
+    const data = await this.votingPrizeAdminService.updatePrizeClaim(id, dto);
+    return { status: 'success', message: 'Prize claim updated', data };
   }
 }

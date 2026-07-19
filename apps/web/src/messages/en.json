@@ -2533,9 +2533,44 @@
     "users": "users",
     "userDetails": "User Leaderboard Details",
     "activityBreakdown": "Activity Breakdown",
+    "topMerchants": "Top Merchants — Sponsor Day Rewards",
+    "topMerchantsDesc": "Top 3 merchants by bags saved earn 2 sponsor days each cycle",
+    "bags": "bags",
+    "sponsorDays": "sponsor days",
     "empty": {
       "title": "No participants",
       "description": "No users in the loyalty program yet."
     }
+  },
+  "adminVotingWinners": {
+    "title": "Winners & Prize Claims",
+    "subtitle": "View voting cycle winners and manage prize claim fulfillment",
+    "tabs": {
+      "winners": "Winners",
+      "claims": "Prize Claims"
+    },
+    "winnersDesc": "Top voters who won prizes in the completed cycle",
+    "claimsDesc": "All prize claims across voting and bag goal programs",
+    "noCompletedCycle": "No completed cycle",
+    "noCompletedCycleDesc": "Winners will appear here after a voting cycle completes.",
+    "noWinners": "No winners",
+    "noWinnersDesc": "No winners were determined for this cycle.",
+    "notClaimed": "Not claimed",
+    "allClaims": "All",
+    "noClaims": "No prize claims",
+    "noClaimsDesc": "Prize claims will appear here when users claim their prizes.",
+    "claimDetails": "Claim Details",
+    "rank": "Rank",
+    "points": "Points",
+    "source": "Source",
+    "prizeType": "Prize Type",
+    "voucherCode": "Voucher Code",
+    "establishment": "Establishment",
+    "currentStatus": "Current Status",
+    "verify": "Verify",
+    "reject": "Reject",
+    "markDelivered": "Mark Delivered",
+    "prev": "Previous",
+    "next": "Next"
   }
 }

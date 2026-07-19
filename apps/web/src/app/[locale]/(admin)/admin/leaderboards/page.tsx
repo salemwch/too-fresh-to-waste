@@ -32,7 +32,11 @@ import { AdminTabNav, type AdminTab } from '@/components/dashboard/admin/admin-t
 import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
 import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAdminLeaderboardStats, useAdminTopUsers } from '@/hooks/use-admin';
+import {
+  useAdminLeaderboardStats,
+  useAdminTopUsers,
+  useAdminTopMerchants,
+} from '@/hooks/use-admin';
 import { cn } from '@/lib/utils';
 import type { AdminLeaderboardEntry } from '@/types/admin';
 
@@ -174,6 +178,7 @@ function LeaderboardsContent() {
 
   const { data: stats, isLoading: statsLoading } = useAdminLeaderboardStats();
   const { data: topUsersData, isLoading: usersLoading } = useAdminTopUsers(page);
+  const { data: topMerchants } = useAdminTopMerchants();
 
   const topUsers = topUsersData?.data ?? [];
   const meta = topUsersData?.meta;
@@ -369,6 +374,36 @@ function LeaderboardsContent() {
                         </CardContent>
                       </Card>
                     </div>
+                    {topMerchants && topMerchants.length > 0 && (
+                      <>
+                        <Separator />
+                        <h3 className='text-sm font-semibold'>{t('topMerchants')}</h3>
+                        <p className='text-xs text-muted-foreground'>{t('topMerchantsDesc')}</p>
+                        <div className='space-y-2'>
+                          {topMerchants.map(m => (
+                            <div
+                              key={m.establishmentId}
+                              className='flex items-center gap-3 rounded-lg border border-border/60 p-3'
+                            >
+                              <div className='flex items-center justify-center w-8'>
+                                {getRankIcon(m.rank)}
+                              </div>
+                              <div className='flex-1 min-w-0'>
+                                <p className='text-xs font-medium'>{m.establishmentName}</p>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <span className='text-xs font-bold tabular-nums'>
+                                  {m.bagsSaved.toLocaleString()} {t('bags')}
+                                </span>
+                                <Badge className='text-[10px] bg-primary/10 text-primary border-primary/20'>
+                                  2 {t('sponsorDays')}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </>
                 ) : (
                   <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>

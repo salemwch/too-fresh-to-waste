@@ -84,6 +84,7 @@ const adminKeys = {
   // Leaderboards
   leaderboardStats: () => [...adminKeys.all, 'leaderboard-stats'] as const,
   topUsers: (page: number) => [...adminKeys.all, 'top-users', page] as const,
+  topMerchants: () => [...adminKeys.all, 'top-merchants'] as const,
 
   // Offers
   offerStats: () => [...adminKeys.all, 'offer-stats'] as const,
@@ -739,6 +740,14 @@ export function useAdminTopUsers(page = 1, limit = 20) {
     queryFn: () => adminService.getTopUsers(page, limit).then(r => r.data),
     staleTime: 2 * 60 * 1000,
     placeholderData: prev => prev,
+  });
+}
+
+export function useAdminTopMerchants(limit = 3) {
+  return useQuery({
+    queryKey: adminKeys.topMerchants(),
+    queryFn: () => adminService.getTopMerchants(limit).then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
   });
 }
 

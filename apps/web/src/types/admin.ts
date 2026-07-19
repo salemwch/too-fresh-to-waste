@@ -966,3 +966,11 @@ export interface AdminLeaderboardEntry {
   referralCount: number;
   rank: number;
 }
+
+export interface AdminTopMerchant {
+  rank: number;
+  establishmentId: string;
+  establishmentName: string;
+  merchantId: string;
+  bagsSaved: number;
+}

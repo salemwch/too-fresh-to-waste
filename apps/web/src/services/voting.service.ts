@@ -5,6 +5,9 @@ import type {
   CreateCyclePayload,
   UpdateCyclePayload,
   CycleStatsData,
+  AdminWinnerRow,
+  PrizeClaimRow,
+  UpdatePrizeClaimPayload,
 } from '@/types/voting';
 
 const VOTING_ADMIN = '/voting/admin';
@@ -87,5 +90,34 @@ export const votingAdminService = {
    */
   getCycleStats(id: string) {
     return apiClient.get<BackendEnvelope<CycleStatsData>>(`${VOTING_ADMIN}/cycles/${id}/stats`);
+  },
+
+  /**
+   * GET /voting/admin/cycles/:id/winners
+   * List prize winners for a completed cycle with claim status.
+   */
+  getCycleWinners(id: string) {
+    return apiClient.get<BackendEnvelope<AdminWinnerRow[]>>(`${VOTING_ADMIN}/cycles/${id}/winners`);
+  },
+
+  /**
+   * GET /voting/admin/prize-claims?page=&limit=&status=&source=
+   * Paginated list of all prize claims.
+   */
+  listPrizeClaims(page = 1, limit = 20, status?: string, source?: string) {
+    return apiClient.get<BackendEnvelope<PrizeClaimRow[]>>(`${VOTING_ADMIN}/prize-claims`, {
+      params: { page, limit, ...(status ? { status } : {}), ...(source ? { source } : {}) },
+    });
+  },
+
+  /**
+   * PATCH /voting/admin/prize-claims/:id
+   * Update a prize claim status (verify, deliver, reject).
+   */
+  updatePrizeClaim(id: string, payload: UpdatePrizeClaimPayload) {
+    return apiClient.patch<BackendEnvelope<PrizeClaimRow>>(
+      `${VOTING_ADMIN}/prize-claims/${id}`,
+      payload,
+    );
   },
 };

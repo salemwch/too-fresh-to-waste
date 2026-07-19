@@ -5,6 +5,7 @@ import { Establishment, EstablishmentSchema } from '../establishments/schemas/es
 import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { PrizeClaim, PrizeClaimSchema } from '../loyalty/schemas/prize-claim.schema';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { User, UserSchema } from '../users/schemas/user.schema';
 
 import { Counter, CounterSchema } from './schemas/counter.schema';
 import { Vote, VoteSchema } from './schemas/vote.schema';
@@ -14,6 +15,7 @@ import { VotingEligibility, VotingEligibilitySchema } from './schemas/voting-eli
 import { VotingAdminController } from './voting-admin.controller';
 import { VotingController } from './voting.controller';
 import { VotingCron } from './voting.cron';
+import { VotingPrizeAdminService } from './services/voting-prize-admin.service';
 import { VotingPrizeService } from './services/voting-prize.service';
 import { VotingService } from './voting.service';
 
@@ -27,12 +29,13 @@ import { VotingService } from './voting.service';
       { name: Counter.name, schema: CounterSchema },
       { name: PrizeClaim.name, schema: PrizeClaimSchema },
       { name: Establishment.name, schema: EstablishmentSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     forwardRef(() => LoyaltyModule),
     NotificationsModule,
   ],
   controllers: [VotingController, VotingAdminController],
-  providers: [VotingService, VotingCron, VotingPrizeService],
-  exports: [VotingService, VotingPrizeService],
+  providers: [VotingService, VotingCron, VotingPrizeService, VotingPrizeAdminService],
+  exports: [VotingService, VotingPrizeService, VotingPrizeAdminService],
 })
 export class VotingModule {}

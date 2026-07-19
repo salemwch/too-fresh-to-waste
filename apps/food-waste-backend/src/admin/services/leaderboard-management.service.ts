@@ -2,10 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
+import { OrderStatus, PaymentStatus } from '@foodwaste/shared';
 import {
   LoyaltyAccount,
   LoyaltyAccountDocument,
 } from '../../loyalty/schemas/loyalty-account.schema';
+import { Order, type OrderDocument } from '../../orders/schemas/order.schema';
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -38,6 +40,14 @@ export interface AdminLeaderboardResult {
   limit: number;
 }
 
+export interface AdminTopMerchant {
+  rank: number;
+  establishmentId: string;
+  establishmentName: string;
+  merchantId: string;
+  bagsSaved: number;
+}
+
 // ─── Service ─────────────────────────────────────────────────────────────────
 
 @Injectable()
@@ -45,6 +55,8 @@ export class LeaderboardManagementService {
   constructor(
     @InjectModel(LoyaltyAccount.name)
     private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
+    @InjectModel(Order.name)
+    private readonly orderModel: Model<OrderDocument>,
   ) {}
 
   async getLeaderboardStats(): Promise<AdminLeaderboardStats> {
@@ -121,5 +133,54 @@ export class LeaderboardManagementService {
     }));
 
     return { data: ranked, total, page, limit };
+  }
+
+  async getTopMerchants(limit = 3): Promise<AdminTopMerchant[]> {
+    const results = await this.orderModel.aggregate([
+      {
+        $match: {
+          status: { $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED] },
+          paymentStatus: PaymentStatus.PAID,
+          isDeleted: { $ne: true },
+          establishmentId: { $exists: true, $ne: null },
+        },
+      },
+      { $project: { establishmentId: 1, merchantId: 1, bagCount: { $sum: '$items.quantity' } } },
+      {
+        $group: {
+          _id: '$establishmentId',
+          merchantId: { $first: '$merchantId' },
+          bagsSaved: { $sum: '$bagCount' },
+        },
+      },
+      { $sort: { bagsSaved: -1 as const } },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'establishments',
+          localField: '_id',
+          foreignField: '_id',
+          pipeline: [{ $project: { name: 1 } }],
+          as: '_est',
+        },
+      },
+      { $unwind: { path: '$_est', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          establishmentId: '$_id',
+          establishmentName: '$_est.name',
+          merchantId: 1,
+          bagsSaved: 1,
+        },
+      },
+    ]);
+
+    return results.map((r, i) => ({
+      rank: i + 1,
+      establishmentId: r.establishmentId.toString(),
+      establishmentName: r.establishmentName ?? '',
+      merchantId: r.merchantId?.toString() ?? '',
+      bagsSaved: r.bagsSaved,
+    }));
   }
 }

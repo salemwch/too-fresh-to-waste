@@ -29,6 +29,7 @@ import {
   OrderManagementController,
   PaymentManagementController,
   NotificationManagementController,
+  LeaderboardManagementController,
 } from './controllers';
 import { AdminOnlyGuard } from './guards/admin-only.guard';
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
@@ -44,6 +45,7 @@ import {
   OrderManagementService,
   PaymentManagementService,
   NotificationManagementService,
+  LeaderboardManagementService,
 } from './services';
 import { TrialExpiryTask } from './tasks/trial-expiry.task';
 
