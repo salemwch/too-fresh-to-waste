@@ -670,6 +670,117 @@ export interface BulkOfferActionResult {
   action: BulkOfferAction;
 }
 
+// ─── Admin Orders ────────────────────────────────────────────────────────────
+
+export type AdminOrderStatus =
+  | 'pending'
+  | 'pending_payment'
+  | 'reserved'
+  | 'confirmed'
+  | 'ready_for_pickup'
+  | 'picked_up'
+  | 'completed'
+  | 'driver_assigned'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'cancelled'
+  | 'expired'
+  | 'refunded';
+
+export type AdminPaymentStatus =
+  | 'pending'
+  | 'held'
+  | 'paid'
+  | 'failed'
+  | 'refund_pending'
+  | 'refunded'
+  | 'partially_refunded';
+
+export interface AdminOrderItem {
+  _id: string;
+  orderNumber: string;
+  status: AdminOrderStatus;
+  paymentStatus: AdminPaymentStatus;
+  paymentProvider: string;
+  pricing: { total: number; currency: string };
+  createdAt: string;
+  cancellationReason?: string;
+  refundReason?: string;
+  customer: { name: string; email: string };
+  merchant: { name: string; email: string };
+  establishment: { name: string };
+}
+
+export interface AdminOrderDetail {
+  _id: string;
+  orderNumber: string;
+  status: AdminOrderStatus;
+  paymentStatus: AdminPaymentStatus;
+  paymentProvider: string;
+  pricing: { total: number; currency: string; deliveryFee?: number; serviceFee?: number };
+  items: Array<{ offerId: string; title?: string; quantity: number; unitPrice: number }>;
+  pickupCode?: string;
+  expiresAt?: string;
+  createdAt: string;
+  confirmedAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+  refundReason?: string;
+  customer: { _id: string; name: string; email: string; phone?: string };
+  merchant: { _id: string; name: string; email: string; phone?: string };
+  establishment: { _id: string; name: string; address?: Record<string, unknown> };
+  refundRequests: Array<{
+    reason: string;
+    status: string;
+    amount: number;
+    notes?: string;
+    createdAt: string;
+  }>;
+}
+
+export interface AdminOrderStats {
+  totalOrders: number;
+  activeOrders: number;
+  disputeRate: number;
+  totalRevenue: number;
+  countByStatus: Record<string, number>;
+  countByPaymentStatus: Record<string, number>;
+  refundTotal: number;
+}
+
+export interface AdminOrderListResponse {
+  data: AdminOrderItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminOrderQuery {
+  page?: number;
+  limit?: number;
+  status?: AdminOrderStatus;
+  paymentStatus?: AdminPaymentStatus;
+  paymentProvider?: string;
+  customerId?: string;
+  merchantId?: string;
+  establishmentId?: string;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AdminCancelOrderPayload {
+  reason: string;
+}
+
+export interface AdminRefundOrderPayload {
+  reason: string;
+  notes?: string;
+}
+
 // ─── Establishment Stats ──────────────────────────────────────────────────────
 
 export interface EstablishmentStats {

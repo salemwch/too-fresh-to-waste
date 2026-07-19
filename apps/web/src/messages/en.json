@@ -2320,6 +2320,12 @@
       "reasonLabel": "Cancellation reason",
       "reasonPlaceholder": "Explain why this order is being cancelled..."
     },
+    "refundDialog": {
+      "title": "Issue Refund",
+      "description": "This will initiate a refund for the order. The refund will be processed through the original payment provider.",
+      "reasonLabel": "Refund reason",
+      "reasonPlaceholder": "Explain why this refund is being issued..."
+    },
     "empty": {
       "title": "No orders found",
       "description": "No orders match your current filters."

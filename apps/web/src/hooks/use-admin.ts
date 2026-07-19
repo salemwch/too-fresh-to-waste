@@ -21,6 +21,9 @@ import type {
   AdminOfferQuery,
   BulkOfferActionPayload,
   HealthCheckResult,
+  AdminOrderQuery,
+  AdminCancelOrderPayload,
+  AdminRefundOrderPayload,
 } from '@/types/admin';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
@@ -65,6 +68,11 @@ const adminKeys = {
 
   // Real-time
   realTime: () => [...adminKeys.all, 'real-time'] as const,
+
+  // Orders
+  orderStats: () => [...adminKeys.all, 'order-stats'] as const,
+  orderList: (params: AdminOrderQuery) => [...adminKeys.all, 'order-list', params] as const,
+  orderDetail: (id: string) => [...adminKeys.all, 'order-detail', id] as const,
 
   // Offers
   offerStats: () => [...adminKeys.all, 'offer-stats'] as const,
@@ -504,6 +512,64 @@ export function useEstablishmentActivity(id: string | null, days = 30) {
     queryFn: () => adminService.getEstablishmentActivity(id!, days).then(r => r.data.data),
     enabled: !!id,
     staleTime: 2 * 60 * 1000,
+  });
+}
+
+// ─── Order management hooks ──────────────────────────────────────────────────
+
+export function useAdminOrderStats() {
+  return useQuery({
+    queryKey: adminKeys.orderStats(),
+    queryFn: () => adminService.getOrderStats().then(r => r.data.data),
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useAdminOrders(params: AdminOrderQuery) {
+  return useQuery({
+    queryKey: adminKeys.orderList(params),
+    queryFn: () =>
+      adminService.listOrders(params).then(r => ({
+        data: r.data.data,
+        meta: r.data.meta,
+      })),
+    staleTime: 60 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useAdminOrderDetail(id: string | null) {
+  return useQuery({
+    queryKey: adminKeys.orderDetail(id ?? ''),
+    queryFn: () => adminService.getOrderDetail(id!).then(r => r.data.data),
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useAdminCancelOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, payload }: { orderId: string; payload: AdminCancelOrderPayload }) =>
+      adminService.cancelOrder(orderId, payload).then(r => r.data.data),
+    onSuccess: (_, { orderId }) => {
+      void qc.invalidateQueries({ queryKey: adminKeys.orderDetail(orderId) });
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'order-list'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.orderStats() });
+    },
+  });
+}
+
+export function useAdminRefundOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, payload }: { orderId: string; payload: AdminRefundOrderPayload }) =>
+      adminService.refundOrder(orderId, payload).then(r => r.data.data),
+    onSuccess: (_, { orderId }) => {
+      void qc.invalidateQueries({ queryKey: adminKeys.orderDetail(orderId) });
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'order-list'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.orderStats() });
+    },
   });
 }
 

@@ -7,6 +7,8 @@ import { Establishment, EstablishmentSchema } from '../establishments/schemas/es
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
+import { PaymentModule } from '../payments/payments.module';
+import { RefundRequest, RefundRequestSchema } from '../payments/schemas/refund-request.schema';
 import { Review, ReviewSchema } from '../reviews/schemas/review.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { UsersModule } from '../users/user.module';
@@ -20,6 +22,7 @@ import {
   EstablishmentManagementController,
   SystemConfigController,
   OfferManagementController,
+  OrderManagementController,
 } from './controllers';
 import { AdminOnlyGuard } from './guards/admin-only.guard';
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
@@ -32,6 +35,7 @@ import {
   EstablishmentManagementService,
   SystemConfigService,
   OfferManagementService,
+  OrderManagementService,
 } from './services';
 import { TrialExpiryTask } from './tasks/trial-expiry.task';
 
@@ -45,6 +49,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     CommonModule, // Provides EventBusService, LoggerService, etc.
     NotificationsModule, // Provides NotificationService
     UsersModule, // Provides UsersService (for delegated soft-delete in UserManagementService)
+    PaymentModule, // Provides KonnectOrderService, RefundService
 
     MongooseModule.forFeature([
       // Admin-specific schemas
@@ -55,6 +60,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
       { name: User.name, schema: UserSchema },
       { name: Establishment.name, schema: EstablishmentSchema },
       { name: Order.name, schema: OrderSchema },
+      { name: RefundRequest.name, schema: RefundRequestSchema },
       { name: Offer.name, schema: OfferSchema },
       { name: Review.name, schema: ReviewSchema },
       { name: DriverProfile.name, schema: DriverProfileSchema },
@@ -68,6 +74,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     EstablishmentManagementController,
     SystemConfigController,
     OfferManagementController,
+    OrderManagementController,
   ],
 
   providers: [
@@ -78,6 +85,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     EstablishmentManagementService,
     SystemConfigService,
     OfferManagementService,
+    OrderManagementService,
 
     // Scheduled tasks
     TrialExpiryTask,

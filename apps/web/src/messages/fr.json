@@ -2301,6 +2301,12 @@
       "reasonLabel": "Raison de l'annulation",
       "reasonPlaceholder": "Expliquez pourquoi cette commande est annulée..."
     },
+    "refundDialog": {
+      "title": "Émettre un remboursement",
+      "description": "Cela initiera un remboursement pour la commande. Le remboursement sera traité via le fournisseur de paiement d'origine.",
+      "reasonLabel": "Raison du remboursement",
+      "reasonPlaceholder": "Expliquez pourquoi ce remboursement est émis..."
+    },
     "empty": {
       "title": "Aucune commande",
       "description": "Aucune commande ne correspond à vos filtres."

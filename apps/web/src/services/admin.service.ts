@@ -43,6 +43,12 @@ import type {
   AdminDeletedOfferItem,
   BulkOfferActionPayload,
   BulkOfferActionResult,
+  AdminOrderItem,
+  AdminOrderDetail,
+  AdminOrderStats,
+  AdminOrderQuery,
+  AdminCancelOrderPayload,
+  AdminRefundOrderPayload,
 } from '@/types/admin';
 
 const ADMIN = '/admin';
@@ -546,6 +552,36 @@ export const adminService = {
       params: { format },
       responseType: 'blob',
     });
+  },
+
+  // ── Order Management ───────────────────────────────────────────────────────
+
+  listOrders(params: AdminOrderQuery = {}) {
+    return apiClient.get<BackendEnvelope<AdminOrderItem[]>>(`${ADMIN}/orders`, {
+      params: { limit: 20, ...params },
+    });
+  },
+
+  getOrderStats() {
+    return apiClient.get<BackendEnvelope<AdminOrderStats>>(`${ADMIN}/orders/stats`);
+  },
+
+  getOrderDetail(orderId: string) {
+    return apiClient.get<BackendEnvelope<AdminOrderDetail>>(`${ADMIN}/orders/${orderId}`);
+  },
+
+  cancelOrder(orderId: string, payload: AdminCancelOrderPayload) {
+    return apiClient.post<BackendEnvelope<AdminOrderDetail>>(
+      `${ADMIN}/orders/${orderId}/cancel`,
+      payload,
+    );
+  },
+
+  refundOrder(orderId: string, payload: AdminRefundOrderPayload) {
+    return apiClient.post<BackendEnvelope<AdminOrderDetail>>(
+      `${ADMIN}/orders/${orderId}/refund`,
+      payload,
+    );
   },
 
   // ── Driver Management ──────────────────────────────────────────────────────

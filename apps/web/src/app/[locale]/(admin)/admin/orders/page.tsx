@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
@@ -45,96 +45,21 @@ import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/adm
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import {
+  useAdminOrders,
+  useAdminOrderStats,
+  useAdminOrderDetail,
+  useAdminCancelOrder,
+  useAdminRefundOrder,
+} from '@/hooks/use-admin';
 import type { KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
 import type { AdminTab } from '@/components/dashboard/admin/admin-tab-nav';
-import type { AnalyticsPeriod } from '@/types/admin';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface OrderItem {
-  id: string;
-  orderNumber: string;
-  customer: { name: string; email: string };
-  merchant: { name: string; establishment: string };
-  status: 'pending' | 'confirmed' | 'ready' | 'completed' | 'cancelled' | 'expired' | 'disputed';
-  amount: number;
-  paymentMethod: 'cash' | 'online';
-  paymentStatus: 'pending' | 'paid' | 'refunded' | 'failed';
-  items: number;
-  createdAt: string;
-  pickupTime?: string;
-  disputeReason?: string;
-  refundAmount?: number;
-}
-
-// ─── Mock data ───────────────────────────────────────────────────────────────
-
-const MOCK_ORDERS: OrderItem[] = [
-  {
-    id: '1',
-    orderNumber: 'ORD-2026-001234',
-    customer: { name: 'Ahmed Ben Ali', email: 'ahmed@example.com' },
-    merchant: { name: 'Boulangerie Sfax', establishment: 'Downtown Branch' },
-    status: 'completed',
-    amount: 12.5,
-    paymentMethod: 'online',
-    paymentStatus: 'paid',
-    items: 2,
-    createdAt: '2026-07-18T10:30:00Z',
-    pickupTime: '2026-07-18T11:00:00Z',
-  },
-  {
-    id: '2',
-    orderNumber: 'ORD-2026-001235',
-    customer: { name: 'Fatma Trabelsi', email: 'fatma@example.com' },
-    merchant: { name: 'Patisserie Tunis', establishment: 'Main Store' },
-    status: 'disputed',
-    amount: 8.0,
-    paymentMethod: 'online',
-    paymentStatus: 'paid',
-    items: 1,
-    createdAt: '2026-07-17T14:20:00Z',
-    disputeReason: 'Items were not as described in the offer',
-  },
-  {
-    id: '3',
-    orderNumber: 'ORD-2026-001236',
-    customer: { name: 'Mohamed Khelifi', email: 'mohamed@example.com' },
-    merchant: { name: 'Restaurant El Walima', establishment: 'Sousse' },
-    status: 'cancelled',
-    amount: 15.0,
-    paymentMethod: 'cash',
-    paymentStatus: 'pending',
-    items: 3,
-    createdAt: '2026-07-17T09:15:00Z',
-  },
-  {
-    id: '4',
-    orderNumber: 'ORD-2026-001237',
-    customer: { name: 'Leila Gharbi', email: 'leila@example.com' },
-    merchant: { name: 'Superette Bizerte', establishment: 'Centre Ville' },
-    status: 'confirmed',
-    amount: 6.5,
-    paymentMethod: 'online',
-    paymentStatus: 'paid',
-    items: 1,
-    createdAt: '2026-07-18T08:45:00Z',
-    pickupTime: '2026-07-18T12:00:00Z',
-  },
-  {
-    id: '5',
-    orderNumber: 'ORD-2026-001238',
-    customer: { name: 'Youssef Mansour', email: 'youssef@example.com' },
-    merchant: { name: 'Boulangerie Sfax', establishment: 'Downtown Branch' },
-    status: 'expired',
-    amount: 10.0,
-    paymentMethod: 'online',
-    paymentStatus: 'refunded',
-    items: 2,
-    createdAt: '2026-07-16T16:00:00Z',
-    refundAmount: 10.0,
-  },
-];
+import type {
+  AdminOrderItem,
+  AdminOrderStatus,
+  AdminPaymentStatus,
+  AdminOrderQuery,
+} from '@/types/admin';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -152,24 +77,30 @@ function relativeDate(iso: string) {
   return `${days}d ago`;
 }
 
-function getOrderStatusColor(status: OrderItem['status']) {
-  const map: Record<OrderItem['status'], string> = {
-    pending: 'bg-amber-50 text-amber-700 border-amber-200',
-    confirmed: 'bg-sky-50 text-sky-700 border-sky-200',
-    ready: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    cancelled: 'bg-rose-50 text-rose-700 border-rose-200',
-    expired: 'bg-gray-100 text-gray-500 border-gray-200',
-    disputed: 'bg-orange-50 text-orange-700 border-orange-200',
-  };
-  return map[status];
-}
+const STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  pending_payment: 'bg-amber-50 text-amber-700 border-amber-200',
+  reserved: 'bg-violet-50 text-violet-700 border-violet-200',
+  confirmed: 'bg-sky-50 text-sky-700 border-sky-200',
+  ready_for_pickup: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  picked_up: 'bg-teal-50 text-teal-700 border-teal-200',
+  completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  cancelled: 'bg-rose-50 text-rose-700 border-rose-200',
+  expired: 'bg-gray-100 text-gray-500 border-gray-200',
+  refunded: 'bg-sky-50 text-sky-700 border-sky-200',
+  driver_assigned: 'bg-blue-50 text-blue-700 border-blue-200',
+  out_for_delivery: 'bg-blue-50 text-blue-700 border-blue-200',
+};
 
-function getPaymentStatusIcon(status: OrderItem['paymentStatus']) {
+function getPaymentStatusIcon(status: string) {
   switch (status) {
     case 'paid':
+    case 'held':
       return <CheckCircle2 className='size-3.5 text-emerald-600' />;
     case 'refunded':
+    case 'refund_pending':
+    case 'partially_refunded':
       return <RotateCcw className='size-3.5 text-sky-600' />;
     case 'failed':
       return <XCircle className='size-3.5 text-rose-600' />;
@@ -178,18 +109,52 @@ function getPaymentStatusIcon(status: OrderItem['paymentStatus']) {
   }
 }
 
+const TERMINAL_STATUSES: AdminOrderStatus[] = [
+  'completed',
+  'picked_up',
+  'delivered',
+  'cancelled',
+  'expired',
+  'refunded',
+];
+
+const CANCELLABLE_STATUSES: AdminOrderStatus[] = [
+  'pending',
+  'pending_payment',
+  'reserved',
+  'confirmed',
+  'ready_for_pickup',
+];
+
+const REFUNDABLE_PAYMENT_STATUSES: AdminPaymentStatus[] = ['paid', 'held'];
+
 // ─── Order Detail Drawer ─────────────────────────────────────────────────────
 
 function OrderDetailDrawer({
-  order,
+  orderId,
   open,
   onClose,
 }: {
-  order: OrderItem | null;
+  orderId: string | null;
   open: boolean;
   onClose: () => void;
 }) {
-  if (!order) return null;
+  const { data: order } = useAdminOrderDetail(orderId);
+
+  if (!order) {
+    return (
+      <Sheet open={open} onOpenChange={v => !v && onClose()}>
+        <SheetContent className='w-full overflow-y-auto sm:max-w-xl'>
+          <SheetTitle className='sr-only'>Order Details</SheetTitle>
+          <div className='space-y-4 p-4'>
+            <Skeleton className='h-20' />
+            <Skeleton className='h-40' />
+            <Skeleton className='h-32' />
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet open={open} onOpenChange={v => !v && onClose()}>
@@ -215,25 +180,29 @@ function OrderDetailDrawer({
               <span
                 className={cn(
                   'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize',
-                  getOrderStatusColor(order.status),
+                  STATUS_COLORS[order.status] ?? 'bg-gray-100 text-gray-600 border-gray-200',
                 )}
               >
-                {order.status}
+                {order.status.replace(/_/g, ' ')}
               </span>
             </div>
             <div className='mt-3 flex gap-2'>
               <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
-                <p className='text-lg font-bold tabular-nums'>{formatCurrency(order.amount)}</p>
+                <p className='text-lg font-bold tabular-nums'>
+                  {formatCurrency(order.pricing.total)}
+                </p>
                 <p className='text-[10px] text-muted-foreground'>Amount</p>
               </div>
               <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
-                <p className='text-lg font-bold tabular-nums'>{order.items}</p>
+                <p className='text-lg font-bold tabular-nums'>{order.items?.length ?? 0}</p>
                 <p className='text-[10px] text-muted-foreground'>Items</p>
               </div>
               <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
                 <div className='flex items-center justify-center gap-1'>
                   {getPaymentStatusIcon(order.paymentStatus)}
-                  <p className='text-sm font-semibold capitalize'>{order.paymentStatus}</p>
+                  <p className='text-sm font-semibold capitalize'>
+                    {order.paymentStatus.replace(/_/g, ' ')}
+                  </p>
                 </div>
                 <p className='text-[10px] text-muted-foreground'>Payment</p>
               </div>
@@ -259,6 +228,9 @@ function OrderDetailDrawer({
                 <div className='min-w-0 flex-1'>
                   <p className='text-sm font-medium'>{order.customer.name}</p>
                   <p className='text-xs text-muted-foreground'>{order.customer.email}</p>
+                  {order.customer.phone && (
+                    <p className='text-xs text-muted-foreground'>{order.customer.phone}</p>
+                  )}
                 </div>
               </div>
             </section>
@@ -274,7 +246,7 @@ function OrderDetailDrawer({
                 </div>
                 <div className='min-w-0 flex-1'>
                   <p className='text-sm font-medium'>{order.merchant.name}</p>
-                  <p className='text-xs text-muted-foreground'>{order.merchant.establishment}</p>
+                  <p className='text-xs text-muted-foreground'>{order.establishment.name}</p>
                 </div>
               </div>
             </section>
@@ -294,10 +266,10 @@ function OrderDetailDrawer({
                   </div>
                   <div className='flex items-center gap-1.5'>
                     <span className='font-mono text-[11px] text-muted-foreground'>
-                      ...{order.id.slice(-8)}
+                      ...{order._id.slice(-8)}
                     </span>
                     <button
-                      onClick={() => void navigator.clipboard.writeText(order.id)}
+                      onClick={() => void navigator.clipboard.writeText(order._id)}
                       className='text-muted-foreground hover:text-foreground transition-colors'
                       aria-label='Copy order ID'
                     >
@@ -308,9 +280,9 @@ function OrderDetailDrawer({
                 <div className='flex items-center justify-between'>
                   <div className='flex items-center gap-1.5 text-muted-foreground'>
                     <CreditCard className='size-3' />
-                    <span className='text-xs'>Payment Method</span>
+                    <span className='text-xs'>Payment Provider</span>
                   </div>
-                  <span className='text-xs font-medium capitalize'>{order.paymentMethod}</span>
+                  <span className='text-xs font-medium capitalize'>{order.paymentProvider}</span>
                 </div>
                 <div className='flex items-center justify-between'>
                   <div className='flex items-center gap-1.5 text-muted-foreground'>
@@ -321,14 +293,14 @@ function OrderDetailDrawer({
                     {new Date(order.createdAt).toLocaleString('en-GB')}
                   </span>
                 </div>
-                {order.pickupTime && (
+                {order.expiresAt && (
                   <div className='flex items-center justify-between'>
                     <div className='flex items-center gap-1.5 text-muted-foreground'>
                       <MapPin className='size-3' />
-                      <span className='text-xs'>Pickup Time</span>
+                      <span className='text-xs'>Pickup Before</span>
                     </div>
                     <span className='text-xs font-medium'>
-                      {new Date(order.pickupTime).toLocaleTimeString('en-GB', {
+                      {new Date(order.expiresAt).toLocaleTimeString('en-GB', {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
@@ -338,40 +310,48 @@ function OrderDetailDrawer({
               </div>
             </section>
 
-            {/* Dispute info */}
-            {order.disputeReason && (
+            {/* Cancellation info */}
+            {order.cancellationReason && (
               <>
                 <Separator />
                 <section className='space-y-3'>
-                  <h3 className='text-xs font-semibold uppercase tracking-wide text-orange-600'>
-                    Dispute
+                  <h3 className='text-xs font-semibold uppercase tracking-wide text-rose-600'>
+                    Cancellation
                   </h3>
-                  <div className='rounded-lg border border-orange-200 bg-orange-50/50 p-3'>
+                  <div className='rounded-lg border border-rose-200 bg-rose-50/50 p-3'>
                     <div className='flex items-start gap-2'>
-                      <MessageSquare className='size-4 text-orange-600 mt-0.5 shrink-0' />
-                      <p className='text-xs text-orange-800'>{order.disputeReason}</p>
+                      <MessageSquare className='size-4 text-rose-600 mt-0.5 shrink-0' />
+                      <p className='text-xs text-rose-800'>{order.cancellationReason}</p>
                     </div>
                   </div>
                 </section>
               </>
             )}
 
-            {/* Refund info */}
-            {order.refundAmount !== undefined && order.refundAmount > 0 && (
+            {/* Refund requests */}
+            {order.refundRequests.length > 0 && (
               <>
                 <Separator />
                 <section className='space-y-3'>
                   <h3 className='text-xs font-semibold uppercase tracking-wide text-sky-600'>
-                    Refund
+                    Refund Requests
                   </h3>
-                  <div className='rounded-lg border border-sky-200 bg-sky-50/50 p-3'>
-                    <div className='flex items-center justify-between'>
-                      <span className='text-xs text-sky-800'>Refund Amount</span>
-                      <span className='text-sm font-bold text-sky-700'>
-                        {formatCurrency(order.refundAmount)}
-                      </span>
+                  {order.refundRequests.map((refund, i) => (
+                    <div key={i} className='rounded-lg border border-sky-200 bg-sky-50/50 p-3'>
+                      <div className='flex items-center justify-between mb-1'>
+                        <span className='text-[10px] font-medium uppercase text-sky-600'>
+                          {refund.status}
+                        </span>
+                        <span className='text-sm font-bold text-sky-700'>
+                          {formatCurrency(refund.amount)}
+                        </span>
+                      </div>
+                      <p className='text-xs text-sky-800'>{refund.reason}</p>
+                      {refund.notes && (
+                        <p className='mt-1 text-[11px] text-sky-600 italic'>{refund.notes}</p>
+                      )}
                     </div>
-                  </div>
+                  ))}
                 </section>
               </>
             )}
@@ -384,13 +364,7 @@ function OrderDetailDrawer({
                 Actions
               </h3>
               <div className='flex flex-wrap gap-2'>
-                {order.status === 'disputed' && (
-                  <Button size='sm' className='h-8 text-xs'>
-                    <CheckCircle2 className='me-1.5 size-3.5' />
-                    Resolve Dispute
-                  </Button>
-                )}
-                {(order.status === 'confirmed' || order.status === 'pending') && (
+                {CANCELLABLE_STATUSES.includes(order.status) && (
                   <Button
                     size='sm'
                     variant='outline'
@@ -400,16 +374,18 @@ function OrderDetailDrawer({
                     Cancel Order
                   </Button>
                 )}
-                {order.paymentStatus === 'paid' && order.status !== 'completed' && (
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    className='h-8 text-xs text-sky-600 border-sky-200 hover:bg-sky-50'
-                  >
-                    <RotateCcw className='me-1.5 size-3.5' />
-                    Issue Refund
-                  </Button>
-                )}
+                {REFUNDABLE_PAYMENT_STATUSES.includes(order.paymentStatus) &&
+                  order.paymentProvider === 'konnect' &&
+                  !TERMINAL_STATUSES.includes(order.status) && (
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      className='h-8 text-xs text-sky-600 border-sky-200 hover:bg-sky-50'
+                    >
+                      <RotateCcw className='me-1.5 size-3.5' />
+                      Issue Refund
+                    </Button>
+                  )}
               </div>
             </section>
           </div>
@@ -425,61 +401,108 @@ function OrdersContent() {
   const t = useTranslations('adminOrders');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'all';
-  const [period, setPeriod] = useState<AnalyticsPeriod>('week');
-  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
-  const [cancelDialog, setCancelDialog] = useState<{ open: boolean; order: OrderItem | null }>({
+
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [cancelDialog, setCancelDialog] = useState<{ open: boolean; orderId: string | null }>({
     open: false,
-    order: null,
+    orderId: null,
   });
+  const [refundDialog, setRefundDialog] = useState<{ open: boolean; orderId: string | null }>({
+    open: false,
+    orderId: null,
+  });
+
+  const queryParams: AdminOrderQuery = {
+    page,
+    limit: 20,
+    ...(search ? { search } : {}),
+    ...(currentTab === 'disputes' ? { status: 'cancelled' as AdminOrderStatus } : {}),
+    ...(currentTab === 'refunds' ? { paymentStatus: 'refunded' as AdminPaymentStatus } : {}),
+  };
+
+  const { data: ordersResponse, isLoading: ordersLoading } = useAdminOrders(queryParams);
+  const { data: stats } = useAdminOrderStats();
+  const cancelMutation = useAdminCancelOrder();
+  const refundMutation = useAdminRefundOrder();
+
+  const orders = ordersResponse?.data ?? [];
+  const meta = ordersResponse?.meta;
+  const totalPages = meta?.totalPages ?? 1;
 
   const tabs: AdminTab[] = [
     { key: 'all', label: t('tabs.all') },
-    { key: 'disputes', label: t('tabs.disputes'), badge: 1 },
+    {
+      key: 'disputes',
+      label: t('tabs.disputes'),
+      ...(stats && stats.countByStatus['cancelled']
+        ? { badge: stats.countByStatus['cancelled'] }
+        : {}),
+    },
     { key: 'refunds', label: t('tabs.refunds') },
   ];
-
-  const filteredOrders = MOCK_ORDERS.filter(order => {
-    if (currentTab === 'disputes') return order.status === 'disputed';
-    if (currentTab === 'refunds')
-      return order.paymentStatus === 'refunded' || order.refundAmount !== undefined;
-    return true;
-  });
 
   const kpis: KpiItem[] = [
     {
       label: t('kpi.totalOrders'),
-      value: MOCK_ORDERS.length.toString(),
+      value: stats?.totalOrders.toString() ?? '—',
       icon: ShoppingBag,
       iconBg: 'bg-sky-50',
       iconColor: 'text-sky-600',
     },
     {
       label: t('kpi.activeOrders'),
-      value: MOCK_ORDERS.filter(
-        o => o.status === 'confirmed' || o.status === 'pending',
-      ).length.toString(),
+      value: stats?.activeOrders.toString() ?? '—',
       icon: Clock,
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
     },
     {
       label: t('kpi.disputeRate'),
-      value: `${((MOCK_ORDERS.filter(o => o.status === 'disputed').length / MOCK_ORDERS.length) * 100).toFixed(1)}%`,
+      value: stats ? `${(stats.disputeRate * 100).toFixed(1)}%` : '—',
       icon: AlertTriangle,
       iconBg: 'bg-orange-50',
       iconColor: 'text-orange-600',
-      highlight: MOCK_ORDERS.some(o => o.status === 'disputed'),
+      highlight: (stats?.disputeRate ?? 0) > 0.05,
     },
     {
       label: t('kpi.totalRevenue'),
-      value: formatCurrency(MOCK_ORDERS.reduce((s, o) => s + o.amount, 0)),
+      value: stats ? formatCurrency(stats.totalRevenue) : '—',
       icon: DollarSign,
       iconBg: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
     },
   ];
 
-  const columns: ColumnDef<OrderItem>[] = [
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value);
+    setPage(1);
+  }, []);
+
+  const handleCancelConfirm = useCallback(
+    (reason?: string) => {
+      if (!cancelDialog.orderId || !reason) return;
+      cancelMutation.mutate(
+        { orderId: cancelDialog.orderId, payload: { reason } },
+        { onSettled: () => setCancelDialog({ open: false, orderId: null }) },
+      );
+    },
+    [cancelDialog.orderId, cancelMutation],
+  );
+
+  const handleRefundConfirm = useCallback(
+    (reason?: string) => {
+      if (!refundDialog.orderId || !reason) return;
+      refundMutation.mutate(
+        { orderId: refundDialog.orderId, payload: { reason } },
+        { onSettled: () => setRefundDialog({ open: false, orderId: null }) },
+      );
+    },
+    [refundDialog.orderId, refundMutation],
+  );
+
+  const columns: ColumnDef<AdminOrderItem>[] = [
     {
       key: 'orderNumber',
       header: t('columns.order'),
@@ -517,10 +540,10 @@ function OrdersContent() {
         <span
           className={cn(
             'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize',
-            getOrderStatusColor(order.status),
+            STATUS_COLORS[order.status] ?? 'bg-gray-100 text-gray-600 border-gray-200',
           )}
         >
-          {order.status}
+          {order.status.replace(/_/g, ' ')}
         </span>
       ),
     },
@@ -528,7 +551,9 @@ function OrdersContent() {
       key: 'amount',
       header: t('columns.amount'),
       render: order => (
-        <span className='text-xs font-semibold tabular-nums'>{formatCurrency(order.amount)}</span>
+        <span className='text-xs font-semibold tabular-nums'>
+          {formatCurrency(order.pricing.total)}
+        </span>
       ),
     },
     {
@@ -537,7 +562,7 @@ function OrdersContent() {
       render: order => (
         <div className='flex items-center gap-1.5'>
           {getPaymentStatusIcon(order.paymentStatus)}
-          <span className='text-xs capitalize'>{order.paymentMethod}</span>
+          <span className='text-xs capitalize'>{order.paymentProvider}</span>
         </div>
       ),
     },
@@ -553,25 +578,29 @@ function OrdersContent() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='w-36'>
-            <DropdownMenuItem onClick={() => setSelectedOrder(order)}>
+            <DropdownMenuItem onClick={() => setSelectedOrderId(order._id)}>
               <Eye className='me-2 size-3.5' />
               {t('actions.viewDetails')}
             </DropdownMenuItem>
-            {(order.status === 'pending' || order.status === 'confirmed') && (
+            {CANCELLABLE_STATUSES.includes(order.status) && (
               <DropdownMenuItem
                 className='text-rose-600'
-                onClick={() => setCancelDialog({ open: true, order })}
+                onClick={() => setCancelDialog({ open: true, orderId: order._id })}
               >
                 <Ban className='me-2 size-3.5' />
                 {t('actions.cancel')}
               </DropdownMenuItem>
             )}
-            {order.paymentStatus === 'paid' && (
-              <DropdownMenuItem className='text-sky-600'>
-                <RotateCcw className='me-2 size-3.5' />
-                {t('actions.refund')}
-              </DropdownMenuItem>
-            )}
+            {REFUNDABLE_PAYMENT_STATUSES.includes(order.paymentStatus) &&
+              order.paymentProvider === 'konnect' && (
+                <DropdownMenuItem
+                  className='text-sky-600'
+                  onClick={() => setRefundDialog({ open: true, orderId: order._id })}
+                >
+                  <RotateCcw className='me-2 size-3.5' />
+                  {t('actions.refund')}
+                </DropdownMenuItem>
+              )}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -583,13 +612,11 @@ function OrdersContent() {
       <AdminModuleHeader
         title={t('title')}
         subtitle={t('subtitle')}
-        period={period}
-        onPeriodChange={setPeriod}
         onExport={() => {}}
         exportLabel={t('export')}
       />
 
-      <AdminKpiRow items={kpis} />
+      <AdminKpiRow items={kpis} loading={!stats} />
 
       <Card className='border-border/60'>
         <CardContent className='p-0'>
@@ -598,15 +625,15 @@ function OrdersContent() {
           <div className='p-4'>
             <AdminDataTable
               columns={columns}
-              data={filteredOrders}
-              isLoading={false}
-              page={1}
-              totalPages={1}
-              total={filteredOrders.length}
-              onPageChange={() => {}}
+              data={orders}
+              isLoading={ordersLoading}
+              page={page}
+              totalPages={totalPages}
+              total={meta?.total ?? 0}
+              onPageChange={setPage}
               searchPlaceholder={t('searchPlaceholder')}
-              onSearchChange={() => {}}
-              onRowClick={row => setSelectedOrder(row)}
+              onSearchChange={handleSearch}
+              onRowClick={row => setSelectedOrderId(row._id)}
               emptyIcon={ShoppingBag}
               emptyTitle={t('empty.title')}
               emptyDescription={t('empty.description')}
@@ -616,28 +643,42 @@ function OrdersContent() {
       </Card>
 
       <OrderDetailDrawer
-        order={selectedOrder}
-        open={!!selectedOrder}
-        onClose={() => setSelectedOrder(null)}
+        orderId={selectedOrderId}
+        open={!!selectedOrderId}
+        onClose={() => setSelectedOrderId(null)}
       />
 
-      {cancelDialog.order && (
-        <ConfirmActionDialog
-          open={cancelDialog.open}
-          onOpenChange={open => !open && setCancelDialog({ open: false, order: null })}
-          title={t('cancelDialog.title')}
-          description={t('cancelDialog.description')}
-          confirmLabel={t('actions.cancel')}
-          variant='danger'
-          isLoading={false}
-          onConfirm={() => setCancelDialog({ open: false, order: null })}
-          reasonConfig={{
-            label: t('cancelDialog.reasonLabel'),
-            placeholder: t('cancelDialog.reasonPlaceholder'),
-            required: true,
-          }}
-        />
-      )}
+      <ConfirmActionDialog
+        open={cancelDialog.open}
+        onOpenChange={open => !open && setCancelDialog({ open: false, orderId: null })}
+        title={t('cancelDialog.title')}
+        description={t('cancelDialog.description')}
+        confirmLabel={t('actions.cancel')}
+        variant='danger'
+        isLoading={cancelMutation.isPending}
+        onConfirm={handleCancelConfirm}
+        reasonConfig={{
+          label: t('cancelDialog.reasonLabel'),
+          placeholder: t('cancelDialog.reasonPlaceholder'),
+          required: true,
+        }}
+      />
+
+      <ConfirmActionDialog
+        open={refundDialog.open}
+        onOpenChange={open => !open && setRefundDialog({ open: false, orderId: null })}
+        title={t('refundDialog.title')}
+        description={t('refundDialog.description')}
+        confirmLabel={t('actions.refund')}
+        variant='danger'
+        isLoading={refundMutation.isPending}
+        onConfirm={handleRefundConfirm}
+        reasonConfig={{
+          label: t('refundDialog.reasonLabel'),
+          placeholder: t('refundDialog.reasonPlaceholder'),
+          required: true,
+        }}
+      />
     </div>
   );
 }
