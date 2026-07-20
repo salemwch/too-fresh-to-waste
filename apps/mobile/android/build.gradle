@@ -36,10 +36,10 @@ buildscript {
         // Source: https://developer.android.com/studio/projects/configure-agp-ndk
 
         // SDK Versions - React Native 0.81 requirements
-        buildToolsVersion = findProperty('buildToolsVersion') ?: "35.0.0"
+        buildToolsVersion = findProperty('buildToolsVersion') ?: "36.0.0"
         minSdkVersion = findProperty('minSdkVersion')?.toInteger() ?: 24
-        compileSdkVersion = findProperty('compileSdkVersion')?.toInteger() ?: 35
-        targetSdkVersion = findProperty('targetSdkVersion')?.toInteger() ?: 35
+        compileSdkVersion = findProperty('compileSdkVersion')?.toInteger() ?: 36
+        targetSdkVersion = findProperty('targetSdkVersion')?.toInteger() ?: 36
 
         // NDK Version - Critical for native builds
         // Must be defined in gradle.properties for AGP 8.8+ compatibility
