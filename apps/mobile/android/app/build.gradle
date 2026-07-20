@@ -9,6 +9,13 @@ apply plugin: "kotlin-android"
 
 // React Native Config - MUST be applied AFTER react plugins
 // Loads environment variables from .env file at build time
+// Map product flavors to their .env files (resolved by dotenv.gradle)
+// Source: https://github.com/lugg/react-native-config#different-environments
+project.ext.envConfigFiles = [
+    dev:        ".env.development",
+    staging:    ".env.staging",
+    production: ".env.production",
+]
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 // React Native plugin applied above via plugins{} DSL
@@ -51,20 +58,37 @@ android {
     // ============================================================================
     // Source: https://developer.android.com/build/build-variants
     //
-    // Enables multiple environment configurations:
-    // - dev: Development environment (local/dev servers)
-    // - staging: Pre-production testing environment
-    // - production: Live production environment
-    //
     // Build variants generated:
-    // - devDebug, devRelease
-    // - stagingDebug, stagingRelease
-    // - productionDebug, productionRelease
+    //   devDebug, devRelease, stagingDebug, stagingRelease,
+    //   productionDebug, productionRelease
     //
-    // Firebase compatibility:
-    // - Production flavor uses base applicationId "com.toofreshtowaste.app"
-    // - Dev/Staging use suffixes for parallel installation
-    // - Each environment can have its own google-services.json in src/<flavor>/
+    // Build commands:
+    //   Development:  ./gradlew assembleDevDebug
+    //   Staging:      ./gradlew assembleStagingRelease
+    //   Production:   ./gradlew bundleProductionRelease (AAB for Play Store)
+    //
+    // Each flavor loads its own .env file via react-native-config (see envConfigFiles above).
+    // Firebase: place per-flavor google-services.json in app/src/<flavor>/.
+    //   Dev/Staging need their package names registered in Firebase Console.
+    //   Fallback: app/google-services.json is used if no per-flavor file exists.
+    flavorDimensions "environment"
+
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+            resValue "string", "app_name", "TFTW Dev"
+        }
+        staging {
+            dimension "environment"
+            applicationIdSuffix ".staging"
+            resValue "string", "app_name", "TFTW Staging"
+        }
+        production {
+            dimension "environment"
+            resValue "string", "app_name", "Too Fresh To Waste"
+        }
+    }
 
     // ============================================================================
     // ENTERPRISE: SIGNING CONFIGURATIONS

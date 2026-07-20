@@ -42,6 +42,12 @@ pnpm type-check                # TypeScript check (no emit)
 pnpm test / test:watch         # Jest + RTL
 pnpm build:android:debug       # Debug APK
 pnpm clean                     # Full clean (Metro + Gradle)
+
+# Android Product Flavors (dev / staging / production)
+cd android
+./gradlew assembleDevDebug                # Dev APK (emulator, .env.development)
+./gradlew assembleStagingRelease          # Staging APK (.env.staging)
+./gradlew bundleProductionRelease         # Production AAB (.env.production)
 ```
 
 ### Web (`apps/web`)

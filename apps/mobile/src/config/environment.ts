@@ -107,7 +107,7 @@ const createEnvironmentConfig = (): EnvironmentConfig => {
     app: {
       name: getString(Config['APP_NAME'], 'Too Fresh To Waste'),
       version: getString(Config['APP_VERSION'], '1.0.0'),
-      bundleIdentifier: getString(Config['BUNDLE_IDENTIFIER'], 'com.foodwaste.app'),
+      bundleIdentifier: getString(Config['BUNDLE_IDENTIFIER'], 'com.toofreshtowaste.app'),
     },
     environment: env,
     api: {
