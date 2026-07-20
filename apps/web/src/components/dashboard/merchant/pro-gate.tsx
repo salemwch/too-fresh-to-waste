@@ -60,7 +60,9 @@ export function ProGate({ children }: { children: React.ReactNode }) {
   const t = useTranslations('subscription');
   const [modalOpen, setModalOpen] = useState(false);
 
-  const isPro = establishment?.subscriptionTier === 'pro';
+  // TODO: remove this bypass after video recording
+  const BYPASS_FOR_VIDEO = true;
+  const isPro = BYPASS_FOR_VIDEO || establishment?.subscriptionTier === 'pro';
 
   if (isPro) return <>{children}</>;
 
