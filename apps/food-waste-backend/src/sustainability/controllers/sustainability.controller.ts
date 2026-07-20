@@ -21,6 +21,7 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import type { AuthenticatedRequest } from '../../common/decorators/get-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ProSubscriptionGuard } from '../../common/guards/pro-subscription.guard';
+import { SkipProGuard } from '../../common/decorators/skip-pro-guard.decorator';
 import { UpdateMonthlyGoalDto } from '../dto/sustainability.dto';
 import type {
   CarbonMetricsResponse,
@@ -158,6 +159,7 @@ export class SustainabilityController {
   }
 
   @Get('streak')
+  @SkipProGuard()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get merchant daily listing streak data' })
   async getStreak(

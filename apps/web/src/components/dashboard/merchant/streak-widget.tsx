@@ -12,9 +12,10 @@ interface StreakWidgetProps {
 
 export function StreakWidget({ onListOffer, disabled }: StreakWidgetProps) {
   const t = useTranslations('dashboard.streak');
-  const { data, isLoading } = useStreakData();
+  const { data, isLoading, isError } = useStreakData();
 
-  if (isLoading || !data) return <StreakWidgetSkeleton />;
+  if (isLoading) return <StreakWidgetSkeleton />;
+  if (isError || !data) return null;
 
   const {
     currentStreak,

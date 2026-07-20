@@ -6,9 +6,11 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
+import { SKIP_PRO_GUARD_KEY } from '../decorators/skip-pro-guard.decorator';
 import { Establishment } from '../../establishments/schemas/establishment.schema';
 
 interface ProGuardUser {
@@ -22,11 +24,20 @@ export class ProSubscriptionGuard implements CanActivate {
   private readonly logger = new Logger(ProSubscriptionGuard.name);
 
   constructor(
+    private readonly reflector: Reflector,
     @InjectModel(Establishment.name)
     private readonly establishmentModel: Model<Establishment>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const skip = this.reflector.getAllAndOverride<boolean>(SKIP_PRO_GUARD_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (skip) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest<{ user?: ProGuardUser }>();
     const user = request.user;
 
