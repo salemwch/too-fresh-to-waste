@@ -15,7 +15,6 @@ import {
   Truck,
   Vote,
   Star,
-  Package,
   Wallet,
   BarChart3,
   ScrollText,
@@ -101,12 +100,6 @@ export const merchantNavItems: NavItem[] = [
     titleKey: 'leaderboard',
     href: '/merchant/leaderboard',
     icon: Trophy,
-    roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
-  },
-  {
-    titleKey: 'inventory',
-    href: '/merchant/inventory',
-    icon: Package,
     roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
   },
   {
