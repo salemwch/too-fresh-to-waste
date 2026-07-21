@@ -161,6 +161,10 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
 
+  // Don't advertise the framework (Express) in response headers — trivially
+  // helps automated CMS/framework-fingerprinting scanners.
+  expressApp.disable('x-powered-by');
+
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalInterceptors(new RequestLoggingInterceptor());

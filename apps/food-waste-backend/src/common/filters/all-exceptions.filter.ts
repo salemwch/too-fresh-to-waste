@@ -1,6 +1,7 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { Request, Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 
 import { AppLoggerService } from '../services/logger.service';
 
@@ -134,26 +135,34 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = 'An unexpected error occurred. Please contact support with the error ID.';
     }
 
-    // Log error with structured logging
+    // Log with structured logging. Only genuine server-side failures (5xx) are
+    // logged at ERROR — 4xx (validation failures, 404s from scanner/bot noise
+    // like /wp-includes/..., unauthorized access attempts, etc.) are expected
+    // client-side outcomes and logged at WARN so they don't pollute error
+    // dashboards/alerts or drown out real errors.
     const ipAddress =
       request.ip && request.ip.length > 0 ? request.ip : request.socket.remoteAddress;
-    const errorId = this.logger.error(
-      `${method} ${path} - ${errorName}: ${message}`,
-      exception instanceof Error ? exception : undefined,
-      'ExceptionFilter',
-      {
-        correlationId,
-        userId,
-        method,
-        path,
-        statusCode: status,
-        errorName,
-        userAgent: request.headers['user-agent'],
-        ip: ipAddress,
-        query: request.query,
-        // Note: Do NOT log request body as it may contain sensitive data (passwords, etc.)
-      },
-    );
+    const logMetadata = {
+      correlationId,
+      userId,
+      method,
+      path,
+      statusCode: status,
+      errorName,
+      userAgent: request.headers['user-agent'],
+      ip: ipAddress,
+      query: request.query,
+      // Note: Do NOT log request body as it may contain sensitive data (passwords, etc.)
+    };
+    const isServerError = status >= HttpStatus.INTERNAL_SERVER_ERROR;
+    const errorId = isServerError
+      ? this.logger.error(
+          `${method} ${path} - ${errorName}: ${message}`,
+          exception instanceof Error ? exception : undefined,
+          'ExceptionFilter',
+          logMetadata,
+        )
+      : this.warnWithErrorId(`${method} ${path} - ${errorName}: ${message}`, logMetadata);
 
     // Send error to Sentry — 5xx only; 4xx are expected client errors (wrong password,
     // missing cookies, bad request) and produce noise without indicating real backend bugs.
@@ -197,6 +206,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Send response
     response.status(status).json(errorResponse);
+  }
+
+  /**
+   * Log a client-side (4xx) error at WARN level, returning an errorId in the
+   * same format AppLoggerService.error() generates, so the client response
+   * always includes a trackable ID regardless of log level.
+   */
+  private warnWithErrorId(message: string, metadata: Record<string, unknown>): string {
+    const errorId = `ERR-${Date.now()}-${uuidv4().substring(0, 8).toUpperCase()}`;
+    this.logger.warn(message, 'ExceptionFilter', { ...metadata, errorId });
+    return errorId;
   }
 
   /**

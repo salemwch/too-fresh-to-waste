@@ -270,12 +270,12 @@ describe('AllExceptionsFilter', () => {
     it('should redact sensitive headers in logs', () => {
       const exception = new HttpException('Test error', HttpStatus.BAD_REQUEST);
 
-      // Spy on logger error method
-      const loggerErrorSpy = jest.spyOn(filter['logger'], 'error');
+      // 4xx client errors log at WARN, not ERROR — see all-exceptions.filter.ts
+      const loggerWarnSpy = jest.spyOn(filter['logger'], 'warn');
 
       filter.catch(exception, mockArgumentsHost as ArgumentsHost);
 
-      expect(loggerErrorSpy).toHaveBeenCalled();
+      expect(loggerWarnSpy).toHaveBeenCalled();
       // Authorization header should be present in the request
       expect(mockRequest.headers?.['authorization']).toBeDefined();
     });
