@@ -325,7 +325,6 @@
     "termsConditions": "terms & conditions",
     "termsAlert": "Terms & conditions will be available soon.",
     "reserveNow": "RESERVE NOW",
-    "availableSoon": "Available Soon",
     "slotLimit": "This restaurant allows up to {{count}} bag per offer",
     "slotLimitPlural": "This restaurant allows up to {{count}} bags per offer",
     "addToFavorites": "Add to favorites",

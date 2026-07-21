@@ -325,7 +325,6 @@
     "termsConditions": "conditions générales",
     "termsAlert": "Les conditions générales seront bientôt disponibles.",
     "reserveNow": "RÉSERVER MAINTENANT",
-    "availableSoon": "Bientôt disponible",
     "slotLimit": "Ce restaurant autorise jusqu'à {{count}} sac par offre",
     "slotLimitPlural": "Ce restaurant autorise jusqu'à {{count}} sacs par offre",
     "addToFavorites": "Ajouter aux favoris",

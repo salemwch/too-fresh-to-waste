@@ -21,8 +21,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 
-import ClickToPayImage from '@/assets/images/ClickToPay.webp';
-import PayMeImage from '@/assets/images/PayMe.webp';
 import { Text, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -271,27 +269,6 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
           >
             {t('offers.reserveNow')}
           </Button>
-
-          {/* Payment methods - Below button */}
-          <View style={styles.paymentMethodsContainer}>
-            <Text size='xs' color='secondary' align='center' style={styles.paymentSoonLabel}>
-              {t('offers.availableSoon')}
-            </Text>
-            <View style={styles.paymentLogos}>
-              <Image
-                source={PayMeImage}
-                style={styles.paymentLogo}
-                resizeMode='contain'
-                accessibilityIgnoresInvertColors
-              />
-              <Image
-                source={ClickToPayImage}
-                style={styles.paymentLogo}
-                resizeMode='contain'
-                accessibilityIgnoresInvertColors
-              />
-            </View>
-          </View>
         </View>
       </Animated.View>
     </View>
@@ -988,21 +965,6 @@ const styles = StyleSheet.create({
   },
   termsText: { lineHeight: 18 },
   termsLink: { textDecorationLine: 'underline' },
-  paymentMethodsContainer: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  paymentSoonLabel: { marginBottom: 8 },
-  paymentLogos: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  paymentLogo: {
-    width: 60,
-    height: 28,
-  },
   modalDivider: { height: 1, backgroundColor: SURFACE_MUTED, marginVertical: 20 },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });
