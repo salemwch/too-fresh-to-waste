@@ -132,7 +132,7 @@ export const getDefaultScreenOptions = (
   theme: ThemeContextValue,
 ): NativeStackNavigationOptions => ({
   headerStyle: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
   },
   headerTintColor: theme.colors.onSurface,
   headerTitleStyle: {
@@ -168,7 +168,7 @@ export const getModalScreenOptions = (theme: ThemeContextValue): NativeStackNavi
  */
 export const getAuthScreenOptions = (theme: ThemeContextValue): NativeStackNavigationOptions => ({
   headerStyle: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
   },
   headerTintColor: theme.colors.onSurface,
   headerTitleStyle: {

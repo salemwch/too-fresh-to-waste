@@ -1,9 +1,18 @@
-# ProGuard Rules for Food Waste Mobile App
-# React Native 0.81.0 + Firebase + Navigation + Native Modules
-# Source: https://developer.android.com/studio/build/shrink-code
+# ProGuard/R8 Rules for Too Fresh To Waste
+# React Native 0.81.0 | AGP 8.13.2 | R8 Full Mode
+#
+# PHILOSOPHY: Modern Android libraries ship their own consumer ProGuard rules
+# via consumerProguardFiles in their AARs. DO NOT duplicate them here — blanket
+# `-keep class X.** { *; }` rules block R8 from obfuscating and shrinking code,
+# tanking Google Play optimization scores.
+#
+# Only add rules here for:
+#   1. App-specific reflection/JNI targets
+#   2. Libraries confirmed NOT to ship their own consumer rules
+#   3. R8 optimization directives
 
 # ============================================================================
-# R8 OPTIMIZATION SETTINGS
+# R8 OPTIMIZATION DIRECTIVES
 # ============================================================================
 -optimizationpasses 5
 -repackageclasses ''
@@ -17,327 +26,102 @@
 }
 
 # ============================================================================
-# REACT NATIVE CORE
+# REACT NATIVE — targeted keeps only
 # ============================================================================
-# Source: https://reactnative.dev/docs/signed-apk-android
+# The react-android, hermes-android, soloader, and fresco AARs ship their own
+# consumer ProGuard rules for core/JNI/bridge/image classes. Do NOT add blanket
+# keeps for com.facebook.react.**, com.facebook.hermes.**, com.facebook.jni.**,
+# com.facebook.soloader.**, com.facebook.imagepipeline.**, com.facebook.drawee.**
 
-# Keep React Native core classes
--keep class com.facebook.react.** { *; }
--keep class com.facebook.jni.** { *; }
--keep class com.facebook.soloader.** { *; }
--keep interface com.facebook.react.** { *; }
--dontwarn com.facebook.react.**
+# ViewManagers — loaded by class name from JS bridge
+-keep public class * extends com.facebook.react.uimanager.ViewManager { <init>(...); }
 
-# Keep JavaScript interface methods
+# ReactPackage — loaded by autolinking's PackageList
+-keep public class * extends com.facebook.react.ReactPackage { <init>(...); }
+
+# TurboReactPackage — New Architecture module providers
+-keep public class * extends com.facebook.react.TurboReactPackage { <init>(...); }
+
+# NativeModule subclasses — getName() must survive for JS bridge lookup
+-keep public class * extends com.facebook.react.bridge.NativeModule {
+    <init>(...);
+    public java.lang.String getName();
+}
+
+# JavaScript interface methods (WebView bridge)
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
 
-# Keep native methods
--keepclassmembers class * {
+# Native JNI methods across all classes
+-keepclasseswithmembernames,includedescriptorclasses class * {
     native <methods>;
 }
 
-# Keep React Native ViewManager classes
--keep public class * extends com.facebook.react.uimanager.ViewManager {
-    <init>(...);
-}
-
-# Keep React Native Module classes
--keep public class * extends com.facebook.react.bridge.ReactContextBaseJavaModule {
-    <init>(...);
-}
-
-# Keep React Native Package classes
--keep public class * extends com.facebook.react.ReactPackage {
-    <init>(...);
-}
-
 # ============================================================================
-# HERMES JAVASCRIPT ENGINE
+# APP-SPECIFIC
 # ============================================================================
-# Source: https://reactnative.dev/docs/hermes
-
-# Keep Hermes classes
--keep class com.facebook.hermes.** { *; }
--keep class com.facebook.hermes.unicode.** { *; }
--keep interface com.facebook.hermes.** { *; }
--dontwarn com.facebook.hermes.**
-
-# Hermes JNI
--keep class com.facebook.jni.** { *; }
--keep class com.facebook.jni.HybridData { *; }
-
-# ============================================================================
-# FIREBASE SDK (only firebase-messaging is used)
-# ============================================================================
-# Source: https://firebase.google.com/docs/android/setup
-# Targeted keeps — R8 strips unused Firebase modules (analytics, auth, etc.)
-
--keep class com.google.firebase.FirebaseApp { *; }
--keep class com.google.firebase.FirebaseOptions { *; }
--keep class com.google.firebase.provider.** { *; }
--keep class com.google.firebase.components.** { *; }
--keep class com.google.firebase.messaging.** { *; }
--keep class com.google.firebase.installations.** { *; }
--keep class com.google.firebase.iid.** { *; }
--dontwarn com.google.firebase.**
-
-# ============================================================================
-# GOOGLE PLAY SERVICES (only location + maps used)
-# ============================================================================
-# Source: https://developers.google.com/android/guides/setup
-
--keep class com.google.android.gms.common.** { *; }
--keep class com.google.android.gms.tasks.** { *; }
--keep class com.google.android.gms.location.** { *; }
--keep class com.google.android.gms.maps.** { *; }
--keep class com.google.android.gms.base.** { *; }
--dontwarn com.google.android.gms.**
-
-# ============================================================================
-# REACT NATIVE FIREBASE (only app + messaging modules used)
-# ============================================================================
-# Source: https://rnfirebase.io/
-
--keep class io.invertase.firebase.app.** { *; }
--keep class io.invertase.firebase.messaging.** { *; }
--keep class io.invertase.firebase.common.** { *; }
--dontwarn io.invertase.firebase.**
-
-# ============================================================================
-# REACT NAVIGATION
-# ============================================================================
-# Source: https://reactnavigation.org/
-
-# React Navigation Core
--keep class com.th3rdwave.safeareacontext.** { *; }
--keep class com.swmansion.rnscreens.** { *; }
-
-# Safe Area Context
--keep class com.th3rdwave.safeareacontext.SafeAreaProvider { *; }
--keep class com.th3rdwave.safeareacontext.SafeAreaView { *; }
-
-# React Native Screens
--keep class com.swmansion.rnscreens.Screen { *; }
--keep class com.swmansion.rnscreens.ScreenContainer { *; }
--keep class com.swmansion.rnscreens.ScreenStackHeaderConfig { *; }
-
-# ============================================================================
-# REACT NATIVE REANIMATED
-# ============================================================================
-# Source: https://docs.swmansion.com/react-native-reanimated/
-
--keep class com.swmansion.reanimated.** { *; }
--keep interface com.swmansion.reanimated.** { *; }
--dontwarn com.swmansion.reanimated.**
-
-# Keep Reanimated worklets
--keep class com.swmansion.reanimated.layoutReanimation.** { *; }
--keep class com.swmansion.reanimated.nativeProxy.** { *; }
-
-# ============================================================================
-# REACT NATIVE GESTURE HANDLER
-# ============================================================================
-# Source: https://docs.swmansion.com/react-native-gesture-handler/
-
--keep class com.swmansion.gesturehandler.** { *; }
--dontwarn com.swmansion.gesturehandler.**
-
-# ============================================================================
-# ASYNC STORAGE
-# ============================================================================
-# Source: https://react-native-async-storage.github.io/async-storage/
-
--keep class com.reactnativecommunity.asyncstorage.** { *; }
--dontwarn com.reactnativecommunity.asyncstorage.**
-
-# ============================================================================
-# NETINFO
-# ============================================================================
-# Source: https://github.com/react-native-netinfo/react-native-netinfo
-
--keep class com.reactnativecommunity.netinfo.** { *; }
--dontwarn com.reactnativecommunity.netinfo.**
-
-# react-native-device-info: REMOVED — not in dependencies
-
-# ============================================================================
-# REACT NATIVE VECTOR ICONS
-# ============================================================================
-# Source: https://github.com/oblador/react-native-vector-icons
-
--keep class com.oblador.vectoricons.** { *; }
--dontwarn com.oblador.vectoricons.**
-
-# ============================================================================
-# REACT NATIVE IMAGE PICKER
-# ============================================================================
-# Source: https://github.com/react-native-image-picker/react-native-image-picker
-
--keep class com.imagepicker.** { *; }
--dontwarn com.imagepicker.**
-
-# ============================================================================
-# REACT NATIVE KEYCHAIN
-# ============================================================================
-# Source: https://github.com/oblador/react-native-keychain
-
--keep class com.oblador.keychain.** { *; }
--dontwarn com.oblador.keychain.**
-
-# ============================================================================
-# REACT NATIVE PERMISSIONS
-# ============================================================================
-# Source: https://github.com/zoontek/react-native-permissions
-
--keep class com.zoontek.rnpermissions.** { *; }
--dontwarn com.zoontek.rnpermissions.**
-
-# ============================================================================
-# REACT NATIVE MAPS
-# ============================================================================
-# Source: https://github.com/react-native-maps/react-native-maps
-
--keep class com.airbnb.android.react.maps.** { *; }
--dontwarn com.airbnb.android.react.maps.**
-
-# Google Maps
--keep class com.google.android.gms.maps.** { *; }
--dontwarn com.google.android.gms.maps.**
-
-# ============================================================================
-# NITRO MODULES (react-native-mmkv, react-native-nitro-modules)
-# ============================================================================
-# Source: https://nitro.margelo.com/
-# R8 obfuscates NitroMmkvOnLoad which breaks reflection-based init in release.
-
--keep class com.margelo.nitro.** { *; }
--dontwarn com.margelo.nitro.**
-
-# ============================================================================
-# REACT NATIVE CONFIG
-# ============================================================================
-# Source: https://github.com/luggit/react-native-config
-
--keep class com.lugg.RNCConfig.** { *; }
--dontwarn com.lugg.RNCConfig.**
-
-# Keep app BuildConfig — react-native-config reads fields via reflection.
-# Source: https://github.com/luggit/react-native-config#problems-with-proguard
+# react-native-config reads BuildConfig fields via reflection at runtime
 -keep class com.toofreshtowaste.app.BuildConfig { *; }
 
 # ============================================================================
-# REACT NATIVE GEOLOCATION
+# LIBRARIES WITHOUT BUNDLED CONSUMER RULES
 # ============================================================================
-# Source: https://github.com/Agontuk/react-native-geolocation-service
+# These libraries do not ship consumerProguardFiles in their AARs.
+# Every other library (Firebase, GMS, OkHttp, Reanimated, Gesture Handler,
+# RN Screens, Safe Area Context, Keychain, Async Storage, NetInfo, Permissions,
+# Image Picker, Vector Icons, Maps, etc.) ships its own rules — do NOT add
+# redundant keeps for them.
 
--keep class com.agontuk.RNFusedLocation.** { *; }
--dontwarn com.agontuk.RNFusedLocation.**
+# Nitro Modules — reflection-based native init; no consumer rules
+-keep class com.margelo.nitro.** { *; }
 
-# react-native-share: REMOVED — not in dependencies
+# react-native-config — native BuildConfig bridge; no consumer rules
+-keep class com.lugg.RNCConfig.** { *; }
 
-# react-native-qrcode-scanner: REMOVED — not in dependencies
+# react-native-geolocation-service — older library; no consumer rules
+-keepnames class com.agontuk.RNFusedLocation.** { *; }
 
-# jail-monkey: REMOVED — not in dependencies
-
-# notifee: REMOVED — not in dependencies
-
-# ============================================================================
-# REDUX / REDUX TOOLKIT
-# ============================================================================
-# Redux doesn't require ProGuard rules (JavaScript only)
-
-# ============================================================================
-# OKHTTP (Used by React Native)
-# ============================================================================
-# Source: https://github.com/square/okhttp
-
--dontwarn okhttp3.**
--dontwarn okio.**
--dontwarn javax.annotation.**
--keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+# react-native-touch-id — older library; no consumer rules
+-keepnames class com.rnfingerprint.** { *; }
 
 # ============================================================================
-# FRESCO (Image Loading - Used by React Native)
-# ============================================================================
-# Source: https://frescolib.org/
-
--keep class com.facebook.imagepipeline.** { *; }
--keep interface com.facebook.imagepipeline.** { *; }
--dontwarn com.facebook.imagepipeline.**
-
--keep class com.facebook.drawee.** { *; }
--keep interface com.facebook.drawee.** { *; }
-
-# ============================================================================
-# FLIPPER (Debug Only - Should Not Affect Release)
-# ============================================================================
-# Flipper is debugImplementation only, but adding rules for safety
-
--dontwarn com.facebook.flipper.**
--dontwarn com.facebook.fbjni.**
-
-# ============================================================================
-# GENERAL ANDROID RULES
+# GENERAL ANDROID
 # ============================================================================
 
-# Keep enum classes
+# Enum values() / valueOf() — used in switch tables
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
 
-# Keep Parcelable implementations
--keep class * implements android.os.Parcelable {
-    public static final android.os.Parcelable$Creator *;
-}
-
-# Keep Serializable classes
--keepclassmembers class * implements java.io.Serializable {
-    static final long serialVersionUID;
-    private static final java.io.ObjectStreamField[] serialPersistentFields;
-    private void writeObject(java.io.ObjectOutputStream);
-    private void readObject(java.io.ObjectInputStream);
-    java.lang.Object writeReplace();
-    java.lang.Object readResolve();
+# Parcelable CREATOR fields — required by Android framework
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final ** CREATOR;
 }
 
 # ============================================================================
-# KOTLIN
+# CRASH REPORTING ATTRIBUTES
 # ============================================================================
-
--keep class kotlin.Metadata { *; }
--dontwarn kotlin.**
--keepclassmembers class **$WhenMappings {
-    <fields>;
-}
--keepclassmembers class kotlin.Metadata {
-    public <methods>;
-}
-
-# ============================================================================
-# DEBUGGING ATTRIBUTES
-# ============================================================================
-# Keep line numbers and source file names for crash reports
-
+# SourceFile + LineNumberTable: Sentry needs these for readable stack traces.
+# *Annotation*: required by frameworks for annotation-based keep/inject.
+# Signature: keeps generic type info for reflection-based APIs.
 -keepattributes SourceFile,LineNumberTable
 -keepattributes *Annotation*
 -keepattributes Signature
--keepattributes Exceptions
--keepattributes InnerClasses
--keepattributes EnclosingMethod
 
 # ============================================================================
-# WARNINGS TO SUPPRESS
+# SUPPRESS WARNINGS (safe — these don't affect optimization)
 # ============================================================================
-
--dontwarn com.google.common.**
+-dontwarn com.facebook.react.**
+-dontwarn com.facebook.hermes.**
+-dontwarn com.facebook.jni.**
 -dontwarn javax.annotation.**
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
 
-# ============================================================================
-# END OF PROGUARD RULES
-# ============================================================================
+# react-native-sms-retriever references GMS Credentials API not in our deps
+-dontwarn com.google.android.gms.auth.api.credentials.**

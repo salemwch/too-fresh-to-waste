@@ -51,7 +51,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
 
   const bgColor =
     ((options.headerStyle as ViewStyle | undefined)?.backgroundColor as string | undefined) ??
-    theme.colors.surface;
+    theme.colors.background;
 
   const tintColor =
     typeof options.headerTintColor === 'string' ? options.headerTintColor : theme.colors.onSurface;
