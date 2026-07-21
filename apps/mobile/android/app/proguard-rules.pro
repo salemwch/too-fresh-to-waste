@@ -26,32 +26,16 @@
 }
 
 # ============================================================================
-# REACT NATIVE — targeted keeps only
+# REACT NATIVE CORE — keep all framework classes
 # ============================================================================
-# The react-android, hermes-android, soloader, and fresco AARs ship their own
-# consumer ProGuard rules for core/JNI/bridge/image classes. Do NOT add blanket
-# keeps for com.facebook.react.**, com.facebook.hermes.**, com.facebook.jni.**,
-# com.facebook.soloader.**, com.facebook.imagepipeline.**, com.facebook.drawee.**
-
-# ViewManagers — loaded by class name from JS bridge
--keep public class * extends com.facebook.react.uimanager.ViewManager { <init>(...); }
-
-# ReactPackage — loaded by autolinking's PackageList
--keep public class * extends com.facebook.react.ReactPackage { <init>(...); }
-
-# TurboReactPackage — New Architecture module providers
--keep public class * extends com.facebook.react.TurboReactPackage { <init>(...); }
-
-# NativeModule subclasses — getName() must survive for JS bridge lookup
--keep public class * extends com.facebook.react.bridge.NativeModule {
-    <init>(...);
-    public java.lang.String getName();
-}
-
-# JavaScript interface methods (WebView bridge)
--keepclassmembers class * {
-    @android.webkit.JavascriptInterface <methods>;
-}
+# react-android's consumer rules only cover bridge.**, turbomodule.**, and
+# jni.**. They miss devsupport.** (loaded via JNI from libreact_devsupportjni),
+# soloader mappings, and other classes referenced by native code at runtime.
+# hermes-android ships NO consumer rules at all.
+# Keeping com.facebook.** is required — R8 still optimizes third-party libs.
+-keep class com.facebook.hermes.** { *; }
+-keep class com.facebook.jni.** { *; }
+-keep class com.facebook.react.** { *; }
 
 # Native JNI methods across all classes
 -keepclasseswithmembernames,includedescriptorclasses class * {
