@@ -808,7 +808,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle='dark-content' translucent />
+      <StatusBar barStyle='dark-content' />
 
       {/* Map View */}
       {viewMode === 'map' && (

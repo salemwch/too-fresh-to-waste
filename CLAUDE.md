@@ -266,6 +266,15 @@ Redux-only.
   file).
 - Delivery system: NOT IMPLEMENTED — pickup-only. See
   `DELIVERY_SYSTEM_ANALYSIS.md`.
+- Mobile Android: `edgeToEdgeEnabled=true` is set in `android/gradle.properties`
+  and `<StatusBar>` usages must never pass `translucent`/`backgroundColor`
+  (they're no-ops under edge-to-edge and trigger RN's deprecated
+  `Window.setStatusBarColor()` path). Google Play Console may still flag
+  `WindowUtilKt.enableEdgeToEdge` / `StatusBarModule.getTypedExportedConstants`
+  as using deprecated edge-to-edge APIs — that's baked into the React Native
+  0.81.0 framework AAR itself (not app code) and unresolved upstream as of this
+  writing. Tracked at
+  https://github.com/react-native-community/upgrade-support/issues/364.
 
 ---
 

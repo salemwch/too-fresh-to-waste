@@ -59,7 +59,7 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle='light-content' translucent backgroundColor='transparent' />
+      <StatusBar barStyle='light-content' />
 
       {/* ── Top bar: skip ── */}
       <View style={styles.topBar}>

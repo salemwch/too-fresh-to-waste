@@ -143,7 +143,6 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
             headerShown: false,
             title: 'Get Started',
             gestureEnabled: false,
-            animation: 'fade',
           }}
         />
       )}
@@ -157,7 +156,6 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
             headerShown: false,
             title: 'Get Started',
             gestureEnabled: false,
-            animation: 'fade',
           }}
         />
       )}

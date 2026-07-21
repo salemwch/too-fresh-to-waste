@@ -262,7 +262,7 @@ function AppContent(): React.JSX.Element {
         updateUrl={versionCheck.updateUrl}
         onDismiss={versionCheck.dismiss}
       />
-      <StatusBar barStyle='dark-content' translucent backgroundColor='transparent' />
+      <StatusBar barStyle='dark-content' />
       <RootNavigator />
       <ForceUpdateModal
         visible={versionCheck.updateType === 'force'}

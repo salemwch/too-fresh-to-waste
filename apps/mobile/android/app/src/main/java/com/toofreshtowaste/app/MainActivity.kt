@@ -5,8 +5,6 @@ import android.app.NotificationManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
-import androidx.core.view.WindowInsetsControllerCompat
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -29,11 +27,11 @@ class MainActivity : ReactActivity() {
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    enableEdgeToEdge()
-    WindowInsetsControllerCompat(window, window.decorView).apply {
-      isAppearanceLightStatusBars = true
-      isAppearanceLightNavigationBars = true
-    }
+    // Edge-to-edge is applied by ReactActivityDelegate itself via the
+    // `edgeToEdgeEnabled` gradle property (see android/gradle.properties).
+    // Do NOT call androidx's enableEdgeToEdge() here — RN's own
+    // isEdgeToEdgeFeatureFlagOn stays false if we do, and StatusBarModule
+    // keeps calling the deprecated Window.setStatusBarColor() APIs.
     super.onCreate(null)
     createNotificationChannel()
   }

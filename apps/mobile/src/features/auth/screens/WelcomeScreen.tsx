@@ -56,7 +56,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle='light-content' translucent backgroundColor='transparent' />
+      <StatusBar barStyle='light-content' />
 
       {/* ── Top bar: logo + skip ── */}
       <View style={styles.topBar}>
@@ -170,10 +170,10 @@ const styles = StyleSheet.create({
   },
   headlineLine: {
     fontFamily: 'BebasNeue-Regular',
-    fontSize: sw(72),
+    fontSize: sw(56),
     fontWeight: '400',
-    letterSpacing: sw(2),
-    lineHeight: sw(66),
+    letterSpacing: sw(1.5),
+    lineHeight: sw(52),
     color: WHITE,
   },
   headlineAccent: {

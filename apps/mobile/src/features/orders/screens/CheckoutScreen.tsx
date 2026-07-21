@@ -524,7 +524,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle='dark-content' translucent />
+      <StatusBar barStyle='dark-content' />
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps='handled'
