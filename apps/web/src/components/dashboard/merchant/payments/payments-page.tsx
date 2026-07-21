@@ -189,9 +189,7 @@ function PaymentRow({ payment }: { payment: MerchantPayment }) {
                   {payment.customerName}
                 </span>
               )}
-              <span>
-                {t(`methods.${payment.paymentMethod === 'cash' ? 'cash' : 'cash_on_pickup'}`)}
-              </span>
+              <span>{t(`methods.${payment.paymentMethod}`)}</span>
               <span>{new Date(payment.createdAt).toLocaleDateString()}</span>
             </div>
           </div>

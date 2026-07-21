@@ -108,37 +108,18 @@ export class PaymentController {
     @Request() req: AuthenticatedRequest,
     @Query(new ValidationPipe({ transform: true, whitelist: true })) filters: PaymentQueryDto,
   ) {
-    this.logger.log({
-      message: 'my-merchant-payments called',
-      userId: req.user.userId,
-      filters: {
-        limit: filters.limit,
-        after: filters.after,
-        status: filters.status,
-        minAmount: filters.minAmount,
-        maxAmount: filters.maxAmount,
-        fromDate: filters.fromDate,
-        toDate: filters.toDate,
-      },
-    });
-
-    const limit = Math.min(filters.limit ?? 10, 10);
-    const after = filters.after;
-
-    const result = await this.paymentService.findAllCursor(
-      limit,
-      after,
-      filters ?? {},
+    const result = await this.paymentService.findMerchantPaymentsFromOrders(
       req.user.userId,
-      UserRole.MERCHANT,
+      filters ?? {},
     );
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Your payments retrieved successfully',
-      data: result.payments,
-      meta: {
-        limit,
-        nextCursor: result.nextCursor ?? null,
+      data: {
+        payments: result.payments,
+        hasMore: result.hasMore,
+        ...(result.nextCursor ? { nextCursor: result.nextCursor } : {}),
       },
     };
   }
@@ -196,7 +177,10 @@ export class PaymentController {
   @Roles(UserRole.CONSUMER, UserRole.MERCHANT, UserRole.ADMIN)
   async getPaymentStats(@Request() req: AuthenticatedRequest, @Res() res: Response) {
     try {
-      const stats = await this.paymentService.getPaymentStats(req.user.userId, req.user.role);
+      const stats =
+        req.user.role === UserRole.MERCHANT
+          ? await this.paymentService.getMerchantPaymentStatsFromOrders(req.user.userId)
+          : await this.paymentService.getPaymentStats(req.user.userId, req.user.role);
 
       return res.status(HttpStatus.OK).json({
         statusCode: HttpStatus.OK,

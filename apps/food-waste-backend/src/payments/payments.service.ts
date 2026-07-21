@@ -6,6 +6,13 @@ import { Model, Types, PipelineStage, FilterQuery } from 'mongoose';
 import { toObjectId } from 'src/common/utils/mongo.utils';
 import { RegexSecurityUtil } from 'src/common/utils/regex-security.util';
 
+import {
+  Order,
+  OrderDocument,
+  OrderStatus,
+  PaymentStatus as OrderPaymentStatus,
+} from '../orders/schemas/order.schema';
+
 import { PaymentQueryDto } from './dto/payment-query.dto';
 import { Payment, PaymentDocument, PaymentStatus } from './schemas/payment.schema';
 
@@ -27,12 +34,60 @@ interface PaymentMethodStat {
   total: number;
 }
 
+type MerchantPaymentUiMethod = 'cash' | 'card' | 'smt_gateway' | 'wallet';
+type MerchantPaymentUiStatus =
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'refunded'
+  | 'cancelled';
+
+export interface MerchantPaymentView {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  customerId: string;
+  customerName?: string;
+  merchantId: string;
+  establishmentId: string;
+  establishmentName?: string;
+  amount: number;
+  currency: string;
+  paymentMethod: MerchantPaymentUiMethod;
+  status: MerchantPaymentUiStatus;
+  transactionId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MerchantPaymentStats {
+  totalRevenue: number;
+  totalTransactions: number;
+  averageOrderValue: number;
+  currency: string;
+  completedPayments: number;
+  pendingPayments: number;
+  failedPayments: number;
+  refundedPayments: number;
+}
+
+interface MerchantPaymentOrderAggregation {
+  totalTransactions: number;
+  totalRevenue: number;
+  completedPayments: number;
+  pendingPayments: number;
+  failedPayments: number;
+  refundedPayments: number;
+}
+
 @Injectable()
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
 
   constructor(
     @InjectModel(Payment.name) readonly paymentModel: Model<PaymentDocument>,
+    @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     private readonly regexSecurityUtil: RegexSecurityUtil,
   ) {
     void this.logger;
@@ -166,6 +221,248 @@ export class PaymentService {
     }
 
     return payment;
+  }
+
+  // =========================================================================
+  // MERCHANT PAYMENTS — sourced from Order, not the (unpopulated) Payment
+  // collection. Cash-on-pickup orders never create a Payment document — the
+  // Order itself (paymentStatus, paymentDetails, pricing) is the only
+  // reliable record for both cash and online payments.
+  // =========================================================================
+
+  async findMerchantPaymentsFromOrders(
+    merchantId: string,
+    filters: PaymentQueryDto,
+  ): Promise<{ payments: MerchantPaymentView[]; hasMore: boolean; nextCursor?: string }> {
+    const limit = Math.min(filters.limit ?? 10, 50);
+
+    const query: FilterQuery<OrderDocument> = {
+      merchantId: new Types.ObjectId(merchantId),
+    };
+
+    if (filters.status) {
+      const orderPaymentStatus = this.mapUiStatusToOrderQuery(filters.status);
+      if (orderPaymentStatus) {
+        query.paymentStatus = orderPaymentStatus;
+      }
+    }
+
+    if (filters.fromDate ?? filters.toDate) {
+      const dateFilter: { $gte?: Date; $lte?: Date } = {};
+      if (filters.fromDate) {
+        dateFilter.$gte = new Date(filters.fromDate);
+      }
+      if (filters.toDate) {
+        dateFilter.$lte = new Date(filters.toDate);
+      }
+      query.createdAt = dateFilter;
+    }
+
+    if (filters.minAmount ?? filters.maxAmount) {
+      const amountFilter: { $gte?: number; $lte?: number } = {};
+      if (filters.minAmount) {
+        amountFilter.$gte = filters.minAmount;
+      }
+      if (filters.maxAmount) {
+        amountFilter.$lte = filters.maxAmount;
+      }
+      query['pricing.total'] = amountFilter;
+    }
+
+    if (filters.search) {
+      const escaped = this.regexSecurityUtil.escapeRegexPattern(filters.search);
+      query.orderNumber = { $regex: escaped, $options: 'i' };
+    }
+
+    if (filters.after) {
+      const afterOrder = await this.orderModel.findById(filters.after).select('createdAt').lean();
+      if (afterOrder) {
+        const existing = (query as { createdAt?: { $gte?: Date; $lte?: Date } }).createdAt;
+        query.createdAt = { ...existing, $lt: afterOrder.createdAt };
+      }
+    }
+
+    const orders = await this.orderModel
+      .find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit + 1)
+      .populate('customerId', 'firstName lastName')
+      .populate('establishmentId', 'name')
+      .lean();
+
+    let hasMore = false;
+    let nextCursor: string | undefined;
+    if (orders.length > limit) {
+      orders.pop();
+      hasMore = true;
+      nextCursor = String(orders[orders.length - 1]?._id);
+    }
+
+    return {
+      payments: orders.map(order => this.mapOrderToMerchantPaymentView(order)),
+      hasMore,
+      ...(nextCursor ? { nextCursor } : {}),
+    };
+  }
+
+  async getMerchantPaymentStatsFromOrders(merchantId: string): Promise<MerchantPaymentStats> {
+    const [stats] = await this.orderModel.aggregate<MerchantPaymentOrderAggregation>([
+      { $match: { merchantId: new Types.ObjectId(merchantId) } },
+      {
+        $group: {
+          _id: null,
+          totalTransactions: { $sum: 1 },
+          totalRevenue: {
+            $sum: {
+              $cond: [{ $eq: ['$paymentStatus', OrderPaymentStatus.PAID] }, '$pricing.total', 0],
+            },
+          },
+          completedPayments: {
+            $sum: { $cond: [{ $eq: ['$paymentStatus', OrderPaymentStatus.PAID] }, 1, 0] },
+          },
+          pendingPayments: {
+            $sum: { $cond: [{ $eq: ['$paymentStatus', OrderPaymentStatus.PENDING] }, 1, 0] },
+          },
+          failedPayments: {
+            $sum: { $cond: [{ $eq: ['$paymentStatus', OrderPaymentStatus.FAILED] }, 1, 0] },
+          },
+          refundedPayments: {
+            $sum: {
+              $cond: [
+                {
+                  $in: [
+                    '$paymentStatus',
+                    [OrderPaymentStatus.REFUNDED, OrderPaymentStatus.PARTIALLY_REFUNDED],
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    const completedPayments = stats?.completedPayments ?? 0;
+    const totalRevenue = stats?.totalRevenue ?? 0;
+
+    return {
+      totalRevenue,
+      totalTransactions: stats?.totalTransactions ?? 0,
+      averageOrderValue: completedPayments > 0 ? totalRevenue / completedPayments : 0,
+      currency: 'TND',
+      completedPayments,
+      pendingPayments: stats?.pendingPayments ?? 0,
+      failedPayments: stats?.failedPayments ?? 0,
+      refundedPayments: stats?.refundedPayments ?? 0,
+    };
+  }
+
+  private mapUiStatusToOrderQuery(
+    uiStatus: PaymentStatus,
+  ): OrderPaymentStatus | { $in: OrderPaymentStatus[] } | undefined {
+    switch (uiStatus) {
+      case PaymentStatus.COMPLETED:
+        return OrderPaymentStatus.PAID;
+      case PaymentStatus.PENDING:
+        return OrderPaymentStatus.PENDING;
+      case PaymentStatus.FAILED:
+        return OrderPaymentStatus.FAILED;
+      case PaymentStatus.REFUNDED:
+        return {
+          $in: [
+            OrderPaymentStatus.REFUNDED,
+            OrderPaymentStatus.PARTIALLY_REFUNDED,
+            OrderPaymentStatus.REFUND_PENDING,
+          ],
+        };
+      default:
+        return undefined;
+    }
+  }
+
+  private mapOrderPaymentMethod(method?: string): MerchantPaymentUiMethod {
+    switch (method) {
+      case 'cash_on_pickup':
+      case 'pay_on_delivery':
+        return 'cash';
+      case 'online':
+        return 'smt_gateway';
+      case 'stripe':
+        return 'card';
+      case 'paypal':
+      case 'apple_pay':
+      case 'google_pay':
+        return 'wallet';
+      default:
+        return 'cash';
+    }
+  }
+
+  private mapOrderPaymentStatus(
+    order: Pick<OrderDocument, 'status' | 'paymentStatus'>,
+  ): MerchantPaymentUiStatus {
+    if (order.status === OrderStatus.CANCELLED || order.status === OrderStatus.EXPIRED) {
+      return 'cancelled';
+    }
+
+    switch (order.paymentStatus) {
+      case OrderPaymentStatus.PAID:
+        return 'completed';
+      case OrderPaymentStatus.HELD:
+      case OrderPaymentStatus.REFUND_PENDING:
+        return 'processing';
+      case OrderPaymentStatus.FAILED:
+        return 'failed';
+      case OrderPaymentStatus.REFUNDED:
+      case OrderPaymentStatus.PARTIALLY_REFUNDED:
+        return 'refunded';
+      case OrderPaymentStatus.PENDING:
+      default:
+        return 'pending';
+    }
+  }
+
+  private mapOrderToMerchantPaymentView(order: {
+    _id: Types.ObjectId;
+    orderNumber: string;
+    merchantId: Types.ObjectId;
+    status: OrderStatus;
+    paymentStatus: OrderPaymentStatus;
+    paymentDetails?: { method?: string; transactionId?: string };
+    pricing?: { total?: number; currency?: string };
+    createdAt?: Date;
+    updatedAt?: Date;
+    customerId: Types.ObjectId | { _id: Types.ObjectId; firstName?: string; lastName?: string };
+    establishmentId: Types.ObjectId | { _id: Types.ObjectId; name?: string };
+  }): MerchantPaymentView {
+    const customer = order.customerId;
+    const establishment = order.establishmentId;
+    const customerDoc = customer && 'firstName' in customer ? customer : undefined;
+    const establishmentDoc = establishment && 'name' in establishment ? establishment : undefined;
+
+    return {
+      id: String(order._id),
+      orderId: String(order._id),
+      orderNumber: order.orderNumber,
+      customerId: String(customerDoc?._id ?? customer),
+      ...(customerDoc
+        ? { customerName: `${customerDoc.firstName ?? ''} ${customerDoc.lastName ?? ''}`.trim() }
+        : {}),
+      merchantId: String(order.merchantId),
+      establishmentId: String(establishmentDoc?._id ?? establishment),
+      ...(establishmentDoc?.name ? { establishmentName: establishmentDoc.name } : {}),
+      amount: order.pricing?.total ?? 0,
+      currency: order.pricing?.currency ?? 'TND',
+      paymentMethod: this.mapOrderPaymentMethod(order.paymentDetails?.method),
+      status: this.mapOrderPaymentStatus(order),
+      ...(order.paymentDetails?.transactionId
+        ? { transactionId: order.paymentDetails.transactionId }
+        : {}),
+      createdAt: new Date(order.createdAt ?? Date.now()).toISOString(),
+      updatedAt: new Date(order.updatedAt ?? Date.now()).toISOString(),
+    };
   }
 
   async getPaymentStats(userId: string, userRole: UserRole): Promise<Record<string, unknown>> {
