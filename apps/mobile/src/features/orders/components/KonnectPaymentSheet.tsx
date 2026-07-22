@@ -110,7 +110,7 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
       presentationStyle='fullScreen'
       onRequestClose={onPaymentFailed}
     >
-      <StatusBar barStyle='dark-content' />
+      <StatusBar barStyle='dark-content' translucent backgroundColor='transparent' />
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* Header */}
         <View style={styles.header}>

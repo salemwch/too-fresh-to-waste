@@ -68,7 +68,7 @@ export const MainStack: React.FC = () => {
         <Stack.Screen
           name='OfferDetails'
           component={OfferDetailsScreen}
-          options={{ title: t('navigation.offerDetails') }}
+          options={{ title: t('navigation.offerDetails'), statusBarStyle: 'light' }}
         />
       </Stack.Group>
 

@@ -21,7 +21,6 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
-  StatusBar,
   Pressable,
 } from 'react-native';
 import MapView, { Circle, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -808,8 +807,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle='dark-content' />
-
       {/* Map View */}
       {viewMode === 'map' && (
         <View style={styles.mapContainer}>

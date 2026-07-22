@@ -2,15 +2,7 @@ import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  Platform,
-  ScrollView,
-  StatusBar,
-  ActivityIndicator,
-} from 'react-native';
+import { View, StyleSheet, Pressable, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
 import MapView from 'react-native-maps';
@@ -524,7 +516,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle='dark-content' />
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps='handled'

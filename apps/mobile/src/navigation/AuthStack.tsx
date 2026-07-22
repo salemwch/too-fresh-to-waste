@@ -128,7 +128,7 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
           options={{
             headerShown: false,
             title: 'Welcome',
-            // Prevent going back from welcome screen
+            statusBarStyle: 'light',
             gestureEnabled: false,
           }}
         />
@@ -142,6 +142,7 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
           options={{
             headerShown: false,
             title: 'Get Started',
+            statusBarStyle: 'light',
             gestureEnabled: false,
           }}
         />
@@ -155,6 +156,7 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
           options={{
             headerShown: false,
             title: 'Get Started',
+            statusBarStyle: 'light',
             gestureEnabled: false,
           }}
         />

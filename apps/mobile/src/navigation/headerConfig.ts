@@ -143,6 +143,8 @@ export const getDefaultScreenOptions = (
   headerShadowVisible: false,
   animation: 'slide_from_right',
   statusBarStyle: 'dark',
+  statusBarTranslucent: true,
+  statusBarBackgroundColor: 'transparent',
   headerTitle: createHeaderTitle(
     theme.typography.fontFamily.primary,
     theme.typography.fontSize.xl,
@@ -179,6 +181,8 @@ export const getAuthScreenOptions = (theme: ThemeContextValue): NativeStackNavig
   headerShadowVisible: false,
   animation: 'slide_from_right',
   statusBarStyle: 'dark',
+  statusBarTranslucent: true,
+  statusBarBackgroundColor: 'transparent',
   headerTitle: createHeaderTitle(
     theme.typography.fontFamily.primary,
     theme.typography.fontSize.lg,

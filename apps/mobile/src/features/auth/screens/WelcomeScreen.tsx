@@ -1,15 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dimensions,
-  I18nManager,
-  Image,
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Dimensions, I18nManager, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import LeafLogo from '@/assets/images/leaf-logo.svg';
 import ShapesIcon from '@/assets/images/shapes.svg';
@@ -67,8 +58,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle='light-content' />
-
       {/* ── Top bar: logo + skip ── */}
       <View style={styles.topBar}>
         <View style={styles.logoRow}>

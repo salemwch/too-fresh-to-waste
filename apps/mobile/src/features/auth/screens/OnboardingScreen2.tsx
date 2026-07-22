@@ -1,14 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dimensions,
-  I18nManager,
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Dimensions, I18nManager, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
@@ -67,8 +59,6 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle='light-content' />
-
       {/* ── Top bar: skip ── */}
       <View style={styles.topBar}>
         <View />
