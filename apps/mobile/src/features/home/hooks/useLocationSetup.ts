@@ -13,7 +13,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { userService } from '@/features/profile/services';
 import { useAppDispatch } from '@/hooks/redux';
@@ -52,6 +52,8 @@ interface UseLocationSetupResult {
     coordinates: { latitude: number; longitude: number };
     name: string;
   }) => void;
+  /** Pass to LocationSelectionModal's onDismissComplete prop */
+  handleModalDismissComplete: () => void;
 }
 
 // ============================================================================
@@ -103,6 +105,22 @@ export function useLocationSetup(
   const [showLocationSelectionModal, setShowLocationSelectionModal] = useState(false);
   const [showManualLocationModal, setShowManualLocationModal] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Promise resolver for awaiting native Modal dismiss before launching
+  // the Android permission Activity. Prevents the window conflict that
+  // pushes the app to background on fresh installs.
+  const modalDismissResolverRef = useRef<(() => void) | null>(null);
+
+  const handleModalDismissComplete = useCallback(() => {
+    modalDismissResolverRef.current?.();
+    modalDismissResolverRef.current = null;
+  }, []);
+
+  const waitForModalDismiss = useCallback((): Promise<void> => {
+    return new Promise<void>(resolve => {
+      modalDismissResolverRef.current = resolve;
+    });
+  }, []);
 
   // ============================================================================
   // Effects - Location Setup Check
@@ -211,10 +229,11 @@ export function useLocationSetup(
 
       // Check if GPS was requested (coordinates are 0,0 as signal)
       if (coordinates.latitude === 0 && coordinates.longitude === 0 && name === 'gps') {
-        // Close modal BEFORE requesting permission — the Android system
-        // permission dialog is a separate Activity that conflicts with the
-        // RN Modal, causing the app to go to background on first tap.
+        // Close modal and wait for the native Dialog to fully dismiss before
+        // launching the Android permission Activity. Without this, the two
+        // native windows conflict and push the app to background.
         setShowLocationSelectionModal(false);
+        await waitForModalDismiss();
 
         try {
           const result = await requestLocation();
@@ -292,7 +311,7 @@ export function useLocationSetup(
         }
       }
     },
-    [requestLocation, setManualLocationValue, isAuthenticated, dispatch],
+    [requestLocation, setManualLocationValue, isAuthenticated, dispatch, waitForModalDismiss],
   );
 
   /**
@@ -341,5 +360,6 @@ export function useLocationSetup(
     closeManualLocationModal,
     handleLocationSelection,
     handleManualLocationSelect,
+    handleModalDismissComplete,
   };
 }

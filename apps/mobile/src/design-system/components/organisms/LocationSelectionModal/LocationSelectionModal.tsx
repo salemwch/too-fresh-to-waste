@@ -7,11 +7,12 @@
  * 2. Search bar - Search by city name
  */
 
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
   Modal,
+  Platform,
   Pressable,
   ActivityIndicator,
   ScrollView,
@@ -33,6 +34,8 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 // Types
 // ============================================================================
 
+const MODAL_FADE_DURATION_MS = 300;
+
 interface LocationSelectionModalProps {
   /** Whether modal is visible */
   visible: boolean;
@@ -42,6 +45,8 @@ interface LocationSelectionModalProps {
   isLoading?: boolean;
   /** Error message to display */
   error?: string | null;
+  /** Fires after the native Modal has fully dismissed (animation complete) */
+  onDismissComplete?: () => void;
   /** Test ID for testing */
   testID?: string;
 }
@@ -56,10 +61,33 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
     onLocationSelect,
     isLoading = false,
     error = null,
+    onDismissComplete,
     testID = 'location-selection-modal',
   }) => {
     const theme = useTheme();
     const [showCitySearch, setShowCitySearch] = useState(false);
+    const prevVisible = useRef(visible);
+
+    // Android: detect visible → hidden transition and fire callback after fade completes.
+    // iOS: handled natively by Modal's onDismiss prop below.
+    useEffect(() => {
+      if (Platform.OS !== 'android') {
+        prevVisible.current = visible;
+        return undefined;
+      }
+
+      if (prevVisible.current && !visible) {
+        const timer = setTimeout(() => {
+          onDismissComplete?.();
+        }, MODAL_FADE_DURATION_MS);
+        prevVisible.current = visible;
+        return () => clearTimeout(timer);
+      }
+
+      prevVisible.current = visible;
+      return undefined;
+    }, [visible, onDismissComplete]);
+
     const dimOverlayStyle = { backgroundColor: theme.colors.overlay.dark };
     const modalContentStyle = {
       backgroundColor: theme.colors.surface,
@@ -109,6 +137,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
           animationType='fade'
           statusBarTranslucent
           onRequestClose={() => {}}
+          onDismiss={Platform.OS === 'ios' ? onDismissComplete : undefined}
           testID={testID}
         >
           {/* Dimmed Background Overlay */}
