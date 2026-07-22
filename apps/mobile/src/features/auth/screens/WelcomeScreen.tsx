@@ -1,6 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, Image, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  I18nManager,
+  Image,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import LeafLogo from '@/assets/images/leaf-logo.svg';
 import ShapesIcon from '@/assets/images/shapes.svg';
@@ -22,9 +31,11 @@ const PRIMARY = colorTokens.base.primary[500];
 const ACCENT = colorTokens.base.accent[300];
 const WHITE = '#FFFFFF';
 
+const IS_LANDSCAPE = RAW_W > RAW_H;
+
 const FOOD_IMG = require('@/assets/images/boal.webp');
 
-const FOOD_SIZE = sw(265);
+const FOOD_SIZE = IS_LANDSCAPE ? sw(220) : sw(265);
 
 interface WelcomeScreenProps {
   navigation: WelcomeScreenNavigationProp;
@@ -87,7 +98,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       <Text style={styles.bodyText}>{t('welcome.bodyText')}</Text>
 
       {/* ── Food bowl + doodle ── */}
-      <View style={styles.foodGroup}>
+      <View style={IS_LANDSCAPE ? styles.foodGroupLandscape : styles.foodGroup}>
         <View style={styles.foodWrap}>
           <Image
             source={FOOD_IMG}
@@ -98,7 +109,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             accessibilityIgnoresInvertColors
           />
         </View>
-        <ShapesIcon width={sw(100)} height={sw(67)} style={styles.shapesDecor} />
+        <ShapesIcon
+          width={sw(100)}
+          height={sw(67)}
+          style={[styles.shapesDecor, I18nManager.isRTL && styles.shapesRTL]}
+        />
       </View>
 
       {/* ── Get Started button ── */}
@@ -173,7 +188,7 @@ const styles = StyleSheet.create({
     fontSize: sw(56),
     fontWeight: '400',
     letterSpacing: sw(1.5),
-    lineHeight: sw(52),
+    lineHeight: sw(62),
     color: WHITE,
   },
   headlineAccent: {
@@ -202,6 +217,14 @@ const styles = StyleSheet.create({
     height: FOOD_SIZE,
     zIndex: 5,
   },
+  foodGroupLandscape: {
+    position: 'absolute',
+    top: sh(60),
+    right: REAL_W * 0.55,
+    width: FOOD_SIZE,
+    height: FOOD_SIZE,
+    zIndex: 5,
+  },
   foodWrap: {
     position: 'absolute',
     top: 0,
@@ -220,6 +243,9 @@ const styles = StyleSheet.create({
     top: sw(20),
     right: -sw(28),
     transform: [{ rotate: '10deg' }],
+  },
+  shapesRTL: {
+    transform: [{ rotate: '-10deg' }, { scaleX: -1 }],
   },
 
   // ── Get Started ──

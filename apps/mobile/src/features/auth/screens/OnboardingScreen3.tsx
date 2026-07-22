@@ -1,6 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, Image, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  I18nManager,
+  Image,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -79,7 +88,11 @@ export const OnboardingScreen3: React.FC<Props> = ({ navigation }) => {
       <Text style={styles.bodyText}>{t('onboarding3.bodyText')}</Text>
 
       {/* Shapes decoration */}
-      <ShapesIcon width={sw(90)} height={sw(60)} style={styles.shapesDecor} />
+      <ShapesIcon
+        width={sw(90)}
+        height={sw(60)}
+        style={[styles.shapesDecor, I18nManager.isRTL && styles.shapesRTL]}
+      />
 
       {/* Bottom: back arrow + create account + dots */}
       <View style={styles.bottom}>
@@ -148,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: sw(42),
     fontWeight: '400',
     letterSpacing: sw(1.5),
-    lineHeight: sw(42 * 0.95),
+    lineHeight: sw(48),
     textTransform: 'uppercase',
   },
   headlineWhite: {
@@ -179,6 +192,10 @@ const styles = StyleSheet.create({
     zIndex: 8,
     transform: [{ rotate: '12deg' }],
     opacity: 0.95,
+  },
+  shapesRTL: {
+    right: sw(50),
+    transform: [{ rotate: '-12deg' }, { scaleX: -1 }],
   },
 
   // Bottom

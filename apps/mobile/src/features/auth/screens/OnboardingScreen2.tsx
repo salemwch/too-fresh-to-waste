@@ -1,6 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  I18nManager,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
@@ -82,7 +90,11 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
             <View style={[styles.circle, { backgroundColor: ACCENT }]}>
               <Icon name='storefront' size={sw(42)} color={WHITE} />
             </View>
-            <ShapesIcon width={sw(80)} height={sw(53)} style={styles.shapesDecor} />
+            <ShapesIcon
+              width={sw(80)}
+              height={sw(53)}
+              style={[styles.shapesDecor, I18nManager.isRTL && styles.shapesRTL]}
+            />
           </View>
           <View style={styles.featureText}>
             <Text style={styles.featureTitle}>{t('onboarding2.saveMoney')}</Text>
@@ -217,6 +229,9 @@ const styles = StyleSheet.create({
     top: -sw(40),
     right: -sw(30),
     transform: [{ rotate: '15deg' }],
+  },
+  shapesRTL: {
+    transform: [{ rotate: '-15deg' }, { scaleX: -1 }],
   },
   featureText: {
     flex: 1,
