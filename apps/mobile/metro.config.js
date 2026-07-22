@@ -171,6 +171,12 @@ const config = {
      */
     extraNodeModules: {
       '@foodwaste/shared': path.resolve(workspaceRoot, 'packages/shared/src'),
+      // Stub web-only Sentry modules (~400KB savings)
+      // These are re-exported by @sentry/browser but never used on React Native
+      '@sentry-internal/replay': path.resolve(projectRoot, 'src/stubs/sentry-web-stub.js'),
+      '@sentry-internal/feedback': path.resolve(projectRoot, 'src/stubs/sentry-web-stub.js'),
+      '@sentry-internal/replay-canvas': path.resolve(projectRoot, 'src/stubs/sentry-web-stub.js'),
+      '@sentry-internal/browser-utils': path.resolve(projectRoot, 'src/stubs/sentry-web-stub.js'),
     },
 
     /**
