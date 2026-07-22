@@ -4,11 +4,8 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
-        <!-- Edge-to-edge is handled by RN's ReactActivityDelegate via the
-             `edgeToEdgeEnabled` gradle property (see android/gradle.properties).
-             Do NOT set navigationBarColor here — it creates a color mismatch
-             against screens with different backgrounds (e.g. white login screen). -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@color/statusBarColor</item>
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>
     </style>
 
