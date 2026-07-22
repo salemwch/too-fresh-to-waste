@@ -5,7 +5,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Image,
   Dimensions,
   Pressable,
   StatusBar,
@@ -17,6 +16,7 @@ import {
   Easing,
   InteractionManager,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -455,8 +455,12 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* --- Header Section --- */}
         <View style={styles.headerContainer}>
-          <Image
-            source={{ uri: offer.images?.[0] }}
+          <FastImage
+            source={{
+              uri: offer.images?.[0] ?? '',
+              priority: FastImage.priority.high,
+              cache: FastImage.cacheControl.immutable,
+            }}
             style={styles.headerImage}
             accessibilityIgnoresInvertColors
           />
@@ -499,10 +503,14 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           {(offer.establishmentId !== '' || establishment !== undefined) && (
             <View style={styles.merchantLogoContainer}>
               {merchant?.profileImage != null && merchant.profileImage.length > 0 ? (
-                <Image
-                  source={{ uri: merchant.profileImage }}
+                <FastImage
+                  source={{
+                    uri: merchant.profileImage,
+                    priority: FastImage.priority.normal,
+                    cache: FastImage.cacheControl.immutable,
+                  }}
                   style={styles.merchantLogo}
-                  resizeMode='cover'
+                  resizeMode={FastImage.resizeMode.cover}
                   accessibilityIgnoresInvertColors
                 />
               ) : (

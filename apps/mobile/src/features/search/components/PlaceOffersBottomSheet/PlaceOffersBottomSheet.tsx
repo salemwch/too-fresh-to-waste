@@ -11,15 +11,8 @@
 
 import { Currency } from '@foodwaste/shared';
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  StyleSheet,
-  Animated,
-  Pressable,
-  FlatList,
-  ActivityIndicator,
-  Dimensions,
-} from 'react-native';
+import { View, StyleSheet, Animated, Pressable, ActivityIndicator, Dimensions } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -237,16 +230,14 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
         )}
 
         {/* Offers List */}
-        <FlatList
+        <FlashList
           data={offers}
           keyExtractor={item => item.item._id}
           renderItem={renderItem}
           ListEmptyComponent={renderEmpty}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews
-          maxToRenderPerBatch={4}
-          windowSize={5}
+          estimatedItemSize={120}
         />
       </View>
     </Animated.View>
@@ -308,7 +299,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   listContent: {
-    flexGrow: 1,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },

@@ -16,12 +16,12 @@ import {
   Modal,
   Pressable,
   TouchableWithoutFeedback,
-  FlatList,
   StyleSheet,
   Animated,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text, Icon, Input } from '@/design-system/components/atoms';
@@ -359,14 +359,14 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
                   </Text>
                 </View>
               ) : searchResults && searchResults.length > 0 ? (
-                <FlatList
+                <FlashList
                   data={searchResults}
                   keyExtractor={(item, index) => `${item.coordinates.latitude}-${index}`}
                   renderItem={renderSearchResult}
                   keyboardShouldPersistTaps='handled'
                   showsVerticalScrollIndicator={false}
                   nestedScrollEnabled
-                  style={styles.searchResultsList}
+                  estimatedItemSize={56}
                 />
               ) : (
                 <View style={styles.noResults}>

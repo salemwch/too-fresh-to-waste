@@ -24,28 +24,12 @@ import 'react-native-gesture-handler';
 
 import React from 'react';
 import { AppRegistry } from 'react-native';
-import { enableScreens } from 'react-native-screens';
+import { enableFreeze, enableScreens } from 'react-native-screens';
 
 import App from './src/App';
 
-// ============================================================================
-// PRODUCTION: Native Screen Optimization
-// ============================================================================
-// ✅ PERFORMANCE BOOST: 30-50% faster navigation
-// Uses native screen containers instead of plain React Native views
-// Required for optimal React Navigation performance
-// Source: https://github.com/software-mansion/react-native-screens
 enableScreens(true);
-
-// ============================================================================
-// PRODUCTION: Memory Optimization
-// ============================================================================
-// ⚠️ DISABLED: enableFreeze(true) causes touch event issues on Android
-// with react-native-screens v4.x + React Navigation v6.x combination.
-// react-native-screens v4 is designed for React Navigation v7.
-// Re-enable after upgrading to React Navigation v7.
-// Source: https://github.com/software-mansion/react-native-screens/issues/2355
-// enableFreeze(true);
+enableFreeze(true);
 
 // ============================================================================
 // App Registration

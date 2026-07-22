@@ -20,15 +20,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useState, useMemo, useLayoutEffect, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  RefreshControl,
-  Pressable,
-  Image,
-  type ListRenderItemInfo,
-} from 'react-native';
+import { View, StyleSheet, RefreshControl, Pressable, Image } from 'react-native';
+import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 
 import { LocationPromptBanner } from '@/design-system/components/molecules';
@@ -294,7 +287,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const [refreshing, setRefreshing] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const flatListRef = useRef<FlatList<Section>>(null);
+  const flatListRef = useRef<FlashList<Section>>(null);
   // Note: isLocationPickerVisible moved to top with location search state
 
   // 🆕 Recent locations - persisted in AsyncStorage
@@ -818,7 +811,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <FloatingVoteTab />
-      <FlatList<Section>
+      <FlashList<Section>
         ref={flatListRef}
         data={sections}
         renderItem={renderSection}
@@ -834,13 +827,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             accessibilityHint='Pull down to refresh the offers list'
           />
         }
-        // ✅ Performance optimizations for FlatList
-        removeClippedSubviews // Unmount off-screen items (Android performance)
-        maxToRenderPerBatch={3} // Render 3 items per batch
-        updateCellsBatchingPeriod={50} // Update batching period in ms
-        initialNumToRender={4} // Initial items to render (search, banner, urgent)
-        windowSize={8} // Number of screens to render above/below viewport
-        // Accessibility
+        estimatedItemSize={200}
         accessibilityLabel='Home screen content'
         accessibilityHint='Scroll to view featured offers, nearby deals, and your impact'
         testID='home-screen-flatlist'

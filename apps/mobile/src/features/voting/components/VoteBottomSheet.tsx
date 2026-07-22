@@ -14,7 +14,6 @@
 import React, { useState } from 'react';
 import {
   Alert,
-  Image,
   Modal,
   Platform,
   ScrollView,
@@ -22,6 +21,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 
 import { Icon, Text } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -159,10 +159,14 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
                   accessibilityLabel={`${prize.name} — ${prize.value}`}
                   accessibilityHint='Selects this prize as your vote choice'
                 >
-                  <Image
-                    source={{ uri: prize.imageUrl }}
+                  <FastImage
+                    source={{
+                      uri: prize.imageUrl,
+                      priority: FastImage.priority.normal,
+                      cache: FastImage.cacheControl.immutable,
+                    }}
                     style={styles.prizeImage}
-                    resizeMode='cover'
+                    resizeMode={FastImage.resizeMode.cover}
                     accessibilityIgnoresInvertColors
                   />
 

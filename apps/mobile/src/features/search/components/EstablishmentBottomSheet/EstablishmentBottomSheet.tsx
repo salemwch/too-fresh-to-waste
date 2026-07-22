@@ -10,7 +10,9 @@
 
 import { Currency } from '@foodwaste/shared';
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, Animated, Pressable, FlatList, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, Animated, Pressable, Dimensions } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import FastImage from 'react-native-fast-image';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -231,8 +233,12 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
         <View style={styles.header}>
           {/* Profile image or initial */}
           {item?.profileImage ? (
-            <Image
-              source={{ uri: item.profileImage }}
+            <FastImage
+              source={{
+                uri: item.profileImage,
+                priority: FastImage.priority.normal,
+                cache: FastImage.cacheControl.immutable,
+              }}
               style={styles.headerImage}
               accessibilityIgnoresInvertColors
             />
@@ -307,16 +313,14 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
         )}
 
         {/* ── Offers list ────────────────────────────────────────── */}
-        <FlatList
+        <FlashList
           data={item?.offers ?? []}
           keyExtractor={o => o._id}
           renderItem={renderItem}
           ListEmptyComponent={renderEmpty}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews
-          maxToRenderPerBatch={4}
-          windowSize={5}
+          estimatedItemSize={120}
         />
       </View>
     </Animated.View>
@@ -404,7 +408,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   listContent: {
-    flexGrow: 1,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },

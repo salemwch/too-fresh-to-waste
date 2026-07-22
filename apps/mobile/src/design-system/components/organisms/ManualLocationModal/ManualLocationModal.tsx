@@ -10,12 +10,12 @@ import {
   View,
   Modal,
   Pressable,
-  FlatList,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useLocationSearch, type GeocodeResult } from '@/features/offers/hooks';
@@ -219,7 +219,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
             </View>
 
             {/* Results List */}
-            <FlatList
+            <FlashList
               data={searchResults ?? []}
               keyExtractor={(item, index) =>
                 `${item.coordinates.latitude}-${item.coordinates.longitude}-${index}`
@@ -228,6 +228,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
               ListEmptyComponent={renderEmptyState}
               contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps='handled'
+              estimatedItemSize={56}
             />
 
             {/* Cancel Button */}
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   listContent: {
-    flexGrow: 1,
+    paddingBottom: 8,
   },
   resultItem: {
     flexDirection: 'row',

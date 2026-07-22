@@ -1,7 +1,7 @@
+import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   Linking,
   Platform,
   RefreshControl,
@@ -522,13 +522,14 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
         {!ordersError && <Text style={styles.countBadge}>{orders.length}</Text>}
       </View>
 
-      <FlatList
+      <FlashList
         data={orders}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        contentContainerStyle={orders.length === 0 ? styles.centerContainer : styles.listContent}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={<EmptyState />}
         showsVerticalScrollIndicator={false}
+        estimatedItemSize={140}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}

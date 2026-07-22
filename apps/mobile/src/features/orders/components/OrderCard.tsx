@@ -19,7 +19,8 @@
  */
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, Pressable, Image, Platform, Animated } from 'react-native';
+import { View, StyleSheet, Pressable, Platform, Animated } from 'react-native';
+import FastImage from 'react-native-fast-image';
 
 import { Icon, Text } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -241,10 +242,14 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       <View style={styles.topRow}>
         {/* Thumbnail — offer image preferred, establishment image fallback */}
         {cardImage ? (
-          <Image
-            source={{ uri: cardImage }}
+          <FastImage
+            source={{
+              uri: cardImage,
+              priority: FastImage.priority.normal,
+              cache: FastImage.cacheControl.immutable,
+            }}
             style={styles.thumbnail}
-            resizeMode='cover'
+            resizeMode={FastImage.resizeMode.cover}
             accessibilityIgnoresInvertColors
           />
         ) : (

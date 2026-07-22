@@ -6,16 +6,9 @@
  * week/month boundaries) so the client never re-derives money.
  */
 
+import { FlashList } from '@shopify/flash-list';
 import React, { useCallback } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Platform,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Platform, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
@@ -170,12 +163,13 @@ export default function DriverEarningsScreen() {
   }
 
   return (
-    <FlatList
+    <FlashList
       style={styles.container}
       data={history?.orders ?? []}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
       ListHeaderComponent={<EarningsSummary summary={earnings} />}
+      estimatedItemSize={100}
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>🛵</Text>

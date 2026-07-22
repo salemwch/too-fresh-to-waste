@@ -7,15 +7,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  FlatList,
-  Pressable,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Pressable, Platform } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Text, Button, Card, Icon } from '@/design-system/components/atoms';
@@ -433,16 +426,14 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
 
         {!isLoading && !error && hasFavorites && (
           <View style={styles.favoritesSection}>
-            <FlatList
+            <FlashList
               data={favorites}
               renderItem={renderFavoriteItem}
               keyExtractor={item => item._id}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContainer}
-              removeClippedSubviews
-              initialNumToRender={6}
-              maxToRenderPerBatch={6}
+              estimatedItemSize={120}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               ListFooterComponent={renderListFooter}

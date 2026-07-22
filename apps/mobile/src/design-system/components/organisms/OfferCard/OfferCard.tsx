@@ -12,7 +12,8 @@
 
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Image, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
+import { View, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import Svg, { Circle, Ellipse, G, Path, Polygon, Rect } from 'react-native-svg';
 
 import { CtaState } from '@/features/offers/types';
@@ -283,7 +284,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
     const uri = useRawUrl
       ? rawUri
       : (getOptimizedImageUrl(rawUri, IMAGE_PRESETS.listCard) ?? rawUri);
-    return { uri };
+    return { uri, priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable };
   }, [offer.image, useRawUrl]);
 
   // Get establishment rating for display
@@ -369,10 +370,10 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         mascotVariant != null ? styles.imageContainerWithStrip : undefined,
       ]}
     >
-      <Image
+      <FastImage
         source={imageSource}
         style={styles.image}
-        resizeMode='cover'
+        resizeMode={FastImage.resizeMode.cover}
         accessibilityIgnoresInvertColors
         onLoad={() => setIsImageLoaded(true)}
         onError={() => {
@@ -425,10 +426,14 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           offer.establishment.profileImage !== null &&
           offer.establishment.profileImage !== undefined &&
           offer.establishment.profileImage.length > 0 ? (
-            <Image
-              source={{ uri: offer.establishment.profileImage }}
+            <FastImage
+              source={{
+                uri: offer.establishment.profileImage,
+                priority: FastImage.priority.low,
+                cache: FastImage.cacheControl.immutable,
+              }}
               style={styles.logoImage}
-              resizeMode='cover'
+              resizeMode={FastImage.resizeMode.cover}
               accessibilityIgnoresInvertColors
               onError={() => setLogoLoadFailed(true)}
             />
