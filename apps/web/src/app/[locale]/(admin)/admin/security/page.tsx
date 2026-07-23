@@ -28,6 +28,7 @@ import {
   useLockedAccounts,
   useUnlockAccount,
   useClearIpBlocks,
+  useFailedLoginAttempts,
 } from '@/hooks/use-admin';
 import { toast } from 'sonner';
 
@@ -42,6 +43,102 @@ function getPeriodDates(days: number) {
   const from = new Date();
   from.setDate(from.getDate() - days);
   return { fromDate: from.toISOString(), toDate: to.toISOString() };
+}
+
+function UnlockDialog({
+  target,
+  reason,
+  onReasonChange,
+  onClose,
+  onUnlock,
+  isPending,
+  t,
+}: {
+  target: { id: string; email: string } | null;
+  reason: string;
+  onReasonChange: (v: string) => void;
+  onClose: () => void;
+  onUnlock: () => void;
+  isPending: boolean;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const { data: loginInfo, isLoading: infoLoading } = useFailedLoginAttempts(target?.id ?? null);
+
+  return (
+    <Dialog
+      open={!!target}
+      onOpenChange={open => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className='sm:max-w-md'>
+        <DialogHeader>
+          <DialogTitle>{t('lockedAccounts.unlockTitle')}</DialogTitle>
+          <DialogDescription>
+            {t('lockedAccounts.unlockDesc')}
+            {target && (
+              <span className='block mt-1 font-medium text-foreground'>{target.email}</span>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        <div className='space-y-3 pt-2'>
+          {/* Failed login details */}
+          {infoLoading ? (
+            <Skeleton className='h-16 rounded-lg' />
+          ) : loginInfo ? (
+            <div className='rounded-lg border border-border/60 bg-muted/20 p-3 space-y-1.5'>
+              <div className='flex items-center justify-between text-xs'>
+                <span className='text-muted-foreground'>
+                  {t('lockedAccounts.failedAttemptsDetail')}
+                </span>
+                <span className='font-bold tabular-nums text-destructive'>
+                  {loginInfo.failedAttempts}
+                </span>
+              </div>
+              <div className='flex items-center justify-between text-xs'>
+                <span className='text-muted-foreground'>{t('lockedAccounts.lockStatus')}</span>
+                <span
+                  className={
+                    loginInfo.isLocked
+                      ? 'font-medium text-destructive'
+                      : 'font-medium text-green-600'
+                  }
+                >
+                  {loginInfo.isLocked ? t('lockedAccounts.locked') : t('lockedAccounts.notLocked')}
+                </span>
+              </div>
+              {loginInfo.accountLockedUntil && (
+                <div className='flex items-center justify-between text-xs'>
+                  <span className='text-muted-foreground'>
+                    {t('lockedAccounts.columns.lockedUntil')}
+                  </span>
+                  <span className='font-medium tabular-nums'>
+                    {new Date(loginInfo.accountLockedUntil).toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : null}
+          <div className='space-y-1.5'>
+            <Label>{t('lockedAccounts.unlockReason')}</Label>
+            <Input
+              value={reason}
+              onChange={e => onReasonChange(e.target.value)}
+              placeholder={t('lockedAccounts.unlockReasonPlaceholder')}
+            />
+          </div>
+          <div className='flex gap-3 pt-1'>
+            <Button variant='outline' className='flex-1' onClick={onClose}>
+              Cancel
+            </Button>
+            <Button className='flex-1' onClick={onUnlock} disabled={isPending}>
+              {isPending ? 'Unlocking...' : t('lockedAccounts.unlockConfirm')}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function SecurityPage() {
@@ -287,52 +384,18 @@ export default function SecurityPage() {
       </div>
 
       {/* Unlock Dialog */}
-      <Dialog
-        open={!!unlockTarget}
-        onOpenChange={open => {
-          if (!open) {
-            setUnlockTarget(null);
-            setUnlockReason('');
-          }
+      <UnlockDialog
+        target={unlockTarget}
+        reason={unlockReason}
+        onReasonChange={setUnlockReason}
+        onClose={() => {
+          setUnlockTarget(null);
+          setUnlockReason('');
         }}
-      >
-        <DialogContent className='sm:max-w-md'>
-          <DialogHeader>
-            <DialogTitle>{t('lockedAccounts.unlockTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('lockedAccounts.unlockDesc')}
-              {unlockTarget && (
-                <span className='block mt-1 font-medium text-foreground'>{unlockTarget.email}</span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <div className='space-y-3 pt-2'>
-            <div className='space-y-1.5'>
-              <Label>{t('lockedAccounts.unlockReason')}</Label>
-              <Input
-                value={unlockReason}
-                onChange={e => setUnlockReason(e.target.value)}
-                placeholder={t('lockedAccounts.unlockReasonPlaceholder')}
-              />
-            </div>
-            <div className='flex gap-3 pt-1'>
-              <Button
-                variant='outline'
-                className='flex-1'
-                onClick={() => {
-                  setUnlockTarget(null);
-                  setUnlockReason('');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button className='flex-1' onClick={handleUnlock} disabled={unlockMutation.isPending}>
-                {unlockMutation.isPending ? 'Unlocking...' : t('lockedAccounts.unlockConfirm')}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        onUnlock={handleUnlock}
+        isPending={unlockMutation.isPending}
+        t={t}
+      />
 
       {/* Clear IP Blocks Confirm */}
       <ConfirmActionDialog

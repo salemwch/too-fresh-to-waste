@@ -1396,7 +1396,16 @@
       "lowPickupEmpty": "لا توجد عروض دون حد الاستلام",
       "violationsEmpty": "لا توجد انتهاكات سعرية",
       "deletedEmpty": "لا توجد عروض محذوفة",
-      "expiringEmpty": "لا توجد عروض تنتهي خلال الـ 24 ساعة القادمة"
+      "expiringEmpty": "لا توجد عروض تنتهي خلال الـ 24 ساعة القادمة",
+      "reservation": {
+        "title": "حجز المخزون",
+        "reserveLabel": "الكمية المراد حجزها",
+        "cancelLabel": "الكمية المراد تحريرها",
+        "reserve": "حجز",
+        "cancel": "تحرير",
+        "reserved": "تم حجز الكمية بنجاح",
+        "cancelled": "تم إلغاء الحجز بنجاح"
+      }
     },
     "adminDonationPool": {
       "title": "صندوق التبرعات",
@@ -2832,7 +2841,11 @@
       "unlockReason": "السبب (اختياري)",
       "unlockReasonPlaceholder": "مثال: تم التحقق عبر الهاتف",
       "unlockConfirm": "فتح قفل الحساب",
-      "unlocked": "تم فتح قفل الحساب بنجاح"
+      "unlocked": "تم فتح قفل الحساب بنجاح",
+      "failedAttemptsDetail": "المحاولات الفاشلة",
+      "lockStatus": "حالة القفل",
+      "locked": "مقفل",
+      "notLocked": "غير مقفل"
     }
   },
   "adminOrganizations": {
@@ -2871,6 +2884,14 @@
       "statusUpdated": "تم تحديث حالة المنظمة بنجاح"
     },
     "empty": "لم يتم العثور على منظمات",
-    "emptyDesc": "لا توجد منظمات تطابق الفلاتر الحالية."
+    "emptyDesc": "لا توجد منظمات تطابق الفلاتر الحالية.",
+    "detail": {
+      "title": "تفاصيل المنظمة",
+      "info": "معلومات المنظمة",
+      "orgId": "معرّف المنظمة",
+      "owner": "معرّف المالك",
+      "lastUpdated": "آخر تحديث",
+      "establishmentIds": "المؤسسات المرتبطة"
+    }
   }
 }

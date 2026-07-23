@@ -2,8 +2,8 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Network, Building2, CheckCircle, Clock, Ban } from 'lucide-react';
-import { Button, Badge } from '@foodwaste/ui';
+import { Network, Building2, CheckCircle, Clock, Ban, Calendar, MapPin } from 'lucide-react';
+import { Button, Badge, Sheet, SheetContent, SheetTitle, Separator } from '@foodwaste/ui';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -15,7 +15,11 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
 import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
-import { useOrganizations, useUpdateOrganizationStatus } from '@/hooks/use-admin';
+import {
+  useOrganizations,
+  useOrganizationDetail,
+  useUpdateOrganizationStatus,
+} from '@/hooks/use-admin';
 import type { OrganizationStatus, OrganizationQuery } from '@/types/admin';
 import { toast } from 'sonner';
 
@@ -24,6 +28,126 @@ const STATUS_STYLES: Record<OrganizationStatus, string> = {
   active: 'bg-green-500/10 text-green-700 border-green-500/30',
   suspended: 'bg-destructive/10 text-destructive border-destructive/30',
 };
+
+function OrgDetailDrawer({
+  orgId,
+  open,
+  onClose,
+}: {
+  orgId: string | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const t = useTranslations('adminOrganizations');
+  const { data: org, isLoading } = useOrganizationDetail(orgId);
+
+  return (
+    <Sheet open={open} onOpenChange={v => !v && onClose()}>
+      <SheetContent className='w-full overflow-y-auto sm:max-w-lg'>
+        <SheetTitle className='sr-only'>{t('detail.title')}</SheetTitle>
+        {isLoading ? (
+          <div className='space-y-4 py-6'>
+            <Skeleton className='h-8 w-48 rounded' />
+            <Skeleton className='h-20 rounded-lg' />
+            <Skeleton className='h-16 rounded-lg' />
+          </div>
+        ) : org ? (
+          <div className='space-y-0'>
+            <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
+              <div className='flex items-start gap-3'>
+                <div className='flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10'>
+                  <Network className='size-5 text-primary' />
+                </div>
+                <div>
+                  <p className='text-base font-semibold'>{org.name}</p>
+                  <Badge
+                    variant='outline'
+                    className={`mt-1.5 text-[10px] ${STATUS_STYLES[org.status]}`}
+                  >
+                    {t(`status.${org.status}`)}
+                  </Badge>
+                </div>
+              </div>
+              <div className='mt-3 grid grid-cols-2 gap-2'>
+                <div className='rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+                  <p className='text-lg font-bold tabular-nums'>{org.establishmentIds.length}</p>
+                  <p className='text-[10px] text-muted-foreground'>{t('columns.locations')}</p>
+                </div>
+                <div className='rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+                  <p className='text-lg font-bold tabular-nums'>
+                    {new Date(org.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className='text-[10px] text-muted-foreground'>{t('columns.created')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className='space-y-5 py-5'>
+              <section className='space-y-3'>
+                <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                  {t('detail.info')}
+                </h3>
+                <div className='space-y-2.5'>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-1.5 text-muted-foreground'>
+                      <Network className='size-3' />
+                      <span className='text-xs'>{t('detail.orgId')}</span>
+                    </div>
+                    <span className='font-mono text-[11px] text-muted-foreground'>
+                      ...{org._id.slice(-8)}
+                    </span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-1.5 text-muted-foreground'>
+                      <Building2 className='size-3' />
+                      <span className='text-xs'>{t('detail.owner')}</span>
+                    </div>
+                    <span className='font-mono text-[11px] text-muted-foreground'>
+                      ...{org.ownerId.slice(-8)}
+                    </span>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-1.5 text-muted-foreground'>
+                      <Calendar className='size-3' />
+                      <span className='text-xs'>{t('detail.lastUpdated')}</span>
+                    </div>
+                    <span className='text-xs font-medium'>
+                      {new Date(org.updatedAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </section>
+
+              {org.establishmentIds.length > 0 && (
+                <>
+                  <Separator />
+                  <section className='space-y-3'>
+                    <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                      {t('detail.establishmentIds')}
+                    </h3>
+                    <div className='space-y-1.5'>
+                      {org.establishmentIds.map(id => (
+                        <div
+                          key={id}
+                          className='flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2'
+                        >
+                          <MapPin className='size-3.5 text-muted-foreground' />
+                          <span className='font-mono text-xs text-muted-foreground'>
+                            ...{id.slice(-12)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </>
+              )}
+            </div>
+          </div>
+        ) : null}
+      </SheetContent>
+    </Sheet>
+  );
+}
 
 export default function OrganizationsPage() {
   const t = useTranslations('adminOrganizations');
@@ -35,6 +159,7 @@ export default function OrganizationsPage() {
     name: string;
     status: OrganizationStatus;
   } | null>(null);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
 
   const params: OrganizationQuery = {
     page,
@@ -209,7 +334,11 @@ export default function OrganizationsPage() {
               </tr>
             ) : (
               filtered.map(org => (
-                <tr key={org._id} className='border-b border-border/40 hover:bg-muted/20'>
+                <tr
+                  key={org._id}
+                  className='border-b border-border/40 hover:bg-muted/20 cursor-pointer'
+                  onClick={() => setSelectedOrgId(org._id)}
+                >
                   <td className='px-4 py-3'>
                     <div className='flex items-center gap-2.5'>
                       <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10'>
@@ -229,7 +358,7 @@ export default function OrganizationsPage() {
                   <td className='px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground tabular-nums'>
                     {new Date(org.createdAt).toLocaleDateString()}
                   </td>
-                  <td className='px-4 py-3 text-end'>
+                  <td className='px-4 py-3 text-end' onClick={e => e.stopPropagation()}>
                     <div className='flex justify-end gap-2'>
                       {org.status === 'pending' && (
                         <Button
@@ -320,6 +449,13 @@ export default function OrganizationsPage() {
           onConfirm={handleStatusChange}
         />
       )}
+
+      {/* Detail Drawer */}
+      <OrgDetailDrawer
+        orgId={selectedOrgId}
+        open={!!selectedOrgId}
+        onClose={() => setSelectedOrgId(null)}
+      />
     </div>
   );
 }

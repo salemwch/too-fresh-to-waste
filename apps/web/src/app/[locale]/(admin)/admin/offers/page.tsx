@@ -14,6 +14,8 @@ import {
   useExpiringOffers,
   useTriggerAutoFeaturing,
   useUpdateExpiredOffers,
+  useReserveOfferQuantity,
+  useCancelOfferReservation,
 } from '@/hooks/use-admin';
 import { toast } from 'sonner';
 import { adminService } from '@/services/admin.service';
@@ -63,6 +65,8 @@ import {
   Clock,
   Zap,
   RefreshCw,
+  BookmarkPlus,
+  BookmarkMinus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type {
@@ -670,7 +674,12 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
 // ─── Offer detail sheet ───────────────────────────────────────────────────────
 
 function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClose: () => void }) {
+  const t = useTranslations('dashboard.adminOffers');
   const { data: offer, isLoading } = useOfferDetail(offerId);
+  const reserveMutation = useReserveOfferQuantity();
+  const cancelReservationMutation = useCancelOfferReservation();
+  const [reserveQty, setReserveQty] = useState('1');
+  const [cancelQty, setCancelQty] = useState('1');
 
   return (
     <Sheet open={!!offerId} onOpenChange={open => !open && onClose()}>
@@ -812,6 +821,75 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                         {cat.replace(/_/g, ' ')}
                       </Badge>
                     ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Reserve / Cancel Reservation */}
+            {offer.status === 'active' && (
+              <>
+                <Separator />
+                <div className='space-y-3'>
+                  <p className='text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
+                    {t('reservation.title')}
+                  </p>
+                  <div className='flex items-end gap-2'>
+                    <div className='flex-1 space-y-1'>
+                      <Label className='text-xs'>{t('reservation.reserveLabel')}</Label>
+                      <Input
+                        type='number'
+                        min={1}
+                        max={offer.totalQuantity - offer.soldQuantity}
+                        value={reserveQty}
+                        onChange={e => setReserveQty(e.target.value)}
+                        className='h-8 text-sm'
+                      />
+                    </div>
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      className='h-8 gap-1.5 shrink-0'
+                      disabled={reserveMutation.isPending || !reserveQty || Number(reserveQty) <= 0}
+                      onClick={() => {
+                        reserveMutation.mutate(
+                          { id: offer._id, quantity: Number(reserveQty) },
+                          { onSuccess: () => toast.success(t('reservation.reserved')) },
+                        );
+                      }}
+                    >
+                      <BookmarkPlus className='size-3.5' />
+                      {t('reservation.reserve')}
+                    </Button>
+                  </div>
+                  <div className='flex items-end gap-2'>
+                    <div className='flex-1 space-y-1'>
+                      <Label className='text-xs'>{t('reservation.cancelLabel')}</Label>
+                      <Input
+                        type='number'
+                        min={1}
+                        value={cancelQty}
+                        onChange={e => setCancelQty(e.target.value)}
+                        className='h-8 text-sm'
+                      />
+                    </div>
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      className='h-8 gap-1.5 shrink-0 text-destructive border-destructive/30'
+                      disabled={
+                        cancelReservationMutation.isPending || !cancelQty || Number(cancelQty) <= 0
+                      }
+                      onClick={() => {
+                        cancelReservationMutation.mutate(
+                          { id: offer._id, quantity: Number(cancelQty) },
+                          { onSuccess: () => toast.success(t('reservation.cancelled')) },
+                        );
+                      }}
+                    >
+                      <BookmarkMinus className='size-3.5' />
+                      {t('reservation.cancel')}
+                    </Button>
                   </div>
                 </div>
               </>

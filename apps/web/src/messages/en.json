@@ -1397,7 +1397,16 @@
       "lowPickupEmpty": "No offers below the pickup threshold",
       "violationsEmpty": "No price violations detected",
       "deletedEmpty": "No deleted offers",
-      "expiringEmpty": "No offers expiring in the next 24 hours"
+      "expiringEmpty": "No offers expiring in the next 24 hours",
+      "reservation": {
+        "title": "Inventory Reservation",
+        "reserveLabel": "Quantity to reserve",
+        "cancelLabel": "Quantity to release",
+        "reserve": "Reserve",
+        "cancel": "Release",
+        "reserved": "Quantity reserved successfully",
+        "cancelled": "Reservation cancelled successfully"
+      }
     },
     "adminDonationPool": {
       "title": "Donation Pool",
@@ -2840,7 +2849,11 @@
       "unlockReason": "Reason (optional)",
       "unlockReasonPlaceholder": "e.g., User verified via phone",
       "unlockConfirm": "Unlock Account",
-      "unlocked": "Account unlocked successfully"
+      "unlocked": "Account unlocked successfully",
+      "failedAttemptsDetail": "Failed Attempts",
+      "lockStatus": "Lock Status",
+      "locked": "Locked",
+      "notLocked": "Not Locked"
     }
   },
   "adminOrganizations": {
@@ -2879,6 +2892,14 @@
       "statusUpdated": "Organization status updated successfully"
     },
     "empty": "No organizations found",
-    "emptyDesc": "There are no organizations matching the current filters."
+    "emptyDesc": "There are no organizations matching the current filters.",
+    "detail": {
+      "title": "Organization Details",
+      "info": "Organization Information",
+      "orgId": "Organization ID",
+      "owner": "Owner ID",
+      "lastUpdated": "Last Updated",
+      "establishmentIds": "Linked Establishments"
+    }
   }
 }

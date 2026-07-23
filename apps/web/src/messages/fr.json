@@ -1396,7 +1396,16 @@
       "lowPickupEmpty": "Aucune offre sous le seuil de retrait",
       "violationsEmpty": "Aucune violation de prix détectée",
       "deletedEmpty": "Aucune offre supprimée",
-      "expiringEmpty": "Aucune offre expirant dans les prochaines 24 heures"
+      "expiringEmpty": "Aucune offre expirant dans les prochaines 24 heures",
+      "reservation": {
+        "title": "Réservation de stock",
+        "reserveLabel": "Quantité à réserver",
+        "cancelLabel": "Quantité à libérer",
+        "reserve": "Réserver",
+        "cancel": "Libérer",
+        "reserved": "Quantité réservée avec succès",
+        "cancelled": "Réservation annulée avec succès"
+      }
     },
     "adminDonationPool": {
       "title": "Cagnotte de dons",
@@ -2844,7 +2853,11 @@
       "unlockReason": "Raison (optionnelle)",
       "unlockReasonPlaceholder": "ex: Vérification par téléphone",
       "unlockConfirm": "Déverrouiller le compte",
-      "unlocked": "Compte déverrouillé avec succès"
+      "unlocked": "Compte déverrouillé avec succès",
+      "failedAttemptsDetail": "Tentatives échouées",
+      "lockStatus": "État du verrouillage",
+      "locked": "Verrouillé",
+      "notLocked": "Non verrouillé"
     }
   },
   "adminOrganizations": {
@@ -2883,6 +2896,14 @@
       "statusUpdated": "Statut de l'organisation mis à jour"
     },
     "empty": "Aucune organisation trouvée",
-    "emptyDesc": "Aucune organisation ne correspond aux filtres actuels."
+    "emptyDesc": "Aucune organisation ne correspond aux filtres actuels.",
+    "detail": {
+      "title": "Détails de l'organisation",
+      "info": "Informations sur l'organisation",
+      "orgId": "ID de l'organisation",
+      "owner": "ID du propriétaire",
+      "lastUpdated": "Dernière mise à jour",
+      "establishmentIds": "Établissements liés"
+    }
   }
 }

@@ -1173,6 +1173,14 @@ export function useClearIpBlocks() {
   });
 }
 
+export function useFailedLoginAttempts(userId: string | null) {
+  return useQuery({
+    queryKey: [...adminKeys.all, 'failed-login-attempts', userId],
+    queryFn: () => adminService.getFailedLoginAttempts(userId!).then(r => r.data.data),
+    enabled: !!userId,
+  });
+}
+
 // ─── Organization hooks ─────────────────────────────────────────────────────
 
 export function useOrganizations(params: OrganizationQuery = {}) {
