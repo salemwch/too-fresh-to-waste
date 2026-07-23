@@ -39,6 +39,10 @@ import type {
   GeozoneSearchParams,
   CreateGeozonePayload,
   UpdateGeozonePayload,
+  SecurityStatsQuery,
+  OrganizationQuery,
+  OrganizationStatus,
+  AddLoyaltyPointsPayload,
 } from '@/types/admin';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
@@ -129,6 +133,22 @@ const adminKeys = {
   priceViolations: (minDiscount: number, page: number) =>
     [...adminKeys.all, 'price-violations', minDiscount, page] as const,
   deletedOffers: (page: number) => [...adminKeys.all, 'deleted-offers', page] as const,
+
+  // Security
+  securityStats: (params: SecurityStatsQuery) =>
+    [...adminKeys.all, 'security-stats', params] as const,
+  lockedAccounts: (page: number) => [...adminKeys.all, 'locked-accounts', page] as const,
+
+  // Organizations
+  organizations: (params: OrganizationQuery) =>
+    [...adminKeys.all, 'organizations', params] as const,
+  organizationDetail: (id: string) => [...adminKeys.all, 'organization', id] as const,
+
+  // Offer ops
+  expiringOffers: (hours: number) => [...adminKeys.all, 'expiring-offers', hours] as const,
+
+  // Order ops
+  pendingOrders: (page: number) => [...adminKeys.all, 'pending-orders', page] as const,
 };
 
 // ─── Analytics hooks ──────────────────────────────────────────────────────────
@@ -1103,6 +1123,188 @@ export function useDeleteGeozone() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'geozones'] });
       void qc.invalidateQueries({ queryKey: adminKeys.geozoneStats() });
+    },
+  });
+}
+
+// ─── Security hooks ─────────────────────────────────────────────────────────
+
+export function useSecurityStats(params: SecurityStatsQuery = {}) {
+  return useQuery({
+    queryKey: adminKeys.securityStats(params),
+    queryFn: () => adminService.getSecurityStats(params).then(r => r.data.data),
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useLockedAccounts(page = 1, limit = 20) {
+  return useQuery({
+    queryKey: adminKeys.lockedAccounts(page),
+    queryFn: () =>
+      adminService.getLockedAccounts(page, limit).then(r => ({
+        data: r.data.data,
+        meta: r.data.meta,
+      })),
+    staleTime: 30 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useUnlockAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, reason }: { userId: string; reason?: string }) =>
+      adminService.unlockAccount(userId, reason).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'locked-accounts'] });
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'security-stats'] });
+    },
+  });
+}
+
+export function useClearIpBlocks() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => adminService.clearIpBlocks().then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'security-stats'] });
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'locked-accounts'] });
+    },
+  });
+}
+
+// ─── Organization hooks ─────────────────────────────────────────────────────
+
+export function useOrganizations(params: OrganizationQuery = {}) {
+  return useQuery({
+    queryKey: adminKeys.organizations(params),
+    queryFn: () =>
+      adminService.getOrganizations(params).then(r => ({
+        data: r.data.data,
+        meta: r.data.meta,
+      })),
+    staleTime: 60 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useOrganizationDetail(id: string | null) {
+  return useQuery({
+    queryKey: adminKeys.organizationDetail(id ?? ''),
+    queryFn: () => adminService.getOrganization(id!).then(r => r.data.data),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateOrganizationStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: OrganizationStatus }) =>
+      adminService.updateOrganizationStatus(id, status).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'organizations'] });
+    },
+  });
+}
+
+// ─── Offer operation hooks ──────────────────────────────────────────────────
+
+export function useExpiringOffers(hours = 24) {
+  return useQuery({
+    queryKey: adminKeys.expiringOffers(hours),
+    queryFn: () => adminService.getExpiringOffers(hours).then(r => r.data.data),
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useTriggerAutoFeaturing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => adminService.triggerAutoFeaturing().then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'offer-list'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.offerStats() });
+    },
+  });
+}
+
+export function useReserveOfferQuantity() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, quantity }: { id: string; quantity: number }) =>
+      adminService.reserveOfferQuantity(id, quantity).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'offer-list'] });
+    },
+  });
+}
+
+export function useCancelOfferReservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, quantity }: { id: string; quantity: number }) =>
+      adminService.cancelOfferReservation(id, quantity).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'offer-list'] });
+    },
+  });
+}
+
+export function useUpdateExpiredOffers() {
+  return useMutation({
+    mutationFn: () => adminService.updateExpiredOffers().then(r => r.data),
+  });
+}
+
+// ─── Order operation hooks ──────────────────────────────────────────────────
+
+export function usePendingOrders(page = 1, limit = 20) {
+  return useQuery({
+    queryKey: adminKeys.pendingOrders(page),
+    queryFn: () =>
+      adminService.getPendingOrders(page, limit).then(r => ({
+        data: r.data.data,
+        meta: r.data.meta,
+      })),
+    staleTime: 30 * 1000,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useDeleteOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => adminService.deleteOrder(id).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'order-list'] });
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'pending-orders'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.orderStats() });
+    },
+  });
+}
+
+export function useUpdateExpiredOrders() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => adminService.updateExpiredOrders().then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'order-list'] });
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'pending-orders'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.orderStats() });
+    },
+  });
+}
+
+// ─── Loyalty hooks ──────────────────────────────────────────────────────────
+
+export function useAddLoyaltyPoints() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, payload }: { userId: string; payload: AddLoyaltyPointsPayload }) =>
+      adminService.addLoyaltyPoints(userId, payload).then(r => r.data.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'top-users'] });
+      void qc.invalidateQueries({ queryKey: adminKeys.leaderboardStats() });
     },
   });
 }

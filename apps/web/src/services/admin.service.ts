@@ -78,6 +78,18 @@ import type {
   GeozoneSearchParams,
   CreateGeozonePayload,
   UpdateGeozonePayload,
+  SecurityStats,
+  SecurityStatsQuery,
+  LockedAccountsResponse,
+  ClearIpBlocksResult,
+  FailedLoginInfo,
+  OrganizationRow,
+  OrganizationQuery,
+  OrganizationStatus,
+  ExpiringOfferItem,
+  AutoFeaturingResult,
+  AdminPendingOrder,
+  AddLoyaltyPointsPayload,
 } from '@/types/admin';
 
 const ADMIN = '/admin';
@@ -813,5 +825,104 @@ export const adminService = {
 
   deleteGeozone(id: string) {
     return apiClient.delete<BackendEnvelope<void>>(`${ADMIN}/geozones/${id}`);
+  },
+
+  // ── Auth Security ──────────────────────────────────────────────────────────
+
+  getSecurityStats(params: SecurityStatsQuery = {}) {
+    return apiClient.get<BackendEnvelope<SecurityStats>>('/auth/admin/security-stats', { params });
+  },
+
+  getLockedAccounts(page = 1, limit = 20) {
+    return apiClient.get<BackendEnvelope<LockedAccountsResponse>>('/auth/admin/locked-accounts', {
+      params: { page, limit },
+    });
+  },
+
+  unlockAccount(userId: string, reason?: string) {
+    return apiClient.post<BackendEnvelope<{ success: boolean; message: string }>>(
+      `/auth/admin/unlock-account/${userId}`,
+      ...(reason ? [{ reason }] : [{}]),
+    );
+  },
+
+  clearIpBlocks() {
+    return apiClient.post<BackendEnvelope<ClearIpBlocksResult>>('/auth/admin/clear-ip-blocks');
+  },
+
+  getFailedLoginAttempts(userId: string) {
+    return apiClient.get<BackendEnvelope<FailedLoginInfo>>(
+      `/auth/admin/failed-login-attempts/${userId}`,
+    );
+  },
+
+  // ── Organization Management ────────────────────────────────────────────────
+
+  getOrganizations(params: OrganizationQuery = {}) {
+    return apiClient.get<BackendEnvelope<OrganizationRow[]>>('/organizations', { params });
+  },
+
+  getOrganization(id: string) {
+    return apiClient.get<BackendEnvelope<OrganizationRow>>(`/organizations/${id}`);
+  },
+
+  updateOrganizationStatus(id: string, status: OrganizationStatus) {
+    return apiClient.patch<BackendEnvelope<OrganizationRow>>(`/organizations/${id}/status`, {
+      status,
+    });
+  },
+
+  // ── Offer Operations (additional) ──────────────────────────────────────────
+
+  getExpiringOffers(hours = 24) {
+    return apiClient.get<BackendEnvelope<{ data: ExpiringOfferItem[]; total: number }>>(
+      '/offers/expiring',
+      { params: { hours } },
+    );
+  },
+
+  triggerAutoFeaturing() {
+    return apiClient.post<BackendEnvelope<AutoFeaturingResult>>(
+      '/offers/admin/trigger-auto-featuring',
+    );
+  },
+
+  reserveOfferQuantity(id: string, quantity: number) {
+    return apiClient.patch<BackendEnvelope<unknown>>(`/offers/${id}/reserve`, { quantity });
+  },
+
+  cancelOfferReservation(id: string, quantity: number) {
+    return apiClient.patch<BackendEnvelope<unknown>>(`/offers/${id}/cancel-reservation`, {
+      quantity,
+    });
+  },
+
+  updateExpiredOffers() {
+    return apiClient.put<BackendEnvelope<void>>('/offers/update-expired');
+  },
+
+  // ── Order Operations (additional) ──────────────────────────────────────────
+
+  getPendingOrders(page = 1, limit = 20) {
+    return apiClient.get<BackendEnvelope<AdminPendingOrder[]>>('/orders/admin/pending', {
+      params: { page, limit },
+    });
+  },
+
+  deleteOrder(id: string) {
+    return apiClient.delete<BackendEnvelope<unknown>>(`/orders/${id}`);
+  },
+
+  updateExpiredOrders() {
+    return apiClient.post<BackendEnvelope<{ updatedCount: number }>>('/orders/update-expired');
+  },
+
+  // ── Loyalty (admin add points) ─────────────────────────────────────────────
+
+  addLoyaltyPoints(userId: string, payload: AddLoyaltyPointsPayload) {
+    return apiClient.post<BackendEnvelope<unknown>>('/loyalty/points/add', {
+      ...payload,
+      userId,
+    });
   },
 };

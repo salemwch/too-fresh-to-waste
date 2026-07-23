@@ -22,6 +22,8 @@ import {
   CreditCard,
   Copy,
   MessageSquare,
+  Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import {
   Card,
@@ -45,12 +47,15 @@ import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/adm
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
   useAdminOrders,
   useAdminOrderStats,
   useAdminOrderDetail,
   useAdminCancelOrder,
   useAdminRefundOrder,
+  useDeleteOrder,
+  useUpdateExpiredOrders,
 } from '@/hooks/use-admin';
 import type { KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
 import type { AdminTab } from '@/components/dashboard/admin/admin-tab-nav';
@@ -418,6 +423,7 @@ function OrdersContent() {
     page,
     limit: 20,
     ...(search ? { search } : {}),
+    ...(currentTab === 'pending' ? { status: 'pending' as AdminOrderStatus } : {}),
     ...(currentTab === 'disputes' ? { status: 'cancelled' as AdminOrderStatus } : {}),
     ...(currentTab === 'refunds' ? { paymentStatus: 'refunded' as AdminPaymentStatus } : {}),
   };
@@ -426,6 +432,12 @@ function OrdersContent() {
   const { data: stats } = useAdminOrderStats();
   const cancelMutation = useAdminCancelOrder();
   const refundMutation = useAdminRefundOrder();
+  const deleteMutation = useDeleteOrder();
+  const updateExpiredMutation = useUpdateExpiredOrders();
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; orderId: string | null }>({
+    open: false,
+    orderId: null,
+  });
 
   const orders = ordersResponse?.data ?? [];
   const meta = ordersResponse?.meta;
@@ -433,6 +445,7 @@ function OrdersContent() {
 
   const tabs: AdminTab[] = [
     { key: 'all', label: t('tabs.all') },
+    { key: 'pending', label: t('tabs.pending') },
     {
       key: 'disputes',
       label: t('tabs.disputes'),
@@ -601,6 +614,13 @@ function OrdersContent() {
                   {t('actions.refund')}
                 </DropdownMenuItem>
               )}
+            <DropdownMenuItem
+              className='text-destructive'
+              onClick={() => setDeleteDialog({ open: true, orderId: order._id })}
+            >
+              <Trash2 className='me-2 size-3.5' />
+              {t('actions.delete')}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -609,12 +629,25 @@ function OrdersContent() {
 
   return (
     <div className='space-y-5'>
-      <AdminModuleHeader
-        title={t('title')}
-        subtitle={t('subtitle')}
-        onExport={() => {}}
-        exportLabel={t('export')}
-      />
+      <div className='flex items-start justify-between gap-4'>
+        <AdminModuleHeader title={t('title')} subtitle={t('subtitle')} />
+        <div className='flex gap-2 shrink-0'>
+          <Button
+            variant='outline'
+            size='sm'
+            className='gap-1.5'
+            disabled={updateExpiredMutation.isPending}
+            onClick={() =>
+              updateExpiredMutation.mutate(undefined, {
+                onSuccess: () => toast.success(t('actions.expiredUpdated')),
+              })
+            }
+          >
+            <RefreshCw className='size-3.5' />
+            {t('actions.processExpired')}
+          </Button>
+        </div>
+      </div>
 
       <AdminKpiRow items={kpis} loading={!stats} />
 
@@ -677,6 +710,22 @@ function OrdersContent() {
           label: t('refundDialog.reasonLabel'),
           placeholder: t('refundDialog.reasonPlaceholder'),
           required: true,
+        }}
+      />
+
+      <ConfirmActionDialog
+        open={deleteDialog.open}
+        onOpenChange={open => !open && setDeleteDialog({ open: false, orderId: null })}
+        title={t('deleteDialog.title')}
+        description={t('deleteDialog.description')}
+        confirmLabel={t('actions.delete')}
+        variant='danger'
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (!deleteDialog.orderId) return;
+          deleteMutation.mutate(deleteDialog.orderId, {
+            onSettled: () => setDeleteDialog({ open: false, orderId: null }),
+          });
         }}
       />
     </div>

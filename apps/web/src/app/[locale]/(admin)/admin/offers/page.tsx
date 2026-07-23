@@ -11,7 +11,11 @@ import {
   useBulkOfferAction,
   useRestoreOffer,
   useOfferDetail,
+  useExpiringOffers,
+  useTriggerAutoFeaturing,
+  useUpdateExpiredOffers,
 } from '@/hooks/use-admin';
+import { toast } from 'sonner';
 import { adminService } from '@/services/admin.service';
 import { Card, CardContent } from '@foodwaste/ui';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +60,9 @@ import {
   User,
   Calendar,
   Package,
+  Clock,
+  Zap,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type {
@@ -64,6 +71,7 @@ import type {
   AdminPriceViolationItem,
   AdminDeletedOfferItem,
   BulkOfferAction,
+  ExpiringOfferItem,
 } from '@/types/admin';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -815,12 +823,65 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
   );
 }
 
+// ─── Expiring offers tab ─────────────────────────────────────────────────────
+
+function ExpiringTab({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const { data, isLoading } = useExpiringOffers(24);
+  const items = (data ?? []) as ExpiringOfferItem[];
+
+  return (
+    <div className='space-y-3'>
+      {isLoading ? (
+        <div className='space-y-2'>
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className='h-14 rounded-lg' />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <p className='py-10 text-center text-sm text-muted-foreground'>{t('expiringEmpty')}</p>
+      ) : (
+        <div className='space-y-2'>
+          {items.map((item: ExpiringOfferItem) => {
+            const hoursLeft = Math.max(
+              0,
+              Math.round((new Date(item.availableUntil).getTime() - Date.now()) / 3_600_000),
+            );
+            return (
+              <div
+                key={item.id}
+                className='flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2.5'
+              >
+                <Clock className='size-4 shrink-0 text-warning' />
+                <div className='flex-1 min-w-0'>
+                  <p className='truncate text-sm font-medium'>{item.title}</p>
+                  <p className='text-xs text-muted-foreground'>{item.establishment?.name ?? '—'}</p>
+                </div>
+                <div className='text-end shrink-0'>
+                  <p className='text-sm font-bold text-warning tabular-nums'>{hoursLeft}h left</p>
+                  <p className='text-[10px] text-muted-foreground'>
+                    {item.availableQuantity} bags left
+                  </p>
+                </div>
+                <Badge variant='secondary' className='capitalize text-[10px]'>
+                  {item.status}
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminOffersPage() {
   const t = useTranslations('dashboard.adminOffers');
   const { data: stats, isLoading: loadingStats } = useOfferStats();
   const bulkMutation = useBulkOfferAction();
+  const autoFeatureMutation = useTriggerAutoFeaturing();
+  const updateExpiredMutation = useUpdateExpiredOffers();
 
   const [selected, setSelected] = useState<string[]>([]);
   const [deleteDialog, setDeleteDialog] = useState(false);
@@ -884,10 +945,51 @@ export default function AdminOffersPage() {
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
           <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
         </div>
-        <Button variant='outline' size='sm' className='shrink-0 gap-1.5' onClick={handleExport}>
-          <Download className='size-3.5' />
-          {t('actions.export')}
-        </Button>
+        <div className='flex gap-2 shrink-0'>
+          <Button
+            variant='outline'
+            size='sm'
+            className='gap-1.5'
+            disabled={autoFeatureMutation.isPending}
+            onClick={() =>
+              autoFeatureMutation.mutate(undefined, {
+                onSuccess: data => {
+                  const result = data as {
+                    offersAutoFeatured: number;
+                    offersAutoUnfeatured: number;
+                  };
+                  toast.success(
+                    t('actions.autoFeatureSuccess', {
+                      featured: result.offersAutoFeatured,
+                      unfeatured: result.offersAutoUnfeatured,
+                    }),
+                  );
+                },
+              })
+            }
+          >
+            <Zap className='size-3.5' />
+            {t('actions.autoFeature')}
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            className='gap-1.5'
+            disabled={updateExpiredMutation.isPending}
+            onClick={() =>
+              updateExpiredMutation.mutate(undefined, {
+                onSuccess: () => toast.success(t('actions.expiredUpdated')),
+              })
+            }
+          >
+            <RefreshCw className='size-3.5' />
+            {t('actions.updateExpired')}
+          </Button>
+          <Button variant='outline' size='sm' className='gap-1.5' onClick={handleExport}>
+            <Download className='size-3.5' />
+            {t('actions.export')}
+          </Button>
+        </div>
       </div>
 
       {/* Stats row */}
@@ -959,6 +1061,7 @@ export default function AdminOffersPage() {
               <TabsList className='h-auto gap-0 rounded-none border-none bg-transparent p-0'>
                 {[
                   { value: 'all', label: t('tabs.all'), icon: null },
+                  { value: 'expiring', label: t('tabs.expiring'), icon: Clock },
                   { value: 'lowPickup', label: t('tabs.lowPickup'), icon: TrendingDown },
                   { value: 'violations', label: t('tabs.violations'), icon: AlertTriangle },
                   { value: 'deleted', label: t('tabs.deleted'), icon: Trash2 },
@@ -992,6 +1095,10 @@ export default function AdminOffersPage() {
                   onToggleAll={toggleAll}
                   onView={setSelectedOfferId}
                 />
+              </TabsContent>
+
+              <TabsContent value='expiring' className='mt-3'>
+                <ExpiringTab t={t} />
               </TabsContent>
 
               <TabsContent value='lowPickup' className='mt-3'>

@@ -927,7 +927,9 @@
         "finance": "المالية",
         "engagement": "التفاعل",
         "system": "النظام"
-      }
+      },
+      "securityDashboard": "الأمان",
+      "organizations": "المنظمات"
     },
     "stats": {
       "activeOffers": "العروض النشطة",
@@ -1351,7 +1353,8 @@
         "all": "جميع العروض",
         "lowPickup": "معدل استلام منخفض",
         "violations": "انتهاكات السعر",
-        "deleted": "المحذوفة"
+        "deleted": "المحذوفة",
+        "expiring": "تنتهي قريباً"
       },
       "columns": {
         "offer": "العرض",
@@ -1382,13 +1385,18 @@
       "actions": {
         "export": "تصدير CSV",
         "restore": "استعادة",
-        "restoreConfirm": "استعادة كمسودة"
+        "restoreConfirm": "استعادة كمسودة",
+        "autoFeature": "تمييز تلقائي",
+        "autoFeatureSuccess": "اكتمل التمييز التلقائي: {featured} مميزة، {unfeatured} غير مميزة",
+        "updateExpired": "تحديث المنتهية",
+        "expiredUpdated": "تم تحديث العروض المنتهية بنجاح"
       },
       "empty": "لا توجد عروض",
       "emptyDescription": "اضبط الفلاتر لرؤية المزيد من العروض",
       "lowPickupEmpty": "لا توجد عروض دون حد الاستلام",
       "violationsEmpty": "لا توجد انتهاكات سعرية",
-      "deletedEmpty": "لا توجد عروض محذوفة"
+      "deletedEmpty": "لا توجد عروض محذوفة",
+      "expiringEmpty": "لا توجد عروض تنتهي خلال الـ 24 ساعة القادمة"
     },
     "adminDonationPool": {
       "title": "صندوق التبرعات",
@@ -2304,7 +2312,8 @@
     "tabs": {
       "all": "جميع الطلبات",
       "disputes": "النزاعات",
-      "refunds": "المبالغ المستردة"
+      "refunds": "المبالغ المستردة",
+      "pending": "معلّقة"
     },
     "kpi": {
       "totalOrders": "إجمالي الطلبات",
@@ -2323,7 +2332,10 @@
     "actions": {
       "viewDetails": "عرض التفاصيل",
       "cancel": "إلغاء",
-      "refund": "استرداد"
+      "refund": "استرداد",
+      "delete": "حذف الطلب",
+      "processExpired": "معالجة المنتهية",
+      "expiredUpdated": "تمت معالجة الطلبات المنتهية بنجاح"
     },
     "cancelDialog": {
       "title": "إلغاء الطلب",
@@ -2340,6 +2352,10 @@
     "empty": {
       "title": "لا توجد طلبات",
       "description": "لا توجد طلبات تطابق عوامل التصفية."
+    },
+    "deleteDialog": {
+      "title": "حذف الطلب",
+      "description": "سيؤدي هذا إلى حذف الطلب نهائياً. لا يمكن التراجع عن هذا الإجراء."
     }
   },
   "adminAuditLog": {
@@ -2536,6 +2552,17 @@
     "empty": {
       "title": "لا يوجد مشاركون",
       "description": "لا يوجد مستخدمون في برنامج الولاء بعد."
+    },
+    "addPoints": {
+      "title": "إضافة نقاط ولاء",
+      "description": "إضافة نقاط يدوية إلى {name}",
+      "amountLabel": "عدد النقاط",
+      "reasonLabel": "السبب",
+      "reasonPlaceholder": "مثال: تعويض خدمة العملاء، فائز بالمسابقة...",
+      "cancel": "إلغاء",
+      "confirm": "إضافة النقاط",
+      "adding": "جاري الإضافة...",
+      "success": "تمت إضافة {points} نقطة إلى {name}"
     }
   },
   "adminVotingWinners": {
@@ -2670,7 +2697,15 @@
     "noTickets": "لا توجد تذاكر",
     "noTicketsDesc": "ستظهر تذاكر الدعم هنا عندما يقدمها المستخدمون.",
     "subject": "الموضوع",
-    "category": "الفئة",
+    "category": {
+      "order_issue": "مشكلة طلب",
+      "payment_dispute": "نزاع دفع",
+      "account_problem": "مشكلة حساب",
+      "establishment_complaint": "شكوى مؤسسة",
+      "technical_bug": "خلل تقني",
+      "feature_request": "طلب ميزة",
+      "other": "أخرى"
+    },
     "priorityLabel": "الأولوية",
     "statusLabel": "الحالة",
     "actions": "إجراءات",
@@ -2690,15 +2725,6 @@
       "medium": "متوسطة",
       "high": "عالية",
       "urgent": "عاجلة"
-    },
-    "category": {
-      "order_issue": "مشكلة طلب",
-      "payment_dispute": "نزاع دفع",
-      "account_problem": "مشكلة حساب",
-      "establishment_complaint": "شكوى مؤسسة",
-      "technical_bug": "خلل تقني",
-      "feature_request": "طلب ميزة",
-      "other": "أخرى"
     }
   },
   "adminAnnouncements": {
@@ -2765,5 +2791,86 @@
       "longitude": "خط طول المركز",
       "submit": "إنشاء المنطقة"
     }
+  },
+  "adminSecurity": {
+    "title": "لوحة الأمان",
+    "subtitle": "مراقبة نشاط تسجيل الدخول وإدارة الحسابات المقفلة وإزالة حظر العناوين",
+    "stats": {
+      "totalAttempts": "إجمالي محاولات الدخول",
+      "successRate": "معدل النجاح",
+      "lockedAccounts": "حسابات مقفلة",
+      "failedLogins": "محاولات فاشلة",
+      "activeUsers": "مستخدمون نشطون",
+      "newRegistrations": "تسجيلات جديدة"
+    },
+    "period": {
+      "7d": "آخر 7 أيام",
+      "30d": "آخر 30 يوم",
+      "90d": "آخر 90 يوم"
+    },
+    "actions": {
+      "clearIpBlocks": "إزالة حظر العناوين",
+      "clearIpBlocksDesc": "إزالة جميع حظر عناوين IP وإعادة تعيين عدادات المحاولات. سيُسمح للعناوين المحظورة بمحاولة تسجيل الدخول مجدداً.",
+      "clearIpBlocksConfirm": "إزالة جميع حظر العناوين",
+      "cleared": "تم إزالة حظر العناوين بنجاح",
+      "clearedDetail": "تم إزالة {ipBlocks} حظر عنوان و{attempts} سجل محاولة"
+    },
+    "lockedAccounts": {
+      "title": "الحسابات المقفلة",
+      "empty": "لا توجد حسابات مقفلة",
+      "emptyDesc": "لا توجد حسابات مقفلة حالياً بسبب محاولات تسجيل دخول فاشلة.",
+      "columns": {
+        "user": "المستخدم",
+        "role": "الدور",
+        "failedAttempts": "المحاولات الفاشلة",
+        "lockedUntil": "مقفل حتى",
+        "actions": "الإجراءات"
+      },
+      "unlock": "فتح القفل",
+      "unlockTitle": "فتح قفل الحساب",
+      "unlockDesc": "فتح قفل هذا الحساب وإعادة تعيين عداد المحاولات الفاشلة.",
+      "unlockReason": "السبب (اختياري)",
+      "unlockReasonPlaceholder": "مثال: تم التحقق عبر الهاتف",
+      "unlockConfirm": "فتح قفل الحساب",
+      "unlocked": "تم فتح قفل الحساب بنجاح"
+    }
+  },
+  "adminOrganizations": {
+    "title": "المنظمات",
+    "subtitle": "إدارة منظمات التجار وحالة الموافقة",
+    "stats": {
+      "total": "إجمالي المنظمات",
+      "pending": "بانتظار الموافقة",
+      "active": "نشطة",
+      "suspended": "معلّقة"
+    },
+    "filters": {
+      "allStatuses": "جميع الحالات",
+      "searchPlaceholder": "البحث بالاسم..."
+    },
+    "columns": {
+      "name": "المنظمة",
+      "status": "الحالة",
+      "locations": "المواقع",
+      "created": "تاريخ الإنشاء",
+      "actions": "الإجراءات"
+    },
+    "status": {
+      "pending": "معلّقة",
+      "active": "نشطة",
+      "suspended": "موقوفة"
+    },
+    "actions": {
+      "approve": "موافقة",
+      "suspend": "تعليق",
+      "activate": "تفعيل",
+      "confirmTitle": "تأكيد تغيير الحالة",
+      "confirmApprove": "هل تريد الموافقة على هذه المنظمة؟ ستصبح مؤسساتها مرئية للعملاء.",
+      "confirmSuspend": "هل تريد تعليق هذه المنظمة؟ سيتم إخفاء مؤسساتها وعروضها.",
+      "confirmActivate": "هل تريد إعادة تفعيل هذه المنظمة؟",
+      "statusUpdated": "تم تحديث حالة المنظمة بنجاح"
+    },
+    "empty": "لم يتم العثور على منظمات",
+    "emptyDesc": "لا توجد منظمات تطابق الفلاتر الحالية."
   }
 }

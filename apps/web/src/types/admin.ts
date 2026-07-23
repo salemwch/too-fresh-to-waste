@@ -1242,3 +1242,130 @@ export interface GeozoneSearchParams {
   page?: number;
   limit?: number;
 }
+
+// ─── Auth Security (admin) ──────────────────────────────────────────────────
+
+export interface SecurityStats {
+  period: { from: string; to: string };
+  totalUsers: number;
+  activeUsers: number;
+  successfulLogins: number;
+  failedLogins: number;
+  lockedAccounts: number;
+  newRegistrations: number;
+  summary: { totalLoginAttempts: number; successRate: string };
+}
+
+export interface LockedAccount {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  failedLoginAttempts: number;
+  accountLockedUntil: string;
+  lastLoginAt?: string;
+  createdAt: string;
+}
+
+export interface LockedAccountsResponse {
+  accounts: LockedAccount[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface FailedLoginInfo {
+  userId: string;
+  failedAttempts: number;
+  accountLockedUntil: string | null;
+  isLocked: boolean;
+}
+
+export interface ClearIpBlocksResult {
+  clearedIpBlocks: number;
+  clearedLoginAttempts: number;
+}
+
+export interface SecurityStatsQuery {
+  fromDate?: string;
+  toDate?: string;
+}
+
+// ─── Organization Management (admin) ────────────────────────────────────────
+
+export type OrganizationStatus = 'pending' | 'active' | 'suspended';
+
+export interface OrganizationRow {
+  _id: string;
+  name: string;
+  logo?: string;
+  ownerId: string;
+  status: OrganizationStatus;
+  establishmentIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrganizationQuery {
+  page?: number;
+  limit?: number;
+  status?: OrganizationStatus;
+}
+
+// ─── Offer Operations (additional) ──────────────────────────────────────────
+
+export interface ExpiringOfferItem {
+  id: string;
+  title: string;
+  type: string;
+  image?: string;
+  pricing: {
+    originalPrice: number;
+    discountedPrice: number;
+    discountPercentage: number;
+    currency: string;
+  };
+  availableQuantity: number;
+  availableFrom: string;
+  availableUntil: string;
+  establishment: {
+    name: string;
+    averageRating?: number;
+    totalReviews?: number;
+    profileImage?: string;
+  };
+  status: string;
+  isFeatured: boolean;
+}
+
+export interface AutoFeaturingResult {
+  offersAutoFeatured: number;
+  offersAutoUnfeatured: number;
+  timestamp: string;
+}
+
+// ─── Order Operations (additional) ──────────────────────────────────────────
+
+export interface AdminPendingOrder {
+  _id: string;
+  orderNumber: string;
+  customerId: string | { _id: string; firstName: string; lastName: string; email: string };
+  establishmentId: string | { _id: string; name: string };
+  merchantId: string;
+  status: string;
+  paymentStatus: string;
+  pricing: { subtotal: number; total: number; currency: string };
+  expiresAt: string;
+  createdAt: string;
+}
+
+// ─── Loyalty (admin add points) ─────────────────────────────────────────────
+
+export interface AddLoyaltyPointsPayload {
+  amount: number;
+  reason: string;
+  orderId?: string;
+  offerId?: string;
+  bypassMultiplier?: boolean;
+}

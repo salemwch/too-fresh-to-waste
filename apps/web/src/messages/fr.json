@@ -927,7 +927,9 @@
         "finance": "Finance",
         "engagement": "Engagement",
         "system": "Système"
-      }
+      },
+      "securityDashboard": "Sécurité",
+      "organizations": "Organisations"
     },
     "stats": {
       "activeOffers": "Offres actives",
@@ -1351,7 +1353,8 @@
         "all": "Toutes les offres",
         "lowPickup": "Faible taux de retrait",
         "violations": "Violations de prix",
-        "deleted": "Supprimées"
+        "deleted": "Supprimées",
+        "expiring": "Bientôt expirées"
       },
       "columns": {
         "offer": "Offre",
@@ -1382,13 +1385,18 @@
       "actions": {
         "export": "Exporter CSV",
         "restore": "Restaurer",
-        "restoreConfirm": "Restaurer en brouillon"
+        "restoreConfirm": "Restaurer en brouillon",
+        "autoFeature": "Auto-mise en avant",
+        "autoFeatureSuccess": "Auto-mise en avant terminée : {featured} mises en avant, {unfeatured} retirées",
+        "updateExpired": "Mettre à jour expirées",
+        "expiredUpdated": "Offres expirées mises à jour"
       },
       "empty": "Aucune offre trouvée",
       "emptyDescription": "Ajustez les filtres pour voir plus d'offres",
       "lowPickupEmpty": "Aucune offre sous le seuil de retrait",
       "violationsEmpty": "Aucune violation de prix détectée",
-      "deletedEmpty": "Aucune offre supprimée"
+      "deletedEmpty": "Aucune offre supprimée",
+      "expiringEmpty": "Aucune offre expirant dans les prochaines 24 heures"
     },
     "adminDonationPool": {
       "title": "Cagnotte de dons",
@@ -2316,7 +2324,8 @@
     "tabs": {
       "all": "Toutes les commandes",
       "disputes": "Litiges",
-      "refunds": "Remboursements"
+      "refunds": "Remboursements",
+      "pending": "En attente"
     },
     "kpi": {
       "totalOrders": "Total commandes",
@@ -2335,7 +2344,10 @@
     "actions": {
       "viewDetails": "Voir détails",
       "cancel": "Annuler",
-      "refund": "Rembourser"
+      "refund": "Rembourser",
+      "delete": "Supprimer la commande",
+      "processExpired": "Traiter les expirées",
+      "expiredUpdated": "Commandes expirées traitées avec succès"
     },
     "cancelDialog": {
       "title": "Annuler la commande",
@@ -2352,6 +2364,10 @@
     "empty": {
       "title": "Aucune commande",
       "description": "Aucune commande ne correspond à vos filtres."
+    },
+    "deleteDialog": {
+      "title": "Supprimer la commande",
+      "description": "Cette action supprimera définitivement la commande. Elle ne pourra pas être annulée."
     }
   },
   "adminAuditLog": {
@@ -2548,6 +2564,17 @@
     "empty": {
       "title": "Aucun participant",
       "description": "Aucun utilisateur dans le programme de fidélité."
+    },
+    "addPoints": {
+      "title": "Ajouter des points de fidélité",
+      "description": "Ajouter des points manuels à {name}",
+      "amountLabel": "Nombre de points",
+      "reasonLabel": "Raison",
+      "reasonPlaceholder": "ex: Compensation service client, Gagnant du concours...",
+      "cancel": "Annuler",
+      "confirm": "Ajouter les points",
+      "adding": "Ajout en cours...",
+      "success": "{points} points ajoutés à {name}"
     }
   },
   "adminVotingWinners": {
@@ -2682,7 +2709,15 @@
     "noTickets": "Aucun ticket",
     "noTicketsDesc": "Les tickets de support apparaîtront ici lorsque les utilisateurs en soumettront.",
     "subject": "Sujet",
-    "category": "Catégorie",
+    "category": {
+      "order_issue": "Problème de commande",
+      "payment_dispute": "Litige de paiement",
+      "account_problem": "Problème de compte",
+      "establishment_complaint": "Plainte établissement",
+      "technical_bug": "Bug technique",
+      "feature_request": "Demande de fonctionnalité",
+      "other": "Autre"
+    },
     "priorityLabel": "Priorité",
     "statusLabel": "Statut",
     "actions": "Actions",
@@ -2702,15 +2737,6 @@
       "medium": "Moyenne",
       "high": "Haute",
       "urgent": "Urgente"
-    },
-    "category": {
-      "order_issue": "Problème de commande",
-      "payment_dispute": "Litige de paiement",
-      "account_problem": "Problème de compte",
-      "establishment_complaint": "Plainte établissement",
-      "technical_bug": "Bug technique",
-      "feature_request": "Demande de fonctionnalité",
-      "other": "Autre"
     }
   },
   "adminAnnouncements": {
@@ -2777,5 +2803,86 @@
       "longitude": "Longitude du centre",
       "submit": "Créer la zone"
     }
+  },
+  "adminSecurity": {
+    "title": "Tableau de bord sécurité",
+    "subtitle": "Surveillez les connexions, gérez les comptes verrouillés et effacez les blocages IP",
+    "stats": {
+      "totalAttempts": "Tentatives de connexion",
+      "successRate": "Taux de réussite",
+      "lockedAccounts": "Comptes verrouillés",
+      "failedLogins": "Connexions échouées",
+      "activeUsers": "Utilisateurs actifs",
+      "newRegistrations": "Nouvelles inscriptions"
+    },
+    "period": {
+      "7d": "7 derniers jours",
+      "30d": "30 derniers jours",
+      "90d": "90 derniers jours"
+    },
+    "actions": {
+      "clearIpBlocks": "Effacer les blocages IP",
+      "clearIpBlocksDesc": "Supprimez tous les blocages IP et réinitialisez les compteurs de tentatives dans Redis. Les IP bloquées pourront se reconnecter.",
+      "clearIpBlocksConfirm": "Effacer tous les blocages IP",
+      "cleared": "Blocages IP effacés avec succès",
+      "clearedDetail": "{ipBlocks} blocages IP et {attempts} tentatives effacés"
+    },
+    "lockedAccounts": {
+      "title": "Comptes verrouillés",
+      "empty": "Aucun compte verrouillé",
+      "emptyDesc": "Aucun compte n'est actuellement verrouillé.",
+      "columns": {
+        "user": "Utilisateur",
+        "role": "Rôle",
+        "failedAttempts": "Tentatives échouées",
+        "lockedUntil": "Verrouillé jusqu'à",
+        "actions": "Actions"
+      },
+      "unlock": "Déverrouiller",
+      "unlockTitle": "Déverrouiller le compte",
+      "unlockDesc": "Déverrouillez ce compte et réinitialisez le compteur d'échecs.",
+      "unlockReason": "Raison (optionnelle)",
+      "unlockReasonPlaceholder": "ex: Vérification par téléphone",
+      "unlockConfirm": "Déverrouiller le compte",
+      "unlocked": "Compte déverrouillé avec succès"
+    }
+  },
+  "adminOrganizations": {
+    "title": "Organisations",
+    "subtitle": "Gérez les organisations marchandes et leur statut d'approbation",
+    "stats": {
+      "total": "Total des organisations",
+      "pending": "En attente",
+      "active": "Actives",
+      "suspended": "Suspendues"
+    },
+    "filters": {
+      "allStatuses": "Tous les statuts",
+      "searchPlaceholder": "Rechercher par nom..."
+    },
+    "columns": {
+      "name": "Organisation",
+      "status": "Statut",
+      "locations": "Établissements",
+      "created": "Créé le",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "En attente",
+      "active": "Active",
+      "suspended": "Suspendue"
+    },
+    "actions": {
+      "approve": "Approuver",
+      "suspend": "Suspendre",
+      "activate": "Activer",
+      "confirmTitle": "Confirmer le changement de statut",
+      "confirmApprove": "Voulez-vous approuver cette organisation ? Ses établissements seront visibles aux clients.",
+      "confirmSuspend": "Voulez-vous suspendre cette organisation ? Ses établissements et offres seront masqués.",
+      "confirmActivate": "Voulez-vous réactiver cette organisation ?",
+      "statusUpdated": "Statut de l'organisation mis à jour"
+    },
+    "empty": "Aucune organisation trouvée",
+    "emptyDesc": "Aucune organisation ne correspond aux filtres actuels."
   }
 }

@@ -921,6 +921,8 @@
       "geozones": "Geozones",
       "announcements": "Announcements",
       "team": "Team Management",
+      "securityDashboard": "Security",
+      "organizations": "Organizations",
       "groups": {
         "overview": "Overview",
         "peopleAndPlaces": "People & Places",
@@ -1352,7 +1354,8 @@
         "all": "All Offers",
         "lowPickup": "Low Pickup Rate",
         "violations": "Price Violations",
-        "deleted": "Deleted"
+        "deleted": "Deleted",
+        "expiring": "Expiring Soon"
       },
       "columns": {
         "offer": "Offer",
@@ -1383,13 +1386,18 @@
       "actions": {
         "export": "Export CSV",
         "restore": "Restore",
-        "restoreConfirm": "Restore to Draft"
+        "restoreConfirm": "Restore to Draft",
+        "autoFeature": "Auto-Feature",
+        "autoFeatureSuccess": "Auto-featuring complete: {featured} featured, {unfeatured} unfeatured",
+        "updateExpired": "Update Expired",
+        "expiredUpdated": "Expired offers updated successfully"
       },
       "empty": "No offers found",
       "emptyDescription": "Adjust filters to see more offers",
       "lowPickupEmpty": "No offers below the pickup threshold",
       "violationsEmpty": "No price violations detected",
-      "deletedEmpty": "No deleted offers"
+      "deletedEmpty": "No deleted offers",
+      "expiringEmpty": "No offers expiring in the next 24 hours"
     },
     "adminDonationPool": {
       "title": "Donation Pool",
@@ -2312,7 +2320,8 @@
     "tabs": {
       "all": "All Orders",
       "disputes": "Disputes",
-      "refunds": "Refunds"
+      "refunds": "Refunds",
+      "pending": "Pending"
     },
     "kpi": {
       "totalOrders": "Total Orders",
@@ -2331,7 +2340,10 @@
     "actions": {
       "viewDetails": "View Details",
       "cancel": "Cancel Order",
-      "refund": "Issue Refund"
+      "refund": "Issue Refund",
+      "delete": "Delete Order",
+      "processExpired": "Process Expired",
+      "expiredUpdated": "Expired orders processed successfully"
     },
     "cancelDialog": {
       "title": "Cancel Order",
@@ -2348,6 +2360,10 @@
     "empty": {
       "title": "No orders found",
       "description": "No orders match your current filters."
+    },
+    "deleteDialog": {
+      "title": "Delete Order",
+      "description": "This will permanently delete the order. This action cannot be undone."
     }
   },
   "adminAuditLog": {
@@ -2544,6 +2560,17 @@
     "empty": {
       "title": "No participants",
       "description": "No users in the loyalty program yet."
+    },
+    "addPoints": {
+      "title": "Add Loyalty Points",
+      "description": "Add manual loyalty points to {name}",
+      "amountLabel": "Points Amount",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "e.g., Customer service compensation, Contest winner...",
+      "cancel": "Cancel",
+      "confirm": "Add Points",
+      "adding": "Adding...",
+      "success": "Added {points} points to {name}"
     }
   },
   "adminVotingWinners": {
@@ -2678,7 +2705,15 @@
     "noTickets": "No tickets",
     "noTicketsDesc": "Support tickets will appear here when users submit them.",
     "subject": "Subject",
-    "category": "Category",
+    "category": {
+      "order_issue": "Order Issue",
+      "payment_dispute": "Payment Dispute",
+      "account_problem": "Account Problem",
+      "establishment_complaint": "Establishment Complaint",
+      "technical_bug": "Technical Bug",
+      "feature_request": "Feature Request",
+      "other": "Other"
+    },
     "priorityLabel": "Priority",
     "statusLabel": "Status",
     "actions": "Actions",
@@ -2698,15 +2733,6 @@
       "medium": "Medium",
       "high": "High",
       "urgent": "Urgent"
-    },
-    "category": {
-      "order_issue": "Order Issue",
-      "payment_dispute": "Payment Dispute",
-      "account_problem": "Account Problem",
-      "establishment_complaint": "Establishment Complaint",
-      "technical_bug": "Technical Bug",
-      "feature_request": "Feature Request",
-      "other": "Other"
     }
   },
   "adminAnnouncements": {
@@ -2773,5 +2799,86 @@
       "longitude": "Center Longitude",
       "submit": "Create Zone"
     }
+  },
+  "adminSecurity": {
+    "title": "Security Dashboard",
+    "subtitle": "Monitor login activity, manage locked accounts, and clear IP blocks",
+    "stats": {
+      "totalAttempts": "Total Login Attempts",
+      "successRate": "Success Rate",
+      "lockedAccounts": "Locked Accounts",
+      "failedLogins": "Failed Logins",
+      "activeUsers": "Active Users",
+      "newRegistrations": "New Registrations"
+    },
+    "period": {
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days"
+    },
+    "actions": {
+      "clearIpBlocks": "Clear IP Blocks",
+      "clearIpBlocksDesc": "Remove all IP address blocks and reset login attempt counters in Redis. This will allow previously blocked IPs to attempt login again.",
+      "clearIpBlocksConfirm": "Clear All IP Blocks",
+      "cleared": "IP blocks cleared successfully",
+      "clearedDetail": "Cleared {ipBlocks} IP blocks and {attempts} login attempt records"
+    },
+    "lockedAccounts": {
+      "title": "Locked Accounts",
+      "empty": "No locked accounts",
+      "emptyDesc": "There are currently no accounts locked due to failed login attempts.",
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "failedAttempts": "Failed Attempts",
+        "lockedUntil": "Locked Until",
+        "actions": "Actions"
+      },
+      "unlock": "Unlock",
+      "unlockTitle": "Unlock Account",
+      "unlockDesc": "Unlock this account and reset the failed login counter. The user will be able to log in again.",
+      "unlockReason": "Reason (optional)",
+      "unlockReasonPlaceholder": "e.g., User verified via phone",
+      "unlockConfirm": "Unlock Account",
+      "unlocked": "Account unlocked successfully"
+    }
+  },
+  "adminOrganizations": {
+    "title": "Organizations",
+    "subtitle": "Manage merchant organizations and their approval status",
+    "stats": {
+      "total": "Total Organizations",
+      "pending": "Pending Approval",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "filters": {
+      "allStatuses": "All Statuses",
+      "searchPlaceholder": "Search by name..."
+    },
+    "columns": {
+      "name": "Organization",
+      "status": "Status",
+      "locations": "Locations",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "actions": {
+      "approve": "Approve",
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "confirmTitle": "Confirm Status Change",
+      "confirmApprove": "Are you sure you want to approve this organization? Their establishments will become visible to customers.",
+      "confirmSuspend": "Are you sure you want to suspend this organization? Their establishments and offers will be hidden.",
+      "confirmActivate": "Are you sure you want to reactivate this organization?",
+      "statusUpdated": "Organization status updated successfully"
+    },
+    "empty": "No organizations found",
+    "emptyDesc": "There are no organizations matching the current filters."
   }
 }

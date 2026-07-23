@@ -14,6 +14,7 @@ import {
   Award,
   Package,
   UserPlus,
+  Plus,
 } from 'lucide-react';
 import {
   Card,
@@ -33,10 +34,22 @@ import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kp
 import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
   useAdminLeaderboardStats,
   useAdminTopUsers,
   useAdminTopMerchants,
+  useAddLoyaltyPoints,
 } from '@/hooks/use-admin';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { AdminLeaderboardEntry } from '@/types/admin';
 
@@ -169,12 +182,112 @@ function UserDetailDrawer({
 
 // ─── Content ─────────────────────────────────────────────────────────────────
 
+function AddPointsDialog({
+  user,
+  open,
+  onClose,
+}: {
+  user: AdminLeaderboardEntry | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const t = useTranslations('adminLeaderboards');
+  const addPointsMutation = useAddLoyaltyPoints();
+  const [amount, setAmount] = useState('');
+  const [reason, setReason] = useState('');
+
+  const handleSubmit = () => {
+    if (!user || !amount || !reason.trim()) return;
+    addPointsMutation.mutate(
+      { userId: user.userId, payload: { amount: Number(amount), reason } },
+      {
+        onSuccess: () => {
+          toast.success(
+            t('addPoints.success', { points: amount, name: `${user.firstName} ${user.lastName}` }),
+          );
+          setAmount('');
+          setReason('');
+          onClose();
+        },
+      },
+    );
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={v => {
+        if (!v) {
+          onClose();
+          setAmount('');
+          setReason('');
+        }
+      }}
+    >
+      <DialogContent className='max-w-md'>
+        <DialogHeader>
+          <DialogTitle>{t('addPoints.title')}</DialogTitle>
+        </DialogHeader>
+        <div className='space-y-4 py-2'>
+          {user && (
+            <p className='text-sm text-muted-foreground'>
+              {t('addPoints.description', { name: `${user.firstName} ${user.lastName}` })}
+            </p>
+          )}
+          <div className='space-y-1.5'>
+            <Label htmlFor='points-amount'>{t('addPoints.amountLabel')}</Label>
+            <Input
+              id='points-amount'
+              type='number'
+              min={1}
+              value={amount}
+              onChange={e => setAmount(e.target.value)}
+              placeholder='e.g. 50'
+            />
+          </div>
+          <div className='space-y-1.5'>
+            <Label htmlFor='points-reason'>{t('addPoints.reasonLabel')}</Label>
+            <Textarea
+              id='points-reason'
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder={t('addPoints.reasonPlaceholder')}
+              rows={3}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant='outline'
+            onClick={() => {
+              onClose();
+              setAmount('');
+              setReason('');
+            }}
+          >
+            {t('addPoints.cancel')}
+          </Button>
+          <Button
+            disabled={
+              !amount || Number(amount) <= 0 || !reason.trim() || addPointsMutation.isPending
+            }
+            onClick={handleSubmit}
+          >
+            {addPointsMutation.isPending ? t('addPoints.adding') : t('addPoints.confirm')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function LeaderboardsContent() {
   const t = useTranslations('adminLeaderboards');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'overview';
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<AdminLeaderboardEntry | null>(null);
+  const [addPointsUser, setAddPointsUser] = useState<AdminLeaderboardEntry | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useAdminLeaderboardStats();
   const { data: topUsersData, isLoading: usersLoading } = useAdminTopUsers(page);
@@ -285,14 +398,27 @@ function LeaderboardsContent() {
       key: 'actions',
       header: '',
       render: u => (
-        <Button
-          variant='ghost'
-          size='sm'
-          className='h-7 w-7 p-0'
-          onClick={() => setSelectedUser(u)}
-        >
-          <Eye className='size-3.5' />
-        </Button>
+        <div className='flex items-center gap-1'>
+          <Button
+            variant='ghost'
+            size='sm'
+            className='h-7 w-7 p-0'
+            onClick={() => setSelectedUser(u)}
+          >
+            <Eye className='size-3.5' />
+          </Button>
+          <Button
+            variant='ghost'
+            size='sm'
+            className='h-7 w-7 p-0 text-amber-600'
+            onClick={e => {
+              e.stopPropagation();
+              setAddPointsUser(u);
+            }}
+          >
+            <Plus className='size-3.5' />
+          </Button>
+        </div>
       ),
     },
   ];
@@ -442,6 +568,12 @@ function LeaderboardsContent() {
         user={selectedUser}
         open={!!selectedUser}
         onClose={() => setSelectedUser(null)}
+      />
+
+      <AddPointsDialog
+        user={addPointsUser}
+        open={!!addPointsUser}
+        onClose={() => setAddPointsUser(null)}
       />
     </div>
   );

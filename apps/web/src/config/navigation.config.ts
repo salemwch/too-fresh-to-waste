@@ -9,6 +9,7 @@ import {
   Trophy,
   Building2,
   Shield,
+  ShieldAlert,
   Settings,
   Activity,
   HeartHandshake,
@@ -24,6 +25,7 @@ import {
   Megaphone,
   Ticket,
   UserCog,
+  Network,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -152,6 +154,12 @@ export const adminNavGroups: NavGroup[] = [
         roles: [UserRole.ADMIN, UserRole.MODERATOR],
       },
       {
+        titleKey: 'organizations',
+        href: '/admin/organizations',
+        icon: Network,
+        roles: [UserRole.ADMIN],
+      },
+      {
         titleKey: 'drivers',
         href: '/admin/drivers',
         icon: Truck,
@@ -253,6 +261,12 @@ export const adminNavGroups: NavGroup[] = [
         titleKey: 'team',
         href: '/admin/team',
         icon: UserCog,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'securityDashboard',
+        href: '/admin/security',
+        icon: ShieldAlert,
         roles: [UserRole.ADMIN],
       },
       {
