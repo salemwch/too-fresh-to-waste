@@ -65,6 +65,8 @@ export interface PaginationMeta {
 export interface OrderStatsResponse {
   totalOrders: number;
   totalRevenue: number;
+  /** Retail value of food rescued (sum of originalPrice * quantity for completed orders) */
+  totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
   readyOrders: number;

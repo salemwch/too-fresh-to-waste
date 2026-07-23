@@ -1,6 +1,6 @@
 'use client';
 
-import { Coins, Leaf, HeartHandshake, TrendingUp } from 'lucide-react';
+import { Coins, Leaf, HeartHandshake, TrendingUp, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { useCarbonMetrics, useSocialImpact } from '@/hooks/use-merchant-dashboard';
@@ -22,10 +22,13 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
   const socialQuery = useSocialImpact();
 
   const revenue = stats?.totalRevenue ?? 0;
+  const originalValue = stats?.totalOriginalValue ?? 0;
   const completionRate =
     stats && stats.totalOrders > 0
       ? Math.round((stats.completedOrders / stats.totalOrders) * 100)
       : 0;
+  const savingsPercent =
+    originalValue > 0 ? Math.round(((originalValue - revenue) / originalValue) * 100) : 0;
 
   const carbonKg = carbonQuery.data?.carbonKgAvoided ?? 0;
   const carKm = carbonQuery.data?.carKmEquivalent ?? 0;
@@ -33,6 +36,14 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
   const people = socialQuery.data?.peopleServedEstimate ?? 0;
 
   const cards = [
+    {
+      title: t('rescued.title'),
+      value: formatValue(originalValue),
+      unit: t('rescued.unit'),
+      delta: t('rescued.delta', { percent: savingsPercent }),
+      icon: ShieldCheck,
+      note: t('rescued.note'),
+    },
     {
       title: t('revenue.title'),
       value: formatValue(revenue),
@@ -60,7 +71,7 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
   ];
 
   return (
-    <section className='grid grid-cols-1 md:grid-cols-3 gap-[20px]'>
+    <section className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-[20px]'>
       {cards.map((card, i) => {
         const Icon = card.icon;
         return (
@@ -107,8 +118,8 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
 
 export function ImpactCardsSkeleton() {
   return (
-    <section className='grid grid-cols-1 md:grid-cols-3 gap-[20px]'>
-      {[0, 1, 2].map(i => (
+    <section className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-[20px]'>
+      {[0, 1, 2, 3].map(i => (
         <div
           key={i}
           className='glass rounded-2xl p-[24px] shadow-soft h-[200px] animate-pulse bg-white/30'

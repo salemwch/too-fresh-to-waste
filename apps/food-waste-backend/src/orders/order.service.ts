@@ -92,6 +92,7 @@ interface OrderStatsResult {
   _id: null;
   totalOrders: number;
   totalRevenue: number;
+  totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
   readyOrders: number;
@@ -143,6 +144,8 @@ export interface CustomerLocationResponse {
 export interface OrderStatsResponse {
   totalOrders: number;
   totalRevenue: number;
+  /** Retail value of food rescued (sum of items[].originalPrice * quantity for completed orders) */
+  totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
   readyOrders: number;
@@ -1673,6 +1676,31 @@ export class OrdersService {
                   ],
                 },
               },
+              totalOriginalValue: {
+                $sum: {
+                  $cond: [
+                    {
+                      $in: [
+                        '$status',
+                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                      ],
+                    },
+                    {
+                      $reduce: {
+                        input: '$items',
+                        initialValue: 0,
+                        in: {
+                          $add: [
+                            '$$value',
+                            { $multiply: ['$$this.originalPrice', '$$this.quantity'] },
+                          ],
+                        },
+                      },
+                    },
+                    0,
+                  ],
+                },
+              },
               pendingOrders: {
                 $sum: { $cond: [{ $eq: ['$status', OrderStatus.PENDING] }, 1, 0] },
               },
@@ -1723,6 +1751,7 @@ export class OrdersService {
           result[0] ?? {
             totalOrders: 0,
             totalRevenue: 0,
+            totalOriginalValue: 0,
             pendingOrders: 0,
             confirmedOrders: 0,
             readyOrders: 0,

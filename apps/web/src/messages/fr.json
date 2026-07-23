@@ -1754,11 +1754,17 @@
       "reactivate": "Réactiver"
     },
     "impactCards": {
-      "revenue": {
+      "rescued": {
         "title": "Revenus Sauvés",
         "unit": "TND",
+        "delta": "{percent}% de réduction accordée",
+        "note": "Valeur alimentaire qui aurait été perdue sans notre plateforme."
+      },
+      "revenue": {
+        "title": "Revenus Gagnés",
+        "unit": "TND",
         "delta": "+{rate}% taux complétion",
-        "note": "La durabilité est rentable. Vos revenus de sauvetage cette période."
+        "note": "Gains réels de la vente de nourriture qui aurait été gaspillée."
       },
       "carbon": {
         "title": "Impact Carbone (Scope 3)",

@@ -1755,11 +1755,17 @@
       "reactivate": "Reactivate"
     },
     "impactCards": {
+      "rescued": {
+        "title": "Revenue Rescued",
+        "unit": "TND",
+        "delta": "{percent}% discount given",
+        "note": "Food value that would have been lost without our platform."
+      },
       "revenue": {
-        "title": "Saved Revenue",
+        "title": "Earned Revenue",
         "unit": "TND",
         "delta": "+{rate}% completion rate",
-        "note": "Sustainability is profitable. Your rescue revenue this period."
+        "note": "Actual earnings from selling food that would have gone to waste."
       },
       "carbon": {
         "title": "Carbon Impact (Scope 3)",
