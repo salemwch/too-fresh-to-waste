@@ -36,7 +36,6 @@ import type {
   RealTimeMetrics,
   AdminOfferStats,
   AdminOfferItem,
-  AdminOfferListResponse,
   AdminOfferQuery,
   AdminLowPickupItem,
   AdminPriceViolationItem,
@@ -533,7 +532,7 @@ export const adminService = {
 
   /** GET /admin/offers — all offers with filters. */
   listAdminOffers(params: AdminOfferQuery = {}) {
-    return apiClient.get<BackendEnvelope<AdminOfferListResponse>>(`${ADMIN}/offers`, { params });
+    return apiClient.get<BackendEnvelope<AdminOfferItem[]>>(`${ADMIN}/offers`, { params });
   },
 
   /** GET /admin/offers/low-pickup-rate?threshold=&page=&limit= */

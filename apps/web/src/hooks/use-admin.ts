@@ -460,7 +460,11 @@ export function useOfferStats() {
 export function useAdminOffers(params: AdminOfferQuery) {
   return useQuery({
     queryKey: adminKeys.offerList(params),
-    queryFn: () => adminService.listAdminOffers(params).then(r => r.data.data),
+    queryFn: () =>
+      adminService.listAdminOffers(params).then(r => ({
+        data: r.data.data,
+        meta: r.data.meta,
+      })),
     staleTime: 60 * 1000,
     placeholderData: prev => prev,
   });

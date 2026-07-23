@@ -207,7 +207,7 @@ function AllOffersTable({
   });
 
   const offers = data?.data ?? [];
-  const total = data?.total ?? 0;
+  const total = data?.meta?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
   const handleSearch = useCallback((v: string) => {
