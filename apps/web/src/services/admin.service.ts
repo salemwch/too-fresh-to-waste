@@ -90,6 +90,7 @@ import type {
   AutoFeaturingResult,
   AdminPendingOrder,
   AddLoyaltyPointsPayload,
+  AnomalyAlert,
 } from '@/types/admin';
 
 const ADMIN = '/admin';
@@ -137,7 +138,7 @@ export const adminService = {
    */
   getPlatformAnalytics(period: AnalyticsPeriod = 'week') {
     return apiClient.get<BackendEnvelope<PlatformAnalytics>>(`${ADMIN}/analytics/platform`, {
-      params: { period },
+      params: { period, includeDetails: true },
     });
   },
 
@@ -920,9 +921,12 @@ export const adminService = {
   // ── Loyalty (admin add points) ─────────────────────────────────────────────
 
   addLoyaltyPoints(userId: string, payload: AddLoyaltyPointsPayload) {
-    return apiClient.post<BackendEnvelope<unknown>>('/loyalty/points/add', {
-      ...payload,
-      userId,
-    });
+    return apiClient.post<BackendEnvelope<unknown>>(`/loyalty/points/add/${userId}`, payload);
+  },
+
+  // ── Anomaly Detection ─────────────────────────────────────────────────────
+
+  getAnomalies() {
+    return apiClient.get<BackendEnvelope<AnomalyAlert[]>>(`${ADMIN}/analytics/anomalies`);
   },
 };

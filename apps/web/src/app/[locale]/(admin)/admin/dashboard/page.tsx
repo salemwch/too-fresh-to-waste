@@ -16,6 +16,8 @@ import {
   Zap,
   RefreshCw,
   Download,
+  AlertTriangle,
+  ShieldAlert,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@foodwaste/ui';
 import {
@@ -46,6 +48,7 @@ import {
   useRealTimeMetrics,
   useOfferStats,
   useAuditStats,
+  useAnomalies,
 } from '@/hooks/use-admin';
 import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -405,6 +408,7 @@ export default function AdminDashboardPage() {
   );
   const { data: pending, isLoading: loadingPending } = usePendingApprovals(6);
   const { data: modStats } = useModerationStats();
+  const { data: anomalies, isLoading: loadingAnomalies } = useAnomalies();
   const approveMutation = useApproveEstablishment();
 
   const [actionDialog, setActionDialog] = useState<{
@@ -563,7 +567,7 @@ export default function AdminDashboardPage() {
                     ))}
                   </div>
                   <Link
-                    href='/admin/audit-logs'
+                    href='/admin/audit-log'
                     className='text-[11px] text-primary hover:underline whitespace-nowrap'
                   >
                     View all →
@@ -673,6 +677,76 @@ export default function AdminDashboardPage() {
           </Card>
         </div>
       </div>
+
+      {/* Anomaly Detection Alerts */}
+      <Card className='border-border/60'>
+        <CardHeader className='pb-3'>
+          <div className='flex items-center gap-2'>
+            <ShieldAlert className='size-4 text-destructive' />
+            <CardTitle className='text-sm font-semibold'>{t('anomalies.title')}</CardTitle>
+          </div>
+          <CardDescription className='text-xs'>{t('anomalies.subtitle')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingAnomalies ? (
+            <div className='space-y-2'>
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className='h-14 rounded-lg' />
+              ))}
+            </div>
+          ) : !anomalies || anomalies.length === 0 ? (
+            <div className='flex flex-col items-center gap-2 py-6'>
+              <CheckCircle2 className='size-8 text-green-500/40' />
+              <p className='text-xs font-medium text-muted-foreground'>{t('anomalies.noAlerts')}</p>
+            </div>
+          ) : (
+            <div className='space-y-2'>
+              {anomalies.slice(0, 8).map(alert => (
+                <div
+                  key={alert.id}
+                  className={cn(
+                    'flex items-start gap-3 rounded-lg border px-3 py-2.5',
+                    alert.severity === 'critical'
+                      ? 'border-destructive/40 bg-destructive/5'
+                      : alert.severity === 'high'
+                        ? 'border-orange-300/60 bg-orange-50/30'
+                        : 'border-border/60 bg-muted/20',
+                  )}
+                >
+                  <AlertTriangle
+                    className={cn(
+                      'size-4 mt-0.5 shrink-0',
+                      alert.severity === 'critical'
+                        ? 'text-destructive'
+                        : alert.severity === 'high'
+                          ? 'text-orange-500'
+                          : 'text-muted-foreground',
+                    )}
+                  />
+                  <div className='min-w-0 flex-1'>
+                    <div className='flex items-center gap-2'>
+                      <p className='text-xs font-semibold'>{alert.title}</p>
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                          alert.severity === 'critical'
+                            ? 'bg-destructive/10 text-destructive'
+                            : alert.severity === 'high'
+                              ? 'bg-orange-500/10 text-orange-600'
+                              : 'bg-muted text-muted-foreground',
+                        )}
+                      >
+                        {alert.severity}
+                      </span>
+                    </div>
+                    <p className='mt-0.5 text-[11px] text-muted-foreground'>{alert.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Confirm Action Dialog */}
       <ConfirmActionDialog

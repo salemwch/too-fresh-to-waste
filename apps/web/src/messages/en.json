@@ -975,6 +975,14 @@
       "totalOrders": "total orders",
       "orderLabel": "Orders"
     },
+    "merchantPricing": {
+      "title": "Smart Pricing Insights",
+      "subtitle": "Data-driven suggestions to optimize your bag pricing and sales",
+      "avgPrice": "Your Avg Price",
+      "fillRate": "Fill Rate",
+      "zoneAvg": "Zone Avg Price",
+      "suggestedRange": "Suggested Range (TND)"
+    },
     "merchantProfile": {
       "title": "My Profile",
       "description": "Update your personal information",
@@ -1048,6 +1056,11 @@
         "viewAll": "View All Establishments",
         "approve": "Approve",
         "reject": "Reject"
+      },
+      "anomalies": {
+        "title": "Anomaly Detection",
+        "subtitle": "Unusual patterns detected across the platform",
+        "noAlerts": "No anomalies detected — platform is healthy"
       },
       "users": {
         "title": "User Management",

@@ -18,6 +18,7 @@ import type {
   EsgTierResponse,
   MonthlyGoalResponse,
   CarbonMetricsResponse,
+  PricingSuggestions,
   SocialImpactResponse,
   LeaderboardEntry,
   MerchantRankResponse,
@@ -67,6 +68,7 @@ export const dashboardKeys = {
   realTimeMetrics: () => [...dashboardKeys.all, 'real-time'] as const,
   customerLocations: (limit: number, estId?: string) =>
     [...dashboardKeys.all, 'customer-locations', limit, estId ?? 'all'] as const,
+  pricingSuggestions: () => [...dashboardKeys.all, 'pricing-suggestions'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -545,5 +547,16 @@ export function useCustomerLocations(limit = 5) {
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function usePricingSuggestions() {
+  return useQuery({
+    queryKey: dashboardKeys.pricingSuggestions(),
+    queryFn: async (): Promise<PricingSuggestions> => {
+      const response = await dashboardService.getPricingSuggestions();
+      return response.data.data;
+    },
+    staleTime: 10 * 60 * 1000,
   });
 }

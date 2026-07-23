@@ -675,6 +675,23 @@ export class OffersController {
     };
   }
 
+  @Get('pricing-suggestions')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.MERCHANT)
+  @ApiOperation({
+    summary: 'Smart pricing suggestions for merchant',
+    description:
+      "Analyzes the merchant's historical offer performance and zone averages to suggest optimal pricing.",
+  })
+  @ApiResponse({ status: 200, description: 'Pricing suggestions retrieved' })
+  async getPricingSuggestions(@Request() req: AuthenticatedRequest) {
+    const suggestions = await this.offersService.getPricingSuggestions(req.user.userId);
+    return {
+      message: 'Pricing suggestions retrieved successfully',
+      data: suggestions,
+    };
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const offer = await this.offersService.findById(id, req.user.userId);

@@ -974,6 +974,14 @@
       "totalOrders": "commandes totales",
       "orderLabel": "Commandes"
     },
+    "merchantPricing": {
+      "title": "Tarification intelligente",
+      "subtitle": "Suggestions basées sur les données pour optimiser vos prix et ventes",
+      "avgPrice": "Prix moyen",
+      "fillRate": "Taux de remplissage",
+      "zoneAvg": "Moy. de la zone",
+      "suggestedRange": "Fourchette suggérée (TND)"
+    },
     "merchantProfile": {
       "title": "Mon Profil",
       "description": "Mettez à jour vos informations personnelles",
@@ -1047,6 +1055,11 @@
         "viewAll": "Voir tous les établissements",
         "approve": "Approuver",
         "reject": "Rejeter"
+      },
+      "anomalies": {
+        "title": "Détection d'anomalies",
+        "subtitle": "Comportements inhabituels détectés sur la plateforme",
+        "noAlerts": "Aucune anomalie détectée — la plateforme est en bonne santé"
       },
       "users": {
         "title": "Gestion des utilisateurs",

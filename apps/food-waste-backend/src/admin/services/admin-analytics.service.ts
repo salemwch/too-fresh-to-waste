@@ -26,6 +26,7 @@ import {
   CategoryStats,
   WasteReductionMetrics,
   EstablishmentRevenue,
+  AnomalyAlert,
 } from '../interfaces/admin-analytics.interface';
 
 interface CountAggregationResult {
@@ -1505,5 +1506,250 @@ export class AdminAnalyticsService {
           endDate: period.startDate,
         };
     }
+  }
+
+  // ── Anomaly Detection ─────────────────────────────────────────────────────
+
+  async getAnomalies(): Promise<AnomalyAlert[]> {
+    const cacheKey = 'admin:anomalies';
+    const cached = await this.redisCache.get<AnomalyAlert[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const now = new Date();
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const prev7d = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const alerts: AnomalyAlert[] = [];
+
+    const [highCancelMerchants, highExpiryMerchants, cancelSpike, unusualHourOffers] =
+      await Promise.all([
+        this.detectHighCancellationMerchants(last7d, now),
+        this.detectHighExpiryMerchants(last7d, now),
+        this.detectCancellationSpike(last7d, now, prev7d, last7d),
+        this.detectUnusualHourActivity(last24h, now),
+      ]);
+
+    alerts.push(
+      ...highCancelMerchants,
+      ...highExpiryMerchants,
+      ...cancelSpike,
+      ...unusualHourOffers,
+    );
+
+    alerts.sort((a, b) => {
+      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      return severityOrder[a.severity] - severityOrder[b.severity];
+    });
+
+    await this.redisCache.set(cacheKey, alerts, 300);
+    return alerts;
+  }
+
+  private async detectHighCancellationMerchants(from: Date, to: Date): Promise<AnomalyAlert[]> {
+    const pipeline: PipelineStage[] = [
+      { $match: { createdAt: { $gte: from, $lte: to } } },
+      {
+        $group: {
+          _id: '$merchantId',
+          total: { $sum: 1 },
+          cancelled: {
+            $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] },
+          },
+        },
+      },
+      { $match: { total: { $gte: 5 } } },
+      {
+        $addFields: {
+          cancelRate: { $divide: ['$cancelled', '$total'] },
+        },
+      },
+      { $match: { cancelRate: { $gte: 0.4 } } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'merchant',
+          pipeline: [{ $project: { email: 1, firstName: 1, lastName: 1 } }],
+        },
+      },
+      { $unwind: { path: '$merchant', preserveNullAndEmptyArrays: true } },
+      { $sort: { cancelRate: -1 } },
+      { $limit: 10 },
+    ];
+
+    const results = await this.orderModel.aggregate(pipeline).exec();
+
+    return (
+      results as Array<{
+        _id: string;
+        total: number;
+        cancelled: number;
+        cancelRate: number;
+        merchant?: { email: string; firstName: string; lastName: string };
+      }>
+    ).map(r => ({
+      id: `cancel-${String(r._id)}`,
+      type: 'high_cancellation' as const,
+      severity: r.cancelRate >= 0.6 ? ('critical' as const) : ('high' as const),
+      title: 'High cancellation rate',
+      description: `${r.merchant?.firstName ?? 'Unknown'} ${r.merchant?.lastName ?? ''} — ${Math.round(r.cancelRate * 100)}% cancellation rate (${r.cancelled}/${r.total} orders)`,
+      ...(r.merchant?.email ? { merchantEmail: r.merchant.email } : {}),
+      value: Math.round(r.cancelRate * 100),
+      threshold: 40,
+      detectedAt: new Date().toISOString(),
+    }));
+  }
+
+  private async detectHighExpiryMerchants(from: Date, to: Date): Promise<AnomalyAlert[]> {
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          createdAt: { $gte: from, $lte: to },
+          status: { $in: ['expired', 'sold_out', 'active'] },
+        },
+      },
+      {
+        $group: {
+          _id: '$merchantId',
+          total: { $sum: 1 },
+          expired: {
+            $sum: { $cond: [{ $eq: ['$status', 'expired'] }, 1, 0] },
+          },
+        },
+      },
+      { $match: { total: { $gte: 3 } } },
+      {
+        $addFields: {
+          expiryRate: { $divide: ['$expired', '$total'] },
+        },
+      },
+      { $match: { expiryRate: { $gte: 0.5 } } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'merchant',
+          pipeline: [{ $project: { email: 1, firstName: 1, lastName: 1 } }],
+        },
+      },
+      { $unwind: { path: '$merchant', preserveNullAndEmptyArrays: true } },
+      { $sort: { expiryRate: -1 } },
+      { $limit: 10 },
+    ];
+
+    const results = await this.offerModel.aggregate(pipeline).exec();
+
+    return (
+      results as Array<{
+        _id: string;
+        total: number;
+        expired: number;
+        expiryRate: number;
+        merchant?: { email: string; firstName: string; lastName: string };
+      }>
+    ).map(r => ({
+      id: `expiry-${String(r._id)}`,
+      type: 'high_expiry' as const,
+      severity: r.expiryRate >= 0.8 ? ('high' as const) : ('medium' as const),
+      title: 'High offer expiry rate',
+      description: `${r.merchant?.firstName ?? 'Unknown'} ${r.merchant?.lastName ?? ''} — ${Math.round(r.expiryRate * 100)}% expiry rate (${r.expired}/${r.total} offers)`,
+      ...(r.merchant?.email ? { merchantEmail: r.merchant.email } : {}),
+      value: Math.round(r.expiryRate * 100),
+      threshold: 50,
+      detectedAt: new Date().toISOString(),
+    }));
+  }
+
+  private async detectCancellationSpike(
+    currentFrom: Date,
+    currentTo: Date,
+    prevFrom: Date,
+    prevTo: Date,
+  ): Promise<AnomalyAlert[]> {
+    const [currentCount, prevCount] = await Promise.all([
+      this.orderModel.countDocuments({
+        status: 'cancelled',
+        createdAt: { $gte: currentFrom, $lte: currentTo },
+      }),
+      this.orderModel.countDocuments({
+        status: 'cancelled',
+        createdAt: { $gte: prevFrom, $lte: prevTo },
+      }),
+    ]);
+
+    if (prevCount === 0 || currentCount <= prevCount) {
+      return [];
+    }
+
+    const changePercent = Math.round(((currentCount - prevCount) / prevCount) * 100);
+
+    if (changePercent < 50) {
+      return [];
+    }
+
+    return [
+      {
+        id: 'cancel-spike',
+        type: 'cancellation_spike' as const,
+        severity: changePercent >= 100 ? ('critical' as const) : ('high' as const),
+        title: 'Cancellation spike detected',
+        description: `Cancellations up ${changePercent}% vs previous week (${currentCount} vs ${prevCount})`,
+        value: changePercent,
+        threshold: 50,
+        detectedAt: new Date().toISOString(),
+      },
+    ];
+  }
+
+  private async detectUnusualHourActivity(from: Date, to: Date): Promise<AnomalyAlert[]> {
+    const pipeline: PipelineStage[] = [
+      { $match: { createdAt: { $gte: from, $lte: to } } },
+      {
+        $group: {
+          _id: {
+            merchantId: '$merchantId',
+            hour: { $hour: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $match: { '_id.hour': { $in: [0, 1, 2, 3, 4] }, count: { $gte: 3 } } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id.merchantId',
+          foreignField: '_id',
+          as: 'merchant',
+          pipeline: [{ $project: { email: 1, firstName: 1, lastName: 1 } }],
+        },
+      },
+      { $unwind: { path: '$merchant', preserveNullAndEmptyArrays: true } },
+      { $limit: 5 },
+    ];
+
+    const results = await this.offerModel.aggregate(pipeline).exec();
+
+    return (
+      results as Array<{
+        _id: { merchantId: string; hour: number };
+        count: number;
+        merchant?: { email: string; firstName: string; lastName: string };
+      }>
+    ).map(r => ({
+      id: `unusual-${String(r._id.merchantId)}-${r._id.hour}`,
+      type: 'unusual_activity' as const,
+      severity: 'medium' as const,
+      title: 'Unusual hour activity',
+      description: `${r.merchant?.firstName ?? 'Unknown'} ${r.merchant?.lastName ?? ''} created ${r.count} offers between ${r._id.hour}:00-${r._id.hour + 1}:00`,
+      ...(r.merchant?.email ? { merchantEmail: r.merchant.email } : {}),
+      value: r.count,
+      threshold: 3,
+      detectedAt: new Date().toISOString(),
+    }));
   }
 }

@@ -24,6 +24,7 @@ import type {
   StreakResponse,
   RealTimeMetrics,
   CustomerLocationItem,
+  PricingSuggestions,
 } from '@/types/dashboard';
 
 const ORDERS_BASE = '/orders';
@@ -393,5 +394,9 @@ export const dashboardService = {
         },
       },
     );
+  },
+
+  getPricingSuggestions() {
+    return apiClient.get<BackendEnvelope<PricingSuggestions>>('/offers/pricing-suggestions');
   },
 };

@@ -79,7 +79,7 @@ export class LoyaltyController {
     return { message: 'Loyalty statistics retrieved successfully', data: stats };
   }
 
-  @Post('points/add')
+  @Post('points/add/:userId')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)

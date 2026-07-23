@@ -93,6 +93,22 @@ export class AdminAnalyticsController {
     }
   }
 
+  @Get('anomalies')
+  @ApiOperation({
+    summary: 'Get anomaly detection alerts',
+    description:
+      'Returns platform anomalies: high cancellation merchants, high expiry rates, cancellation spikes, unusual-hour activity.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Anomalies retrieved successfully' })
+  async getAnomalies() {
+    const alerts = await this.analyticsService.getAnomalies();
+    return {
+      status: 'success',
+      message: 'Anomalies retrieved successfully',
+      data: alerts,
+    };
+  }
+
   @Get('audit-logs')
   @ApiOperation({
     summary: 'Get audit logs',

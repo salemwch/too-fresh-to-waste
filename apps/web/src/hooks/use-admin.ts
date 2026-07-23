@@ -1316,3 +1316,14 @@ export function useAddLoyaltyPoints() {
     },
   });
 }
+
+// ─── Anomaly Detection ──────────────────────────────────────────────────────
+
+export function useAnomalies() {
+  return useQuery({
+    queryKey: [...adminKeys.all, 'anomalies'] as const,
+    queryFn: () => adminService.getAnomalies().then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+  });
+}

@@ -49,6 +49,63 @@ export class OfferManagementService {
     private readonly auditService: AdminAuditService,
   ) {}
 
+  // ── Find Single Offer ──────────────────────────────────────────────────────
+
+  async findById(id: string): Promise<Record<string, unknown>> {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('Invalid offer ID');
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: { _id: new Types.ObjectId(id) } },
+      {
+        $lookup: {
+          from: 'establishments',
+          localField: 'establishmentId',
+          foreignField: '_id',
+          as: 'establishment',
+          pipeline: [{ $project: { name: 1, type: 1, city: 1, status: 1 } }],
+        },
+      },
+      { $unwind: { path: '$establishment', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'merchantId',
+          foreignField: '_id',
+          as: 'merchant',
+          pipeline: [{ $project: { name: 1, email: 1 } }],
+        },
+      },
+      { $unwind: { path: '$merchant', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          id: { $toString: '$_id' },
+          availableQuantity: {
+            $subtract: ['$totalQuantity', { $add: ['$reservedQuantity', '$soldQuantity'] }],
+          },
+          pickupRate: {
+            $cond: [
+              { $gt: ['$totalQuantity', 0] },
+              { $divide: ['$soldQuantity', '$totalQuantity'] },
+              0,
+            ],
+          },
+          isFeatured: { $or: ['$isFeaturedManual', '$isFeaturedAuto'] },
+        },
+      },
+    ];
+
+    const results = await this.offerModel.aggregate(pipeline).exec();
+    const offer = results[0] as Record<string, unknown> | undefined;
+
+    if (!offer) {
+      throw new NotFoundException('Offer not found');
+    }
+
+    return offer;
+  }
+
   // ── List All Offers ────────────────────────────────────────────────────────
 
   async listOffers(

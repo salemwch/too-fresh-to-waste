@@ -133,6 +133,23 @@ export class OfferManagementController {
     };
   }
 
+  // ── Single Offer Detail ────────────────────────────────────────────────────
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get a single offer by ID (admin view)',
+    description: 'Returns full offer detail with populated establishment and merchant info.',
+  })
+  @ApiResponse({ status: 200, description: 'Offer retrieved' })
+  @ApiResponse({ status: 404, description: 'Offer not found' })
+  async getOfferById(@Param('id') id: string) {
+    const offer = await this.offerManagementService.findById(id);
+    return {
+      message: 'Offer retrieved successfully',
+      data: offer,
+    };
+  }
+
   // ── Bulk Action ────────────────────────────────────────────────────────────
 
   @Post('bulk-action')

@@ -191,3 +191,15 @@ export enum AdminAction {
   LOGIN = 'login',
   LOGOUT = 'logout',
 }
+
+export interface AnomalyAlert {
+  id: string;
+  type: 'high_cancellation' | 'high_expiry' | 'cancellation_spike' | 'unusual_activity';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  description: string;
+  merchantEmail?: string;
+  value: number;
+  threshold: number;
+  detectedAt: string;
+}

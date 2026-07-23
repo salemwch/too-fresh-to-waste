@@ -556,3 +556,35 @@ export interface CustomerLocationItem {
 // ─── Analytics Period ────────────────────────────────────────────────────────
 
 export type AnalyticsPeriod = 'today' | '7d' | '30d' | '90d' | 'custom';
+
+// ─── Smart Pricing Suggestions ──────────────────────────────────────────────
+
+export interface PricingInsight {
+  type: string;
+  message: string;
+  impact: 'high' | 'medium' | 'low';
+}
+
+export interface PricingSuggestions {
+  merchantStats: {
+    avgDiscountedPrice: number;
+    avgOriginalPrice: number;
+    avgDiscountPercent: number;
+    fillRate: number;
+    totalOffers: number;
+    totalSold: number;
+    bestDayOfWeek: number | null;
+    bestHour: number | null;
+  };
+  zoneStats: {
+    avgDiscountedPrice: number;
+    avgFillRate: number;
+    totalMerchants: number;
+  };
+  insights: PricingInsight[];
+  suggestedPriceRange: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+}
