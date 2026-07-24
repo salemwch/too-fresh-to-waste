@@ -32,16 +32,16 @@ const setupOnlineManager = () => {
   onlineManager.setEventListener(setOnline => {
     // Subscribe to network state updates
     const unsubscribe = addNetInfoEventListener(state => {
-      const isOnline = state.isConnected === true;
+      // Treat null (undetermined) as online — only pause on definite offline.
+      const isOnline = state.isConnected !== false;
 
-      Logger.debug('Network state changed', {
+      Logger.info('[OnlineManager] NetInfo event', {
         isConnected: state.isConnected,
         isInternetReachable: state.isInternetReachable,
         type: state.type,
-        details: state.details,
+        resolvedOnline: isOnline,
       });
 
-      // Update TanStack Query's online status
       setOnline(isOnline);
     });
 

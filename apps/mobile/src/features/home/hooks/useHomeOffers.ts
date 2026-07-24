@@ -13,6 +13,7 @@
  * Load critical data first, then lazy load secondary data
  */
 
+import { onlineManager } from '@tanstack/react-query';
 import { useState, useEffect, useCallback } from 'react';
 
 import {
@@ -22,6 +23,7 @@ import {
   usePickupTomorrowOffers,
 } from '@/features/offers/hooks/useOffers';
 import { OfferStatus as Status } from '@/features/offers/types/offer.types';
+import { Logger } from '@/utils/logger';
 
 import { HOME_API_CONFIG, HOME_UI_CONFIG } from '../constants/homeConstants';
 
@@ -181,11 +183,20 @@ export function useHomeOffers(
    * PRIORITY 1: Urgent offers (expiring within 1 hour)
    * Loads immediately - most time-sensitive data
    */
+  // ── Diagnostic: log query preconditions on every render ──
+  Logger.debug('[useHomeOffers] render', {
+    hasCoordinates: coordinates !== undefined,
+    loadSecondaryData,
+    isOnline: onlineManager.isOnline(),
+  });
+
   const {
     data: urgentOffers,
     isLoading: isUrgentLoading,
     error: urgentError,
     refetch: refetchUrgent,
+    fetchStatus: urgentFetchStatus,
+    status: urgentStatus,
   } = useUrgentOffers(
     HOME_API_CONFIG.URGENT_OFFERS_HOURS_THRESHOLD,
     HOME_API_CONFIG.URGENT_OFFERS_LIMIT,
@@ -200,11 +211,22 @@ export function useHomeOffers(
    * PRIORITY 2: Hottest deals (60%+ discount, today only)
    * Loads after 500ms delay
    */
+  // ── Diagnostic: log urgent query state ──
+  Logger.debug('[useHomeOffers] urgent query state', {
+    status: urgentStatus,
+    fetchStatus: urgentFetchStatus,
+    hasData: urgentOffers !== undefined,
+    dataLength: urgentOffers?.length,
+    error: urgentError?.message,
+  });
+
   const {
     data: hottestDealsRaw,
     isLoading: isHottestLoading,
     error: hottestError,
     refetch: refetchHottest,
+    fetchStatus: hottestFetchStatus,
+    status: hottestStatus,
   } = useOffers(
     {
       status: Status.ACTIVE as OfferStatus,
@@ -242,11 +264,22 @@ export function useHomeOffers(
    * PRIORITY 3: Pickup today offers
    * Loads after 500ms delay
    */
+  // ── Diagnostic: log hottest query state ──
+  Logger.debug('[useHomeOffers] hottest query state', {
+    status: hottestStatus,
+    fetchStatus: hottestFetchStatus,
+    enabled: loadSecondaryData,
+    hasData: hottestDealsRaw !== undefined,
+    dataLength: hottestDealsRaw?.data?.length,
+  });
+
   const {
     data: pickupTodayOffers,
     isLoading: isPickupTodayLoading,
     error: pickupTodayError,
     refetch: refetchPickupToday,
+    fetchStatus: pickupTodayFetchStatus,
+    status: pickupTodayStatus,
   } = usePickupTodayOffers(
     HOME_API_CONFIG.PICKUP_TODAY_LIMIT,
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
@@ -260,11 +293,22 @@ export function useHomeOffers(
    * PRIORITY 4: Pickup tomorrow offers
    * Loads after 500ms delay
    */
+  // ── Diagnostic: log pickupToday query state ──
+  Logger.debug('[useHomeOffers] pickupToday query state', {
+    status: pickupTodayStatus,
+    fetchStatus: pickupTodayFetchStatus,
+    enabled: loadSecondaryData,
+    hasData: pickupTodayOffers !== undefined,
+    dataLength: pickupTodayOffers?.length,
+  });
+
   const {
     data: pickupTomorrowOffers,
     isLoading: isPickupTomorrowLoading,
     error: pickupTomorrowError,
     refetch: refetchPickupTomorrow,
+    fetchStatus: pickupTomorrowFetchStatus,
+    status: pickupTomorrowStatus,
   } = usePickupTomorrowOffers(
     HOME_API_CONFIG.PICKUP_TOMORROW_LIMIT,
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
@@ -274,13 +318,19 @@ export function useHomeOffers(
     },
   );
 
+  // ── Diagnostic: log pickupTomorrow query state ──
+  Logger.debug('[useHomeOffers] pickupTomorrow query state', {
+    status: pickupTomorrowStatus,
+    fetchStatus: pickupTomorrowFetchStatus,
+    enabled: loadSecondaryData,
+    hasData: pickupTomorrowOffers !== undefined,
+    dataLength: pickupTomorrowOffers?.length,
+  });
+
   // ============================================================================
   // Aggregated State
   // ============================================================================
 
-  /**
-   * Aggregated loading states
-   */
   const isLoading: OffersLoadingState = {
     urgent: isUrgentLoading,
     hottest: isHottestLoading,
@@ -307,12 +357,50 @@ export function useHomeOffers(
    * Used for pull-to-refresh
    */
   const refetchAll = useCallback(async () => {
-    await Promise.all([
-      refetchUrgent(),
-      refetchHottest(),
-      refetchPickupToday(),
-      refetchPickupTomorrow(),
+    Logger.info('[useHomeOffers] refetchAll called', {
+      isOnline: onlineManager.isOnline(),
+    });
+    const results = await Promise.allSettled([
+      refetchUrgent().then(r => {
+        Logger.info('[useHomeOffers] refetchUrgent resolved', {
+          status: r.status,
+          fetchStatus: r.fetchStatus,
+          dataLength: r.data?.length,
+        });
+        return r;
+      }),
+      refetchHottest().then(r => {
+        Logger.info('[useHomeOffers] refetchHottest resolved', {
+          status: r.status,
+          fetchStatus: r.fetchStatus,
+          dataLength: r.data?.data?.length,
+        });
+        return r;
+      }),
+      refetchPickupToday().then(r => {
+        Logger.info('[useHomeOffers] refetchPickupToday resolved', {
+          status: r.status,
+          fetchStatus: r.fetchStatus,
+          dataLength: r.data?.length,
+        });
+        return r;
+      }),
+      refetchPickupTomorrow().then(r => {
+        Logger.info('[useHomeOffers] refetchPickupTomorrow resolved', {
+          status: r.status,
+          fetchStatus: r.fetchStatus,
+          dataLength: r.data?.length,
+        });
+        return r;
+      }),
     ]);
+    Logger.info('[useHomeOffers] refetchAll completed', {
+      results: results.map((r, i) => ({
+        query: ['urgent', 'hottest', 'pickupToday', 'pickupTomorrow'][i],
+        settled: r.status,
+        reason: r.status === 'rejected' ? String((r as PromiseRejectedResult).reason) : undefined,
+      })),
+    });
   }, [refetchUrgent, refetchHottest, refetchPickupToday, refetchPickupTomorrow]);
 
   /**

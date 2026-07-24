@@ -309,13 +309,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         addListener: (event: string, callback: () => void) => () => void;
       }
     ).addListener('tabPress', () => {
-      // Scroll FlatList to top
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-      // Refetch all offer sections
       refetch.all().catch(() => undefined);
-      // Invalidate donation stats so ImpactBanner re-fetches from the server
       queryClient.invalidateQueries({ queryKey: ['donations', 'stats'] }).catch(() => undefined);
-      // Invalidate community goal stats
       queryClient.invalidateQueries({ queryKey: COMMUNITY_GOAL_QUERY_KEY }).catch(() => undefined);
     });
     return unsubscribe;
@@ -326,7 +322,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // ============================================================================
 
   /**
-   * 🆕 Trigger reverse geocoding on mount if GPS location exists but name is missing
+   * Trigger reverse geocoding on mount if GPS location exists but name is missing
    * This handles cases where:
    * - App is restarted with persisted GPS coordinates
    * - Location was set before reverse geocoding feature was added

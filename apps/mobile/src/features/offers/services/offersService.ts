@@ -187,6 +187,7 @@ class OffersService {
     userLocation?: GeoCoordinates,
     signal?: AbortSignal,
   ): Promise<OffersResponse> {
+    Logger.info('[OffersService] getAllOffers CALLED', { params, hasLocation: !!userLocation });
     try {
       const response = await apiClient.get<BackendApiResponse<OfferListItem[]>>(this.basePath, {
         params: this.buildSearchParams(params, userLocation),
@@ -247,6 +248,11 @@ class OffersService {
     signal?: AbortSignal,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/urgent`;
+    Logger.info('[OffersService] getUrgentOffers CALLED', {
+      hoursUntilExpiry,
+      limit,
+      hasLocation: !!userLocation,
+    });
     try {
       const response = await apiClient.get<BackendApiResponse<OfferListItem[]>>(url, {
         params: {
@@ -352,6 +358,10 @@ class OffersService {
     maxDistance: number = 15000,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/pickup-today`;
+    Logger.info('[OffersService] getPickupTodayOffers CALLED', {
+      limit,
+      hasLocation: !!userLocation,
+    });
     try {
       const response = await apiClient.get<BackendApiResponse<OfferListItem[]>>(url, {
         params: {
@@ -378,6 +388,10 @@ class OffersService {
     maxDistance: number = 15000,
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/pickup-tomorrow`;
+    Logger.info('[OffersService] getPickupTomorrowOffers CALLED', {
+      limit,
+      hasLocation: !!userLocation,
+    });
     try {
       const response = await apiClient.get<BackendApiResponse<OfferListItem[]>>(url, {
         params: {
