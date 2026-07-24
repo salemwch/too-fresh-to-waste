@@ -15,7 +15,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import { selectIsRecoveringSession } from '@/features/auth/store/authSlice';
 import {
   useUrgentOffers,
   useOffers,
@@ -23,7 +22,6 @@ import {
   usePickupTomorrowOffers,
 } from '@/features/offers/hooks/useOffers';
 import { OfferStatus as Status } from '@/features/offers/types/offer.types';
-import { useAppSelector } from '@/hooks/redux';
 
 import { HOME_API_CONFIG, HOME_UI_CONFIG } from '../constants/homeConstants';
 
@@ -154,31 +152,6 @@ export function useHomeOffers(
    */
   const [loadSecondaryData, setLoadSecondaryData] = useState(false);
 
-  /**
-   * Post-resume recovery gate. While the session middleware is refreshing
-   * tokens after an AppState background→active transition, we suppress all
-   * protected queries. Once `checkAndRefreshToken` resolves (success or
-   * fatal failure) the flag flips back to false and TanStack re-enables
-   * the queries — with a fresh access token attached by the API client.
-   *
-   * Safety valve: if recovery stays stuck for >5s (hung refresh, race
-   * condition in rapid background↔foreground), force-enable queries so
-   * the home screen never shows infinite skeletons.
-   */
-  const isRecoveringSession = useAppSelector(selectIsRecoveringSession);
-  const [recoveryTimedOut, setRecoveryTimedOut] = useState(false);
-
-  useEffect(() => {
-    if (!isRecoveringSession) {
-      setRecoveryTimedOut(false);
-      return;
-    }
-    const timer = setTimeout(() => setRecoveryTimedOut(true), 5000);
-    return () => clearTimeout(timer);
-  }, [isRecoveringSession]);
-
-  const isAuthReady = !isRecoveringSession || recoveryTimedOut;
-
   // ============================================================================
   // Effects - Lazy Loading Implementation
   // ============================================================================
@@ -219,8 +192,7 @@ export function useHomeOffers(
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     filterParams, // ✅ Include filters to ensure proper caching and refetching
     {
-      // Wait for post-resume token recovery before firing
-      enabled: isAuthReady,
+      enabled: true,
     },
   );
 
@@ -243,7 +215,7 @@ export function useHomeOffers(
     },
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     {
-      enabled: loadSecondaryData && isAuthReady,
+      enabled: loadSecondaryData,
     },
   );
 
@@ -280,7 +252,7 @@ export function useHomeOffers(
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     filterParams,
     {
-      enabled: loadSecondaryData && isAuthReady, // lazy + recovery gate
+      enabled: loadSecondaryData,
     },
   );
 
@@ -298,7 +270,7 @@ export function useHomeOffers(
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     filterParams,
     {
-      enabled: loadSecondaryData && isAuthReady, // lazy + recovery gate
+      enabled: loadSecondaryData,
     },
   );
 
