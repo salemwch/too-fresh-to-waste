@@ -66,7 +66,7 @@ export class ReportController {
   @UseGuards(ModerationReportRateLimitGuard)
   async createReport(
     @Body(ValidationPipe) createReportDto: CreateReportDto,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @IpAddress() ipAddress: string,
     @Request() req: AuthenticatedRequest,
   ) {
@@ -113,7 +113,7 @@ export class ReportController {
   @UseGuards(ModerationAccessGuard)
   async getReports(
     @Query(ValidationPipe) queryDto: ReportQueryDto,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @CurrentUser('role') userRole: UserRole,
   ) {
     const result = await this.reportService.getReports(queryDto, userId, userRole);
@@ -136,7 +136,7 @@ export class ReportController {
   @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
   @UseGuards(ModerationAccessGuard)
   async getDashboardStats(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @CurrentUser('role') userRole: UserRole,
   ) {
     const stats = await this.reportService.getDashboardStats(userId, userRole);
@@ -152,7 +152,10 @@ export class ReportController {
   @ApiOperation({ summary: 'Get reports assigned to current moderator' })
   @ApiResponse({ status: 200, description: 'Assigned reports retrieved successfully' })
   @UseGuards(ModerationAccessGuard)
-  async getMyAssignedReports(@CurrentUser('id') userId: string, @Query('status') status?: string) {
+  async getMyAssignedReports(
+    @CurrentUser('userId') userId: string,
+    @Query('status') status?: string,
+  ) {
     const reports = await this.reportService.getMyAssignedReports(
       userId,
       status as ReportStatus | undefined,
@@ -174,7 +177,7 @@ export class ReportController {
   @UseGuards(ReportOwnershipGuard)
   async getReportById(
     @Param('id') reportId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @CurrentUser('role') userRole: UserRole,
   ) {
     if (!Types.ObjectId.isValid(reportId)) {
@@ -200,7 +203,7 @@ export class ReportController {
   async updateReport(
     @Param('id') reportId: string,
     @Body(ValidationPipe) updateDto: ReportUpdateDto,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @CurrentUser('role') userRole: UserRole,
     @IpAddress() ipAddress: string,
     @Request() req: AuthenticatedRequest,
@@ -244,7 +247,7 @@ export class ReportController {
   async assignReport(
     @Param('id') reportId: string,
     @Body('moderatorId', ValidationPipe) moderatorId: string,
-    @CurrentUser('id') adminId: string,
+    @CurrentUser('userId') adminId: string,
     @IpAddress() ipAddress: string,
     @Request() req: AuthenticatedRequest,
   ) {

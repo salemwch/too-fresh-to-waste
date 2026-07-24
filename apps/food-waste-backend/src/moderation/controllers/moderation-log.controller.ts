@@ -249,7 +249,7 @@ export class ModerationLogController {
   @ApiResponse({ status: 403, description: 'Moderation access required' })
   @UseGuards(ModerationAccessGuard)
   async getMyModerationActivity(
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @Query('limit') limit?: number,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,

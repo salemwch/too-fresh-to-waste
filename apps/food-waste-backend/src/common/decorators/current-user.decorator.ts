@@ -4,14 +4,16 @@ import type { UserRole } from '@foodwaste/shared';
 import type { ExecutionContext } from '@nestjs/common';
 import type { Request } from 'express';
 
-type CurrentUserField = '_id' | 'id' | 'userId' | 'email' | 'role';
+// Must match the object returned by JwtStrategy.validate() exactly.
+// Using a field not in this list is a compile-time error.
+type CurrentUserField = 'userId' | 'email' | 'role' | 'organizationId' | 'assignedEstablishmentId';
 
 interface CurrentUserPayload {
-  _id?: string;
-  id?: string;
   userId?: string;
   email?: string;
   role?: UserRole;
+  organizationId?: string;
+  assignedEstablishmentId?: string;
 }
 
 type RequestWithCurrentUser = Request & {

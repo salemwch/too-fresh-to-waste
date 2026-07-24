@@ -66,7 +66,7 @@ export class ModerationActionController {
   @UseGuards(ModerationAccessGuard, ModerationActionRateLimitGuard)
   async createModerationAction(
     @Body(ValidationPipe) createActionDto: CreateModerationActionDto,
-    @CurrentUser('id') moderatorId: string,
+    @CurrentUser('userId') moderatorId: string,
     @CurrentUser('role') moderatorRole: UserRole,
     @IpAddress() ipAddress: string,
     @Request() req: AuthenticatedRequest,
@@ -134,7 +134,7 @@ export class ModerationActionController {
   @UseGuards(ModerationAccessGuard)
   async getModerationActions(
     @Query(ValidationPipe) queryDto: ModerationActionQueryDto,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @CurrentUser('role') userRole: UserRole,
   ) {
     const result = await this.moderationActionService.getModerationActions(
@@ -187,7 +187,7 @@ export class ModerationActionController {
   async revokeModerationAction(
     @Param('id') actionId: string,
     @Body('revocationReason', ValidationPipe) revocationReason: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @CurrentUser('role') userRole: UserRole,
     @IpAddress() ipAddress: string,
     @Request() req: AuthenticatedRequest,
@@ -231,7 +231,7 @@ export class ModerationActionController {
   async updateModerationAction(
     @Param('id') actionId: string,
     @Body(ValidationPipe) updateDto: UpdateModerationActionDto,
-    @CurrentUser('id') userId: string,
+    @CurrentUser('userId') userId: string,
     @CurrentUser('role') userRole: UserRole,
     @IpAddress() ipAddress: string,
     @Request() req: AuthenticatedRequest,
@@ -274,7 +274,7 @@ export class ModerationActionController {
   @UseGuards(AdminOnlyModerationGuard, ModerationActionRateLimitGuard)
   async createBulkModerationActions(
     @Body(ValidationPipe) bulkActionDto: BulkModerationActionDto,
-    @CurrentUser('id') adminId: string,
+    @CurrentUser('userId') adminId: string,
     @CurrentUser('role') adminRole: UserRole,
     @IpAddress() ipAddress: string,
     @Request() req: AuthenticatedRequest,
