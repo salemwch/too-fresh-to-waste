@@ -41,7 +41,7 @@ export class CommunityGoalAdminController {
   })
   async setTarget(
     @Body() dto: SetGoalTargetDto,
-    @CurrentUser('_id') adminId: string,
+    @CurrentUser('userId') adminId: string,
   ): Promise<{ message: string; data: CommunityGoalStatsResponseDto }> {
     this.logger.log(`Admin ${adminId} setting community goal target to ${dto.targetCount}`);
     const stats = await this.communityGoalService.setGoalTarget(dto.targetCount, adminId, {
@@ -71,7 +71,7 @@ export class CommunityGoalAdminController {
     type: CommunityGoalStatsResponseDto,
   })
   async reset(
-    @CurrentUser('_id') adminId: string,
+    @CurrentUser('userId') adminId: string,
   ): Promise<{ message: string; data: CommunityGoalStatsResponseDto }> {
     this.logger.log(`Admin ${adminId} resetting community goal`);
     const stats = await this.communityGoalService.resetGoal(adminId);

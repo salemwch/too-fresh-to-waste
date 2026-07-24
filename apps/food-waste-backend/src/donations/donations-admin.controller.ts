@@ -65,7 +65,7 @@ export class DonationsAdminController {
   })
   async updatePool(
     @Body() dto: UpdateDonationPoolDto,
-    @CurrentUser('_id') adminId: string,
+    @CurrentUser('userId') adminId: string,
   ): Promise<{ message: string; data: DonationStatsResponseDto }> {
     this.logger.log(`Admin ${adminId} updating donation pool: ${JSON.stringify(dto)}`);
     const stats = await this.donationsService.updateActivePool(dto);
@@ -88,7 +88,7 @@ export class DonationsAdminController {
     type: DonationStatsResponseDto,
   })
   async resetPool(
-    @CurrentUser('_id') adminId: string,
+    @CurrentUser('userId') adminId: string,
   ): Promise<{ message: string; data: DonationStatsResponseDto }> {
     this.logger.log(`Admin ${adminId} resetting donation pool`);
     const stats = await this.donationsService.resetPool();

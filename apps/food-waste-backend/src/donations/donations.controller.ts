@@ -86,7 +86,7 @@ export class DonationsController {
     description: 'Failed to retrieve user statistics',
   })
   async getUserDonationStats(
-    @CurrentUser('_id') userId: string,
+    @CurrentUser('userId') userId: string,
   ): Promise<{ message: string; data: UserDonationStatsResponseDto }> {
     this.logger.log(`Fetching donation statistics for user ${userId}`);
 

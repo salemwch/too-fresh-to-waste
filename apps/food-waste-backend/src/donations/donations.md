@@ -1,6 +1,7 @@
 # Donations Module - Technical Documentation
 
-> **Technical Reference** | **Status:** Production Ready | **Last Updated:** January 15, 2026
+> **Technical Reference** | **Status:** Production Ready | **Last Updated:**
+> January 15, 2026
 
 ## Table of Contents
 
@@ -18,7 +19,10 @@
 
 ## Overview
 
-The `donations` module implements the social impact layer of the Too Fresh To Waste platform, automatically collecting micro-donations from order platform fees and redistributing them to food relief organizations. It provides transparent impact tracking, gamification, and community engagement features.
+The `donations` module implements the social impact layer of the Too Fresh To
+Waste platform, automatically collecting micro-donations from order platform
+fees and redistributing them to food relief organizations. It provides
+transparent impact tracking, gamification, and community engagement features.
 
 ### Technology Stack
 
@@ -30,14 +34,15 @@ The `donations` module implements the social impact layer of the Too Fresh To Wa
 
 ### Key Features
 
-✅ **Automatic Donation Collection** - 5% of platform fee (25% of order total) goes to donations
-✅ **Donation Pool Management** - Rotating pools with target amounts and distribution tracking
-✅ **Real-Time Statistics** - Public endpoint for community impact metrics
-✅ **User Contribution Tracking** - Personal donation history with rankings
-✅ **Gamification System** - 5-tier badge system (First Step → Champion)
-✅ **Meal Impact Calculation** - Transparent conversion of donations to meals (5 TND/meal)
-✅ **Distribution Transparency** - Full audit trail of donations to beneficiary organizations
-✅ **Automated Pool Rotation** - Monthly archival via cron jobs
+✅ **Automatic Donation Collection** - 5% of platform fee (25% of order total)
+goes to donations ✅ **Donation Pool Management** - Rotating pools with target
+amounts and distribution tracking ✅ **Real-Time Statistics** - Public endpoint
+for community impact metrics ✅ **User Contribution Tracking** - Personal
+donation history with rankings ✅ **Gamification System** - 5-tier badge system
+(First Step → Champion) ✅ **Meal Impact Calculation** - Transparent conversion
+of donations to meals (5 TND/meal) ✅ **Distribution Transparency** - Full audit
+trail of donations to beneficiary organizations ✅ **Automated Pool Rotation** -
+Monthly archival via cron jobs
 
 ---
 
@@ -179,7 +184,7 @@ async getCurrentDonationStats(): Promise<DonationStatsResponseDto> {
 @Get('user/stats')
 @ApiBearerAuth()
 async getUserDonationStats(
-  @CurrentUser('_id') userId: string,
+  @CurrentUser('userId') userId: string,
 ): Promise<UserDonationStatsResponseDto> {
   const userObjectId = new Types.ObjectId(userId);
   const stats = await this.donationsService.getUserStats(userObjectId);
@@ -425,7 +430,8 @@ async archiveCompletedPools(): Promise<void> {
 
 **Location:** `schemas/donation-pool.schema.ts`
 
-**Purpose:** Tracks global donation pool with progress tracking and distribution history
+**Purpose:** Tracks global donation pool with progress tracking and distribution
+history
 
 **Key Fields:**
 
@@ -786,7 +792,8 @@ constructor(
 ) {}
 ```
 
-**Note:** For larger applications, consider extracting to dedicated repository classes
+**Note:** For larger applications, consider extracting to dedicated repository
+classes
 
 ---
 
@@ -883,8 +890,12 @@ describe('DonationsService', () => {
     });
 
     it('should throw error for invalid order total', () => {
-      expect(() => service.calculateDonationAmount(0)).toThrow(BadRequestException);
-      expect(() => service.calculateDonationAmount(-10)).toThrow(BadRequestException);
+      expect(() => service.calculateDonationAmount(0)).toThrow(
+        BadRequestException,
+      );
+      expect(() => service.calculateDonationAmount(-10)).toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -918,7 +929,9 @@ describe('DonationsController (Integration)', () => {
   });
 
   it('GET /donations/stats should return pool statistics', async () => {
-    const response = await request(app.getHttpServer()).get('/donations/stats').expect(200);
+    const response = await request(app.getHttpServer())
+      .get('/donations/stats')
+      .expect(200);
 
     expect(response.body).toHaveProperty('totalDonations');
     expect(response.body).toHaveProperty('targetAmount');
@@ -960,7 +973,9 @@ export class OrdersService {
 
     // 2. Calculate and create donation
     try {
-      const donationAmount = this.donationsService.calculateDonationAmount(order.total);
+      const donationAmount = this.donationsService.calculateDonationAmount(
+        order.total,
+      );
 
       await this.donationsService.createDonation({
         userId: new Types.ObjectId(userId),
@@ -1290,7 +1305,9 @@ TZ=UTC
 
 ```typescript
 // Explain query plan
-const explained = await this.userDonationModel.find({ userId }).explain('executionStats');
+const explained = await this.userDonationModel
+  .find({ userId })
+  .explain('executionStats');
 
 console.log('Query execution stats:', explained);
 ```
@@ -1321,7 +1338,5 @@ Expected indexes:
 
 ---
 
-**Document Version:** 1.0.0
-**Last Updated:** January 15, 2026
-**Maintained By:** Backend Development Team
-**Review Cycle:** Quarterly
+**Document Version:** 1.0.0 **Last Updated:** January 15, 2026 **Maintained
+By:** Backend Development Team **Review Cycle:** Quarterly

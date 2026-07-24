@@ -169,6 +169,7 @@ const createApiClient = (): AxiosInstance => {
       'X-Requested-With': 'XMLHttpRequest',
       'X-Platform': 'mobile',
       'X-App-Version': environment.app.version,
+      'User-Agent': `FoodWasteApp/${environment.app.version}`,
     },
   });
 
@@ -191,6 +192,10 @@ const createApiClient = (): AxiosInstance => {
 
       if (accessToken != null) {
         config.headers.Authorization = `Bearer ${accessToken}`;
+      } else {
+        Logger.warn('[API-CLIENT] No access token in Keychain — request sent without auth', {
+          url: config.url,
+        });
       }
 
       config.headers['Accept-Language'] = getCurrentLanguage();
