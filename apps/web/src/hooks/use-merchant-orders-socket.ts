@@ -102,13 +102,18 @@ export function useMerchantOrdersSocket() {
       ? io(BACKEND_WS_URL, {
           withCredentials: true,
           transports: ['polling', 'websocket'],
-          reconnectionAttempts: 5,
+          reconnection: true,
+          reconnectionAttempts: Infinity,
           reconnectionDelay: 2000,
+          reconnectionDelayMax: 30000,
         })
       : io({
+          withCredentials: true,
           transports: ['polling'],
-          reconnectionAttempts: 5,
+          reconnection: true,
+          reconnectionAttempts: Infinity,
           reconnectionDelay: 2000,
+          reconnectionDelayMax: 30000,
         });
 
     socketRef.current = socket;

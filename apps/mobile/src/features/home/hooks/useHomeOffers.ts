@@ -160,9 +160,24 @@ export function useHomeOffers(
    * protected queries. Once `checkAndRefreshToken` resolves (success or
    * fatal failure) the flag flips back to false and TanStack re-enables
    * the queries — with a fresh access token attached by the API client.
+   *
+   * Safety valve: if recovery stays stuck for >5s (hung refresh, race
+   * condition in rapid background↔foreground), force-enable queries so
+   * the home screen never shows infinite skeletons.
    */
   const isRecoveringSession = useAppSelector(selectIsRecoveringSession);
-  const isAuthReady = !isRecoveringSession;
+  const [recoveryTimedOut, setRecoveryTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (!isRecoveringSession) {
+      setRecoveryTimedOut(false);
+      return;
+    }
+    const timer = setTimeout(() => setRecoveryTimedOut(true), 5000);
+    return () => clearTimeout(timer);
+  }, [isRecoveringSession]);
+
+  const isAuthReady = !isRecoveringSession || recoveryTimedOut;
 
   // ============================================================================
   // Effects - Lazy Loading Implementation

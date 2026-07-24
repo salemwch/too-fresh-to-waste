@@ -82,6 +82,7 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
               client.role = payload.role as UserRole;
               client.isAuthenticated = true;
               await this.webSocketService.registerUserSocket(client);
+              client.emit('authenticated', { userId });
               this.logger.log(
                 `[WS middleware] auto-registered userId=${userId} role=${payload.role}`,
               );
