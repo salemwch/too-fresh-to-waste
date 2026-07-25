@@ -18,6 +18,13 @@ export const releaseTrackedAbortController = (signal?: unknown): void => {
   });
 };
 
+/**
+ * Aborts every tracked in-flight request.
+ *
+ * Called on logout and account deletion (see features/auth/store/authSlice.ts)
+ * via dynamic import, so that orphaned responses cannot land after the session
+ * is torn down and re-trigger auth flows.
+ */
 export const cancelInflightRequests = (): void => {
   if (activeAbortControllers.size === 0) return;
 
@@ -35,3 +42,9 @@ export const cancelInflightRequests = (): void => {
 
   activeAbortControllers.clear();
 };
+
+/**
+ * Number of requests currently tracked. Exposed for diagnostics/tests so a
+ * controller leak is observable rather than silent.
+ */
+export const getInflightRequestCount = (): number => activeAbortControllers.size;

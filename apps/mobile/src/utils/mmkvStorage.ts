@@ -63,36 +63,45 @@ function tryInitializeMMKV(): MMKVInstance | null {
 
   initializationAttempted = true;
 
+  // ────────────────────────────────────────────────────────────────────────
+  // Encryption key gate — deliberately OUTSIDE the try/catch below.
+  //
+  // Fail CLOSED: the redux-persist whitelist holds the user profile and precise
+  // home coordinates, so a misconfigured build secret must not silently
+  // downgrade every user to plaintext-at-rest PII. This must not be swallowed
+  // by the AsyncStorage fallback handler — AsyncStorage is unencrypted too, so
+  // catching here would defeat the entire guard.
+  // ────────────────────────────────────────────────────────────────────────
+  const encryptionKey = ReactNativeConfig['STORAGE_ENCRYPTION_KEY'];
+  const hasValidKey =
+    encryptionKey !== undefined &&
+    encryptionKey !== '' &&
+    encryptionKey !== 'default-key' &&
+    !encryptionKey.startsWith('REPLACE_WITH');
+
+  if (!hasValidKey) {
+    if (!__DEV__) {
+      throw new Error(
+        '[Storage] STORAGE_ENCRYPTION_KEY is missing or a placeholder — refusing to start with unencrypted storage.',
+      );
+    }
+    Logger.warn(
+      '[Storage] STORAGE_ENCRYPTION_KEY missing or placeholder — storage is UNENCRYPTED (dev builds only)',
+    );
+  }
+
   try {
     // ✅ V4 API: Lazy require — MMKV native module must not load until Nitro is ready
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createMMKV } = require('react-native-mmkv');
 
     if (typeof createMMKV === 'function') {
-      // ✅ V4 API: Use createMMKV() function
-      const encryptionKey = ReactNativeConfig['STORAGE_ENCRYPTION_KEY'];
-      if (
-        encryptionKey === undefined ||
-        encryptionKey === '' ||
-        encryptionKey === 'default-key' ||
-        encryptionKey.startsWith('REPLACE_WITH')
-      ) {
-        Logger.warn(
-          '[Storage] STORAGE_ENCRYPTION_KEY is missing or placeholder — MMKV will not be encrypted',
-        );
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       mmkvInstance = createMMKV({
         id: 'redux-persist-storage',
-        ...(encryptionKey !== undefined &&
-        encryptionKey !== '' &&
-        encryptionKey !== 'default-key' &&
-        !encryptionKey.startsWith('REPLACE_WITH')
-          ? { encryptionKey }
-          : {}),
+        ...(hasValidKey ? { encryptionKey } : {}),
       }) as MMKVInstance;
       usingMMKV = true;
-      Logger.info('[Storage] Using MMKV V4 (Nitro, fast, encrypted)');
+      Logger.info('[Storage] Using MMKV V4 (Nitro, fast)', { encrypted: hasValidKey });
       return mmkvInstance;
     }
     Logger.warn('[Storage] createMMKV not available, using AsyncStorage fallback');

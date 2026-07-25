@@ -182,8 +182,21 @@ const createApiClient = (): AxiosInstance => {
       const configWithTiming = config as RequestConfigWithTiming;
       configWithTiming.requestStartTime = Date.now();
 
-      // ✅ PER-REQUEST ABORT CONTROLLER: Create and attach to this request
+      // ✅ PER-REQUEST ABORT CONTROLLER: Create and attach to this request.
+      // Compose rather than replace — TanStack Query passes its own signal into
+      // queryFn, and overwriting it silently disables query cancellation, so
+      // superseded requests (fast filter/search typing) would keep racing.
       const abortController = createTrackedAbortController();
+      const callerSignal = config.signal as AbortSignal | undefined;
+
+      if (callerSignal !== undefined) {
+        if (callerSignal.aborted) {
+          abortController.abort();
+        } else {
+          callerSignal.addEventListener('abort', () => abortController.abort(), { once: true });
+        }
+      }
+
       config.signal = abortController.signal;
 
       // Read access token from Keychain — authoritative source.

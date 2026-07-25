@@ -21,6 +21,35 @@ interface LogEntry {
   error?: Error;
 }
 
+/**
+ * Keys whose values must never leave the device.
+ * Matched case-insensitively against a substring of the key name, so
+ * `accessToken`, `refresh_token` and `Authorization` are all covered.
+ */
+const SENSITIVE_KEY_PATTERN =
+  /token|password|secret|authorization|credential|apikey|api_key|email|phone|pin|otp|cvv/i;
+
+const REDACTED = '[REDACTED]';
+
+/**
+ * Deep-redacts sensitive values from a log context before it is sent to Sentry.
+ * Depth-limited so a cyclic or pathological object can never hang logging.
+ */
+function redactSensitive(value: unknown, depth = 0): unknown {
+  if (depth > 4 || value === null || typeof value !== 'object') return value;
+
+  if (Array.isArray(value)) {
+    return value.map(item => redactSensitive(item, depth + 1));
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, val]) => [
+      key,
+      SENSITIVE_KEY_PATTERN.test(key) ? REDACTED : redactSensitive(val, depth + 1),
+    ]),
+  );
+}
+
 class LoggerService {
   private logs: LogEntry[] = [];
   private readonly maxLogs = 1000;
@@ -100,14 +129,18 @@ class LoggerService {
     if (!environment.monitoring.enableCrashlytics) return;
 
     try {
+      // Callers pass arbitrary context objects; redact before anything leaves
+      // the device so credentials and PII never land in Sentry.
+      const safeContext = redactSensitive(context);
+
       Sentry.addBreadcrumb({
         message,
         level: level === LogLevel.ERROR ? 'error' : level === LogLevel.WARN ? 'warning' : 'info',
-        data: context as Record<string, string>,
+        data: safeContext as Record<string, string>,
       });
 
       if (error && level === LogLevel.ERROR) {
-        Sentry.captureException(error, { extra: context as Record<string, string> });
+        Sentry.captureException(error, { extra: safeContext as Record<string, string> });
       }
     } catch (sentryError) {
       const fallbackError =

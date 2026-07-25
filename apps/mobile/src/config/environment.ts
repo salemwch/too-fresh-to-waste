@@ -157,7 +157,9 @@ const createEnvironmentConfig = (): EnvironmentConfig => {
       enableNativeModuleLogging: getBoolean(Config['ENABLE_NATIVE_MODULE_LOGGING'], __DEV__),
     },
     storage: {
-      encryptionKey: getString(Config['STORAGE_ENCRYPTION_KEY'], 'default-key'),
+      // No usable-looking fallback: absent config must read as empty so the
+      // validator below and the MMKV gate both treat it as missing.
+      encryptionKey: getString(Config['STORAGE_ENCRYPTION_KEY'], ''),
       cacheSizeLimit: getNumber(Config['CACHE_SIZE_LIMIT'], 50),
     },
     geolocation: {
@@ -208,11 +210,12 @@ export const validateEnvironmentConfig = (): { isValid: boolean; errors: string[
     }
 
     if (
+      environment.storage.encryptionKey === '' ||
       environment.storage.encryptionKey === 'default-key' ||
       environment.storage.encryptionKey.startsWith('REPLACE_WITH')
     ) {
       errors.push(
-        'STORAGE_ENCRYPTION_KEY is still a placeholder. Generate a secure key: openssl rand -base64 32',
+        'STORAGE_ENCRYPTION_KEY is missing or still a placeholder. Generate a secure key: openssl rand -base64 32',
       );
     }
   }
