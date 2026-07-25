@@ -1165,7 +1165,7 @@ export class AdminAnalyticsService {
       const pipeline: PipelineStage[] = [
         {
           $match: {
-            status: 'sold',
+            status: { $in: ['sold_out', 'expired', 'active'] },
             soldQuantity: { $gt: 0 },
             createdAt: {
               $gte: period.startDate,
@@ -1200,10 +1200,20 @@ export class AdminAnalyticsService {
                 { $and: [{ $ne: ['$estimatedWeight', null] }, { $ne: ['$estimatedWeight', ''] }] },
                 {
                   $toDouble: {
-                    $regexFind: {
-                      input: '$estimatedWeight',
-                      regex: /^(\d+(?:\.\d+)?)/,
-                    },
+                    $ifNull: [
+                      {
+                        $getField: {
+                          field: 'match',
+                          input: {
+                            $regexFind: {
+                              input: '$estimatedWeight',
+                              regex: /^(\d+(?:\.\d+)?)/,
+                            },
+                          },
+                        },
+                      },
+                      '0.35',
+                    ],
                   },
                 },
                 // Default weight estimates by category
