@@ -70,6 +70,13 @@ export interface OfferAnalytics {
   wasteReductionImpact: WasteReductionMetrics;
 }
 
+/** Raw shape returned by the waste-reduction aggregation (pre-derivation). */
+export interface WasteReductionAggregate {
+  totalBags: number | null;
+  estimatedValue: number | null;
+  actualRevenue: number | null;
+}
+
 export interface CategoryStats {
   category: string;
   count: number;
@@ -80,10 +87,20 @@ export interface CategoryStats {
 }
 
 export interface WasteReductionMetrics {
+  /** Total food weight rescued across ALL merchants, in kg */
   totalKgSaved: number;
+  /** Meals equivalent (ADEME: 1 kg ≈ 1.67 meals) */
   totalMealsSaved: number;
+  /** CO₂ avoided, in kg (ADEME Scope 3) */
   co2ReductionKg: number;
+  /** Water footprint avoided, in litres */
+  waterLitersSaved: number;
+  /** Retail value of the rescued food (sum of quantity x originalPrice), in TND — the loss avoided */
   estimatedValue: number;
+  /** What customers actually paid (sum of quantity x unitPrice), in TND */
+  actualRevenue: number;
+  /** Surprise bags rescued — the raw unit all other figures derive from */
+  totalBagsSaved: number;
 }
 
 export interface ReviewAnalytics {

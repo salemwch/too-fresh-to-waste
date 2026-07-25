@@ -1035,7 +1035,8 @@
         "subtitle": "Food saved from waste since launch",
         "kgSaved": "kg food saved",
         "mealsSaved": "meals rescued",
-        "co2Reduced": "kg CO₂ reduced"
+        "co2Reduced": "kg CO₂ reduced",
+        "waterSaved": "Litres of water saved"
       },
       "activity": {
         "title": "Recent Activity",
@@ -1320,6 +1321,14 @@
           },
           "noDescription": "No description"
         }
+      },
+      "periods": {
+        "day": "Today",
+        "week": "This week",
+        "month": "This month",
+        "quarter": "Quarter",
+        "year": "Year",
+        "all": "All time"
       }
     },
     "adminHealth": {
@@ -1778,6 +1787,12 @@
         "unit": "meals",
         "delta": "distributed",
         "note": "~{people} people served this month."
+      },
+      "water": {
+        "title": "Water Saved",
+        "unit": "litres",
+        "delta": "footprint avoided",
+        "note": "Water that would have been spent producing this food."
       }
     },
     "greeting": "Congratulations, {name}.",

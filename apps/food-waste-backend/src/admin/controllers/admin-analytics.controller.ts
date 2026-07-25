@@ -357,7 +357,10 @@ export class AdminAnalyticsController {
           totalKgSaved: analytics.offers.wasteReductionImpact.totalKgSaved,
           totalMealsSaved: analytics.offers.wasteReductionImpact.totalMealsSaved,
           co2ReductionKg: analytics.offers.wasteReductionImpact.co2ReductionKg,
+          waterLitersSaved: analytics.offers.wasteReductionImpact.waterLitersSaved,
+          totalBagsSaved: analytics.offers.wasteReductionImpact.totalBagsSaved,
           estimatedValue: analytics.offers.wasteReductionImpact.estimatedValue,
+          actualRevenue: analytics.offers.wasteReductionImpact.actualRevenue,
         },
       },
       reviews: {

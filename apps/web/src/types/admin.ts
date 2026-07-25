@@ -34,7 +34,7 @@ export type AdminAction =
 
 type AuditTargetType = 'user' | 'establishment' | 'order' | 'review' | 'offer' | 'system';
 
-export type AnalyticsPeriod = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
+export type AnalyticsPeriod = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'all' | 'custom';
 
 type ReportType = 'user' | 'establishment' | 'offer' | 'order' | 'review';
 
@@ -152,7 +152,14 @@ interface WasteReductionMetrics {
   totalKgSaved: number;
   totalMealsSaved: number;
   co2ReductionKg: number;
+  /** Litres of water footprint avoided across all merchants (ADEME) */
+  waterLitersSaved: number;
+  /** Surprise bags rescued — the unit all other impact figures derive from */
+  totalBagsSaved: number;
+  /** Retail value of the rescued food (quantity x originalPrice) — the loss avoided */
   estimatedValue: number;
+  /** What customers actually paid (quantity x unitPrice) */
+  actualRevenue: number;
 }
 
 interface ReviewAnalytics {

@@ -164,6 +164,37 @@ export const WEIGHT_ESTIMATION_RULES = {
   },
 } as const;
 
+/**
+ * Bag-level impact constants — the SINGLE SOURCE OF TRUTH for rescued-food
+ * impact, shared by the merchant sustainability endpoints and the admin
+ * platform analytics.
+ *
+ * ⚠️ Both surfaces MUST derive from these. Admin analytics previously carried
+ * its own inline numbers (0.35 kg/item, 2.3 kg CO₂/kg, 0.3 kg/meal), which
+ * under-reported platform CO₂ by ~6.5× versus the merchant dashboards for the
+ * same orders. Never reintroduce local copies.
+ *
+ * Methodology: ADEME (French Agency for Ecological Transition) Scope 3.
+ */
+export const BAG_IMPACT = {
+  /** Average surprise bag: ~1.5 kg mixed food (ADEME research) */
+  avgKgPerBag: 1.5,
+  /** Weighted-average carbon footprint of the rescued food mix (kg CO₂ per kg) */
+  carbonPerKg: FOOD_IMPACT_COEFFICIENTS.default.carbonFootprint,
+  /** Weighted-average water footprint (litres per kg) */
+  waterPerKg: FOOD_IMPACT_COEFFICIENTS.default.waterFootprint,
+  /** ADEME: 1 kg of food ≈ 1.67 meals */
+  mealsPerKg: 1.67,
+  /** Market estimate for Tunisia (TND per kg of rescued food) */
+  tndValuePerKg: 5.0,
+  /** One tree absorbs ~21 kg CO₂ per year */
+  co2PerTreeYear: 21,
+  /** Average car emits 120 g CO₂ per km */
+  gramsCo2PerCarKm: 120,
+  /** Assumed meals consumed per person per day */
+  mealsPerPersonPerDay: 3,
+} as const;
+
 // Cache TTL for sustainability calculations (5 minutes)
 export const SUSTAINABILITY_CACHE_TTL = 5 * 60 * 1000;
 

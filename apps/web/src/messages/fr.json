@@ -1034,7 +1034,8 @@
         "subtitle": "Nourriture sauvée du gaspillage depuis le lancement",
         "kgSaved": "kg de nourriture sauvée",
         "mealsSaved": "repas sauvés",
-        "co2Reduced": "kg CO₂ réduit"
+        "co2Reduced": "kg CO₂ réduit",
+        "waterSaved": "Litres d’eau économisés"
       },
       "activity": {
         "title": "Activité Récente",
@@ -1319,6 +1320,14 @@
           },
           "noDescription": "Aucune description"
         }
+      },
+      "periods": {
+        "day": "Aujourd’hui",
+        "week": "Cette semaine",
+        "month": "Ce mois-ci",
+        "quarter": "Trimestre",
+        "year": "Année",
+        "all": "Depuis le début"
       }
     },
     "adminHealth": {
@@ -1777,6 +1786,12 @@
         "unit": "repas",
         "delta": "distribués",
         "note": "~{people} personnes nourries ce mois-ci."
+      },
+      "water": {
+        "title": "Eau économisée",
+        "unit": "litres",
+        "delta": "empreinte évitée",
+        "note": "Eau qui aurait été consommée pour produire ces aliments."
       }
     },
     "greeting": "Félicitations, {name}.",

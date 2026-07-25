@@ -1,6 +1,6 @@
 'use client';
 
-import { Coins, Leaf, HeartHandshake, TrendingUp, ShieldCheck } from 'lucide-react';
+import { Coins, Leaf, HeartHandshake, TrendingUp, ShieldCheck, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { useCarbonMetrics, useSocialImpact } from '@/hooks/use-merchant-dashboard';
@@ -32,6 +32,7 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
 
   const carbonKg = carbonQuery.data?.carbonKgAvoided ?? 0;
   const carKm = carbonQuery.data?.carKmEquivalent ?? 0;
+  const waterLiters = carbonQuery.data?.waterLitersAvoided ?? 0;
   const meals = socialQuery.data?.mealsDistributed ?? 0;
   const people = socialQuery.data?.peopleServedEstimate ?? 0;
 
@@ -61,6 +62,14 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
       note: t('carbon.note', { km: carKm }),
     },
     {
+      title: t('water.title'),
+      value: formatValue(waterLiters),
+      unit: t('water.unit'),
+      delta: t('water.delta'),
+      icon: Droplets,
+      note: t('water.note'),
+    },
+    {
       title: t('social.title'),
       value: meals.toString(),
       unit: t('social.unit'),
@@ -71,7 +80,7 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
   ];
 
   return (
-    <section className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-[20px]'>
+    <section className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3'>
       {cards.map((card, i) => {
         const Icon = card.icon;
         return (
@@ -80,32 +89,32 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.08, duration: 0.5, ease: 'easeOut' }}
-            className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden group'
+            className='glass rounded-2xl p-4 shadow-soft relative overflow-hidden group'
           >
             {/* Coral glow blob */}
             <div className='absolute -top-12 -right-12 h-40 w-40 rounded-full bg-brand-coral/10 blur-2xl group-hover:bg-brand-coral/20 transition-colors pointer-events-none' />
 
-            <div className='relative flex items-start justify-between mb-[24px]'>
-              <div className='h-11 w-11 rounded-xl bg-primary-500/[0.08] grid place-items-center text-primary-500'>
-                <Icon size={20} />
+            <div className='relative flex items-start justify-between mb-3'>
+              <div className='h-9 w-9 rounded-lg bg-primary-500/[0.08] grid place-items-center text-primary-500'>
+                <Icon size={17} />
               </div>
-              <div className='flex items-center gap-1 text-[11px] font-medium text-brand-coral'>
-                <TrendingUp size={12} />
+              <div className='flex items-center gap-1 text-[10px] font-medium text-brand-coral text-right'>
+                <TrendingUp size={11} className='shrink-0' />
                 {card.delta}
               </div>
             </div>
 
             <div className='relative'>
-              <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-2'>
+              <div className='text-[10px] uppercase tracking-wider text-primary-500/60 mb-1.5'>
                 {card.title}
               </div>
               <div className='flex items-baseline gap-2'>
-                <span className='font-display text-5xl text-primary-500 tracking-tight'>
+                <span className='font-display text-3xl text-primary-500 tracking-tight'>
                   {card.value}
                 </span>
-                <span className='text-primary-500/60 font-medium'>{card.unit}</span>
+                <span className='text-xs text-primary-500/60 font-medium'>{card.unit}</span>
               </div>
-              <p className='mt-[16px] text-xs italic text-primary-500/65 leading-relaxed'>
+              <p className='mt-2 text-[11px] italic text-primary-500/65 leading-snug'>
                 {card.note}
               </p>
             </div>
@@ -118,11 +127,11 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
 
 export function ImpactCardsSkeleton() {
   return (
-    <section className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-[20px]'>
-      {[0, 1, 2, 3].map(i => (
+    <section className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3'>
+      {[0, 1, 2, 3, 4].map(i => (
         <div
           key={i}
-          className='glass rounded-2xl p-[24px] shadow-soft h-[200px] animate-pulse bg-white/30'
+          className='glass rounded-2xl p-4 shadow-soft h-[164px] animate-pulse bg-white/30'
         />
       ))}
     </section>

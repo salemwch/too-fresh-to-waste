@@ -1,4 +1,4 @@
-import { Leaf, UtensilsCrossed, Wind } from 'lucide-react';
+import { Leaf, UtensilsCrossed, Wind, Droplets } from 'lucide-react';
 import { Card, CardContent, Skeleton } from '@foodwaste/ui';
 import { cn } from '@/lib/utils';
 
@@ -6,9 +6,11 @@ interface WasteImpactBannerProps {
   kgSaved: number;
   mealsSaved: number;
   co2Reduced: number;
+  waterSaved: number;
   kgSavedLabel: string;
   mealsSavedLabel: string;
   co2ReducedLabel: string;
+  waterSavedLabel: string;
   title: string;
   subtitle: string;
   loading?: boolean;
@@ -24,9 +26,11 @@ export function WasteImpactBanner({
   kgSaved,
   mealsSaved,
   co2Reduced,
+  waterSaved,
   kgSavedLabel,
   mealsSavedLabel,
   co2ReducedLabel,
+  waterSavedLabel,
   title,
   subtitle,
   loading,
@@ -41,7 +45,7 @@ export function WasteImpactBanner({
               <Skeleton className='h-3 w-48' />
             </div>
             <div className='flex flex-wrap gap-6'>
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3, 4].map(i => (
                 <div key={i} className='space-y-1'>
                   <Skeleton className='h-7 w-16' />
                   <Skeleton className='h-3 w-20' />
@@ -58,6 +62,7 @@ export function WasteImpactBanner({
     { value: kgSaved, label: kgSavedLabel, icon: Leaf, color: 'text-emerald-600' },
     { value: mealsSaved, label: mealsSavedLabel, icon: UtensilsCrossed, color: 'text-teal-600' },
     { value: co2Reduced, label: co2ReducedLabel, icon: Wind, color: 'text-cyan-600' },
+    { value: waterSaved, label: waterSavedLabel, icon: Droplets, color: 'text-sky-600' },
   ];
 
   return (

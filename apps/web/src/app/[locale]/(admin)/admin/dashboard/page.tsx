@@ -452,11 +452,14 @@ export default function AdminDashboardPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value='day'>Today</SelectItem>
-            <SelectItem value='week'>This week</SelectItem>
-            <SelectItem value='month'>This month</SelectItem>
-            <SelectItem value='quarter'>Quarter</SelectItem>
-            <SelectItem value='year'>Year</SelectItem>
+            <SelectItem value='day'>{t('periods.day')}</SelectItem>
+            <SelectItem value='week'>{t('periods.week')}</SelectItem>
+            <SelectItem value='month'>{t('periods.month')}</SelectItem>
+            <SelectItem value='quarter'>{t('periods.quarter')}</SelectItem>
+            <SelectItem value='year'>{t('periods.year')}</SelectItem>
+            {/* All time — lets admin totals be compared directly against the
+                merchant dashboards, which are always all-time. */}
+            <SelectItem value='all'>{t('periods.all')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -530,9 +533,11 @@ export default function AdminDashboardPage() {
         kgSaved={analytics?.offers.wasteReductionImpact.totalKgSaved ?? 0}
         mealsSaved={analytics?.offers.wasteReductionImpact.totalMealsSaved ?? 0}
         co2Reduced={analytics?.offers.wasteReductionImpact.co2ReductionKg ?? 0}
+        waterSaved={analytics?.offers.wasteReductionImpact.waterLitersSaved ?? 0}
         kgSavedLabel={t('waste.kgSaved')}
         mealsSavedLabel={t('waste.mealsSaved')}
         co2ReducedLabel={t('waste.co2Reduced')}
+        waterSavedLabel={t('waste.waterSaved')}
         title={t('waste.title')}
         subtitle={t('waste.subtitle')}
         loading={loadingAnalytics}

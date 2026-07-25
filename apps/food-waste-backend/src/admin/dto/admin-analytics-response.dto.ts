@@ -466,7 +466,34 @@ class WasteReductionMetricsResponseDto {
   co2ReductionKg!: number;
 
   @ApiProperty({
-    description: 'Estimated value of saved food in cents',
+    description: 'Litres of water footprint avoided across all merchants (ADEME)',
+    example: 623_400,
+    minimum: 0,
+  })
+  @IsNumber()
+  @Min(0)
+  waterLitersSaved!: number;
+
+  @ApiProperty({
+    description: 'Surprise bags rescued — the unit all other impact figures derive from',
+    example: 10_280,
+    minimum: 0,
+  })
+  @IsNumber()
+  @Min(0)
+  totalBagsSaved!: number;
+
+  @ApiProperty({
+    description: 'What customers actually paid for the rescued food, in TND',
+    example: 61_680,
+    minimum: 0,
+  })
+  @IsNumber()
+  @Min(0)
+  actualRevenue!: number;
+
+  @ApiProperty({
+    description: 'Retail value of the saved food (loss avoided), in TND',
     example: 154205,
     minimum: 0,
   })

@@ -6,7 +6,7 @@ import { OrderStatus } from '@foodwaste/shared';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
 import { MerchantGoal, MerchantGoalDocument } from '../schemas/merchant-goal.schema';
 import {
-  FOOD_IMPACT_COEFFICIENTS,
+  BAG_IMPACT,
   SUSTAINABILITY_FACTORS,
 } from '../../analytics/constants/sustainability.constants';
 import type {
@@ -27,18 +27,14 @@ const ESG_TIERS: { name: string; label: string; badge: string | null; threshold:
   { name: 'Legende', label: 'Légende', badge: null, threshold: 500 },
 ];
 
-// Average surprise bag: ~1.5 kg mixed food (ADEME research)
-const AVG_KG_PER_BAG = 1.5;
-// Average carbon footprint of rescued food mix (weighted avg, ADEME)
-const AVG_CARBON_PER_KG = FOOD_IMPACT_COEFFICIENTS.default.carbonFootprint; // 3.5 kg CO2/kg
-// Average water footprint (weighted avg)
-const AVG_WATER_PER_KG = FOOD_IMPACT_COEFFICIENTS.default.waterFootprint; // 1500 L/kg
-// Meals per bag (ADEME: 1 kg food ≈ 1.67 meals)
-const MEALS_PER_KG = 1.67;
-// Average TND value per meal (market estimate for Tunisia)
-const TND_VALUE_PER_KG = 5.0;
-// Trees planted equivalent: 1 tree absorbs ~21 kg CO2/year
-const CO2_PER_TREE_YEAR = 21;
+// Impact coefficients are shared with admin platform analytics so the two
+// surfaces can never diverge. See BAG_IMPACT for the ADEME methodology notes.
+const AVG_KG_PER_BAG = BAG_IMPACT.avgKgPerBag;
+const AVG_CARBON_PER_KG = BAG_IMPACT.carbonPerKg;
+const AVG_WATER_PER_KG = BAG_IMPACT.waterPerKg;
+const MEALS_PER_KG = BAG_IMPACT.mealsPerKg;
+const TND_VALUE_PER_KG = BAG_IMPACT.tndValuePerKg;
+const CO2_PER_TREE_YEAR = BAG_IMPACT.co2PerTreeYear;
 
 @Injectable()
 export class SustainabilityService {

@@ -7,7 +7,7 @@ import {
   EstablishmentDocument,
 } from '../../establishments/schemas/establishment.schema';
 import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
-import { Order, OrderDocument } from '../../orders/schemas/order.schema';
+import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
 import { Review, ReviewDocument, ReviewStatus } from '../../reviews/schemas/review.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import { CacheService } from '../../common/services/cache.service';
@@ -25,9 +25,11 @@ import {
   OrderTrend,
   CategoryStats,
   WasteReductionMetrics,
+  WasteReductionAggregate,
   EstablishmentRevenue,
   AnomalyAlert,
 } from '../interfaces/admin-analytics.interface';
+import { BAG_IMPACT } from '../../analytics/constants/sustainability.constants';
 
 interface CountAggregationResult {
   count: number;
@@ -142,13 +144,6 @@ interface CategoryStatsAggregationResult {
   averageDiscount: number | null;
 }
 
-interface WasteReductionAggregationResult {
-  totalKgSaved: number | null;
-  totalMealsSaved: number | null;
-  co2ReductionKg: number | null;
-  totalEstimatedValue: number | null;
-}
-
 type RevenueByEstablishmentAggregationResult = EstablishmentRevenue;
 
 @Injectable()
@@ -162,6 +157,7 @@ export class AdminAnalyticsService {
     [AnalyticsPeriodType.MONTH]: 30 * 60, // 30 min
     [AnalyticsPeriodType.QUARTER]: 60 * 60, // 1 hour
     [AnalyticsPeriodType.YEAR]: 60 * 60, // 1 hour
+    [AnalyticsPeriodType.ALL_TIME]: 60 * 60, // 1 hour — historical totals move slowly
     [AnalyticsPeriodType.CUSTOM]: 5 * 60, // 5 min — custom ranges can be anything
   };
 
@@ -469,7 +465,10 @@ export class AdminAnalyticsService {
       totalKgSaved: 0,
       totalMealsSaved: 0,
       co2ReductionKg: 0,
+      waterLitersSaved: 0,
       estimatedValue: 0,
+      actualRevenue: 0,
+      totalBagsSaved: 0,
     };
 
     if (includeDetails) {
@@ -767,6 +766,10 @@ export class AdminAnalyticsService {
         break;
       case AnalyticsPeriodType.YEAR:
         startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      case AnalyticsPeriodType.ALL_TIME:
+        // Epoch — every record the platform has ever produced.
+        startDate = new Date(0);
         break;
       case AnalyticsPeriodType.CUSTOM:
         startDate = query.startDate
@@ -1158,148 +1161,88 @@ export class AdminAnalyticsService {
     }
   }
 
+  /**
+   * Platform-wide rescued-food impact, aggregated across ALL merchants.
+   *
+   * Source of truth is the ORDER collection, matching the merchant-facing
+   * sustainability endpoints, so the admin total is genuinely the sum of what
+   * every merchant sees rather than a parallel estimate.
+   *
+   * Two things this deliberately does NOT do:
+   *   - It does not filter offers by `createdAt`. Impact is realised when food
+   *     is collected, so an offer listed before the period but picked up inside
+   *     it must count. Attribution is by order date.
+   *   - It does not carry its own coefficients. All figures derive from
+   *     BAG_IMPACT (ADEME Scope 3) so admin and merchant can never diverge.
+   */
   private async calculateWasteReductionImpact(
     period: AnalyticsPeriod,
   ): Promise<WasteReductionMetrics> {
+    const empty: WasteReductionMetrics = {
+      totalKgSaved: 0,
+      totalMealsSaved: 0,
+      co2ReductionKg: 0,
+      waterLitersSaved: 0,
+      estimatedValue: 0,
+      actualRevenue: 0,
+      totalBagsSaved: 0,
+    };
+
     try {
       const pipeline: PipelineStage[] = [
         {
           $match: {
-            status: { $in: ['sold_out', 'expired', 'active'] },
-            soldQuantity: { $gt: 0 },
-            createdAt: {
-              $gte: period.startDate,
-              $lte: period.endDate,
+            // Only food that actually reached a customer counts as rescued.
+            status: {
+              $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
             },
+            isDeleted: { $ne: true },
+            // Attribute by when the rescue happened, not when the offer was listed.
+            createdAt: { $gte: period.startDate, $lte: period.endDate },
           },
         },
-        {
-          $lookup: {
-            from: 'orders',
-            let: { offerId: '$_id' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [
-                      { $eq: ['$offerId', '$$offerId'] },
-                      { $in: ['$status', ['picked_up', 'completed', 'delivered']] },
-                    ],
-                  },
-                },
-              },
-            ],
-            as: 'completedOrders',
-          },
-        },
-        {
-          $addFields: {
-            actualSoldQuantity: { $size: '$completedOrders' },
-            estimatedWeightKg: {
-              $cond: [
-                { $and: [{ $ne: ['$estimatedWeight', null] }, { $ne: ['$estimatedWeight', ''] }] },
-                {
-                  $toDouble: {
-                    $ifNull: [
-                      {
-                        $getField: {
-                          field: 'match',
-                          input: {
-                            $regexFind: {
-                              input: '$estimatedWeight',
-                              regex: /^(\d+(?:\.\d+)?)/,
-                            },
-                          },
-                        },
-                      },
-                      '0.35',
-                    ],
-                  },
-                },
-                // Default weight estimates by category
-                {
-                  $switch: {
-                    branches: [
-                      { case: { $in: ['bakery', '$categories'] }, then: 0.3 },
-                      { case: { $in: ['restaurant', '$categories'] }, then: 0.5 },
-                      { case: { $in: ['cafe', '$categories'] }, then: 0.25 },
-                      { case: { $in: ['grocery', '$categories'] }, then: 0.4 },
-                      { case: { $in: ['dessert', '$categories'] }, then: 0.2 },
-                    ],
-                    default: 0.35, // Average weight per item
-                  },
-                },
-              ],
-            },
-          },
-        },
+        // Per-item so we can separate what the food was WORTH from what was PAID.
+        { $unwind: '$items' },
         {
           $group: {
             _id: null,
-            totalItemsSaved: { $sum: '$actualSoldQuantity' },
-            totalKgSaved: {
+            totalBags: { $sum: '$items.quantity' },
+            // Retail value of the rescued food — the loss avoided.
+            estimatedValue: {
               $sum: {
-                $multiply: ['$actualSoldQuantity', '$estimatedWeightKg'],
+                $multiply: ['$items.quantity', { $ifNull: ['$items.originalPrice', 0] }],
               },
             },
-            totalEstimatedValue: {
+            // What customers actually paid for it.
+            actualRevenue: {
               $sum: {
-                $multiply: ['$actualSoldQuantity', '$pricing.originalPrice'],
-              },
-            },
-            totalActualRevenue: {
-              $sum: {
-                $multiply: ['$actualSoldQuantity', '$pricing.discountedPrice'],
-              },
-            },
-          },
-        },
-        {
-          $project: {
-            totalItemsSaved: 1,
-            totalKgSaved: { $round: ['$totalKgSaved', 2] },
-            totalEstimatedValue: { $round: ['$totalEstimatedValue', 2] },
-            totalActualRevenue: { $round: ['$totalActualRevenue', 2] },
-            // CO2 calculation: approximately 2.3kg CO2 per kg of food waste avoided
-            co2ReductionKg: {
-              $round: [{ $multiply: ['$totalKgSaved', 2.3] }, 2],
-            },
-            // Estimate meals saved (assuming average 300g per meal)
-            totalMealsSaved: {
-              $floor: {
-                $divide: ['$totalKgSaved', 0.3],
+                $multiply: ['$items.quantity', { $ifNull: ['$items.unitPrice', 0] }],
               },
             },
           },
         },
       ];
 
-      const [result] = await this.offerModel.aggregate<WasteReductionAggregationResult>(pipeline);
-
-      if (result === null || result === undefined) {
-        return {
-          totalKgSaved: 0,
-          totalMealsSaved: 0,
-          co2ReductionKg: 0,
-          estimatedValue: 0,
-        };
+      const [result] = await this.orderModel.aggregate<WasteReductionAggregate>(pipeline);
+      const totalBagsSaved = result?.totalBags ?? 0;
+      if (totalBagsSaved <= 0) {
+        return empty;
       }
 
+      const foodWeightKg = totalBagsSaved * BAG_IMPACT.avgKgPerBag;
+
       return {
-        totalKgSaved: result.totalKgSaved ?? 0,
-        totalMealsSaved: result.totalMealsSaved ?? 0,
-        co2ReductionKg: result.co2ReductionKg ?? 0,
-        estimatedValue: result.totalEstimatedValue ?? 0,
+        totalBagsSaved,
+        totalKgSaved: this.roundTo(foodWeightKg),
+        totalMealsSaved: Math.round(foodWeightKg * BAG_IMPACT.mealsPerKg),
+        co2ReductionKg: this.roundTo(foodWeightKg * BAG_IMPACT.carbonPerKg),
+        waterLitersSaved: Math.round(foodWeightKg * BAG_IMPACT.waterPerKg),
+        estimatedValue: this.roundTo(result?.estimatedValue ?? 0),
+        actualRevenue: this.roundTo(result?.actualRevenue ?? 0),
       };
     } catch (error) {
       this.logger.error('Failed to calculate waste reduction impact:', error);
-      // Return fallback data on error
-      return {
-        totalKgSaved: 0,
-        totalMealsSaved: 0,
-        co2ReductionKg: 0,
-        estimatedValue: 0,
-      };
+      return empty;
     }
   }
 

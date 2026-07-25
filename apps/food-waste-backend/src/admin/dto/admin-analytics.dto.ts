@@ -8,6 +8,7 @@ export enum AnalyticsPeriodType {
   MONTH = 'month',
   QUARTER = 'quarter',
   YEAR = 'year',
+  ALL_TIME = 'all',
   CUSTOM = 'custom',
 }
 
