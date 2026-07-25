@@ -69,41 +69,29 @@ export const HOME_STORAGE_KEYS = {
 // ============================================================================
 
 /**
- * Configuration for each offer section
- * Used to render offer sections with consistent styling and behavior
+ * Presentation config for each offer section.
+ *
+ * Only styling/test identity lives here — all user-facing copy comes from the
+ * `home.*` i18n namespace (see HomeScreen), so nothing in this file is ever
+ * rendered. Do NOT reintroduce title/empty-state strings here: they would
+ * bypass i18n and ship untranslated English to fr/ar users.
  */
 export const OFFER_SECTIONS = {
   urgent: {
-    title: 'Urgent Deals ⚡',
-    emptyMessage: 'No urgent deals right now',
-    emptySubtext: 'Offers expiring within 2 hours will appear here',
     variant: 'featured' as const,
     testIDPrefix: 'urgent',
-    priority: 1, // Highest priority - load first
   },
   hottest: {
-    title: 'Hottest Deals 🔥',
-    emptyMessage: 'No hottest deals for now',
-    emptySubtext: 'Check back soon for offers with 60%+ discount',
     variant: 'default' as const,
     testIDPrefix: 'hottest',
-    priority: 2,
   },
   pickupToday: {
-    title: 'Pickup Today',
-    emptyMessage: 'No offers available for pickup today',
-    emptySubtext: 'Check back later or browse other offers',
     variant: 'default' as const,
     testIDPrefix: 'pickup-today',
-    priority: 3,
   },
   pickupTomorrow: {
-    title: 'Pickup Tomorrow',
-    emptyMessage: 'No offers available for pickup tomorrow',
-    emptySubtext: 'Check back later or browse other offers',
     variant: 'default' as const,
     testIDPrefix: 'pickup-tomorrow',
-    priority: 4,
   },
 } as const;
 

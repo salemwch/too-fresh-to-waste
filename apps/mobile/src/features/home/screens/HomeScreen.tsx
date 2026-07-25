@@ -1,19 +1,17 @@
 /**
- * Home Screen (Refactored with FlatList)
- * Main dashboard displaying featured offers, nearby offers, and quick actions
+ * Home Screen
+ * Main dashboard displaying featured offers, nearby offers, and quick actions.
  *
- * Refactored from 1262 lines to ~320 lines by:
- * - Extracting custom hooks (useHomeFilters, useHomeOffers)
- * - Creating reusable components (HomeSearchBar, HomeOfferSection, etc.)
- * - Implementing lazy loading for API calls
- * - Removing code duplication (4 offer sections → 1 reusable component)
- * - Converting ScrollView to FlatList for better performance
+ * Structure:
+ * - Data fetching lives in useHomeOffers; filter state in useHomeFilters;
+ *   first-run location setup in useLocationSetup.
+ * - The screen renders a FlashList of section descriptors (`sections`), with
+ *   each section's content produced by the `renderSection` closure.
  *
- * Performance Improvements:
- * - ~60% faster re-renders (smaller components)
- * - ~40% faster initial render (lazy loading)
- * - Better memory management (FlatList virtualization)
- * - Improved Android performance (no nested scrollables)
+ * ⚠️ FlashList contract: `sections` describes only WHICH sections exist — the
+ * offers live in the closure, not in `data`. FlashList wraps each cell in a
+ * PureComponent, so `extraData` MUST be kept in sync with `renderSection` or
+ * the sections freeze on their first render and never show fetched offers.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -42,7 +40,6 @@ import surpriseBoxImg from '../../../assets/images/surprise-box.png';
 import {
   HomeSearchBar,
   HomeOfferSection,
-  HomeImpactStats,
   SkeletonHomeSearchBar,
   CommunityBagGoalBanner,
   CharityDonationBottomSheet,
@@ -79,38 +76,42 @@ interface HeaderRightProps {
   onLeaderboardPress: () => void;
 }
 
-const HomeHeaderRight: React.FC<HeaderRightProps> = ({ onCharityPress, onLeaderboardPress }) => (
-  <View style={headerRightStyles.row}>
-    <Pressable
-      onPress={onCharityPress}
-      style={headerRightStyles.button}
-      accessibilityLabel='Learn about our charity donations'
-      accessibilityHint='Opens the donation information sheet'
-      accessibilityRole='button'
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-    >
-      <Image
-        source={heartInHandsImg}
-        style={headerRightStyles.icon}
-        accessibilityIgnoresInvertColors
-      />
-    </Pressable>
-    <Pressable
-      onPress={onLeaderboardPress}
-      style={headerRightStyles.button}
-      accessibilityLabel='Grand prize leaderboard'
-      accessibilityHint='Opens the leaderboard screen'
-      accessibilityRole='button'
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-    >
-      <Image
-        source={surpriseBoxImg}
-        style={[headerRightStyles.icon, headerRightStyles.surpriseIcon]}
-        accessibilityIgnoresInvertColors
-      />
-    </Pressable>
-  </View>
-);
+const HomeHeaderRight: React.FC<HeaderRightProps> = ({ onCharityPress, onLeaderboardPress }) => {
+  const { t } = useTranslation();
+
+  return (
+    <View style={headerRightStyles.row}>
+      <Pressable
+        onPress={onCharityPress}
+        style={headerRightStyles.button}
+        accessibilityLabel={t('home.a11yCharity')}
+        accessibilityHint={t('home.a11yCharityHint')}
+        accessibilityRole='button'
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Image
+          source={heartInHandsImg}
+          style={headerRightStyles.icon}
+          accessibilityIgnoresInvertColors
+        />
+      </Pressable>
+      <Pressable
+        onPress={onLeaderboardPress}
+        style={headerRightStyles.button}
+        accessibilityLabel={t('home.a11yLeaderboard')}
+        accessibilityHint={t('home.a11yLeaderboardHint')}
+        accessibilityRole='button'
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Image
+          source={surpriseBoxImg}
+          style={[headerRightStyles.icon, headerRightStyles.surpriseIcon]}
+          accessibilityIgnoresInvertColors
+        />
+      </Pressable>
+    </View>
+  );
+};
 
 const headerRightStyles = StyleSheet.create({
   row: {
@@ -145,8 +146,7 @@ type SectionType =
   | 'urgentOffers'
   | 'hottestDeals'
   | 'pickupToday'
-  | 'pickupTomorrow'
-  | 'impactStats';
+  | 'pickupTomorrow';
 
 /**
  * Section data structure
@@ -614,8 +614,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       { id: 'hottestDeals' as const, type: 'hottestDeals' as const },
       { id: 'pickupToday' as const, type: 'pickupToday' as const },
       { id: 'pickupTomorrow' as const, type: 'pickupTomorrow' as const },
-      // Impact stats (always shown)
-      { id: 'impactStats' as const, type: 'impactStats' as const },
     ],
     [shouldShowPrompt],
   );
@@ -764,9 +762,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             />
           );
 
-        case 'impactStats':
-          return <HomeImpactStats />;
-
         default:
           return null;
       }
@@ -813,6 +808,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         data={sections}
         renderItem={renderSection}
         keyExtractor={keyExtractor}
+        // `sections` only describes WHICH sections exist — the offers themselves
+        // live in the `renderSection` closure. FlashList wraps every cell in a
+        // PureComponent and only repaints when `data`/`extraData` change identity,
+        // so without this the sections stay frozen on their first render and
+        // offers arriving from the network are never painted.
+        // `renderSection` is the single source of truth for those dependencies
+        // (see its useCallback deps), so using it directly keeps the two in sync.
+        extraData={renderSection}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -821,12 +824,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             onRefresh={handleRefresh}
             tintColor={theme.colors.primary}
             accessibilityLabel={refreshing ? 'Refreshing offers' : 'Pull to refresh'}
-            accessibilityHint='Pull down to refresh the offers list'
+            accessibilityHint={t('home.a11yPullRefreshHint')}
           />
         }
         estimatedItemSize={200}
-        accessibilityLabel='Home screen content'
-        accessibilityHint='Scroll to view featured offers, nearby deals, and your impact'
+        accessibilityLabel={t('home.a11yHomeContent')}
+        accessibilityHint={t('home.a11yHomeContentHint')}
         testID='home-screen-flatlist'
       />
 

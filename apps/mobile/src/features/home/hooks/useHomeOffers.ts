@@ -5,7 +5,6 @@
  * Responsibilities:
  * - Consolidate 4 separate API queries
  * - Implement lazy loading (priority-based)
- * - Request cancellation on unmount
  * - Centralized error handling
  * - Refresh management
  *
@@ -13,8 +12,7 @@
  * Load critical data first, then lazy load secondary data
  */
 
-import { onlineManager } from '@tanstack/react-query';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import {
   useUrgentOffers,
@@ -33,6 +31,13 @@ import type {
   OfferStatus,
   OffersResponse,
 } from '@/features/offers/types/offer.types';
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+/** Section order — must match the refetch order in `refetchAll`. */
+const SECTION_NAMES = ['urgent', 'hottest', 'pickupToday', 'pickupTomorrow'] as const;
 
 // ============================================================================
 // Types
@@ -111,9 +116,10 @@ interface UseHomeOffersResult {
  * - Centralized refetch: Single function to refresh all data
  *
  * Performance:
- * - Initial render: ~300ms (only urgent offers)
- * - Secondary render: ~500ms (other offers)
- * - Total: ~800ms (vs 1200ms with parallel loading)
+ * - Urgent offers fetch on mount; the other three are gated behind
+ *   HOME_UI_CONFIG.LAZY_LOAD_DELAY_MS so the first paint isn't competing
+ *   with four parallel requests. No measured figures are quoted here on
+ *   purpose — profile before claiming any.
  *
  * @param coordinates - User location for distance calculation
  * @param filterParams - Active filters to apply
@@ -183,20 +189,11 @@ export function useHomeOffers(
    * PRIORITY 1: Urgent offers (expiring within 1 hour)
    * Loads immediately - most time-sensitive data
    */
-  // ── Diagnostic: log query preconditions on every render ──
-  Logger.debug('[useHomeOffers] render', {
-    hasCoordinates: coordinates !== undefined,
-    loadSecondaryData,
-    isOnline: onlineManager.isOnline(),
-  });
-
   const {
     data: urgentOffers,
     isLoading: isUrgentLoading,
     error: urgentError,
     refetch: refetchUrgent,
-    fetchStatus: urgentFetchStatus,
-    status: urgentStatus,
   } = useUrgentOffers(
     HOME_API_CONFIG.URGENT_OFFERS_HOURS_THRESHOLD,
     HOME_API_CONFIG.URGENT_OFFERS_LIMIT,
@@ -211,22 +208,11 @@ export function useHomeOffers(
    * PRIORITY 2: Hottest deals (60%+ discount, today only)
    * Loads after 500ms delay
    */
-  // ── Diagnostic: log urgent query state ──
-  Logger.debug('[useHomeOffers] urgent query state', {
-    status: urgentStatus,
-    fetchStatus: urgentFetchStatus,
-    hasData: urgentOffers !== undefined,
-    dataLength: urgentOffers?.length,
-    error: urgentError?.message,
-  });
-
   const {
     data: hottestDealsRaw,
     isLoading: isHottestLoading,
     error: hottestError,
     refetch: refetchHottest,
-    fetchStatus: hottestFetchStatus,
-    status: hottestStatus,
   } = useOffers(
     {
       status: Status.ACTIVE as OfferStatus,
@@ -243,43 +229,36 @@ export function useHomeOffers(
 
   // Exclude tomorrow's offers — Hottest Deals should only show today's bargains.
   // Backend has no pickupDate filter, so we apply it client-side.
-  const todayDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Tunis' });
-  const hottestDeals = hottestDealsRaw
-    ? {
-        ...hottestDealsRaw,
-        data: hottestDealsRaw.data.filter(offer => {
-          try {
-            const offerDateStr = new Date(offer.availableFrom).toLocaleDateString('en-CA', {
-              timeZone: 'Africa/Tunis',
-            });
-            return offerDateStr <= todayDateStr;
-          } catch {
-            return true;
-          }
-        }),
-      }
-    : undefined;
+  // Memoized: this derived object is a render input downstream, so it must only
+  // change identity when the underlying query data changes.
+  const hottestDeals = useMemo(() => {
+    if (!hottestDealsRaw) return undefined;
+
+    const todayDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Tunis' });
+    return {
+      ...hottestDealsRaw,
+      data: hottestDealsRaw.data.filter(offer => {
+        try {
+          const offerDateStr = new Date(offer.availableFrom).toLocaleDateString('en-CA', {
+            timeZone: 'Africa/Tunis',
+          });
+          return offerDateStr <= todayDateStr;
+        } catch {
+          return true;
+        }
+      }),
+    };
+  }, [hottestDealsRaw]);
 
   /**
    * PRIORITY 3: Pickup today offers
    * Loads after 500ms delay
    */
-  // ── Diagnostic: log hottest query state ──
-  Logger.debug('[useHomeOffers] hottest query state', {
-    status: hottestStatus,
-    fetchStatus: hottestFetchStatus,
-    enabled: loadSecondaryData,
-    hasData: hottestDealsRaw !== undefined,
-    dataLength: hottestDealsRaw?.data?.length,
-  });
-
   const {
     data: pickupTodayOffers,
     isLoading: isPickupTodayLoading,
     error: pickupTodayError,
     refetch: refetchPickupToday,
-    fetchStatus: pickupTodayFetchStatus,
-    status: pickupTodayStatus,
   } = usePickupTodayOffers(
     HOME_API_CONFIG.PICKUP_TODAY_LIMIT,
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
@@ -293,22 +272,11 @@ export function useHomeOffers(
    * PRIORITY 4: Pickup tomorrow offers
    * Loads after 500ms delay
    */
-  // ── Diagnostic: log pickupToday query state ──
-  Logger.debug('[useHomeOffers] pickupToday query state', {
-    status: pickupTodayStatus,
-    fetchStatus: pickupTodayFetchStatus,
-    enabled: loadSecondaryData,
-    hasData: pickupTodayOffers !== undefined,
-    dataLength: pickupTodayOffers?.length,
-  });
-
   const {
     data: pickupTomorrowOffers,
     isLoading: isPickupTomorrowLoading,
     error: pickupTomorrowError,
     refetch: refetchPickupTomorrow,
-    fetchStatus: pickupTomorrowFetchStatus,
-    status: pickupTomorrowStatus,
   } = usePickupTomorrowOffers(
     HOME_API_CONFIG.PICKUP_TOMORROW_LIMIT,
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
@@ -318,35 +286,35 @@ export function useHomeOffers(
     },
   );
 
-  // ── Diagnostic: log pickupTomorrow query state ──
-  Logger.debug('[useHomeOffers] pickupTomorrow query state', {
-    status: pickupTomorrowStatus,
-    fetchStatus: pickupTomorrowFetchStatus,
-    enabled: loadSecondaryData,
-    hasData: pickupTomorrowOffers !== undefined,
-    dataLength: pickupTomorrowOffers?.length,
-  });
-
   // ============================================================================
   // Aggregated State
   // ============================================================================
 
-  const isLoading: OffersLoadingState = {
-    urgent: isUrgentLoading,
-    hottest: isHottestLoading,
-    pickupToday: isPickupTodayLoading,
-    pickupTomorrow: isPickupTomorrowLoading,
-  };
+  // Memoized so the identity only changes when a loading flag actually flips.
+  // Consumers use these objects as render/memo inputs — a fresh object on every
+  // render would defeat React.memo on the sections and force needless repaints.
+  const isLoading: OffersLoadingState = useMemo(
+    () => ({
+      urgent: isUrgentLoading,
+      hottest: isHottestLoading,
+      pickupToday: isPickupTodayLoading,
+      pickupTomorrow: isPickupTomorrowLoading,
+    }),
+    [isUrgentLoading, isHottestLoading, isPickupTodayLoading, isPickupTomorrowLoading],
+  );
 
   /**
    * Aggregated error states
    */
-  const errors: OffersErrorState = {
-    urgent: urgentError,
-    hottest: hottestError,
-    pickupToday: pickupTodayError,
-    pickupTomorrow: pickupTomorrowError,
-  };
+  const errors: OffersErrorState = useMemo(
+    () => ({
+      urgent: urgentError,
+      hottest: hottestError,
+      pickupToday: pickupTodayError,
+      pickupTomorrow: pickupTomorrowError,
+    }),
+    [urgentError, hottestError, pickupTodayError, pickupTomorrowError],
+  );
 
   // ============================================================================
   // Callbacks - Refetch Functions
@@ -357,70 +325,49 @@ export function useHomeOffers(
    * Used for pull-to-refresh
    */
   const refetchAll = useCallback(async () => {
-    Logger.info('[useHomeOffers] refetchAll called', {
-      isOnline: onlineManager.isOnline(),
-    });
+    // allSettled: one failing section must not abort the other three.
     const results = await Promise.allSettled([
-      refetchUrgent().then(r => {
-        Logger.info('[useHomeOffers] refetchUrgent resolved', {
-          status: r.status,
-          fetchStatus: r.fetchStatus,
-          dataLength: r.data?.length,
-        });
-        return r;
-      }),
-      refetchHottest().then(r => {
-        Logger.info('[useHomeOffers] refetchHottest resolved', {
-          status: r.status,
-          fetchStatus: r.fetchStatus,
-          dataLength: r.data?.data?.length,
-        });
-        return r;
-      }),
-      refetchPickupToday().then(r => {
-        Logger.info('[useHomeOffers] refetchPickupToday resolved', {
-          status: r.status,
-          fetchStatus: r.fetchStatus,
-          dataLength: r.data?.length,
-        });
-        return r;
-      }),
-      refetchPickupTomorrow().then(r => {
-        Logger.info('[useHomeOffers] refetchPickupTomorrow resolved', {
-          status: r.status,
-          fetchStatus: r.fetchStatus,
-          dataLength: r.data?.length,
-        });
-        return r;
-      }),
+      refetchUrgent(),
+      refetchHottest(),
+      refetchPickupToday(),
+      refetchPickupTomorrow(),
     ]);
-    Logger.info('[useHomeOffers] refetchAll completed', {
-      results: results.map((r, i) => ({
-        query: ['urgent', 'hottest', 'pickupToday', 'pickupTomorrow'][i],
-        settled: r.status,
-        reason: r.status === 'rejected' ? String((r as PromiseRejectedResult).reason) : undefined,
-      })),
-    });
+
+    const failed = results
+      .map((r, i) => ({ query: SECTION_NAMES[i], result: r }))
+      .filter(({ result }) => result.status === 'rejected');
+
+    if (failed.length > 0) {
+      Logger.warn('[useHomeOffers] Some sections failed to refresh', {
+        failed: failed.map(({ query, result }) => ({
+          query,
+          reason: String((result as PromiseRejectedResult).reason),
+        })),
+      });
+    }
   }, [refetchUrgent, refetchHottest, refetchPickupToday, refetchPickupTomorrow]);
 
   /**
    * Aggregated refetch functions
    */
-  const refetch: OffersRefetchFunctions = {
-    urgent: () => {
-      void refetchUrgent();
-    },
-    hottest: () => {
-      void refetchHottest();
-    },
-    pickupToday: () => {
-      void refetchPickupToday();
-    },
-    pickupTomorrow: () => {
-      void refetchPickupTomorrow();
-    },
-    all: refetchAll,
-  };
+  const refetch: OffersRefetchFunctions = useMemo(
+    () => ({
+      urgent: () => {
+        void refetchUrgent();
+      },
+      hottest: () => {
+        void refetchHottest();
+      },
+      pickupToday: () => {
+        void refetchPickupToday();
+      },
+      pickupTomorrow: () => {
+        void refetchPickupTomorrow();
+      },
+      all: refetchAll,
+    }),
+    [refetchUrgent, refetchHottest, refetchPickupToday, refetchPickupTomorrow, refetchAll],
+  );
 
   // ============================================================================
   // Return
