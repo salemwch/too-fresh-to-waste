@@ -4,6 +4,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 
 import { Text, Button, Card } from '@/design-system/components/atoms';
@@ -30,6 +31,7 @@ interface PrivacyScreenProps {
 }
 
 export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navigation }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(state => state.auth.isLoading);
@@ -79,7 +81,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
               style={[styles.settingRow, { borderColor: BORDER }]}
               onPress={() => void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy')}
               accessibilityRole='link'
-              accessibilityLabel='View Privacy Policy'
+              accessibilityLabel={t('profile.a11yViewPrivacyPolicy')}
             >
               <View style={styles.settingLeft}>
                 <Text style={styles.settingIcon}>🔒</Text>
@@ -95,7 +97,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
                 void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions')
               }
               accessibilityRole='link'
-              accessibilityLabel='View Terms and Conditions'
+              accessibilityLabel={t('profile.a11yViewTerms')}
             >
               <View style={styles.settingLeft}>
                 <Text style={styles.settingIcon}>📄</Text>
@@ -116,8 +118,8 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
               style={[styles.settingRow, { borderColor: BORDER }]}
               onPress={() => setConsentModalVisible(true)}
               accessibilityRole='button'
-              accessibilityLabel='Edit community leaderboard display'
-              accessibilityHint='Opens leaderboard privacy settings'
+              accessibilityLabel={t('profile.a11yEditLeaderboardDisplay')}
+              accessibilityHint={t('profile.a11yEditLeaderboardHint')}
             >
               <View style={styles.settingLeft}>
                 <Text style={styles.settingIcon}>🏆</Text>

@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -67,6 +68,7 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
   error,
   firstName,
 }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const sheetBottomPad = Math.max(insets.bottom, 24);
 
@@ -90,8 +92,8 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
         style={styles.modalOverlay}
         onPress={onClose}
         accessibilityRole='button'
-        accessibilityLabel='Close celebration'
-        accessibilityHint='Closes the winner celebration sheet'
+        accessibilityLabel={t('leaderboard.a11yCloseCelebration')}
+        accessibilityHint={t('leaderboard.a11yCloseCelebrationHint')}
       >
         <Pressable
           style={[styles.modalSheet, { paddingBottom: sheetBottomPad }]}
@@ -111,7 +113,7 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
                   <Icon name='checkmark-circle' family='Ionicons' size={64} color={SUCCESS} />
                 </View>
 
-                <Text style={styles.heading}>Prize Claimed!</Text>
+                <Text style={styles.heading}>{t('leaderboard.prizeClaimed')}</Text>
 
                 <View style={styles.ticketCard}>
                   <Text style={styles.ticketPrize}>Smartphone</Text>
@@ -122,7 +124,7 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
                   </View>
                 </View>
 
-                <Text style={styles.body}>Our team will call you to get the prize.</Text>
+                <Text style={styles.body}>{t('leaderboard.teamWillCallPeriod')}</Text>
               </>
             ) : (
               /* ── Initial / Claiming / Error state ── */
@@ -142,7 +144,7 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
                   </View>
                 )}
 
-                <Text style={styles.note}>Our team will call you to get the prize</Text>
+                <Text style={styles.note}>{t('leaderboard.teamWillCall')}</Text>
               </>
             )}
           </ScrollView>
@@ -153,10 +155,10 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
               style={styles.modalBtn}
               onPress={onClose}
               accessibilityRole='button'
-              accessibilityLabel='Got it'
-              accessibilityHint='Dismisses the celebration'
+              accessibilityLabel={t('leaderboard.gotIt')}
+              accessibilityHint={t('leaderboard.a11yDismissCelebration')}
             >
-              <Text style={styles.modalBtnTxt}>Got it</Text>
+              <Text style={styles.modalBtnTxt}>{t('leaderboard.gotIt')}</Text>
             </Pressable>
           ) : (
             <Pressable
@@ -164,13 +166,13 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
               onPress={onClaim}
               disabled={isClaiming}
               accessibilityRole='button'
-              accessibilityLabel='Claim your prize'
-              accessibilityHint='Claims your smartphone prize'
+              accessibilityLabel={t('leaderboard.a11yClaimPrize')}
+              accessibilityHint={t('leaderboard.a11yClaimPrizeHint')}
             >
               {isClaiming ? (
                 <ActivityIndicator size='small' color={INVERSE_TEXT} />
               ) : (
-                <Text style={styles.modalBtnTxt}>Claim Your Prize</Text>
+                <Text style={styles.modalBtnTxt}>{t('leaderboard.claimYourPrize')}</Text>
               )}
             </Pressable>
           )}

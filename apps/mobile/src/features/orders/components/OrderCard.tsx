@@ -19,6 +19,7 @@
  */
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, Platform, Animated } from 'react-native';
 import FastImage from 'react-native-fast-image';
 
@@ -188,6 +189,7 @@ interface OrderCardProps {
 }
 
 export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => {
+  const { t } = useTranslation();
   const statusConfig = STATUS_CONFIG[order.status] ?? DEFAULT_STATUS;
   const establishmentName = getEstablishmentName(order);
 
@@ -231,7 +233,7 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       style={({ pressed }) => [styles.card, Platform.OS === 'ios' && pressed && styles.cardPressed]}
       accessibilityRole='button'
       accessibilityLabel={`Order ${order.orderNumber}, ${firstItem?.offerTitle ?? 'Order'}, status ${statusConfig.label}`}
-      accessibilityHint='Tap to view order details'
+      accessibilityHint={t('orders.a11yOrderCardHint')}
     >
       {/* ── Status Badge (absolute top-right) ── */}
       <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
@@ -280,14 +282,14 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
           {withinPickupWindow && (
             <View style={styles.goNowContainer}>
               <PulsingDot />
-              <Text style={styles.goNowText}>Go now!</Text>
+              <Text style={styles.goNowText}>{t('orders.goNow')}</Text>
             </View>
           )}
         </View>
       ) : (
         <View style={styles.pickupRow}>
           <Icon name='time-outline' family='Ionicons' size={16} color='#94A3B8' />
-          <Text style={styles.pickupText}>Pickup time pending</Text>
+          <Text style={styles.pickupText}>{t('orders.pickupTimePending')}</Text>
         </View>
       )}
 

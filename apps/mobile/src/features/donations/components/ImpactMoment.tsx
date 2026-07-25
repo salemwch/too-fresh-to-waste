@@ -5,6 +5,7 @@
  */
 
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Modal, Animated, Easing, Dimensions } from 'react-native';
 
 interface ImpactMomentProps {
@@ -44,6 +45,7 @@ const ImpactMomentComponent = ({
   onDismiss,
   currency = 'TND',
 }: ImpactMomentProps) => {
+  const { t } = useTranslation();
   const [heartScale] = useState(() => new Animated.Value(0));
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [sparkleAnim] = useState(() => new Animated.Value(0));
@@ -119,7 +121,7 @@ const ImpactMomentComponent = ({
       }),
     [sparkleAnim],
   );
-  const mealsSummary = `${PLATE_ICON} That's ${mealCount} meals! ${PLATE_ICON}`;
+  const mealsSummary = `${PLATE_ICON} ${t('donations.mealsSummary', { count: mealCount })} ${PLATE_ICON}`;
 
   if (!visible) return null;
 
@@ -145,25 +147,25 @@ const ImpactMomentComponent = ({
             {HEART_ICON}
           </Animated.Text>
 
-          <Text style={styles.title}>Thank You!</Text>
+          <Text style={styles.title}>{t('donations.thankYou')}</Text>
 
           <View style={styles.donationBox}>
-            <Text style={styles.label}>You contributed</Text>
+            <Text style={styles.label}>{t('donations.youContributed')}</Text>
             <Text style={styles.amount}>
               {donationAmount.toFixed(2)} {currency}
             </Text>
-            <Text style={styles.sublabel}>to feeding someone in need</Text>
+            <Text style={styles.sublabel}>{t('donations.toFeedingSomeone')}</Text>
           </View>
 
           <View style={styles.statsBox}>
-            <Text style={styles.statsLabel}>Together we&apos;ve donated:</Text>
+            <Text style={styles.statsLabel}>{t('donations.togetherDonated')}</Text>
             <Text style={styles.statsValue}>
               {totalDonations.toFixed(2)} {currency}
             </Text>
             <Text style={styles.mealsText}>{mealsSummary}</Text>
           </View>
 
-          <Text style={styles.dismissText}>Auto-closing in 3s...</Text>
+          <Text style={styles.dismissText}>{t('donations.autoClosing', { seconds: 3 })}</Text>
         </View>
       </Animated.View>
     </Modal>

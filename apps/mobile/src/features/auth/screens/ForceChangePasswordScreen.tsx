@@ -12,6 +12,7 @@
  */
 
 import React, { useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -55,6 +56,7 @@ interface ForcePasswordChangeResponseData {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ForceChangePasswordScreen() {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
   const {
@@ -100,10 +102,10 @@ export default function ForceChangePasswordScreen() {
         dispatch(setFlowState(AuthFlowState.AUTHENTICATED));
       } catch (error) {
         Logger.error('[ForceChangePassword] Failed to change password', {}, error as Error);
-        Alert.alert('Error', 'Failed to change password. Please try again.');
+        Alert.alert(t('common.somethingWentWrong'), t('auth.changePasswordFailed'));
       }
     },
-    [dispatch],
+    [dispatch, t],
   );
 
   return (
@@ -113,8 +115,8 @@ export default function ForceChangePasswordScreen() {
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps='handled'>
         <View style={styles.header}>
-          <Text style={styles.title}>Set Your Password</Text>
-          <Text style={styles.subtitle}>You must set a new password before using the app.</Text>
+          <Text style={styles.title}>{t('auth.forceChangeTitle')}</Text>
+          <Text style={styles.subtitle}>{t('auth.forceChangeSubtitle')}</Text>
         </View>
 
         <View style={styles.form}>
@@ -122,13 +124,13 @@ export default function ForceChangePasswordScreen() {
             control={control}
             name='newPassword'
             rules={{
-              required: 'Password is required',
-              minLength: { value: 8, message: 'Minimum 8 characters' },
+              required: t('auth.passwordRequired'),
+              minLength: { value: 8, message: t('auth.passwordMinLength') },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={[styles.input, errors.newPassword != null && styles.inputError]}
-                placeholder='New password (min. 8 characters)'
+                placeholder={t('auth.newPasswordPlaceholder')}
                 placeholderTextColor='#9CA3AF'
                 secureTextEntry
                 autoCapitalize='none'
@@ -154,7 +156,7 @@ export default function ForceChangePasswordScreen() {
             {isSubmitting ? (
               <ActivityIndicator color='#fff' />
             ) : (
-              <Text style={styles.buttonText}>Save Password</Text>
+              <Text style={styles.buttonText}>{t('auth.savePassword')}</Text>
             )}
           </TouchableOpacity>
         </View>

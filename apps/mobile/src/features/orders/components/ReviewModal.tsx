@@ -3,6 +3,7 @@ import IoniconsIcon from '@react-native-vector-icons/ionicons';
 type IconName = React.ComponentProps<typeof IoniconsIcon>['name'];
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Modal, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 
 import { Text, Button } from '@/design-system/components/atoms';
@@ -69,6 +70,7 @@ export const ReviewModal: React.FC<Props> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
 
@@ -137,8 +139,8 @@ export const ReviewModal: React.FC<Props> = ({
               onPress={onClose}
               style={styles.closeBtn}
               accessibilityRole='button'
-              accessibilityLabel='Close'
-              accessibilityHint='Closes the review dialog'
+              accessibilityLabel={t('common.close')}
+              accessibilityHint={t('orders.a11yCloseReview')}
             >
               <IoniconsIcon name='close' size={22} color={theme.colors.onSurfaceVariant} />
             </Pressable>

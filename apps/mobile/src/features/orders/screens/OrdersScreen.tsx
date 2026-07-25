@@ -80,8 +80,8 @@ interface EmptyStateProps {
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
-  const theme = useTheme();
   const { t } = useTranslation();
+  const theme = useTheme();
 
   return (
     <View style={styles.emptyState}>
@@ -111,7 +111,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
           leftIconFamily='Ionicons'
           style={styles.browseButton}
           accessibilityLabel={t('orders.browseOffers')}
-          accessibilityHint='Navigate to home screen to discover food offers'
+          accessibilityHint={t('orders.a11yDiscoverOffersHint')}
         >
           {t('orders.browseOffers')}
         </Button>
@@ -157,32 +157,36 @@ interface TabPillProps {
   onPress: () => void;
 }
 
-const TabPill: React.FC<TabPillProps> = ({ label, count, isActive, onPress }) => (
-  <Pressable
-    onPress={onPress}
-    style={[styles.tabPill, isActive && styles.tabPillActive]}
-    android_ripple={{ color: 'rgba(0, 82, 80, 0.1)', borderless: false }}
-    accessibilityRole='tab'
-    accessibilityState={{ selected: isActive }}
-    accessibilityLabel={`${label} tab, ${count} orders`}
-    accessibilityHint='Switches to this order category'
-  >
-    <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>{label}</Text>
-    {count > 0 && (
-      <View style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}>
-        <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>{count}</Text>
-      </View>
-    )}
-  </Pressable>
-);
+const TabPill: React.FC<TabPillProps> = ({ label, count, isActive, onPress }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.tabPill, isActive && styles.tabPillActive]}
+      android_ripple={{ color: 'rgba(0, 82, 80, 0.1)', borderless: false }}
+      accessibilityRole='tab'
+      accessibilityState={{ selected: isActive }}
+      accessibilityLabel={t('orders.a11yOrderTab', { label, count })}
+      accessibilityHint={t('orders.a11yOrderTabHint')}
+    >
+      <Text style={[styles.tabPillText, isActive && styles.tabPillTextActive]}>{label}</Text>
+      {count > 0 && (
+        <View style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}>
+          <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>{count}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Main Screen
 // ---------------------------------------------------------------------------
 
 export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
-  const theme = useTheme();
   const { t } = useTranslation();
+  const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<TabKey>('active');
 
   const {

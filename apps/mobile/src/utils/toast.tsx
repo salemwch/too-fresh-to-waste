@@ -8,6 +8,8 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Toast from 'react-native-toast-message';
 
+import i18n from '@/i18n';
+
 import type { ToastConfig, ToastConfigParams } from 'react-native-toast-message';
 
 type ToastRenderProps = ToastConfigParams<unknown>;
@@ -31,8 +33,8 @@ export const toastConfig: ToastConfig = {
   success: (props: ToastRenderProps) => (
     <Pressable
       accessibilityRole='button'
-      accessibilityLabel='Success notification'
-      accessibilityHint='Tap to dismiss this notification'
+      accessibilityLabel={i18n.t('common.a11ySuccessToast')}
+      accessibilityHint={i18n.t('common.a11yDismissToast')}
       onPress={props.onPress}
       style={[styles.containerBase, styles.successContainer]}
     >
@@ -48,8 +50,8 @@ export const toastConfig: ToastConfig = {
   error: (props: ToastRenderProps) => (
     <Pressable
       accessibilityRole='button'
-      accessibilityLabel='Error notification'
-      accessibilityHint='Tap to dismiss this notification'
+      accessibilityLabel={i18n.t('common.a11yErrorToast')}
+      accessibilityHint={i18n.t('common.a11yDismissToast')}
       onPress={props.onPress}
       style={[styles.containerBase, styles.errorContainer]}
     >
@@ -65,8 +67,8 @@ export const toastConfig: ToastConfig = {
   info: (props: ToastRenderProps) => (
     <Pressable
       accessibilityRole='button'
-      accessibilityLabel='Info notification'
-      accessibilityHint='Tap to dismiss this notification'
+      accessibilityLabel={i18n.t('common.a11yInfoToast')}
+      accessibilityHint={i18n.t('common.a11yDismissToast')}
       onPress={props.onPress}
       style={[styles.containerBase, styles.infoContainer]}
     >
@@ -82,8 +84,8 @@ export const toastConfig: ToastConfig = {
   warning: (props: ToastRenderProps) => (
     <Pressable
       accessibilityRole='button'
-      accessibilityLabel='Warning notification'
-      accessibilityHint='Tap to dismiss this notification'
+      accessibilityLabel={i18n.t('common.a11yWarningToast')}
+      accessibilityHint={i18n.t('common.a11yDismissToast')}
       onPress={props.onPress}
       style={[styles.containerBase, styles.warningContainer]}
     >

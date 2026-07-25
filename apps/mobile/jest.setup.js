@@ -76,3 +76,23 @@ jest.mock('react-native-config', () => ({ Config: {} }));
 
 // Vector icons — handled by moduleNameMapper in jest config
 // (maps @react-native-vector-icons/* to jest.vectorIconsStub.js)
+
+// ---------------------------------------------------------------------------
+// i18next — real instance, English resources.
+//
+// Components call useTranslation(); without an initialised instance react-i18next
+// warns NO_I18NEXT_INSTANCE and t() returns the raw key, which breaks any test
+// asserting on visible text. Initialising here (rather than mocking t) means
+// tests exercise the real translation path and catch missing/renamed keys.
+// ---------------------------------------------------------------------------
+const i18next = require('i18next');
+const { initReactI18next } = require('react-i18next');
+const enTranslations = require('./src/i18n/locales/en.json');
+
+i18next.use(initReactI18next).init({
+  lng: 'en',
+  fallbackLng: 'en',
+  resources: { en: { translation: enTranslations } },
+  interpolation: { escapeValue: false },
+  react: { useSuspense: false },
+});

@@ -13,6 +13,7 @@
  */
 
 import React, { useCallback, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -29,6 +30,7 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { textAlignEnd } from '@/utils/rtl';
 import type {
   DriverOrderDetailNavigationProp,
   DriverOrderDetailRouteProp,
@@ -145,6 +147,7 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => (
 // ---------------------------------------------------------------------------
 
 export default function DriverOrderDetailScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { orderId } = route.params;
   const [coords, setCoords] = useState<Coords | null>(null);
 
@@ -190,13 +193,13 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
         // Accept can fail three ways — lost the race, offline, or already
         // carrying an order — so show the backend's reason rather than guessing.
         Alert.alert(
-          'Cannot Accept Order',
-          getDriverErrorMessage(error, 'This order has already been taken by another driver.'),
-          [{ text: 'Go Back', onPress: () => navigation.goBack() }],
+          t('driver.cannotAcceptTitle'),
+          getDriverErrorMessage(error, t('driver.orderTakenBody')),
+          [{ text: t('common.goBack'), onPress: () => navigation.goBack() }],
         );
       },
     });
-  }, [acceptOrder, orderId, navigation]);
+  }, [acceptOrder, orderId, navigation, t]);
 
   // ---------------------------------------------------------------------------
   // Loading state — waiting for GPS or query
@@ -206,7 +209,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size='large' color={PRIMARY} />
-        <Text style={styles.loadingText}>Loading order details…</Text>
+        <Text style={styles.loadingText}>{t('driver.loadingOrderDetails')}</Text>
       </View>
     );
   }
@@ -219,7 +222,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.notFoundIcon}>🚫</Text>
-        <Text style={styles.notFoundTitle}>Order no longer available</Text>
+        <Text style={styles.notFoundTitle}>{t('driver.orderNoLongerAvailable')}</Text>
         <Text style={styles.notFoundSubtitle}>
           This order may have been accepted by another driver.
         </Text>
@@ -227,10 +230,10 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
           accessibilityRole='button'
-          accessibilityLabel='Go back to order list'
-          accessibilityHint='Returns to the list of orders you can accept'
+          accessibilityLabel={t('driver.a11yGoBack')}
+          accessibilityHint={t('driver.a11yGoBackHint')}
         >
-          <Text style={styles.backButtonText}>Back to orders</Text>
+          <Text style={styles.backButtonText}>{t('driver.backToOrders')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -265,26 +268,26 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
         {/* ── Order header ── */}
         <View style={styles.headerCard}>
           <View style={styles.orderNumberRow}>
-            <Text style={styles.orderNumberLabel}>Order</Text>
+            <Text style={styles.orderNumberLabel}>{t('driver.order')}</Text>
             <Text style={styles.orderNumber}>#{order.orderNumber}</Text>
           </View>
           <View style={styles.statusPill}>
             <View style={styles.statusDot} />
-            <Text style={styles.statusText}>Available</Text>
+            <Text style={styles.statusText}>{t('driver.available')}</Text>
           </View>
         </View>
 
         {/* ── Pickup location ── */}
-        <SectionCard title='Pickup location'>
-          <InfoRow label='City' value={pickupCity} />
-          {pickupStreet ? <InfoRow label='Street' value={pickupStreet} /> : null}
-          <InfoRow label='Date' value={collectionDate} />
-          <InfoRow label='Collection window' value={`${startTime} → ${endTime}`} />
+        <SectionCard title={t('driver.pickupLocation')}>
+          <InfoRow label={t('driver.city')} value={pickupCity} />
+          {pickupStreet ? <InfoRow label={t('driver.street')} value={pickupStreet} /> : null}
+          <InfoRow label={t('driver.date')} value={collectionDate} />
+          <InfoRow label={t('driver.collectionWindow')} value={`${startTime} → ${endTime}`} />
         </SectionCard>
 
         {/* ── Delivery location map ── */}
         {deliveryLatLng ? (
-          <SectionCard title='Delivery location'>
+          <SectionCard title={t('driver.deliveryLocation')}>
             <View style={styles.mapContainer}>
               <MapView
                 provider={PROVIDER_GOOGLE}
@@ -300,7 +303,11 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
                 pitchEnabled={false}
                 rotateEnabled={false}
               >
-                <Marker coordinate={deliveryLatLng} pinColor='#2196F3' title='Customer location' />
+                <Marker
+                  coordinate={deliveryLatLng}
+                  pinColor='#2196F3'
+                  title={t('driver.customerLocation')}
+                />
               </MapView>
             </View>
           </SectionCard>
@@ -308,9 +315,9 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
 
         {/* ── Customer info ── */}
         {customerName || customerPhone ? (
-          <SectionCard title='Customer'>
-            {customerName ? <InfoRow label='Name' value={customerName} /> : null}
-            {customerPhone ? <InfoRow label='Phone' value={customerPhone} /> : null}
+          <SectionCard title={t('driver.customer')}>
+            {customerName ? <InfoRow label={t('driver.name')} value={customerName} /> : null}
+            {customerPhone ? <InfoRow label={t('driver.phone')} value={customerPhone} /> : null}
           </SectionCard>
         ) : null}
 
@@ -331,12 +338,12 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
         {/* ── Earnings ── */}
         <View style={styles.earningsCard}>
           <View style={styles.earningsRow}>
-            <Text style={styles.earningsLabel}>Delivery fee</Text>
+            <Text style={styles.earningsLabel}>{t('driver.deliveryFee')}</Text>
             <Text style={styles.earningsSecondary}>{deliveryFee}</Text>
           </View>
           <View style={styles.earningsDivider} />
           <View style={styles.earningsRow}>
-            <Text style={styles.earningsPrimaryLabel}>Your earnings</Text>
+            <Text style={styles.earningsPrimaryLabel}>{t('driver.yourEarnings')}</Text>
             <Text style={styles.earningsPrimaryAmount}>{earnings}</Text>
           </View>
         </View>
@@ -353,14 +360,14 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
           disabled={isPending}
           activeOpacity={0.85}
           accessibilityRole='button'
-          accessibilityLabel='Accept order and start delivery'
-          accessibilityHint='Assigns this order to you and opens the delivery screen'
+          accessibilityLabel={t('driver.a11yAcceptOrder')}
+          accessibilityHint={t('driver.a11yAcceptOrderHint')}
           accessibilityState={{ disabled: isPending }}
         >
           {isPending ? (
             <ActivityIndicator color={WHITE} />
           ) : (
-            <Text style={styles.acceptButtonText}>Accept &amp; Start Delivery</Text>
+            <Text style={styles.acceptButtonText}>{t('driver.acceptAndStart')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -535,7 +542,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: ON_SURFACE,
     flex: 2,
-    textAlign: 'right',
+    textAlign: textAlignEnd(),
   },
 
   // ── Item row ──

@@ -10,6 +10,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Modal,
@@ -44,6 +45,7 @@ export const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({
   visible,
   onConsentSaved,
 }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const mutation = useLeaderboardConsent();
 
@@ -83,7 +85,7 @@ export const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({
             <Text style={styles.icon}>🏆</Text>
 
             {/* Heading */}
-            <Text style={styles.heading}>Leaderboard Display</Text>
+            <Text style={styles.heading}>{t('leaderboard.leaderboardDisplay')}</Text>
 
             {/* Body */}
             <Text style={styles.body}>
@@ -91,7 +93,7 @@ export const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({
               leaderboard with your name and photo, or stay anonymous?
             </Text>
 
-            <Text style={styles.hint}>You can change this any time in Privacy settings.</Text>
+            <Text style={styles.hint}>{t('leaderboard.changeAnyTime')}</Text>
           </ScrollView>
 
           {/* Primary button — real identity */}
@@ -118,7 +120,7 @@ export const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({
             {mutation.isPending && mutation.variables === false ? (
               <ActivityIndicator color={PRIMARY} size='small' />
             ) : (
-              <Text style={styles.btnOutlineTxt}>Stay anonymous</Text>
+              <Text style={styles.btnOutlineTxt}>{t('leaderboard.stayAnonymous')}</Text>
             )}
           </Pressable>
         </View>

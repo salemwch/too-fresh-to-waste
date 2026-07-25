@@ -381,13 +381,13 @@ const ConfirmPickupSection: React.FC<{
         }}
         keyboardType='numeric'
         maxLength={6}
-        placeholder='• • • • • •'
+        placeholder={t('orders.pickupCodePlaceholder')}
         placeholderTextColor='#aaa'
         autoFocus={false}
         editable={!isLoading}
         textAlign='center'
-        accessibilityLabel='Pickup code input'
-        accessibilityHint='Enter the 6-digit code shown by the merchant'
+        accessibilityLabel={t('orders.a11yPickupCodeInput')}
+        accessibilityHint={t('orders.a11yPickupCodeHint')}
       />
 
       {/* Inline error directly under input */}
@@ -624,7 +624,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           }}
           style={styles.retryButton}
           accessibilityLabel={t('common.retry')}
-          accessibilityHint='Attempts to reload the order details'
+          accessibilityHint={t('orders.a11yReloadOrderHint')}
         >
           {t('common.retry')}
         </Button>
@@ -634,7 +634,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
           onPress={() => navigation.goBack()}
           style={styles.goBackButton}
           accessibilityLabel={t('common.goBack')}
-          accessibilityHint='Returns to the previous screen'
+          accessibilityHint={t('orders.a11yGoBackHint')}
         >
           {t('common.goBack')}
         </Button>

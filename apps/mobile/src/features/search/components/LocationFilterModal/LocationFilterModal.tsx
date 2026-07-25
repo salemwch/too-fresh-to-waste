@@ -11,6 +11,7 @@
 
 import { Slider } from '@miblanchard/react-native-slider';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Modal,
@@ -64,6 +65,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
   onUseMyLocation,
   isLoadingLocation = false,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -250,7 +252,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
           </Text>
           <Pressable
             accessibilityRole='button'
-            accessibilityLabel='Close'
+            accessibilityLabel={t('common.close')}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
@@ -335,7 +337,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
               setSearchQuery(text);
               setShowSearchResults(true);
             }}
-            placeholder='Enter city name...'
+            placeholder={t('location.enterCityName')}
             leftIcon='location-outline'
             leftIconFamily='Ionicons'
             rightIcon={searchQuery.length > 0 ? 'close-circle' : ''}

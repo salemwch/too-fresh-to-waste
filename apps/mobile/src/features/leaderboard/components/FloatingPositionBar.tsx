@@ -1,4 +1,5 @@
 import React, { memo, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Pressable, Animated, Easing, Platform } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,7 @@ const FloatingPositionBarComponent: React.FC<FloatingPositionBarProps> = ({
   visible,
   onPress,
 }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(100)).current;
 
@@ -51,7 +53,7 @@ const FloatingPositionBarComponent: React.FC<FloatingPositionBarProps> = ({
         onPress={onPress}
         accessibilityRole='button'
         accessibilityLabel={`Your position: rank ${entry.rank}`}
-        accessibilityHint='Tap to scroll to your position or view your neighborhood'
+        accessibilityHint={t('leaderboard.a11yPositionBarHint')}
       >
         {/* Avatar */}
         {optimizedUri != null ? (

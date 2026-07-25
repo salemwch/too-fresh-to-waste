@@ -5,13 +5,14 @@
  */
 
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable } from 'react-native';
 
 import { Card, Icon, Text } from '@/design-system/components/atoms';
 
 interface EarnMethod {
   icon: string;
-  label: string;
+  labelKey: string;
   points: string;
   color: string;
   bgColor: string;
@@ -23,7 +24,7 @@ const EARN_METHODS: EarnMethod[] = [
   {
     key: 'save-bag',
     icon: 'bag-handle-outline',
-    label: 'Save a Bag',
+    labelKey: 'loyalty.earnSaveBag',
     points: '+10 pts',
     color: '#10B981',
     bgColor: '#D1FAE5',
@@ -32,7 +33,7 @@ const EARN_METHODS: EarnMethod[] = [
   {
     key: 'review',
     icon: 'chatbubble-ellipses-outline',
-    label: 'Write Review',
+    labelKey: 'loyalty.earnWriteReview',
     points: '+10 pts',
     color: '#6366F1',
     bgColor: '#E0E7FF',
@@ -41,7 +42,7 @@ const EARN_METHODS: EarnMethod[] = [
   {
     key: 'login',
     icon: 'flame-outline',
-    label: 'Daily Login',
+    labelKey: 'loyalty.earnDailyLogin',
     points: '+2 pts',
     color: '#F59E0B',
     bgColor: '#FEF3C7',
@@ -50,7 +51,7 @@ const EARN_METHODS: EarnMethod[] = [
   {
     key: 'refer',
     icon: 'people-outline',
-    label: 'Refer Friend',
+    labelKey: 'loyalty.earnReferFriend',
     points: '+50 pts',
     color: '#EC4899',
     bgColor: '#FCE7F3',
@@ -66,6 +67,7 @@ interface HowYouEarnGridProps {
 }
 
 const EarnCard: React.FC<{ method: EarnMethod; onPress?: () => void }> = ({ method, onPress }) => {
+  const { t } = useTranslation();
   const iconCircleStyle = {
     backgroundColor: method.active ? method.bgColor : INACTIVE_BACKGROUND,
   };
@@ -89,10 +91,10 @@ const EarnCard: React.FC<{ method: EarnMethod; onPress?: () => void }> = ({ meth
         weight='semibold'
         style={[styles.earnLabel, !method.active && styles.inactiveText]}
       >
-        {method.label}
+        {t(method.labelKey)}
       </Text>
       <Text variant='body' size='xs' weight='bold' style={pointsStyle}>
-        {method.active ? method.points : 'Coming Soon'}
+        {method.active ? method.points : t('common.comingSoon')}
       </Text>
     </Card>
   );
@@ -103,8 +105,8 @@ const EarnCard: React.FC<{ method: EarnMethod; onPress?: () => void }> = ({ meth
         style={styles.cardWrapper}
         onPress={onPress}
         accessibilityRole='button'
-        accessibilityLabel={method.label}
-        accessibilityHint='Opens earn points options'
+        accessibilityLabel={t(method.labelKey)}
+        accessibilityHint={t('loyalty.a11yEarnPointsHint')}
       >
         {card}
       </Pressable>
@@ -113,22 +115,26 @@ const EarnCard: React.FC<{ method: EarnMethod; onPress?: () => void }> = ({ meth
   return <View style={styles.cardWrapper}>{card}</View>;
 };
 
-const HowYouEarnGridComponent: React.FC<HowYouEarnGridProps> = ({ onReferPress }) => (
-  <View style={styles.container}>
-    <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
-      How You Earn
-    </Text>
-    <View style={styles.grid}>
-      {EARN_METHODS.map(method => (
-        <EarnCard
-          key={method.key}
-          method={method}
-          {...(method.key === 'refer' && onReferPress ? { onPress: onReferPress } : {})}
-        />
-      ))}
+const HowYouEarnGridComponent: React.FC<HowYouEarnGridProps> = ({ onReferPress }) => {
+  const { t } = useTranslation();
+
+  return (
+    <View style={styles.container}>
+      <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
+        {t('loyalty.howYouEarn')}
+      </Text>
+      <View style={styles.grid}>
+        {EARN_METHODS.map(method => (
+          <EarnCard
+            key={method.key}
+            method={method}
+            {...(method.key === 'refer' && onReferPress ? { onPress: onReferPress } : {})}
+          />
+        ))}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 export const HowYouEarnGrid = memo(HowYouEarnGridComponent);
 HowYouEarnGridComponent.displayName = 'HowYouEarnGrid';

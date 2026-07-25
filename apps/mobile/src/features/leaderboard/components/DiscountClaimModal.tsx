@@ -12,6 +12,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -104,6 +105,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
   error,
   firstName,
 }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const sheetBottomPad = Math.max(insets.bottom, 24);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -186,8 +188,8 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
         style={styles.modalOverlay}
         onPress={onClose}
         accessibilityRole='button'
-        accessibilityLabel='Close discount modal'
-        accessibilityHint='Closes the discount claim sheet'
+        accessibilityLabel={t('leaderboard.a11yCloseDiscount')}
+        accessibilityHint={t('leaderboard.a11yCloseDiscountHint')}
       >
         <Pressable
           style={[styles.modalSheet, { paddingBottom: sheetBottomPad }]}
@@ -208,7 +210,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
               <TextInput
                 ref={searchInputRef}
                 style={styles.searchInput}
-                placeholder='Search businesses...'
+                placeholder={t('leaderboard.searchBusinesses')}
                 placeholderTextColor={TEXT_TERTIARY}
                 value={searchText}
                 onChangeText={setSearchText}
@@ -220,7 +222,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                   onPress={() => setSearchText('')}
                   hitSlop={8}
                   accessibilityRole='button'
-                  accessibilityLabel='Clear search'
+                  accessibilityLabel={t('leaderboard.a11yClearSearch')}
                 >
                   <Icon name='close-circle' family='Ionicons' size={18} color={TEXT_TERTIARY} />
                 </Pressable>
@@ -247,7 +249,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                 {/* Voucher code */}
                 {claimData?.voucherCode != null && (
                   <View style={styles.voucherCodeBox}>
-                    <Text style={styles.voucherCodeLabel}>VOUCHER CODE</Text>
+                    <Text style={styles.voucherCodeLabel}>{t('leaderboard.voucherCode')}</Text>
                     <Text style={styles.voucherCode}>{claimData.voucherCode}</Text>
                   </View>
                 )}
@@ -359,13 +361,13 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                     onPress={handleShowMore}
                     disabled={isFetching}
                     accessibilityRole='button'
-                    accessibilityLabel='Show more businesses'
+                    accessibilityLabel={t('leaderboard.a11yShowMoreBusinesses')}
                   >
                     {isFetching ? (
                       <ActivityIndicator size='small' color={PRIMARY} />
                     ) : (
                       <>
-                        <Text style={styles.showMoreText}>Show more</Text>
+                        <Text style={styles.showMoreText}>{t('leaderboard.showMore')}</Text>
                         <Icon
                           name='chevron-down-outline'
                           family='Ionicons'
@@ -394,10 +396,10 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
               style={styles.modalBtn}
               onPress={onClose}
               accessibilityRole='button'
-              accessibilityLabel='Got it'
-              accessibilityHint='Dismisses the voucher view'
+              accessibilityLabel={t('leaderboard.gotIt')}
+              accessibilityHint={t('leaderboard.a11yDismissVoucher')}
             >
-              <Text style={styles.modalBtnTxt}>Got it</Text>
+              <Text style={styles.modalBtnTxt}>{t('leaderboard.gotIt')}</Text>
             </Pressable>
           ) : (
             <Pressable
@@ -417,7 +419,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                   ? `Claim 10% Discount at ${selectedName}`
                   : 'Select a business first'
               }
-              accessibilityHint='Claims your 10% discount at the selected business'
+              accessibilityHint={t('leaderboard.a11yClaimDiscountHint')}
             >
               {isClaiming ? (
                 <ActivityIndicator size='small' color={INVERSE_TEXT} />

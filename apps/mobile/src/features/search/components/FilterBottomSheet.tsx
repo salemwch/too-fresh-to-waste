@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -64,6 +65,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
   onApply,
   onClear,
 }) => {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [localFilters, setLocalFilters] = useState<FilterState>(initialFilters);
   const accentTextStyle = { color: colors.accent };
@@ -132,7 +134,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         <View style={[styles.header, { borderBottomColor: colors.outline }]}>
           <Pressable
             accessibilityRole='button'
-            accessibilityLabel='Close filters'
+            accessibilityLabel={t('search.a11yCloseFilters')}
             onPress={onClose}
             style={styles.closeButton}
           >

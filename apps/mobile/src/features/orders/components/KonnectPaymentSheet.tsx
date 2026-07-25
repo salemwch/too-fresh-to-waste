@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Linking,
@@ -39,6 +40,7 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
   onDismiss,
   onPaymentFailed,
 }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -117,7 +119,7 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
           <Pressable
             style={styles.closeButton}
             onPress={onPaymentFailed}
-            accessibilityLabel='Close payment'
+            accessibilityLabel={t('orders.a11yClosePayment')}
             accessibilityRole='button'
             hitSlop={12}
           >
@@ -131,8 +133,8 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
         {loadError ? (
           <View style={styles.errorContainer}>
             <Icon name='cloud-offline' family='Ionicons' size={48} color={TEXT_SECONDARY} />
-            <Text style={styles.errorTitle}>Unable to load payment page</Text>
-            <Text style={styles.errorSubtitle}>Check your connection and try again</Text>
+            <Text style={styles.errorTitle}>{t('orders.paymentLoadFailed')}</Text>
+            <Text style={styles.errorSubtitle}>{t('orders.paymentLoadFailedHint')}</Text>
             <Pressable style={styles.retryButton} onPress={handleRetry}>
               <Text style={styles.retryButtonText}>Retry</Text>
             </Pressable>
@@ -155,7 +157,7 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
         {isLoading && !loadError && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size='large' color={BRAND_PRIMARY} />
-            <Text style={styles.loadingText}>Loading payment...</Text>
+            <Text style={styles.loadingText}>{t('orders.loadingPayment')}</Text>
           </View>
         )}
       </View>

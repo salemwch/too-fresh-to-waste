@@ -1,5 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Linking,
@@ -17,6 +18,7 @@ import { check, PERMISSIONS, request, RESULTS, openSettings } from 'react-native
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { mirrorGlyph } from '@/utils/rtl';
 import type { DriverOrdersListNavigationProp } from '@/navigation/types';
 
 import {
@@ -86,7 +88,8 @@ interface OrderCardProps {
 }
 
 const OrderCard: React.FC<OrderCardProps> = ({ item, onPress }) => {
-  const city = item.establishmentAddress?.city ?? 'Unknown location';
+  const { t } = useTranslation();
+  const city = item.establishmentAddress?.city ?? t('driver.unknownLocation');
   const street = item.establishmentAddress?.street;
   const start = formatTime(item.collectionStartTime);
   const end = formatTime(item.collectionEndTime);
@@ -98,8 +101,19 @@ const OrderCard: React.FC<OrderCardProps> = ({ item, onPress }) => {
       onPress={() => onPress(item)}
       activeOpacity={0.75}
       accessibilityRole='button'
-      accessibilityLabel={`Order in ${city}, collect between ${start} and ${end}${earnings ? `, earn ${earnings} TND` : ''}`}
-      accessibilityHint='Opens the order details so you can accept it'
+      accessibilityLabel={t('driver.a11yOrderCard', {
+        city,
+        start,
+        end,
+        earningsSuffix:
+          earnings != null
+            ? t('driver.a11yOrderCardEarnings', {
+                amount: earnings,
+                currency: t('common.currency'),
+              })
+            : '',
+      })}
+      accessibilityHint={t('driver.a11yOrderCardHint')}
     >
       <View style={styles.cardRow}>
         <Text style={styles.cityText}>{city}</Text>
@@ -108,15 +122,17 @@ const OrderCard: React.FC<OrderCardProps> = ({ item, onPress }) => {
       {street ? <Text style={styles.streetText}>{street}</Text> : null}
       <View style={styles.divider} />
       <View style={styles.cardRow}>
-        <Text style={styles.windowLabel}>Collect between</Text>
+        <Text style={styles.windowLabel}>{t('driver.collectBetween')}</Text>
         <Text style={styles.windowTime}>
           {start} → {end}
         </Text>
       </View>
       {earnings != null ? (
         <View style={styles.earningsRow}>
-          <Text style={styles.earningsLabel}>Your earnings</Text>
-          <Text style={styles.earningsAmount}>{earnings} TND</Text>
+          <Text style={styles.earningsLabel}>{t('driver.yourEarnings')}</Text>
+          <Text style={styles.earningsAmount}>
+            {earnings} {t('common.currency')}
+          </Text>
         </View>
       ) : null}
     </TouchableOpacity>
@@ -133,6 +149,7 @@ interface ActiveOrderBannerProps {
 }
 
 const ActiveOrderBanner: React.FC<ActiveOrderBannerProps> = ({ order, onResume }) => {
+  const { t } = useTranslation();
   const collected = order.status === 'out_for_delivery';
 
   return (
@@ -141,18 +158,20 @@ const ActiveOrderBanner: React.FC<ActiveOrderBannerProps> = ({ order, onResume }
       onPress={onResume}
       activeOpacity={0.85}
       accessibilityRole='button'
-      accessibilityLabel='Resume your active delivery'
-      accessibilityHint='Reopens the delivery you are currently carrying'
+      accessibilityLabel={t('driver.a11yResume')}
+      accessibilityHint={t('driver.a11yResumeHint')}
     >
       <View style={styles.activeBannerBody}>
-        <Text style={styles.activeBannerTitle}>Delivery in progress</Text>
+        <Text style={styles.activeBannerTitle}>{t('driver.deliveryInProgress')}</Text>
         <Text style={styles.activeBannerSubtitle}>
-          {collected
-            ? 'You have the order — deliver it to the customer.'
-            : 'Head to the store and collect the order.'}
+          {collected ? t('driver.bannerCollected') : t('driver.bannerHeadToStore')}
         </Text>
       </View>
-      <Text style={styles.activeBannerAction}>Resume ›</Text>
+      {/* Chevron kept out of the translation string and mirrored explicitly —
+          RN flips layout under RTL but not directional glyphs. */}
+      <Text style={styles.activeBannerAction}>
+        {t('driver.resume')} {mirrorGlyph('›')}
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -167,15 +186,14 @@ interface PermissionViewProps {
 }
 
 const PermissionView: React.FC<PermissionViewProps> = ({ state, onRetry }) => {
+  const { t } = useTranslation();
   const isBlocked = state === 'blocked';
   return (
     <View style={styles.centerContainer}>
       <Text style={styles.errorIcon}>📍</Text>
-      <Text style={styles.loadingTitle}>Location required</Text>
+      <Text style={styles.loadingTitle}>{t('driver.locationRequired')}</Text>
       <Text style={styles.loadingSubtitle}>
-        {isBlocked
-          ? 'Location permission was permanently denied. Open Settings and enable location for this app.'
-          : 'We need your location to show nearby delivery orders.'}
+        {isBlocked ? t('driver.locationBlockedBody') : t('driver.locationNeededBody')}
       </Text>
       <TouchableOpacity
         style={styles.permissionButton}
@@ -188,15 +206,13 @@ const PermissionView: React.FC<PermissionViewProps> = ({ state, onRetry }) => {
         }
         activeOpacity={0.8}
         accessibilityRole='button'
-        accessibilityLabel={isBlocked ? 'Open Settings' : 'Grant location access'}
+        accessibilityLabel={isBlocked ? t('driver.openSettings') : t('driver.a11yGrantLocation')}
         accessibilityHint={
-          isBlocked
-            ? 'Opens system settings so you can enable location for this app'
-            : 'Asks for permission to use your location'
+          isBlocked ? t('driver.a11yOpenSettingsHint') : t('driver.a11yGrantLocationHint')
         }
       >
         <Text style={styles.permissionButtonText}>
-          {isBlocked ? 'Open Settings' : 'Grant Location Access'}
+          {isBlocked ? t('driver.openSettings') : t('driver.grantLocationAccess')}
         </Text>
       </TouchableOpacity>
     </View>
@@ -207,31 +223,34 @@ const PermissionView: React.FC<PermissionViewProps> = ({ state, onRetry }) => {
 // Empty States
 // ---------------------------------------------------------------------------
 
-const EmptyState: React.FC = () => (
-  <View style={styles.emptyContainer}>
-    <Text style={styles.emptyIcon}>📦</Text>
-    <Text style={styles.emptyTitle}>No orders nearby</Text>
-    <Text style={styles.emptySubtitle}>
-      There are no available delivery orders near you right now.{'\n'}Pull down to refresh.
-    </Text>
-  </View>
-);
+const EmptyState: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyIcon}>📦</Text>
+      <Text style={styles.emptyTitle}>{t('driver.noOrdersNearby')}</Text>
+      <Text style={styles.emptySubtitle}>{t('driver.noOrdersNearbyBody', { newline: '\n' })}</Text>
+    </View>
+  );
+};
 
-const OfflineState: React.FC = () => (
-  <View style={styles.emptyContainer}>
-    <Text style={styles.emptyIcon}>🌙</Text>
-    <Text style={styles.emptyTitle}>You're offline</Text>
-    <Text style={styles.emptySubtitle}>
-      Go online to see delivery orders near you and receive new-order alerts.
-    </Text>
-  </View>
-);
+const OfflineState: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyIcon}>🌙</Text>
+      <Text style={styles.emptyTitle}>{t('driver.youreOffline')}</Text>
+      <Text style={styles.emptySubtitle}>{t('driver.offlineBody')}</Text>
+    </View>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Main Screen
 // ---------------------------------------------------------------------------
 
 export default function DriverOrdersListScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [permState, setPermState] = useState<PermState>('checking');
   const [coords, setCoords] = useState<Coords | null>(null);
   const [gpsError, setGpsError] = useState(false);
@@ -380,7 +399,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size='large' color={PRIMARY} />
-        <Text style={styles.loadingTitle}>Loading your profile…</Text>
+        <Text style={styles.loadingTitle}>{t('driver.loadingProfile')}</Text>
         <Text style={styles.loadingSubtitle}>
           The server may be waking up — this can take up to a minute.
         </Text>
@@ -394,11 +413,8 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorIcon}>📡</Text>
-        <Text style={styles.loadingTitle}>Can't reach the server</Text>
-        <Text style={styles.loadingSubtitle}>
-          Check your connection and try again. If you just opened the app, the server may still be
-          starting up.
-        </Text>
+        <Text style={styles.loadingTitle}>{t('driver.cantReachServer')}</Text>
+        <Text style={styles.loadingSubtitle}>{t('driver.serverErrorBody')}</Text>
         <TouchableOpacity
           style={styles.permissionButton}
           onPress={() => {
@@ -406,10 +422,10 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
           }}
           activeOpacity={0.8}
           accessibilityRole='button'
-          accessibilityLabel='Retry loading your profile'
-          accessibilityHint='Tries to reach the server again'
+          accessibilityLabel={t('driver.a11yRetryProfile')}
+          accessibilityHint={t('driver.a11yRetryProfileHint')}
         >
-          <Text style={styles.permissionButtonText}>Try Again</Text>
+          <Text style={styles.permissionButtonText}>{t('common.tryAgain')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -443,10 +459,10 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
         onPress={() => navigation.navigate('DriverEarnings')}
         activeOpacity={0.75}
         accessibilityRole='button'
-        accessibilityLabel='View earnings and delivery history'
-        accessibilityHint='Opens your earnings totals and past deliveries'
+        accessibilityLabel={t('driver.a11yViewEarnings')}
+        accessibilityHint={t('driver.a11yViewEarningsHint')}
       >
-        <Text style={styles.earningsButtonText}>Earnings</Text>
+        <Text style={styles.earningsButtonText}>{t('driver.earnings')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -459,7 +475,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
         {statusBar}
         <View style={styles.activeOnlyContainer}>
           <ActiveOrderBanner order={activeOrder} onResume={handleResumeActive} />
-          <Text style={styles.activeHint}>Finish this delivery to see new orders again.</Text>
+          <Text style={styles.activeHint}>{t('driver.finishDeliveryFirst')}</Text>
         </View>
       </View>
     );
@@ -483,14 +499,14 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
           {gpsError ? (
             <>
               <Text style={styles.errorIcon}>📡</Text>
-              <Text style={styles.loadingTitle}>GPS signal weak</Text>
-              <Text style={styles.loadingSubtitle}>Move to an open area and wait a moment.</Text>
+              <Text style={styles.loadingTitle}>{t('driver.gpsWeak')}</Text>
+              <Text style={styles.loadingSubtitle}>{t('driver.gpsWeakHint')}</Text>
             </>
           ) : (
             <>
               <ActivityIndicator size='large' color={PRIMARY} />
-              <Text style={styles.loadingTitle}>Locating you…</Text>
-              <Text style={styles.loadingSubtitle}>Acquiring GPS signal</Text>
+              <Text style={styles.loadingTitle}>{t('driver.locatingYou')}</Text>
+              <Text style={styles.loadingSubtitle}>{t('driver.acquiringGps')}</Text>
             </>
           )}
         </View>
@@ -504,7 +520,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
         {statusBar}
         <View style={styles.centerContainer}>
           <ActivityIndicator size='large' color={PRIMARY} />
-          <Text style={styles.loadingTitle}>Searching nearby orders…</Text>
+          <Text style={styles.loadingTitle}>{t('driver.searchingOrders')}</Text>
         </View>
       </View>
     );

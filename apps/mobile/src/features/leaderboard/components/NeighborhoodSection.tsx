@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import FastImage from 'react-native-fast-image';
 
@@ -71,6 +72,7 @@ const NeighborhoodSectionComponent: React.FC<NeighborhoodSectionProps> = ({
   entries,
   isLoading,
 }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <View style={styles.loadingWrap}>
@@ -84,8 +86,8 @@ const NeighborhoodSectionComponent: React.FC<NeighborhoodSectionProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.divider} />
-      <Text style={styles.header}>Your Neighborhood</Text>
-      <Text style={styles.subtitle}>Nearby competitors around your rank</Text>
+      <Text style={styles.header}>{t('leaderboard.yourNeighborhood')}</Text>
+      <Text style={styles.subtitle}>{t('leaderboard.nearbyCompetitors')}</Text>
       {entries.map(entry => (
         <MemoNeighborhoodRow key={entry.userId} entry={entry} />
       ))}

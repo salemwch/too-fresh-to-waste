@@ -367,8 +367,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             source={LeafLogo}
             style={styles.leafLogo}
             resizeMode='contain'
-            accessibilityLabel='Too Fresh To Waste logo'
-            accessibilityHint='Decorative brand logo'
+            accessibilityLabel={t('auth.a11yBrandLogo')}
+            accessibilityHint={t('auth.a11yBrandLogoHint')}
             accessibilityIgnoresInvertColors={true}
           />
         </View>
@@ -397,8 +397,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 source={WavingHand}
                 style={styles.wavingHand}
                 resizeMode='contain'
-                accessibilityLabel='Waving hand'
-                accessibilityHint='Decorative welcome emoji'
+                accessibilityLabel={t('auth.a11yWavingHand')}
+                accessibilityHint={t('auth.a11yWavingHandHint')}
                 accessibilityIgnoresInvertColors={true}
               />
             </View>
@@ -434,8 +434,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   </Text>
                   <Pressable
                     accessibilityRole='button'
-                    accessibilityLabel='Resend verification email'
-                    accessibilityHint='Sends a new verification email to your address'
+                    accessibilityLabel={t('auth.a11yResendVerification')}
+                    accessibilityHint={t('auth.a11yResendVerificationHint')}
                     onPress={() => {
                       void handleResendVerificationEmail();
                     }}
@@ -579,8 +579,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               <View style={styles.optionsRow}>
                 <Pressable
                   accessibilityRole='checkbox'
-                  accessibilityLabel='Remember me'
-                  accessibilityHint='Keeps you signed in on this device'
+                  accessibilityLabel={t('auth.a11yRememberMe')}
+                  accessibilityHint={t('auth.a11yRememberMeHint')}
                   accessibilityState={{ checked: value === true }}
                   style={styles.rememberMeContainer}
                   onPress={() => onChange(!value)}

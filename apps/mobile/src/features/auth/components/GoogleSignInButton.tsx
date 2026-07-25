@@ -84,7 +84,7 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
         ]}
         accessibilityRole='button'
         accessibilityLabel={t('auth.continueWithGoogle')}
-        accessibilityHint='Sign in with your Google account'
+        accessibilityHint={t('auth.a11yGoogleSignInHint')}
         accessibilityState={{ busy: isLoading }}
       >
         <GoogleButtonSvg width='100%' height={52} />

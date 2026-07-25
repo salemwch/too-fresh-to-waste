@@ -326,8 +326,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        accessibilityLabel='Profile screen content'
-        accessibilityHint='Scroll to view your profile, settings, and account options'
+        accessibilityLabel={t('profile.a11yProfileContent')}
+        accessibilityHint={t('profile.a11yProfileContentHint')}
       >
         {/* Profile Header */}
         <Card style={styles.profileCard}>
@@ -355,8 +355,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             leftIcon='create-outline'
             leftIconFamily='Ionicons'
             style={styles.editButton}
-            accessibilityLabel='Edit profile'
-            accessibilityHint='Opens profile editing screen to update your information'
+            accessibilityLabel={t('profile.editProfile')}
+            accessibilityHint={t('profile.a11yEditProfileHint')}
           >
             {t('profile.editProfile')}
           </Button>
@@ -368,8 +368,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           android_ripple={{ color: 'rgba(0, 82, 80, 0.08)', borderless: false }}
           style={({ pressed }) => [Platform.OS === 'ios' && pressed && { opacity: 0.85 }]}
           accessibilityRole='button'
-          accessibilityLabel='My Points'
-          accessibilityHint='Tap to view your loyalty points and rewards'
+          accessibilityLabel={t('profile.myPoints')}
+          accessibilityHint={t('profile.a11yMyPointsHint')}
         >
           {(() => {
             const tierConfig = getTierConfig(currentTier);
@@ -417,8 +417,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           android_ripple={{ color: 'rgba(90, 66, 224, 0.08)', borderless: false }}
           style={({ pressed }) => [Platform.OS === 'ios' && pressed && { opacity: 0.85 }]}
           accessibilityRole='button'
-          accessibilityLabel='Leaderboard'
-          accessibilityHint='Tap to view the community leaderboard'
+          accessibilityLabel={t('profile.leaderboard')}
+          accessibilityHint={t('profile.a11yLeaderboardHint')}
         >
           <LinearGradient
             colors={['#8a75f8', '#5a42e0']}
@@ -457,13 +457,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               icon='person-outline'
               label={t('profile.personalInfo')}
               onPress={handleEditProfile}
-              accessibilityHint='Edit your personal details and contact information'
+              accessibilityHint={t('profile.a11yPersonalInfoHint')}
             />
             <MenuItem
               icon='shield-checkmark-outline'
               label={t('profile.security')}
               onPress={handleNavigateToSecurity}
-              accessibilityHint='Manage password and security settings'
+              accessibilityHint={t('profile.a11ySecurityHint')}
             />
           </View>
         </Card>
@@ -521,7 +521,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               disabled={leaderboardConsentMutation.isPending}
               showArrow={false}
               accessibilityLabel={`Use my real name on leaderboard, ${showRealName ? 'enabled' : 'disabled'}`}
-              accessibilityHint='Double tap to toggle your name visibility on the community leaderboard'
+              accessibilityHint={t('profile.a11yRealNameHint')}
             />
           </View>
           <Text variant='body' size='xs' color='secondary' style={styles.biometricHint}>
@@ -538,7 +538,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               icon='settings-outline'
               label={t('profile.settings')}
               onPress={handleNavigateToSettings}
-              accessibilityHint='Access app settings and preferences'
+              accessibilityHint={t('profile.a11ySettingsHint')}
             />
           </View>
         </Card>
@@ -552,7 +552,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               icon='chatbubble-outline'
               label={t('profile.contactSupport')}
               onPress={() => navigation.navigate('ContactSupport')}
-              accessibilityHint='Get help from our support team'
+              accessibilityHint={t('profile.a11ySupportHint')}
             />
           </View>
         </Card>
@@ -594,8 +594,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           leftIconFamily='Ionicons'
           style={[styles.logoutButton, { borderColor: theme.colors.error }]}
           textStyle={{ color: theme.colors.error }}
-          accessibilityLabel='Logout'
-          accessibilityHint='Sign out of your account'
+          accessibilityLabel={t('profile.logout')}
+          accessibilityHint={t('profile.a11yLogoutHint')}
         >
           {t('profile.logout')}
         </Button>

@@ -14,6 +14,7 @@
 import { Currency } from '@foodwaste/shared';
 import { FlashList } from '@shopify/flash-list';
 import React, { useState, useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FlatList,
   View,
@@ -259,6 +260,7 @@ EstablishmentOfferRow.displayName = 'EstablishmentOfferRow';
 // ============================================================================
 
 export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
@@ -861,8 +863,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 showsCompass={false}
                 onPress={handleMapPress}
                 onMapReady={handleMapReady}
-                accessibilityLabel='Map showing nearby offers'
-                accessibilityHint='Tap on markers to view establishment details'
+                accessibilityLabel={t('search.a11yMapView')}
+                accessibilityHint={t('search.a11yMapViewHint')}
               >
                 {/* Search radius circle */}
                 <Circle
@@ -896,8 +898,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 ]}
                 onPress={handleRecenter}
                 accessibilityRole='button'
-                accessibilityLabel='Recenter map'
-                accessibilityHint='Centers the map on your current location'
+                accessibilityLabel={t('search.a11yRecenterMap')}
+                accessibilityHint={t('search.a11yRecenterMapHint')}
               >
                 <Icon name='locate' family='Ionicons' size={22} color={theme.colors.primary} />
               </Pressable>
@@ -973,7 +975,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         <View style={styles.searchRow}>
           <View style={[styles.searchInputContainer, { backgroundColor: theme.colors.background }]}>
             <Input
-              placeholder='Search businesses or places...'
+              placeholder={t('search.searchBusinessesPlaces')}
               value={searchQuery}
               onChangeText={handleSearchChange}
               leftIcon='search-outline'
@@ -994,8 +996,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           <Pressable
             style={[styles.locationButton, { backgroundColor: theme.colors.background }]}
             onPress={handleLocationPress}
-            accessibilityLabel='Location settings'
-            accessibilityHint='Open location filter options'
+            accessibilityLabel={t('search.a11yLocationSettings')}
+            accessibilityHint={t('search.a11yLocationSettingsHint')}
           >
             <Icon name='location-sharp' family='Ionicons' size={22} color={theme.colors.primary} />
           </Pressable>

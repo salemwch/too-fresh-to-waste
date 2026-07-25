@@ -368,7 +368,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               accessible
               accessibilityRole='alert'
               accessibilityLabel={`Error: ${error}`}
-              accessibilityHint='Displays an error message'
+              accessibilityHint={t('auth.a11yErrorMessage')}
             >
               <Icon
                 name='alert-circle'
@@ -392,8 +392,8 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             name='password'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='New Password'
-                placeholder='Enter your new password'
+                label={t('auth.newPassword')}
+                placeholder={t('auth.newPasswordEnterPlaceholder')}
                 value={value}
                 onChangeText={text => {
                   onChange(text);
@@ -415,8 +415,8 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
                 errorText={formErrors.password?.message}
                 editable={!isLoading}
                 testID='reset-password-new-input'
-                accessibilityLabel='New password input'
-                accessibilityHint='Enter your new password. It must be at least 8 characters long.'
+                accessibilityLabel={t('auth.a11yNewPasswordInput')}
+                accessibilityHint={t('auth.a11yNewPasswordHint')}
               />
             )}
           />
@@ -462,8 +462,8 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             disabled={isLoading || !isPasswordValid}
             style={styles.submitButton}
             testID='reset-password-submit-button'
-            accessibilityLabel='Reset password button'
-            accessibilityHint='Tap to confirm and reset your password'
+            accessibilityLabel={t('auth.a11yResetPasswordButton')}
+            accessibilityHint={t('auth.a11yResetPasswordHint')}
             accessibilityState={{ disabled: isLoading || !isPasswordValid, busy: isLoading }}
           >
             {isLoading ? 'Resetting Password...' : 'Reset Password'}
@@ -477,8 +477,8 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               onPress={handleRequestNewLink}
               style={styles.linkButton}
               testID='request-new-link-button'
-              accessibilityLabel='Request new reset link'
-              accessibilityHint='Tap to request a new password reset link via email'
+              accessibilityLabel={t('auth.a11yRequestNewLink')}
+              accessibilityHint={t('auth.a11yRequestNewLinkHint')}
             >
               Request New Reset Link
             </Button>
@@ -492,8 +492,8 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             disabled={isLoading}
             style={styles.backButton}
             testID='back-to-login-button'
-            accessibilityLabel='Back to login'
-            accessibilityHint='Tap to return to the login screen'
+            accessibilityLabel={t('auth.a11yBackToLogin')}
+            accessibilityHint={t('auth.a11yBackToLoginHint')}
           >
             Back to Login
           </Button>

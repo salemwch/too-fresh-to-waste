@@ -223,8 +223,8 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
           <View style={styles.codeContainer}>
             {code.map((digit, index) => (
               <TextInput
-                accessibilityLabel='Text input field'
-                accessibilityHint='Enter a single digit of the verification code'
+                accessibilityLabel={t('auth.a11yOtpInput')}
+                accessibilityHint={t('auth.a11yOtpInputHint')}
                 key={index}
                 ref={ref => {
                   inputRefs.current[index] = ref;

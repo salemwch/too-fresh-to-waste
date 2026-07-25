@@ -8,6 +8,7 @@
  */
 
 import React, { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -29,6 +30,7 @@ interface FloatingVoteTabProps {
 }
 
 export const FloatingVoteTab: React.FC<FloatingVoteTabProps> = ({ forceVisible }) => {
+  const { t } = useTranslation();
   const { cycle, eligibility, myVote, isLoading } = useActiveVotingCycle();
   const [expanded, setExpanded] = useState(false);
 
@@ -109,8 +111,8 @@ export const FloatingVoteTab: React.FC<FloatingVoteTabProps> = ({ forceVisible }
         <Pressable
           onPress={handlePillPress}
           accessibilityRole='button'
-          accessibilityLabel='Voting is live — tap to vote'
-          accessibilityHint='Opens the voting screen where you can cast your vote'
+          accessibilityLabel={t('voting.a11yVotingLive')}
+          accessibilityHint={t('voting.a11yVotingLiveHint')}
         >
           <Animated.View style={[styles.tab, { width: widthAnim }]}>
             <Text style={styles.trophy}>🏆</Text>
@@ -125,8 +127,8 @@ export const FloatingVoteTab: React.FC<FloatingVoteTabProps> = ({ forceVisible }
                   onPress={collapse}
                   style={styles.closeBtn}
                   accessibilityRole='button'
-                  accessibilityLabel='Close'
-                  accessibilityHint='Collapses the voting tab'
+                  accessibilityLabel={t('common.close')}
+                  accessibilityHint={t('voting.a11yCollapseTab')}
                   hitSlop={8}
                 >
                   <Text style={styles.closeIcon}>✕</Text>

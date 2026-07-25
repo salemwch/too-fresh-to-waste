@@ -10,6 +10,7 @@
 
 import { FlashList, type ViewToken } from '@shopify/flash-list';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -243,6 +244,7 @@ interface PrizeModalProps {
 }
 
 const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const sheetBottomPad = Math.max(insets.bottom, 24);
 
@@ -264,7 +266,7 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.modalScrollContent}
           >
-            <Text style={styles.modalTitle}>How the Grand Prize Works</Text>
+            <Text style={styles.modalTitle}>{t('leaderboard.howGrandPrizeWorks')}</Text>
 
             <View style={styles.modalGoalRow}>
               <View style={styles.modalGoalDot} />
@@ -277,7 +279,7 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
                     </Text>
                   </>
                 ) : (
-                  <Text style={styles.modalGoalBold}>Prize drop is live!</Text>
+                  <Text style={styles.modalGoalBold}>{t('leaderboard.prizeDropLive')}</Text>
                 )}
               </Text>
             </View>
@@ -319,7 +321,7 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
           </ScrollView>
 
           <Pressable style={styles.modalBtn} onPress={onClose}>
-            <Text style={styles.modalBtnTxt}>Got it!</Text>
+            <Text style={styles.modalBtnTxt}>{t('leaderboard.gotItExclaim')}</Text>
           </Pressable>
         </Pressable>
       </Pressable>
@@ -333,6 +335,7 @@ interface Props {
 }
 
 export const LeaderboardScreen: React.FC<Props> = () => {
+  const { t } = useTranslation();
   const { user } = useUserProfile();
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useLeaderboard();
@@ -456,14 +459,14 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         <View style={styles.headerBlock}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.headerTitle}>Grand Prize</Text>
-              <Text style={styles.headerSubtitle}>Community Milestone Challenge</Text>
+              <Text style={styles.headerTitle}>{t('leaderboard.grandPrize')}</Text>
+              <Text style={styles.headerSubtitle}>{t('leaderboard.communityMilestone')}</Text>
             </View>
             <Pressable
               style={styles.infoBtn}
               onPress={() => setShowPrizeModal(true)}
               accessibilityRole='button'
-              accessibilityLabel='Show prize information'
+              accessibilityLabel={t('leaderboard.a11yShowPrizeInfo')}
             >
               <Icon name='information-circle-outline' family='Ionicons' size={22} color={TEXT_40} />
             </Pressable>
@@ -542,12 +545,12 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         {isError && (
           <Pressable style={styles.centerState} onPress={handleRetry}>
             <Icon name='refresh-outline' family='Ionicons' size={28} color={TEXT_40} />
-            <Text style={styles.errorText}>Tap to retry</Text>
+            <Text style={styles.errorText}>{t('leaderboard.tapToRetry')}</Text>
           </Pressable>
         )}
       </View>
     ),
-    [allEntries, countdown, goal?.endDate, isError, handleRetry, userTier, data],
+    [allEntries, countdown, goal?.endDate, isError, handleRetry, userTier, data, t],
   );
 
   // ── List footer ────────────────────────────────────────────────────────────
@@ -563,7 +566,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     } else if (hasNextPage) {
       parts.push(
         <Pressable key='viewmore' style={styles.viewMoreBtn} onPress={handleViewMore}>
-          <Text style={styles.viewMoreTxt}>View More</Text>
+          <Text style={styles.viewMoreTxt}>{t('leaderboard.viewMore')}</Text>
           <Icon name='chevron-down-outline' family='Ionicons' size={16} color={CHAMPION_GOLD} />
         </Pressable>,
       );
@@ -589,6 +592,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     userRankWithin200,
     neighborhoodData,
     neighborhoodLoading,
+    t,
   ]);
 
   return (

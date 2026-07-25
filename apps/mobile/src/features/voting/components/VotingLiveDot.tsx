@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Easing, StyleSheet } from 'react-native';
 
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -14,6 +15,7 @@ import { useActiveVotingCycle } from '../hooks/useVoting';
 const PRIMARY_500 = colorTokens.base.primary[500];
 
 export const VotingLiveDot: React.FC = () => {
+  const { t } = useTranslation();
   const { cycle, isLoading } = useActiveVotingCycle();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
@@ -71,7 +73,7 @@ export const VotingLiveDot: React.FC = () => {
           opacity: opacityAnim,
         },
       ]}
-      accessibilityLabel='Voting is active'
+      accessibilityLabel={t('voting.a11yVotingActive')}
     />
   );
 };

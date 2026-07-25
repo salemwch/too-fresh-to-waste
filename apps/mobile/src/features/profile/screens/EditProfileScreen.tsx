@@ -18,6 +18,7 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
   View,
@@ -102,6 +103,7 @@ type ProfileFormData = InferType<typeof profileSchema>;
 // Component
 
 export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const { user, avatarUri, initials } = useUserProfile();
@@ -374,8 +376,8 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
               style={[styles.changePhotoButton, { backgroundColor: theme.colors.primaryContainer }]}
               onPress={handleSelectImage}
               disabled={isImageUploading}
-              accessibilityLabel='Change profile photo'
-              accessibilityHint='Opens image picker to select a new profile photo'
+              accessibilityLabel={t('profile.a11yChangePhoto')}
+              accessibilityHint={t('profile.a11yChangePhotoHint')}
             >
               <Icon
                 name='camera-outline'
@@ -408,23 +410,23 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
 
         {/* Personal Information Section */}
         <Card style={styles.card}>
-          <SectionHeader title='Personal Information' icon='person-outline' />
+          <SectionHeader title={t('profile.personalInformation')} icon='person-outline' />
 
           <Controller
             control={control}
             name='firstName'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='First Name'
+                label={t('profile.firstName')}
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.firstName?.message}
-                placeholder='Enter your first name'
+                placeholder={t('profile.a11yFirstNameHint')}
                 autoCapitalize='words'
                 returnKeyType='next'
-                accessibilityLabel='First name input'
-                accessibilityHint='Enter your first name'
+                accessibilityLabel={t('profile.a11yFirstNameInput')}
+                accessibilityHint={t('profile.a11yFirstNameHint')}
               />
             )}
           />
@@ -434,31 +436,31 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             name='lastName'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Last Name'
+                label={t('profile.lastName')}
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.lastName?.message}
-                placeholder='Enter your last name'
+                placeholder={t('profile.a11yLastNameHint')}
                 autoCapitalize='words'
                 returnKeyType='next'
-                accessibilityLabel='Last name input'
-                accessibilityHint='Enter your last name'
+                accessibilityLabel={t('profile.a11yLastNameInput')}
+                accessibilityHint={t('profile.a11yLastNameHint')}
               />
             )}
           />
 
           <Input
-            label='Email'
+            label={t('profile.email')}
             value={user?.email ?? ''}
             editable={false}
-            placeholder='Email address'
+            placeholder={t('profile.emailPlaceholder')}
             keyboardType='email-address'
             leftIcon='mail-outline'
             leftIconFamily='Ionicons'
             style={[styles.disabledInput, { backgroundColor: theme.colors.surfaceVariant }]}
-            accessibilityLabel='Email address (read-only)'
-            accessibilityHint='Your email address cannot be changed'
+            accessibilityLabel={t('profile.a11yEmailReadOnly')}
+            accessibilityHint={t('profile.a11yEmailReadOnlyHint')}
           />
 
           <Controller
@@ -466,17 +468,17 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             name='phoneNumber'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Phone Number'
+                label={t('profile.phoneNumber')}
                 value={value ?? ''}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.phoneNumber?.message}
-                placeholder='+21612345678'
+                placeholder={t('profile.phonePlaceholder')}
                 keyboardType='phone-pad'
                 leftIcon='call-outline'
                 leftIconFamily='Ionicons'
-                accessibilityLabel='Phone number input'
-                accessibilityHint='Enter your phone number in international format'
+                accessibilityLabel={t('profile.a11yPhoneInput')}
+                accessibilityHint={t('profile.a11yPhoneHint')}
               />
             )}
           />
@@ -484,23 +486,23 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
 
         {/* Address Section */}
         <Card style={styles.card}>
-          <SectionHeader title='Address' icon='location-outline' />
+          <SectionHeader title={t('profile.address')} icon='location-outline' />
 
           <Controller
             control={control}
             name='street'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Street Address'
+                label={t('profile.streetAddress')}
                 value={value ?? ''}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.street?.message}
-                placeholder='123 Main Street'
+                placeholder={t('profile.streetPlaceholder')}
                 autoCapitalize='words'
                 returnKeyType='next'
-                accessibilityLabel='Street address input'
-                accessibilityHint='Enter your street address'
+                accessibilityLabel={t('profile.a11yStreetInput')}
+                accessibilityHint={t('profile.a11yStreetHint')}
               />
             )}
           />
@@ -510,16 +512,16 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             name='city'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='City'
+                label={t('profile.city')}
                 value={value ?? ''}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.city?.message}
-                placeholder='Tunis'
+                placeholder={t('profile.cityPlaceholder')}
                 autoCapitalize='words'
                 returnKeyType='next'
-                accessibilityLabel='City input'
-                accessibilityHint='Enter your city'
+                accessibilityLabel={t('profile.a11yCityInput')}
+                accessibilityHint={t('profile.a11yCityHint')}
               />
             )}
           />
@@ -531,16 +533,16 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
                 name='postalCode'
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label='Postal Code'
+                    label={t('profile.postalCode')}
                     value={value ?? ''}
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.postalCode?.message}
-                    placeholder='1000'
+                    placeholder={t('profile.postalPlaceholder')}
                     keyboardType='number-pad'
                     returnKeyType='next'
-                    accessibilityLabel='Postal code input'
-                    accessibilityHint='Enter your postal code'
+                    accessibilityLabel={t('profile.a11yPostalInput')}
+                    accessibilityHint={t('profile.a11yPostalHint')}
                   />
                 )}
               />
@@ -552,16 +554,16 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
                 name='country'
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    label='Country'
+                    label={t('profile.country')}
                     value={value ?? ''}
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.country?.message}
-                    placeholder='Tunisia'
+                    placeholder={t('profile.countryPlaceholder')}
                     autoCapitalize='words'
                     returnKeyType='done'
-                    accessibilityLabel='Country input'
-                    accessibilityHint='Enter your country'
+                    accessibilityLabel={t('profile.a11yCountryInput')}
+                    accessibilityHint={t('profile.a11yCountryHint')}
                   />
                 )}
               />
@@ -600,8 +602,8 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             onPress={handleSave}
             disabled={!isDirty && imageUri == null}
             style={styles.saveButton}
-            accessibilityLabel='Save changes'
-            accessibilityHint='Saves your profile changes'
+            accessibilityLabel={t('profile.a11ySaveChanges')}
+            accessibilityHint={t('profile.a11ySaveChangesHint')}
           >
             Save Changes
           </Button>
@@ -610,8 +612,8 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             variant='outline'
             size='md'
             onPress={handleCancel}
-            accessibilityLabel='Cancel editing'
-            accessibilityHint='Discards changes and returns to profile screen'
+            accessibilityLabel={t('profile.a11yCancelEditing')}
+            accessibilityHint={t('profile.a11yCancelEditingHint')}
           >
             Cancel
           </Button>

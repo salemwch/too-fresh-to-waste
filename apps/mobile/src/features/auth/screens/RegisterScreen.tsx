@@ -325,7 +325,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                 <Pressable
                   accessibilityRole='button'
                   accessibilityLabel={t('register.dismissError')}
-                  accessibilityHint='Closes this error message'
+                  accessibilityHint={t('auth.a11yCloseError')}
                   onPress={() => {
                     setIsGlobalErrorDismissed(true);
                     dispatch(clearError());

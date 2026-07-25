@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -84,6 +85,7 @@ function CategoryRow({
 }
 
 export const DonationImpactScreen: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { data: stats, isLoading } = useDonationStats();
 
@@ -112,30 +114,32 @@ export const DonationImpactScreen: React.FC = () => {
           style={styles.heroBanner}
         >
           <Icon name='heart' family='Ionicons' size={32} color={WHITE_90} />
-          <Text style={styles.heroTitle}>Together We Give</Text>
-          <Text style={styles.heroSubtitle}>Every order contributes to those in need</Text>
+          <Text style={styles.heroTitle}>{t('donations.togetherWeGive')}</Text>
+          <Text style={styles.heroSubtitle}>{t('donations.everyOrderContributes')}</Text>
 
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.totalDonations.toFixed(2)}</Text>
-              <Text style={styles.statLabel}>TND Raised</Text>
+              <Text style={styles.statLabel}>
+                {t('donations.tndRaised', { currency: t('common.currency') })}
+              </Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.mealCount}</Text>
-              <Text style={styles.statLabel}>Meals Funded</Text>
+              <Text style={styles.statLabel}>{t('donations.mealsFunded')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.contributorCount}</Text>
-              <Text style={styles.statLabel}>Contributors</Text>
+              <Text style={styles.statLabel}>{t('donations.contributors')}</Text>
             </View>
           </View>
 
           {/* Overall progress */}
           <View style={styles.overallProgress}>
             <View style={styles.overallProgressHeader}>
-              <Text style={styles.overallProgressLabel}>Overall Progress</Text>
+              <Text style={styles.overallProgressLabel}>{t('donations.overallProgress')}</Text>
               <Text style={styles.overallProgressPercent}>
                 {stats.progressPercentage.toFixed(1)}%
               </Text>
@@ -149,7 +153,11 @@ export const DonationImpactScreen: React.FC = () => {
               />
             </View>
             <Text style={styles.overallProgressSub}>
-              {stats.totalDonations.toFixed(2)} / {stats.targetAmount} TND goal
+              {t('donations.goalProgress', {
+                current: stats.totalDonations.toFixed(2),
+                target: stats.targetAmount,
+                currency: t('common.currency'),
+              })}
             </Text>
           </View>
         </LinearGradient>
@@ -162,14 +170,14 @@ export const DonationImpactScreen: React.FC = () => {
             weight='semibold'
             style={{ marginBottom: 4, color: theme.colors.onBackground }}
           >
-            Donation Categories
+            {t('donations.donationCategories')}
           </Text>
           <Text
             variant='body'
             size='xs'
             style={{ marginBottom: 16, color: theme.colors.onSurfaceVariant }}
           >
-            Funds are allocated to the active category goal
+            {t('donations.fundsAllocated')}
           </Text>
 
           <View style={styles.categoriesList}>

@@ -8,6 +8,7 @@
 
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -56,69 +57,84 @@ interface EarningsSummaryProps {
   summary: DriverEarningsSummary;
 }
 
-const EarningsSummary: React.FC<EarningsSummaryProps> = ({ summary }) => (
-  <View style={styles.summaryWrapper}>
-    {/* Today is the number drivers check most, so it gets the hero treatment. */}
-    <View style={styles.heroCard}>
-      <Text style={styles.heroLabel}>Earned today</Text>
-      <Text style={styles.heroAmount}>
-        {summary.today.toFixed(3)} <Text style={styles.heroCurrency}>{summary.currency}</Text>
-      </Text>
-      <Text style={styles.heroMeta}>
-        {summary.deliveriesToday} {summary.deliveriesToday === 1 ? 'delivery' : 'deliveries'}
-      </Text>
-    </View>
+const EarningsSummary: React.FC<EarningsSummaryProps> = ({ summary }) => {
+  const { t } = useTranslation();
 
-    <View style={styles.statRow}>
-      <View style={styles.statCard}>
-        <Text style={styles.statLabel}>This week</Text>
-        <Text style={styles.statValue}>{summary.thisWeek.toFixed(3)}</Text>
+  return (
+    <View style={styles.summaryWrapper}>
+      {/* Today is the number drivers check most, so it gets the hero treatment. */}
+      <View style={styles.heroCard}>
+        <Text style={styles.heroLabel}>{t('driver.earnedToday')}</Text>
+        <Text style={styles.heroAmount}>
+          {summary.today.toFixed(3)} <Text style={styles.heroCurrency}>{summary.currency}</Text>
+        </Text>
+        <Text style={styles.heroMeta}>
+          {t('driver.deliveryCount', { count: summary.deliveriesToday })}
+        </Text>
       </View>
-      <View style={styles.statCard}>
-        <Text style={styles.statLabel}>This month</Text>
-        <Text style={styles.statValue}>{summary.thisMonth.toFixed(3)}</Text>
-      </View>
-    </View>
 
-    <View style={styles.allTimeCard}>
-      <View style={styles.allTimeItem}>
-        <Text style={styles.statLabel}>All time</Text>
-        <Text style={styles.statValue}>{summary.allTime.toFixed(3)} TND</Text>
+      <View style={styles.statRow}>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>{t('driver.thisWeek')}</Text>
+          <Text style={styles.statValue}>{summary.thisWeek.toFixed(3)}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>{t('driver.thisMonth')}</Text>
+          <Text style={styles.statValue}>{summary.thisMonth.toFixed(3)}</Text>
+        </View>
       </View>
-      <View style={styles.allTimeDivider} />
-      <View style={styles.allTimeItem}>
-        <Text style={styles.statLabel}>Deliveries</Text>
-        <Text style={styles.statValue}>{summary.deliveriesAllTime}</Text>
-      </View>
-    </View>
 
-    <Text style={styles.sectionHeading}>Past deliveries</Text>
-  </View>
-);
+      <View style={styles.allTimeCard}>
+        <View style={styles.allTimeItem}>
+          <Text style={styles.statLabel}>{t('driver.allTime')}</Text>
+          <Text style={styles.statValue}>
+            {summary.allTime.toFixed(3)} {t('common.currency')}
+          </Text>
+        </View>
+        <View style={styles.allTimeDivider} />
+        <View style={styles.allTimeItem}>
+          <Text style={styles.statLabel}>{t('driver.deliveries')}</Text>
+          <Text style={styles.statValue}>{summary.deliveriesAllTime}</Text>
+        </View>
+      </View>
+
+      <Text style={styles.sectionHeading}>{t('driver.pastDeliveries')}</Text>
+    </View>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // History row
 // ---------------------------------------------------------------------------
 
-const HistoryRow: React.FC<{ item: DriverAvailableOrder }> = ({ item }) => (
-  <View style={styles.historyCard}>
-    <View style={styles.historyBody}>
-      <Text style={styles.historyCity}>
-        {item.deliveryAddress?.city ?? item.establishmentAddress?.city ?? 'Delivery'}
+const HistoryRow: React.FC<{ item: DriverAvailableOrder }> = ({ item }) => {
+  const { t } = useTranslation();
+
+  return (
+    <View style={styles.historyCard}>
+      <View style={styles.historyBody}>
+        <Text style={styles.historyCity}>
+          {item.deliveryAddress?.city ??
+            item.establishmentAddress?.city ??
+            t('driver.deliveryFallback')}
+        </Text>
+        <Text style={styles.historyDate}>{formatDate(item.deliveredAt)}</Text>
+      </View>
+      <Text style={styles.historyEarnings}>
+        +{(item.driverEarnings ?? 0).toFixed(3)}{' '}
+        <Text style={styles.historyCurrency}>{t('common.currency')}</Text>
       </Text>
-      <Text style={styles.historyDate}>{formatDate(item.deliveredAt)}</Text>
     </View>
-    <Text style={styles.historyEarnings}>
-      +{(item.driverEarnings ?? 0).toFixed(3)} <Text style={styles.historyCurrency}>TND</Text>
-    </Text>
-  </View>
-);
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
 
 export default function DriverEarningsScreen() {
+  const { t } = useTranslation();
+
   const {
     data: earnings,
     isLoading: earningsLoading,
@@ -147,7 +163,7 @@ export default function DriverEarningsScreen() {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size='large' color={PRIMARY} />
-        <Text style={styles.loadingTitle}>Loading your earnings…</Text>
+        <Text style={styles.loadingTitle}>{t('driver.loadingEarnings')}</Text>
       </View>
     );
   }
@@ -156,8 +172,8 @@ export default function DriverEarningsScreen() {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.emptyIcon}>⚠️</Text>
-        <Text style={styles.emptyTitle}>Earnings unavailable</Text>
-        <Text style={styles.emptySubtitle}>Pull down to try again.</Text>
+        <Text style={styles.emptyTitle}>{t('driver.earningsUnavailable')}</Text>
+        <Text style={styles.emptySubtitle}>{t('driver.pullToRetry')}</Text>
       </View>
     );
   }
@@ -173,10 +189,8 @@ export default function DriverEarningsScreen() {
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>🛵</Text>
-          <Text style={styles.emptyTitle}>No deliveries yet</Text>
-          <Text style={styles.emptySubtitle}>
-            Completed deliveries and what you earned for them will show up here.
-          </Text>
+          <Text style={styles.emptyTitle}>{t('driver.noDeliveriesYet')}</Text>
+          <Text style={styles.emptySubtitle}>{t('driver.emptyHistorySubtitle')}</Text>
         </View>
       }
       contentContainerStyle={styles.listContent}

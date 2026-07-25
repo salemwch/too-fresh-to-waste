@@ -6,6 +6,7 @@
  */
 
 import { memo, useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Modal,
@@ -27,6 +28,7 @@ import type { ManualLocationModalProps, ManualLocationResult } from './ManualLoc
 
 export const ManualLocationModal = memo<ManualLocationModalProps>(
   ({ visible, onClose, onLocationSelect, initialQuery = '', style, testID }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const [searchQuery, setSearchQuery] = useState(initialQuery);
     const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
@@ -66,7 +68,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
           onPress={() => handleSelectLocation(item)}
           accessibilityRole='button'
           accessibilityLabel={item.displayName}
-          accessibilityHint='Sets this as your location'
+          accessibilityHint={t('location.a11ySetAsLocationHint')}
         >
           <Icon
             name='location-outline'
@@ -90,7 +92,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
           />
         </Pressable>
       ),
-      [theme.colors, handleSelectLocation],
+      [theme.colors, handleSelectLocation, t],
     );
 
     const renderEmptyState = useCallback(() => {
@@ -177,8 +179,8 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
               <Pressable
                 onPress={onClose}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                accessibilityLabel='Close'
-                accessibilityHint='Closes the location picker'
+                accessibilityLabel={t('common.close')}
+                accessibilityHint={t('location.a11yCloseHint')}
                 accessibilityRole='button'
               >
                 <Icon name='close' family='Ionicons' size={24} color={theme.colors.onSurface} />
@@ -190,7 +192,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
               <Input
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder='Search city or address...'
+                placeholder={t('location.searchCityOrAddress')}
                 leftIcon={
                   <Icon
                     name='search'
@@ -213,8 +215,8 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
                 }
                 autoFocus
                 returnKeyType='search'
-                accessibilityLabel='Search location'
-                accessibilityHint='Type to search for a city or address'
+                accessibilityLabel={t('location.a11ySearchLocation')}
+                accessibilityHint={t('location.a11ySearchLocationHint')}
               />
             </View>
 

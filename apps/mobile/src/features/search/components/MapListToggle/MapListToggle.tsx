@@ -11,6 +11,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, Animated } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
@@ -35,6 +36,7 @@ interface MapListToggleProps {
 const TOGGLE_SHADOW = '#000';
 
 export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, style }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [slideAnim] = useState(() => new Animated.Value(value === 'map' ? 0 : 1));
   const translateX = useMemo(
@@ -86,8 +88,8 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
         style={styles.button}
         onPress={handleMapPress}
         accessibilityRole='button'
-        accessibilityLabel='Map view'
-        accessibilityHint='Switches to the map display'
+        accessibilityLabel={t('search.a11yMapViewToggle')}
+        accessibilityHint={t('search.a11yMapViewToggleHint')}
         accessibilityState={{ selected: value === 'map' }}
       >
         <Icon
@@ -113,8 +115,8 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
         style={styles.button}
         onPress={handleListPress}
         accessibilityRole='button'
-        accessibilityLabel='List view'
-        accessibilityHint='Switches to the list display'
+        accessibilityLabel={t('search.a11yListViewToggle')}
+        accessibilityHint={t('search.a11yListViewToggleHint')}
         accessibilityState={{ selected: value === 'list' }}
       >
         <Icon

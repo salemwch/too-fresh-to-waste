@@ -12,6 +12,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -88,6 +89,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
   onSelectLocation,
   onSearchChange,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   // ============================================================================
@@ -217,8 +219,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
         {/* Animated Backdrop - Fades in smoothly */}
         <TouchableWithoutFeedback
           accessibilityRole='button'
-          accessibilityLabel='Close location picker'
-          accessibilityHint='Dismisses the location picker sheet'
+          accessibilityLabel={t('location.a11yClosePicker')}
+          accessibilityHint={t('location.a11yClosePickerHint')}
           onPress={handleClose}
         >
           <Animated.View style={[styles.backdrop, backdropStyle]} />
@@ -255,11 +257,11 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                 color={theme.colors.onSurfaceVariant}
               />
               <TextInput
-                accessibilityLabel='Text input field'
-                accessibilityHint='Type a city or area name to search'
+                accessibilityLabel={t('location.a11yTextInput')}
+                accessibilityHint={t('location.a11yTextInputHint')}
                 value={searchQuery}
                 onChangeText={handleSearchChange}
-                placeholder='Search city or area...'
+                placeholder={t('location.searchCityOrArea')}
                 placeholderTextColor={theme.colors.onSurfaceVariant}
                 style={[styles.searchInput, { color: theme.colors.onSurface }]}
                 returnKeyType='search'
@@ -269,8 +271,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               {searchQuery.length > 0 && (
                 <Pressable
                   accessibilityRole='button'
-                  accessibilityLabel='Clear search'
-                  accessibilityHint='Clears the current search text'
+                  accessibilityLabel={t('location.a11yClearSearch')}
+                  accessibilityHint={t('location.a11yClearSearchHint')}
                   onPress={() => onSearchChange?.('')}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
@@ -295,8 +297,8 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
               ]}
               onPress={handleUseCurrentLocation}
               disabled={isLoadingGPS}
-              accessibilityLabel='Use current GPS location'
-              accessibilityHint='Detects your current position via GPS'
+              accessibilityLabel={t('location.a11yUseGps')}
+              accessibilityHint={t('location.a11yUseGpsHint')}
               accessibilityRole='button'
             >
               <View
@@ -351,7 +353,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     <Pressable
                       accessibilityRole='button'
                       accessibilityLabel={`Select ${getPrimaryLocationLabel(location)}`}
-                      accessibilityHint='Sets this as your current location'
+                      accessibilityHint={t('location.a11ySetAsCurrentHint')}
                       key={location.id}
                       style={
                         currentLocation === location.name
@@ -444,7 +446,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     }
                     onPress={() => handleSelectLocation(location)}
                     accessibilityLabel={`Select ${location.name}`}
-                    accessibilityHint='Sets this as your current location'
+                    accessibilityHint={t('location.a11ySetAsCurrentHint')}
                     accessibilityRole='button'
                   >
                     <View

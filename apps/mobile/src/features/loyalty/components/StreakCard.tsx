@@ -12,6 +12,7 @@
  */
 
 import React, { memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Animated, Easing, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -127,6 +128,7 @@ const StreakRow: React.FC<StreakRowProps> = ({
 // ---------------------------------------------------------------------------
 
 const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
+  const { t } = useTranslation();
   const { loginStreak, purchaseStreak } = gamification;
 
   const loginPointsUsed = loginStreak.pointsEarnedThisMonth;
@@ -142,7 +144,7 @@ const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
         {/* Login Streak */}
         <StreakRow
           emoji={'\uD83D\uDD25'}
-          title='Login Streak'
+          title={t('loyalty.loginStreak')}
           valueBadge={`${loginStreak.currentStreak} day${loginStreak.currentStreak !== 1 ? 's' : ''}`}
           valueBadgeColor={colorTokens.base.primary[500]}
           current={loginStreak.currentStreak}
@@ -157,7 +159,7 @@ const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
         {/* Purchase Streak */}
         <StreakRow
           emoji={'\uD83D\uDECD\uFE0F'}
-          title='Purchase Streak'
+          title={t('loyalty.purchaseStreak')}
           valueBadge={`${purchaseStreak.bagsThisPeriod} bag${purchaseStreak.bagsThisPeriod !== 1 ? 's' : ''}`}
           valueBadgeColor='#BF7E1E'
           current={purchaseStreak.bagsThisPeriod}

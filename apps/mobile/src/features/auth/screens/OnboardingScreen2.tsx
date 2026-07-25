@@ -140,7 +140,7 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
             onPress={handleBack}
             accessibilityRole='button'
             accessibilityLabel={t('common.back')}
-            accessibilityHint='Go to previous onboarding screen'
+            accessibilityHint={t('auth.a11yPreviousOnboarding')}
           >
             <Text style={styles.navArrow}>‹</Text>
           </Pressable>
@@ -157,7 +157,7 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
             disabled={isNavigating}
             accessibilityRole='button'
             accessibilityLabel={t('common.next')}
-            accessibilityHint='Go to login screen'
+            accessibilityHint={t('auth.a11yGoToLogin')}
           >
             <Text style={[styles.navArrow, styles.navArrowRight]}>›</Text>
           </Pressable>

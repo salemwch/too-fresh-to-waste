@@ -17,6 +17,7 @@
  */
 
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, TextInput } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
@@ -96,6 +97,7 @@ const HomeSearchBarComponent = ({
   onRemoveCategory,
   onClearAllFilters,
 }: HomeSearchBarProps) => {
+  const { t } = useTranslation();
   // Calculate filter status
   const hasFilters = hasActiveFilters(filters);
   const filterCount = countActiveFilters(filters);
@@ -117,7 +119,7 @@ const HomeSearchBarComponent = ({
 
           {/* Search Input */}
           <TextInput
-            placeholder='Search for food...'
+            placeholder={t('home.searchForFood')}
             placeholderTextColor={COLORS.textPlaceholder}
             value={searchQuery}
             onChangeText={onSearchChange}
@@ -125,8 +127,8 @@ const HomeSearchBarComponent = ({
             autoCapitalize='none'
             autoCorrect={false}
             style={styles.searchInput}
-            accessibilityLabel='Search offers'
-            accessibilityHint='Type to filter offers by establishment, cuisine, or food'
+            accessibilityLabel={t('home.a11ySearchOffers')}
+            accessibilityHint={t('home.a11ySearchOffersHint')}
             testID='home-search-input'
           />
 
@@ -138,7 +140,7 @@ const HomeSearchBarComponent = ({
             style={styles.filterButton}
             onPress={onFilterPress}
             accessibilityLabel={`Filters ${hasFilters ? `(${filterCount} active)` : ''}`}
-            accessibilityHint='Opens filter options'
+            accessibilityHint={t('home.a11yOpenFilters')}
             accessibilityRole='button'
             testID='home-filter-button'
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -172,8 +174,8 @@ const HomeSearchBarComponent = ({
                 <Pressable
                   onPress={() => onSearchChange('')}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  accessibilityLabel='Clear search'
-                  accessibilityHint='Clears the current search text'
+                  accessibilityLabel={t('home.a11yClearSearch')}
+                  accessibilityHint={t('home.a11yClearSearchHint')}
                   accessibilityRole='button'
                 >
                   <Icon name='close' family='Ionicons' size={16} color={COLORS.brand} />

@@ -14,6 +14,7 @@
  */
 
 import { memo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, FlatList } from 'react-native';
 
 import { Text, Button, Card } from '@/design-system/components/atoms';
@@ -108,6 +109,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
   mascotVariant,
   mascotCopy,
 }) => {
+  const { t } = useTranslation();
   // ============================================================================
   // Memoized renderItem callbacks — stable references for FlatList
   // ============================================================================
@@ -159,10 +161,10 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
               variant='ghost'
               size='sm'
               onPress={onSeeAllPress}
-              accessibilityLabel={`See all ${title.toLowerCase()}`}
-              accessibilityHint='Opens the full list'
+              accessibilityLabel={t('home.a11ySeeAll', { section: title })}
+              accessibilityHint={t('home.a11yOpenFullList')}
             >
-              See All
+              {t('common.seeAll')}
             </Button>
           )}
         </View>
@@ -202,10 +204,10 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
               variant='ghost'
               size='sm'
               onPress={onSeeAllPress}
-              accessibilityLabel={`See all ${title.toLowerCase()}`}
-              accessibilityHint='Opens the full list'
+              accessibilityLabel={t('home.a11ySeeAll', { section: title })}
+              accessibilityHint={t('home.a11yOpenFullList')}
             >
-              See All
+              {t('common.seeAll')}
             </Button>
           )}
         </View>
@@ -213,18 +215,18 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
         {/* Error State */}
         <Card style={styles.placeholderCard}>
           <Text variant='body' size='md' color='error' align='center'>
-            ⚠️ Failed to load {title.toLowerCase()}
+            {t('home.sectionLoadFailed')}
           </Text>
           <Button
             variant='outline'
             size='sm'
             onPress={onRefetch}
             style={styles.retryButton}
-            accessibilityLabel={`Retry loading ${title.toLowerCase()}`}
-            accessibilityHint='Attempts to reload the data'
+            accessibilityLabel={t('home.a11yRetrySection', { section: title })}
+            accessibilityHint={t('home.a11yReloadData')}
             testID={`${testIDPrefix}-retry-button`}
           >
-            Retry
+            {t('common.retry')}
           </Button>
         </Card>
       </View>
@@ -247,10 +249,10 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
               variant='ghost'
               size='sm'
               onPress={onSeeAllPress}
-              accessibilityLabel={`See all ${title.toLowerCase()}`}
-              accessibilityHint='Opens the full list'
+              accessibilityLabel={t('home.a11ySeeAll', { section: title })}
+              accessibilityHint={t('home.a11yOpenFullList')}
             >
-              See All
+              {t('common.seeAll')}
             </Button>
           )}
         </View>
@@ -289,11 +291,11 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
             variant='ghost'
             size='sm'
             onPress={onSeeAllPress}
-            accessibilityLabel={`See all ${title.toLowerCase()}`}
-            accessibilityHint='Opens the full list'
+            accessibilityLabel={t('home.a11ySeeAll', { section: title })}
+            accessibilityHint={t('home.a11yOpenFullList')}
             testID={`${testIDPrefix}-see-all-button`}
           >
-            See All
+            {t('common.seeAll')}
           </Button>
         )}
       </View>
@@ -309,7 +311,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
         snapToInterval={HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH}
         decelerationRate='fast'
         accessibilityLabel={`${title} carousel`}
-        accessibilityHint='Swipe left or right to browse offers'
+        accessibilityHint={t('home.a11yBrowseOffers')}
         getItemLayout={(_data, index) => ({
           length: HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH,
           offset: HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH * index,

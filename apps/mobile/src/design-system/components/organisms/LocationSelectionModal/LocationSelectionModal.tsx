@@ -8,6 +8,7 @@
  */
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -64,6 +65,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
     onDismissComplete,
     testID = 'location-selection-modal',
   }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const [showCitySearch, setShowCitySearch] = useState(false);
     const prevVisible = useRef(visible);
@@ -186,15 +188,15 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       onPress={handleRequestGPSLocation}
                       disabled={isLoading}
                       accessibilityRole='button'
-                      accessibilityLabel='Use my current location'
-                      accessibilityHint='Request GPS location permission'
+                      accessibilityLabel={t('location.a11yUseMyLocation')}
+                      accessibilityHint={t('location.a11yUseMyLocationHint')}
                     >
                       <View style={styles.optionIconContainer}>
                         <Icon name='navigate' size={24} color={theme.colors.primary} />
                       </View>
                       <View style={styles.optionTextContainer}>
                         <Text variant='body' size='md' weight='semibold'>
-                          Use my current location
+                          {t('location.a11yUseMyLocation')}
                         </Text>
                         <Text variant='body' size='sm' color='secondary'>
                           Find the best deals near you
@@ -218,8 +220,8 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       onPress={handleSearchCityPress}
                       disabled={isLoading}
                       accessibilityRole='button'
-                      accessibilityLabel='Search for a city'
-                      accessibilityHint='Opens city search modal'
+                      accessibilityLabel={t('location.a11ySearchCity')}
+                      accessibilityHint={t('location.a11ySearchCityHint')}
                     >
                       <Icon name='search' size={20} color={theme.colors.secondary} />
                       <Text

@@ -12,6 +12,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Modal,
@@ -64,6 +65,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
   prizes,
   pointsSnapshot,
 }) => {
+  const { t } = useTranslation();
   const [selectedPrizeId, setSelectedPrizeId] = useState<string | null>(null);
   const voteMutation = useVoteMutation();
 
@@ -131,7 +133,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
               onPress={handleClose}
               style={styles.closeButton}
               accessibilityRole='button'
-              accessibilityLabel='Close'
+              accessibilityLabel={t('common.close')}
               accessibilityHint='Dismisses the voting sheet'
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
@@ -157,7 +159,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
                   accessibilityRole='radio'
                   accessibilityState={{ checked: isSelected }}
                   accessibilityLabel={`${prize.name} — ${prize.value}`}
-                  accessibilityHint='Selects this prize as your vote choice'
+                  accessibilityHint={t('voting.a11ySelectPrizeHint')}
                 >
                   <FastImage
                     source={{
@@ -219,7 +221,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
                 ? 'Casting your vote…'
                 : `Cast my final vote (${pointsSnapshot} pts)`
             }
-            accessibilityHint='Submits your vote for the selected prize'
+            accessibilityHint={t('voting.a11ySubmitVoteHint')}
           >
             <Text variant='body' size='md' weight='semibold' style={styles.castButtonText}>
               {voteMutation.isPending

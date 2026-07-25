@@ -6,6 +6,7 @@
  */
 
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { useTheme } from '../../../providers';
@@ -15,6 +16,7 @@ import type { LocationPromptBannerProps } from './LocationPromptBanner.types';
 
 export const LocationPromptBanner = memo<LocationPromptBannerProps>(
   ({ onEnable, onDismiss, variant = 'expanded', isLoading = false, style, testID }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     if (variant === 'compact') {
@@ -51,7 +53,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             size='sm'
             onPress={onEnable}
             disabled={isLoading}
-            accessibilityLabel='Enable location'
+            accessibilityLabel={t('location.a11yEnableLocation')}
             accessibilityHint='Requests location permission to find nearby offers'
           >
             {isLoading ? <ActivityIndicator size='small' color={theme.colors.primary} /> : 'Enable'}
@@ -59,8 +61,8 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
           <Pressable
             onPress={onDismiss}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel='Dismiss location banner'
-            accessibilityHint='Hides the location prompt banner'
+            accessibilityLabel={t('location.a11yDismissBanner')}
+            accessibilityHint={t('location.a11yDismissBannerHint')}
             accessibilityRole='button'
           >
             <Icon name='close' family='Ionicons' size={18} color={theme.colors.onSurfaceVariant} />
@@ -76,8 +78,8 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
           style={styles.dismissButton}
           onPress={onDismiss}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityLabel='Dismiss location banner'
-          accessibilityHint='Hides the location prompt banner'
+          accessibilityLabel={t('location.a11yDismissBanner')}
+          accessibilityHint={t('location.a11yDismissBannerHint')}
           accessibilityRole='button'
         >
           <Icon name='close' family='Ionicons' size={20} color={theme.colors.onSurfaceVariant} />
@@ -108,10 +110,10 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             size='md'
             onPress={onDismiss}
             style={styles.dismissTextButton}
-            accessibilityLabel='Not now'
-            accessibilityHint='Dismisses the location prompt'
+            accessibilityLabel={t('location.notNow')}
+            accessibilityHint={t('location.a11yNotNowHint')}
           >
-            Not now
+            {t('location.notNow')}
           </Button>
           <Button
             variant='primary'
@@ -119,8 +121,8 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             onPress={onEnable}
             disabled={isLoading}
             style={styles.enableButton}
-            accessibilityLabel='Enable location'
-            accessibilityHint='Allow the app to access your location'
+            accessibilityLabel={t('location.a11yEnableLocation')}
+            accessibilityHint={t('location.a11yEnableLocationHint')}
           >
             {isLoading ? (
               <ActivityIndicator size='small' color={theme.colors.onPrimary} />

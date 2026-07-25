@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   View,
@@ -55,6 +56,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   onClose,
   onVerificationComplete,
 }) => {
+  const { t } = useTranslation();
   const user = useAppSelector(selectAuthUser);
   const dispatch = useAppDispatch();
 
@@ -171,20 +173,20 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         </TouchableWithoutFeedback>
 
         <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
-          <Text style={styles.title}>Enter Your Phone Number</Text>
-          <Text style={styles.subtitle}>Required to complete your order.</Text>
+          <Text style={styles.title}>{t('orders.enterPhoneTitle')}</Text>
+          <Text style={styles.subtitle}>{t('orders.enterPhoneSubtitle')}</Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={styles.label}>{t('orders.phoneNumber')}</Text>
             <View style={styles.phoneRow}>
               <View style={styles.prefixBox}>
                 <Text style={styles.prefixText}>{COUNTRY_PREFIX}</Text>
               </View>
               <TextInput
-                accessibilityLabel='Phone number input'
+                accessibilityLabel={t('orders.a11yPhoneInput')}
                 accessibilityHint={`Enter your ${PHONE_LOCAL_DIGITS}-digit phone number`}
                 style={[styles.input, styles.phoneInput]}
-                placeholder='20 123 456'
+                placeholder={t('orders.phonePlaceholder')}
                 placeholderTextColor='#9CA3AF'
                 value={phoneNumber.replace(COUNTRY_PREFIX, '')}
                 onChangeText={handlePhoneChange}

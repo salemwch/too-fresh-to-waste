@@ -6,6 +6,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useMutation } from '@tanstack/react-query';
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Controller, useForm } from 'react-hook-form';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import * as yup from 'yup';
@@ -83,6 +84,7 @@ function parseServerError(error: unknown): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const user = useAppSelector(selectAuthUser);
   const isOAuthAccount = user?.authProvider !== undefined && user.authProvider !== 'local';
@@ -185,7 +187,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
             name='currentPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Current Password'
+                label={t('profile.currentPassword')}
                 value={value}
                 onChangeText={text => {
                   onChange(text);

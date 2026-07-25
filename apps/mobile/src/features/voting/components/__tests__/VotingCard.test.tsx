@@ -508,8 +508,19 @@ describe('VotingCard', () => {
   });
 
   // 21. Victory Lap exactly at day 7 boundary (edge)
+  //
+  // Time is frozen here on purpose. The component computes
+  // `(Date.now() - announcedAt) / MS_PER_DAY <= 7`, so a timestamp built from a
+  // live `Date.now()` is already >7 days old by the time render runs — this test
+  // could only pass if setup and render landed in the same millisecond, which
+  // made it fail depending on machine speed. Freezing the clock makes the
+  // boundary exact and the assertion meaningful.
   it('renders Victory Lap at exactly 7 days since announcement', () => {
-    const exactlySevenDays = new Date(Date.now() - 7 * 86_400_000).toISOString();
+    jest.useFakeTimers();
+    const now = new Date('2026-07-25T12:00:00.000Z');
+    jest.setSystemTime(now);
+
+    const exactlySevenDays = new Date(now.getTime() - 7 * 86_400_000).toISOString();
 
     mockUseActiveVotingCycle.mockReturnValue({
       cycle: makeCycle({
@@ -529,6 +540,8 @@ describe('VotingCard', () => {
 
     const { getByText } = render(<VotingCard />);
     expect(getByText('The Community Has Spoken!')).toBeTruthy();
+
+    jest.useRealTimers();
   });
 
   // 22. Victory Lap at day 7 + 1ms → Anticipation Hook

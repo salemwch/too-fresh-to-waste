@@ -55,8 +55,8 @@ export const OnboardingScreen3: React.FC<Props> = ({ navigation }) => {
         source={SCENE_IMG}
         style={styles.sceneBg}
         resizeMode='cover'
-        accessibilityLabel='Tote bag with fresh food against a teal wall'
-        accessibilityHint='Onboarding background scene'
+        accessibilityLabel={t('auth.a11yOnboardingImage')}
+        accessibilityHint={t('auth.a11yOnboardingImageHint')}
         accessibilityIgnoresInvertColors
       />
 
@@ -103,8 +103,8 @@ export const OnboardingScreen3: React.FC<Props> = ({ navigation }) => {
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
             onPress={handleBack}
             accessibilityRole='button'
-            accessibilityLabel='Back'
-            accessibilityHint='Go to previous onboarding screen'
+            accessibilityLabel={t('common.back')}
+            accessibilityHint={t('auth.a11yPreviousOnboarding')}
           >
             <Icon name='arrow-back' size={sw(22)} color={WHITE} />
           </Pressable>

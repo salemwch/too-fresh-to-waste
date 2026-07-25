@@ -14,6 +14,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Animated,
   Easing,
@@ -207,6 +208,7 @@ const ConfettiParticle: React.FC<{ emoji: string; delay: number; left: Dimension
 // ── Main Component ──
 
 export const VotingCard: React.FC = () => {
+  const { t } = useTranslation();
   const { cycle, eligibility, myVote, isLoading } = useActiveVotingCycle();
   const [showVoteSheet, setShowVoteSheet] = useState(false);
   const [showPrizeModal, setShowPrizeModal] = useState(false);
@@ -387,10 +389,10 @@ export const VotingCard: React.FC = () => {
             style={({ pressed }) => [styles.voteButton, pressed && styles.voteButtonPressed]}
             onPress={() => setShowVoteSheet(true)}
             accessibilityRole='button'
-            accessibilityLabel='Vote Now'
+            accessibilityLabel={t('voting.voteNow')}
           >
             <Text variant='body' size='sm' weight='bold' style={styles.voteButtonText}>
-              Vote Now
+              {t('voting.voteNow')}
             </Text>
           </Pressable>
         </GlowCard>

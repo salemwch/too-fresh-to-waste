@@ -19,6 +19,7 @@
  */
 
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -36,6 +37,7 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { textAlignEnd } from '@/utils/rtl';
 import type {
   DriverActiveOrderNavigationProp,
   DriverActiveOrderRouteProp,
@@ -162,6 +164,7 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => (
 // ---------------------------------------------------------------------------
 
 export default function DriverActiveOrderScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { orderId, order: passedOrder } = route.params;
 
   // Server-owned active order. Survives an app restart, unlike the route param,
@@ -201,35 +204,30 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   const handleConfirmPickup = useCallback(() => {
     confirmPickup(orderId, {
       onError: () => {
-        Alert.alert(
-          'Pickup Failed',
-          'Could not confirm pickup. Check your connection and try again.',
-        );
+        Alert.alert(t('driver.pickupFailedTitle'), t('driver.pickupFailedBody'));
       },
     });
-  }, [confirmPickup, orderId]);
+  }, [confirmPickup, orderId, t]);
 
   const handleDeliver = useCallback(() => {
     deliver(orderId, {
       onSuccess: resetToList,
       onError: () => {
-        Alert.alert('Delivery Failed', 'Could not mark order as delivered. Please try again.');
+        Alert.alert(t('driver.deliveryFailedTitle'), t('driver.deliveryFailedBody'));
       },
     });
-  }, [deliver, orderId, resetToList]);
+  }, [deliver, orderId, resetToList, t]);
 
   const handleUnassign = useCallback(() => {
     // Dropping an order after collecting the food strands real food with the
     // driver, so the confirmation has to say so plainly.
     Alert.alert(
-      'Unassign Order',
-      hasCollected
-        ? 'You have already collected this order. Return it to the store before unassigning — the order will go back to the pool for another driver.'
-        : 'Return this order to the pool? Other drivers will be able to accept it.',
+      t('driver.unassignTitle'),
+      hasCollected ? t('driver.unassignBodyCollected') : t('driver.unassignBody'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Unassign',
+          text: t('driver.unassign'),
           style: 'destructive',
           onPress: () => {
             unassign(
@@ -237,10 +235,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
               {
                 onSuccess: resetToList,
                 onError: () => {
-                  Alert.alert(
-                    'Unassign Failed',
-                    'Could not unassign from this order. Please try again.',
-                  );
+                  Alert.alert(t('driver.unassignFailedTitle'), t('driver.unassignFailedBody'));
                 },
               },
             );
@@ -248,7 +243,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         },
       ],
     );
-  }, [unassign, orderId, resetToList, hasCollected]);
+  }, [unassign, orderId, resetToList, hasCollected, t]);
 
   // ---------------------------------------------------------------------------
   // Loading / recovery states
@@ -258,7 +253,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size='large' color={PRIMARY} />
-        <Text style={styles.loadingText}>Loading your delivery…</Text>
+        <Text style={styles.loadingText}>{t('driver.loadingDelivery')}</Text>
       </View>
     );
   }
@@ -268,16 +263,16 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   if (!order) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.loadingText}>This delivery is no longer assigned to you.</Text>
+        <Text style={styles.loadingText}>{t('driver.noLongerAssigned')}</Text>
         <TouchableOpacity
           style={styles.backToListButton}
           onPress={resetToList}
           activeOpacity={0.85}
           accessibilityRole='button'
-          accessibilityLabel='Back to available orders'
-          accessibilityHint='Returns to the list of orders you can accept'
+          accessibilityLabel={t('driver.a11yBackToOrders')}
+          accessibilityHint={t('driver.a11yBackToOrdersHint')}
         >
-          <Text style={styles.backToListText}>Back to orders</Text>
+          <Text style={styles.backToListText}>{t('driver.backToOrders')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -298,7 +293,10 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
 
   const pickupCity = order?.establishmentAddress?.city;
   const pickupStreet = order?.establishmentAddress?.street;
-  const earnings = order?.driverEarnings != null ? `${order.driverEarnings.toFixed(3)} TND` : '–';
+  const earnings =
+    order?.driverEarnings != null
+      ? `${order.driverEarnings.toFixed(3)} ${t('common.currency')}`
+      : '–';
   const collectionDate = order?.collectionStartTime ? formatDate(order.collectionStartTime) : '–';
   const startTime = order?.collectionStartTime ? formatTime(order.collectionStartTime) : '--:--';
   const endTime = order?.collectionEndTime ? formatTime(order.collectionEndTime) : '--:--';
@@ -320,7 +318,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         {/* ── Order header ── */}
         <View style={styles.headerCard}>
           <View style={styles.orderNumberRow}>
-            <Text style={styles.orderNumberLabel}>Active Delivery</Text>
+            <Text style={styles.orderNumberLabel}>{t('driver.activeDelivery')}</Text>
             {order?.orderNumber ? (
               <Text style={styles.orderNumber}>#{order.orderNumber}</Text>
             ) : (
@@ -330,7 +328,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
           <View style={styles.statusPill}>
             <View style={styles.statusDot} />
             <Text style={styles.statusText}>
-              {hasCollected ? 'Delivering to customer' : 'Collect from store'}
+              {hasCollected ? t('driver.deliveringToCustomer') : t('driver.collectFromStore')}
             </Text>
           </View>
         </View>
@@ -355,7 +353,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
                 <Marker
                   coordinate={deliveryLatLng}
                   pinColor='#2196F3'
-                  title='Customer'
+                  title={t('driver.marker_customer')}
                   description='Delivery location'
                 />
               ) : null}
@@ -363,8 +361,8 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
                 <Marker
                   coordinate={pickupLatLng}
                   pinColor='#FF9800'
-                  title='Pickup'
-                  description={pickupCity ?? 'Establishment'}
+                  title={t('driver.pickup')}
+                  description={pickupCity ?? t('driver.establishment')}
                 />
               ) : null}
             </MapView>
@@ -374,12 +372,12 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
               activeOpacity={0.85}
               accessibilityRole='button'
               accessibilityLabel={
-                hasCollected ? 'Navigate to the customer' : 'Navigate to the store'
+                hasCollected ? t('driver.a11yNavigateToCustomer') : t('driver.a11yNavigateToStore')
               }
-              accessibilityHint='Opens turn-by-turn directions in Waze or Google Maps'
+              accessibilityHint={t('driver.a11yNavigateHint')}
             >
               <Text style={styles.navButtonText}>
-                {hasCollected ? 'Navigate to customer' : 'Navigate to store'}
+                {hasCollected ? t('driver.navigateToCustomer') : t('driver.navigateToStore')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -387,21 +385,21 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
 
         {/* ── Customer info ── */}
         {customerName || customerPhone ? (
-          <SectionCard title='Customer'>
-            {customerName ? <InfoRow label='Name' value={customerName} /> : null}
-            {customerPhone ? <InfoRow label='Phone' value={customerPhone} /> : null}
+          <SectionCard title={t('driver.customer')}>
+            {customerName ? <InfoRow label={t('driver.name')} value={customerName} /> : null}
+            {customerPhone ? <InfoRow label={t('driver.phone')} value={customerPhone} /> : null}
           </SectionCard>
         ) : null}
 
         {/* ── Pickup location ── */}
         {(pickupCity ?? pickupStreet) ? (
-          <SectionCard title='Pickup location'>
-            {pickupCity ? <InfoRow label='City' value={pickupCity} /> : null}
-            {pickupStreet ? <InfoRow label='Street' value={pickupStreet} /> : null}
+          <SectionCard title={t('driver.pickupLocation')}>
+            {pickupCity ? <InfoRow label={t('driver.city')} value={pickupCity} /> : null}
+            {pickupStreet ? <InfoRow label={t('driver.street')} value={pickupStreet} /> : null}
             {order?.collectionStartTime ? (
               <>
-                <InfoRow label='Date' value={collectionDate} />
-                <InfoRow label='Window' value={`${startTime} → ${endTime}`} />
+                <InfoRow label={t('driver.date')} value={collectionDate} />
+                <InfoRow label={t('driver.window')} value={`${startTime} → ${endTime}`} />
               </>
             ) : null}
           </SectionCard>
@@ -409,14 +407,14 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
 
         {/* ── Items ── */}
         {order?.items && order.items.length > 0 ? (
-          <SectionCard title={`Items (${order.items.length})`}>
+          <SectionCard title={t('driver.itemsCount', { count: order.items.length })}>
             {order.items.map((item, idx) => (
               <View key={`${item.offerId}-${idx}`} style={styles.itemRow}>
                 <Text style={styles.itemTitle} numberOfLines={1}>
                   {item.offerTitle}
                 </Text>
                 <Text style={styles.itemMeta}>
-                  x{item.quantity} · {item.totalPrice.toFixed(3)} TND
+                  x{item.quantity} · {item.totalPrice.toFixed(3)} {t('common.currency')}
                 </Text>
               </View>
             ))}
@@ -427,7 +425,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         {order?.driverEarnings != null ? (
           <View style={styles.earningsCard}>
             <View style={styles.earningsRow}>
-              <Text style={styles.earningsPrimaryLabel}>Your earnings</Text>
+              <Text style={styles.earningsPrimaryLabel}>{t('driver.yourEarnings')}</Text>
               <Text style={styles.earningsPrimaryAmount}>{earnings}</Text>
             </View>
           </View>
@@ -446,14 +444,14 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
             disabled={isBusy}
             activeOpacity={0.85}
             accessibilityRole='button'
-            accessibilityLabel='Mark order as delivered'
-            accessibilityHint='Completes the delivery and returns you to available orders'
+            accessibilityLabel={t('driver.a11yMarkDelivered')}
+            accessibilityHint={t('driver.a11yMarkDeliveredHint')}
             accessibilityState={{ disabled: isBusy }}
           >
             {isDelivering ? (
               <ActivityIndicator color={WHITE} />
             ) : (
-              <Text style={styles.deliverText}>Mark as Delivered</Text>
+              <Text style={styles.deliverText}>{t('driver.markDelivered')}</Text>
             )}
           </TouchableOpacity>
         ) : (
@@ -463,14 +461,14 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
             disabled={isBusy}
             activeOpacity={0.85}
             accessibilityRole='button'
-            accessibilityLabel='Confirm you have collected the order from the store'
-            accessibilityHint='Tells the customer their order is on the way'
+            accessibilityLabel={t('driver.a11yConfirmPickup')}
+            accessibilityHint={t('driver.a11yConfirmPickupHint')}
             accessibilityState={{ disabled: isBusy }}
           >
             {isPickingUp ? (
               <ActivityIndicator color={WHITE} />
             ) : (
-              <Text style={styles.deliverText}>Confirm Pickup</Text>
+              <Text style={styles.deliverText}>{t('driver.confirmPickup')}</Text>
             )}
           </TouchableOpacity>
         )}
@@ -481,14 +479,14 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
           disabled={isBusy}
           activeOpacity={0.85}
           accessibilityRole='button'
-          accessibilityLabel='Unassign from this order'
-          accessibilityHint='Returns the order to the pool for another driver'
+          accessibilityLabel={t('driver.a11yUnassign')}
+          accessibilityHint={t('driver.a11yUnassignHint')}
           accessibilityState={{ disabled: isBusy }}
         >
           {isUnassigning ? (
             <ActivityIndicator color={ERROR} />
           ) : (
-            <Text style={styles.unassignText}>Unassign</Text>
+            <Text style={styles.unassignText}>{t('driver.unassign')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -665,7 +663,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: ON_SURFACE,
     flex: 2,
-    textAlign: 'right',
+    textAlign: textAlignEnd(),
   },
 
   // ── Item row ──

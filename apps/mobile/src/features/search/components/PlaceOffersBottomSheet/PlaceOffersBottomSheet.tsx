@@ -11,6 +11,7 @@
 
 import { Currency } from '@foodwaste/shared';
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Animated, Pressable, ActivityIndicator, Dimensions } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 
@@ -102,6 +103,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
   onClose,
   onOfferPress,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [slideAnim] = useState(() => new Animated.Value(SHEET_HEIGHT));
   const [opacityAnim] = useState(() => new Animated.Value(0));
@@ -210,8 +212,8 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
           </View>
           <Pressable
             accessibilityRole='button'
-            accessibilityLabel='Close'
-            accessibilityHint='Closes this panel'
+            accessibilityLabel={t('common.close')}
+            accessibilityHint={t('search.a11yClosePanel')}
             style={[styles.closeButton, { backgroundColor: theme.colors.surfaceVariant }]}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

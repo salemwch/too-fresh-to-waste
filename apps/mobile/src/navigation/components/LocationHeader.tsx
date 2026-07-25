@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Pressable, StyleSheet } from 'react-native';
 
 import { Icon, Text } from '@/design-system/components/atoms';
@@ -39,6 +40,7 @@ interface LocationHeaderProps {
 // ============================================================================
 
 export const LocationHeader: React.FC<LocationHeaderProps> = ({ onPress }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   /**
@@ -65,7 +67,7 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({ onPress }) => {
       onPress={onPress}
       accessibilityRole='button'
       accessibilityLabel={`Current location: ${formattedLocationDisplay}`}
-      accessibilityHint='Tap to change your location'
+      accessibilityHint={t('location.a11yChangeLocationHint')}
       disabled={!onPress}
     >
       {/* Location Icon Circle - #1E4448 */}

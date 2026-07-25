@@ -69,3 +69,13 @@ i18next.use(initReactI18next).init({
   interpolation: { escapeValue: false },
   react: { useSuspense: false },
 });
+
+/**
+ * The configured i18next instance.
+ *
+ * Import this (not `i18next` directly) from non-component modules that need to
+ * translate outside the React tree — importing from here guarantees the `init`
+ * above has run. Inside components always prefer `useTranslation()`, which
+ * re-renders on language change; this instance does not.
+ */
+export default i18next;
