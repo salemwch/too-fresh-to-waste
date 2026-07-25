@@ -37,7 +37,15 @@
     "a11yErrorToast": "Error notification",
     "a11yInfoToast": "Info notification",
     "a11yWarningToast": "Warning notification",
-    "a11yDismissToast": "Tap to dismiss this notification"
+    "a11yDismissToast": "Tap to dismiss this notification",
+    "a11yLoading": "Loading",
+    "a11yLoadingHint": "Content is loading",
+    "a11yRemoveBadge": "Remove badge",
+    "a11yRemoveBadgeHint": "Removes this badge",
+    "a11yGoBack": "Go back",
+    "a11yGoBackHint": "Navigates to the previous screen",
+    "a11ySubmitForm": "Submits the form",
+    "open": "Open"
   },
   "update": {
     "forceTitle": "Update Required",
@@ -148,7 +156,17 @@
     "a11yOtpInput": "Text input field",
     "a11yOtpInputHint": "Enter a single digit of the verification code",
     "a11yGoogleSignInHint": "Sign in with your Google account",
-    "a11yCloseError": "Closes this error message"
+    "a11yCloseError": "Closes this error message",
+    "passwordStrength": "Password Strength",
+    "passwordRequirements": "Password Requirements",
+    "allRequirementsMet": "All requirements met!",
+    "emailAddress": "Email Address",
+    "enterYourEmail": "Enter your email",
+    "confirmPassword": "Confirm Password",
+    "signOut": "Sign out",
+    "a11ySignOutHint": "Signs you out and returns to the login screen",
+    "a11yFocusDigit": "Focuses this digit input field",
+    "a11yEnterDigit": "Enter a single verification digit"
   },
   "register": {
     "firstNameLabel": "First name",
@@ -359,7 +377,7 @@
   },
   "offers": {
     "reserve": "Reserve",
-    "soldOut": "Sold Out",
+    "soldOut": "SOLD OUT",
     "bagsLeft": "{{count}} bags left",
     "pickUp": "Pick up",
     "whatToKnow": "What you need to know",
@@ -387,7 +405,9 @@
     "slotLimitPlural": "This restaurant allows up to {{count}} bags per offer",
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",
-    "opensAt": "Opens at {{time}}"
+    "opensAt": "Opens at {{time}}",
+    "expired": "EXPIRED",
+    "a11yEstablishmentHint": "Opens establishment details"
   },
   "orders": {
     "active": "Active",
@@ -603,7 +623,9 @@
     "restartNow": "Restart Now",
     "restartLater": "Later",
     "attributions": "Attributions",
-    "geocodingAttribution": "Address search and map locations are provided by:"
+    "geocodingAttribution": "Address search and map locations are provided by:",
+    "a11ySwitchLanguageHint": "Switches the app to this language",
+    "a11yOpenGeoapifyHint": "Opens the Geoapify website in your browser"
   },
   "favorites": {
     "all": "All",
@@ -626,7 +648,10 @@
     "willSyncOnline": "Will sync when back online",
     "savedTapToView": "{{name}} saved. Tap to view.",
     "failedToUpdate": "Failed to Update Favorite",
-    "checkConnection": "Please check your connection and try again"
+    "checkConnection": "Please check your connection and try again",
+    "offerNoLongerAvailable": "Offer No Longer Available",
+    "offerRemovedByMerchant": "This offer has been removed by the merchant",
+    "removeFromFavorites": "Remove from Favorites"
   },
   "search": {
     "searchPlaceholder": "Search for offers...",
@@ -647,7 +672,9 @@
     "a11yListViewToggle": "List view",
     "a11yListViewToggleHint": "Switches to the list display",
     "a11yClosePanel": "Closes this panel",
-    "a11yCloseFilters": "Close filters"
+    "a11yCloseFilters": "Close filters",
+    "a11yRetryMap": "Retry loading map",
+    "a11yRetryMapHint": "Attempts to reload the map"
   },
   "loyalty": {
     "myPoints": "My Points",
@@ -731,7 +758,10 @@
     "a11ySearchCity": "Search for a city",
     "a11ySearchCityHint": "Opens city search modal",
     "enterCityName": "Enter city name...",
-    "a11yChangeLocationHint": "Tap to change your location"
+    "a11yChangeLocationHint": "Tap to change your location",
+    "a11yEnableNearby": "Enable location to see nearby offers",
+    "a11yBannerHint": "Contains options to enable location or dismiss",
+    "a11yRequestPermissionHint": "Requests location permission to find nearby offers"
   },
   "navigation": {
     "searchOffers": "Search Offers",
@@ -758,7 +788,11 @@
     "timeout": "Request timed out. Please try again.",
     "unauthorized": "Session expired. Please log in again.",
     "notFound": "The requested resource was not found.",
-    "serverError": "Server error. Please try again later."
+    "serverError": "Server error. Please try again later.",
+    "a11yOfflineHint": "App features may be limited until connectivity is restored",
+    "a11yDismissUpdate": "Dismiss update banner",
+    "a11ySendSupportEmail": "Send email to support",
+    "unexpectedErrorRestart": "The app encountered an unexpected error. Please restart."
   },
   "driver": {
     "activeDelivery": "Active Delivery",
@@ -916,6 +950,9 @@
     "a11yVotingLiveHint": "Opens the voting screen where you can cast your vote",
     "a11yCollapseTab": "Collapses the voting tab",
     "voteNow": "Vote Now",
-    "a11yVotingActive": "Voting is active"
+    "a11yVotingActive": "Voting is active",
+    "a11yCloseVoteSheet": "Close vote sheet",
+    "a11yCloseVoteSheetHint": "Dismisses the voting sheet without casting a vote",
+    "a11yDismissVoteSheet": "Dismisses the voting sheet"
   }
 }

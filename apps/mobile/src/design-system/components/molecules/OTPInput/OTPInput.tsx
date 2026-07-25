@@ -4,6 +4,7 @@
  */
 
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Keyboard,
   Platform,
@@ -33,6 +34,7 @@ interface OTPInputProps {
 
 export const OTPInput = memo<OTPInputProps>(
   ({ length = 6, value, onChange, error = false, disabled = false, autoFocus = false }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const inputRefs = useRef<(TextInput | null)[]>([]);
     const [focusedIndex, setFocusedIndex] = useState<number | null>(autoFocus ? 0 : null);
@@ -156,14 +158,14 @@ export const OTPInput = memo<OTPInputProps>(
             <Pressable
               accessibilityRole='button'
               accessibilityLabel={`Verification digit ${index + 1} of ${length}`}
-              accessibilityHint='Focuses this digit input field'
+              accessibilityHint={t('auth.a11yFocusDigit')}
               key={index}
               onPress={() => handleBoxPress(index)}
               style={[styles.inputContainer, inputContainerDynamicStyle]}
             >
               <TextInput
                 accessibilityLabel={`Digit ${index + 1} of ${length}`}
-                accessibilityHint='Enter a single verification digit'
+                accessibilityHint={t('auth.a11yEnterDigit')}
                 ref={ref => {
                   inputRefs.current[index] = ref;
                 }}

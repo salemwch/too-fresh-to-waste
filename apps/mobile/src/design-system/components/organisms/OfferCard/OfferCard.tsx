@@ -12,6 +12,7 @@
 
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import Svg, { Circle, Ellipse, G, Path, Polygon, Rect } from 'react-native-svg';
@@ -245,6 +246,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
   mascotVariant,
   mascotCopy,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = createStyles(theme, orientation, layout, imageAspectRatio);
 
@@ -457,14 +459,14 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       {/* Sold out overlay — only when truly out of stock, not when not started */}
       {isOutOfStock && !isNotStarted && (
         <View style={styles.soldOutOverlay}>
-          <Badge variant='error' size='md' label='SOLD OUT' />
+          <Badge variant='error' size='md' label={t('offers.soldOut')} />
         </View>
       )}
 
       {/* Expired overlay (for favorites view) */}
       {offer.status === 'expired' && (
         <View style={styles.expiredOverlay}>
-          <Badge variant='warning' size='md' label='EXPIRED' />
+          <Badge variant='warning' size='md' label={t('offers.expired')} />
         </View>
       )}
 
@@ -492,7 +494,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           disabled={!onEstablishmentPress}
           accessibilityRole='button'
           accessibilityLabel={`View ${offer.establishment.name}`}
-          accessibilityHint='Opens establishment details'
+          accessibilityHint={t('offers.a11yEstablishmentHint')}
           style={styles.establishmentNameContainer}
         >
           <Text

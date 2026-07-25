@@ -5,6 +5,7 @@
  */
 
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { trigger as triggerHapticFeedback } from 'react-native-haptic-feedback';
 import Animated, {
@@ -61,6 +62,7 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
   style,
   testID,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const loadingVal = useSharedValue(0);
@@ -169,7 +171,7 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
         testID={testID}
         accessibilityRole='button'
         accessibilityLabel={loading ? `${label}, loading` : success ? successLabel : label}
-        accessibilityHint='Submits the form'
+        accessibilityHint={t('common.a11ySubmitForm')}
         accessibilityState={{
           disabled: disabled || loading || success,
           busy: loading,

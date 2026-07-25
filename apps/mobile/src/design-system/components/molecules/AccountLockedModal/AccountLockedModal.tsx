@@ -5,6 +5,7 @@
  */
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Modal, Pressable } from 'react-native';
 
 import { useTheme } from '../../../providers';
@@ -46,6 +47,7 @@ const getLockState = (blockedUntil: string | Date, currentTime: number) => {
 
 export const AccountLockedModal = memo<AccountLockedModalProps>(
   ({ visible, blockedUntil, onDismiss, onPasswordReset }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const [currentTime, setCurrentTime] = useState(() => Date.now());
     const { isExpired, timeRemaining } = useMemo(
@@ -112,7 +114,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
             {/* Close button */}
             <Pressable
               accessibilityRole='button'
-              accessibilityLabel='Close'
+              accessibilityLabel={t('common.close')}
               style={styles.closeButton}
               onPress={onDismiss}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

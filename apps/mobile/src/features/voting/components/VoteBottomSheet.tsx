@@ -108,8 +108,8 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
         activeOpacity={1}
         onPress={handleClose}
         accessibilityRole='button'
-        accessibilityLabel='Close vote sheet'
-        accessibilityHint='Dismisses the voting sheet without casting a vote'
+        accessibilityLabel={t('voting.a11yCloseVoteSheet')}
+        accessibilityHint={t('voting.a11yCloseVoteSheetHint')}
       >
         {/* Sheet — inner TouchableOpacity stops backdrop tap from closing when tapping inside */}
         <TouchableOpacity
@@ -134,7 +134,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
               style={styles.closeButton}
               accessibilityRole='button'
               accessibilityLabel={t('common.close')}
-              accessibilityHint='Dismisses the voting sheet'
+              accessibilityHint={t('voting.a11yDismissVoteSheet')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Icon name='close' family='Ionicons' size={24} color={TEXT_SECONDARY} />

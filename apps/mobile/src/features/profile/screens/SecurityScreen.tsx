@@ -217,7 +217,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
             name='newPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='New Password'
+                label={t('auth.newPassword')}
                 value={value}
                 onChangeText={text => {
                   onChange(text);
@@ -247,7 +247,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
             name='confirmPassword'
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label='Confirm Password'
+                label={t('auth.confirmPassword')}
                 value={value}
                 onChangeText={text => {
                   onChange(text);

@@ -12,6 +12,7 @@
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, Component } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 
 import { ErrorHandler } from '@/utils/errorHandler';
@@ -99,17 +100,21 @@ class QueryErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 const DefaultErrorFallback: React.FC<{
   error: Error;
   resetError: () => void;
-}> = ({ resetError }) => (
-  <View style={styles.errorContainer}>
-    <Text style={styles.errorTitle}>Something went wrong</Text>
-    <Text style={styles.errorMessage}>
-      Please try again or contact support if the problem persists.
-    </Text>
-    <Pressable accessibilityRole='button' style={styles.retryButton} onPress={resetError}>
-      <Text style={styles.retryButtonText}>Try Again</Text>
-    </Pressable>
-  </View>
-);
+}> = ({ resetError }) => {
+  const { t } = useTranslation();
+
+  return (
+    <View style={styles.errorContainer}>
+      <Text style={styles.errorTitle}>{t('common.somethingWentWrong')}</Text>
+      <Text style={styles.errorMessage}>
+        Please try again or contact support if the problem persists.
+      </Text>
+      <Pressable accessibilityRole='button' style={styles.retryButton} onPress={resetError}>
+        <Text style={styles.retryButtonText}>{t('common.tryAgain')}</Text>
+      </Pressable>
+    </View>
+  );
+};
 
 /**
  * Props for Query Provider

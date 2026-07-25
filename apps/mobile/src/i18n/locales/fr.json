@@ -37,7 +37,15 @@
     "a11yErrorToast": "Notification d’erreur",
     "a11yInfoToast": "Notification d’information",
     "a11yWarningToast": "Notification d’avertissement",
-    "a11yDismissToast": "Appuyez pour fermer cette notification"
+    "a11yDismissToast": "Appuyez pour fermer cette notification",
+    "a11yLoading": "Chargement",
+    "a11yLoadingHint": "Le contenu est en cours de chargement",
+    "a11yRemoveBadge": "Retirer le badge",
+    "a11yRemoveBadgeHint": "Retire ce badge",
+    "a11yGoBack": "Retour",
+    "a11yGoBackHint": "Revient à l’écran précédent",
+    "a11ySubmitForm": "Envoie le formulaire",
+    "open": "Ouvert"
   },
   "update": {
     "forceTitle": "Mise à jour requise",
@@ -98,7 +106,7 @@
     "rememberMe": "Se souvenir de moi",
     "forgotPassword": "Mot de passe oublié ?",
     "signIn": "Se connecter",
-    "signUp": "S'inscrire",
+    "signUp": "S’inscrire",
     "welcomeMessage": "Bienvenue !",
     "welcomeBackMessage": "Bon retour, {{name}} !",
     "termsSignIn": "En vous connectant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité",
@@ -148,7 +156,17 @@
     "a11yOtpInput": "Champ de saisie",
     "a11yOtpInputHint": "Saisissez un chiffre du code de vérification",
     "a11yGoogleSignInHint": "Se connecter avec votre compte Google",
-    "a11yCloseError": "Ferme ce message d’erreur"
+    "a11yCloseError": "Ferme ce message d’erreur",
+    "passwordStrength": "Force du mot de passe",
+    "passwordRequirements": "Exigences du mot de passe",
+    "allRequirementsMet": "Toutes les exigences sont remplies !",
+    "emailAddress": "Adresse e-mail",
+    "enterYourEmail": "Saisissez votre e-mail",
+    "confirmPassword": "Confirmer le mot de passe",
+    "signOut": "Se déconnecter",
+    "a11ySignOutHint": "Vous déconnecte et revient à l’écran de connexion",
+    "a11yFocusDigit": "Active ce champ de saisie",
+    "a11yEnterDigit": "Saisissez un chiffre du code de vérification"
   },
   "register": {
     "firstNameLabel": "Prénom",
@@ -359,7 +377,7 @@
   },
   "offers": {
     "reserve": "Réserver",
-    "soldOut": "Épuisé",
+    "soldOut": "ÉPUISÉ",
     "bagsLeft": "{{count}} sacs restants",
     "pickUp": "Retrait",
     "whatToKnow": "Ce que vous devez savoir",
@@ -387,7 +405,9 @@
     "slotLimitPlural": "Ce restaurant autorise jusqu'à {{count}} sacs par offre",
     "addToFavorites": "Ajouter aux favoris",
     "removeFromFavorites": "Retirer des favoris",
-    "opensAt": "Ouvre à {{time}}"
+    "opensAt": "Ouvre à {{time}}",
+    "expired": "EXPIRÉ",
+    "a11yEstablishmentHint": "Ouvre les détails du commerce"
   },
   "orders": {
     "active": "En cours",
@@ -603,7 +623,9 @@
     "restartNow": "Redémarrer",
     "restartLater": "Plus tard",
     "attributions": "Attributions",
-    "geocodingAttribution": "La recherche d'adresses et la localisation sont fournies par :"
+    "geocodingAttribution": "La recherche d'adresses et la localisation sont fournies par :",
+    "a11ySwitchLanguageHint": "Bascule l’application dans cette langue",
+    "a11yOpenGeoapifyHint": "Ouvre le site Geoapify dans votre navigateur"
   },
   "favorites": {
     "all": "Tous",
@@ -626,7 +648,10 @@
     "willSyncOnline": "Sera synchronisé en ligne",
     "savedTapToView": "{{name}} enregistré. Appuyez pour voir.",
     "failedToUpdate": "Échec de la mise à jour du favori",
-    "checkConnection": "Veuillez vérifier votre connexion et réessayer"
+    "checkConnection": "Veuillez vérifier votre connexion et réessayer",
+    "offerNoLongerAvailable": "Offre non disponible",
+    "offerRemovedByMerchant": "Cette offre a été retirée par le commerçant",
+    "removeFromFavorites": "Retirer des favoris"
   },
   "search": {
     "searchPlaceholder": "Rechercher des offres...",
@@ -647,7 +672,9 @@
     "a11yListViewToggle": "Vue liste",
     "a11yListViewToggleHint": "Bascule vers l’affichage liste",
     "a11yClosePanel": "Ferme ce panneau",
-    "a11yCloseFilters": "Fermer les filtres"
+    "a11yCloseFilters": "Fermer les filtres",
+    "a11yRetryMap": "Réessayer le chargement de la carte",
+    "a11yRetryMapHint": "Tente de recharger la carte"
   },
   "loyalty": {
     "myPoints": "Mes points",
@@ -731,7 +758,10 @@
     "a11ySearchCity": "Rechercher une ville",
     "a11ySearchCityHint": "Ouvre la recherche de ville",
     "enterCityName": "Saisissez le nom de la ville...",
-    "a11yChangeLocationHint": "Appuyez pour changer votre position"
+    "a11yChangeLocationHint": "Appuyez pour changer votre position",
+    "a11yEnableNearby": "Activer la localisation pour voir les offres à proximité",
+    "a11yBannerHint": "Contient les options pour activer ou masquer la localisation",
+    "a11yRequestPermissionHint": "Demande l’autorisation de localisation pour trouver des offres"
   },
   "navigation": {
     "searchOffers": "Rechercher des offres",
@@ -758,7 +788,11 @@
     "timeout": "Délai d'attente dépassé. Veuillez réessayer.",
     "unauthorized": "Session expirée. Veuillez vous reconnecter.",
     "notFound": "La ressource demandée est introuvable.",
-    "serverError": "Erreur serveur. Veuillez réessayer plus tard."
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+    "a11yOfflineHint": "Certaines fonctionnalités peuvent être limitées jusqu’au rétablissement de la connexion",
+    "a11yDismissUpdate": "Masquer la bannière de mise à jour",
+    "a11ySendSupportEmail": "Envoyer un e-mail au support",
+    "unexpectedErrorRestart": "L’application a rencontré une erreur inattendue. Veuillez la redémarrer."
   },
   "driver": {
     "activeDelivery": "Livraison en cours",
@@ -916,6 +950,9 @@
     "a11yVotingLiveHint": "Ouvre l’écran de vote où vous pouvez voter",
     "a11yCollapseTab": "Réduit l’onglet de vote",
     "voteNow": "Voter",
-    "a11yVotingActive": "Le vote est actif"
+    "a11yVotingActive": "Le vote est actif",
+    "a11yCloseVoteSheet": "Fermer la fiche de vote",
+    "a11yCloseVoteSheetHint": "Ferme la fiche de vote sans voter",
+    "a11yDismissVoteSheet": "Ferme la fiche de vote"
   }
 }

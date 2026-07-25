@@ -3,13 +3,13 @@ import React, { Component, useEffect } from 'react';
 import { Config } from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { StatusBar, StyleSheet, View, Text, Pressable } from 'react-native';
+import i18n from '@/i18n';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { Provider as ReduxProvider, useSelector, useDispatch } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
-import '@/i18n';
 import { OfflineBanner } from '@/components/Errors';
 import { ForceUpdateModal } from '@/components/ForceUpdateModal';
 import { SoftUpdateBanner } from '@/components/SoftUpdateBanner';
@@ -68,10 +68,10 @@ class GlobalErrorBoundary extends Component<{ children: ReactNode }, GlobalError
           }}
         >
           <Text style={{ fontSize: 20, fontWeight: '700', color: '#1E4448', marginBottom: 8 }}>
-            Something went wrong
+            {i18n.t('common.somethingWentWrong')}
           </Text>
           <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 24 }}>
-            The app encountered an unexpected error. Please restart.
+            {i18n.t('errors.unexpectedErrorRestart')}
           </Text>
           <Pressable
             onPress={() => this.setState({ hasError: false })}
@@ -82,7 +82,9 @@ class GlobalErrorBoundary extends Component<{ children: ReactNode }, GlobalError
               borderRadius: 8,
             }}
           >
-            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Try Again</Text>
+            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
+              {i18n.t('common.tryAgain')}
+            </Text>
           </Pressable>
         </View>
       );

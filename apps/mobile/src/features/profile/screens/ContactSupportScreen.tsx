@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, Linking, Pressable } from 'react-native';
 
 import { Text, Card, Icon } from '@/design-system/components/atoms';
@@ -8,6 +9,7 @@ import { showAlert } from '@/utils/alert';
 const SUPPORT_EMAIL = 'support@toofreshtowaste.com';
 
 export const ContactSupportScreen: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const handleEmailPress = useCallback(() => {
@@ -62,7 +64,7 @@ export const ContactSupportScreen: React.FC = () => {
             style={[styles.emailButton, { backgroundColor: theme.colors.primary }]}
             onPress={handleEmailPress}
             accessibilityRole='button'
-            accessibilityLabel='Send email to support'
+            accessibilityLabel={t('errors.a11ySendSupportEmail')}
             accessibilityHint={`Opens your email app to contact ${SUPPORT_EMAIL}`}
           >
             <Icon name='send-outline' family='Ionicons' size={16} color={theme.colors.onPrimary} />

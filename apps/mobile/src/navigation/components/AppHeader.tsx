@@ -22,6 +22,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -40,6 +41,7 @@ const BACK_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 type AppHeaderProps = NativeStackHeaderProps;
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route, back }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
 
@@ -90,8 +92,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
           style={styles.backButton}
           hitSlop={BACK_HIT_SLOP}
           accessibilityRole='button'
-          accessibilityLabel='Go back'
-          accessibilityHint='Navigates to the previous screen'
+          accessibilityLabel={t('common.a11yGoBack')}
+          accessibilityHint={t('common.a11yGoBackHint')}
         >
           <Icon
             name={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}

@@ -1,4 +1,5 @@
 import React, { createElement, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -21,6 +22,7 @@ const PRIMARY = colorTokens.base.primary[500];
 const { base: sp } = spacingTokens;
 
 function LogoutButton() {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const user = useAppSelector(s => s.auth.user);
 
@@ -47,11 +49,11 @@ function LogoutButton() {
       <TouchableOpacity
         onPress={handleLogout}
         style={styles.logoutBtn}
-        accessibilityLabel='Sign out'
-        accessibilityHint='Signs you out and returns to the login screen'
+        accessibilityLabel={t('auth.signOut')}
+        accessibilityHint={t('auth.a11ySignOutHint')}
         accessibilityRole='button'
       >
-        <Text style={styles.logoutText}>Sign out</Text>
+        <Text style={styles.logoutText}>{t('auth.signOut')}</Text>
       </TouchableOpacity>
     </View>
   );

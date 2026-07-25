@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView } from 'react-native';
 
 import { Text, Button, Card, Badge } from '@/design-system/components/atoms';
@@ -29,6 +30,7 @@ export const EstablishmentDetailsScreen: React.FC<EstablishmentDetailsScreenProp
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { establishmentId } = route.params;
 
@@ -40,7 +42,7 @@ export const EstablishmentDetailsScreen: React.FC<EstablishmentDetailsScreenProp
             <Text variant='headline' size='lg' weight='bold'>
               Establishment Details
             </Text>
-            <Badge label='Open' variant='success' size='md' />
+            <Badge label={t('common.open')} variant='success' size='md' />
           </View>
 
           <Text variant='body' size='md' color='secondary' style={styles.subtitle}>

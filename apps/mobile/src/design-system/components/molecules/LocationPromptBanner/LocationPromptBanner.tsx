@@ -29,8 +29,8 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
           ]}
           testID={testID}
           accessibilityRole='alert'
-          accessibilityLabel='Enable location to see nearby offers'
-          accessibilityHint='Contains options to enable location or dismiss'
+          accessibilityLabel={t('location.a11yEnableNearby')}
+          accessibilityHint={t('location.a11yBannerHint')}
         >
           <Icon
             name='location-sharp'
@@ -54,7 +54,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             onPress={onEnable}
             disabled={isLoading}
             accessibilityLabel={t('location.a11yEnableLocation')}
-            accessibilityHint='Requests location permission to find nearby offers'
+            accessibilityHint={t('location.a11yRequestPermissionHint')}
           >
             {isLoading ? <ActivityIndicator size='small' color={theme.colors.primary} /> : 'Enable'}
           </Button>

@@ -4,6 +4,7 @@
  */
 
 import React, { forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Pressable } from 'react-native';
 
 import { useTheme } from '../../../providers';
@@ -51,6 +52,7 @@ export const Badge = forwardRef<
     },
     ref,
   ) => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     // Create styles
@@ -83,8 +85,8 @@ export const Badge = forwardRef<
               style={styles.closeButton}
               onPress={onClose}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityLabel='Remove badge'
-              accessibilityHint='Removes this badge'
+              accessibilityLabel={t('common.a11yRemoveBadge')}
+              accessibilityHint={t('common.a11yRemoveBadgeHint')}
               accessibilityRole='button'
             >
               <Icon

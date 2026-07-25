@@ -838,8 +838,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 style={[styles.mapRetryButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setMapError(null)}
                 accessibilityRole='button'
-                accessibilityLabel='Retry loading map'
-                accessibilityHint='Attempts to reload the map'
+                accessibilityLabel={t('search.a11yRetryMap')}
+                accessibilityHint={t('search.a11yRetryMapHint')}
               >
                 <Text
                   variant='label'

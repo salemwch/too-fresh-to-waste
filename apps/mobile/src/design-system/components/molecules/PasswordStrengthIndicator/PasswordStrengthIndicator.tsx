@@ -23,6 +23,7 @@
 
 import Icon from '@react-native-vector-icons/ionicons';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Animated, type ViewStyle, type TextStyle } from 'react-native';
 import { trigger as triggerHaptic } from 'react-native-haptic-feedback';
 import * as Progress from 'react-native-progress';
@@ -63,6 +64,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
   feedbackTextStyle,
   testID,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = createPasswordStrengthIndicatorStyles(theme, dropdownMode);
 
@@ -246,7 +248,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     return (
       <View style={[styles.progressBarContainer, progressBarStyle]}>
         <View style={styles.progressBarLabel}>
-          <Text style={styles.strengthLabel}>Password Strength</Text>
+          <Text style={styles.strengthLabel}>{t('auth.passwordStrength')}</Text>
           <Text style={[styles.strengthScore, { color: strength.color }]}>{strength.label}</Text>
         </View>
 
@@ -321,7 +323,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     return (
       <View style={styles.rulesContainer}>
-        <Text style={styles.rulesSectionTitle}>Password Requirements</Text>
+        <Text style={styles.rulesSectionTitle}>{t('auth.passwordRequirements')}</Text>
 
         {/* Basic Rules Only */}
         <View style={styles.basicRulesContainer}>{basicRules.map(renderRuleItem)}</View>
@@ -338,7 +340,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     return (
       <View style={styles.successCue as ViewStyle}>
         <Icon name='checkmark-circle' size={16} color={theme.colors.primary} />
-        <Text style={styles.successCueText as TextStyle}>All requirements met!</Text>
+        <Text style={styles.successCueText as TextStyle}>{t('auth.allRequirementsMet')}</Text>
       </View>
     );
   };

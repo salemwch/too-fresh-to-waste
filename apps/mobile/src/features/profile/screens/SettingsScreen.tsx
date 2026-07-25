@@ -270,7 +270,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
                   accessibilityRole='radio'
                   accessibilityState={{ selected: isSelected }}
                   accessibilityLabel={`${lang.label} (${lang.nativeLabel})`}
-                  accessibilityHint='Switches the app to this language'
+                  accessibilityHint={t('settings.a11ySwitchLanguageHint')}
                 >
                   <Text
                     variant='body.medium'
@@ -302,7 +302,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
             style={styles.attributionLink}
             accessibilityRole='link'
             accessibilityLabel={GEOAPIFY_ATTRIBUTION}
-            accessibilityHint='Opens the Geoapify website in your browser'
+            accessibilityHint={t('settings.a11yOpenGeoapifyHint')}
           >
             <Text
               variant='body.medium'

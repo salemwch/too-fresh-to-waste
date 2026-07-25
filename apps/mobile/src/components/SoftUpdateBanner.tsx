@@ -47,7 +47,7 @@ export const SoftUpdateBanner = memo<SoftUpdateBannerProps>(({ visible, updateUr
           onPress={onDismiss}
           hitSlop={8}
           accessibilityRole='button'
-          accessibilityLabel='Dismiss update banner'
+          accessibilityLabel={t('errors.a11yDismissUpdate')}
         >
           <Icon name='close' family='Ionicons' size='sm' color={theme.colors.onSurfaceVariant} />
         </Pressable>

@@ -6,6 +6,7 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { memo, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
   View,
@@ -43,6 +44,7 @@ type EmailFormData = yup.InferType<typeof emailSchema>;
 
 export const ResendVerificationModal = memo<ResendVerificationModalProps>(
   ({ visible, onDismiss, onSuccess, onSendVerification }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -204,8 +206,8 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                   name='email'
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
-                      label='Email Address'
-                      placeholder='Enter your email'
+                      label={t('auth.emailAddress')}
+                      placeholder={t('auth.enterYourEmail')}
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}

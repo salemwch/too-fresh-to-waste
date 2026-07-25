@@ -37,7 +37,15 @@
     "a11yErrorToast": "إشعار خطأ",
     "a11yInfoToast": "إشعار معلومات",
     "a11yWarningToast": "إشعار تحذير",
-    "a11yDismissToast": "اضغط لإغلاق هذا الإشعار"
+    "a11yDismissToast": "اضغط لإغلاق هذا الإشعار",
+    "a11yLoading": "جارٍ التحميل",
+    "a11yLoadingHint": "يتم تحميل المحتوى",
+    "a11yRemoveBadge": "إزالة الشارة",
+    "a11yRemoveBadgeHint": "يزيل هذه الشارة",
+    "a11yGoBack": "رجوع",
+    "a11yGoBackHint": "يعود إلى الشاشة السابقة",
+    "a11ySubmitForm": "يرسل النموذج",
+    "open": "مفتوح"
   },
   "update": {
     "forceTitle": "تحديث مطلوب",
@@ -148,7 +156,17 @@
     "a11yOtpInput": "حقل إدخال النص",
     "a11yOtpInputHint": "أدخل رقماً واحداً من رمز التحقق",
     "a11yGoogleSignInHint": "تسجيل الدخول باستخدام حساب Google",
-    "a11yCloseError": "يغلق رسالة الخطأ هذه"
+    "a11yCloseError": "يغلق رسالة الخطأ هذه",
+    "passwordStrength": "قوة كلمة المرور",
+    "passwordRequirements": "متطلبات كلمة المرور",
+    "allRequirementsMet": "تم استيفاء جميع المتطلبات!",
+    "emailAddress": "البريد الإلكتروني",
+    "enterYourEmail": "أدخل بريدك الإلكتروني",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "signOut": "تسجيل الخروج",
+    "a11ySignOutHint": "يسجّل خروجك ويعيدك إلى شاشة تسجيل الدخول",
+    "a11yFocusDigit": "يُفعّل حقل إدخال الرقم",
+    "a11yEnterDigit": "أدخل رقماً واحداً من رمز التحقق"
   },
   "register": {
     "firstNameLabel": "الاسم الأول",
@@ -359,7 +377,7 @@
   },
   "offers": {
     "reserve": "حجز",
-    "soldOut": "نفذت الكمية",
+    "soldOut": "نفدت الكمية",
     "bagsLeft": "{{count}} أكياس متبقية",
     "pickUp": "الاستلام",
     "whatToKnow": "ما تحتاج معرفته",
@@ -387,7 +405,9 @@
     "slotLimitPlural": "يسمح هذا المطعم بحد أقصى {{count}} أكياس لكل عرض",
     "addToFavorites": "إضافة إلى المفضلة",
     "removeFromFavorites": "إزالة من المفضلة",
-    "opensAt": "يفتح في {{time}}"
+    "opensAt": "يفتح في {{time}}",
+    "expired": "منتهي",
+    "a11yEstablishmentHint": "يفتح تفاصيل المتجر"
   },
   "orders": {
     "active": "نشطة",
@@ -603,7 +623,9 @@
     "restartNow": "إعادة التشغيل الآن",
     "restartLater": "لاحقاً",
     "attributions": "الإسنادات",
-    "geocodingAttribution": "خدمة البحث عن العناوين وتحديد المواقع مقدَّمة من:"
+    "geocodingAttribution": "خدمة البحث عن العناوين وتحديد المواقع مقدَّمة من:",
+    "a11ySwitchLanguageHint": "يبدّل لغة التطبيق إلى هذه اللغة",
+    "a11yOpenGeoapifyHint": "يفتح موقع Geoapify في متصفحك"
   },
   "favorites": {
     "all": "الكل",
@@ -626,7 +648,10 @@
     "willSyncOnline": "سيتم المزامنة عند الاتصال",
     "savedTapToView": "تم حفظ {{name}}. انقر للعرض.",
     "failedToUpdate": "فشل تحديث المفضلة",
-    "checkConnection": "يرجى التحقق من اتصالك والمحاولة مرة أخرى"
+    "checkConnection": "يرجى التحقق من اتصالك والمحاولة مرة أخرى",
+    "offerNoLongerAvailable": "العرض لم يعد متاحاً",
+    "offerRemovedByMerchant": "تمت إزالة هذا العرض من قِبل التاجر",
+    "removeFromFavorites": "إزالة من المفضلة"
   },
   "search": {
     "searchPlaceholder": "البحث عن عروض...",
@@ -647,7 +672,9 @@
     "a11yListViewToggle": "عرض القائمة",
     "a11yListViewToggleHint": "التبديل إلى عرض القائمة",
     "a11yClosePanel": "يغلق هذه اللوحة",
-    "a11yCloseFilters": "إغلاق الفلاتر"
+    "a11yCloseFilters": "إغلاق الفلاتر",
+    "a11yRetryMap": "إعادة تحميل الخريطة",
+    "a11yRetryMapHint": "يحاول إعادة تحميل الخريطة"
   },
   "loyalty": {
     "myPoints": "نقاطي",
@@ -731,7 +758,10 @@
     "a11ySearchCity": "البحث عن مدينة",
     "a11ySearchCityHint": "يفتح نافذة البحث عن مدينة",
     "enterCityName": "أدخل اسم المدينة...",
-    "a11yChangeLocationHint": "اضغط لتغيير موقعك"
+    "a11yChangeLocationHint": "اضغط لتغيير موقعك",
+    "a11yEnableNearby": "فعّل الموقع لرؤية العروض القريبة",
+    "a11yBannerHint": "يحتوي على خيارات لتفعيل الموقع أو إخفائه",
+    "a11yRequestPermissionHint": "يطلب إذن الموقع للعثور على العروض القريبة"
   },
   "navigation": {
     "searchOffers": "البحث عن عروض",
@@ -758,7 +788,11 @@
     "timeout": "انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.",
     "unauthorized": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
     "notFound": "المورد المطلوب غير موجود.",
-    "serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً."
+    "serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
+    "a11yOfflineHint": "قد تكون بعض الميزات محدودة حتى استعادة الاتصال",
+    "a11yDismissUpdate": "إخفاء شريط التحديث",
+    "a11ySendSupportEmail": "إرسال بريد إلكتروني للدعم",
+    "unexpectedErrorRestart": "واجه التطبيق خطأً غير متوقع. يرجى إعادة تشغيله."
   },
   "driver": {
     "activeDelivery": "التوصيل الجاري",
@@ -920,6 +954,9 @@
     "a11yVotingLiveHint": "يفتح شاشة التصويت حيث يمكنك الإدلاء بصوتك",
     "a11yCollapseTab": "يطوي علامة تبويب التصويت",
     "voteNow": "صوّت الآن",
-    "a11yVotingActive": "التصويت نشط"
+    "a11yVotingActive": "التصويت نشط",
+    "a11yCloseVoteSheet": "إغلاق نافذة التصويت",
+    "a11yCloseVoteSheetHint": "يغلق نافذة التصويت دون الإدلاء بصوت",
+    "a11yDismissVoteSheet": "يغلق نافذة التصويت"
   }
 }

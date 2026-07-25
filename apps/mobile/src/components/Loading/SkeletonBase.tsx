@@ -9,6 +9,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, StyleSheet } from 'react-native';
 
 import { useTheme } from '@/design-system/providers';
@@ -30,6 +31,7 @@ export const SkeletonBase: React.FC<SkeletonBaseProps> = ({
   style,
   testID = 'skeleton',
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [opacity] = useState(() => new Animated.Value(0.3));
 
@@ -69,8 +71,8 @@ export const SkeletonBase: React.FC<SkeletonBaseProps> = ({
         style,
       ]}
       testID={testID}
-      accessibilityLabel='Loading'
-      accessibilityHint='Content is loading'
+      accessibilityLabel={t('common.a11yLoading')}
+      accessibilityHint={t('common.a11yLoadingHint')}
       accessibilityRole='progressbar'
     />
   );

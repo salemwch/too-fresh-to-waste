@@ -10,6 +10,7 @@
 import Icon from '@react-native-vector-icons/ionicons';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -55,6 +56,7 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
  * @see https://reactnavigation.org/docs/navigating#navigate-to-a-route-multiple-times
  */
 export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -178,7 +180,7 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
         component={RegisterScreen}
         options={({ navigation }) => ({
           headerShown: true,
-          header: () => <CustomHeader navigation={navigation} title='Sign Up' />,
+          header: () => <CustomHeader navigation={navigation} title={t('auth.signUp')} />,
         })}
       />
 
