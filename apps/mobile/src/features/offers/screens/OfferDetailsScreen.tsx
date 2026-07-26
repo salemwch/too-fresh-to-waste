@@ -328,7 +328,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
         <Text weight='bold' color='error'>
           ⚠️ {t('offers.errorLoading')}
         </Text>
-        <Button variant='primary' style={styles.retryButton} onPress={() => void refetch()}>
+        <Button variant='primary' style={styles.retryButton} onPress={() => { void refetch(); }}>
           {t('common.retry')}
         </Button>
       </View>
@@ -425,8 +425,8 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
       } else {
         Alert.alert(t('errors.generic'), t('offers.mapsError'));
       }
-    } catch (error) {
-      Logger.error('Error opening maps', {}, error instanceof Error ? error : undefined);
+    } catch (mapsError) {
+      Logger.error('Error opening maps', {}, mapsError instanceof Error ? mapsError : undefined);
       Alert.alert(t('errors.generic'), t('offers.mapsOpenFailed'));
     }
   };

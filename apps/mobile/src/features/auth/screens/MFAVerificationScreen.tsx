@@ -91,7 +91,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
         inputRefs.current[0]?.focus();
       }
     },
-    [code, dispatch, mfaToken],
+    [code, dispatch, mfaToken, t],
   );
 
   /**
@@ -168,7 +168,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
       ],
       { type: 'warning' },
     );
-  }, [navigation]);
+  }, [navigation, t]);
 
   // Check if code is complete
   const isCodeComplete = code.every(digit => digit !== '');

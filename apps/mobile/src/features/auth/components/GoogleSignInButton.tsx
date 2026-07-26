@@ -99,7 +99,7 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
             size={14}
             color={theme.colors.error}
           />
-          <Text variant='body' size='xs' style={{ color: theme.colors.error, flex: 1 }}>
+          <Text variant='body' size='xs' style={[styles.inlineErrorText, { color: theme.colors.error }]}>
             {error}
           </Text>
         </View>
@@ -109,6 +109,9 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
 }
 
 const styles = StyleSheet.create({
+  // Static half of the error row; the colour stays inline because it is
+  // theme-dependent and cannot live in a static StyleSheet.
+  inlineErrorText: { flex: 1 },
   button: {
     width: '100%',
   },

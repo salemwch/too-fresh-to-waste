@@ -144,10 +144,10 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
             }
           });
         }
-      } catch (error) {
+      } catch (retrieverError) {
         // Graceful fallback: user can still manually enter OTP
         Logger.warn('SMS Retriever failed to start (user can still manually enter code)', {
-          error,
+          error: retrieverError,
         });
       }
     };
@@ -160,9 +160,9 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
       try {
         SmsRetriever.removeSmsListener();
         Logger.info('SMS Retriever listener removed');
-      } catch (error) {
+      } catch (cleanupError) {
         // Ignore cleanup errors
-        Logger.debug('SMS Retriever cleanup error (non-critical)', { error });
+        Logger.debug('SMS Retriever cleanup error (non-critical)', { error: cleanupError });
       }
     };
   }, [hasCodeBeenSent]); // Re-run when code is sent/resent
@@ -216,7 +216,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     } finally {
       setIsSendingCode(false);
     }
-  }, [phoneNumber, tokens, navigation]);
+  }, [phoneNumber, tokens, navigation, t]);
 
   /**
    * Auto-send verification code on mount if phone number is available
@@ -291,7 +291,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     } finally {
       setIsVerifying(false);
     }
-  }, [code, phoneNumber, tokens, navigation, fromEmailVerification, successScale]);
+  }, [code, phoneNumber, tokens, navigation, fromEmailVerification, successScale, t]);
 
   /**
    * Auto-verify when code is complete
@@ -347,7 +347,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     } finally {
       setIsSendingCode(false);
     }
-  }, [phoneNumber, canResend, resendCooldown, tokens, navigation]);
+  }, [phoneNumber, canResend, resendCooldown, tokens, navigation, t]);
 
   /**
    * Handle back navigation
@@ -360,7 +360,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
     } else {
       navigation.goBack();
     }
-  }, [navigation, fromEmailVerification]);
+  }, [navigation, fromEmailVerification, t]);
 
   return (
     <KeyboardAvoidingView

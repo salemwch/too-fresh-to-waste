@@ -119,12 +119,40 @@ const hasNumber = (password: string): boolean => /\d/.test(password);
  * Special chars: !@#$%^&*()_+-=[]{}|;:,.<>?
  */
 const hasSpecialChar = (password: string): boolean =>
-  /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
 
 /**
  * Check if password meets minimum length requirement
  */
 const meetsMinLength = (password: string): boolean => password.length >= PASSWORD_MIN_LENGTH;
+
+/** Shortest personal fragment worth matching — below this, false positives dominate. */
+const MIN_PERSONAL_FRAGMENT = 3;
+
+/**
+ * True when the password embeds the user's own identity — their name, phone, or
+ * the local part of their email.
+ *
+ * Mirrors the backend's passwordPolicyService, which already rejects these on
+ * submit. Without the client-side check a user types their own email, sees every
+ * rule turn green, and is then refused by the server with no explanation.
+ */
+const containsPersonalInfo = (password: string, context?: PasswordValidationContext): boolean => {
+  if (!password || !context) return false;
+
+  const haystack = password.toLowerCase();
+  const emailLocalPart = context.email?.split('@')[0];
+  // Digits only: a stored number may be +216 20 123 456 while the user types it unspaced.
+  const phoneDigits = context.phoneNumber?.replace(/\D/g, '');
+
+  const fragments = [context.firstName, context.lastName, emailLocalPart, phoneDigits];
+
+  return fragments.some(fragment => {
+    if (typeof fragment !== 'string') return false;
+    const needle = fragment.toLowerCase().trim();
+    return needle.length >= MIN_PERSONAL_FRAGMENT && haystack.includes(needle);
+  });
+};
 
 /**
  * Check if password is within maximum length
@@ -252,12 +280,21 @@ export const usePasswordRules = (
         iconFamily: 'Ionicons',
         color: !hasRepeatingChars(password) || password.length < 3 ? COLORS.met : COLORS.warning,
       },
+      {
+        id: 'noPersonalInfo',
+        label: 'No personal information',
+        description: 'Must not contain your name, email or phone number',
+        isMet: !containsPersonalInfo(password, context),
+        icon: 'person-remove',
+        iconFamily: 'Ionicons',
+        color: !containsPersonalInfo(password, context) ? COLORS.met : COLORS.warning,
+      },
     ];
 
     // Check if password is valid (all basic rules met)
     // Basic rules: minLength, hasUppercase, hasLowercase, hasNumber, hasSpecial (indices 0-4)
     const basicRulesMet = rules.slice(0, 5).every(rule => rule.isMet);
-    // Advanced rules: noRepeating (index 5)
+    // Advanced rules: noRepeating (index 5), noPersonalInfo (index 6)
     const advancedRulesMet = rules.slice(5).every(rule => rule.isMet);
 
     // Count how many basic rules are satisfied

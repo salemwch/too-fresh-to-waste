@@ -10,6 +10,30 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint', 'react-native-a11y'],
   rules: {
+    // The base `dot-notation` rule fights the compiler here: packages/tsconfig/
+    // base.json sets `noPropertyAccessFromIndexSignature: true`, so
+    // `Config['API_URL']` is REQUIRED — rewriting it to `Config.API_URL` as the
+    // rule asks produces TS4111 and does not build. It was emitting 230
+    // warnings instructing us to write code that cannot compile.
+    //
+    // Off rather than swapped for @typescript-eslint/dot-notation: that variant
+    // would allow index-signature access correctly, but it needs type-aware
+    // linting (parserOptions.project), and turning that on across the app costs
+    // far more lint time than this stylistic rule is worth. TypeScript already
+    // enforces the only version of this that matters.
+    'dot-notation': 'off',
+    // Deprecated in ESLint and about a real IE 8 bug (catch parameters leaking
+    // into the enclosing scope). Hermes is not IE 8. Kept off so `catch (error)`
+    // inside a function that already has an `error` in scope is not flagged —
+    // @typescript-eslint/no-shadow covers genuine shadowing.
+    'no-catch-shadow': 'off',
+    // React Navigation's API *is* render props: `tabBarIcon`, `headerTitle` and
+    // `headerRight` are documented as functions returning an element, and the
+    // ones inside `screenOptions={({ route }) => ...}` close over `route`, so
+    // they cannot be hoisted out. The rule's real target — a component declared
+    // in a render body and used as JSX, which remounts its subtree every render
+    // — still applies and is still reported.
+    'react/no-unstable-nested-components': ['warn', { allowAsProps: true }],
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': [
       'error',

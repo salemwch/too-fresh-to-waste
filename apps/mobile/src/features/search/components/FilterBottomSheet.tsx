@@ -92,7 +92,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     setLocalFilters(prev => ({
       ...prev,
       establishmentTypes: prev.establishmentTypes.includes(type)
-        ? prev.establishmentTypes.filter(t => t !== type)
+        ? prev.establishmentTypes.filter(existing => existing !== type)
         : [...prev.establishmentTypes, type],
     }));
   }, []);

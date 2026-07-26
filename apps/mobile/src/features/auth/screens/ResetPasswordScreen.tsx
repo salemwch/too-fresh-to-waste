@@ -87,7 +87,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
     return () => {
       Logger.debug('ResetPasswordScreen unmounted');
     };
-  }, [email, token]);
+  }, [email, token, t]);
 
   /**
    * Handle password reset submission (React Hook Form automatically validates)
@@ -165,7 +165,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
         setIsLoading(false);
       }
     },
-    [email, token, isPasswordValid, setFormError],
+    [email, token, isPasswordValid, setFormError, t],
   );
 
   /**

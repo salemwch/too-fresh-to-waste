@@ -17,7 +17,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StackActions } from '@react-navigation/native';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, View } from 'react-native';
+import { Platform, View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
@@ -79,7 +79,7 @@ const TabNavigatorComponent: React.FC = () => {
           const iconName = getTabIcon(route.name, focused);
           if (route.name === 'Profile') {
             return (
-              <View style={{ position: 'relative' }}>
+              <View style={styles.tabIconWrapper}>
                 <Icon name={iconName} family='Ionicons' size={size} color={color} />
                 <VotingLiveDot />
               </View>
@@ -166,6 +166,11 @@ const TabNavigatorComponent: React.FC = () => {
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  // Anchor for the absolutely-positioned unread badge on the tab icon.
+  tabIconWrapper: { position: 'relative' },
+});
 
 /**
  * Memoize TabNavigator to prevent unnecessary re-renders.

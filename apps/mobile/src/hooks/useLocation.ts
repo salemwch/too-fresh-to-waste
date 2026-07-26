@@ -197,9 +197,9 @@ export function useLocation(): UseLocationReturn {
     try {
       const result = await dispatch(requestLocationAsync()).unwrap();
       return result;
-    } catch (error) {
+    } catch (requestError) {
       // Error is already in Redux state via rejected action
-      return error as LocationResult;
+      return requestError as LocationResult;
     }
   }, [dispatch]);
 

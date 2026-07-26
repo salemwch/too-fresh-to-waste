@@ -276,7 +276,9 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     const iconSize = dropdownMode === true ? 14 : 20;
 
     // Extract styles to variables for type safety
-    const containerStyle = (
+    // Named for the rule row specifically — `containerStyle` is a prop of this
+    // component, and the local was shadowing it inside the row renderer.
+    const ruleContainerStyle = (
       dropdownMode === true ? styles.dropdownRuleItem : styles.ruleItem
     ) as ViewStyle;
     const stateStyle = (rule.isMet ? styles.ruleItemMet : styles.ruleItemUnmet) as ViewStyle;
@@ -290,7 +292,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
     return (
       <View
         key={rule.id}
-        style={[containerStyle, stateStyle, ruleItemStyle]}
+        style={[ruleContainerStyle, stateStyle, ruleItemStyle]}
         testID={`${testID}-rule-${rule.id}`}
       >
         <View style={iconContainerStyle}>

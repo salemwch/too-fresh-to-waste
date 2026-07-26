@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useFocusEffect: (callback: () => undefined | (() => void)) => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+       
       mockReact.useEffect(() => callback(), []);
     },
   };

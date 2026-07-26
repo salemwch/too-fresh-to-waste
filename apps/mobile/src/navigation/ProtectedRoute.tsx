@@ -108,9 +108,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   };
   const triggerSessionLogout = useCallback(() => triggerSessionLogoutLatest.current(), []);
 
+  // checkAndRefreshToken and triggerSessionLogout are useEffectEvent-style:
+  // useCallback over a latest-ref with an empty dep array, so their identity
+  // never changes. Listing them is therefore free — no extra effect runs, and no
+  // eslint-disable needed to keep the linter honest about what these effects
+  // actually close over.
   useEffect(() => {
     checkAndRefreshToken();
-  }, [isAuthenticated, sessionExpiresAt]);
+  }, [isAuthenticated, sessionExpiresAt, checkAndRefreshToken]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -118,7 +123,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [checkAndRefreshToken]);
 
   useEffect(() => {
     if (!isAuthenticated || !sessionExpiresAt) {
@@ -141,7 +146,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }, remainingMs);
 
     return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, sessionExpiresAt]);
+  }, [isAuthenticated, sessionExpiresAt, triggerSessionLogout]);
 
   const renderUnauthorized = () => {
     if (hasRenderableNode(fallback)) return fallback;

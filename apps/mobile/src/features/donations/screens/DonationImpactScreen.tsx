@@ -170,14 +170,14 @@ export const DonationImpactScreen: React.FC = () => {
             variant='title'
             size='md'
             weight='semibold'
-            style={{ marginBottom: 4, color: theme.colors.onBackground }}
+            style={[styles.headerTitleSpacing, { color: theme.colors.onBackground }]}
           >
             {t('donations.donationCategories')}
           </Text>
           <Text
             variant='body'
             size='xs'
-            style={{ marginBottom: 16, color: theme.colors.onSurfaceVariant }}
+            style={[styles.headerSubtitleSpacing, { color: theme.colors.onSurfaceVariant }]}
           >
             {t('donations.fundsAllocated')}
           </Text>
@@ -225,6 +225,8 @@ export const DonationImpactScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  headerSubtitleSpacing: { marginBottom: 16 },
+  headerTitleSpacing: { marginBottom: 4 },
   container: {
     flex: 1,
   },

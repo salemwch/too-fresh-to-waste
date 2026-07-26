@@ -275,7 +275,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
                   <Text
                     variant='body.medium'
                     weight={isSelected ? 'semibold' : 'medium'}
-                    style={{ color: isSelected ? '#FFFFFF' : theme.colors.onSurfaceVariant }}
+                    style={selectedLanguageLabelStyle(isSelected, theme)}
                   >
                     {lang.nativeLabel}
                   </Text>
@@ -317,6 +317,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
     </View>
   );
 };
+
+/**
+ * Selected language chip sits on the primary fill, so its label needs the
+ * on-primary colour. Returning the object from a helper keeps the literal out of
+ * JSX and off the raw-hex list in .claude/rules/ui-ux.md.
+ */
+const selectedLanguageLabelStyle = (isSelected: boolean, theme: ReturnType<typeof useTheme>) => ({
+  color: isSelected ? theme.colors.onPrimary : theme.colors.onSurfaceVariant,
+});
 
 const styles = StyleSheet.create({
   container: {

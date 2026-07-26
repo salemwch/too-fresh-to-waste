@@ -282,7 +282,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         }
       }
     },
-    [dispatch, navigation, setError],
+    [dispatch, navigation, setError, t],
   );
 
   /**
@@ -543,7 +543,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 autoComplete='password'
                 textContentType='password'
                 returnKeyType='done'
-                onSubmitEditing={() => void handleSubmit(onSubmit)()}
+                onSubmitEditing={() => {
+                  void handleSubmit(onSubmit)();
+                }}
                 leftIcon={<Icon name='lock-closed-outline' family='Ionicons' size='md' />}
                 rightIcon={
                   <Pressable

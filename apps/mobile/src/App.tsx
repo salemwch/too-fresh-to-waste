@@ -15,6 +15,7 @@ import { ForceUpdateModal } from '@/components/ForceUpdateModal';
 import { SoftUpdateBanner } from '@/components/SoftUpdateBanner';
 import { environment, validateEnvironmentConfig } from '@/config/environment';
 import { ThemeProvider } from '@/design-system/providers';
+import { colorTokens } from '@/design-system/tokens/colors';
 import { AuthFlowState } from '@/features/auth/types';
 import { QueryProvider } from '@/lib/react-query';
 import { RootNavigator } from '@/navigation';
@@ -40,6 +41,48 @@ interface GlobalErrorBoundaryState {
   hasError: boolean;
 }
 
+/**
+ * Styles for the crash screen.
+ *
+ * Reads `colorTokens` directly rather than `useTheme()` on purpose: this is the
+ * last line of defence, and it has to render even when the crash it is catching
+ * came from ThemeProvider itself. The token module is a plain object with no
+ * React context behind it, which keeps the palette honest (no raw hex, per
+ * .claude/rules/ui-ux.md) without depending on a provider that may be down.
+ */
+const crashStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: colorTokens.base.neutral[0],
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colorTokens.base.primary[500],
+    marginBottom: 8,
+  },
+  body: {
+    fontSize: 14,
+    color: colorTokens.base.neutral[600],
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  button: {
+    backgroundColor: colorTokens.base.primary[500],
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  buttonLabel: {
+    color: colorTokens.base.neutral[0],
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+
 class GlobalErrorBoundary extends Component<{ children: ReactNode }, GlobalErrorBoundaryState> {
   override state: GlobalErrorBoundaryState = { hasError: false };
 
@@ -58,34 +101,15 @@ class GlobalErrorBoundary extends Component<{ children: ReactNode }, GlobalError
   override render() {
     if (this.state.hasError) {
       return (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 32,
-            backgroundColor: '#fff',
-          }}
-        >
-          <Text style={{ fontSize: 20, fontWeight: '700', color: '#1E4448', marginBottom: 8 }}>
-            {i18n.t('common.somethingWentWrong')}
-          </Text>
-          <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 24 }}>
-            {i18n.t('errors.unexpectedErrorRestart')}
-          </Text>
+        <View style={crashStyles.container}>
+          <Text style={crashStyles.title}>{i18n.t('common.somethingWentWrong')}</Text>
+          <Text style={crashStyles.body}>{i18n.t('errors.unexpectedErrorRestart')}</Text>
           <Pressable
             accessibilityRole='button'
             onPress={() => this.setState({ hasError: false })}
-            style={{
-              backgroundColor: '#1E4448',
-              paddingHorizontal: 24,
-              paddingVertical: 12,
-              borderRadius: 8,
-            }}
+            style={crashStyles.button}
           >
-            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
-              {i18n.t('common.tryAgain')}
-            </Text>
+            <Text style={crashStyles.buttonLabel}>{i18n.t('common.tryAgain')}</Text>
           </Pressable>
         </View>
       );

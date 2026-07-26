@@ -79,7 +79,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
             </Text>
             <Pressable
               style={[styles.settingRow, { borderColor: BORDER }]}
-              onPress={() => void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy')}
+              onPress={() => { void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy'); }}
               accessibilityRole='link'
               accessibilityLabel={t('profile.a11yViewPrivacyPolicy')}
               accessibilityHint={t('common.a11yOpenLinkHint')}
@@ -94,9 +94,9 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
             </Pressable>
             <Pressable
               style={[styles.settingRow, styles.settingRowTop, { borderColor: BORDER }]}
-              onPress={() =>
-                void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions')
-              }
+              onPress={() => {
+                void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions');
+              }}
               accessibilityRole='link'
               accessibilityLabel={t('profile.a11yViewTerms')}
               accessibilityHint={t('common.a11yOpenLinkHint')}

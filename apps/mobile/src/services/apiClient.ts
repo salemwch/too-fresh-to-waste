@@ -346,10 +346,11 @@ const createApiClient = (): AxiosInstance => {
         queryClient.clear();
         dispatch(forceLocalLogout());
 
-        void import('@/services/SecureStorage').then(({ SecureStorage }) => {
-          SecureStorage.clearAll().catch(err => {
-            Logger.error('[API-CLIENT] Failed to clear secure storage', {}, err as Error);
-          });
+        // SecureStorage is already imported statically at the top of this file
+        // (and used in the request interceptor), so the dynamic import that used
+        // to be here loaded nothing new — it only shadowed the real binding.
+        SecureStorage.clearAll().catch(err => {
+          Logger.error('[API-CLIENT] Failed to clear secure storage', {}, err as Error);
         });
 
         return Promise.reject(error);

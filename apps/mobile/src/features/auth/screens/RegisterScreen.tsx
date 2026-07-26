@@ -212,16 +212,16 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                   'property' in validationError &&
                   'constraints' in validationError
                 ) {
-                  const error = validationError as {
+                  const fieldError = validationError as {
                     property: string;
                     constraints: Record<string, string>;
                   };
-                  const field = error.property;
-                  const constraintKeys = Object.keys(error.constraints);
+                  const field = fieldError.property;
+                  const constraintKeys = Object.keys(fieldError.constraints);
                   if (constraintKeys.length > 0) {
                     // Take the first constraint message
                     const firstKey = constraintKeys[0]!;
-                    const message = error.constraints[firstKey];
+                    const message = fieldError.constraints[firstKey];
                     if (message !== undefined) {
                       fieldErrors[field] = message;
                     }
@@ -466,9 +466,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                 variant='label.small'
                 weight='semibold'
                 style={{ color: theme.colors.primary }}
-                onPress={() =>
-                  void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions')
-                }
+                onPress={() => {
+                  void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions');
+                }}
               >
                 {t('register.terms')}
               </Text>
@@ -477,9 +477,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                 variant='label.small'
                 weight='semibold'
                 style={{ color: theme.colors.primary }}
-                onPress={() =>
-                  void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy')
-                }
+                onPress={() => {
+                  void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy');
+                }}
               >
                 {t('register.privacyPolicy')}
               </Text>
@@ -514,7 +514,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           <GoogleSignInButton referralCode={referralCode} />
 
           {/* Login Link */}
-          <View style={[styles.loginContainer, { marginTop: 16 }]}>
+          <View style={[styles.loginContainer, styles.loginContainerSpacing]}>
             <Text variant='body.medium' color={theme.colors.onSurfaceVariant}>
               {t('auth.hasAccount')}{' '}
             </Text>
@@ -540,6 +540,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
 };
 
 const styles = StyleSheet.create({
+  loginContainerSpacing: { marginTop: 16 },
   container: {
     flex: 1,
   },

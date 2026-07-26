@@ -368,7 +368,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
             </MapView>
             <TouchableOpacity
               style={styles.navButtonFloating}
-              onPress={() => void openNavigation(navTarget)}
+              onPress={() => { void openNavigation(navTarget); }}
               activeOpacity={0.85}
               accessibilityRole='button'
               accessibilityLabel={

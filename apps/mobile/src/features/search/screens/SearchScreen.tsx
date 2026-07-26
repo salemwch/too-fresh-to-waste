@@ -154,6 +154,14 @@ interface EstablishmentGroup {
 // Helper Functions (grouping)
 // ============================================================================
 
+/**
+ * Stable empty fallback. `offers ?? []` allocates a new array on every render
+ * while the query is loading, which changes `displayOffers`' identity each time
+ * and makes the useMemo that groups them recompute forever. One frozen constant
+ * keeps the identity stable.
+ */
+const NO_OFFERS: ProximitySearchResult<NearbyOffer>[] = [];
+
 const groupOffersByEstablishment = (
   offers: ProximitySearchResult<NearbyOffer>[],
 ): EstablishmentGroup[] => {
@@ -349,7 +357,14 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const displayEstablishments = mapEstablishments ?? [];
 
   // Offers to display (no client-side text filter — offers load for selected place)
-  const displayOffers = offers ?? [];
+  const displayOffers = offers ?? NO_OFFERS;
+
+  // FlashList types contentContainerStyle as a single object, so this cannot be
+  // composed from a StyleSheet entry — memoizing keeps the identity stable.
+  const listContentStyle = useMemo(
+    () => ({ paddingHorizontal: 16, paddingBottom: 24, paddingTop: insets.top + 120 }),
+    [insets.top],
+  );
 
   const groupedEstablishments = useMemo(
     () => groupOffersByEstablishment(displayOffers),
@@ -952,11 +967,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           estimatedItemSize={320}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderListEmpty}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingBottom: 24,
-            paddingTop: insets.top + 120,
-          }}
+          contentContainerStyle={listContentStyle}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl

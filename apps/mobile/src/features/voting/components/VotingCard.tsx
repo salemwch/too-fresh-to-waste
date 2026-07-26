@@ -136,11 +136,10 @@ const GlowCard: React.FC<GlowCardProps> = ({ children, variant }) => {
     <Animated.View
       style={[
         styles.card,
+        Platform.OS === 'ios' && styles.iosGlowGeometry,
         Platform.OS === 'ios' && {
           shadowColor: shadowColor,
-          shadowOffset: { width: 0, height: 0 },
           shadowOpacity: shadowOpacity as unknown as number,
-          shadowRadius: 15,
         },
       ]}
     >
@@ -500,7 +499,7 @@ export const VotingCard: React.FC = () => {
           </Text>
         </View>
         <View style={styles.progressTrack}>
-          {/* eslint-disable-next-line react-native/no-inline-styles */}
+          { }
           <View style={[styles.progressFill, { width: `${pct}%` }]} />
         </View>
         <Text variant='body' size='xs' style={styles.subtleText}>
@@ -521,6 +520,9 @@ VotingCard.displayName = 'VotingCard';
 // ── Styles ──
 
 const styles = StyleSheet.create({
+  // Fixed geometry of the iOS glow. Only colour and opacity are animated, so
+  // only those two need to stay inline.
+  iosGlowGeometry: { shadowOffset: { width: 0, height: 0 }, shadowRadius: 15 },
   container: {
     marginBottom: 16,
   },

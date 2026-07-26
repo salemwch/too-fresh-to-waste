@@ -102,6 +102,27 @@ type ProfileFormData = InferType<typeof profileSchema>;
 
 // Component
 
+/**
+ * Section header row.
+ *
+ * Hoisted to module scope rather than declared inside EditProfileScreen: a
+ * component defined in a render body gets a new type identity every render, so
+ * React unmounts and remounts its whole subtree instead of updating it. It reads
+ * the theme itself rather than closing over the parent's.
+ */
+const SectionHeader: React.FC<{ title: string; icon: string }> = ({ title, icon }) => {
+  const theme = useTheme();
+
+  return (
+    <View style={styles.sectionHeader}>
+      <Icon name={icon} family='Ionicons' size={20} color={theme.colors.primary} />
+      <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
+        {title}
+      </Text>
+    </View>
+  );
+};
+
 export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -140,7 +161,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
    * Handle profile image selection
    */
   const handleSelectImage = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+     
     launchImageLibrary(
       {
         mediaType: 'photo',
@@ -334,18 +355,6 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
       navigation.goBack();
     }
   }, [isDirty, imageUri, navigation, reset]);
-
-  /**
-   * Section Header Component
-   */
-  const SectionHeader: React.FC<{ title: string; icon: string }> = ({ title, icon }) => (
-    <View style={styles.sectionHeader}>
-      <Icon name={icon} family='Ionicons' size={20} color={theme.colors.primary} />
-      <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
-        {title}
-      </Text>
-    </View>
-  );
 
   // Show skeleton while saving
   if (isSaving) {
@@ -588,7 +597,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
               size={16}
               color={theme.colors.error}
             />
-            <Text variant='body' size='sm' style={{ color: theme.colors.error, flex: 1 }}>
+            <Text variant='body' size='sm' style={[styles.inlineErrorText, { color: theme.colors.error }]}>
               {saveError}
             </Text>
           </View>
@@ -642,6 +651,9 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
 // ============================================================================
 
 const styles = StyleSheet.create({
+  // Static half of the error row; the colour stays inline because it is
+  // theme-dependent and cannot live in a static StyleSheet.
+  inlineErrorText: { flex: 1 },
   container: {
     flex: 1,
   },
@@ -705,7 +717,7 @@ const styles = StyleSheet.create({
   saveButton: {
     marginBottom: 12,
   },
-  // eslint-disable-next-line react-native/no-color-literals
+   
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',

@@ -65,7 +65,7 @@ export const LoyaltyScreen: React.FC = () => {
           size='sm'
           color='primary'
           style={styles.retryText}
-          onPress={() => void refetch()}
+          onPress={() => { void refetch(); }}
         >
           Tap to retry
         </Text>
@@ -83,7 +83,7 @@ export const LoyaltyScreen: React.FC = () => {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={() => void handleRefresh()}
+            onRefresh={() => { void handleRefresh(); }}
             tintColor={theme.colors.primary}
             colors={[theme.colors.primary]}
           />

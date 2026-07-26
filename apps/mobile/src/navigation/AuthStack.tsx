@@ -55,23 +55,46 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
  *
  * @see https://reactnavigation.org/docs/navigating#navigate-to-a-route-multiple-times
  */
-export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
-  const { t } = useTranslation();
+/**
+ * Module scope: every rule here is static, so calling StyleSheet.create inside
+ * the component was rebuilding the sheet on each render for no benefit — and it
+ * put the styles out of reach of the hoisted CustomHeader above.
+ */
+const styles = StyleSheet.create({
+  headerContainer: {
+    paddingBottom: 0,
+    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerBackButton: {
+    padding: 5,
+  },
+  headerTitle: {
+    marginStart: 16,
+  },
+});
+
+/**
+ * Stack header with safe-area padding.
+ *
+ * Module scope, not inside AuthStack: a component declared in a render body has
+ * a new type identity each render, so React remounts its subtree rather than
+ * updating it — and this one is passed to the navigator's `header` option, so
+ * it would remount on every navigation state change. Reads theme and insets
+ * itself rather than closing over the parent's.
+ */
+const CustomHeader = ({
+  navigation,
+  title,
+}: {
+  navigation: NativeStackHeaderProps['navigation'];
+  title: string;
+}) => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
-  // SYNCHRONOUS onboarding check - determines initial route
-  // Device-level flag that persists across login/logout
-  const hasSeenWelcome = onboardingStorage.hasSeenWelcome();
-
-  // Custom header component with proper safe area handling
-  const CustomHeader = ({
-    navigation,
-    title,
-  }: {
-    navigation: NativeStackHeaderProps['navigation'];
-    title: string;
-  }) => (
+  return (
     <View
       style={[
         styles.headerContainer,
@@ -97,21 +120,16 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
       </Text>
     </View>
   );
+};
 
-  const styles = StyleSheet.create({
-    headerContainer: {
-      paddingBottom: 0,
-      paddingHorizontal: 15,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    headerBackButton: {
-      padding: 5,
-    },
-    headerTitle: {
-      marginStart: 16,
-    },
-  });
+export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
+  const { t } = useTranslation();
+  const theme = useTheme();
+
+  // SYNCHRONOUS onboarding check - determines initial route
+  // Device-level flag that persists across login/logout
+  const hasSeenWelcome = onboardingStorage.hasSeenWelcome();
+
 
   // Access Redux state for fallback data (deep linking, session restoration)
   // This is NOT used for navigation logic, only for initial params

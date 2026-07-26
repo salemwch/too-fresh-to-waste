@@ -67,7 +67,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
     } finally {
       setIsVerifying(false);
     }
-  }, [dispatch, email, token]);
+  }, [dispatch, email, token, t]);
 
   /**
    * Auto-verify when a token is present (Universal Link or manual entry).
@@ -127,7 +127,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
     } finally {
       setIsResending(false);
     }
-  }, [email, canResend, resendCooldown]);
+  }, [email, canResend, resendCooldown, t]);
 
   /**
    * Navigate back to login
@@ -146,7 +146,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
     } catch {
       setInlineError(t('verifyEmail.unableToOpenEmail'));
     }
-  }, []);
+  }, [t]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -358,7 +358,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 size={16}
                 color={theme.colors.error}
               />
-              <Text variant='body' size='sm' style={{ color: theme.colors.error, flex: 1 }}>
+              <Text variant='body' size='sm' style={[styles.inlineErrorText, { color: theme.colors.error }]}>
                 {inlineError}
               </Text>
             </View>
@@ -398,6 +398,9 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
 };
 
 const styles = StyleSheet.create({
+  // Static half of the error row; the colour stays inline because it is
+  // theme-dependent and cannot live in a static StyleSheet.
+  inlineErrorText: { flex: 1 },
   container: {
     flex: 1,
   },

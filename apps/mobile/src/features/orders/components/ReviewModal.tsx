@@ -187,8 +187,8 @@ export const ReviewModal: React.FC<Props> = ({
                         style={[
                           styles.chip,
                           {
-                            borderColor: isActive ? primaryColor : '#e5e7eb',
-                            backgroundColor: isActive ? primaryColor + '12' : 'transparent',
+                            borderColor: isActive ? primaryColor : theme.colors.outlineVariant,
+                            backgroundColor: isActive ? primaryColor + CHIP_TINT_ALPHA : TRANSPARENT,
                           },
                         ]}
                       >
@@ -221,7 +221,7 @@ export const ReviewModal: React.FC<Props> = ({
               ]}
             >
               <IoniconsIcon name='alert-circle-outline' size={16} color={theme.colors.error} />
-              <Text size='sm' style={{ color: theme.colors.error, flex: 1 }}>
+              <Text size='sm' style={[styles.inlineErrorText, { color: theme.colors.error }]}>
                 {submitError}
               </Text>
             </View>
@@ -245,7 +245,14 @@ export const ReviewModal: React.FC<Props> = ({
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
+/** 12/255 alpha suffix — a ~7% tint of the primary colour behind an active chip. */
+const CHIP_TINT_ALPHA = '12';
+const TRANSPARENT = 'transparent';
+
 const styles = StyleSheet.create({
+  // Static half of the error row; the colour stays inline because it is
+  // theme-dependent and cannot live in a static StyleSheet.
+  inlineErrorText: { flex: 1 },
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',

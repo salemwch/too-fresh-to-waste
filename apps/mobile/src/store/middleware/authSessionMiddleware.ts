@@ -506,8 +506,9 @@ const performLocalLogout = async (
       // Stop session manager BEFORE clearing state
       stopSessionManager();
 
-      // Clear secure storage
-      const { SecureStorage } = await import('@/services/SecureStorage');
+      // Clear secure storage. SecureStorage is imported statically at the top of
+      // this file and used further down, so the dynamic import previously here
+      // resolved to the same already-loaded module and merely shadowed it.
       await SecureStorage.clearAll();
 
       // Clear TanStack Query cache to prevent stale data on account switch

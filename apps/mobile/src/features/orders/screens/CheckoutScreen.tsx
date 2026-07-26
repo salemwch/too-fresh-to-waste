@@ -358,8 +358,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     offerId,
     quantity,
     selectedPaymentMethod,
-    selectedFulfillment,
-    selectedPayment,
     customerNotes,
     deliveryMode,
     deliveryPin,

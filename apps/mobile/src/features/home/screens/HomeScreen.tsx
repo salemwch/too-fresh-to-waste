@@ -207,13 +207,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     source,
   } = useLocation();
 
-  // Stable coords ref for geo-ranking (avoids re-triggering search on micro GPS drift)
+  // Stable coords for geo-ranking. Depending on raw lat/lng would recompute on
+  // every GPS sample — the receiver jitters by metres while standing still, and
+  // each change refires the offer queries. Rounding to one decimal (~11km) means
+  // the identity only changes when the user has meaningfully moved.
+  //
+  // Extracted to named variables because the rule cannot statically check an
+  // expression written inline in the dependency array.
+  const coarseLat = coordinates ? Math.round(coordinates.latitude * 10) / 10 : null;
+  const coarseLng = coordinates ? Math.round(coordinates.longitude * 10) / 10 : null;
+
   const userCoords = useMemo(
     () => (coordinates ? { lat: coordinates.latitude, lng: coordinates.longitude } : undefined),
-    [
-      coordinates ? Math.round(coordinates.latitude * 10) / 10 : null,
-      coordinates ? Math.round(coordinates.longitude * 10) / 10 : null,
-    ],
+    // `coordinates` is deliberately omitted: reacting to it is the exact
+    // behaviour the rounding exists to prevent. The coarse pair is the intended
+    // trigger, and it is derived from `coordinates`, so the value read inside
+    // can never be older than the last meaningful move.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [coarseLat, coarseLng],
   );
 
   // Hybrid location search hook with session token cost optimization + geo-ranking
@@ -484,8 +495,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    * Prevents returning promise to event handler
    */
   const handleLocationSelectionWrapper = useCallback(
-    (coordinates: { latitude: number; longitude: number }, name: string) => {
-      void handleLocationSelection(coordinates, name);
+    (selected: { latitude: number; longitude: number }, name: string) => {
+      void handleLocationSelection(selected, name);
     },
     [handleLocationSelection],
   );
