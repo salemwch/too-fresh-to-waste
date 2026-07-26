@@ -11,7 +11,7 @@
 import { FlashList, type ViewToken } from '@shopify/flash-list';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 
 import { SkeletonLeaderboardScreen } from '../components/SkeletonLeaderboardScreen';
 
@@ -25,28 +25,22 @@ import { NeighborhoodSection } from '../components/NeighborhoodSection';
 import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
 import { WinnerCelebrationModal } from '../components/WinnerCelebrationModal';
 import { LeaderboardRow } from '../components/LeaderboardRow';
+import { ChallengeHeader } from '../components/ChallengeHeader';
 import { PodiumTop5 } from '../components/PodiumTop5';
+import { PrizeTierCards } from '../components/PrizeTierCards';
 import { PrizeInfoModal } from '../components/PrizeInfoModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useNeighborhood } from '../hooks/useNeighborhood';
 import { usePrizeClaimStatus, useClaimSmartphone, useClaimDiscount } from '../hooks/usePrizeClaim';
 import {
-  BG_CARD,
   BG_DARK,
-  BORDER_CARD,
-  BORDER_GOLD,
   CHAMPION_GOLD,
-  GOLD_04,
   GOLD_06,
-  GOLD_10,
   GOLD_15,
   TEXT_25,
-  TEXT_30,
   TEXT_40,
   TEXT_85,
-  TEXT_WHITE,
 } from '../constants/palette';
-import { getCountdown } from '../utils/countdown';
 import { getRowTier } from '../utils/prizeTiers';
 
 import type { LeaderboardEntry } from '../types/leaderboard.types';
@@ -118,13 +112,8 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const discountClaimData = claimStatus?.claim ?? claimDiscount.data ?? null;
 
   // Countdown
-  const [countdown, setCountdown] = useState(getCountdown(goal?.endDate));
-  useEffect(() => {
-    if (!goal?.endDate) return;
-    setCountdown(getCountdown(goal.endDate));
-    const interval = setInterval(() => setCountdown(getCountdown(goal.endDate)), 1000);
-    return () => clearInterval(interval);
-  }, [goal?.endDate]);
+  const openPrizeModal = useCallback(() => setShowPrizeModal(true), []);
+  const closePrizeModal = useCallback(() => setShowPrizeModal(false), []);
 
   const handleRetry = useCallback(() => {
     refetch().catch(() => undefined);
@@ -178,81 +167,9 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const ListHeader = useMemo(
     () => (
       <View>
-        {/* Block 1: Header + Countdown */}
-        <View style={styles.headerBlock}>
-          <View style={styles.headerTop}>
-            <View>
-              <Text style={styles.headerTitle}>{t('leaderboard.grandPrize')}</Text>
-              <Text style={styles.headerSubtitle}>{t('leaderboard.communityMilestone')}</Text>
-            </View>
-            <Pressable
-              style={styles.infoBtn}
-              onPress={() => setShowPrizeModal(true)}
-              accessibilityRole='button'
-              accessibilityLabel={t('leaderboard.a11yShowPrizeInfo')}
-              accessibilityHint={t('common.a11yOpensDetailsHint')}
-            >
-              <Icon name='information-circle-outline' family='Ionicons' size={22} color={TEXT_40} />
-            </Pressable>
-          </View>
+        <ChallengeHeader endDate={goal?.endDate} onInfoPress={openPrizeModal} />
 
-          {countdown != null && (
-            <View style={styles.countdownRow}>
-              <View style={styles.cdSegment}>
-                <Text style={styles.cdNum}>{countdown.days}</Text>
-                <Text style={styles.cdLabel}>DAYS</Text>
-              </View>
-              <Text style={styles.cdColon}>:</Text>
-              <View style={styles.cdSegment}>
-                <Text style={styles.cdNum}>{countdown.hours}</Text>
-                <Text style={styles.cdLabel}>HOURS</Text>
-              </View>
-              <Text style={styles.cdColon}>:</Text>
-              <View style={styles.cdSegment}>
-                <Text style={styles.cdNum}>{countdown.mins}</Text>
-                <Text style={styles.cdLabel}>MINS</Text>
-              </View>
-              <Text style={styles.cdColon}>:</Text>
-              <View style={styles.cdSegment}>
-                <Text style={styles.cdNum}>{countdown.secs}</Text>
-                <Text style={styles.cdLabel}>SECS</Text>
-              </View>
-            </View>
-          )}
-
-          {goal?.endDate && (
-            <Text style={styles.endDate}>
-              Ends{' '}
-              <Text style={styles.endDateBold}>
-                {new Date(goal.endDate).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
-              </Text>
-            </Text>
-          )}
-        </View>
-
-        {/* Block 2: Prize Cards */}
-        <View style={styles.prizesBlock}>
-          <View style={[styles.prizeCard, userTier === 'phone' && styles.prizeCardWinning]}>
-            {userTier === 'phone' && <Text style={styles.prizeYouBadge}>✓ You</Text>}
-            <Text style={styles.prizeIcon}>📱</Text>
-            <Text style={[styles.prizeName, userTier === 'phone' && styles.prizeNameGold]}>
-              Smartphone
-            </Text>
-            <Text style={styles.prizeTier}>Top 5 Winners</Text>
-          </View>
-          <View style={[styles.prizeCard, userTier === 'discount' && styles.prizeCardWinning]}>
-            {userTier === 'discount' && <Text style={styles.prizeYouBadge}>✓ You</Text>}
-            <Text style={styles.prizeIcon}>🎁</Text>
-            <Text style={[styles.prizeName, userTier === 'discount' && styles.prizeNameGold]}>
-              10% Discount
-            </Text>
-            <Text style={styles.prizeTier}>Rank 6+</Text>
-          </View>
-        </View>
+        <PrizeTierCards userTier={userTier} />
 
         {/* Block 3: Podium */}
         {allEntries.length >= 2 && <PodiumTop5 entries={allEntries} />}
@@ -274,7 +191,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         )}
       </View>
     ),
-    [allEntries, countdown, goal?.endDate, isError, handleRetry, userTier, data, t],
+    [allEntries, goal?.endDate, isError, handleRetry, userTier, data, t, openPrizeModal],
   );
 
   // ── List footer ────────────────────────────────────────────────────────────
@@ -332,7 +249,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
       />
       <PrizeInfoModal
         visible={showPrizeModal}
-        onClose={() => setShowPrizeModal(false)}
+        onClose={closePrizeModal}
         daysLeft={
           goal?.endDate
             ? Math.max(0, Math.ceil((new Date(goal.endDate).getTime() - Date.now()) / 86_400_000))
@@ -457,129 +374,6 @@ const styles = StyleSheet.create({
     backgroundColor: BG_DARK,
   },
   listContent: { paddingBottom: 80 },
-
-  // ── Block 1: Header ──
-  headerBlock: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 18,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: TEXT_WHITE,
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: TEXT_30,
-    fontWeight: '500',
-    marginTop: 3,
-  },
-  infoBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  // Countdown
-  countdownRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  cdSegment: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(196,162,90,0.12)',
-  },
-  cdNum: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: CHAMPION_GOLD,
-    letterSpacing: -0.5,
-  },
-  cdLabel: {
-    fontSize: 8,
-    color: TEXT_30,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginTop: 3,
-  },
-  cdColon: {
-    fontSize: 20,
-    color: 'rgba(196,162,90,0.25)',
-    fontWeight: '800',
-    paddingBottom: 10,
-  },
-  endDate: {
-    textAlign: 'center',
-    marginTop: 10,
-    fontSize: 10,
-    color: TEXT_25,
-    fontWeight: '500',
-  },
-  endDateBold: { color: TEXT_40 },
-
-  // ── Block 2: Prizes ──
-  prizesBlock: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 20,
-    marginBottom: 8,
-  },
-  prizeCard: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    backgroundColor: BG_CARD,
-    borderWidth: 1,
-    borderColor: BORDER_CARD,
-  },
-  prizeCardWinning: {
-    borderColor: BORDER_GOLD,
-    backgroundColor: GOLD_04,
-    ...Platform.select({
-      ios: {
-        shadowColor: CHAMPION_GOLD,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      android: { elevation: 3 },
-    }),
-  },
-  prizeYouBadge: {
-    position: 'absolute',
-    top: 6,
-    insetInlineEnd: 8,
-    fontSize: 8,
-    fontWeight: '700',
-    color: CHAMPION_GOLD,
-    backgroundColor: GOLD_10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  prizeIcon: { fontSize: 24, marginBottom: 6 },
-  prizeName: { fontSize: 12, fontWeight: '700', color: TEXT_WHITE },
-  prizeNameGold: { color: CHAMPION_GOLD },
-  prizeTier: { fontSize: 9, color: TEXT_30, marginTop: 3, fontWeight: '600' },
 
   // ── Block 4: List ──
   listHeader: {
