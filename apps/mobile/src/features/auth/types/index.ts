@@ -81,11 +81,12 @@ export interface AuthState {
   readonly mfaToken?: string | undefined; // Temporary MFA token
   readonly passwordResetToken?: string | undefined; // Temporary password reset token
 
-  // Offline mode (resilient auth - never logout on network errors)
-  readonly isOffline: boolean; // Network error detected (500, timeout, DNS failure)
-  readonly offlineMessage?: string | undefined; // Message to show in banner ("You're offline. Trying to reconnect…")
-  readonly retryAfterMs?: number | undefined; // When to retry connection
-  readonly offlineSince?: string | undefined; // When offline mode started (ISO timestamp)
+  // NOTE: offline state deliberately does not live here. Connectivity is owned
+  // by utils/offlineManager.ts (NetInfo-driven), which is what OfflineBanner and
+  // the session middleware actually read. A parallel set of Redux offline fields
+  // used to exist alongside it — written on a failed refresh, never read, and
+  // with no reachable way to clear them. Resilient auth still holds: a refresh
+  // that fails for network reasons leaves the session untouched.
 
   // True while the session middleware is running post-resume token recovery.
   // Protected queries should wait on this flag before firing so they don't

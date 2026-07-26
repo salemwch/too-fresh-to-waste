@@ -27,6 +27,10 @@ const RN_ESM_PACKAGES = [
   'react-native-vector-icons',
   'react-native-mmkv',
   'react-native-config',
+  // Not an RN package, but the RN preset resolves Redux Toolkit's dependency
+  // on immer to its `legacy-esm` build, which Jest cannot parse untransformed.
+  // Any test that imports a slice hits this.
+  'immer',
 ].join('|');
 
 /** @type {import('jest').Config} */

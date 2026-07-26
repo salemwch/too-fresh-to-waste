@@ -32,11 +32,6 @@ const initialState: AuthState = {
   pendingVerificationPhone: undefined,
   mfaToken: undefined,
   passwordResetToken: undefined,
-  // Offline mode
-  isOffline: false,
-  offlineMessage: undefined,
-  retryAfterMs: undefined,
-  offlineSince: undefined,
   // Post-resume token-recovery gate (see authSessionMiddleware)
   isRecoveringSession: false,
   // Cold-start user sync (fresh data from /auth/me)
@@ -804,72 +799,10 @@ const authSlice = createSlice({
       }
     },
 
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
-    },
-
     // STATE-DRIVEN NAVIGATION: Manual flow state transitions
     setFlowState: (state, action: PayloadAction<AuthFlowState>) => {
       state.flowState = action.payload;
       Logger.debug('[STATE-DRIVEN NAV] Manual flow state change', { flowState: action.payload });
-    },
-
-    // Transition from email verification to login (phone verification deferred)
-    emailVerified: state => {
-      if (state.user) {
-        state.user = { ...state.user, isEmailVerified: true };
-        // Phone verification now happens when placing an order, not during registration
-        state.flowState = AuthFlowState.UNAUTHENTICATED;
-        state.pendingVerificationEmail = undefined;
-        // Clear user data, they need to login now
-        state.user = null;
-      }
-    },
-
-    // Transition from phone verification to login
-    phoneVerified: state => {
-      if (state.user) {
-        state.user = { ...state.user, isPhoneVerified: true };
-        state.flowState = AuthFlowState.UNAUTHENTICATED;
-        state.pendingVerificationPhone = undefined;
-        // Clear user data, they need to login now
-        state.user = null;
-      }
-    },
-
-    /**
-     * RESILIENT AUTH: Set network error state (keep session, show banner)
-     * Called by apiClient when network errors occur (500, timeout, DNS)
-     * NEVER triggers logout - session is preserved
-     */
-    setNetworkError: (
-      state,
-      action: PayloadAction<{
-        isOffline: boolean;
-        message: string;
-        retryAfterMs?: number;
-      }>,
-    ) => {
-      state.isOffline = action.payload.isOffline;
-      state.offlineMessage = action.payload.message;
-      state.retryAfterMs = action.payload.retryAfterMs;
-      state.offlineSince = new Date().toISOString();
-      Logger.info('[AUTH] Entered offline mode (session preserved)', {
-        message: action.payload.message,
-        retryAfterMs: action.payload.retryAfterMs,
-      });
-    },
-
-    /**
-     * RESILIENT AUTH: Clear network error state (connection restored)
-     * Called when network connection is restored
-     */
-    clearNetworkError: state => {
-      state.isOffline = false;
-      state.offlineMessage = undefined;
-      state.retryAfterMs = undefined;
-      state.offlineSince = undefined;
-      Logger.info('[AUTH] Exited offline mode (connection restored)');
     },
 
     /**
@@ -1130,11 +1063,10 @@ const authSlice = createSlice({
 
       if (payload?.isNetworkError === true) {
         // NETWORK/SERVER ERROR: Device offline, server unreachable, or 5xx.
-        // Keep the session alive — the user is still authenticated.
-        // The offline banner (driven by NetInfo) handles the UX.
-        state.isOffline = true;
-        state.offlineMessage =
-          "No connection. Your session is safe — we'll retry when you're back online.";
+        // Deliberately a no-op on the session — the user is still
+        // authenticated, we just could not reach the server. The offline
+        // banner (NetInfo, via utils/offlineManager) owns the UX; clearing
+        // `error` keeps a stale auth error from outliving the outage.
         state.error = undefined;
       } else if (payload?.isAccountSuspended === true) {
         // ACCOUNT SUSPENDED: Admin action — show specific screen, not login.
