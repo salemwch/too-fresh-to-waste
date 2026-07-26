@@ -8,7 +8,7 @@
  *  Block 4: Clean ranked list
  */
 
-import { FlashList, type ViewToken } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
@@ -30,7 +30,7 @@ import { PodiumTop5 } from '../components/PodiumTop5';
 import { PrizeTierCards } from '../components/PrizeTierCards';
 import { PrizeInfoModal } from '../components/PrizeInfoModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
-import { useNeighborhood } from '../hooks/useNeighborhood';
+import { useUserRowTracking } from '../hooks/useUserRowTracking';
 import { usePrizeClaimStatus, useClaimSmartphone, useClaimDiscount } from '../hooks/usePrizeClaim';
 import {
   BG_DARK,
@@ -127,42 +127,18 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage().catch(() => undefined);
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // Floating position bar + neighborhood
-  const flashListRef = useRef<FlashList<LeaderboardEntry>>(null);
-  const [userRowVisible, setUserRowVisible] = useState(false);
-  const [showNeighborhood, setShowNeighborhood] = useState(false);
-  const viewabilityReported = useRef(false);
+  const {
+    listRef,
+    showFloatingBar,
+    neighborhoodEnabled,
+    neighborhoodEntries,
+    neighborhoodLoading,
+    onViewableItemsChanged,
+    viewabilityConfig,
+    handleFloatingBarPress,
+  } = useUserRowTracking({ allEntries, userEntry, isLoading });
 
   const userIsInList = useMemo(() => allEntries.some(e => e.isCurrentUser), [allEntries]);
-  const showFloatingBar =
-    userEntry != null && !userRowVisible && !isLoading && viewabilityReported.current;
-
-  const userRankWithin200 = userEntry != null && userEntry.rank <= 200;
-  // Only meaningful for users outside the loaded window — anyone within it is
-  // already visible in the list above. Gates both the query and the section.
-  const neighborhoodEnabled = showNeighborhood && !userRankWithin200;
-  const { data: neighborhoodData, isLoading: neighborhoodLoading } =
-    useNeighborhood(neighborhoodEnabled);
-
-  const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      viewabilityReported.current = true;
-      const isVisible = viewableItems.some(token => (token.item as LeaderboardEntry).isCurrentUser);
-      setUserRowVisible(isVisible);
-    },
-    [],
-  );
-
-  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
-
-  const handleFloatingBarPress = useCallback(() => {
-    if (userRankWithin200 && userIsInList) {
-      const idx = allEntries.findIndex(e => e.isCurrentUser);
-      if (idx >= 0) flashListRef.current?.scrollToIndex({ index: idx, animated: true });
-    } else {
-      setShowNeighborhood(prev => !prev);
-    }
-  }, [userRankWithin200, userIsInList, allEntries]);
 
   const keyExtractor = useCallback((item: LeaderboardEntry) => item.userId, []);
   const renderItem = useCallback(
@@ -298,7 +274,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         </>
       )}
       <FlashList
-        ref={flashListRef}
+        ref={listRef}
         data={allEntries}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
@@ -311,7 +287,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
               hasNextPage={hasNextPage === true}
               onViewMore={handleViewMore}
               showNeighborhood={neighborhoodEnabled}
-              neighborhoodEntries={neighborhoodData?.entries ?? NO_ENTRIES}
+              neighborhoodEntries={neighborhoodEntries?.entries ?? NO_ENTRIES}
               neighborhoodLoading={neighborhoodLoading}
             />
           )
