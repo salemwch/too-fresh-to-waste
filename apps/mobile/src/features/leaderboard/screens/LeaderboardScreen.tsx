@@ -11,7 +11,7 @@
 import { FlashList, type ViewToken } from '@shopify/flash-list';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 
 import { SkeletonLeaderboardScreen } from '../components/SkeletonLeaderboardScreen';
 
@@ -21,7 +21,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 
 import { DiscountClaimModal } from '../components/DiscountClaimModal';
 import { FloatingPositionBar } from '../components/FloatingPositionBar';
-import { NeighborhoodSection } from '../components/NeighborhoodSection';
+import { LeaderboardListFooter } from '../components/LeaderboardListFooter';
 import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
 import { WinnerCelebrationModal } from '../components/WinnerCelebrationModal';
 import { LeaderboardRow } from '../components/LeaderboardRow';
@@ -43,8 +43,14 @@ import {
 } from '../constants/palette';
 import { getRowTier } from '../utils/prizeTiers';
 
-import type { LeaderboardEntry } from '../types/leaderboard.types';
+import type { LeaderboardEntry, LeaderboardNeighborhoodEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
+
+/**
+ * Frozen empty fallback. An inline empty array would hand
+ * LeaderboardListFooter a new identity every render and defeat its memo.
+ */
+const NO_ENTRIES: LeaderboardNeighborhoodEntry[] = [];
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 interface Props {
@@ -111,7 +117,6 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const smartphoneClaimData = claimStatus?.claim ?? claimSmartphone.data ?? null;
   const discountClaimData = claimStatus?.claim ?? claimDiscount.data ?? null;
 
-  // Countdown
   const openPrizeModal = useCallback(() => setShowPrizeModal(true), []);
   const closePrizeModal = useCallback(() => setShowPrizeModal(false), []);
 
@@ -133,6 +138,8 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     userEntry != null && !userRowVisible && !isLoading && viewabilityReported.current;
 
   const userRankWithin200 = userEntry != null && userEntry.rank <= 200;
+  // Only meaningful for users outside the loaded window — anyone within it is
+  // already visible in the list above. Gates both the query and the section.
   const neighborhoodEnabled = showNeighborhood && !userRankWithin200;
   const { data: neighborhoodData, isLoading: neighborhoodLoading } =
     useNeighborhood(neighborhoodEnabled);
@@ -193,53 +200,6 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     ),
     [allEntries, goal?.endDate, isError, handleRetry, userTier, data, t, openPrizeModal],
   );
-
-  // ── List footer ────────────────────────────────────────────────────────────
-  const ListFooter = useMemo(() => {
-    const parts: React.ReactNode[] = [];
-
-    if (isFetchingNextPage) {
-      parts.push(
-        <View key='spinner' style={styles.loadMoreSpinner}>
-          <ActivityIndicator size='small' color={CHAMPION_GOLD} />
-        </View>,
-      );
-    } else if (hasNextPage) {
-      parts.push(
-        <Pressable
-          key='viewmore'
-          style={styles.viewMoreBtn}
-          onPress={handleViewMore}
-          accessibilityRole='button'
-        >
-          <Text style={styles.viewMoreTxt}>{t('leaderboard.viewMore')}</Text>
-          <Icon name='chevron-down-outline' family='Ionicons' size={16} color={CHAMPION_GOLD} />
-        </Pressable>,
-      );
-    }
-
-    if (showNeighborhood && !userRankWithin200) {
-      parts.push(
-        <NeighborhoodSection
-          key='neighborhood'
-          entries={neighborhoodData?.entries ?? []}
-          isLoading={neighborhoodLoading}
-        />,
-      );
-    }
-
-    if (parts.length === 0) return null;
-    return <>{parts}</>;
-  }, [
-    isFetchingNextPage,
-    hasNextPage,
-    handleViewMore,
-    showNeighborhood,
-    userRankWithin200,
-    neighborhoodData,
-    neighborhoodLoading,
-    t,
-  ]);
 
   return (
     <View style={styles.container}>
@@ -344,7 +304,18 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         renderItem={renderItem}
         estimatedItemSize={56}
         ListHeaderComponent={isLoading ? undefined : ListHeader}
-        ListFooterComponent={isLoading ? undefined : ListFooter}
+        ListFooterComponent={
+          isLoading ? undefined : (
+            <LeaderboardListFooter
+              isFetchingNextPage={isFetchingNextPage}
+              hasNextPage={hasNextPage === true}
+              onViewMore={handleViewMore}
+              showNeighborhood={neighborhoodEnabled}
+              neighborhoodEntries={neighborhoodData?.entries ?? NO_ENTRIES}
+              neighborhoodLoading={neighborhoodLoading}
+            />
+          )
+        }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         onViewableItemsChanged={userIsInList ? onViewableItemsChanged : undefined}
