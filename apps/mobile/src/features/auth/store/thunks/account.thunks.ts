@@ -8,6 +8,7 @@
 
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
+import { queryClient } from '@/lib/react-query/queryClient';
 import { SecureStorage } from '@/services/SecureStorage';
 import { backgroundStorage } from '@/utils/backgroundStorage';
 import { Logger } from '@/utils/logger';
@@ -34,8 +35,9 @@ export const deleteAccountAsync = createAsyncThunk(
       const { cancelInflightRequests } = await import('@/services/requestCancellation');
       cancelInflightRequests();
 
-      // Clear TanStack Query cache
-      const { queryClient } = await import('@/lib/react-query/queryClient');
+      // Clear TanStack Query cache. Was a dynamic import to defer module
+      // weight; now redundant, since the seed above imports queryClient
+      // statically and App.tsx loads it at startup regardless.
       queryClient.clear();
 
       // Call backend DELETE /auth/me
@@ -86,10 +88,12 @@ export const syncCurrentUserAsync = createAsyncThunk(
       // flips it — at which point this data is already present and fresh, and no
       // second /auth/me goes out. Without the seed the two paths each fetch.
       //
-      // Dynamic import to match deleteAccountAsync below: a static one would
-      // pull queryClient (and its ErrorHandler chain) into the module graph of
-      // every store creation, since the slice imports these thunks eagerly.
-      const { queryClient } = await import('@/lib/react-query/queryClient');
+      // Statically imported, unlike deleteAccountAsync's lazy one below. That
+      // pattern defers module weight, but App.tsx imports QueryProvider — and so
+      // queryClient — at startup regardless, so there is nothing to defer. What
+      // it does cost is testability: `await import()` is not transformed under
+      // this Jest config and throws inside the try, which would turn a broken
+      // seed into a silent rejection and quietly restore the duplicate request.
       queryClient.setQueryData(authKeys.me(), user);
 
       Logger.info('[AUTH] User data synced successfully', { userId: user.userId });

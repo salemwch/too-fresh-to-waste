@@ -31,6 +31,7 @@ jest.mock('@/hooks/redux', () => ({
   useAppSelector: (fn: (s: unknown) => unknown) => fn({ auth: mockAuthState }),
 }));
 
+import { authKeys } from '../../queryKeys';
 import { useCurrentUser } from '../useCurrentUser';
 
 const CONSUMER = { userId: 'u1', email: 'a@b.com', role: 'consumer', firstName: 'Amine' };
@@ -47,8 +48,10 @@ const authedState = (user: unknown) => ({
 
 const clients: QueryClient[] = [];
 
-function setup() {
+/** @param seed data the cold-start sync would have written via setQueryData. */
+function setup(seed?: unknown) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  if (seed !== undefined) queryClient.setQueryData(authKeys.me(), seed);
   clients.push(queryClient);
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -199,6 +202,20 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
       await waitFor(() => expect(result.current.isRefreshing).toBe(false));
       expect(mockGet).not.toHaveBeenCalled();
       expect(result.current.user?.role).toBe('driver');
+    });
+
+    // The other half of the dedup, and the one that actually removes the second
+    // request rather than just delaying it. Once syncCurrentUserAsync has seeded
+    // ['auth','me'], that data is inside staleTime, so opening the gate must not
+    // trigger a refetch. Drop the seed from the thunk and this is where the
+    // second cold-start /auth/me comes back.
+    it('makes no request when the cold-start sync has already seeded the cache', async () => {
+      const { result } = setup(CONSUMER);
+
+      await waitFor(() => expect(result.current.isRefreshing).toBe(false));
+      expect(mockGet).not.toHaveBeenCalled();
+      expect(result.current.user).toEqual(CONSUMER);
+      expect(result.current.isFresh).toBe(true);
     });
 
     it('returns null after logout clears Redux', async () => {
