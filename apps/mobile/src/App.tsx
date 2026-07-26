@@ -74,6 +74,7 @@ class GlobalErrorBoundary extends Component<{ children: ReactNode }, GlobalError
             {i18n.t('errors.unexpectedErrorRestart')}
           </Text>
           <Pressable
+            accessibilityRole='button'
             onPress={() => this.setState({ hasError: false })}
             style={{
               backgroundColor: '#1E4448',

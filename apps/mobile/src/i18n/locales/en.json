@@ -45,7 +45,13 @@
     "a11yGoBack": "Go back",
     "a11yGoBackHint": "Navigates to the previous screen",
     "a11ySubmitForm": "Submits the form",
-    "open": "Open"
+    "open": "Open",
+    "a11yDismissBannerHint": "Hides this banner",
+    "a11yCloseModalHint": "Closes this dialog",
+    "a11yOpensDetailsHint": "Opens more details",
+    "a11yAppliesActionHint": "Applies this action",
+    "a11yRemoveFilterHint": "Removes this filter",
+    "a11yOpenLinkHint": "Opens this link"
   },
   "update": {
     "forceTitle": "Update Required",
@@ -941,7 +947,9 @@
     "stayAnonymous": "Stay anonymous",
     "yourNeighborhood": "Your Neighborhood",
     "nearbyCompetitors": "Nearby competitors around your rank",
-    "a11yPositionBarHint": "Tap to scroll to your position or view your neighborhood"
+    "a11yPositionBarHint": "Tap to scroll to your position or view your neighborhood",
+    "a11ySearchInput": "Business search field",
+    "a11ySearchInputHint": "Type to filter the list of businesses"
   },
   "voting": {
     "a11ySelectPrizeHint": "Selects this prize as your vote choice",

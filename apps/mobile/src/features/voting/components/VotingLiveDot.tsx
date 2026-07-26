@@ -74,6 +74,7 @@ export const VotingLiveDot: React.FC = () => {
         },
       ]}
       accessibilityLabel={t('voting.a11yVotingActive')}
+      accessibilityHint={t('common.a11yOpensDetailsHint')}
     />
   );
 };

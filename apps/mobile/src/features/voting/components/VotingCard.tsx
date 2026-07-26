@@ -275,6 +275,7 @@ export const VotingCard: React.FC = () => {
               onPress={() => setShowPrizeModal(true)}
               accessibilityRole='button'
               accessibilityLabel={prizeClaimed ? 'View Your Voucher' : 'Claim Your Prize'}
+              accessibilityHint={t('common.a11yOpensDetailsHint')}
             >
               <Text variant='body' size='sm' weight='bold' style={styles.voteButtonText}>
                 {prizeClaimed ? 'View Your Voucher' : 'Claim Your Prize'}
@@ -390,6 +391,7 @@ export const VotingCard: React.FC = () => {
             onPress={() => setShowVoteSheet(true)}
             accessibilityRole='button'
             accessibilityLabel={t('voting.voteNow')}
+            accessibilityHint={t('common.a11yAppliesActionHint')}
           >
             <Text variant='body' size='sm' weight='bold' style={styles.voteButtonText}>
               {t('voting.voteNow')}

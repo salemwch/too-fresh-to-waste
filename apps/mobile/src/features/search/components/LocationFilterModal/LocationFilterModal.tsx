@@ -253,6 +253,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
           <Pressable
             accessibilityRole='button'
             accessibilityLabel={t('common.close')}
+            accessibilityHint={t('common.a11yCloseModalHint')}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >

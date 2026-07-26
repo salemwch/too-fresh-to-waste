@@ -8,12 +8,12 @@ import React, { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Pressable, LayoutAnimation, Image } from 'react-native';
 
-const heartInHandsImg = require('../../../assets/images/heart-in-hands.png');
 import { useDonationStats } from '../hooks/useDonations';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 
 import { SkeletonImpactBanner } from './SkeletonImpactBanner';
+import heartInHandsImg from '../../../assets/images/heart-in-hands.png';
 interface ImpactBannerProps {
   onExpand?: () => void;
 }
@@ -71,7 +71,7 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
         {/* Collapsed View */}
         <View style={styles.collapsedContent}>
           <View style={styles.iconContainer}>
-            <Image source={heartInHandsImg} style={styles.icon} />
+            <Image source={heartInHandsImg} style={styles.icon} accessibilityIgnoresInvertColors />
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.title}>{t('home.impactTitle')}</Text>

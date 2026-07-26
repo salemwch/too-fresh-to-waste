@@ -135,6 +135,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
           <Pressable
             accessibilityRole='button'
             accessibilityLabel={t('search.a11yCloseFilters')}
+            accessibilityHint={t('common.a11yCloseModalHint')}
             onPress={onClose}
             style={styles.closeButton}
           >

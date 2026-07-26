@@ -45,7 +45,13 @@
     "a11yGoBack": "Retour",
     "a11yGoBackHint": "Revient à l’écran précédent",
     "a11ySubmitForm": "Envoie le formulaire",
-    "open": "Ouvert"
+    "open": "Ouvert",
+    "a11yDismissBannerHint": "Masque cette bannière",
+    "a11yCloseModalHint": "Ferme cette fenêtre",
+    "a11yOpensDetailsHint": "Ouvre plus de détails",
+    "a11yAppliesActionHint": "Applique cette action",
+    "a11yRemoveFilterHint": "Retire ce filtre",
+    "a11yOpenLinkHint": "Ouvre ce lien"
   },
   "update": {
     "forceTitle": "Mise à jour requise",
@@ -941,7 +947,9 @@
     "stayAnonymous": "Rester anonyme",
     "yourNeighborhood": "Votre voisinage",
     "nearbyCompetitors": "Concurrents proches de votre rang",
-    "a11yPositionBarHint": "Appuyez pour aller à votre position ou voir votre voisinage"
+    "a11yPositionBarHint": "Appuyez pour aller à votre position ou voir votre voisinage",
+    "a11ySearchInput": "Champ de recherche de commerces",
+    "a11ySearchInputHint": "Saisissez pour filtrer la liste des commerces"
   },
   "voting": {
     "a11ySelectPrizeHint": "Sélectionne ce prix comme votre choix de vote",

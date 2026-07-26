@@ -20,7 +20,7 @@ export const Icon = forwardRef<View, IconProps>(
       size = 'md',
       color,
       variant: _variant = 'default',
-      family = 'Ionicons',
+      family: _family = 'Ionicons',
       disabled = false,
       backgroundColor,
       borderRadius,

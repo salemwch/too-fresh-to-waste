@@ -115,6 +115,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
             <Pressable
               accessibilityRole='button'
               accessibilityLabel={t('common.close')}
+              accessibilityHint={t('common.a11yCloseModalHint')}
               style={styles.closeButton}
               onPress={onDismiss}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

@@ -61,7 +61,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
       await dispatch(verifyEmailAsync({ email, token: token! })).unwrap();
 
       setVerificationStatus('success');
-    } catch (err) {
+    } catch {
       setVerificationStatus('error');
       setInlineError(t('verifyEmail.invalidOrExpired'));
     } finally {
@@ -121,7 +121,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
 
       // Set 60 second cooldown
       setResendCooldown(60);
-    } catch (err: unknown) {
+    } catch {
       setInlineError(t('verifyEmail.failedToResend'));
       setCanResend(true);
     } finally {

@@ -211,6 +211,8 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                 ref={searchInputRef}
                 style={styles.searchInput}
                 placeholder={t('leaderboard.searchBusinesses')}
+                accessibilityLabel={t('leaderboard.a11ySearchInput')}
+                accessibilityHint={t('leaderboard.a11ySearchInputHint')}
                 placeholderTextColor={TEXT_TERTIARY}
                 value={searchText}
                 onChangeText={setSearchText}
@@ -223,6 +225,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                   hitSlop={8}
                   accessibilityRole='button'
                   accessibilityLabel={t('leaderboard.a11yClearSearch')}
+                  accessibilityHint={t('common.a11yCloseModalHint')}
                 >
                   <Icon name='close-circle' family='Ionicons' size={18} color={TEXT_TERTIARY} />
                 </Pressable>
@@ -315,6 +318,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                       onPress={() => setSelectedId(est._id)}
                       accessibilityRole='button'
                       accessibilityLabel={`Select ${est.name}`}
+                      accessibilityHint={t('common.a11yOpensDetailsHint')}
                       accessibilityState={{ selected: isSelected }}
                     >
                       {/* Avatar */}
@@ -362,6 +366,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                     disabled={isFetching}
                     accessibilityRole='button'
                     accessibilityLabel={t('leaderboard.a11yShowMoreBusinesses')}
+                    accessibilityHint={t('common.a11yAppliesActionHint')}
                   >
                     {isFetching ? (
                       <ActivityIndicator size='small' color={PRIMARY} />

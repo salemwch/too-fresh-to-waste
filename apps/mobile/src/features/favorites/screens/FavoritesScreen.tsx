@@ -328,6 +328,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
 
     return (
       <Pressable
+        accessibilityRole='button'
         key={filter.id}
         style={[styles.filterChip, isSelected && styles.filterChipActive]}
         onPress={() => handleFilterChange(filter.id)}
@@ -407,7 +408,11 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
 
             <Text style={styles.emptyDescription}>{t('favorites.noFavoritesDescription')}</Text>
 
-            <Pressable style={styles.browseButton} onPress={handleBrowseOffers}>
+            <Pressable
+              style={styles.browseButton}
+              onPress={handleBrowseOffers}
+              accessibilityRole='button'
+            >
               <Icon name='search-outline' family='Ionicons' size={20} color={COLORS.textInverse} />
               <Text style={styles.browseButtonText}>{t('favorites.browseOffers')}</Text>
             </Pressable>

@@ -131,6 +131,8 @@ export default function ForceChangePasswordScreen() {
               <TextInput
                 style={[styles.input, errors.newPassword != null && styles.inputError]}
                 placeholder={t('auth.newPasswordPlaceholder')}
+                accessibilityLabel={t('auth.a11yNewPasswordInput')}
+                accessibilityHint={t('auth.a11yNewPasswordHint')}
                 placeholderTextColor='#9CA3AF'
                 secureTextEntry
                 autoCapitalize='none'
@@ -147,6 +149,7 @@ export default function ForceChangePasswordScreen() {
           )}
 
           <TouchableOpacity
+            accessibilityRole='button'
             style={[styles.button, isSubmitting && styles.buttonDisabled]}
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}

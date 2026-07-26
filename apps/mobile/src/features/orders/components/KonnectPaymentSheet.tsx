@@ -120,6 +120,7 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
             style={styles.closeButton}
             onPress={onPaymentFailed}
             accessibilityLabel={t('orders.a11yClosePayment')}
+            accessibilityHint={t('common.a11yCloseModalHint')}
             accessibilityRole='button'
             hitSlop={12}
           >
@@ -135,8 +136,8 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
             <Icon name='cloud-offline' family='Ionicons' size={48} color={TEXT_SECONDARY} />
             <Text style={styles.errorTitle}>{t('orders.paymentLoadFailed')}</Text>
             <Text style={styles.errorSubtitle}>{t('orders.paymentLoadFailedHint')}</Text>
-            <Pressable style={styles.retryButton} onPress={handleRetry}>
-              <Text style={styles.retryButtonText}>Retry</Text>
+            <Pressable style={styles.retryButton} onPress={handleRetry} accessibilityRole='button'>
+              <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
             </Pressable>
           </View>
         ) : (

@@ -2,7 +2,7 @@
  * FloatingVoteTab Component - Unit Tests
  */
 
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@/design-system/components/atoms', () => {
@@ -20,8 +20,36 @@ jest.mock('@/design-system/tokens/colors', () => ({
 
 const mockDispatch = jest.fn();
 jest.mock('@/navigation/navigationRef', () => ({
-  navigationRef: { dispatch: mockDispatch, isReady: () => true },
+  // Referenced lazily: jest hoists this factory above the `const mockDispatch`
+  // declaration, and the factory runs during the import of FloatingVoteTab —
+  // at which point mockDispatch is still in the temporal dead zone. Capturing
+  // it directly bound `undefined` and made navigationRef.dispatch uncallable.
+  navigationRef: {
+    dispatch: (...args: unknown[]) => mockDispatch(...args),
+    isReady: () => true,
+  },
 }));
+
+// FloatingVoteTab calls useFocusEffect, which requires a NavigationContainer.
+// These tests render the component in isolation, so stub the hook.
+//
+// The empty dep array is deliberate: real useFocusEffect runs the callback when
+// the screen GAINS focus and its cleanup when the screen LOSES focus — not on
+// every re-render. Re-subscribing on each render would fire the cleanup (which
+// collapses the tab) mid-interaction and break the expand/collapse assertions.
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual<typeof import('@react-navigation/native')>(
+    '@react-navigation/native',
+  );
+  const mockReact = jest.requireActual<typeof import('react')>('react');
+  return {
+    ...actual,
+    useFocusEffect: (callback: () => undefined | (() => void)) => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      mockReact.useEffect(() => callback(), []);
+    },
+  };
+});
 
 const mockUseActiveVotingCycle = jest.fn();
 jest.mock('../../hooks/useVoting', () => ({
@@ -134,13 +162,20 @@ describe('FloatingVoteTab', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('collapses when close button (✕) is pressed', () => {
+  it('collapses when close button (✕) is pressed', async () => {
     mockUseActiveVotingCycle.mockReturnValue(BALLOT_OPEN);
     const { getByText, queryByText } = render(<FloatingVoteTab />);
     fireEvent.press(getByText('🏆')); // expand
     expect(getByText('Voting Is Live! Vote Now')).toBeTruthy();
+
     fireEvent.press(getByText('✕')); // close
-    expect(queryByText('Voting Is Live! Vote Now')).toBeNull();
+
+    // collapse() only calls setExpanded(false) from the Animated completion
+    // callback (~220ms), so the text is still mounted on the next tick.
+    // Asserting synchronously here is what made this test fail.
+    await waitFor(() => {
+      expect(queryByText('Voting Is Live! Vote Now')).toBeNull();
+    });
   });
 
   it('does not navigate when close button is pressed', () => {

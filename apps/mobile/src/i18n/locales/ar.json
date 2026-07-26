@@ -45,7 +45,13 @@
     "a11yGoBack": "رجوع",
     "a11yGoBackHint": "يعود إلى الشاشة السابقة",
     "a11ySubmitForm": "يرسل النموذج",
-    "open": "مفتوح"
+    "open": "مفتوح",
+    "a11yDismissBannerHint": "يخفي هذا الشريط",
+    "a11yCloseModalHint": "يغلق هذه النافذة",
+    "a11yOpensDetailsHint": "يفتح مزيداً من التفاصيل",
+    "a11yAppliesActionHint": "يطبّق هذا الإجراء",
+    "a11yRemoveFilterHint": "يزيل هذا الفلتر",
+    "a11yOpenLinkHint": "يفتح هذا الرابط"
   },
   "update": {
     "forceTitle": "تحديث مطلوب",
@@ -945,7 +951,9 @@
     "stayAnonymous": "البقاء مجهولاً",
     "yourNeighborhood": "محيطك",
     "nearbyCompetitors": "المنافسون القريبون من ترتيبك",
-    "a11yPositionBarHint": "اضغط للانتقال إلى موقعك أو عرض محيطك"
+    "a11yPositionBarHint": "اضغط للانتقال إلى موقعك أو عرض محيطك",
+    "a11ySearchInput": "حقل البحث عن المتاجر",
+    "a11ySearchInputHint": "اكتب لتصفية قائمة المتاجر"
   },
   "voting": {
     "a11ySelectPrizeHint": "يحدد هذه الجائزة كخيارك في التصويت",

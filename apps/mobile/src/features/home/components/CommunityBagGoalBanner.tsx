@@ -11,12 +11,12 @@ import {
   Image,
 } from 'react-native';
 
-const surpriseBoxImg = require('../../../assets/images/surprise-box.png');
 import { useCommunityBagGoal } from '../hooks/useCommunityBagGoal';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 
 import { SkeletonCommunityBagGoal } from './SkeletonCommunityBagGoal';
+import surpriseBoxImg from '../../../assets/images/surprise-box.png';
 
 const COLORS = {
   brand: colorTokens.base.primary[500],
@@ -149,7 +149,7 @@ const CommunityBagGoalBannerComponent = () => {
         {/* ── Collapsed: compact summary row ── */}
         <View style={styles.collapsedRow}>
           <View style={styles.iconContainer}>
-            <Image source={surpriseBoxImg} style={styles.icon} />
+            <Image source={surpriseBoxImg} style={styles.icon} accessibilityIgnoresInvertColors />
           </View>
           <View style={styles.textContainer}>
             <View style={styles.titleRow}>

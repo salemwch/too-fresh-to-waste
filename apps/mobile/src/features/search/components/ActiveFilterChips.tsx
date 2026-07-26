@@ -6,6 +6,7 @@
  */
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
@@ -46,6 +47,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
   onRemoveCategory,
   onClearAll,
 }) => {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   // Build chip data from filters
@@ -140,6 +142,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
             <Pressable
               accessibilityRole='button'
               accessibilityLabel={`Remove ${chip.label} filter`}
+              accessibilityHint={t('common.a11yRemoveFilterHint')}
               onPress={chip.onRemove}
               style={styles.removeButton}
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}

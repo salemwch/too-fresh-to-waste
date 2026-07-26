@@ -8,6 +8,7 @@ import { colorTokens } from '@/design-system/tokens/colors';
 import { onboardingStorage } from '@/storage/onboardingStorage';
 
 import type { WelcomeScreenNavigationProp } from '@/navigation/types';
+import FOOD_IMG from '@/assets/images/boal.webp';
 
 const { width: RAW_W, height: RAW_H } = Dimensions.get('window');
 
@@ -23,8 +24,6 @@ const ACCENT = colorTokens.base.accent[300];
 const WHITE = '#FFFFFF';
 
 const IS_LANDSCAPE = RAW_W > RAW_H;
-
-const FOOD_IMG = require('@/assets/images/boal.webp');
 
 const FOOD_SIZE = IS_LANDSCAPE ? sw(220) : sw(265);
 

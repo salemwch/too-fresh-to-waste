@@ -38,7 +38,7 @@ export const SoftUpdateBanner = memo<SoftUpdateBannerProps>(({ visible, updateUr
         <Text variant='body.small' weight='medium' style={styles.text} numberOfLines={1}>
           {t('update.softMessage')}
         </Text>
-        <Pressable onPress={handleUpdate} hitSlop={8}>
+        <Pressable onPress={handleUpdate} hitSlop={8} accessibilityRole='button'>
           <Text variant='label.medium' weight='semibold' color='primary'>
             {t('update.softButton')}
           </Text>
@@ -48,6 +48,7 @@ export const SoftUpdateBanner = memo<SoftUpdateBannerProps>(({ visible, updateUr
           hitSlop={8}
           accessibilityRole='button'
           accessibilityLabel={t('errors.a11yDismissUpdate')}
+          accessibilityHint={t('common.a11yDismissBannerHint')}
         >
           <Icon name='close' family='Ionicons' size='sm' color={theme.colors.onSurfaceVariant} />
         </Pressable>

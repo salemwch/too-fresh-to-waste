@@ -82,6 +82,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
               onPress={() => void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy')}
               accessibilityRole='link'
               accessibilityLabel={t('profile.a11yViewPrivacyPolicy')}
+              accessibilityHint={t('common.a11yOpenLinkHint')}
             >
               <View style={styles.settingLeft}>
                 <Text style={styles.settingIcon}>🔒</Text>
@@ -98,6 +99,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
               }
               accessibilityRole='link'
               accessibilityLabel={t('profile.a11yViewTerms')}
+              accessibilityHint={t('common.a11yOpenLinkHint')}
             >
               <View style={styles.settingLeft}>
                 <Text style={styles.settingIcon}>📄</Text>
@@ -132,7 +134,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
                   </Text>
                 </View>
               </View>
-              <Text style={[styles.editLabel, { color: PRIMARY }]}>Edit</Text>
+              <Text style={[styles.editLabel, { color: PRIMARY }]}>{t('common.edit')}</Text>
             </Pressable>
           </View>
 

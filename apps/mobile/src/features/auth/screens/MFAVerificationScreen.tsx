@@ -81,7 +81,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
         ).unwrap();
 
         showSuccessAlert('Success', t('mfa.successMessage'));
-      } catch (err: unknown) {
+      } catch {
         const errorMessage = t('mfa.invalidVerification');
 
         showErrorAlert('Verification Failed', errorMessage);

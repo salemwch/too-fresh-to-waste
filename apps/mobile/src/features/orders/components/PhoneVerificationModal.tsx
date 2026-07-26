@@ -214,7 +214,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
             {isLoading ? (
               <ActivityIndicator color='#FFFFFF' />
             ) : (
-              <Text style={styles.buttonText}>Confirm</Text>
+              <Text style={styles.buttonText}>{t('common.confirm')}</Text>
             )}
           </Pressable>
 
@@ -224,7 +224,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
             onPress={handleCloseAnimated}
             disabled={isLoading}
           >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
           </Pressable>
         </Animated.View>
       </KeyboardAvoidingView>

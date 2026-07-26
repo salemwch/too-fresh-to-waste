@@ -256,8 +256,9 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
+      <Pressable style={styles.modalOverlay} onPress={onClose} accessible={false}>
         <Pressable
+          accessible={false}
           style={[styles.modalSheet, { paddingBottom: sheetBottomPad }]}
           onPress={() => undefined}
         >
@@ -320,7 +321,7 @@ const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) =
             </Text>
           </ScrollView>
 
-          <Pressable style={styles.modalBtn} onPress={onClose}>
+          <Pressable style={styles.modalBtn} onPress={onClose} accessibilityRole='button'>
             <Text style={styles.modalBtnTxt}>{t('leaderboard.gotItExclaim')}</Text>
           </Pressable>
         </Pressable>
@@ -467,6 +468,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
               onPress={() => setShowPrizeModal(true)}
               accessibilityRole='button'
               accessibilityLabel={t('leaderboard.a11yShowPrizeInfo')}
+              accessibilityHint={t('common.a11yOpensDetailsHint')}
             >
               <Icon name='information-circle-outline' family='Ionicons' size={22} color={TEXT_40} />
             </Pressable>
@@ -543,7 +545,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 
         {/* Error state */}
         {isError && (
-          <Pressable style={styles.centerState} onPress={handleRetry}>
+          <Pressable style={styles.centerState} onPress={handleRetry} accessibilityRole='button'>
             <Icon name='refresh-outline' family='Ionicons' size={28} color={TEXT_40} />
             <Text style={styles.errorText}>{t('leaderboard.tapToRetry')}</Text>
           </Pressable>
@@ -565,7 +567,12 @@ export const LeaderboardScreen: React.FC<Props> = () => {
       );
     } else if (hasNextPage) {
       parts.push(
-        <Pressable key='viewmore' style={styles.viewMoreBtn} onPress={handleViewMore}>
+        <Pressable
+          key='viewmore'
+          style={styles.viewMoreBtn}
+          onPress={handleViewMore}
+          accessibilityRole='button'
+        >
           <Text style={styles.viewMoreTxt}>{t('leaderboard.viewMore')}</Text>
           <Icon name='chevron-down-outline' family='Ionicons' size={16} color={CHAMPION_GOLD} />
         </Pressable>,
