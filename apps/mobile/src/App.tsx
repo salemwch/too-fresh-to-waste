@@ -23,7 +23,7 @@ import { QueryProvider } from '@/lib/react-query';
 import { RootNavigator } from '@/navigation';
 import { localLocationService } from '@/services/location/LocalLocationService';
 import { notificationService } from '@/services/NotificationService';
-import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
+import { registerOfflineHandlers, stopOfflineHandlers } from '@/services/offlineHandlers';
 import { socketService } from '@/services/socketService';
 import { store, persistor } from '@/store';
 import { RehydrationGate } from '@/store/rehydrationOrchestrator';
@@ -34,7 +34,6 @@ import { offlineManager } from '@/utils/offlineManager';
 import { toastConfig } from '@/utils/toast';
 
 import type { ErrorInfo, ReactNode } from 'react';
-import type { FavoriteType } from '@/features/favorites/types';
 import type { RootState } from '@/store';
 
 // ─── Global Error Boundary ──────────────────────────────────────────────────
@@ -324,30 +323,12 @@ function App(): React.JSX.Element {
     };
   }, []);
 
-  // ✅ Register offline write queue handlers and start listening for reconnect
-  // This must run after offlineManager initializes so the NetInfo subscription
-  // doesn't race with the manager's own listener.
+  // Register offline write queue handlers and start listening for reconnect.
+  // Must run after offlineManager initialises so the NetInfo subscription does
+  // not race the manager's own listener.
   useEffect(() => {
-    // Lazy import to avoid circular deps at module load time
-    const registerFavoritesHandler = async () => {
-      const { offlineWriteQueue: queue } = await import('@/services/OfflineWriteQueue');
-      const { favoritesService } = await import('@/features/favorites/services');
-
-      queue.registerHandler('FAVORITE_TOGGLE', async item => {
-        const { favoriteType, offerId, offerName, offerImage } = item.payload;
-        const typedFavoriteType = favoriteType as FavoriteType;
-
-        await favoritesService.toggleFavorite(typedFavoriteType, offerId, offerName, offerImage);
-      });
-
-      queue.startListening();
-    };
-
-    void registerFavoritesHandler();
-
-    return () => {
-      offlineWriteQueue.stopListening();
-    };
+    registerOfflineHandlers();
+    return stopOfflineHandlers;
   }, []);
 
   // ✅ Initialize WebSocket connection for real-time updates (community goal, etc.)

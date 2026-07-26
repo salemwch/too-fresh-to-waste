@@ -2,16 +2,20 @@ import IoniconsIcon from '@react-native-vector-icons/ionicons';
 
 type IconName = React.ComponentProps<typeof IoniconsIcon>['name'];
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Modal, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 
 import { Text, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { reviewsService } from '@/features/offers/services/reviewsService';
+import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
+import { offlineManager } from '@/utils/offlineManager';
 import { showSuccessToast } from '@/utils/toast';
 
 import { ReviewType } from '@foodwaste/shared';
+
+import type { CreateReviewRequest } from '@foodwaste/shared';
 
 // ─── Highlight options ────────────────────────────────────────────────────────
 
@@ -78,25 +82,29 @@ export const ReviewModal: React.FC<Props> = ({
   const [selected, setSelected] = useState<HighlightOption[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { mutate: submitReview, isPending } = useMutation({
-    mutationFn: () => {
-      const detailedRatings = selected.reduce<Record<string, number>>((acc, h) => {
-        acc[h.detailedKey] = rating;
-        return acc;
-      }, {});
+  // Built once and shared by the online and offline paths, so a queued review
+  // is byte-identical to one submitted live.
+  const buildRequest = useCallback((): CreateReviewRequest => {
+    const detailedRatings = selected.reduce<Record<string, number>>((acc, h) => {
+      acc[h.detailedKey] = rating;
+      return acc;
+    }, {});
 
-      return reviewsService.createReview({
-        type: ReviewType.ORDER,
-        establishmentId,
-        orderId,
-        ...(offerId ? { offerId } : {}),
-        overallRating: rating,
-        ...(selected.length > 0 ? { detailedRatings } : {}),
-        comment: buildComment(rating, selected),
-        tags: selected.map(h => h.key),
-        isRecommended: rating >= 4,
-      });
-    },
+    return {
+      type: ReviewType.ORDER,
+      establishmentId,
+      orderId,
+      ...(offerId ? { offerId } : {}),
+      overallRating: rating,
+      ...(selected.length > 0 ? { detailedRatings } : {}),
+      comment: buildComment(rating, selected),
+      tags: selected.map(h => h.key),
+      isRecommended: rating >= 4,
+    };
+  }, [selected, rating, establishmentId, orderId, offerId]);
+
+  const { mutate: submitReview, isPending } = useMutation({
+    mutationFn: () => reviewsService.createReview(buildRequest()),
     onSuccess: () => {
       setSubmitError(null);
       void queryClient.invalidateQueries({
@@ -117,6 +125,26 @@ export const ReviewModal: React.FC<Props> = ({
         : [...prev, option],
     );
   };
+
+  /**
+   * Offline reviews are queued rather than lost. A review is still correct when
+   * it lands minutes later — nothing else depends on its timing — so unlike
+   * checkout it is safe to defer.
+   */
+  const handleSubmit = useCallback(() => {
+    if (offlineManager.isOffline()) {
+      offlineWriteQueue.enqueue({
+        id: `REVIEW_SUBMIT:${orderId}`,
+        type: 'REVIEW_SUBMIT',
+        payload: buildRequest(),
+      });
+      showSuccessToast('Review saved — we will send it when you are back online.');
+      onSuccess();
+      return;
+    }
+
+    submitReview();
+  }, [buildRequest, orderId, submitReview, onSuccess]);
 
   const primaryColor = theme.colors.primary;
   const canSubmit = rating > 0 && !isPending;
@@ -232,7 +260,7 @@ export const ReviewModal: React.FC<Props> = ({
             variant='primary'
             size='lg'
             disabled={!canSubmit}
-            onPress={() => submitReview()}
+            onPress={handleSubmit}
             style={styles.submitBtn}
           >
             {isPending ? <ActivityIndicator size='small' color='#fff' /> : 'Submit Review'}
