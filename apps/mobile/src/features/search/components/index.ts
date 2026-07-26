@@ -10,6 +10,8 @@ export { EstablishmentMarker } from './EstablishmentMarker';
 export { EstablishmentBottomSheet } from './EstablishmentBottomSheet';
 // List-view section: one establishment + its offer carousel
 export { EstablishmentOfferRow } from './EstablishmentOfferRow';
+// Autocomplete panel under the search field
+export { SearchResultsDropdown } from './SearchResultsDropdown';
 // Filter components
 export { FilterBottomSheet } from './FilterBottomSheet';
 export { ActiveFilterChips } from './ActiveFilterChips';

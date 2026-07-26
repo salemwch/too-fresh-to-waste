@@ -49,6 +49,7 @@ import {
   EstablishmentMarker,
   EstablishmentBottomSheet,
   EstablishmentOfferRow,
+  SearchResultsDropdown,
   type ViewMode,
 } from '../components';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
@@ -148,7 +149,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const {
     googleResults,
     appResults,
-    hasResults: hasPlaceResults,
     isLoading: isSearchingPlaces,
     resolveGooglePlace,
     resetSessionToken,
@@ -268,6 +268,17 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       );
     },
     [resolveGooglePlace, setManualLocationValue, searchRadius],
+  );
+
+  /**
+   * Fire-and-forget wrapper for the dropdown, which is a sync onPress. Failures
+   * are already handled inside handleGooglePlaceSelect.
+   */
+  const handleGooglePlacePress = useCallback(
+    (place: ILocationResult) => {
+      void handleGooglePlaceSelect(place);
+    },
+    [handleGooglePlaceSelect],
   );
 
   /**
@@ -509,148 +520,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   );
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Dropdown Render
-  // ─────────────────────────────────────────────────────────────────────────
-
-  const renderDropdown = () => {
-    if (!showPlaceResults) return null;
-
-    const showLoading = isSearchingPlaces && appResults.length === 0 && googleResults.length === 0;
-    const showEmpty = !isSearchingPlaces && debouncedQuery.length >= 2 && !hasPlaceResults;
-
-    return (
-      <View style={[styles.placeResultsContainer, { backgroundColor: theme.colors.background }]}>
-        {showLoading ? (
-          <View style={styles.placeResultsLoading}>
-            <ActivityIndicator size='small' color={theme.colors.primary} />
-            <Text variant='body' size='sm' color='secondary' style={styles.placeResultsLoadingText}>
-              Searching...
-            </Text>
-          </View>
-        ) : showEmpty ? (
-          <View style={styles.placeResultsEmpty}>
-            <Text variant='body' size='sm' color='secondary'>
-              No results found for &quot;{debouncedQuery}&quot;
-            </Text>
-          </View>
-        ) : (
-          <>
-            {/* App Establishments Section */}
-            {appResults.length > 0 && (
-              <>
-                <Text variant='label' size='xs' color='secondary' style={styles.placeResultsHeader}>
-                  In WasteFood
-                </Text>
-                {appResults.slice(0, 4).map((est, index) => (
-                  <Pressable
-                    key={`app-${est.item._id}`}
-                    style={[
-                      styles.placeResultItem,
-                      { borderBottomColor: theme.colors.outline },
-                      index === Math.min(appResults.length - 1, 3) &&
-                        googleResults.length === 0 &&
-                        styles.placeResultItemLast,
-                    ]}
-                    onPress={() => handleAppEstablishmentSelect(est)}
-                    accessibilityRole='button'
-                    accessibilityLabel={est.item.name}
-                    accessibilityHint={`Select ${est.item.address?.city ?? est.distance.formatted} to view offers`}
-                  >
-                    <View
-                      style={[
-                        styles.placeResultIcon,
-                        { backgroundColor: theme.colors.primaryContainer },
-                      ]}
-                    >
-                      <Icon
-                        name='storefront-outline'
-                        family='Ionicons'
-                        size={16}
-                        color={theme.colors.primary}
-                      />
-                    </View>
-                    <View style={styles.placeResultText}>
-                      <Text variant='body' size='sm' weight='medium' numberOfLines={1}>
-                        {est.item.name}
-                      </Text>
-                      <Text variant='body' size='xs' color='secondary' numberOfLines={1}>
-                        {est.item.address?.city ?? est.distance.formatted}
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.sourceBadge,
-                        { backgroundColor: theme.colors.primaryContainer },
-                      ]}
-                    >
-                      <Text variant='label' size='xs' color='primary'>
-                        App
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
-              </>
-            )}
-
-            {/* Google Places Section */}
-            {googleResults.length > 0 && (
-              <>
-                <Text variant='label' size='xs' color='secondary' style={styles.placeResultsHeader}>
-                  More places
-                </Text>
-                {googleResults.slice(0, 4).map((place, index) => (
-                  <Pressable
-                    key={`google-${place.id}`}
-                    style={[
-                      styles.placeResultItem,
-                      { borderBottomColor: theme.colors.outline },
-                      index === Math.min(googleResults.length - 1, 3) && styles.placeResultItemLast,
-                    ]}
-                    onPress={() => {
-                      void handleGooglePlaceSelect(place);
-                    }}
-                    accessibilityRole='button'
-                    accessibilityLabel={place.name}
-                    accessibilityHint={`Select ${place.subtext} to search nearby offers`}
-                  >
-                    <View
-                      style={[
-                        styles.placeResultIcon,
-                        { backgroundColor: theme.colors.surfaceVariant },
-                      ]}
-                    >
-                      <Icon
-                        name='location-sharp'
-                        family='Ionicons'
-                        size={16}
-                        color={theme.colors.onSurfaceVariant}
-                      />
-                    </View>
-                    <View style={styles.placeResultText}>
-                      <Text variant='body' size='sm' weight='medium' numberOfLines={1}>
-                        {place.name}
-                      </Text>
-                      <Text variant='body' size='xs' color='secondary' numberOfLines={1}>
-                        {place.subtext}
-                      </Text>
-                    </View>
-                    <Icon
-                      name='arrow-forward'
-                      family='Ionicons'
-                      size={16}
-                      color={theme.colors.onSurfaceVariant}
-                    />
-                  </Pressable>
-                ))}
-              </>
-            )}
-          </>
-        )}
-      </View>
-    );
-  };
-
-  // ─────────────────────────────────────────────────────────────────────────
   // Main Render
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -847,7 +716,15 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         </View>
 
         {/* Unified Dropdown: App Establishments + Google Places */}
-        {renderDropdown()}
+        <SearchResultsDropdown
+          visible={showPlaceResults}
+          isSearching={isSearchingPlaces}
+          query={debouncedQuery}
+          appResults={appResults}
+          googleResults={googleResults}
+          onAppEstablishmentPress={handleAppEstablishmentSelect}
+          onGooglePlacePress={handleGooglePlacePress}
+        />
 
         {/* Toggle Row */}
         <View style={styles.toggleRow}>
@@ -975,63 +852,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 12,
-  },
-  placeResultsContainer: {
-    marginTop: 8,
-    borderRadius: 14,
-    shadowColor: SURFACE_SHADOW,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-    overflow: 'hidden',
-  },
-  placeResultsHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  placeResultsLoading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-  },
-  placeResultsLoadingText: {
-    marginStart: 8,
-  },
-  placeResultsEmpty: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  sourceBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginStart: 4,
-  },
-  placeResultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  placeResultItemLast: {
-    borderBottomWidth: 0,
-  },
-  placeResultIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginEnd: 12,
-  },
-  placeResultText: {
-    flex: 1,
-    marginEnd: 8,
   },
   listContent: {
     flexGrow: 1,
