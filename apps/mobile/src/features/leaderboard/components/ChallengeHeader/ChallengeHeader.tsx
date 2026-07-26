@@ -13,9 +13,7 @@ import { Icon } from '@/design-system/components/atoms';
 
 import { ChallengeCountdown } from '../ChallengeCountdown';
 
-import { TEXT_25, TEXT_30, TEXT_40, TEXT_WHITE } from '../../constants/palette';
-
-const INFO_BTN_BG = 'rgba(255,255,255,0.05)';
+import { TEXT_25, TEXT_30, TEXT_40, TEXT_WHITE, WHITE_05 } from '../../constants/palette';
 
 const styles = StyleSheet.create({
   block: {
@@ -45,7 +43,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: INFO_BTN_BG,
+    backgroundColor: WHITE_05,
     justifyContent: 'center',
     alignItems: 'center',
   },

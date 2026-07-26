@@ -18,14 +18,16 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { CHAMPION_GOLD, TEXT_30 } from '../../constants/palette';
+import {
+  CHAMPION_GOLD,
+  COUNTDOWN_SEGMENT_BG,
+  COUNTDOWN_SEGMENT_BORDER,
+  COUNTDOWN_SEPARATOR,
+  TEXT_30,
+} from '../../constants/palette';
 import { getCountdown } from '../../utils/countdown';
 
 const TICK_MS = 1000;
-
-const CD_SEGMENT_BG = 'rgba(0,0,0,0.4)';
-const CD_SEGMENT_BORDER = 'rgba(196,162,90,0.12)';
-const CD_COLON_COLOR = 'rgba(196,162,90,0.25)';
 
 const styles = StyleSheet.create({
   row: {
@@ -37,10 +39,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 10,
-    backgroundColor: CD_SEGMENT_BG,
+    backgroundColor: COUNTDOWN_SEGMENT_BG,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: CD_SEGMENT_BORDER,
+    borderColor: COUNTDOWN_SEGMENT_BORDER,
   },
   num: {
     fontSize: 24,
@@ -57,7 +59,7 @@ const styles = StyleSheet.create({
   },
   colon: {
     fontSize: 20,
-    color: CD_COLON_COLOR,
+    color: COUNTDOWN_SEPARATOR,
     fontWeight: '800',
     paddingBottom: 10,
   },

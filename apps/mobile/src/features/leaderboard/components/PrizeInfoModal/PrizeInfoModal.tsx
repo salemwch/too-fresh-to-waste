@@ -13,6 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   BG_DARK,
   BORDER_SUBTLE,
+  DISCOUNT_TINT,
+  HANDLE_GREY,
   OVERLAY,
   PRIMARY,
   SURFACE,
@@ -21,10 +23,6 @@ import {
   TEXT_TERTIARY,
   TEXT_WHITE,
 } from '../../constants/palette';
-
-/** Sheet handle and the discount tier chip keep their own light-theme tints. */
-const HANDLE_GREY = '#E8EEEF';
-const DISCOUNT_TINT = '#F0FDF4';
 
 /** Minimum bottom padding when the device has no home indicator. */
 const MIN_BOTTOM_PAD = 24;

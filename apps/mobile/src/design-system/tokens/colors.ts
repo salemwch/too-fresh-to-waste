@@ -363,3 +363,42 @@ export const colorTokens = {
   light: lightThemeColors,
   dark: darkThemeColors,
 } as const;
+
+// ============================================================================
+// Alpha helper
+// ============================================================================
+
+const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/iu;
+
+/** Expands #abc to #aabbcc so both forms can be parsed the same way. */
+const expandShortHex = (hex: string): string =>
+  hex.length === 4 ? `#${hex[1]!}${hex[1]!}${hex[2]!}${hex[2]!}${hex[3]!}${hex[3]!}` : hex;
+
+/**
+ * A token colour at partial opacity.
+ *
+ * Overlays, scrims and tinted surfaces were written as hand-rolled
+ * `rgba(255,255,255,0.08)` strings — nearly a hundred of them across the app,
+ * each an untraceable copy of a colour that already has a token. Deriving them
+ * keeps the relationship visible: change the token and every tint follows.
+ *
+ * @param color a 3- or 6-digit hex token
+ * @param alpha 0–1, clamped
+ *
+ * @example withAlpha(colorTokens.base.neutral[1000], 0.45) // scrim
+ */
+export function withAlpha(color: string, alpha: number): string {
+  if (!HEX_COLOR.test(color)) {
+    // Already rgba(), a named colour, or malformed — returning it unchanged
+    // keeps a bad value visible in the UI instead of silently transparent.
+    return color;
+  }
+
+  const hex = expandShortHex(color);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const safeAlpha = Math.min(1, Math.max(0, alpha));
+
+  return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+}
