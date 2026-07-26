@@ -9,7 +9,7 @@
  */
 
 import { FlashList, type ViewToken } from '@shopify/flash-list';
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -23,198 +23,50 @@ import {
 } from 'react-native';
 
 import { SkeletonLeaderboardScreen } from '../components/SkeletonLeaderboardScreen';
-import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
-import { colorTokens } from '@/design-system/tokens/colors';
 import { useCommunityBagGoal } from '@/features/home/hooks/useCommunityBagGoal';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 
 import { DiscountClaimModal } from '../components/DiscountClaimModal';
 import { FloatingPositionBar } from '../components/FloatingPositionBar';
 import { NeighborhoodSection } from '../components/NeighborhoodSection';
 import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
 import { WinnerCelebrationModal } from '../components/WinnerCelebrationModal';
+import { LeaderboardRow } from '../components/LeaderboardRow';
+import { PodiumTop5 } from '../components/PodiumTop5';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useNeighborhood } from '../hooks/useNeighborhood';
 import { usePrizeClaimStatus, useClaimSmartphone, useClaimDiscount } from '../hooks/usePrizeClaim';
+import {
+  BG_CARD,
+  BG_DARK,
+  BORDER_CARD,
+  BORDER_GOLD,
+  BORDER_SUBTLE,
+  CHAMPION_GOLD,
+  GOLD_04,
+  GOLD_06,
+  GOLD_10,
+  GOLD_15,
+  OVERLAY,
+  PRIMARY,
+  SURFACE,
+  TEXT_25,
+  TEXT_30,
+  TEXT_40,
+  TEXT_85,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_TERTIARY,
+  TEXT_WHITE,
+} from '../constants/palette';
 import { getCountdown } from '../utils/countdown';
-import { PHONE_PRIZE_MAX_RANK, getRowTier } from '../utils/prizeTiers';
+import { getRowTier } from '../utils/prizeTiers';
 
 import type { LeaderboardEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
-
-// ─── Dark Premium Palette ────────────────────────────────────────────────────
-const PRIMARY = colorTokens.base.primary[500];
-const CHAMPION_GOLD = '#c4a25a';
-const GOLD_15 = 'rgba(196,162,90,0.15)';
-const GOLD_10 = 'rgba(196,162,90,0.1)';
-const GOLD_06 = 'rgba(196,162,90,0.06)';
-const GOLD_04 = 'rgba(196,162,90,0.04)';
-
-const BG_DARK = '#0a1e20';
-const BG_CARD = 'rgba(255,255,255,0.02)';
-const BG_CARD_TOP5 = 'rgba(196,162,90,0.02)';
-const BORDER_CARD = 'rgba(255,255,255,0.035)';
-const BORDER_CARD_TOP5 = 'rgba(196,162,90,0.06)';
-const BORDER_GOLD = 'rgba(196,162,90,0.3)';
-
-const TEXT_WHITE = '#ffffff';
-const TEXT_85 = 'rgba(255,255,255,0.85)';
-const TEXT_60 = 'rgba(255,255,255,0.6)';
-const TEXT_40 = 'rgba(255,255,255,0.4)';
-const TEXT_30 = 'rgba(255,255,255,0.3)';
-const TEXT_25 = 'rgba(255,255,255,0.25)';
-
-const OVERLAY = 'rgba(0,0,0,0.45)';
-const SURFACE = '#FFFFFF';
-const BORDER_SUBTLE = '#F3F4F6';
-const TEXT_PRIMARY = '#0F2628';
-const TEXT_SECONDARY = '#4B6264';
-const TEXT_TERTIARY = '#8FA6A9';
-
-// ─── Reusable avatar ─────────────────────────────────────────────────────────
-interface AvatarProps {
-  uri: string | null;
-  firstName: string;
-  lastName: string;
-  size: number;
-  borderColor?: string;
-}
-
-const UserAvatar: React.FC<AvatarProps> = ({ uri, firstName, lastName, size, borderColor }) => {
-  const radius = size / 2;
-  const initials = `${firstName[0] ?? '?'}${lastName[0] ?? ''}`.toUpperCase();
-  const ringStyle = borderColor != null ? { borderWidth: 2.5, borderColor } : undefined;
-  const avatarFrameStyle = { width: size, height: size, borderRadius: radius };
-  const avatarInitialsStyle = { fontSize: size * 0.35 };
-
-  if (uri != null) {
-    const optimizedUri = getOptimizedImageUrl(uri, IMAGE_PRESETS.avatar) ?? uri;
-    return (
-      <FastImage
-        source={{ uri: optimizedUri, priority: FastImage.priority.normal }}
-        style={[avatarFrameStyle, ringStyle]}
-      />
-    );
-  }
-  return (
-    <View style={[styles.avatarFallback, avatarFrameStyle, ringStyle]}>
-      <Text style={[styles.avatarInitials, avatarInitialsStyle]}>{initials}</Text>
-    </View>
-  );
-};
-
-// ─── Top 5 Podium (order: 5, 3, 1, 2, 4) ───────────────────────────────────
-interface Top5Props {
-  entries: LeaderboardEntry[];
-}
-
-const Top5Champions: React.FC<Top5Props> = ({ entries }) => {
-  if (entries.length < 2) return null;
-
-  const getEntry = (rank: number) => entries[rank - 1];
-  const order = [5, 3, 1, 2, 4];
-
-  return (
-    <View style={styles.podiumBlock}>
-      {order.map(rank => {
-        const e = getEntry(rank);
-        if (e == null) return <View key={rank} style={styles.podiumItem} />;
-
-        const isChampion = rank === 1;
-        const isMedal = rank === 2 || rank === 3;
-        const avatarSize = isChampion ? 68 : isMedal ? 52 : 42;
-        const borderColor = isChampion
-          ? CHAMPION_GOLD
-          : isMedal
-            ? 'rgba(196,162,90,0.35)'
-            : 'rgba(255,255,255,0.08)';
-
-        return (
-          <View key={e.userId} style={[styles.podiumItem, isChampion && styles.podiumItemChampion]}>
-            {/* Top icon: crown for #1, medals for #2/#3, number for #4/#5 */}
-            {isChampion && <Text style={styles.podiumCrown}>👑</Text>}
-            {rank === 2 && <Text style={styles.podiumMedal}>🥈</Text>}
-            {rank === 3 && <Text style={styles.podiumMedal}>🥉</Text>}
-            {rank >= 4 && (
-              <View style={styles.podiumNumBadge}>
-                <Text style={styles.podiumNumText}>{rank}</Text>
-              </View>
-            )}
-
-            <UserAvatar
-              uri={e.profileImage}
-              firstName={e.firstName}
-              lastName={e.lastName}
-              size={avatarSize}
-              borderColor={borderColor}
-            />
-
-            <Text
-              style={[styles.podiumName, isChampion && styles.podiumNameChampion]}
-              numberOfLines={1}
-            >
-              {e.firstName}
-            </Text>
-            <Text style={[styles.podiumPts, isChampion && styles.podiumPtsChampion]}>
-              {e.totalPoints.toLocaleString()}
-            </Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-};
-
-// ─── Single leaderboard row ──────────────────────────────────────────────────
-interface RowProps {
-  entry: LeaderboardEntry;
-}
-
-const LeaderboardRow: React.FC<RowProps> = ({ entry }) => {
-  const isTop5 = entry.rank <= PHONE_PRIZE_MAX_RANK;
-
-  return (
-    <View style={[styles.row, isTop5 && styles.rowTop5, entry.isCurrentUser && styles.rowMe]}>
-      <View style={[styles.rankCol, isTop5 && styles.rankColTop5]}>
-        <Text style={[styles.rankNum, isTop5 && styles.rankNumTop5]}>{entry.rank}</Text>
-      </View>
-
-      <UserAvatar
-        uri={entry.profileImage}
-        firstName={entry.firstName}
-        lastName={entry.lastName}
-        size={36}
-      />
-
-      <View style={styles.nameCol}>
-        <Text style={[styles.fullName, entry.isCurrentUser && styles.fullNameMe]} numberOfLines={1}>
-          {entry.firstName} {entry.lastName}
-        </Text>
-        {entry.currentBadge != null && (
-          <Text style={styles.badgeLabel} numberOfLines={1}>
-            {entry.currentBadge}
-          </Text>
-        )}
-      </View>
-
-      <Text
-        style={[
-          styles.ptsText,
-          isTop5 && styles.ptsTextTop5,
-          entry.isCurrentUser && styles.ptsTextMe,
-        ]}
-      >
-        {entry.totalPoints.toLocaleString()} pt
-      </Text>
-    </View>
-  );
-};
-
-const MemoRow = memo(LeaderboardRow);
 
 // ─── Prize info modal ────────────────────────────────────────────────────────
 interface PrizeModalProps {
@@ -428,7 +280,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 
   const keyExtractor = useCallback((item: LeaderboardEntry) => item.userId, []);
   const renderItem = useCallback(
-    ({ item }: { item: LeaderboardEntry }) => <MemoRow entry={item} />,
+    ({ item }: { item: LeaderboardEntry }) => <LeaderboardRow entry={item} />,
     [],
   );
 
@@ -513,7 +365,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         </View>
 
         {/* Block 3: Podium */}
-        {allEntries.length >= 2 && <Top5Champions entries={allEntries} />}
+        {allEntries.length >= 2 && <PodiumTop5 entries={allEntries} />}
 
         {/* Section header for list */}
         <View style={styles.listHeader}>
@@ -839,63 +691,6 @@ const styles = StyleSheet.create({
   prizeNameGold: { color: CHAMPION_GOLD },
   prizeTier: { fontSize: 9, color: TEXT_30, marginTop: 3, fontWeight: '600' },
 
-  // ── Block 3: Podium ──
-  podiumBlock: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 20,
-    gap: 6,
-  },
-  podiumItem: {
-    flex: 1,
-    maxWidth: 72,
-    alignItems: 'center',
-    gap: 5,
-    marginBottom: 6,
-  },
-  podiumItemChampion: { marginBottom: 16 },
-  podiumCrown: {
-    fontSize: 18,
-    ...Platform.select({
-      ios: {
-        shadowColor: CHAMPION_GOLD,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.4,
-        shadowRadius: 4,
-      },
-      android: {},
-    }),
-  },
-  podiumMedal: { fontSize: 16 },
-  podiumNumBadge: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  podiumNumText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: TEXT_40,
-  },
-  podiumName: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: TEXT_60,
-    maxWidth: 62,
-    textAlign: 'center',
-  },
-  podiumNameChampion: { color: CHAMPION_GOLD, fontSize: 11, fontWeight: '700' },
-  podiumPts: { fontSize: 9, color: TEXT_25, fontWeight: '500' },
-  podiumPtsChampion: { color: 'rgba(196,162,90,0.6)' },
-
   // ── Block 4: List ──
   listHeader: {
     flexDirection: 'row',
@@ -907,58 +702,6 @@ const styles = StyleSheet.create({
   },
   listTitle: { fontSize: 15, fontWeight: '700', color: TEXT_85 },
   listMeta: { fontSize: 10, color: TEXT_25, fontWeight: '500' },
-
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 10,
-    marginHorizontal: 16,
-    marginBottom: 5,
-    borderRadius: 12,
-    backgroundColor: BG_CARD,
-    borderWidth: 1,
-    borderColor: BORDER_CARD,
-  },
-  rowTop5: {
-    backgroundColor: BG_CARD_TOP5,
-    borderColor: BORDER_CARD_TOP5,
-  },
-  rowMe: {
-    borderColor: BORDER_GOLD,
-    backgroundColor: GOLD_06,
-  },
-
-  rankCol: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-  },
-  rankColTop5: { backgroundColor: GOLD_10 },
-  rankNum: { fontSize: 11, fontWeight: '700', color: TEXT_30 },
-  rankNumTop5: { color: CHAMPION_GOLD },
-
-  nameCol: { flex: 1, minWidth: 0 },
-  fullName: { fontSize: 13, fontWeight: '600', color: TEXT_85 },
-  fullNameMe: { color: CHAMPION_GOLD, fontWeight: '700' },
-  badgeLabel: { fontSize: 10, color: TEXT_25, marginTop: 1 },
-
-  ptsText: { fontSize: 12, fontWeight: '700', color: TEXT_40 },
-  ptsTextTop5: { color: 'rgba(196,162,90,0.8)' },
-  ptsTextMe: { color: CHAMPION_GOLD },
-
-  avatarFallback: {
-    backgroundColor: 'rgba(196,162,90,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarInitials: {
-    fontWeight: '700',
-    color: CHAMPION_GOLD,
-  },
 
   // ── States ──
   centerState: { alignItems: 'center', paddingVertical: 40, gap: 8 },
