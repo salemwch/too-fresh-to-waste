@@ -13,6 +13,7 @@ import { Logger } from '@/utils/logger';
 import { offersService } from '../services/offersService';
 
 import type { OfferListItem, OfferSearchParams, OffersResponse, Offer } from '../types/offer.types';
+import { Freshness } from '@/lib/react-query/freshness';
 
 // ============================================================================
 // Helpers
@@ -98,7 +99,7 @@ export function useOffer(
       return offer;
     },
     enabled: !!offerId,
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    staleTime: Freshness.STANDARD,
     gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
     retry: 2, // Retry failed requests twice
     ...options,
@@ -137,7 +138,7 @@ export function useOffers(
       });
       return validResponse;
     },
-    staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes
+    staleTime: Freshness.LIVE, // bags sell out while the list is on screen
     gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
     ...options,
   });
@@ -181,7 +182,7 @@ export function useUrgentOffers(
       Logger.info('Urgent offers fetched and filtered', { count: validOffers.length });
       return validOffers;
     },
-    staleTime: 1000 * 60 * 1, // Consider data fresh for 1 minute (very time-sensitive)
+    staleTime: Freshness.LIVE, // expiring soon by definition
     gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes only
     ...options,
   });
@@ -217,7 +218,7 @@ export function usePickupTodayOffers(
       Logger.info('Pickup today offers fetched and filtered', { count: validOffers.length });
       return validOffers;
     },
-    staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes (time-sensitive)
+    staleTime: Freshness.LIVE, // bags sell out while the list is on screen (time-sensitive)
     gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
     ...options,
   });
@@ -253,7 +254,7 @@ export function usePickupTomorrowOffers(
       Logger.info('Pickup tomorrow offers fetched and filtered', { count: validOffers.length });
       return validOffers;
     },
-    staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes (time-sensitive)
+    staleTime: Freshness.LIVE, // bags sell out while the list is on screen (time-sensitive)
     gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
     ...options,
   });

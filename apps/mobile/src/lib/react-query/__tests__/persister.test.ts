@@ -14,6 +14,7 @@ import type { Query } from '@tanstack/react-query';
 
 jest.mock('@/storage/mmkv', () => ({
   storage: { getString: jest.fn(), set: jest.fn(), remove: jest.fn() },
+  cacheStorage: { getString: jest.fn(), set: jest.fn(), remove: jest.fn() },
 }));
 jest.mock('@/utils/logger', () => ({
   Logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() },

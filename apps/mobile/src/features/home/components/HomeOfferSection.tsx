@@ -64,6 +64,13 @@ interface HomeOfferSectionProps {
 // ============================================================================
 
 /**
+ * Module scope, not an inline arrow: `keyExtractor` is a prop, so a fresh
+ * identity each render makes FlatList treat its configuration as changed. It
+ * closes over nothing, so there is no reason for it to live in the component.
+ */
+const offerKeyExtractor = (item: OfferListItem): string => item.id;
+
+/**
  * HomeOfferSection Component
  *
  * Features:
@@ -125,20 +132,29 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
     [testIDPrefix],
   );
 
+  // Hoisted out of renderOfferItem: an inline `offer => onOfferPress(offer.id)`
+  // is a new function identity on every item render, which is exactly the prop
+  // change that makes FavoriteOfferCard's memo bail out. One stable handler for
+  // the whole list instead.
+  const handleOfferPress = useCallback(
+    (offer: OfferListItem) => onOfferPress(offer.id),
+    [onOfferPress],
+  );
+
   const renderOfferItem = useCallback(
     ({ item }: { item: OfferListItem }) => (
       <FavoriteOfferCard
         offer={item}
         variant={variant}
         imageAspectRatio={1.8}
-        onPress={offer => onOfferPress(offer.id)}
+        onPress={handleOfferPress}
         testID={`${testIDPrefix}-offer-${item.id}`}
         style={styles.offerCardItem}
         {...(mascotVariant != null ? { mascotVariant } : {})}
         {...(mascotCopy != null ? { mascotCopy } : {})}
       />
     ),
-    [variant, onOfferPress, testIDPrefix, mascotVariant, mascotCopy],
+    [variant, handleOfferPress, testIDPrefix, mascotVariant, mascotCopy],
   );
 
   // ============================================================================
@@ -304,7 +320,7 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
       <FlatList
         data={offers}
         renderItem={renderOfferItem}
-        keyExtractor={item => item.id}
+        keyExtractor={offerKeyExtractor}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.carouselContainer}

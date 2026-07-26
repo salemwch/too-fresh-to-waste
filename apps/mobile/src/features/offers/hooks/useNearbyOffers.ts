@@ -23,6 +23,8 @@ import { useAppSelector } from '@/hooks/redux';
 import { useQueryWithFocus } from '@/lib/react-query/hooks';
 import { selectIsAuthenticated } from '@/features/auth/store/authSlice';
 
+import { Freshness } from '@/lib/react-query/freshness';
+
 import {
   nearbyOffersService,
   type NearbyOffersParams,
@@ -78,7 +80,7 @@ export function useNearbyOffers(
 ) {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
-  const { enabled = true, staleTime = 5 * 60 * 1000, refetchOnFocus = true } = options;
+  const { enabled = true, staleTime = Freshness.LIVE, refetchOnFocus = true } = options;
 
   const isEnabled = enabled && !!params && isAuthenticated;
 
@@ -115,7 +117,7 @@ export function useMapEstablishments(
   params: NearbyOffersParams | null,
   options: UseNearbyOffersOptions = {},
 ) {
-  const { enabled = true, staleTime = 3 * 60 * 1000, refetchOnFocus = true } = options;
+  const { enabled = true, staleTime = Freshness.STANDARD, refetchOnFocus = true } = options;
 
   const isEnabled = enabled && !!params;
 

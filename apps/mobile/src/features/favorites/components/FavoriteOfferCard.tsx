@@ -12,7 +12,7 @@
  * for instant optimistic updates without waiting for API response.
  */
 
-import React, { useCallback } from 'react';
+import React, { memo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { OfferCard } from '@/design-system/components/organisms';
@@ -26,8 +26,20 @@ import type { RootState } from '@/store';
 /**
  * OfferCard with favorites integration
  * Reads isFavorite from Redux for instant updates
+ *
+ * Memoized — for this wrapper's own cost, not the card's.
+ *
+ * OfferCard is `memo`-wrapped and `toggle` is useCallback'd, so the expensive
+ * card render was already skipped when props compared equal. What was NOT
+ * skipped was this component: as a plain function it re-ran on every parent
+ * render, once per card in the list, each time re-executing useFavoriteToggle
+ * and a useSelector and re-reconciling the element — work whose only outcome
+ * was the inner memo deciding nothing had changed.
+ *
+ * On a Home screen with four carousels that is a few dozen wasted hook cycles
+ * per parent render. Cheap individually, which is exactly why it went unnoticed.
  */
-export const FavoriteOfferCard: React.FC<Omit<OfferCardProps, 'onFavorite'>> = props => {
+const FavoriteOfferCardComponent: React.FC<Omit<OfferCardProps, 'onFavorite'>> = props => {
   const { offer } = props;
 
   // Use optimistic toggle hook (reads from Redux after toggle, updates instantly)
@@ -50,3 +62,6 @@ export const FavoriteOfferCard: React.FC<Omit<OfferCardProps, 'onFavorite'>> = p
     />
   );
 };
+
+export const FavoriteOfferCard = memo(FavoriteOfferCardComponent);
+FavoriteOfferCard.displayName = 'FavoriteOfferCard';

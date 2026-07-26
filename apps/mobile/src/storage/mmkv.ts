@@ -14,16 +14,42 @@ import { createMMKV } from 'react-native-mmkv';
 import { encryptionOption } from './encryptionKey';
 
 /**
- * Default MMKV instance for app-wide storage
- * Uses default encryption and ID 'app'
+ * The app's MMKV stores are split by LIFETIME, and by nothing else.
  *
- * Note: v4.x uses createMMKV() instead of new MMKV()
+ * A separate MMKV instance is only worth having when some data has different
+ * clear semantics, encryption, or durability from the rest — otherwise it is
+ * just two places to forget to configure. (This codebase learned that: `app`
+ * and `redux-persist-storage` were split by accident rather than design, which
+ * is how `app` spent so long with its encryptionKey commented out while the
+ * other store was encrypted.)
+ *
+ *   app     — DURABLE. Data representing user intent that must survive logout,
+ *             cache clears and low-storage handlers: the offline write queue
+ *             (orders the user actually placed) and device preferences.
+ *             Losing anything here loses something the user did.
+ *
+ *   cache   — DISPOSABLE. The TanStack Query cache. Safe to drop at any moment;
+ *             worst case is one network round-trip. Kept apart so it CAN be
+ *             dropped — a "clear cache" action or a storage-pressure handler
+ *             must be able to reclaim this space without touching queued orders.
+ *
+ *   redux-persist-storage — Redux slices, owned by redux-persist and purged on
+ *             its own schedule. See utils/mmkvStorage.ts. Kept on its own id
+ *             because merging it would orphan existing users' persisted state.
+ *
+ * All three encrypt through the same gate in ./encryptionKey.
  */
 export const storage = createMMKV({
   id: 'app',
-  // Encrypted via the shared gate. This store holds the offline write queue —
-  // queued order payloads — so it is not the "non-sensitive" store its previous
-  // commented-out encryptionKey implied.
+  ...encryptionOption(),
+});
+
+/**
+ * Disposable cache store. See the note above — do not put anything here that
+ * the user would miss if it vanished.
+ */
+export const cacheStorage = createMMKV({
+  id: 'cache',
   ...encryptionOption(),
 });
 

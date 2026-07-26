@@ -28,7 +28,7 @@
 
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
-import { storage } from '@/storage/mmkv';
+import { cacheStorage } from '@/storage/mmkv';
 import { Logger } from '@/utils/logger';
 
 import type { PersistedClient, Persister } from '@tanstack/react-query-persist-client';
@@ -43,7 +43,7 @@ const CACHE_KEY = 'TFTW_QUERY_CACHE';
 export const PERSIST_BUSTER = 'v1';
 
 /** Max age of a restored cache. Older than this and we start clean. */
-export const PERSIST_MAX_AGE = 1000 * 60 * 60 * 24; // 24h — matches gcTime
+export { PERSISTED_CACHE_MAX_AGE as PERSIST_MAX_AGE } from './freshness';
 
 /**
  * Query-key prefixes that may be written to disk. Matched against the FIRST
@@ -78,11 +78,14 @@ export function shouldPersistQuery(query: Query): boolean {
  */
 export const queryPersister: Persister = createSyncStoragePersister({
   key: CACHE_KEY,
+  // The DISPOSABLE store, deliberately not the durable `app` one: this cache
+  // must be safe to drop wholesale, and the offline write queue (real orders
+  // the user placed) lives in `app` where a cache clear cannot reach it.
   storage: {
-    getItem: (key: string): string | null => storage.getString(key) ?? null,
-    setItem: (key: string, value: string): void => storage.set(key, value),
+    getItem: (key: string): string | null => cacheStorage.getString(key) ?? null,
+    setItem: (key: string, value: string): void => cacheStorage.set(key, value),
     removeItem: (key: string): void => {
-      storage.remove(key);
+      cacheStorage.remove(key);
     },
   },
   // A corrupt or oversized entry must never wedge startup: log and move on with
