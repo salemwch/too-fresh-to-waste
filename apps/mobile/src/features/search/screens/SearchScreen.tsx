@@ -12,7 +12,7 @@
  */
 
 import { FlashList } from '@shopify/flash-list';
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -54,6 +54,7 @@ import {
 } from '../components';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 import { usePlaceSearch } from '../hooks/usePlaceSearch';
+import { useSearchMapCamera } from '../hooks/useSearchMapCamera';
 import {
   NO_OFFERS,
   groupOffersByEstablishment,
@@ -62,7 +63,6 @@ import {
 
 import type { SearchScreenNavigationProp } from '@/navigation/types';
 import type { ILocationResult } from '@/types/location.types';
-import type { Region } from 'react-native-maps';
 
 // ============================================================================
 // Constants
@@ -104,7 +104,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const mapRef = useRef<MapView>(null);
+
   const dispatch = useAppDispatch();
   const prefetchOffer = usePrefetchOffer();
 
@@ -125,9 +125,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedEstablishment, setSelectedEstablishment] =
     useState<ProximitySearchResult<MapEstablishment> | null>(null);
-  const [mapReady, setMapReady] = useState(false);
+
   const [showPlaceResults, setShowPlaceResults] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
+
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
 
   // Use user location or default to Sousse
@@ -166,6 +166,19 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   const offerCenter = selectedPlace?.coordinates ?? centerCoordinates;
 
+  // Camera, readiness and error state for the MapView. Owns every camera move,
+  // so nothing below recomputes a zoom span by hand.
+  const {
+    mapRef,
+    region: mapRegion,
+    isReady: mapReady,
+    error: mapError,
+    setError: setMapError,
+    animateTo,
+    recenter,
+    handleMapReady,
+  } = useSearchMapCamera(offerCenter, searchRadius);
+
   const searchParams = useMemo(
     () => ({
       center: offerCenter,
@@ -202,18 +215,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     () => groupOffersByEstablishment(displayOffers),
     [displayOffers],
   );
-
-  // Map region based on center and radius
-  const mapRegion: Region = useMemo(() => {
-    const latDelta = (searchRadius / 111) * 2.5;
-    const lngDelta = latDelta * 1.2;
-    return {
-      latitude: offerCenter.latitude,
-      longitude: offerCenter.longitude,
-      latitudeDelta: Math.max(0.02, Math.min(latDelta, 1)),
-      longitudeDelta: Math.max(0.02, Math.min(lngDelta, 1)),
-    };
-  }, [offerCenter, searchRadius]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Handlers
@@ -257,17 +258,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       setShowPlaceResults(false);
       setSelectedEstablishment(null);
 
-      // Animate map to selected place
-      mapRef.current?.animateToRegion(
-        {
-          ...placeCoords,
-          latitudeDelta: (searchRadius / 111) * 2.5,
-          longitudeDelta: (searchRadius / 111) * 3,
-        },
-        500,
-      );
+      animateTo(placeCoords);
     },
-    [resolveGooglePlace, setManualLocationValue, searchRadius],
+    [resolveGooglePlace, setManualLocationValue, animateTo],
   );
 
   /**
@@ -300,24 +293,20 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       setShowPlaceResults(false);
       setSelectedEstablishment(null);
 
-      // Animate map to selected establishment
-      mapRef.current?.animateToRegion(
-        {
-          ...estCoords,
-          latitudeDelta: (searchRadius / 111) * 2.5,
-          longitudeDelta: (searchRadius / 111) * 3,
-        },
-        500,
-      );
+      animateTo(estCoords);
     },
-    [setManualLocationValue, searchRadius],
+    [setManualLocationValue, animateTo],
   );
 
   const handleCloseBottomSheet = useCallback(() => {
     setSelectedPlace(null);
   }, []);
 
-  const handleBottomSheetOfferPress = useCallback(
+  /**
+   * Every route to an offer goes through here: the place sheet, the
+   * establishment sheet, and the list rows all did this identically.
+   */
+  const openOffer = useCallback(
     (offerId: string) => {
       prefetchOffer(offerId);
       navigation.navigate('OfferDetails', { offerId });
@@ -336,35 +325,18 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const handleRadiusChange = useCallback(
     (radius: number) => {
       setRadius(radius);
-      const latDelta = (radius / 111) * 2.5;
-      const lngDelta = latDelta * 1.2;
-      mapRef.current?.animateToRegion(
-        {
-          latitude: offerCenter.latitude,
-          longitude: offerCenter.longitude,
-          latitudeDelta: Math.max(0.02, Math.min(latDelta, 1)),
-          longitudeDelta: Math.max(0.02, Math.min(lngDelta, 1)),
-        },
-        300,
-      );
+      animateTo(offerCenter, { radiusKm: radius, durationMs: 300 });
     },
-    [setRadius, offerCenter],
+    [setRadius, offerCenter, animateTo],
   );
 
   const handleLocationSelect = useCallback(
     (location: { coordinates: { latitude: number; longitude: number }; name: string }) => {
       setManualLocationValue(location.coordinates, location.name);
       setSelectedPlace(null);
-      mapRef.current?.animateToRegion(
-        {
-          ...location.coordinates,
-          latitudeDelta: mapRegion.latitudeDelta,
-          longitudeDelta: mapRegion.longitudeDelta,
-        },
-        500,
-      );
+      animateTo(location.coordinates);
     },
-    [setManualLocationValue, mapRegion],
+    [setManualLocationValue, animateTo],
   );
 
   const handleUseMyLocation = useCallback(async () => {
@@ -377,14 +349,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
       setSelectedPlace(null);
 
-      mapRef.current?.animateToRegion(
-        {
-          ...result.coordinates,
-          latitudeDelta: mapRegion.latitudeDelta,
-          longitudeDelta: mapRegion.longitudeDelta,
-        },
-        500,
-      );
+      animateTo(result.coordinates);
 
       Logger.debug(
         '[SearchScreen] GPS acquired, triggering reverse geocoding for header update...',
@@ -402,7 +367,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     } catch (error) {
       Logger.error('[SearchScreen] Failed to get current location:', {}, error as Error);
     }
-  }, [requestLocation, mapRegion, dispatch]);
+  }, [requestLocation, animateTo, dispatch]);
 
   const handleUseMyLocationPress = useCallback(() => {
     void handleUseMyLocation();
@@ -416,33 +381,14 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const handleEstablishmentMarkerPress = useCallback(
     (est: ProximitySearchResult<MapEstablishment>) => {
       setSelectedEstablishment(est);
-      mapRef.current?.animateToRegion(
-        {
-          latitude: est.geoData.coordinates.latitude,
-          longitude: est.geoData.coordinates.longitude,
-          latitudeDelta: mapRegion.latitudeDelta * 0.5,
-          longitudeDelta: mapRegion.longitudeDelta * 0.5,
-        },
-        300,
-      );
+      animateTo(est.geoData.coordinates, { zoom: 0.5, durationMs: 300 });
     },
-    [mapRegion],
-  );
-
-  const handleEstablishmentOfferPress = useCallback(
-    (offerId: string) => {
-      prefetchOffer(offerId);
-      navigation.navigate('OfferDetails', { offerId });
-    },
-    [navigation, prefetchOffer],
+    [animateTo],
   );
 
   const handleOfferPress = useCallback(
-    (offer: ProximitySearchResult<NearbyOffer>) => {
-      prefetchOffer(offer.item._id);
-      navigation.navigate('OfferDetails', { offerId: offer.item._id });
-    },
-    [navigation, prefetchOffer],
+    (offer: ProximitySearchResult<NearbyOffer>) => openOffer(offer.item._id),
+    [openOffer],
   );
 
   const handleMapPress = useCallback((event?: { nativeEvent?: { action?: string } }) => {
@@ -452,18 +398,11 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     setSelectedEstablishment(null);
   }, []);
 
-  const handleRecenter = useCallback(() => {
-    mapRef.current?.animateToRegion(mapRegion, 300);
-  }, [mapRegion]);
+  const handleRecenter = recenter;
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
     setSelectedEstablishment(null);
-  }, []);
-
-  const handleMapReady = useCallback(() => {
-    setMapReady(true);
-    setMapError(null);
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -639,7 +578,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                   visible={!!selectedEstablishment}
                   establishment={selectedEstablishment}
                   onClose={() => setSelectedEstablishment(null)}
-                  onOfferPress={handleEstablishmentOfferPress}
+                  onOfferPress={openOffer}
                   bottomInset={0}
                 />
               )}
@@ -652,7 +591,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 offers={displayOffers}
                 isLoading={isLoadingOffers}
                 onClose={handleCloseBottomSheet}
-                onOfferPress={handleBottomSheetOfferPress}
+                onOfferPress={openOffer}
               />
             </>
           )}
