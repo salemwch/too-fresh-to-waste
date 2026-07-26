@@ -4,16 +4,37 @@ import Image from 'next/image';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
+import { SoftwareAppSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { getCanonicalUrl } from '@/config/seo.config';
+import { locales, getLocaleConfig } from '@/i18n/config';
+import type { Locale } from '@/i18n/config';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const loc = locale as Locale;
+  const PATH = '/consumer';
+  const alternateLanguages: Record<string, string> = {
+    'x-default': getCanonicalUrl(PATH, 'en'),
+  };
+  locales.forEach(l => {
+    alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
+  });
   return {
     title: 'Save Food, Save Money, Win Prizes — Too Fresh To Waste',
     description:
       'Rescue unsold food from local restaurants and bakeries at up to 70% off. Earn points, help the planet, and compete for smartphones in the community Drop.',
+    alternates: {
+      canonical: getCanonicalUrl(PATH, loc),
+      languages: alternateLanguages,
+    },
   };
 }
 
@@ -207,6 +228,17 @@ export default async function ConsumerPage({ params }: PageProps) {
 
   return (
     <>
+      <SoftwareAppSchema
+        name='Too Fresh To Waste'
+        description='Save up to 90% on surplus food from local restaurants and shops. Fight food waste and save money every day.'
+        locale={locale as Locale}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
+          { name: 'For Consumers', url: getCanonicalUrl('/consumer', locale as Locale) },
+        ]}
+      />
       <Header />
 
       <main className='min-h-screen bg-white text-primary-500'>

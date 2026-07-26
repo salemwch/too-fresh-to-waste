@@ -5,11 +5,14 @@ import type { Locale } from '@/i18n/config';
 
 export const seoConfig = {
   // Base URLs
-  url: process.env['NEXT_PUBLIC_SITE_URL'] || 'https://toofreshwaste.tn',
+  // Fallback must be the real production domain: it is what canonical tags,
+  // hreflang alternates and the sitemap emit if NEXT_PUBLIC_SITE_URL is ever
+  // unset, and pointing those at a domain we do not serve is an SEO own-goal.
+  url: process.env['NEXT_PUBLIC_SITE_URL'] || 'https://toofreshtowaste.com',
   siteName: 'Too Fresh To Waste Tunisia',
 
   // Localization
-  defaultLocale: 'fr' as Locale,
+  defaultLocale: 'en' as Locale,
   locales: ['fr', 'ar', 'en'] as Locale[],
 
   // Locale-specific metadata
@@ -171,10 +174,16 @@ export function getLocaleSeoMetadata(locale: Locale) {
   return seoConfig.metadata[locale] || seoConfig.metadata[seoConfig.defaultLocale];
 }
 
-// Helper to get full URL with locale
+// localePrefix: 'always' in routing.ts means every locale including the default
+// requires an explicit prefix in the URL.
 export function getCanonicalUrl(path: string, locale: Locale): string {
   const baseUrl = seoConfig.url;
-  const localePath = locale === seoConfig.defaultLocale ? '' : `/${locale}`;
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${baseUrl}${localePath}${cleanPath === '/' ? '' : cleanPath}`;
+  const normalizedPath = cleanPath === '/' ? '' : cleanPath;
+  return `${baseUrl}/${locale}${normalizedPath}`;
+}
+
+// Returns the canonical URL for schema.org @id fields (always the en version)
+export function getSchemaOrgUrl(path: string): string {
+  return getCanonicalUrl(path, 'en');
 }

@@ -3,16 +3,37 @@ import Image from 'next/image';
 import { setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
+import { FAQSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { getCanonicalUrl } from '@/config/seo.config';
+import { locales, getLocaleConfig } from '@/i18n/config';
+import type { Locale } from '@/i18n/config';
 
 interface FoodWasteFactsPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const loc = locale as Locale;
+  const PATH = '/food-waste-facts';
+  const alternateLanguages: Record<string, string> = {
+    'x-default': getCanonicalUrl(PATH, 'en'),
+  };
+  locales.forEach(l => {
+    alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
+  });
   return {
     title: 'Food Waste Facts — The Scale of What We Throw Away',
     description:
       'Each year, 2.5 billion tonnes of food never make it to a plate. Explore the data, the journey, and the usual suspects behind global food waste.',
+    alternates: {
+      canonical: getCanonicalUrl(PATH, loc),
+      languages: alternateLanguages,
+    },
   };
 }
 
@@ -60,6 +81,29 @@ const chapters = [
   },
 ];
 
+const foodWasteFactsFaqs = [
+  {
+    question: 'How much food is wasted globally each year?',
+    answer:
+      'According to the WWF, approximately 2.5 billion tonnes of food is lost or wasted annually worldwide — roughly 40% of all food produced.',
+  },
+  {
+    question: 'What percentage of greenhouse gas emissions come from food waste?',
+    answer:
+      'Food waste is responsible for about 10% of all global greenhouse gas emissions, according to WWF research.',
+  },
+  {
+    question: 'How does Too Fresh To Waste help reduce food waste in Tunisia?',
+    answer:
+      'Too Fresh To Waste connects consumers with local restaurants and shops that have surplus food, allowing it to be sold at 35-90% discount instead of being thrown away.',
+  },
+  {
+    question: 'What is a surprise bag?',
+    answer:
+      'A surprise bag is a discounted package of surplus food from a local restaurant or store. You pay a fraction of the original price and pick it up at the end of service.',
+  },
+];
+
 // Sources: ScienceDirect studies on food waste across the hospitality and retail sectors
 // (Filimonau et al., Journal of Cleaner Production; Eriksson et al., Resources, Conservation & Recycling)
 const wastedItems = [
@@ -101,6 +145,13 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
 
   return (
     <>
+      <FAQSchema items={foodWasteFactsFaqs} />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
+          { name: 'Food Waste Facts', url: getCanonicalUrl('/food-waste-facts', locale as Locale) },
+        ]}
+      />
       <Header />
 
       <div className='min-h-screen bg-brand-cream text-brand-deep'>

@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { getTranslations } from 'next-intl/server';
 import { Header } from '@/components/layout';
+import { WebPageSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { getCanonicalUrl } from '@/config/seo.config';
+import type { Locale } from '@/i18n/config';
 
 interface ContactPageProps {
   params: Promise<{ locale: string }>;
@@ -23,6 +26,18 @@ export default async function ContactPage({ params }: ContactPageProps) {
 
   return (
     <>
+      <WebPageSchema
+        type='ContactPage'
+        name='Contact Too Fresh To Waste'
+        description='Get in touch with the Too Fresh To Waste team. We are here to help consumers, merchants, and partners.'
+        url={getCanonicalUrl('/contact', locale as Locale)}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
+          { name: 'Contact', url: getCanonicalUrl('/contact', locale as Locale) },
+        ]}
+      />
       <Header />
       <main className='min-h-screen bg-[#f9f3f0]'>
         {/* Hero */}

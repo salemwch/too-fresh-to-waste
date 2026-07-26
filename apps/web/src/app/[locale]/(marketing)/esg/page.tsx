@@ -2,16 +2,37 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
+import { ArticleSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { getCanonicalUrl } from '@/config/seo.config';
+import { locales, getLocaleConfig } from '@/i18n/config';
+import type { Locale } from '@/i18n/config';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const loc = locale as Locale;
+  const PATH = '/esg';
+  const alternateLanguages: Record<string, string> = {
+    'x-default': getCanonicalUrl(PATH, 'en'),
+  };
+  locales.forEach(l => {
+    alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
+  });
   return {
     title: 'ESG — Why It Matters for Your Business | Too Fresh To Waste',
     description:
       'Understand what ESG is, why EU regulations like CBAM and CSRD make it mandatory, and how Tunisian companies can use food waste reduction to build a credible ESG strategy.',
+    alternates: {
+      canonical: getCanonicalUrl(PATH, loc),
+      languages: alternateLanguages,
+    },
   };
 }
 
@@ -399,6 +420,21 @@ export default async function ESGPage({ params }: PageProps) {
 
   return (
     <>
+      <ArticleSchema
+        title='ESG Compliance for Food Businesses — Too Fresh To Waste'
+        description='How restaurants and food businesses in MENA can meet ESG requirements including CBAM, CSRD, and UN SDGs by reducing food waste.'
+        publishedAt='2024-01-01'
+        updatedAt='2026-05-01'
+        url={getCanonicalUrl('/esg', locale as Locale)}
+        authorName='Too Fresh To Waste Team'
+        locale={locale as Locale}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
+          { name: 'ESG', url: getCanonicalUrl('/esg', locale as Locale) },
+        ]}
+      />
       <Header />
 
       <main className='min-h-screen bg-white text-primary-500'>
