@@ -530,6 +530,9 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
 
   const renderTitle = () => (
     <View style={styles.titleContainer}>
+      <View style={styles.typeBadge}>
+        <Text style={styles.typeBadgeText}>{offerTypeLabels[offer.type]}</Text>
+      </View>
       <Text
         variant='body.small'
         color={theme.colors.onSurface}
@@ -538,9 +541,6 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       >
         {offer.title}
       </Text>
-      <View style={styles.typeBadge}>
-        <Text style={styles.typeBadgeText}>{offerTypeLabels[offer.type]}</Text>
-      </View>
     </View>
   );
 
@@ -873,12 +873,11 @@ const createStyles = (
       marginEnd: -4,
     },
     titleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
+      gap: 4,
       marginBottom: 4,
     },
     typeBadge: {
+      alignSelf: 'flex-start',
       backgroundColor: colorTokens.base.primary[50],
       borderRadius: 6,
       paddingHorizontal: 6,
@@ -891,9 +890,7 @@ const createStyles = (
       textTransform: 'uppercase',
       letterSpacing: 0.5,
     },
-    title: {
-      flexShrink: 1,
-    },
+    title: {},
     pickupTimeRow: {
       flexDirection: 'row',
       alignItems: 'center',

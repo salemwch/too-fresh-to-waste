@@ -1,0 +1,1 @@
+● Following the error flow: Observe → Reproduce → Trace → Understand root cause → Fix → Prevent recurrence.

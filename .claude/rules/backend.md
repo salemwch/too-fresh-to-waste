@@ -2,7 +2,121 @@
 paths:
   - 'apps/food-waste-backend/**/*.ts'
 ---
+DOMAIN-FIRST DEVELOPMENT RULE
 
+Before creating any code, database schema, API, or infrastructure:
+
+Focus first on:
+
+1. Domain Understanding
+- What business problem are we solving?
+- What are the core concepts?
+- What entities exist?
+- What are their relationships?
+- What terminology does the business use?
+
+2. Actors & Permissions
+- Who interacts with the system?
+- What roles exist?
+- What can each role do?
+- What is forbidden for each role?
+
+3. Business Rules
+- What rules define the business?
+- What conditions must always be true?
+- What actions are allowed?
+- What actions are forbidden?
+- What validations must happen?
+
+Example questions:
+- Can this entity change state?
+- Who can perform this action?
+- When is this action impossible?
+- What happens if something fails?
+
+4. Use Cases
+For every important action define:
+- Who performs it?
+- What triggers it?
+- What inputs are required?
+- What validations happen?
+- What is the expected result?
+- What errors can occur?
+
+5. Workflows
+Define complete lifecycle flows:
+
+Example:
+Created
+↓
+Approved
+↓
+Processing
+↓
+Completed
+
+Include:
+- Normal flow
+- Failure flow
+- Cancellation flow
+- Recovery flow
+
+6. State Management
+For every important entity define:
+- Possible states
+- Allowed transitions
+- Forbidden transitions
+
+Example:
+
+Order:
+PENDING → CONFIRMED → COMPLETED
+
+Forbidden:
+COMPLETED → PENDING
+
+7. Edge Cases
+Think about abnormal situations:
+
+- Duplicate actions
+- Network failure
+- Payment failure
+- User cancellation
+- Missing data
+- Race conditions
+- Fraud attempts
+
+8. Constraints
+Define technical and business limits:
+
+- Quantity limits
+- Time limits
+- Permission limits
+- Geographic limits
+- Financial limits
+
+9. Domain Events
+Identify important events:
+
+Example:
+
+OrderCreated
+PaymentCompleted
+PickupConfirmed
+FoodExpired
+
+Define:
+- What triggers the event?
+- Who needs to react?
+- What data is included?
+
+10. Data Requirements
+Before database design:
+
+- What information must be stored?
+- What history must be preserved?
+- What data must never be deleted?
+- What needs auditing?       
 # Backend Coding Rules
 
 Rules specific to `apps/food-waste-backend`. Architecture is documented in
