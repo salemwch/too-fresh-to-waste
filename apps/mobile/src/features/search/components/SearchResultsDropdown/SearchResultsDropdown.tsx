@@ -6,14 +6,10 @@
  * never covers the map.
  *
  * Presentational — all state and selection handling stay in SearchScreen.
- *
- * NOTE: the visible strings here are hardcoded English, carried over verbatim
- * from SearchScreen. The app ships en/fr/ar, so this is a real i18n gap; it is
- * left as-is deliberately so this extraction stays behaviour-preserving rather
- * than hiding a user-visible change inside a move.
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon, Text } from '@/design-system/components/atoms';
@@ -113,6 +109,7 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
   onGooglePlacePress,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   if (!visible) return null;
 
@@ -131,13 +128,13 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
         <View style={styles.loading}>
           <ActivityIndicator size='small' color={theme.colors.primary} />
           <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
-            Searching...
+            {t('search.searching')}
           </Text>
         </View>
       ) : showEmpty ? (
         <View style={styles.empty}>
           <Text variant='body' size='sm' color='secondary'>
-            No results found for &quot;{query}&quot;
+            {t('search.noResultsFor', { query })}
           </Text>
         </View>
       ) : (
@@ -145,7 +142,7 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
           {appShown.length > 0 && (
             <>
               <Text variant='label' size='xs' color='secondary' style={styles.sectionHeader}>
-                In WasteFood
+                {t('search.sectionInApp')}
               </Text>
               {appShown.map((est, index) => (
                 <Pressable
@@ -159,7 +156,9 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
                   onPress={() => onAppEstablishmentPress(est)}
                   accessibilityRole='button'
                   accessibilityLabel={est.item.name}
-                  accessibilityHint={`Select ${est.item.address?.city ?? est.distance.formatted} to view offers`}
+                  accessibilityHint={t('search.a11ySelectEstablishment', {
+                    location: est.item.address?.city ?? est.distance.formatted,
+                  })}
                 >
                   <View
                     style={[styles.itemIcon, { backgroundColor: theme.colors.primaryContainer }]}
@@ -183,7 +182,7 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
                     style={[styles.sourceBadge, { backgroundColor: theme.colors.primaryContainer }]}
                   >
                     <Text variant='label' size='xs' color='primary'>
-                      App
+                      {t('search.sourceApp')}
                     </Text>
                   </View>
                 </Pressable>
@@ -194,7 +193,7 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
           {googleShown.length > 0 && (
             <>
               <Text variant='label' size='xs' color='secondary' style={styles.sectionHeader}>
-                More places
+                {t('search.sectionMorePlaces')}
               </Text>
               {googleShown.map((place, index) => (
                 <Pressable
@@ -207,7 +206,7 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
                   onPress={() => onGooglePlacePress(place)}
                   accessibilityRole='button'
                   accessibilityLabel={place.name}
-                  accessibilityHint={`Select ${place.subtext} to search nearby offers`}
+                  accessibilityHint={t('search.a11ySelectPlace', { location: place.subtext })}
                 >
                   <View style={[styles.itemIcon, { backgroundColor: theme.colors.surfaceVariant }]}>
                     <Icon

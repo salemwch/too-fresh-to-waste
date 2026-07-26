@@ -545,10 +545,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 align='center'
                 style={styles.mapErrorTitle}
               >
-                Map Unavailable
+                {t('search.mapUnavailable')}
               </Text>
               <Text variant='body' size='sm' color='secondary' align='center'>
-                Unable to load the map. Please check your internet connection and try again.
+                {t('search.mapUnavailableDescription')}
               </Text>
               <Pressable
                 style={[styles.mapRetryButton, { backgroundColor: theme.colors.primary }]}
@@ -563,7 +563,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                   weight='semibold'
                   style={{ color: theme.colors.onPrimary }}
                 >
-                  Retry
+                  {t('search.retry')}
                 </Text>
               </Pressable>
             </View>

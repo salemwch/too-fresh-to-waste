@@ -680,7 +680,17 @@
     "a11yClosePanel": "يغلق هذه اللوحة",
     "a11yCloseFilters": "إغلاق الفلاتر",
     "a11yRetryMap": "إعادة تحميل الخريطة",
-    "a11yRetryMapHint": "يحاول إعادة تحميل الخريطة"
+    "a11yRetryMapHint": "يحاول إعادة تحميل الخريطة",
+    "searching": "جارٍ البحث...",
+    "noResultsFor": "لا توجد نتائج عن \"{{query}}\"",
+    "sectionInApp": "في WasteFood",
+    "sectionMorePlaces": "أماكن أخرى",
+    "sourceApp": "التطبيق",
+    "a11ySelectEstablishment": "اختر {{location}} لعرض العروض",
+    "a11ySelectPlace": "اختر {{location}} للبحث عن عروض قريبة",
+    "mapUnavailable": "الخريطة غير متاحة",
+    "mapUnavailableDescription": "تعذّر تحميل الخريطة. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة"
   },
   "loyalty": {
     "myPoints": "نقاطي",

@@ -680,7 +680,17 @@
     "a11yClosePanel": "Ferme ce panneau",
     "a11yCloseFilters": "Fermer les filtres",
     "a11yRetryMap": "Réessayer le chargement de la carte",
-    "a11yRetryMapHint": "Tente de recharger la carte"
+    "a11yRetryMapHint": "Tente de recharger la carte",
+    "searching": "Recherche...",
+    "noResultsFor": "Aucun résultat pour « {{query}} »",
+    "sectionInApp": "Dans WasteFood",
+    "sectionMorePlaces": "Plus de lieux",
+    "sourceApp": "App",
+    "a11ySelectEstablishment": "Sélectionner {{location}} pour voir les offres",
+    "a11ySelectPlace": "Sélectionner {{location}} pour chercher des offres à proximité",
+    "mapUnavailable": "Carte indisponible",
+    "mapUnavailableDescription": "Impossible de charger la carte. Vérifiez votre connexion Internet et réessayez.",
+    "retry": "Réessayer"
   },
   "loyalty": {
     "myPoints": "Mes points",
