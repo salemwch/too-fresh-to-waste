@@ -158,9 +158,11 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 
         {/* Section header for list */}
         <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>Rankings</Text>
+          <Text style={styles.listTitle}>{t('leaderboard.rankings')}</Text>
           <Text style={styles.listMeta}>
-            {data?.pages[0]?.total ?? allEntries.length} participants
+            {t('leaderboard.participantCount', {
+              count: data?.pages[0]?.total ?? allEntries.length,
+            })}
           </Text>
         </View>
 

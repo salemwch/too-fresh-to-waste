@@ -7,6 +7,7 @@
  */
 
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -70,25 +71,26 @@ const styles = StyleSheet.create({
   tier: { fontSize: 9, color: TEXT_30, marginTop: 3, fontWeight: '600' },
 });
 
-/** Badge on whichever card the user is currently on track for. */
-const YOU_BADGE = '✓ You';
-
 interface TierCardProps {
   icon: string;
-  name: string;
-  tierLabel: string;
+  nameKey: string;
+  tierLabelKey: string;
   /** Whether this is the tier the current user is on track for. */
   isYours: boolean;
 }
 
-const TierCard: React.FC<TierCardProps> = ({ icon, name, tierLabel, isYours }) => (
-  <View style={[styles.card, isYours && styles.cardWinning]}>
-    {isYours && <Text style={styles.youBadge}>{YOU_BADGE}</Text>}
-    <Text style={styles.icon}>{icon}</Text>
-    <Text style={[styles.name, isYours && styles.nameGold]}>{name}</Text>
-    <Text style={styles.tier}>{tierLabel}</Text>
-  </View>
-);
+const TierCard: React.FC<TierCardProps> = ({ icon, nameKey, tierLabelKey, isYours }) => {
+  const { t } = useTranslation();
+
+  return (
+    <View style={[styles.card, isYours && styles.cardWinning]}>
+      {isYours && <Text style={styles.youBadge}>{t('leaderboard.yourTierBadge')}</Text>}
+      <Text style={styles.icon}>{icon}</Text>
+      <Text style={[styles.name, isYours && styles.nameGold]}>{t(nameKey)}</Text>
+      <Text style={styles.tier}>{t(tierLabelKey)}</Text>
+    </View>
+  );
+};
 
 export interface PrizeTierCardsProps {
   /** Which tier the current user currently qualifies for. */
@@ -99,11 +101,16 @@ const PrizeTierCardsComponent: React.FC<PrizeTierCardsProps> = ({ userTier }) =>
   <View style={styles.block}>
     <TierCard
       icon='📱'
-      name='Smartphone'
-      tierLabel='Top 5 Winners'
+      nameKey='leaderboard.prizeSmartphone'
+      tierLabelKey='leaderboard.tierTop5'
       isYours={userTier === 'phone'}
     />
-    <TierCard icon='🎁' name='10% Discount' tierLabel='Rank 6+' isYours={userTier === 'discount'} />
+    <TierCard
+      icon='🎁'
+      nameKey='leaderboard.prizeDiscount'
+      tierLabelKey='leaderboard.tierRank6Plus'
+      isYours={userTier === 'discount'}
+    />
   </View>
 );
 

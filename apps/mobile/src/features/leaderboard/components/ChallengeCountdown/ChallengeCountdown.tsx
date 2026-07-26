@@ -15,6 +15,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { CHAMPION_GOLD, TEXT_30 } from '../../constants/palette';
@@ -74,6 +75,7 @@ const Segment: React.FC<{ value: number; label: string }> = ({ value, label }) =
 );
 
 export const ChallengeCountdown: React.FC<ChallengeCountdownProps> = ({ endDate }) => {
+  const { t } = useTranslation();
   const [countdown, setCountdown] = useState(() => getCountdown(endDate));
 
   useEffect(() => {
@@ -94,13 +96,13 @@ export const ChallengeCountdown: React.FC<ChallengeCountdownProps> = ({ endDate 
 
   return (
     <View style={styles.row}>
-      <Segment value={countdown.days} label='DAYS' />
+      <Segment value={countdown.days} label={t('leaderboard.countdownDays')} />
       <Text style={styles.colon}>:</Text>
-      <Segment value={countdown.hours} label='HOURS' />
+      <Segment value={countdown.hours} label={t('leaderboard.countdownHours')} />
       <Text style={styles.colon}>:</Text>
-      <Segment value={countdown.mins} label='MINS' />
+      <Segment value={countdown.mins} label={t('leaderboard.countdownMins')} />
       <Text style={styles.colon}>:</Text>
-      <Segment value={countdown.secs} label='SECS' />
+      <Segment value={countdown.secs} label={t('leaderboard.countdownSecs')} />
     </View>
   );
 };

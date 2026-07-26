@@ -90,14 +90,15 @@ const ChallengeHeaderComponent: React.FC<ChallengeHeaderProps> = ({ endDate, onI
 
       {endDate != null && (
         <Text style={styles.endDate}>
-          Ends{' '}
-          <Text style={styles.endDateBold}>
-            {new Date(endDate).toLocaleDateString('en-US', {
+          {t('leaderboard.endsOn', {
+            // Device locale, not a hardcoded 'en-US': the rest of this screen is
+            // translated, so an English date beside Arabic copy reads as a bug.
+            date: new Date(endDate).toLocaleDateString(undefined, {
               month: 'short',
               day: 'numeric',
               year: 'numeric',
-            })}
-          </Text>
+            }),
+          })}
         </Text>
       )}
     </View>

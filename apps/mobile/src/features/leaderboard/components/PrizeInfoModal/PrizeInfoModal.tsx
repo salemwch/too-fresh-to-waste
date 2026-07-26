@@ -3,11 +3,6 @@
  *
  * Keeps a light surface deliberately, unlike the rest of the leaderboard: this
  * is a wall of explanatory text and reads better on white.
- *
- * NOTE: several strings here are hardcoded English while others go through t().
- * Carried over verbatim from LeaderboardScreen so this extraction stays
- * behaviour-preserving; the app ships en/fr/ar, so it is a real gap and is
- * fixed in its own commit alongside the locale files.
  */
 
 import React from 'react';
@@ -152,12 +147,9 @@ export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({ visible, onClose
               <View style={styles.goalDot} />
               <Text style={styles.goalTxt}>
                 {daysLeft != null && daysLeft > 0 ? (
-                  <>
-                    Prizes unlock in{' '}
-                    <Text style={styles.goalBold}>
-                      {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
-                    </Text>
-                  </>
+                  <Text style={styles.goalBold}>
+                    {t('leaderboard.prizesUnlockIn', { count: daysLeft })}
+                  </Text>
                 ) : (
                   <Text style={styles.goalBold}>{t('leaderboard.prizeDropLive')}</Text>
                 )}
@@ -171,11 +163,9 @@ export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({ visible, onClose
                 <Text style={styles.tierEmoji}>📱</Text>
               </View>
               <View style={styles.tierInfo}>
-                <Text style={styles.tierTitle}>Smartphone</Text>
-                <Text style={styles.tierRank}>Top 5 · 5 winners</Text>
-                <Text style={styles.tierDesc}>
-                  The top 5 point earners each win a smartphone when the challenge ends.
-                </Text>
+                <Text style={styles.tierTitle}>{t('leaderboard.prizeSmartphone')}</Text>
+                <Text style={styles.tierRank}>{t('leaderboard.prizeSmartphoneRank')}</Text>
+                <Text style={styles.tierDesc}>{t('leaderboard.prizeSmartphoneDesc')}</Text>
               </View>
             </View>
 
@@ -184,20 +174,14 @@ export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({ visible, onClose
                 <Text style={styles.tierEmoji}>🎁</Text>
               </View>
               <View style={styles.tierInfo}>
-                <Text style={styles.tierTitle}>10% Discount</Text>
-                <Text style={styles.tierRank}>Rank 6 and above</Text>
-                <Text style={styles.tierDesc}>
-                  Every other participant earns a 10% discount at a partner business of their
-                  choice.
-                </Text>
+                <Text style={styles.tierTitle}>{t('leaderboard.prizeDiscount')}</Text>
+                <Text style={styles.tierRank}>{t('leaderboard.prizeDiscountRank')}</Text>
+                <Text style={styles.tierDesc}>{t('leaderboard.prizeDiscountDesc')}</Text>
               </View>
             </View>
 
             <View style={styles.divider} />
-            <Text style={styles.note}>
-              Rankings are based on total loyalty points. Points are awarded each time you save a
-              bag.
-            </Text>
+            <Text style={styles.note}>{t('leaderboard.rankingNote')}</Text>
           </ScrollView>
 
           <Pressable style={styles.btn} onPress={onClose} accessibilityRole='button'>
