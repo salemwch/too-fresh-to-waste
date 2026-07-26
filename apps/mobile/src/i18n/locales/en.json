@@ -688,7 +688,7 @@
     "a11yRetryMapHint": "Attempts to reload the map",
     "searching": "Searching...",
     "noResultsFor": "No results found for \"{{query}}\"",
-    "sectionInApp": "In WasteFood",
+    "sectionInApp": "Partner businesses",
     "sectionMorePlaces": "More places",
     "sourceApp": "App",
     "a11ySelectEstablishment": "Select {{location}} to view offers",

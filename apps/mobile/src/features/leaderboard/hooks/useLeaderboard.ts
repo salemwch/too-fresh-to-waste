@@ -6,7 +6,19 @@ import type { LeaderboardResponse } from '../types/leaderboard.types';
 
 const LEADERBOARD_QUERY_KEY = ['loyalty', 'leaderboard'] as const;
 
-const PAGE_SIZE = 50;
+/**
+ * Rows per request.
+ *
+ * Small on purpose. Roughly eight rows fit on screen, so a 50-row page fetched
+ * and rendered five screens of data nobody had scrolled to yet — and most users
+ * never leave the podium. Ten keeps the first paint cheap and lets scrolling pay
+ * for itself.
+ *
+ * Users outside the loaded window do not page through to find themselves: the
+ * position bar shows their rank, and "nearby ranks" fetches just their
+ * neighbours. See useUserRowTracking.
+ */
+const PAGE_SIZE = 10;
 
 export function useLeaderboard(limit = PAGE_SIZE) {
   return useInfiniteQuery<LeaderboardResponse, Error>({

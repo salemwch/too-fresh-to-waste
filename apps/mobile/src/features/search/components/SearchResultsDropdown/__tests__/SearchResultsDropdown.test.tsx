@@ -32,7 +32,13 @@ jest.mock('@/design-system/providers', () => ({
   }),
 }));
 
+import en from '@/i18n/locales/en.json';
+
 import { SearchResultsDropdown } from '../SearchResultsDropdown';
+
+// Sourced from the locale file, not hardcoded: the assertion then also proves
+// the key exists and survives a copy change.
+const L = en.search as Record<string, string>;
 
 const appHit = (id: string, name: string) =>
   ({
@@ -101,19 +107,25 @@ describe('SearchResultsDropdown', () => {
   describe('sections', () => {
     it('shows the app section only when there are app results', () => {
       expect(
-        setup({ appResults: [appHit('e1', 'Boulangerie')] }).getByText('In WasteFood'),
+        setup({ appResults: [appHit('e1', 'Boulangerie')] }).getByText(L['sectionInApp'] as string),
       ).toBeTruthy();
       expect(
-        setup({ googleResults: [googleHit('g1', 'Park')] }).queryByText('In WasteFood'),
+        setup({ googleResults: [googleHit('g1', 'Park')] }).queryByText(
+          L['sectionInApp'] as string,
+        ),
       ).toBeNull();
     });
 
     it('shows the places section only when there are google results', () => {
       expect(
-        setup({ googleResults: [googleHit('g1', 'Park')] }).getByText('More places'),
+        setup({ googleResults: [googleHit('g1', 'Park')] }).getByText(
+          L['sectionMorePlaces'] as string,
+        ),
       ).toBeTruthy();
       expect(
-        setup({ appResults: [appHit('e1', 'Boulangerie')] }).queryByText('More places'),
+        setup({ appResults: [appHit('e1', 'Boulangerie')] }).queryByText(
+          L['sectionMorePlaces'] as string,
+        ),
       ).toBeNull();
     });
 
@@ -123,8 +135,8 @@ describe('SearchResultsDropdown', () => {
         googleResults: [googleHit('g1', 'Park')],
       });
 
-      expect(getByText('In WasteFood')).toBeTruthy();
-      expect(getByText('More places')).toBeTruthy();
+      expect(getByText(L['sectionInApp'] as string)).toBeTruthy();
+      expect(getByText(L['sectionMorePlaces'] as string)).toBeTruthy();
     });
 
     // The cap is what keeps the panel from covering the map.
