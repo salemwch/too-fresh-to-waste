@@ -6,12 +6,11 @@
  * call sites drift out of the clamped range (see utils/mapRegion).
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { regionFor } from '../utils/mapRegion';
 
 import type MapView from 'react-native-maps';
-import type { Region } from 'react-native-maps';
 
 interface Coordinates {
   latitude: number;
@@ -30,25 +29,28 @@ const DEFAULT_DURATION_MS = 500;
 
 export interface SearchMapCamera {
   mapRef: React.RefObject<MapView | null>;
-  /** The region framing the current centre and radius. */
-  region: Region;
   /** True once MapView reports ready — markers are withheld until then. */
   isReady: boolean;
   error: string | null;
   setError: (error: string | null) => void;
   /** Move the camera. Zoom is derived centrally; callers pass only a target. */
   animateTo: (coordinates: Coordinates, options?: AnimateOptions) => void;
-  /** Return to the current centre. */
-  recenter: () => void;
   handleMapReady: () => void;
 }
 
-export function useSearchMapCamera(center: Coordinates, radiusKm: number): SearchMapCamera {
+/**
+ * Takes only the radius, deliberately — not the current centre.
+ *
+ * The centre derives from the selected place, and place selection needs
+ * `animateTo` in order to move the camera when a place is chosen. Depending on
+ * the centre here would close that loop. Nothing in this hook needs it: every
+ * move is towards an explicit target, and recentring is just a move towards the
+ * current centre, which the caller already holds.
+ */
+export function useSearchMapCamera(radiusKm: number): SearchMapCamera {
   const mapRef = useRef<MapView>(null);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const region = useMemo(() => regionFor(center, radiusKm), [center, radiusKm]);
 
   const animateTo = useCallback(
     (coordinates: Coordinates, options: AnimateOptions = {}) => {
@@ -61,14 +63,10 @@ export function useSearchMapCamera(center: Coordinates, radiusKm: number): Searc
     [radiusKm],
   );
 
-  const recenter = useCallback(() => {
-    mapRef.current?.animateToRegion(region, 300);
-  }, [region]);
-
   const handleMapReady = useCallback(() => {
     setIsReady(true);
     setError(null);
   }, []);
 
-  return { mapRef, region, isReady, error, setError, animateTo, recenter, handleMapReady };
+  return { mapRef, isReady, error, setError, animateTo, handleMapReady };
 }

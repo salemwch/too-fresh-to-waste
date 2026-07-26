@@ -34,7 +34,6 @@ import {
   useMapEstablishments,
   type ProximitySearchResult,
   type NearbyOffer,
-  type NearbyEstablishment,
   type MapEstablishment,
 } from '@/features/offers/hooks';
 import { useAppDispatch } from '@/hooks/redux';
@@ -53,16 +52,16 @@ import {
   type ViewMode,
 } from '../components';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
-import { usePlaceSearch } from '../hooks/usePlaceSearch';
+import { useSearchPlaceSelection } from '../hooks/useSearchPlaceSelection';
 import { useSearchMapCamera } from '../hooks/useSearchMapCamera';
 import {
   NO_OFFERS,
   groupOffersByEstablishment,
   type EstablishmentGroup,
 } from '../utils/groupOffers';
+import { regionFor } from '../utils/mapRegion';
 
 import type { SearchScreenNavigationProp } from '@/navigation/types';
-import type { ILocationResult } from '@/types/location.types';
 
 // ============================================================================
 // Constants
@@ -76,6 +75,13 @@ const DEFAULT_LOCATION = {
   longitude: environment.geolocation.defaultLongitude,
 };
 
+/**
+ * Frozen empty fallback for the marker list. `?? []` allocates a fresh array on
+ * every render while the query is loading, which re-keys the markers and
+ * invalidates anything memoising on it. Same reasoning as NO_OFFERS.
+ */
+const NO_ESTABLISHMENTS: ProximitySearchResult<MapEstablishment>[] = [];
+
 const INITIAL_RADIUS_KM = 15;
 const TRANSPARENT = 'transparent';
 const MAP_LOADING_OVERLAY = 'rgba(255, 255, 255, 0.7)';
@@ -87,13 +93,6 @@ const SURFACE_SHADOW = '#000';
 
 interface SearchScreenProps {
   navigation: SearchScreenNavigationProp;
-}
-
-/** Selected place info used for bottom sheet + offer fetching */
-interface SelectedPlace {
-  name: string;
-  address: string;
-  coordinates: { latitude: number; longitude: number };
 }
 
 // ============================================================================
@@ -120,15 +119,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   } = useLocation();
 
   // State
-  const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedEstablishment, setSelectedEstablishment] =
     useState<ProximitySearchResult<MapEstablishment> | null>(null);
-
-  const [showPlaceResults, setShowPlaceResults] = useState(false);
-
-  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
 
   // Use user location or default to Sousse
   const centerCoordinates = useMemo(() => {
@@ -146,18 +140,44 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   // Unified Place Search (Google Places + App Establishments)
   // ─────────────────────────────────────────────────────────────────────────
 
+  // Stable identities: these feed memoised children and hook dependency arrays,
+  // so an inline arrow here would recreate the whole handler chain every render.
+  const clearSelectedEstablishment = useCallback(() => setSelectedEstablishment(null), []);
+  const closeLocationModal = useCallback(() => setShowLocationModal(false), []);
+
+  // Camera first: it needs only the radius, so it can be created before the
+  // selected place exists. See the note in useSearchMapCamera.
   const {
+    mapRef,
+    isReady: mapReady,
+    error: mapError,
+    setError: setMapError,
+    animateTo,
+    handleMapReady,
+  } = useSearchMapCamera(searchRadius);
+
+  const {
+    searchQuery,
+    showPlaceResults,
+    selectedPlace,
     googleResults,
     appResults,
-    isLoading: isSearchingPlaces,
-    resolveGooglePlace,
-    resetSessionToken,
+    isSearching: isSearchingPlaces,
     debouncedQuery,
-  } = usePlaceSearch(searchQuery, centerCoordinates, searchRadiusMeters, {
-    minLength: 2,
-    debounceDelay: 300,
-    googleLimit: 5,
-    appLimit: 10,
+    handleSearchChange,
+    handleClearSearch,
+    handleSearchFocus,
+    handleSearchBlur,
+    handleGooglePlacePress,
+    handleAppEstablishmentSelect,
+    closePlaceSheet,
+  } = useSearchPlaceSelection({
+    center: centerCoordinates,
+    radiusMeters: searchRadiusMeters,
+    animateTo,
+    setManualLocationValue,
+    // A newly chosen place supersedes whichever marker was open.
+    onPlaceSelected: clearSelectedEstablishment,
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -166,18 +186,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   const offerCenter = selectedPlace?.coordinates ?? centerCoordinates;
 
-  // Camera, readiness and error state for the MapView. Owns every camera move,
-  // so nothing below recomputes a zoom span by hand.
-  const {
-    mapRef,
-    region: mapRegion,
-    isReady: mapReady,
-    error: mapError,
-    setError: setMapError,
-    animateTo,
-    recenter,
-    handleMapReady,
-  } = useSearchMapCamera(offerCenter, searchRadius);
+  const mapRegion = useMemo(
+    () => regionFor(offerCenter, searchRadius),
+    [offerCenter, searchRadius],
+  );
 
   const searchParams = useMemo(
     () => ({
@@ -199,7 +211,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   // Map establishments (with embedded offers) for map markers
   const { data: mapEstablishments } = useMapEstablishments(searchParams);
-  const displayEstablishments = mapEstablishments ?? [];
+  // Frozen fallback rather than an inline empty array — see NO_ESTABLISHMENTS.
+  const displayEstablishments = mapEstablishments ?? NO_ESTABLISHMENTS;
 
   // Offers to display (no client-side text filter — offers load for selected place)
   const displayOffers = offers ?? NO_OFFERS;
@@ -220,88 +233,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   // Handlers
   // ─────────────────────────────────────────────────────────────────────────
 
-  const handleSearchChange = useCallback((text: string) => {
-    setSearchQuery(text);
-    setShowPlaceResults(text.length >= 2);
-  }, []);
-
-  const handleClearSearch = useCallback(() => {
-    setSearchQuery('');
-    setShowPlaceResults(false);
-    resetSessionToken();
-  }, [resetSessionToken]);
-
-  /**
-   * Handle selecting a Google Places result from dropdown
-   */
-  const handleGooglePlaceSelect = useCallback(
-    async (place: ILocationResult) => {
-      let coords = place.coords;
-
-      // Resolve coordinates via Place Details (billed call, concludes session)
-      if (place.googlePlaceId != null) {
-        const resolved = await resolveGooglePlace(place.googlePlaceId);
-        if (resolved) {
-          coords = resolved.coords;
-        } else {
-          return; // Failed to resolve
-        }
-      }
-
-      const placeCoords = { latitude: coords.lat, longitude: coords.lng };
-      const placeName = place.name || 'Unknown';
-      const placeAddress = place.subtext ?? place.formattedAddress ?? '';
-
-      setSelectedPlace({ name: placeName, address: placeAddress, coordinates: placeCoords });
-      setManualLocationValue(placeCoords, placeName);
-      setSearchQuery('');
-      setShowPlaceResults(false);
-      setSelectedEstablishment(null);
-
-      animateTo(placeCoords);
-    },
-    [resolveGooglePlace, setManualLocationValue, animateTo],
-  );
-
-  /**
-   * Fire-and-forget wrapper for the dropdown, which is a sync onPress. Failures
-   * are already handled inside handleGooglePlaceSelect.
-   */
-  const handleGooglePlacePress = useCallback(
-    (place: ILocationResult) => {
-      void handleGooglePlaceSelect(place);
-    },
-    [handleGooglePlaceSelect],
-  );
-
-  /**
-   * Handle selecting an app establishment from dropdown
-   */
-  const handleAppEstablishmentSelect = useCallback(
-    (establishment: ProximitySearchResult<NearbyEstablishment>) => {
-      const est = establishment.item;
-      const estCoords = {
-        latitude: est.coordinates?.latitude ?? establishment.geoData.coordinates.latitude,
-        longitude: est.coordinates?.longitude ?? establishment.geoData.coordinates.longitude,
-      };
-
-      const address = est.address?.formattedAddress ?? est.address?.city ?? '';
-
-      setSelectedPlace({ name: est.name, address, coordinates: estCoords });
-      setManualLocationValue(estCoords, est.name);
-      setSearchQuery('');
-      setShowPlaceResults(false);
-      setSelectedEstablishment(null);
-
-      animateTo(estCoords);
-    },
-    [setManualLocationValue, animateTo],
-  );
-
-  const handleCloseBottomSheet = useCallback(() => {
-    setSelectedPlace(null);
-  }, []);
-
   /**
    * Every route to an offer goes through here: the place sheet, the
    * establishment sheet, and the list rows all did this identically.
@@ -318,6 +249,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     setShowLocationModal(true);
   }, []);
 
+  const clearMapError = useCallback(() => setMapError(null), [setMapError]);
+
   const handleRefresh = useCallback(() => {
     void refetch();
   }, [refetch]);
@@ -333,10 +266,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
   const handleLocationSelect = useCallback(
     (location: { coordinates: { latitude: number; longitude: number }; name: string }) => {
       setManualLocationValue(location.coordinates, location.name);
-      setSelectedPlace(null);
+      closePlaceSheet();
       animateTo(location.coordinates);
     },
-    [setManualLocationValue, animateTo],
+    [setManualLocationValue, animateTo, closePlaceSheet],
   );
 
   const handleUseMyLocation = useCallback(async () => {
@@ -347,7 +280,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
         return;
       }
 
-      setSelectedPlace(null);
+      closePlaceSheet();
 
       animateTo(result.coordinates);
 
@@ -367,7 +300,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     } catch (error) {
       Logger.error('[SearchScreen] Failed to get current location:', {}, error as Error);
     }
-  }, [requestLocation, animateTo, dispatch]);
+  }, [requestLocation, animateTo, dispatch, closePlaceSheet]);
 
   const handleUseMyLocationPress = useCallback(() => {
     void handleUseMyLocation();
@@ -398,7 +331,10 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
     setSelectedEstablishment(null);
   }, []);
 
-  const handleRecenter = recenter;
+  const handleRecenter = useCallback(
+    () => animateTo(offerCenter, { durationMs: 300 }),
+    [animateTo, offerCenter],
+  );
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
@@ -491,7 +427,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
               </Text>
               <Pressable
                 style={[styles.mapRetryButton, { backgroundColor: theme.colors.primary }]}
-                onPress={() => setMapError(null)}
+                onPress={clearMapError}
                 accessibilityRole='button'
                 accessibilityLabel={t('search.a11yRetryMap')}
                 accessibilityHint={t('search.a11yRetryMapHint')}
@@ -577,7 +513,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 <EstablishmentBottomSheet
                   visible={!!selectedEstablishment}
                   establishment={selectedEstablishment}
-                  onClose={() => setSelectedEstablishment(null)}
+                  onClose={clearSelectedEstablishment}
                   onOfferPress={openOffer}
                   bottomInset={0}
                 />
@@ -590,7 +526,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                 placeAddress={selectedPlace?.address ?? ''}
                 offers={displayOffers}
                 isLoading={isLoadingOffers}
-                onClose={handleCloseBottomSheet}
+                onClose={closePlaceSheet}
                 onOfferPress={openOffer}
               />
             </>
@@ -638,8 +574,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
               autoCorrect={false}
               style={styles.searchInput}
               containerStyle={styles.searchInputInner}
-              onFocus={() => searchQuery.length >= 2 && setShowPlaceResults(true)}
-              onBlur={() => setTimeout(() => setShowPlaceResults(false), 200)}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
             />
           </View>
 
@@ -674,7 +610,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
       {/* Location Filter Modal */}
       <LocationFilterModal
         visible={showLocationModal}
-        onClose={() => setShowLocationModal(false)}
+        onClose={closeLocationModal}
         currentRadius={searchRadius}
         onRadiusChange={handleRadiusChange}
         onLocationSelect={handleLocationSelect}
