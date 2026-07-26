@@ -95,6 +95,63 @@ export const OFFER_SECTIONS = {
   },
 } as const;
 
+/**
+ * The four offer carousels on the home screen, as data.
+ *
+ * They were four near-identical JSX blocks differing only in these fields —
+ * thirteen props each, twelve of them the same shape. A table makes adding or
+ * reordering a section a one-line change and stops the four drifting apart, the
+ * way the search offer mappers did before they were centralised.
+ *
+ * Only the static half lives here; offers, loading and error state are keyed by
+ * `id` at the call site because they come from the query hooks.
+ */
+export const HOME_OFFER_SECTIONS = [
+  {
+    id: 'urgentOffers',
+    titleKey: 'home.urgentDeals',
+    /** Appended to the title — kept out of the translation so it cannot be lost. */
+    titleSuffix: ' ⚡',
+    emptyKey: 'home.noUrgentDeals',
+    subtextKey: 'home.urgentSubtext',
+    mascotVariant: 'urgent',
+    mascotCopyKey: 'home.mascotUrgent',
+    section: OFFER_SECTIONS.urgent,
+  },
+  {
+    id: 'hottestDeals',
+    titleKey: 'home.hottestDeals',
+    titleSuffix: ' 🔥',
+    emptyKey: 'home.noHottestDeals',
+    subtextKey: 'home.hottestSubtext',
+    mascotVariant: 'hottest',
+    mascotCopyKey: 'home.mascotHottest',
+    section: OFFER_SECTIONS.hottest,
+  },
+  {
+    id: 'pickupToday',
+    titleKey: 'home.pickupToday',
+    titleSuffix: '',
+    emptyKey: 'home.noPickupToday',
+    subtextKey: 'home.pickupSubtext',
+    mascotVariant: 'today',
+    mascotCopyKey: 'home.mascotToday',
+    section: OFFER_SECTIONS.pickupToday,
+  },
+  {
+    id: 'pickupTomorrow',
+    titleKey: 'home.pickupTomorrow',
+    titleSuffix: '',
+    emptyKey: 'home.noPickupTomorrow',
+    subtextKey: 'home.pickupSubtext',
+    mascotVariant: 'tomorrow',
+    mascotCopyKey: 'home.mascotTomorrow',
+    section: OFFER_SECTIONS.pickupTomorrow,
+  },
+] as const;
+
+export type HomeOfferSectionId = (typeof HOME_OFFER_SECTIONS)[number]['id'];
+
 // ============================================================================
 // Analytics Event Names
 // ============================================================================

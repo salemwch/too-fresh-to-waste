@@ -41,7 +41,9 @@ import {
   CommunityBagGoalBanner,
   CharityDonationBottomSheet,
 } from '../components';
-import { OFFER_SECTIONS } from '../constants/homeConstants';
+import { HOME_OFFER_SECTIONS } from '../constants/homeConstants';
+
+import type { HomeOfferSectionId } from '../constants/homeConstants';
 import {
   useHomeFilters,
   useHomeOffers,
@@ -166,6 +168,14 @@ interface Section {
  *
  * Best Practice: Keep parent component thin - delegate logic to hooks and components
  */
+/** ImpactBanner requires onExpand; nothing on this screen reacts to it. */
+const NOOP = (): void => {};
+
+/** Config by section id, so renderSection is a lookup rather than a switch. */
+const OFFER_SECTION_BY_ID = Object.fromEntries(
+  HOME_OFFER_SECTIONS.map(section => [section.id, section]),
+) as Record<HomeOfferSectionId, (typeof HOME_OFFER_SECTIONS)[number]>;
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -440,6 +450,66 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    * Only include sections that should be rendered
    * ✅ SonarQube: Uses array literal instead of multiple push() calls
    */
+  /**
+   * The per-section query state, keyed the same way as HOME_OFFER_SECTIONS.
+   *
+   * Its identity changes whenever any offer data does, which is what makes
+   * renderSection's identity change — and that is the signal FlashList uses to
+   * repaint cells (see extraData below).
+   */
+  const offerSectionData = useMemo(
+    () => ({
+      urgentOffers: {
+        offers: urgentOffers,
+        isLoading: isLoading.urgent,
+        error: errors.urgent,
+        onRefetch: refetch.urgent,
+      },
+      hottestDeals: {
+        offers: hottestDeals?.data,
+        isLoading: isLoading.hottest,
+        error: errors.hottest,
+        onRefetch: refetch.hottest,
+      },
+      pickupToday: {
+        offers: pickupTodayOffers,
+        isLoading: isLoading.pickupToday,
+        error: errors.pickupToday,
+        onRefetch: refetch.pickupToday,
+      },
+      pickupTomorrow: {
+        offers: pickupTomorrowOffers,
+        isLoading: isLoading.pickupTomorrow,
+        error: errors.pickupTomorrow,
+        onRefetch: refetch.pickupTomorrow,
+      },
+    }),
+    [
+      urgentOffers,
+      hottestDeals,
+      pickupTodayOffers,
+      pickupTomorrowOffers,
+      isLoading,
+      errors,
+      refetch,
+    ],
+  );
+
+  /**
+   * Every section still loading with nothing cached — a genuine cold start
+   * rather than a refetch. Only then is the skeleton right; showing it while
+   * cached offers exist would blank content the user can already see.
+   */
+  const isInitialLoading = useMemo(
+    () =>
+      Object.values(offerSectionData).every(
+        section => section.isLoading && section.offers?.length == null,
+      ),
+    [offerSectionData],
+  );
+
+  const openFilters = useCallback(() => setIsFilterVisible(true), []);
+
   const sections = useMemo<Section[]>(
     () => [
       // Location prompt (conditional - only when no location set)
@@ -485,17 +555,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           );
 
         case 'searchBar': {
-          // Show skeleton during initial load (all sections loading and no data yet)
-          const isInitialLoading =
-            isLoading.urgent &&
-            isLoading.hottest &&
-            isLoading.pickupToday &&
-            isLoading.pickupTomorrow &&
-            urgentOffers?.length == null &&
-            hottestDeals?.data?.length == null &&
-            pickupTodayOffers?.length == null &&
-            pickupTomorrowOffers?.length == null;
-
           if (isInitialLoading) {
             return <SkeletonHomeSearchBar testID='skeleton-home-search-bar' />;
           }
@@ -505,7 +564,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               filters={filters}
-              onFilterPress={() => setIsFilterVisible(true)}
+              onFilterPress={openFilters}
               onRemoveOfferType={handleRemoveOfferType}
               onRemoveEstablishmentType={handleRemoveEstablishmentType}
               onRemoveCuisineType={handleRemoveCuisineType}
@@ -518,7 +577,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         case 'impactBanner':
           return (
             <View style={styles.bannerWrapper}>
-              <ImpactBanner onExpand={() => {}} />
+              <ImpactBanner onExpand={NOOP} />
             </View>
           );
 
@@ -529,81 +588,33 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             </View>
           );
 
+        // All four carousels take the same shape; only their copy and data
+        // differ, and both come from the table. See HOME_OFFER_SECTIONS.
         case 'urgentOffers':
-          return (
-            <HomeOfferSection
-              title={t('home.urgentDeals') + ' ⚡'}
-              offers={urgentOffers}
-              isLoading={isLoading.urgent}
-              error={errors.urgent}
-              onRefetch={refetch.urgent}
-              onOfferPress={handleOfferPress}
-              onSeeAllPress={handleSeeAll}
-              emptyMessage={t('home.noUrgentDeals')}
-              emptySubtext={t('home.urgentSubtext')}
-              variant={OFFER_SECTIONS.urgent.variant}
-              testIDPrefix={OFFER_SECTIONS.urgent.testIDPrefix}
-              mascotVariant='urgent'
-              mascotCopy={t('home.mascotUrgent')}
-            />
-          );
-
         case 'hottestDeals':
-          return (
-            <HomeOfferSection
-              title={t('home.hottestDeals') + ' 🔥'}
-              offers={hottestDeals?.data}
-              isLoading={isLoading.hottest}
-              error={errors.hottest}
-              onRefetch={refetch.hottest}
-              onOfferPress={handleOfferPress}
-              onSeeAllPress={handleSeeAll}
-              emptyMessage={t('home.noHottestDeals')}
-              emptySubtext={t('home.hottestSubtext')}
-              variant={OFFER_SECTIONS.hottest.variant}
-              testIDPrefix={OFFER_SECTIONS.hottest.testIDPrefix}
-              mascotVariant='hottest'
-              mascotCopy={t('home.mascotHottest')}
-            />
-          );
-
         case 'pickupToday':
-          return (
-            <HomeOfferSection
-              title={t('home.pickupToday')}
-              offers={pickupTodayOffers}
-              isLoading={isLoading.pickupToday}
-              error={errors.pickupToday}
-              onRefetch={refetch.pickupToday}
-              onOfferPress={handleOfferPress}
-              onSeeAllPress={handleSeeAll}
-              emptyMessage={t('home.noPickupToday')}
-              emptySubtext={t('home.pickupSubtext')}
-              variant={OFFER_SECTIONS.pickupToday.variant}
-              testIDPrefix={OFFER_SECTIONS.pickupToday.testIDPrefix}
-              mascotVariant='today'
-              mascotCopy={t('home.mascotToday')}
-            />
-          );
+        case 'pickupTomorrow': {
+          const config = OFFER_SECTION_BY_ID[item.type];
+          const data = offerSectionData[item.type];
 
-        case 'pickupTomorrow':
           return (
             <HomeOfferSection
-              title={t('home.pickupTomorrow')}
-              offers={pickupTomorrowOffers}
-              isLoading={isLoading.pickupTomorrow}
-              error={errors.pickupTomorrow}
-              onRefetch={refetch.pickupTomorrow}
+              title={t(config.titleKey) + config.titleSuffix}
+              offers={data.offers}
+              isLoading={data.isLoading}
+              error={data.error}
+              onRefetch={data.onRefetch}
               onOfferPress={handleOfferPress}
               onSeeAllPress={handleSeeAll}
-              emptyMessage={t('home.noPickupTomorrow')}
-              emptySubtext={t('home.pickupSubtext')}
-              variant={OFFER_SECTIONS.pickupTomorrow.variant}
-              testIDPrefix={OFFER_SECTIONS.pickupTomorrow.testIDPrefix}
-              mascotVariant='tomorrow'
-              mascotCopy={t('home.mascotTomorrow')}
+              emptyMessage={t(config.emptyKey)}
+              emptySubtext={t(config.subtextKey)}
+              variant={config.section.variant}
+              testIDPrefix={config.section.testIDPrefix}
+              mascotVariant={config.mascotVariant}
+              mascotCopy={t(config.mascotCopyKey)}
             />
           );
+        }
 
         default:
           return null;
@@ -621,15 +632,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       handleRemoveCuisineType,
       handleRemoveCategory,
       handleClearAllFilters,
-      urgentOffers,
-      isLoading,
-      errors,
-      refetch,
+      openFilters,
+      isInitialLoading,
+      offerSectionData,
       handleOfferPress,
       handleSeeAll,
-      hottestDeals,
-      pickupTodayOffers,
-      pickupTomorrowOffers,
       t,
     ],
   );
