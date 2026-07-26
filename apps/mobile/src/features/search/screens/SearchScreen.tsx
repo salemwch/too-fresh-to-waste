@@ -15,7 +15,6 @@ import { FlashList } from '@shopify/flash-list';
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  FlatList,
   View,
   StyleSheet,
   Dimensions,
@@ -30,7 +29,6 @@ import { environment } from '@/config/environment';
 import { Text, Input, Icon } from '@/design-system/components/atoms';
 import { SkeletonOfferCard } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
-import { FavoriteOfferCard } from '@/features/favorites';
 import {
   useNearbyOffers,
   useMapEstablishments,
@@ -50,6 +48,7 @@ import {
   PlaceOffersBottomSheet,
   EstablishmentMarker,
   EstablishmentBottomSheet,
+  EstablishmentOfferRow,
   type ViewMode,
 } from '../components';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
@@ -59,7 +58,6 @@ import {
   groupOffersByEstablishment,
   type EstablishmentGroup,
 } from '../utils/groupOffers';
-import { nearbyOfferToListItem } from '../utils/offerMappers';
 
 import type { SearchScreenNavigationProp } from '@/navigation/types';
 import type { ILocationResult } from '@/types/location.types';
@@ -81,7 +79,6 @@ const INITIAL_RADIUS_KM = 15;
 const TRANSPARENT = 'transparent';
 const MAP_LOADING_OVERLAY = 'rgba(255, 255, 255, 0.7)';
 const SURFACE_SHADOW = '#000';
-const SEARCH_CAROUSEL_CARD_WIDTH = 260;
 
 // ============================================================================
 // Types
@@ -97,86 +94,6 @@ interface SelectedPlace {
   address: string;
   coordinates: { latitude: number; longitude: number };
 }
-
-// ============================================================================
-// EstablishmentOfferRow — one section per business in list view
-// ============================================================================
-
-const rowStyles = StyleSheet.create({
-  section: {
-    marginBottom: 8,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e0e0e0',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  name: {
-    flex: 1,
-    marginEnd: 8,
-  },
-  carousel: {
-    paddingEnd: 8,
-    paddingVertical: 4,
-  },
-  offerCard: {
-    width: SEARCH_CAROUSEL_CARD_WIDTH,
-    marginEnd: 12,
-  },
-});
-
-interface EstablishmentOfferRowProps {
-  group: EstablishmentGroup;
-  onOfferPress: (offer: ProximitySearchResult<NearbyOffer>) => void;
-}
-
-const EstablishmentOfferRow = React.memo(({ group, onOfferPress }: EstablishmentOfferRowProps) => {
-  const renderOffer = useCallback(
-    ({ item }: { item: ProximitySearchResult<NearbyOffer> }) => (
-      <FavoriteOfferCard
-        offer={nearbyOfferToListItem(item)}
-        variant='default'
-        imageAspectRatio={1.8}
-        onPress={() => onOfferPress(item)}
-        testID={`search-offer-${item.item._id}`}
-        style={rowStyles.offerCard}
-      />
-    ),
-    [onOfferPress],
-  );
-
-  return (
-    <View style={rowStyles.section}>
-      <View style={rowStyles.header}>
-        <Text variant='title' size='md' weight='semibold' numberOfLines={1} style={rowStyles.name}>
-          {group.establishmentName}
-        </Text>
-        <Text variant='body' size='sm' color='secondary'>
-          {group.offers.length} {group.offers.length === 1 ? 'offer' : 'offers'}
-        </Text>
-      </View>
-      <FlatList
-        data={group.offers}
-        renderItem={renderOffer}
-        keyExtractor={item => item.item._id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={rowStyles.carousel}
-        snapToInterval={SEARCH_CAROUSEL_CARD_WIDTH}
-        decelerationRate='fast'
-        windowSize={2}
-        maxToRenderPerBatch={2}
-        initialNumToRender={2}
-        removeClippedSubviews
-      />
-    </View>
-  );
-});
-EstablishmentOfferRow.displayName = 'EstablishmentOfferRow';
 
 // ============================================================================
 // Component
