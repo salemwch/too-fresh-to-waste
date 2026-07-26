@@ -16,12 +16,6 @@ import { useNeighborhood } from './useNeighborhood';
 import type { LeaderboardEntry } from '../types/leaderboard.types';
 import type { FlashList, ViewToken } from '@shopify/flash-list';
 
-/**
- * Ranks beyond this are outside the loaded window, so the bar offers the
- * neighbourhood view instead of scrolling to a row that is not there.
- */
-const LOADED_WINDOW_MAX_RANK = 200;
-
 /** A row counts as visible once half of it is on screen. */
 const VISIBILITY_THRESHOLD_PERCENT = 50;
 
@@ -35,7 +29,9 @@ export interface UserRowTracking {
   listRef: React.RefObject<FlashList<LeaderboardEntry> | null>;
   /** Show the floating position bar. */
   showFloatingBar: boolean;
-  /** The neighbourhood section is expanded and applicable. */
+  /** The user's own row is among the loaded pages. */
+  userIsInList: boolean;
+  /** The nearby-ranks section is expanded and applicable. */
   neighborhoodEnabled: boolean;
   neighborhoodEntries: ReturnType<typeof useNeighborhood>['data'];
   neighborhoodLoading: boolean;
@@ -56,18 +52,31 @@ export function useUserRowTracking({
   const [hasReportedViewability, setHasReportedViewability] = useState(false);
 
   const userIsInList = useMemo(() => allEntries.some(e => e.isCurrentUser), [allEntries]);
-  const userRankWithin200 = userEntry != null && userEntry.rank <= LOADED_WINDOW_MAX_RANK;
 
-  // Only meaningful for users outside the loaded window — anyone within it is
-  // already in the list above. Gates both the query and the section.
-  const neighborhoodEnabled = showNeighborhood && !userRankWithin200;
+  // Nearby ranks answer "where am I?" for someone whose row is not on the
+  // leaderboard at all. Gated on presence in the list rather than on a rank
+  // threshold: only a few pages are loaded, so plenty of low-numbered ranks are
+  // absent too, and they need the same answer.
+  const neighborhoodEnabled = showNeighborhood && !userIsInList;
   const { data: neighborhood, isLoading: neighborhoodLoading } =
     useNeighborhood(neighborhoodEnabled);
 
-  // Withheld until viewability has reported at least once, so the bar does not
-  // flash on mount before the list knows what is on screen.
+  /*
+   * Two different questions, depending on whether the row exists in the list.
+   *
+   *  in the list     — show the bar only once the row scrolls out of view, so it
+   *                    does not sit on top of the row it describes. Waiting for
+   *                    the first viewability report also stops it flashing on
+   *                    mount before the list knows what is on screen.
+   *  not in the list — the row can never be seen, so the bar is permanent. It is
+   *                    the only way these users learn their rank, and gating it
+   *                    on viewability hid it from them entirely: viewability is
+   *                    not even wired when the row is absent.
+   */
   const showFloatingBar =
-    userEntry != null && !userRowVisible && !isLoading && hasReportedViewability;
+    userEntry != null &&
+    !isLoading &&
+    (!userIsInList || (hasReportedViewability && !userRowVisible));
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -83,18 +92,21 @@ export function useUserRowTracking({
     itemVisiblePercentThreshold: VISIBILITY_THRESHOLD_PERCENT,
   }).current;
 
+  // In the list: jump to the row. Not in it: there is nothing to jump to, so
+  // open the nearby ranks instead.
   const handleFloatingBarPress = useCallback(() => {
-    if (userRankWithin200 && userIsInList) {
+    if (userIsInList) {
       const index = allEntries.findIndex(e => e.isCurrentUser);
       if (index >= 0) listRef.current?.scrollToIndex({ index, animated: true });
       return;
     }
     setShowNeighborhood(prev => !prev);
-  }, [userRankWithin200, userIsInList, allEntries]);
+  }, [userIsInList, allEntries]);
 
   return {
     listRef,
     showFloatingBar,
+    userIsInList,
     neighborhoodEnabled,
     neighborhoodEntries: neighborhood,
     neighborhoodLoading,

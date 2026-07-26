@@ -130,6 +130,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const {
     listRef,
     showFloatingBar,
+    userIsInList,
     neighborhoodEnabled,
     neighborhoodEntries,
     neighborhoodLoading,
@@ -137,8 +138,6 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     viewabilityConfig,
     handleFloatingBarPress,
   } = useUserRowTracking({ allEntries, userEntry, isLoading });
-
-  const userIsInList = useMemo(() => allEntries.some(e => e.isCurrentUser), [allEntries]);
 
   const keyExtractor = useCallback((item: LeaderboardEntry) => item.userId, []);
   const renderItem = useCallback(

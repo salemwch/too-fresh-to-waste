@@ -29,18 +29,22 @@ import type { LeaderboardEntry } from '../../types/leaderboard.types';
 const entry = (rank: number, isCurrentUser = false): LeaderboardEntry =>
   ({ userId: `u${rank}`, rank, isCurrentUser }) as LeaderboardEntry;
 
+/**
+ * Default fixture: the user's row IS in the loaded list, so the bar is
+ * viewability-driven. Tests for an absent row override allEntries as well.
+ */
 const setup = (over: Partial<Parameters<typeof useUserRowTracking>[0]> = {}) =>
   renderHook(() =>
     useUserRowTracking({
-      allEntries: [entry(1), entry(2)],
-      userEntry: entry(50),
+      allEntries: [entry(1), entry(50, true)],
+      userEntry: entry(50, true),
       isLoading: false,
       ...over,
     }),
   );
 
 /** A viewability report where the current user's row is not among the items. */
-const reportOffScreen = { viewableItems: [{ item: entry(1) }, { item: entry(2) }] as never };
+const reportOffScreen = { viewableItems: [{ item: entry(1) }] as never };
 const reportOnScreen = { viewableItems: [{ item: entry(50, true) }] as never };
 
 describe('useUserRowTracking', () => {
@@ -100,8 +104,42 @@ describe('useUserRowTracking', () => {
     });
   });
 
+  /*
+   * Only a handful of pages are loaded, so most users are simply not on the
+   * board. Their row can never scroll into view, viewability is not even wired
+   * for them, and the bar is the only place they see their own rank — so it is
+   * permanent rather than viewability-driven.
+   */
+  describe('when the row is not in the loaded list', () => {
+    const distant = { allEntries: [entry(1), entry(2)], userEntry: entry(100_000) };
+
+    it('shows the bar immediately, with no viewability report', () => {
+      expect(setup(distant).result.current.showFloatingBar).toBe(true);
+    });
+
+    it('keeps the bar up after a report that does not contain the row', () => {
+      const { result } = setup(distant);
+
+      act(() => result.current.onViewableItemsChanged(reportOffScreen));
+
+      expect(result.current.showFloatingBar).toBe(true);
+    });
+
+    it('still hides it while loading', () => {
+      expect(setup({ ...distant, isLoading: true }).result.current.showFloatingBar).toBe(false);
+    });
+
+    it('reports that the row is absent so the screen can skip viewability', () => {
+      expect(setup(distant).result.current.userIsInList).toBe(false);
+      expect(
+        setup({ allEntries: [entry(1, true)], userEntry: entry(1, true) }).result.current
+          .userIsInList,
+      ).toBe(true);
+    });
+  });
+
   describe('pressing the bar', () => {
-    it('scrolls to the row when the user is inside the loaded window', () => {
+    it('scrolls to the row rather than opening nearby ranks when it is loaded', () => {
       const { result } = setup({
         allEntries: [entry(1), entry(2, true)],
         userEntry: entry(2, true),
@@ -109,13 +147,12 @@ describe('useUserRowTracking', () => {
 
       act(() => result.current.handleFloatingBarPress());
 
-      // Neighbourhood is not the answer for someone already in the list.
+      // Nearby ranks are not the answer for someone already on screen.
       expect(result.current.neighborhoodEnabled).toBe(false);
     });
 
-    // Beyond the loaded window there is no row to scroll to.
-    it('toggles the neighbourhood view for a distant rank', () => {
-      const { result } = setup({ userEntry: entry(5000) });
+    it('toggles nearby ranks when the row is not in the list', () => {
+      const { result } = setup({ allEntries: [entry(1), entry(2)], userEntry: entry(100_000) });
 
       act(() => result.current.handleFloatingBarPress());
       expect(result.current.neighborhoodEnabled).toBe(true);
@@ -124,26 +161,146 @@ describe('useUserRowTracking', () => {
       expect(result.current.neighborhoodEnabled).toBe(false);
     });
 
-    // A rank inside the window that has not been paged in yet: scrolling would
-    // target an index that is not there, so fall through to the neighbourhood.
-    it('falls back to the neighbourhood when the row is not loaded', () => {
-      const { result } = setup({ allEntries: [entry(1), entry(2)], userEntry: entry(50) });
+    // Only a few pages are loaded, so a low rank can be absent too — and needs
+    // the same answer as rank 100,000. Gating on rank left these users with a
+    // bar that did nothing.
+    it('offers nearby ranks for a low rank that has not been paged in yet', () => {
+      const { result } = setup({ allEntries: [entry(1), entry(2)], userEntry: entry(60) });
 
       act(() => result.current.handleFloatingBarPress());
 
+      expect(result.current.neighborhoodEnabled).toBe(true);
+    });
+  });
+
+  /*
+   * Failure and edge paths. Viewability payloads come from a native list and
+   * the entry list changes underneath as pages load, so none of these shapes
+   * can be assumed away.
+   */
+  describe('malformed or empty viewability payloads', () => {
+    it('treats an empty report as "row not visible" rather than crashing', () => {
+      const { result } = setup();
+
+      expect(() =>
+        act(() => result.current.onViewableItemsChanged({ viewableItems: [] })),
+      ).not.toThrow();
+      expect(result.current.showFloatingBar).toBe(true);
+    });
+
+    it('survives tokens with no item attached', () => {
+      const { result } = setup();
+
+      expect(() =>
+        act(() =>
+          result.current.onViewableItemsChanged({
+            viewableItems: [{ item: undefined }, { item: null }] as never,
+          }),
+        ),
+      ).not.toThrow();
+      expect(result.current.showFloatingBar).toBe(true);
+    });
+
+    it('still finds the row when mixed with malformed tokens', () => {
+      const { result } = setup();
+
+      act(() =>
+        result.current.onViewableItemsChanged({
+          viewableItems: [{ item: null }, { item: entry(50, true) }] as never,
+        }),
+      );
+
+      expect(result.current.showFloatingBar).toBe(false);
+    });
+
+    it('handles repeated identical reports idempotently', () => {
+      const { result } = setup();
+
+      act(() => result.current.onViewableItemsChanged(reportOffScreen));
+      act(() => result.current.onViewableItemsChanged(reportOffScreen));
+      act(() => result.current.onViewableItemsChanged(reportOffScreen));
+
+      expect(result.current.showFloatingBar).toBe(true);
+    });
+  });
+
+  describe('empty and shifting data', () => {
+    it('shows no bar before any data has arrived', () => {
+      const { result } = setup({ allEntries: [], userEntry: null });
+
+      expect(result.current.showFloatingBar).toBe(false);
+      expect(result.current.userIsInList).toBe(false);
+    });
+
+    // Ranked but nothing loaded yet: the bar is the only place they see it.
+    it('shows the bar when ranked but the list is still empty', () => {
+      const { result } = setup({ allEntries: [], userEntry: entry(100_000) });
+
+      expect(result.current.showFloatingBar).toBe(true);
+    });
+
+    // Paging in the user's own row must flip the press behaviour from
+    // "open nearby ranks" to "scroll to it".
+    it('switches from nearby-ranks to scroll once the row is paged in', () => {
+      const { result, rerender } = renderHook(
+        (props: Parameters<typeof useUserRowTracking>[0]) => useUserRowTracking(props),
+        {
+          initialProps: {
+            allEntries: [entry(1)],
+            userEntry: entry(50, true),
+            isLoading: false,
+          },
+        },
+      );
+      expect(result.current.userIsInList).toBe(false);
+
+      rerender({
+        allEntries: [entry(1), entry(50, true)],
+        userEntry: entry(50, true),
+        isLoading: false,
+      });
+
+      expect(result.current.userIsInList).toBe(true);
+      act(() => result.current.handleFloatingBarPress());
       expect(result.current.neighborhoodEnabled).toBe(false);
+    });
+  });
+
+  describe('pressing when scrolling cannot happen', () => {
+    // The ref is null until FlashList mounts; a press in that window must not
+    // throw, and must not silently open nearby ranks either.
+    it('does not throw when the list ref is not attached', () => {
+      const { result } = setup();
+
+      expect(() => act(() => result.current.handleFloatingBarPress())).not.toThrow();
+      expect(result.current.neighborhoodEnabled).toBe(false);
+    });
+
+    // userEntry says the user is ranked at 2 and a rank-2 row is loaded, but it
+    // is not flagged isCurrentUser — so it is somebody else's row. Falling
+    // through to nearby ranks is right; scrolling to a coincidental rank match
+    // would highlight the wrong person.
+    //
+    // (The `index >= 0` guard inside the hook is unreachable by construction:
+    // userIsInList and findIndex use the same predicate, so reaching the scroll
+    // branch guarantees a hit. It stays as defence, not as a tested path.)
+    it('opens nearby ranks when no loaded row is flagged as the user', () => {
+      const { result } = setup({ allEntries: [entry(1), entry(2)], userEntry: entry(2) });
+
+      expect(() => act(() => result.current.handleFloatingBarPress())).not.toThrow();
+      expect(result.current.neighborhoodEnabled).toBe(true);
     });
   });
 
   describe('the neighbourhood query', () => {
     it('stays disabled until the section is opened', () => {
-      setup({ userEntry: entry(5000) });
+      setup({ allEntries: [entry(1), entry(2)], userEntry: entry(100_000) });
 
       expect(mockUseNeighborhood).toHaveBeenLastCalledWith(false);
     });
 
-    it('is enabled once opened for a distant rank', () => {
-      const { result } = setup({ userEntry: entry(5000) });
+    it('is enabled once opened for a row outside the list', () => {
+      const { result } = setup({ allEntries: [entry(1), entry(2)], userEntry: entry(100_000) });
 
       act(() => result.current.handleFloatingBarPress());
 
@@ -151,10 +308,10 @@ describe('useUserRowTracking', () => {
     });
 
     it('passes its data and loading state through', () => {
-      mockNeighborhood = { data: { entries: [entry(4999)] }, isLoading: true };
-      const { result } = setup({ userEntry: entry(5000) });
+      mockNeighborhood = { data: { entries: [entry(99_999)] }, isLoading: true };
+      const { result } = setup({ allEntries: [entry(1), entry(2)], userEntry: entry(100_000) });
 
-      expect(result.current.neighborhoodEntries).toEqual({ entries: [entry(4999)] });
+      expect(result.current.neighborhoodEntries).toEqual({ entries: [entry(99_999)] });
       expect(result.current.neighborhoodLoading).toBe(true);
     });
   });
