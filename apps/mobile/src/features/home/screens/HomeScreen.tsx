@@ -14,7 +14,6 @@
  * the sections freeze on their first render and never show fetched offers.
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useState, useMemo, useLayoutEffect, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +48,7 @@ import {
   useHomeFilters,
   useHomeOffers,
   useLocationSetup,
+  useRecentLocations,
   COMMUNITY_GOAL_QUERY_KEY,
 } from '../hooks';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
@@ -63,9 +63,6 @@ import type { RootState } from '@/types';
 // ============================================================================
 // Constants
 // ============================================================================
-
-const RECENT_LOCATIONS_STORAGE_KEY = '@food_waste_app:recent_locations';
-const MAX_RECENT_LOCATIONS = 5;
 
 // ============================================================================
 // Header sub-components (defined outside HomeScreen to avoid re-mount on render)
@@ -297,13 +294,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // Local State - UI Control
   // ============================================================================
 
+  const { recentLocations, saveToRecentLocations } = useRecentLocations();
+
   const [refreshing, setRefreshing] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const flatListRef = useRef<FlashList<Section>>(null);
   // Note: isLocationPickerVisible moved to top with location search state
-
-  // 🆕 Recent locations - persisted in AsyncStorage
-  const [recentLocations, setRecentLocations] = useState<LocationItem[]>([]);
 
   /**
    * Home tab re-tap: scroll to top + refetch all offers
@@ -361,24 +357,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    * 🆕 Load recent locations from AsyncStorage on mount
    * Non-blocking: Runs in background, doesn't affect UI render
    */
-  useEffect(() => {
-    const loadRecentLocations = async () => {
-      try {
-        const stored = await AsyncStorage.getItem(RECENT_LOCATIONS_STORAGE_KEY);
-        if (stored != null) {
-          const parsed = JSON.parse(stored) as LocationItem[];
-          setRecentLocations(parsed);
-          Logger.debug('[HomeScreen] ✅ Loaded recent locations from storage', {
-            count: parsed.length,
-          });
-        }
-      } catch (error) {
-        Logger.warn('[HomeScreen] ⚠️ Failed to load recent locations', { error: String(error) });
-      }
-    };
-
-    void loadRecentLocations(); // ✅ Fire and forget - non-blocking
-  }, []); // ✅ Run only once on mount
 
   // ============================================================================
   // Header Override - Control LocationHeader from this screen
@@ -416,30 +394,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    * 🆕 Save location to recent locations (non-blocking)
    * Deduplicates by coordinates, keeps max 5, persists to AsyncStorage as side effect
    */
-  const saveToRecentLocations = useCallback((location: LocationItem) => {
-    setRecentLocations(prev => {
-      // Deduplicate: Remove if same coordinates already exist
-      const filtered = prev.filter(
-        item => item.latitude !== location.latitude || item.longitude !== location.longitude,
-      );
-
-      // Add new location to front, limit to MAX_RECENT_LOCATIONS
-      const updated = [location, ...filtered].slice(0, MAX_RECENT_LOCATIONS);
-
-      // ✅ Persist to AsyncStorage as side effect (non-blocking, fire-and-forget)
-      void AsyncStorage.setItem(RECENT_LOCATIONS_STORAGE_KEY, JSON.stringify(updated))
-        .then(() => {
-          Logger.debug('[HomeScreen] ✅ Saved recent location to storage', {
-            name: location.name,
-          });
-        })
-        .catch(error => {
-          Logger.warn('[HomeScreen] ⚠️ Failed to save recent location:', error);
-        });
-
-      return updated;
-    });
-  }, []);
 
   /**
    * Handle pull-to-refresh
