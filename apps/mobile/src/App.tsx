@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import React, { Component, useEffect } from 'react';
 import { Config } from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -7,7 +8,7 @@ import i18n from '@/i18n';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { Provider as ReduxProvider, useSelector, useDispatch } from 'react-redux';
+import { Provider as ReduxProvider, useSelector } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
 import { OfflineBanner } from '@/components/Errors';
@@ -17,6 +18,7 @@ import { environment, validateEnvironmentConfig } from '@/config/environment';
 import { ThemeProvider } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { AuthFlowState } from '@/features/auth/types';
+import { favoriteKeys } from '@/features/favorites/hooks/favoriteKeys';
 import { QueryProvider } from '@/lib/react-query';
 import { RootNavigator } from '@/navigation';
 import { localLocationService } from '@/services/location/LocalLocationService';
@@ -25,7 +27,6 @@ import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
 import { socketService } from '@/services/socketService';
 import { store, persistor } from '@/store';
 import { RehydrationGate } from '@/store/rehydrationOrchestrator';
-import { syncAllFavorites, clearFavorites } from '@/store/slices/favoritesSlice';
 import { useAppVersionCheck } from '@/hooks/useAppVersionCheck';
 import { Logger, NativeModuleLogger } from '@/utils';
 import { analytics } from '@/utils/analytics';
@@ -34,7 +35,7 @@ import { toastConfig } from '@/utils/toast';
 
 import type { ErrorInfo, ReactNode } from 'react';
 import type { FavoriteType } from '@/features/favorites/types';
-import type { RootState, AppDispatch } from '@/store';
+import type { RootState } from '@/store';
 
 // ─── Global Error Boundary ──────────────────────────────────────────────────
 interface GlobalErrorBoundaryState {
@@ -179,7 +180,7 @@ try {
  * Handles auth-dependent logic like favorites sync
  */
 function AppContent(): React.JSX.Element {
-  const dispatch = useDispatch<AppDispatch>();
+  const queryClient = useQueryClient();
   const flowState = useSelector((state: RootState) => state.auth.flowState);
   const userId = useSelector((state: RootState) => state.auth.user?.userId ?? null);
   const versionCheck = useAppVersionCheck();
@@ -251,35 +252,33 @@ function AppContent(): React.JSX.Element {
   //
   // ✅ RACE CONDITION FIX (2026-02-04):
   // Added sessionExpiresAt dependency to retry sync after successful token refresh.
-  // When app launches with expired tokens, favoritesSlice skips the API call.
+  // When app launches with expired tokens, useFavoriteIds skips the API call.
   // After auth middleware refreshes tokens, sessionExpiresAt changes, triggering retry.
   useEffect(() => {
     if (flowState === AuthFlowState.AUTHENTICATED) {
       // Only sync if session hasn't expired locally
-      // (favoritesSlice has additional guard, but this prevents unnecessary dispatch)
+      // (useFavoriteIds has its own auth guard; this avoids pointless work)
       const isSessionValid =
         sessionExpiresAt == null ||
         sessionExpiresAt === '' ||
         new Date(sessionExpiresAt).getTime() > Date.now();
 
       if (isSessionValid) {
-        const syncFavorites = async (): Promise<void> => {
-          await dispatch(syncAllFavorites());
-        };
-
-        syncFavorites().catch(error => {
-          Logger.error('[App] Failed to sync favorites', {}, error as Error);
-        });
+        // Invalidate rather than fetch: useFavoriteIds is already gated on auth
+        // readiness, so marking the data stale lets whichever screen needs it
+        // refetch on mount. Nothing is requested if no screen is watching.
+        void queryClient.invalidateQueries({ queryKey: favoriteKeys.all });
       }
     } else if (
       flowState === AuthFlowState.UNAUTHENTICATED ||
       flowState === AuthFlowState.SESSION_EXPIRED
     ) {
-      // ✅ Clear favorites when user logs out or session expires
-      // Prevents stale data from previous user persisting
-      dispatch(clearFavorites());
+      // Remove, don't invalidate: favourites are user-scoped, and invalidating
+      // would leave the previous account's ids readable until a refetch landed.
+      // removeQueries drops them from memory and from the persisted cache.
+      queryClient.removeQueries({ queryKey: favoriteKeys.all });
     }
-  }, [flowState, sessionExpiresAt, dispatch]);
+  }, [flowState, sessionExpiresAt, queryClient]);
 
   return (
     <>

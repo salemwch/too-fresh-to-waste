@@ -16,6 +16,7 @@
  * queries that are safe to survive a restart are dehydrated:
  *
  *   - public catalogue data (offers, establishments, search, categories)
+ *   - the favourite id list (ids only, no offer content — see below)
  *
  * Everything else is dropped, including anything keyed under auth, profile,
  * orders, payment, notifications or loyalty. Those are either sensitive at rest
@@ -54,6 +55,10 @@ const PERSISTABLE_KEY_PREFIXES: ReadonlySet<string> = new Set([
   'establishments',
   'search',
   'categories',
+  // Favourites must survive a cold start: an offline toggle patches this cache
+  // and enqueues the write, and the heart has to stay filled until the queue
+  // drains. This is the durability redux-persist used to provide.
+  'favorites',
 ]);
 
 /**

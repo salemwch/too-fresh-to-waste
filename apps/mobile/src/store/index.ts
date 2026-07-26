@@ -18,7 +18,6 @@ import {
 
 import { environment } from '@/config/environment';
 import authReducer from '@/features/auth/store/authSlice';
-import favoritesReducer from '@/store/slices/favoritesSlice';
 import locationReducer from '@/store/slices/locationSlice';
 import type { LocationState } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
@@ -28,7 +27,6 @@ import { authSessionMiddleware } from './middleware/authSessionMiddleware';
 import { setAppStore } from './storeAccessor';
 
 import type { AuthState } from '@/features/auth/types';
-import type { FavoritesState } from '@/store/slices/favoritesSlice';
 
 interface TransientSliceState<TError> {
   error: TError;
@@ -43,7 +41,6 @@ type PersistedSlice<TState extends TransientSliceState<unknown>> = Omit<
 const rootReducer = combineReducers({
   auth: authReducer,
   location: locationReducer,
-  favorites: favoritesReducer,
 });
 
 type RootStateFromReducer = ReturnType<typeof rootReducer>;
@@ -67,15 +64,34 @@ const createTransientStateTransform = <TState extends TransientSliceState<unknow
   );
 
 const authTransform = createTransientStateTransform<AuthState>('auth', undefined);
-const favoritesTransform = createTransientStateTransform<FavoritesState>('favorites', null);
 const locationTransform = createTransientStateTransform<LocationState>('location', null);
 
+/**
+ * Persist schema version.
+ *
+ * v1 drops the `favorites` slice. redux-persist ignores unknown keys, so an
+ * upgraded device would otherwise carry the previous account's favourite ids
+ * in encrypted storage indefinitely with nothing left to read them.
+ */
+const PERSIST_VERSION = 1;
+
 const persistConfig = {
+  version: PERSIST_VERSION,
+  migrate: async (state: unknown) => {
+    if (state !== null && typeof state === 'object' && 'favorites' in state) {
+      const { favorites: _dropped, ...rest } = state as Record<string, unknown>;
+      Logger.info('[Redux Persist] Migrated to v1 — dropped the favorites mirror');
+      return rest as never;
+    }
+    return state as never;
+  },
   key: 'root',
   storage: mmkvStorage,
-  whitelist: ['auth', 'favorites', 'location'],
+  // 'favorites' was removed here: it mirrored server data that React Query now
+  // owns. See docs/plans/favorites-redux-mirror-removal.md.
+  whitelist: ['auth', 'location'],
   blacklist: [],
-  transforms: [authTransform, favoritesTransform, locationTransform],
+  transforms: [authTransform, locationTransform],
   timeout: 1000,
   writeFailHandler: (error: Error) => {
     Logger.error('[Redux Persist] MMKV write failed', {}, error);

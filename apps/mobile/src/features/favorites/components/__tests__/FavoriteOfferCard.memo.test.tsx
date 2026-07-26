@@ -35,15 +35,7 @@ jest.mock('@/design-system/components/organisms', () => {
 
 const mockToggle = jest.fn();
 jest.mock('../../hooks', () => ({
-  useFavoriteToggle: () => ({ toggle: mockToggle }),
-}));
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => false),
-}));
-
-jest.mock('@/store/slices/favoritesSlice', () => ({
-  selectIsFavorite: jest.fn(() => false),
+  useFavoriteToggle: () => ({ toggle: mockToggle, isFavorite: false, isLoading: false }),
 }));
 
 import { FavoriteOfferCard } from '../FavoriteOfferCard';

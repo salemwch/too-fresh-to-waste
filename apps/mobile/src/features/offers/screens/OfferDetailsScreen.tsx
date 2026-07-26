@@ -16,13 +16,11 @@ import {
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 
 import { Text, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
 import { useFavoriteToggle } from '@/features/favorites/hooks';
-import { selectIsFavorite } from '@/store/slices/favoritesSlice';
 import { analytics } from '@/utils/analytics';
 
 import { styles, PRIMARY_COLOR, WHITE, INDIGO } from './OfferDetailsScreen.styles';
@@ -35,7 +33,6 @@ import { isOfferActive, OfferStatus } from '../types/offer.types';
 
 import type { Offer } from '../types/offer.types';
 import type { MainStackParamList } from '@/navigation/types';
-import type { RootState } from '@/store';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -279,14 +276,13 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
       ? offer.merchantId
       : undefined;
 
-  // ✅ Favorite toggle hook
-  const { toggle: toggleFavorite, isLoading: isFavoriteLoading } = useFavoriteToggle(
-    offerId,
-    offer?.title,
-    offer?.images?.[0],
-  );
-  const isFavorite = useSelector((state: RootState) => selectIsFavorite(state, offerId));
-
+  // isFavorite comes from the same hook that writes it, so the heart and the
+  // optimistic cache patch cannot disagree.
+  const {
+    toggle: toggleFavorite,
+    isLoading: isFavoriteLoading,
+    isFavorite,
+  } = useFavoriteToggle(offerId, offer?.title, offer?.images?.[0]);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(true);
   const [isAllergensOpen, setIsAllergensOpen] = useState(false);
   const [isSheetVisible, setSheetVisible] = useState(false);

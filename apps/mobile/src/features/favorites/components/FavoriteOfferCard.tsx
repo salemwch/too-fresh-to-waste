@@ -8,24 +8,21 @@
  * - One-tap favorite toggle
  * - Race condition protection
  *
- * IMPORTANT: This component reads isFavorite from Redux (single source of truth)
- * for instant optimistic updates without waiting for API response.
+ * isFavorite and the toggle both come from useFavoriteToggle, which owns the
+ * React Query cache patch — so the displayed state and the optimistic write can
+ * never disagree.
  */
 
 import React, { memo, useCallback } from 'react';
-import { useSelector } from 'react-redux';
 
 import { OfferCard } from '@/design-system/components/organisms';
-import { selectIsFavorite } from '@/store/slices/favoritesSlice';
 
 import { useFavoriteToggle } from '../hooks';
 
 import type { OfferCardProps } from '@/design-system/components/organisms/OfferCard/OfferCard.types';
-import type { RootState } from '@/store';
 
 /**
- * OfferCard with favorites integration
- * Reads isFavorite from Redux for instant updates
+ * OfferCard with favorites integration.
  *
  * Memoized — for this wrapper's own cost, not the card's.
  *
@@ -33,7 +30,7 @@ import type { RootState } from '@/store';
  * card render was already skipped when props compared equal. What was NOT
  * skipped was this component: as a plain function it re-ran on every parent
  * render, once per card in the list, each time re-executing useFavoriteToggle
- * and a useSelector and re-reconciling the element — work whose only outcome
+ * and re-reconciling the element — work whose only outcome
  * was the inner memo deciding nothing had changed.
  *
  * On a Home screen with four carousels that is a few dozen wasted hook cycles
@@ -42,11 +39,10 @@ import type { RootState } from '@/store';
 const FavoriteOfferCardComponent: React.FC<Omit<OfferCardProps, 'onFavorite'>> = props => {
   const { offer } = props;
 
-  // Use optimistic toggle hook (reads from Redux after toggle, updates instantly)
-  const { toggle } = useFavoriteToggle(offer.id, offer.title, offer.image);
+  // isFavorite comes back from the same hook that writes it, so the read and
+  // the optimistic patch can never disagree.
+  const { toggle, isFavorite } = useFavoriteToggle(offer.id, offer.title, offer.image);
 
-  // ✅ Read from Redux (single source of truth) - updates instantly on toggle
-  const isFavorite = useSelector((state: RootState) => selectIsFavorite(state, offer.id));
   const handleFavoritePress = useCallback(() => {
     void toggle();
   }, [toggle]);
@@ -54,7 +50,6 @@ const FavoriteOfferCardComponent: React.FC<Omit<OfferCardProps, 'onFavorite'>> =
   return (
     <OfferCard
       {...props}
-      // ✅ Use Redux state for instant optimistic updates
       isFavorite={isFavorite}
       onFavorite={handleFavoritePress}
       // ❌ DON'T disable entire card during toggle - useFavoriteToggle has race condition protection

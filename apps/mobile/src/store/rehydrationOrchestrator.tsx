@@ -199,7 +199,6 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
 
   const locationState = useSelector((state: RootState) => state.location);
   const authState = useSelector((state: RootState) => state.auth);
-  const favoritesState = useSelector((state: RootState) => state.favorites);
 
   useEffect(() => {
     // ────────────────────────────────────────────────────────────────────────
@@ -222,14 +221,12 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
 
     const isLocationRehydrated = locationState !== undefined;
     const isAuthRehydrated = authState !== undefined;
-    const isFavoritesRehydrated = favoritesState !== undefined;
 
     const rehydratedSlices: string[] = [];
     if (isLocationRehydrated) rehydratedSlices.push('location');
     if (isAuthRehydrated) rehydratedSlices.push('auth');
-    if (isFavoritesRehydrated) rehydratedSlices.push('favorites');
 
-    const allRehydrated = isLocationRehydrated && isAuthRehydrated && isFavoritesRehydrated;
+    const allRehydrated = isLocationRehydrated && isAuthRehydrated;
 
     if (!allRehydrated) {
       // Still waiting for rehydration
@@ -255,7 +252,6 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
     const locationValidation = validateLocationStateConsistency({
       location: locationState,
       auth: authState,
-      favorites: favoritesState,
     } as RootState);
 
     if (!locationValidation.valid) {
@@ -271,7 +267,6 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
     const authValidation = validateAuthStateConsistency({
       location: locationState,
       auth: authState,
-      favorites: favoritesState,
     } as RootState);
 
     if (!authValidation.valid) {
@@ -308,7 +303,7 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
       // state to MMKV, so this should never fire after one clean boot cycle.
       Logger.warn('[RehydrationOrchestrator] Validation warnings detected', { errors });
     }
-  }, [locationState, authState, favoritesState]);
+  }, [locationState, authState]);
 
   // ────────────────────────────────────────────────────────────────────────
   // TIMEOUT HANDLER

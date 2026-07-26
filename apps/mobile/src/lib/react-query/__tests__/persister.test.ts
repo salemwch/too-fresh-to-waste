@@ -33,6 +33,15 @@ describe('shouldPersistQuery', () => {
       },
     );
 
+    // Favourites are allowlisted deliberately, and only because the cached
+    // value is a list of ids — no offer content, no user profile. An offline
+    // toggle patches this cache and enqueues the write, so the heart has to
+    // stay filled across a cold start until the queue drains. That durability
+    // is what redux-persist used to provide before the mirror was removed.
+    it('persists the favourite id list so offline toggles survive a restart', () => {
+      expect(shouldPersistQuery(makeQuery(['favorites', 'ids'], 'success'))).toBe(true);
+    });
+
     it('matches on the first key segment, not the whole key', () => {
       expect(shouldPersistQuery(makeQuery(['offers', 'detail', 'abc123'], 'success'))).toBe(true);
     });
@@ -49,7 +58,6 @@ describe('shouldPersistQuery', () => {
       ['payment'],
       ['notifications'],
       ['loyalty'],
-      ['favorites'],
     ])('never persists %s queries', root => {
       expect(shouldPersistQuery(makeQuery([root, 'me'], 'success'))).toBe(false);
     });
