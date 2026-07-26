@@ -40,6 +40,8 @@ import { WinnerCelebrationModal } from '../components/WinnerCelebrationModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useNeighborhood } from '../hooks/useNeighborhood';
 import { usePrizeClaimStatus, useClaimSmartphone, useClaimDiscount } from '../hooks/usePrizeClaim';
+import { getCountdown } from '../utils/countdown';
+import { PHONE_PRIZE_MAX_RANK, getRowTier } from '../utils/prizeTiers';
 
 import type { LeaderboardEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
@@ -72,28 +74,6 @@ const BORDER_SUBTLE = '#F3F4F6';
 const TEXT_PRIMARY = '#0F2628';
 const TEXT_SECONDARY = '#4B6264';
 const TEXT_TERTIARY = '#8FA6A9';
-
-const PHONE_MAX = 5;
-
-// ─── Tier helper ─────────────────────────────────────────────────────────────
-type RowTier = 'phone' | 'discount';
-function getRowTier(rank: number): RowTier {
-  return rank <= PHONE_MAX ? 'phone' : 'discount';
-}
-
-// ─── Countdown helper ────────────────────────────────────────────────────────
-function getCountdown(
-  endDate: string | undefined,
-): { days: number; hours: number; mins: number; secs: number } | null {
-  if (!endDate) return null;
-  const diff = new Date(endDate).getTime() - Date.now();
-  if (diff <= 0) return null;
-  const days = Math.floor(diff / 86_400_000);
-  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
-  const mins = Math.floor((diff % 3_600_000) / 60_000);
-  const secs = Math.floor((diff % 60_000) / 1000);
-  return { days, hours, mins, secs };
-}
 
 // ─── Reusable avatar ─────────────────────────────────────────────────────────
 interface AvatarProps {
@@ -195,7 +175,7 @@ interface RowProps {
 }
 
 const LeaderboardRow: React.FC<RowProps> = ({ entry }) => {
-  const isTop5 = entry.rank <= PHONE_MAX;
+  const isTop5 = entry.rank <= PHONE_PRIZE_MAX_RANK;
 
   return (
     <View style={[styles.row, isTop5 && styles.rowTop5, entry.isCurrentUser && styles.rowMe]}>
