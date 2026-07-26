@@ -10,7 +10,7 @@
  * - Persister setup (optional)
  */
 
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import React, { useEffect, Component } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
@@ -18,6 +18,12 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { ErrorHandler } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
 
+import {
+  queryPersister,
+  shouldPersistQuery,
+  PERSIST_MAX_AGE,
+  PERSIST_BUSTER,
+} from './persister';
 import { initializePlatformManagers } from './platformSetup';
 import { queryClient } from './queryClient';
 
@@ -152,11 +158,23 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({
     };
   }, []);
 
+  // PersistQueryClientProvider, not QueryClientProvider: it restores the cached
+  // catalogue from MMKV before the first render, so a cold start shows the last
+  // known offers immediately instead of an empty screen waiting on the network.
+  // See persister.ts for what is (and is not) allowed onto disk.
   const content = (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: queryPersister,
+        maxAge: PERSIST_MAX_AGE,
+        buster: PERSIST_BUSTER,
+        dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+      }}
+    >
       {children}
       {/* DevTools will be added here in development mode */}
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 
   // Wrap with error boundary if enabled

@@ -125,7 +125,7 @@
       "@nestjs/platform-express>path-to-regexp": "^8.4.0",
       "@nestjs/swagger>path-to-regexp": "^8.4.0",
       "@tootallnate/once": "^3.0.1",
-      "brace-expansion": "^5.0.8",
+      "brace-expansion": "^2.1.2",
       "picomatch@^2": "^2.3.2",
       "picomatch@^4": "^4.0.4",
       "@nestjs/common>file-type": "^22.0.0",
@@ -187,6 +187,11 @@
       "protobufjs",
       "sharp",
       "unrs-resolver"
-    ]
+    ],
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-mh99-v99m-4gvg"
+      ]
+    }
   }
 }

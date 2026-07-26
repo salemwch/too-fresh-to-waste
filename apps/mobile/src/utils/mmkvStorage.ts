@@ -13,7 +13,8 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ReactNativeConfig from 'react-native-config';
+
+import { resolveEncryptionKey } from '@/storage/encryptionKey';
 
 import { Logger } from './logger';
 
@@ -71,24 +72,12 @@ function tryInitializeMMKV(): MMKVInstance | null {
   // downgrade every user to plaintext-at-rest PII. This must not be swallowed
   // by the AsyncStorage fallback handler — AsyncStorage is unencrypted too, so
   // catching here would defeat the entire guard.
+  //
+  // The gate itself lives in storage/encryptionKey so the `app` store cannot
+  // drift away from it again.
   // ────────────────────────────────────────────────────────────────────────
-  const encryptionKey = ReactNativeConfig['STORAGE_ENCRYPTION_KEY'];
-  const hasValidKey =
-    encryptionKey !== undefined &&
-    encryptionKey !== '' &&
-    encryptionKey !== 'default-key' &&
-    !encryptionKey.startsWith('REPLACE_WITH');
-
-  if (!hasValidKey) {
-    if (!__DEV__) {
-      throw new Error(
-        '[Storage] STORAGE_ENCRYPTION_KEY is missing or a placeholder — refusing to start with unencrypted storage.',
-      );
-    }
-    Logger.warn(
-      '[Storage] STORAGE_ENCRYPTION_KEY missing or placeholder — storage is UNENCRYPTED (dev builds only)',
-    );
-  }
+  const encryptionKey = resolveEncryptionKey();
+  const hasValidKey = encryptionKey !== undefined;
 
   try {
     // ✅ V4 API: Lazy require — MMKV native module must not load until Nitro is ready

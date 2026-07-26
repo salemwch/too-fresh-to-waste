@@ -11,6 +11,8 @@
 
 import { createMMKV } from 'react-native-mmkv';
 
+import { encryptionOption } from './encryptionKey';
+
 /**
  * Default MMKV instance for app-wide storage
  * Uses default encryption and ID 'app'
@@ -19,8 +21,10 @@ import { createMMKV } from 'react-native-mmkv';
  */
 export const storage = createMMKV({
   id: 'app',
-  // Optional: enable encryption for sensitive data
-  // encryptionKey: 'your-encryption-key-here',
+  // Encrypted via the shared gate. This store holds the offline write queue —
+  // queued order payloads — so it is not the "non-sensitive" store its previous
+  // commented-out encryptionKey implied.
+  ...encryptionOption(),
 });
 
 /**

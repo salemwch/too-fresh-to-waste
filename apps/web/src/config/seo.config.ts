@@ -63,7 +63,7 @@ export const seoConfig = {
   twitterHandle: '@toofreshwaste_tn',
 
   // Contact - Tunisia (set via env vars or override per-environment)
-  email: process.env['NEXT_PUBLIC_CONTACT_EMAIL'] || 'contact@toofreshwaste.tn',
+  email: process.env['NEXT_PUBLIC_CONTACT_EMAIL'] || 'contact@toofreshwaste.com',
   phone: process.env['NEXT_PUBLIC_BUSINESS_PHONE'] || '',
   whatsapp: process.env['NEXT_PUBLIC_BUSINESS_WHATSAPP'] || '',
 
@@ -80,7 +80,7 @@ export const seoConfig = {
       'https://www.facebook.com/profile.php?id=61585767061906',
     instagram:
       process.env['NEXT_PUBLIC_SOCIAL_INSTAGRAM'] ||
-      'https://www.instagram.com/toofreshtowaste.tn/',
+      'https://www.instagram.com/toofreshtowaste/',
     x: process.env['NEXT_PUBLIC_SOCIAL_X'] || 'https://x.com/TooFresh2Waste',
     linkedin:
       process.env['NEXT_PUBLIC_SOCIAL_LINKEDIN'] ||
