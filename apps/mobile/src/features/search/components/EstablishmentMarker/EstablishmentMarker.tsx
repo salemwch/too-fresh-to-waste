@@ -44,6 +44,7 @@ import { Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
 import type { ProximitySearchResult, MapEstablishment } from '@/features/offers/hooks';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 // ============================================================================
 // Constants
@@ -51,7 +52,7 @@ import type { ProximitySearchResult, MapEstablishment } from '@/features/offers/
 
 const MARKER_SIZE = 48;
 const MAX_DISPLAY_COUNT = 5;
-const OFFER_CIRCLE_COLOR = '#2E7D32'; // Material green 800
+const OFFER_CIRCLE_COLOR = colorTokens.base.success[500];
 const MARKER_BORDER = '#e0e0e0';
 const WHITE = '#fff';
 const SELECTED_OFFER_BORDER = '#B9F6CA';

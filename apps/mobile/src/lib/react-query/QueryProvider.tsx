@@ -18,19 +18,15 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { ErrorHandler } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
 
-import {
-  queryPersister,
-  shouldPersistQuery,
-  PERSIST_MAX_AGE,
-  PERSIST_BUSTER,
-} from './persister';
+import { queryPersister, shouldPersistQuery, PERSIST_MAX_AGE, PERSIST_BUSTER } from './persister';
 import { initializePlatformManagers } from './platformSetup';
 import { queryClient } from './queryClient';
 
 import type { ErrorInfo, ReactNode } from 'react';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 const ERROR_BACKGROUND = '#f9f9f9';
-const ERROR_TITLE = '#d32f2f';
+const ERROR_TITLE = colorTokens.base.error[500];
 const ERROR_MESSAGE = '#666';
 const RETRY_BUTTON = '#1976d2';
 const RETRY_LABEL = '#fff';

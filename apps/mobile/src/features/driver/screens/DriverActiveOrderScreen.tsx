@@ -352,7 +352,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
               {deliveryLatLng ? (
                 <Marker
                   coordinate={deliveryLatLng}
-                  pinColor='#2196F3'
+                  pinColor={colorTokens.base.info[500]}
                   title={t('driver.marker_customer')}
                   description='Delivery location'
                 />
@@ -368,7 +368,9 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
             </MapView>
             <TouchableOpacity
               style={styles.navButtonFloating}
-              onPress={() => { void openNavigation(navTarget); }}
+              onPress={() => {
+                void openNavigation(navTarget);
+              }}
               activeOpacity={0.85}
               accessibilityRole='button'
               accessibilityLabel={

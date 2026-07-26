@@ -6,8 +6,9 @@ import FastImage from 'react-native-fast-image';
 import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 
 import type { LeaderboardNeighborhoodEntry } from '../types/leaderboard.types';
+import { colorTokens } from '@/design-system/tokens/colors';
 
-const PRIMARY_DARK = '#1E4448';
+const PRIMARY_DARK = colorTokens.base.primary[500];
 const CHAMPION_GOLD = '#c4a25a';
 const SURFACE = '#FFFFFF';
 const SURFACE_MUTED = '#F4F7F7';

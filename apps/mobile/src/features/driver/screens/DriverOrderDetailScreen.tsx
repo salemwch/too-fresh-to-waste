@@ -305,7 +305,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
               >
                 <Marker
                   coordinate={deliveryLatLng}
-                  pinColor='#2196F3'
+                  pinColor={colorTokens.base.info[500]}
                   title={t('driver.customerLocation')}
                 />
               </MapView>

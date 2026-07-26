@@ -8,11 +8,10 @@ plus **97 hand-written `rgba()` strings**.
 
 That cannot be done as one mechanical pass, for two reasons:
 
-1. **Most values have no token.** The token scale is Material grey
-   (`#FAFAFA … #212121`); the components overwhelmingly use Tailwind slate/grey
-   (`#64748b`, `#1f2937`, `#9ca3af`, `#6b7280`, `#e2e8f0`). Converting them
-   means either inventing mappings — a visual change on nearly every screen — or
-   extending the token scale, which is a design decision.
+1. **Most values have no token** — see "The actual problem" below for the real
+   numbers. Converting them means either inventing mappings, which is a visual
+   change on nearly every screen, or first deciding what the palette should be,
+   which is a design exercise.
 2. **A colour change is invisible to every gate we have.** `tsc`, ESLint and
    Jest all pass whether a surface is `#E0E0E0` or `#e2e8f0`. Only a device
    shows it.
@@ -55,19 +54,50 @@ Every slice gets a parity test that pins the literal pre-conversion values — s
 recently decomposed, so the colours are already gathered into few files rather
 than scattered through screens.
 
-## Two decisions to make first
+## The actual problem (corrected 2026-07-27)
 
-1. **One grey scale or two.** The app uses Material greys in tokens and Tailwind
-   greys in components. Converging means shifting one set of surfaces; keeping
-   both means the token file stops being the single source of truth. This is a
-   design call, not a refactor.
-2. **`#22c55e` / `#ef4444` are off-spec.** Components use Tailwind green and red
-   for success and error, while `ui-ux.md` and the tokens specify `#2E7D32` and
-   `#D32F2F`. These are visibly different colours, not near-matches. Correcting
-   them is right but is a visible change to every success and error state.
+An earlier draft framed this as "one grey scale or two". That was wrong, and it
+understated the problem. Measured properly:
+
+- **214 occurrences (18 colours) have an exact token equivalent** — converting
+  those is provably zero-change.
+- **522 occurrences span 200 distinct colours with no token at all.**
+
+Two hundred colours is not a palette that needs reconciling; it is the absence
+of one. Adding all 200 as tokens would institutionalise the mess and deliver no
+design value. Mapping them to nearest neighbours would shift surfaces on every
+screen with nothing able to verify it.
+
+So the blocking question is not a refactor question:
+
+> **What should the palette be?** Pick the ~15–20 colours the product actually
+> needs, then map the 200 onto them.
+
+Until that exists, migration can only clear values that already have an exact
+token. Everything else is guesswork wearing a refactor's clothes.
+
+## Two colours that are simply wrong
+
+`#22c55e` and `#ef4444` are used for success and error, where `ui-ux.md` and the
+tokens specify `#2E7D32` and `#D32F2F`. Visibly different colours, not
+near-matches. Git history shows they arrived in the original scaffold commit
+rather than as a later decision, so this is drift, not an override.
+
+Deliberately **not** corrected in the same commit as a refactor: it changes
+every success and error state on screen, and belongs in a change that can be
+looked at on a device.
 
 ## Enforcement
 
-No lint rule yet, deliberately. At 547 violations a rule would fire on every
-file and be ignored or disabled — worse than none. Add it as `error`, scoped by
-directory, as each feature reaches zero. `leaderboard` qualifies now.
+No lint rule, deliberately. At this volume a rule fires on every file and gets
+disabled within a day — worse than none.
+
+Instead `design-system/tokens/__tests__/rawColorBudget.test.ts` pins the current
+count as a ceiling: existing debt is tolerated, new debt fails the suite. It
+also fails if the ceiling drifts more than 25 above reality, so it cannot
+quietly go stale as debt is paid. Lower the number when you clear some; never
+raise it.
+
+A scoped `error`-level lint rule becomes worthwhile per-directory once a feature
+reaches zero. None has yet — `leaderboard` is closest, with its raw values
+confined to `constants/palette.ts`.

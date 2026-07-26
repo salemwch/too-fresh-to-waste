@@ -35,6 +35,7 @@ import { apiClient, BackendApiResponse } from '@/services/apiClient';
 import { SecureStorage } from '@/services/SecureStorage';
 import { backgroundStorage } from '@/utils/backgroundStorage';
 import { Logger } from '@/utils/logger';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1E4448',
+    color: colorTokens.base.primary[500],
     marginBottom: 8,
   },
   subtitle: {
@@ -208,15 +209,15 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   inputError: {
-    borderColor: '#D32F2F',
+    borderColor: colorTokens.base.error[500],
   },
   errorText: {
-    color: '#D32F2F',
+    color: colorTokens.base.error[500],
     fontSize: 12,
     marginBottom: 16,
   },
   button: {
-    backgroundColor: '#1E4448',
+    backgroundColor: colorTokens.base.primary[500],
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
