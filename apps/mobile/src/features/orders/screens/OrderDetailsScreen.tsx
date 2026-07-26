@@ -23,7 +23,7 @@ import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
 import { KonnectPaymentSheet } from '../components/KonnectPaymentSheet';
 import { ReviewModal } from '../components/ReviewModal';
 
-import { Text, Button, Card, Badge, Icon } from '@/design-system/components/atoms';
+import { Text, Button, Card, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { ImpactMoment, useDonationStats } from '@/features/donations';
 import { useQueryWithFocus } from '@/lib/react-query';
@@ -60,10 +60,15 @@ interface OrderDetailsScreenProps {
 
 // ---------------------------------------------------------------------------
 import {
+  OrderHeader,
+  OrderItemsCard,
+  OrderPricingCard,
+  PickupDetailsCard,
+} from '../components/OrderDetailCards';
+import {
   canConfirmPickup,
   getEstablishmentId,
   getPickupErrorKey,
-  getStatusBadge,
   isOrderExpired,
   isPickedUp,
 } from '../utils/orderStatus';
@@ -75,190 +80,6 @@ const SUCCESS_COLOR = '#22c55e';
 // ---------------------------------------------------------------------------
 // Sub-components (pure, no side-effects – extracted for DRY & readability)
 // ---------------------------------------------------------------------------
-
-/** Order number row + status badge */
-const OrderHeader: React.FC<{ order: Order }> = ({ order }) => {
-  const { t } = useTranslation();
-  const badge = getStatusBadge(order.status);
-
-  return (
-    <View style={styles.header}>
-      <View>
-        <Text variant='headline' size='lg' weight='bold'>
-          {t('orders.orderDetails')}
-        </Text>
-        <Text variant='body' size='sm' color='secondary' style={styles.orderNumber}>
-          #{order.orderNumber}
-        </Text>
-      </View>
-      <Badge label={t(badge.labelKey)} variant={badge.variant} size='md' />
-    </View>
-  );
-};
-
-/** Single item row */
-const ItemRow: React.FC<{ item: Order['items'][0]; currency: string }> = ({ item, currency }) => {
-  const { t } = useTranslation();
-  return (
-    <View style={styles.itemRow}>
-      <View style={styles.itemLeft}>
-        <Text variant='body' size='md' weight='semibold'>
-          {item.offerTitle}
-        </Text>
-        <Text variant='body' size='sm' color='secondary'>
-          {t('common.quantity')}: {item.quantity}
-        </Text>
-      </View>
-      <View style={styles.itemRight}>
-        {item.discountAmount > 0 && (
-          <Text variant='body' size='xs' color='secondary' style={styles.originalPrice}>
-            {item.originalPrice.toFixed(2)} {currency}
-          </Text>
-        )}
-        <Text variant='body' size='md' weight='semibold'>
-          {item.totalPrice.toFixed(2)} {currency}
-        </Text>
-      </View>
-    </View>
-  );
-};
-
-/** Items list card */
-const ItemsList: React.FC<{ order: Order }> = ({ order }) => {
-  const { t } = useTranslation();
-  return (
-    <Card style={styles.card}>
-      <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
-        {t('orders.items')}
-      </Text>
-      {order.items.map((item, index) => (
-        <React.Fragment key={typeof item.offerId === 'string' ? item.offerId : item.offerId._id}>
-          <ItemRow item={item} currency={order.pricing.currency} />
-          {index < order.items.length - 1 && <View style={styles.divider} />}
-        </React.Fragment>
-      ))}
-    </Card>
-  );
-};
-
-/** Pricing summary card */
-const PricingSummary: React.FC<{ order: Order }> = ({ order }) => {
-  const { t } = useTranslation();
-  const { pricing } = order;
-
-  // Calculate original price before discount
-  const originalPrice = pricing.subtotal + pricing.discountAmount;
-
-  return (
-    <Card style={styles.card}>
-      <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
-        {t('orders.pricing')}
-      </Text>
-      <PricingRow label={t('orders.price')} value={originalPrice} currency={pricing.currency} />
-      {pricing.discountAmount > 0 && (
-        <PricingRow
-          label={t('orders.discount')}
-          value={-pricing.discountAmount}
-          currency={pricing.currency}
-          isDiscount
-        />
-      )}
-      <PricingRow
-        label={t('orders.finalPrice')}
-        value={pricing.subtotal}
-        currency={pricing.currency}
-      />
-      {pricing.serviceFee > 0 && (
-        <>
-          <View style={styles.divider} />
-          <PricingRow
-            label={t('orders.deliveryFee')}
-            value={pricing.serviceFee}
-            currency={pricing.currency}
-          />
-        </>
-      )}
-      <View style={styles.divider} />
-      <PricingRow
-        label={t('common.total')}
-        value={pricing.total}
-        currency={pricing.currency}
-        isBold
-      />
-    </Card>
-  );
-};
-
-/** Single pricing line */
-const PricingRow: React.FC<{
-  label: string;
-  value: number;
-  currency: string;
-  isBold?: boolean;
-  isDiscount?: boolean;
-}> = ({ label, value, currency, isBold, isDiscount }) => (
-  <View style={styles.pricingRow}>
-    <Text variant='body' size='md' weight={(isBold ?? false) ? 'bold' : 'regular'}>
-      {label}
-    </Text>
-    <Text
-      variant='body'
-      size='md'
-      weight={(isBold ?? false) ? 'bold' : 'regular'}
-      color={(isDiscount ?? false) ? 'success' : ''}
-    >
-      {isDiscount === true ? '-' : ''}
-      {Math.abs(value).toFixed(2)} {currency}
-    </Text>
-  </View>
-);
-
-/** Pickup details card */
-const PickupDetailsCard: React.FC<{ order: Order }> = ({ order }) => {
-  const { t } = useTranslation();
-  const { pickupDetails } = order;
-
-  const formattedDate = useMemo(() => {
-    try {
-      return new Date(pickupDetails.scheduledDate).toLocaleDateString(undefined, {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } catch {
-      return pickupDetails.scheduledDate;
-    }
-  }, [pickupDetails.scheduledDate]);
-
-  return (
-    <Card style={styles.card}>
-      <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
-        {t('orders.pickupDetails')}
-      </Text>
-      <View style={styles.pickupRow}>
-        <Icon name='calendar' family='Ionicons' size={18} color='#888' />
-        <Text variant='body' size='md' style={styles.pickupText}>
-          {formattedDate}
-        </Text>
-      </View>
-      <View style={styles.pickupRow}>
-        <Icon name='time' family='Ionicons' size={18} color='#888' />
-        <Text variant='body' size='md' style={styles.pickupText}>
-          {pickupDetails.timeSlot.startTime} – {pickupDetails.timeSlot.endTime}
-        </Text>
-      </View>
-      {pickupDetails.instructions != null && (
-        <View style={styles.pickupRow}>
-          <Icon name='information-circle-outline' family='Ionicons' size={18} color='#888' />
-          <Text variant='body' size='sm' color='secondary' style={styles.pickupText}>
-            {pickupDetails.instructions}
-          </Text>
-        </View>
-      )}
-    </Card>
-  );
-};
 
 /** Confirm-pickup section (input + button + error/success states) */
 const ConfirmPickupSection: React.FC<{
@@ -613,8 +434,8 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <OrderHeader order={order} />
-        <ItemsList order={order} />
-        <PricingSummary order={order} />
+        <OrderItemsCard order={order} />
+        <OrderPricingCard order={order} />
         <PickupDetailsCard order={order} />
 
         {(canConfirm || orderIsExpired) && (
