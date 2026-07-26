@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   lockOverlay: {
     position: 'absolute',
     bottom: -2,
-    right: -2,
+    insetInlineEnd: -2,
     backgroundColor: SURFACE,
     borderRadius: 10,
     padding: 2,

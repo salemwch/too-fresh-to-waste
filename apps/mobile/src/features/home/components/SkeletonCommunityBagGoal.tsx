@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    marginRight: 12,
+    marginEnd: 12,
   },
   textContainer: {
     flex: 1,
@@ -80,6 +80,6 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    marginLeft: 8,
+    marginStart: 8,
   },
 });

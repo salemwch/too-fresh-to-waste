@@ -186,8 +186,8 @@ export const createInputStyles = (
       ...stateStyles[state],
       ...platformStyles,
       paddingVertical: 0, // Remove vertical padding to maintain exact height
-      paddingLeft: hasLeftIcon ? spacing.base.sm : sizeStyles[size].paddingHorizontal,
-      paddingRight: hasRightIcon ? spacing.base.sm : sizeStyles[size].paddingHorizontal,
+      paddingStart: hasLeftIcon ? spacing.base.sm : sizeStyles[size].paddingHorizontal,
+      paddingEnd: hasRightIcon ? spacing.base.sm : sizeStyles[size].paddingHorizontal,
       overflow: 'hidden', // Prevent children from overflowing
     },
     input: {
@@ -199,14 +199,14 @@ export const createInputStyles = (
       minWidth: 0, // Allow input to shrink below content width
     },
     leftIconContainer: {
-      marginRight: spacing.base.sm,
+      marginEnd: spacing.base.sm,
       justifyContent: 'center',
       alignItems: 'center',
       flexShrink: 0, // Prevent icon from shrinking
       height: sizeStyles[size].minHeight, // Fixed height matching container
     },
     rightIconContainer: {
-      marginLeft: spacing.base.sm,
+      marginStart: spacing.base.sm,
       justifyContent: 'center',
       alignItems: 'center',
       flexShrink: 0, // Prevent icon from shrinking

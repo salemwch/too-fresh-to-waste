@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
   },
   estInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginStart: 12,
   },
   estName: {
     fontSize: 15,
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
   },
   skeletonTextGroup: {
-    marginLeft: 12,
+    marginStart: 12,
     gap: 6,
   },
   skeletonName: {

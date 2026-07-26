@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
   merchantLogoContainer: {
     position: 'absolute',
     bottom: 20,
-    left: 20,
+    insetInlineStart: 20,
     zIndex: 5,
   },
   merchantLogo: {
@@ -818,14 +818,14 @@ const styles = StyleSheet.create({
   contentContainer: { paddingHorizontal: 20, paddingTop: 24 },
   itemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   itemTitleRow: { flexDirection: 'row', alignItems: 'center' },
-  offerTypeText: { marginLeft: 12 },
+  offerTypeText: { marginStart: 12 },
   priceContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   oldPrice: { textDecorationLine: 'line-through' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 },
   ratingText: { color: TEXT_PRIMARY },
   reviewCount: { color: TEXT_TERTIARY },
   pickupRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
-  pickupText: { fontSize: 15, color: TEXT_MUTED, marginLeft: 8, marginRight: 8 },
+  pickupText: { fontSize: 15, color: TEXT_MUTED, marginStart: 8, marginEnd: 8 },
   todayBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   todayBadgeText: { color: WHITE, fontSize: 10 },
   slotLimitRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8 },
@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
   },
-  footerInfo: { flex: 1, marginRight: 16 },
+  footerInfo: { flex: 1, marginEnd: 16 },
   reserveButton: { flex: 2, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
   reserveButtonText: { color: WHITE },
 
@@ -930,7 +930,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-  modalTimeText: { color: WHITE, marginLeft: 6 },
+  modalTimeText: { color: WHITE, marginStart: 6 },
   modalBody: { padding: 24, paddingTop: 16 },
   quantityLabel: { marginBottom: 16 },
   quantityControls: {

@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   closeBtn: {
     position: 'absolute',
     top: 0,
-    right: 0,
+    insetInlineEnd: 0,
     padding: 4,
   },
   sectionLabel: {

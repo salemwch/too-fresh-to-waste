@@ -172,7 +172,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
               color={styles.text.color}
             />
             {children != null && (
-              <Text style={[styles.text, { marginLeft: theme.spacing.sm }, textStyle]}>
+              <Text style={[styles.text, { marginStart: theme.spacing.sm }, textStyle]}>
                 {typeof children === 'string' ? children : children}
               </Text>
             )}

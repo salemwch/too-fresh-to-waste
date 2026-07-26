@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   errorText: {
-    marginLeft: 8,
+    marginStart: 8,
     flex: 1,
   },
   optionsContainer: {
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   optionTextContainer: {
     flex: 1,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   searchPlaceholder: {
-    marginLeft: 12,
+    marginStart: 12,
     flex: 1,
   },
   loadingContainer: {

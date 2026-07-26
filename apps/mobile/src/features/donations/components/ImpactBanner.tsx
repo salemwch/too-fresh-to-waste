@@ -12,6 +12,8 @@ import { useDonationStats } from '../hooks/useDonations';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 
+import { textAlignEnd } from '@/utils/rtl';
+
 import { SkeletonImpactBanner } from './SkeletonImpactBanner';
 import heartInHandsImg from '../../../assets/images/heart-in-hands.png';
 interface ImpactBannerProps {
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    marginRight: 12,
+    marginEnd: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
   expandIcon: {
     fontSize: 16,
     color: COLORS.brand,
-    marginLeft: 8,
+    marginStart: 8,
   },
   expandedContent: {
     marginTop: 12,
@@ -239,7 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.brand,
     fontWeight: '600',
-    textAlign: 'right',
+    textAlign: textAlignEnd(),
   },
   causeContainer: {
     backgroundColor: COLORS.surfaceMuted,

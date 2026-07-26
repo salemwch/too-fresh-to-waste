@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   nameColumn: {
-    marginLeft: 12,
+    marginStart: 12,
   },
   userName: {
     color: INVERSE_TEXT,
@@ -234,12 +234,12 @@ const styles = StyleSheet.create({
   },
   tierBadgeText: {
     color: INVERSE_TEXT,
-    marginLeft: 4,
+    marginStart: 4,
   },
   starIcon: {
     position: 'absolute',
     top: -8,
-    right: -8,
+    insetInlineEnd: -8,
     fontSize: 14,
   },
   pointsSection: {

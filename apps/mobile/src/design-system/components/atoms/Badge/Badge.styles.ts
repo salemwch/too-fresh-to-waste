@@ -141,13 +141,13 @@ export const createBadgeStyles = (
       lineHeight: sizeStyles[size].fontSize * 1.2,
     },
     leftIcon: {
-      marginRight: spacing.base.xs,
+      marginEnd: spacing.base.xs,
     },
     rightIcon: {
-      marginLeft: spacing.base.xs,
+      marginStart: spacing.base.xs,
     },
     closeButton: {
-      marginLeft: spacing.base.xs,
+      marginStart: spacing.base.xs,
       padding: spacing.base.xxs,
     },
   });

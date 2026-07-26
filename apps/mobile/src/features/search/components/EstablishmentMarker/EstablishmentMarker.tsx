@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   offerBadge: {
     position: 'absolute',
     bottom: -4,
-    right: -4,
+    insetInlineEnd: -4,
     backgroundColor: OFFER_CIRCLE_COLOR,
     borderRadius: 10,
     minWidth: 20,

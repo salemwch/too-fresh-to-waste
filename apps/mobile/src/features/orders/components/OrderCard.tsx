@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     position: 'absolute',
     top: 12,
-    right: 12,
+    insetInlineEnd: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     marginBottom: 14,
-    paddingRight: 80, // Space for absolute status badge
+    paddingEnd: 80, // Space for absolute status badge
   },
   thumbnail: {
     width: 64,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
   },
   infoColumn: {
     flex: 1,
-    marginLeft: 12,
+    marginStart: 12,
     justifyContent: 'center',
   },
   offerTitle: {
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: TEXT_MUTED,
-    marginLeft: 6,
+    marginStart: 6,
     flex: 1,
   },
   goNowContainer: {
@@ -426,13 +426,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
-    marginLeft: 8,
+    marginStart: 8,
   },
   goNowText: {
     fontSize: 11,
     fontWeight: '800',
     color: SUCCESS_TEXT,
-    marginLeft: 4,
+    marginStart: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },

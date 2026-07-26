@@ -12,7 +12,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, Pressable, Animated } from 'react-native';
+import { View, StyleSheet, Pressable, Animated, I18nManager } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -43,7 +43,11 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
     () =>
       slideAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [2, 82], // Half of container width - padding
+        // Half of container width - padding. The indicator is anchored with
+        // `insetInlineStart`, which resolves to the RIGHT edge under RTL — but
+        // `translateX` is never mirrored by RN, so the offsets must be negated
+        // manually or the pill slides off-screen in Arabic.
+        outputRange: I18nManager.isRTL ? [-2, -82] : [2, 82],
       }),
     [slideAnim],
   );
@@ -155,7 +159,7 @@ const styles = StyleSheet.create({
   selectionIndicator: {
     position: 'absolute',
     top: 2,
-    left: 0,
+    insetInlineStart: 0,
     width: 80,
     height: 38,
     borderRadius: 10,
@@ -177,6 +181,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: {
-    marginLeft: 4,
+    marginStart: 4,
   },
 });

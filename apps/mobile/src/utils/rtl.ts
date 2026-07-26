@@ -8,7 +8,11 @@
  * What flips on its own (prefer these, no helper needed):
  *   - `flexDirection: 'row'` and its children order
  *   - `marginStart` / `marginEnd`, `paddingStart` / `paddingEnd`
- *   - `borderStartWidth` / `borderEndWidth`, `start` / `end` insets
+ *   - `borderStartWidth` / `borderEndWidth`
+ *   - `insetInlineStart` / `insetInlineEnd` (the logical form of `left`/`right`
+ *     on absolutely-positioned elements). Note these flip the ANCHOR only —
+ *     a `translateX` on the same element is never mirrored and must be negated
+ *     by hand under RTL.
  *
  * What does NOT flip (use these helpers):
  *   - `textAlign`, which RN types as 'auto' | 'left' | 'right' | 'center' |

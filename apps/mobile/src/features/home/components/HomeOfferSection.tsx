@@ -347,12 +347,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   carouselContainer: {
-    paddingLeft: 14,
-    paddingRight: 18,
+    paddingStart: 14,
+    paddingEnd: 18,
     paddingVertical: 6,
   },
   offerCardItem: {
-    marginRight: 12,
+    marginEnd: 12,
     marginVertical: 3,
   },
   placeholderCard: {

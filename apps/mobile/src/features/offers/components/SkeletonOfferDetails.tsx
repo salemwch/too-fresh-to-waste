@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   merchantLogoPosition: {
     position: 'absolute',
     bottom: 20,
-    left: 20,
+    insetInlineStart: 20,
   },
   headerTextPosition: {
     position: 'absolute',
@@ -196,20 +196,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   itemTitleSpacing: {
-    marginLeft: 12,
+    marginStart: 12,
   },
   priceSpacing: {
-    marginRight: 8,
+    marginEnd: 8,
   },
   inlineGap6: {
-    marginLeft: 6,
+    marginStart: 6,
   },
   inlineGap8: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   locationDetails: {
     flex: 1,
-    marginLeft: 16,
+    marginStart: 16,
   },
   blockGap6: {
     marginBottom: 6,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   footerInfo: {
     flex: 1,
-    marginRight: 16,
+    marginEnd: 16,
   },
   footer: {
     position: 'absolute',

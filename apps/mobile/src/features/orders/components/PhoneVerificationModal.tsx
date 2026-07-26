@@ -279,8 +279,8 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE_MUTED,
     borderWidth: 1,
     borderColor: BORDER,
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
+    borderTopStartRadius: 12,
+    borderBottomStartRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 16,
     justifyContent: 'center',
@@ -292,8 +292,8 @@ const styles = StyleSheet.create({
   },
   phoneInput: {
     flex: 1,
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
+    borderTopStartRadius: 0,
+    borderBottomStartRadius: 0,
   },
   input: {
     borderWidth: 1,

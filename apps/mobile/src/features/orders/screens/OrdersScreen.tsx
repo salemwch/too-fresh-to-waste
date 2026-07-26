@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     backgroundColor: STEP_BACKGROUND,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   stepNum: {
     fontSize: 13,

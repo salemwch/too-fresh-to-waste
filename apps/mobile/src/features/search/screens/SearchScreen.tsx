@@ -194,15 +194,15 @@ const rowStyles = StyleSheet.create({
   },
   name: {
     flex: 1,
-    marginRight: 8,
+    marginEnd: 8,
   },
   carousel: {
-    paddingRight: 8,
+    paddingEnd: 8,
     paddingVertical: 4,
   },
   offerCard: {
     width: SEARCH_CAROUSEL_CARD_WIDTH,
-    marginRight: 12,
+    marginEnd: 12,
   },
 });
 
@@ -1074,7 +1074,7 @@ const styles = StyleSheet.create({
   },
   recenterButton: {
     position: 'absolute',
-    right: 16,
+    insetInlineEnd: 16,
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -1155,7 +1155,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   placeResultsLoadingText: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   placeResultsEmpty: {
     paddingVertical: 16,
@@ -1166,7 +1166,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    marginLeft: 4,
+    marginStart: 4,
   },
   placeResultItem: {
     flexDirection: 'row',
@@ -1184,11 +1184,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   placeResultText: {
     flex: 1,
-    marginRight: 8,
+    marginEnd: 8,
   },
   listContent: {
     flexGrow: 1,

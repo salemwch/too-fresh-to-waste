@@ -242,8 +242,8 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    marginLeft: CIRCLE_SIZE + sw(18),
-    marginRight: sw(4),
+    marginStart: CIRCLE_SIZE + sw(18),
+    marginEnd: sw(4),
   },
 
   // ── Bottom ──
@@ -269,11 +269,11 @@ const styles = StyleSheet.create({
     fontSize: sw(28),
     fontWeight: '700',
     lineHeight: sw(34),
-    marginRight: sw(3),
+    marginEnd: sw(3),
   },
   navArrowRight: {
-    marginRight: 0,
-    marginLeft: sw(3),
+    marginEnd: 0,
+    marginStart: sw(3),
   },
   dots: {
     flexDirection: 'row',

@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   icon: {
     width: 28,
@@ -289,14 +289,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    marginLeft: 8,
+    marginStart: 8,
   },
   collapsedLiveText: {
     fontSize: 10,
     fontWeight: '700',
     color: COLORS.textOnBrand,
     letterSpacing: 0.5,
-    marginLeft: 4,
+    marginStart: 4,
   },
   collapsedSubtitle: {
     fontSize: 13,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   expandIcon: {
     fontSize: 16,
     color: COLORS.textOnBrandMuted,
-    marginLeft: 8,
+    marginStart: 8,
   },
 
   // ── Expanded content ──

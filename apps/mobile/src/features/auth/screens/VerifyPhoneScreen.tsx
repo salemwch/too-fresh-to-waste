@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
   successBadge: {
     position: 'absolute',
     bottom: 0,
-    right: -8,
+    insetInlineEnd: -8,
     width: 48,
     height: 48,
     borderRadius: 24,

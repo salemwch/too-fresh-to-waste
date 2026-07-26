@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   bodyText: {
     position: 'absolute',
     top: sh(358),
-    left: sw(24),
+    insetInlineStart: sw(24),
     width: sw(190),
     fontSize: sw(14),
     color: 'rgba(255,255,255,0.8)',

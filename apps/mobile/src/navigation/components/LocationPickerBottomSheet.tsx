@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 12,
-    marginLeft: 4,
+    marginStart: 4,
   },
   recentItem: {
     flexDirection: 'row',

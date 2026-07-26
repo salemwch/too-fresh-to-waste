@@ -703,12 +703,12 @@ const createStyles = (
     imageShimmer: {
       position: 'absolute',
       top: 0,
-      left: 0,
+      insetInlineStart: 0,
     },
     topLeftBadges: {
       position: 'absolute',
       top: theme.spacing.base.sm,
-      left: theme.spacing.base.sm,
+      insetInlineStart: theme.spacing.base.sm,
       gap: theme.spacing.base.xs,
     },
     itemsLeftBadge: {
@@ -728,7 +728,7 @@ const createStyles = (
     ratingBadge: {
       position: 'absolute',
       top: theme.spacing.base.sm,
-      right: theme.spacing.base.sm,
+      insetInlineEnd: theme.spacing.base.sm,
     },
     ratingBadgeContent: {
       flexDirection: 'row',
@@ -753,7 +753,7 @@ const createStyles = (
     establishmentLogo: {
       position: 'absolute',
       bottom: theme.spacing.base.sm,
-      left: theme.spacing.base.sm,
+      insetInlineStart: theme.spacing.base.sm,
     },
     logoImage: {
       width: 40,
@@ -870,7 +870,7 @@ const createStyles = (
     favoriteButtonContent: {
       padding: 4,
       marginTop: -4,
-      marginRight: -4,
+      marginEnd: -4,
     },
     titleContainer: {
       flexDirection: 'row',

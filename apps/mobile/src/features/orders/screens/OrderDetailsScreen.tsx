@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   pickupText: {
-    marginLeft: 10,
+    marginStart: 10,
   },
 
   // Confirm pickup

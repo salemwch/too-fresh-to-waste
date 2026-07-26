@@ -185,19 +185,19 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 12,
-    paddingRight: 8,
+    paddingStart: 12,
+    paddingEnd: 8,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
   },
   removeButton: {
-    marginLeft: 6,
+    marginStart: 6,
     padding: 2,
   },
   chipIcon: {
     fontSize: 14,
-    marginRight: 4,
+    marginEnd: 4,
   },
   chipLabel: {
     fontWeight: '500',

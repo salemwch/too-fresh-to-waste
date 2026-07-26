@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   },
   helpTextContainer: {
     flex: 1,
-    marginLeft: 12,
+    marginStart: 12,
   },
   helpTitle: {
     marginBottom: 8,

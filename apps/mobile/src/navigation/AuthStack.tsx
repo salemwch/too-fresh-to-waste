@@ -109,7 +109,7 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
       padding: 5,
     },
     headerTitle: {
-      marginLeft: 16,
+      marginStart: 16,
     },
   });
 

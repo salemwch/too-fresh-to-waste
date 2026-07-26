@@ -139,8 +139,8 @@ const styles = StyleSheet.create({
   },
   txInfo: {
     flex: 1,
-    marginLeft: 12,
-    marginRight: 8,
+    marginStart: 12,
+    marginEnd: 8,
   },
   divider: {
     height: 1,

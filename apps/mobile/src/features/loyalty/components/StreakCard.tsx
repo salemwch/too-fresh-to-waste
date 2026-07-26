@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 18,
-    marginRight: 8,
+    marginEnd: 8,
   },
   title: {
     color: TEXT_PRIMARY,

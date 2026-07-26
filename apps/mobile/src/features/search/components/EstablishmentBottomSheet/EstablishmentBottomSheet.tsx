@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    marginRight: 12,
+    marginEnd: 12,
   },
   headerInitialWrap: {
     justifyContent: 'center',
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    marginRight: 12,
+    marginEnd: 12,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -388,11 +388,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   ratingValue: {
-    marginLeft: 3,
-    marginRight: 2,
+    marginStart: 3,
+    marginEnd: 2,
   },
   typeBadge: {
-    marginLeft: 8,
+    marginStart: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,

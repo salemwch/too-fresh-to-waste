@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
-    borderLeftWidth: 4,
+    borderStartWidth: 4,
     shadowColor: TOAST_COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -118,19 +118,19 @@ const styles = StyleSheet.create({
     maxWidth: 340,
   },
   successContainer: {
-    borderLeftColor: TOAST_COLORS.success,
+    borderStartColor: TOAST_COLORS.success,
   },
   errorContainer: {
-    borderLeftColor: TOAST_COLORS.error,
+    borderStartColor: TOAST_COLORS.error,
   },
   infoContainer: {
-    borderLeftColor: TOAST_COLORS.info,
+    borderStartColor: TOAST_COLORS.info,
   },
   warningContainer: {
-    borderLeftColor: TOAST_COLORS.warning,
+    borderStartColor: TOAST_COLORS.warning,
   },
   iconContainer: {
-    marginRight: 12,
+    marginEnd: 12,
   },
   textContainer: {
     flex: 1,

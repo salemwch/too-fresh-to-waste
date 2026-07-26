@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     top: 0,
-    right: 0,
+    insetInlineEnd: 0,
     padding: 4,
   },
   iconCircle: {

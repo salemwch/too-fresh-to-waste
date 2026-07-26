@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
   verificationBadge: {
     position: 'absolute',
     top: 16,
-    right: 16,
+    insetInlineEnd: 16,
     zIndex: 10,
   },
   badge: {
@@ -834,7 +834,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    marginRight: 8,
+    marginEnd: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },

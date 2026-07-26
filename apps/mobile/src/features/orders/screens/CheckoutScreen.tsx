@@ -937,7 +937,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: TEXT_PRIMARY,
-    marginLeft: 8,
+    marginStart: 8,
   },
 
   // Payment Methods — horizontal tile row
@@ -985,7 +985,7 @@ const styles = StyleSheet.create({
   paymentCardCheck: {
     position: 'absolute',
     top: 6,
-    right: 6,
+    insetInlineEnd: 6,
   },
   comingSoonBadge: {
     backgroundColor: WARNING_SURFACE,
@@ -1051,7 +1051,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: SUCCESS_TEXT,
-    marginLeft: 6,
+    marginStart: 6,
   },
   totalRow: {
     flexDirection: 'row',
@@ -1089,13 +1089,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: ERROR_BORDER,
+    borderStartWidth: 4,
+    borderStartColor: ERROR_BORDER,
   },
   errorText: {
     fontSize: 14,
     color: ERROR_TEXT,
-    marginLeft: 10,
+    marginStart: 10,
     flex: 1,
     fontWeight: '500',
   },
@@ -1131,7 +1131,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: WHITE,
-    marginLeft: 10,
+    marginStart: 10,
     letterSpacing: 0.3,
   },
   cancelButton: {

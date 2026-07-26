@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
-    marginRight: 8,
+    marginEnd: 8,
     gap: 6,
     ...Platform.select({
       ios: {
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surfaceAccent,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   tipContent: {
     flex: 1,

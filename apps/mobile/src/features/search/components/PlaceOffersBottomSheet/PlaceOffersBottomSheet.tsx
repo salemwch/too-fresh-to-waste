@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    marginRight: 12,
+    marginEnd: 12,
   },
   closeButton: {
     width: 32,

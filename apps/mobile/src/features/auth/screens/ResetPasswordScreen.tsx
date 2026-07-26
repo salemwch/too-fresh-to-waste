@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   emailTextContainer: {
-    marginLeft: 8,
+    marginStart: 8,
     flex: 1,
   },
   emailText: {
@@ -570,7 +570,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorBannerText: {
-    marginLeft: 8,
+    marginStart: 8,
     flex: 1,
   },
   fieldErrorIndicator: {
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   fieldErrorText: {
-    marginLeft: 6,
+    marginStart: 6,
   },
   submitButton: {
     marginTop: 24,
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   },
   securityText: {
     flex: 1,
-    marginLeft: 8,
+    marginStart: 8,
     lineHeight: 18,
   },
   // Success screen styles
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   },
   securityNoteText: {
     flex: 1,
-    marginLeft: 12,
+    marginStart: 12,
     lineHeight: 20,
   },
   successButton: {

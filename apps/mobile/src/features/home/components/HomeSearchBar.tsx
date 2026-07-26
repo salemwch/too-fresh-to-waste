@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
 
   // Search icon on the left
   searchIcon: {
-    marginRight: 12,
+    marginEnd: 12,
   },
 
   // Search input takes remaining space
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   filterBadge: {
     position: 'absolute',
     top: 2,
-    right: 2,
+    insetInlineEnd: 2,
     backgroundColor: COLORS.danger,
     borderRadius: 8,
     minWidth: 16,

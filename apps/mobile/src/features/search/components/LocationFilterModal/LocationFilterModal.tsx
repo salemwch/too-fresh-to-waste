@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   sliderContainer: {
     paddingHorizontal: 4,
@@ -532,11 +532,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   searchResultText: {
     flex: 1,
-    marginRight: 8,
+    marginEnd: 8,
   },
   searchLoading: {
     flexDirection: 'row',
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   searchLoadingText: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   noResults: {
     alignItems: 'center',
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginEnd: 14,
   },
   useLocationText: {
     flex: 1,

@@ -117,11 +117,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginEnd: 8,
   },
   locationTextContainer: {
     flex: 1,
-    marginRight: 8,
+    marginEnd: 8,
     justifyContent: 'center',
   },
   locationLabel: {

@@ -117,11 +117,11 @@ const headerRightStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 12,
+    marginEnd: 12,
     paddingTop: 8,
     paddingBottom: 4,
   },
-  button: { padding: 8, marginLeft: 8 },
+  button: { padding: 8, marginStart: 8 },
   icon: { width: 28, height: 28 },
   surpriseIcon: { width: 24, height: 24 },
 });

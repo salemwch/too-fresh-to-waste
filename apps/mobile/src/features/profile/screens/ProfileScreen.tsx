@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   profileInfo: {
     flex: 1,
-    marginLeft: 16,
+    marginStart: 16,
   },
   editButton: {
     marginTop: 4,
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
   },
   tierBadgeText: {
     color: WHITE,
-    marginLeft: 4,
+    marginStart: 4,
   },
   loyaltyCardRight: {
     alignItems: 'center',
@@ -753,14 +753,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuItemLabel: {
-    marginLeft: 12,
+    marginStart: 12,
   },
   menuItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   menuBadge: {
-    marginRight: 8,
+    marginEnd: 8,
   },
   biometricHint: {
     marginTop: 8,

@@ -105,7 +105,7 @@ export const createAvatarStyles = (
     statusIndicator: {
       position: 'absolute',
       bottom: 0,
-      right: 0,
+      insetInlineEnd: 0,
       width: size * 0.25,
       height: size * 0.25,
       borderRadius: (size * 0.25) / 2,

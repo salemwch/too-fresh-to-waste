@@ -174,10 +174,10 @@ export const createButtonStyles = (
       marginHorizontal: spacing.base.xs,
     },
     leftIcon: {
-      marginRight: spacing.base.xs,
+      marginEnd: spacing.base.xs,
     },
     rightIcon: {
-      marginLeft: spacing.base.xs,
+      marginStart: spacing.base.xs,
     },
   });
 };

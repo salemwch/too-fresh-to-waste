@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   },
   rowText: {
     flex: 1,
-    marginRight: 12,
+    marginEnd: 12,
   },
   rowSubtitle: {
     marginTop: 2,

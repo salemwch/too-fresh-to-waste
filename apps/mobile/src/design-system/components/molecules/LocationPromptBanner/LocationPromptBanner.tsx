@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   compactIcon: {
-    marginRight: 8,
+    marginEnd: 8,
   },
   compactText: {
     flex: 1,
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   dismissButton: {
     position: 'absolute',
     top: 12,
-    right: 12,
+    insetInlineEnd: 12,
     zIndex: 1,
     padding: 4,
   },
@@ -176,11 +176,11 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   textContainer: {
     flex: 1,
-    paddingRight: 24, // Space for dismiss button
+    paddingEnd: 24, // Space for dismiss button
   },
   title: {
     marginBottom: 4,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dismissTextButton: {
-    marginRight: 8,
+    marginEnd: 8,
   },
   enableButton: {
     minWidth: 140,

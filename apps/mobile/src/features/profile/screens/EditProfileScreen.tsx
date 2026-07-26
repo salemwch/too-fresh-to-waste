@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   changePhotoText: {
-    marginLeft: 4,
+    marginStart: 4,
   },
   imageStatusText: {
     marginTop: 4,
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   disabledInput: {
     opacity: 0.6,
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    marginLeft: 8,
+    marginStart: 8,
     lineHeight: 18,
   },
 });

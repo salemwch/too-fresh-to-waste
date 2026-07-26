@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   offerDetails: {
     flex: 1,
-    marginLeft: 12,
+    marginStart: 12,
   },
   quantitySection: {
     marginTop: 16,
@@ -283,10 +283,10 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   inlineGap8: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   inlineGap10: {
-    marginLeft: 10,
+    marginStart: 10,
   },
   blockGap8: {
     marginTop: 8,
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   },
   paymentMethodDetails: {
     flex: 1,
-    marginLeft: 12,
+    marginStart: 12,
   },
   secondaryActionSpacing: {
     marginTop: 12,

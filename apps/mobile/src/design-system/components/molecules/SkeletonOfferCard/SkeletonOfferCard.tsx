@@ -123,7 +123,7 @@ const createStyles = (
     topLeftBadge: {
       position: 'absolute',
       top: theme.spacing.base.sm,
-      left: theme.spacing.base.sm,
+      insetInlineStart: theme.spacing.base.sm,
     },
     badgeSkeleton: {
       width: 50,
@@ -133,7 +133,7 @@ const createStyles = (
     topRightBadge: {
       position: 'absolute',
       top: theme.spacing.base.sm,
-      right: theme.spacing.base.sm,
+      insetInlineEnd: theme.spacing.base.sm,
     },
     ratingBadgeSkeleton: {
       width: 40,
@@ -143,7 +143,7 @@ const createStyles = (
     logoPlaceholder: {
       position: 'absolute',
       bottom: theme.spacing.base.sm,
-      left: theme.spacing.base.sm,
+      insetInlineStart: theme.spacing.base.sm,
     },
     logoSkeleton: {
       width: 40,

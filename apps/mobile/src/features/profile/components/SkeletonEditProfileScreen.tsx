@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitleBox: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   inputWrapper: {
     marginBottom: 12,

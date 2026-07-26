@@ -276,11 +276,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   resultIcon: {
-    marginRight: 12,
+    marginEnd: 12,
   },
   resultTextContainer: {
     flex: 1,
-    marginRight: 8,
+    marginEnd: 8,
   },
   emptyState: {
     flex: 1,

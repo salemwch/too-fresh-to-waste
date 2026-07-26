@@ -45,7 +45,7 @@ export const createPasswordStrengthIndicatorStyles = (
       borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: 6,
+      marginEnd: 6,
     },
     dropdownRuleText: {
       flex: 1,
@@ -74,7 +74,7 @@ export const createPasswordStrengthIndicatorStyles = (
       fontSize: 10,
       fontWeight: '600',
       color: theme.colors.onSuccessContainer,
-      marginLeft: 6,
+      marginStart: 6,
     },
     progressBarContainer: {
       marginBottom: theme.spacing.md,
@@ -135,7 +135,7 @@ export const createPasswordStrengthIndicatorStyles = (
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: theme.spacing.sm,
+      marginEnd: theme.spacing.sm,
     },
     ruleText: {
       flex: 1,
@@ -202,7 +202,7 @@ export const createPasswordStrengthIndicatorStyles = (
       flex: 1,
       fontSize: 12,
       color: theme.colors.onWarningContainer,
-      marginLeft: theme.spacing.sm,
+      marginStart: theme.spacing.sm,
       lineHeight: 16,
     },
   });

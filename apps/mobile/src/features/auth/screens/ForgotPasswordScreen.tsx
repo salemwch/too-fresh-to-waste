@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     flex: 1,
-    marginLeft: 8,
+    marginStart: 8,
     lineHeight: 18,
   },
   securityInfo: {
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   },
   securityText: {
     flex: 1,
-    marginLeft: 8,
+    marginStart: 8,
     lineHeight: 18,
   },
 });

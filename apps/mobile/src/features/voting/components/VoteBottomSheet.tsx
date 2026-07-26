@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 4,
-    marginLeft: 8,
+    marginStart: 8,
   },
   prizeList: {
     flexGrow: 0,

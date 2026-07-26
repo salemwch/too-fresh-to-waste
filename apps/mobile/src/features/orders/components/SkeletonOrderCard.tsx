@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   statusPlaceholder: {
     position: 'absolute',
     top: 12,
-    right: 12,
+    insetInlineEnd: 12,
     width: 64,
     height: 22,
     borderRadius: 8,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     marginBottom: 14,
-    paddingRight: 80,
+    paddingEnd: 80,
   },
   thumbnail: {
     width: 64,
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
   },
   infoColumn: {
     flex: 1,
-    marginLeft: 12,
+    marginStart: 12,
     justifyContent: 'center',
     gap: 6,
   },

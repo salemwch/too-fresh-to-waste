@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   pickupDetail: {
-    marginLeft: 10,
+    marginStart: 10,
   },
   confirmationHint: {
     marginTop: 5,

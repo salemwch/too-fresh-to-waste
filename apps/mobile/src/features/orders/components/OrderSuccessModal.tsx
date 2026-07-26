@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: TEXT_PRIMARY,
-    marginLeft: 8,
+    marginStart: 8,
   },
 
   // Items
@@ -448,13 +448,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 12,
+    marginEnd: 12,
   },
   itemQuantity: {
     fontSize: 14,
     fontWeight: '700',
     color: PRIMARY,
-    marginRight: 8,
+    marginEnd: 8,
     minWidth: 24,
   },
   itemName: {
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   pickupText: {
     fontSize: 13,
     color: TEXT_MUTED,
-    marginLeft: 8,
+    marginStart: 8,
     fontWeight: '500',
     flex: 1,
   },

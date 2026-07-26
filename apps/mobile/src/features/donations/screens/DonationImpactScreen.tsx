@@ -6,6 +6,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
+import { textAlignEnd } from '@/utils/rtl';
+
 import { useDonationStats } from '../hooks/useDonations';
 
 import type { DonationGoalCategory } from '@foodwaste/shared';
@@ -314,7 +316,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: WHITE_60,
     marginTop: 6,
-    textAlign: 'right',
+    textAlign: textAlignEnd(),
   },
   categoriesSection: {
     padding: 16,
@@ -385,7 +387,7 @@ const styles = StyleSheet.create({
   percentText: {
     color: '#6B7280',
     marginTop: 3,
-    textAlign: 'right',
+    textAlign: textAlignEnd(),
   },
   causeCard: {
     flexDirection: 'row',

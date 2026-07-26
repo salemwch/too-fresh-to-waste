@@ -90,8 +90,8 @@ export const makeHeaderBackButton = (navigation: { goBack: () => void }, default
       {
         onPress: () => navigation.goBack(),
         style: {
-          paddingLeft: Platform.OS === 'android' ? 8 : 4,
-          paddingRight: 8,
+          paddingStart: Platform.OS === 'android' ? 8 : 4,
+          paddingEnd: 8,
           justifyContent: 'center',
           alignSelf: 'center',
         },

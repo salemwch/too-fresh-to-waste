@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   },
   offerTypeIcon: {
     fontSize: 18,
-    marginRight: 6,
+    marginEnd: 6,
   },
   chipGrid: {
     flexDirection: 'row',
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   },
   categoryIcon: {
     fontSize: 16,
-    marginRight: 4,
+    marginEnd: 4,
   },
   optionLabel: {
     fontSize: 14,

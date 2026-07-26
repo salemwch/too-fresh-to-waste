@@ -844,7 +844,7 @@ const styles = StyleSheet.create({
   prizeYouBadge: {
     position: 'absolute',
     top: 6,
-    right: 8,
+    insetInlineEnd: 8,
     fontSize: 8,
     fontWeight: '700',
     color: CHAMPION_GOLD,

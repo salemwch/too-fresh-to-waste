@@ -558,10 +558,10 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
-    borderLeftWidth: 4,
+    borderStartWidth: 4,
   },
   errorIcon: {
-    marginRight: 8,
+    marginEnd: 8,
   },
   errorBannerText: {
     flex: 1,

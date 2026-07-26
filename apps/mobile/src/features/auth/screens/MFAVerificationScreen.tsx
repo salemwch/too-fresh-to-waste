@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   },
   helpTextContainer: {
     flex: 1,
-    marginLeft: 12,
+    marginStart: 12,
   },
   helpTitle: {
     marginBottom: 8,
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backToLoginText: {
-    marginLeft: 8,
+    marginStart: 8,
   },
   securityNotice: {
     flexDirection: 'row',
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   },
   securityText: {
     flex: 1,
-    marginLeft: 8,
+    marginStart: 8,
     lineHeight: 18,
   },
 });
