@@ -29,10 +29,10 @@ import { ordersService } from '../services/ordersService';
 import { isPickupError } from '../types/order.types';
 
 import { getEstablishmentName } from '../types/order.types';
+import { getPickupErrorKey, type InlinePickupError } from '../utils/orderStatus';
 
-import type { Order, PickupErrorCode } from '../types/order.types';
+import type { Order } from '../types/order.types';
 
-type InlinePickupError = PickupErrorCode | 'INVALID_CODE';
 interface PickupState {
   orderId: string | null;
   code: string;
@@ -68,14 +68,6 @@ const createPickupState = (orderId: string | null): PickupState => ({
   pickupError: null,
   pickupConfirmed: false,
 });
-
-const PICKUP_ERROR_KEYS: Record<InlinePickupError, string> = {
-  CODE_EXPIRED: 'orders.codeExpired',
-  INVALID_CODE: 'orders.invalidCode',
-  PICKUP_ALREADY_DONE: 'orders.alreadyPickedUp',
-  PICKUP_LOCKED: 'orders.pickupLocked',
-  ORDER_NOT_READY: 'orders.orderNotReady',
-};
 
 interface OrderSuccessModalProps {
   visible: boolean;
@@ -301,7 +293,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         <View style={styles.inlineError}>
                           <Icon name='alert-circle' family='Ionicons' size={14} color='#EF4444' />
                           <Text style={styles.inlineErrorText}>
-                            {t(PICKUP_ERROR_KEYS[pickupError])}
+                            {t(getPickupErrorKey(pickupError))}
                           </Text>
                         </View>
                       ) : (

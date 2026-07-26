@@ -489,7 +489,12 @@
     "a11yDiscoverOffersHint": "Aller à l’accueil pour découvrir les offres",
     "a11yOrderTabHint": "Bascule vers cette catégorie de commandes",
     "codePlaceholderDashes": "------",
-    "a11yOrderTab": "Onglet {{label}}, {{count}} commandes"
+    "a11yOrderTab": "Onglet {{label}}, {{count}} commandes",
+    "statusDriverAssigned": "Livreur assigné",
+    "statusOutForDelivery": "En cours de livraison",
+    "statusDelivered": "Livrée",
+    "statusUnknown": "En traitement",
+    "pickupFailed": "Le retrait n'a pas pu être confirmé. Veuillez réessayer."
   },
   "checkout": {
     "fulfillmentMethod": "Recevoir la commande",

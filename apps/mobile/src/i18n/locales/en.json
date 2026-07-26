@@ -489,7 +489,12 @@
     "a11yDiscoverOffersHint": "Navigate to home screen to discover food offers",
     "a11yOrderTabHint": "Switches to this order category",
     "codePlaceholderDashes": "------",
-    "a11yOrderTab": "{{label}} tab, {{count}} orders"
+    "a11yOrderTab": "{{label}} tab, {{count}} orders",
+    "statusDriverAssigned": "Driver Assigned",
+    "statusOutForDelivery": "Out for Delivery",
+    "statusDelivered": "Delivered",
+    "statusUnknown": "Processing",
+    "pickupFailed": "Pickup could not be confirmed. Please try again."
   },
   "checkout": {
     "fulfillmentMethod": "Receive Order",

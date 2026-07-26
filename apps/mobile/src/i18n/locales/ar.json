@@ -489,7 +489,12 @@
     "a11yDiscoverOffersHint": "انتقل إلى الشاشة الرئيسية لاكتشاف العروض",
     "a11yOrderTabHint": "التبديل إلى فئة الطلبات هذه",
     "codePlaceholderDashes": "------",
-    "a11yOrderTab": "تبويب {{label}}، {{count}} طلبات"
+    "a11yOrderTab": "تبويب {{label}}، {{count}} طلبات",
+    "statusDriverAssigned": "تم تعيين سائق",
+    "statusOutForDelivery": "قيد التوصيل",
+    "statusDelivered": "تم التوصيل",
+    "statusUnknown": "قيد المعالجة",
+    "pickupFailed": "تعذّر تأكيد الاستلام. يرجى المحاولة مرة أخرى."
   },
   "checkout": {
     "fulfillmentMethod": "استلام الطلب",

@@ -59,46 +59,14 @@ interface OrderDetailsScreenProps {
 }
 
 // ---------------------------------------------------------------------------
-// Status → Badge variant mapping (single source of truth)
-// ---------------------------------------------------------------------------
-
-const STATUS_BADGE_MAP: Record<
-  string,
-  { variant: 'warning' | 'info' | 'success' | 'error' | 'neutral'; labelKey: string }
-> = {
-  [OrderStatus.PENDING]: { variant: 'warning', labelKey: 'orders.statusPending' },
-  [OrderStatus.RESERVED]: { variant: 'info', labelKey: 'orders.statusReserved' },
-  [OrderStatus.CONFIRMED]: { variant: 'info', labelKey: 'orders.statusConfirmed' },
-  [OrderStatus.READY_FOR_PICKUP]: { variant: 'success', labelKey: 'orders.statusReady' },
-  [OrderStatus.PICKED_UP]: { variant: 'success', labelKey: 'orders.statusPickedUp' },
-  [OrderStatus.COMPLETED]: { variant: 'success', labelKey: 'orders.statusCompleted' },
-  [OrderStatus.PENDING_PAYMENT]: { variant: 'warning', labelKey: 'orders.statusPendingPayment' },
-  [OrderStatus.CANCELLED]: { variant: 'error', labelKey: 'orders.statusCancelled' },
-  [OrderStatus.EXPIRED]: { variant: 'error', labelKey: 'orders.statusExpired' },
-  [OrderStatus.REFUNDED]: { variant: 'neutral', labelKey: 'orders.statusRefunded' },
-};
-
-// ---------------------------------------------------------------------------
-// Pickup-error → user-facing message (single source of truth)
-// ---------------------------------------------------------------------------
-
-const PICKUP_ERROR_KEYS: Record<InlinePickupError, string> = {
-  CODE_EXPIRED: 'orders.codeExpired',
-  INVALID_CODE: 'orders.invalidCode',
-  PICKUP_ALREADY_DONE: 'orders.alreadyPickedUp',
-  PICKUP_LOCKED: 'orders.pickupLocked',
-  ORDER_NOT_READY: 'orders.orderNotReady',
-};
-
-// ---------------------------------------------------------------------------
-// Statuses that allow the confirm-pickup UI to appear
-// ---------------------------------------------------------------------------
-
-const CONFIRMABLE_STATUSES: ReadonlySet<string> = new Set([
-  OrderStatus.RESERVED,
-  OrderStatus.CONFIRMED,
-  OrderStatus.READY_FOR_PICKUP,
-]);
+import {
+  canConfirmPickup,
+  getEstablishmentId,
+  getPickupErrorKey,
+  getStatusBadge,
+  isOrderExpired,
+  isPickedUp,
+} from '../utils/orderStatus';
 
 const DIVIDER = '#e5e7eb';
 const CODE_INPUT_BACKGROUND = '#fafafa';
@@ -111,10 +79,7 @@ const SUCCESS_COLOR = '#22c55e';
 /** Order number row + status badge */
 const OrderHeader: React.FC<{ order: Order }> = ({ order }) => {
   const { t } = useTranslation();
-  const badge = STATUS_BADGE_MAP[order.status] ?? {
-    variant: 'neutral' as const,
-    labelKey: order.status,
-  };
+  const badge = getStatusBadge(order.status);
 
   return (
     <View style={styles.header}>
@@ -407,7 +372,7 @@ const ConfirmPickupSection: React.FC<{
               { color: theme.colors.base?.error?.[500] ?? '#ef4444' },
             ]}
           >
-            {t(PICKUP_ERROR_KEYS[errorCode])}
+            {t(getPickupErrorKey(errorCode))}
           </Text>
         </View>
       )}
@@ -563,38 +528,28 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   // Derived state
   // ---------------------------------------------------------------------------
 
-  const isPickedUp =
-    order?.status === OrderStatus.PICKED_UP || order?.status === OrderStatus.COMPLETED;
+  const orderIsPickedUp = order != null && isPickedUp(order.status);
 
   // Time-based expiry check: if expiresAt has passed, the pickup code is no longer valid
-  const isOrderExpired = useMemo(() => {
-    if (!order) return false;
-    if (order.status === OrderStatus.EXPIRED) return true;
-    if (order.expiresAt) {
-      return new Date() > new Date(order.expiresAt);
-    }
-    return false;
-  }, [order]);
+  const orderIsExpired = order != null && isOrderExpired(order);
 
-  const canConfirm = order ? CONFIRMABLE_STATUSES.has(order.status) : false;
+  const canConfirm = order != null && canConfirmPickup(order.status);
   // Show ImpactMoment once per order (MMKV-persisted so it survives navigation/remount)
-  const showImpactMoment = isPickedUp && !impactMomentShown;
+  const showImpactMoment = orderIsPickedUp && !impactMomentShown;
 
   // Auto-show review modal for picked-up orders that haven't been reviewed.
   // If there's a donation overlay, wait for it to dismiss first.
   useEffect(() => {
-    if (!isPickedUp || hasReviewed || reviewModalVisible || reviewDismissedRef.current) return;
+    if (!orderIsPickedUp || hasReviewed || reviewModalVisible || reviewDismissedRef.current) return;
     if ((order?.donationAmount ?? 0) > 0 && showImpactMoment) return;
     const timer = setTimeout(() => setReviewModalVisible(true), 800);
     return () => clearTimeout(timer);
-  }, [isPickedUp, showImpactMoment, hasReviewed, reviewModalVisible, order?.donationAmount]);
+  }, [orderIsPickedUp, showImpactMoment, hasReviewed, reviewModalVisible, order?.donationAmount]);
 
-  const reviewEstablishmentId: string = useMemo(() => {
-    if (!order) return '';
-    const est = order.establishmentId as { _id?: string; id?: string } | string | null;
-    if (typeof est === 'string') return est;
-    return est?._id ?? est?.id ?? '';
-  }, [order]);
+  const reviewEstablishmentId = useMemo(
+    () => getEstablishmentId(order?.establishmentId as never),
+    [order?.establishmentId],
+  );
 
   // ---------------------------------------------------------------------------
   // Render – error
@@ -662,19 +617,19 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
         <PricingSummary order={order} />
         <PickupDetailsCard order={order} />
 
-        {(canConfirm || isOrderExpired) && (
+        {(canConfirm || orderIsExpired) && (
           <ConfirmPickupSection
             onConfirm={handleConfirm}
             onClearError={() => setPickupError(null)}
             isLoading={confirmMutation.isPending}
             errorCode={pickupError}
             isConfirmed={confirmMutation.isSuccess}
-            isExpired={isOrderExpired}
+            isExpired={orderIsExpired}
           />
         )}
 
         {/* Already picked up – show static success when arriving at screen after pickup */}
-        {isPickedUp && !confirmMutation.isSuccess && (
+        {orderIsPickedUp && !confirmMutation.isSuccess && (
           <Card style={styles.card}>
             <View style={styles.successRow}>
               <Icon
