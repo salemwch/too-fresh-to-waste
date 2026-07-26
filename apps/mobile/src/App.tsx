@@ -18,6 +18,7 @@ import { environment, validateEnvironmentConfig } from '@/config/environment';
 import { ThemeProvider } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { AuthFlowState } from '@/features/auth/types';
+import { authKeys } from '@/features/auth/hooks/useCurrentUser';
 import { favoriteKeys } from '@/features/favorites/hooks/favoriteKeys';
 import { QueryProvider } from '@/lib/react-query';
 import { RootNavigator } from '@/navigation';
@@ -272,10 +273,11 @@ function AppContent(): React.JSX.Element {
       flowState === AuthFlowState.UNAUTHENTICATED ||
       flowState === AuthFlowState.SESSION_EXPIRED
     ) {
-      // Remove, don't invalidate: favourites are user-scoped, and invalidating
-      // would leave the previous account's ids readable until a refetch landed.
+      // Remove, don't invalidate: these are user-scoped, and invalidating would
+      // leave the previous account's data readable until a refetch landed.
       // removeQueries drops them from memory and from the persisted cache.
       queryClient.removeQueries({ queryKey: favoriteKeys.all });
+      queryClient.removeQueries({ queryKey: authKeys.all });
     }
   }, [flowState, sessionExpiresAt, queryClient]);
 
