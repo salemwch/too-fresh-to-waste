@@ -6,6 +6,7 @@
  */
 
 import { BadgeType } from '../types/loyalty.types';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 export interface BadgeMetadata {
   type: BadgeType;
@@ -24,7 +25,7 @@ export const BADGE_METADATA: Record<BadgeType, BadgeMetadata> = {
     description: 'Welcome to the community!',
     icon: 'star-outline',
     iconFamily: 'Ionicons',
-    color: '#F59E0B',
+    color: colorTokens.base.warning[500],
     bgColor: '#FEF3C7',
   },
   [BadgeType.ECO_WARRIOR]: {
@@ -33,7 +34,7 @@ export const BADGE_METADATA: Record<BadgeType, BadgeMetadata> = {
     description: 'Saved 50+ bags from waste',
     icon: 'leaf-outline',
     iconFamily: 'Ionicons',
-    color: '#10B981',
+    color: colorTokens.base.success[500],
     bgColor: '#D1FAE5',
   },
   [BadgeType.FREQUENT_SAVER]: {
@@ -96,7 +97,7 @@ export const BADGE_METADATA: Record<BadgeType, BadgeMetadata> = {
     description: 'Maintained a 10-day streak',
     icon: 'flame-outline',
     iconFamily: 'Ionicons',
-    color: '#EF4444',
+    color: colorTokens.base.error[500],
     bgColor: '#FEE2E2',
   },
   [BadgeType.REFERRAL_CHAMPION]: {
@@ -105,7 +106,7 @@ export const BADGE_METADATA: Record<BadgeType, BadgeMetadata> = {
     description: 'Referred 5+ friends',
     icon: 'gift-outline',
     iconFamily: 'Ionicons',
-    color: '#F59E0B',
+    color: colorTokens.base.warning[500],
     bgColor: '#FEF3C7',
   },
   [BadgeType.BUSINESS_RECRUITER]: {

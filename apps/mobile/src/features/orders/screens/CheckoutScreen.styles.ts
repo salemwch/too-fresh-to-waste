@@ -22,14 +22,14 @@ export const TEXT_TERTIARY = '#475569';
 export const TEXT_DISABLED = '#94A3B8';
 export const BORDER_SUBTLE = '#E2E8F0';
 export const BRAND_PRIMARY = colorTokens.base.primary[500];
-export const SUCCESS_BORDER = '#10B981';
+export const SUCCESS_BORDER = colorTokens.base.success[500];
 export const SUCCESS_SURFACE = '#F0FDF4';
 export const SUCCESS_TINT = '#D1FAE5';
 export const SUCCESS_TEXT = '#059669';
 export const WARNING_SURFACE = '#FEF3C7';
 export const WARNING_TEXT = '#92400E';
 export const ERROR_SURFACE = '#FEF2F2';
-export const ERROR_BORDER = '#EF4444';
+export const ERROR_BORDER = colorTokens.base.error[500];
 export const ERROR_TEXT = '#991B1B';
 export const WHITE = '#FFFFFF';
 
@@ -353,4 +353,3 @@ export const styles = StyleSheet.create({
     color: ERROR_TEXT,
   },
 });
-

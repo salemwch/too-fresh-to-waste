@@ -22,13 +22,14 @@ import { cardStyles } from '../OrderDetailCards/cardStyles';
 import { getPickupErrorKey } from '../../utils/orderStatus';
 
 import type { InlinePickupError } from '../../utils/orderStatus';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 /** Pickup codes are always six digits — the input cap and the submit gate. */
 const PICKUP_CODE_LENGTH = 6;
 
 /** Fallbacks for when the theme has not resolved a palette entry. */
-const FALLBACK_SUCCESS = '#22c55e';
-const FALLBACK_ERROR = '#ef4444';
+const FALLBACK_SUCCESS = colorTokens.base.success[500];
+const FALLBACK_ERROR = colorTokens.base.error[500];
 const FALLBACK_BORDER = '#d1d5db';
 const FALLBACK_TEXT = '#000';
 const PLACEHOLDER_COLOR = '#aaa';

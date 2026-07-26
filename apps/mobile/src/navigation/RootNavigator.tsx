@@ -42,6 +42,7 @@ import { MainStack } from './MainStack';
 import { navigationRef } from './navigationRef';
 
 import type { RootNavigatorParamList } from './types';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 const Stack = createNativeStackNavigator<RootNavigatorParamList>();
 
@@ -410,7 +411,7 @@ export const RootNavigator: React.FC = () => {
   if (!isAppReady || !isNavigationReady) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size='large' color='#10B981' />
+        <ActivityIndicator size='large' color={colorTokens.base.success[500]} />
       </View>
     );
   }

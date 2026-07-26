@@ -69,7 +69,7 @@ const TEXT_TERTIARY = '#94A3B8';
 const TEXT_MUTED = '#475569';
 const SUCCESS_SOFT = '#D1FAE5';
 const SUCCESS_TEXT = '#065F46';
-const SUCCESS = '#10B981';
+const SUCCESS = colorTokens.base.success[500];
 const PRIMARY = colorTokens.base.primary[500];
 const SHADOW = '#000';
 

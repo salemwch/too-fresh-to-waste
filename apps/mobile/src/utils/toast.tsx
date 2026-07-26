@@ -11,16 +11,17 @@ import Toast from 'react-native-toast-message';
 import i18n from '@/i18n';
 
 import type { ToastConfig, ToastConfigParams } from 'react-native-toast-message';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 type ToastRenderProps = ToastConfigParams<unknown>;
 
 const TOAST_COLORS = {
   surface: '#FFFFFF',
   shadow: '#000000',
-  success: '#10B981',
-  error: '#EF4444',
+  success: colorTokens.base.success[500],
+  error: colorTokens.base.error[500],
   info: '#3B82F6',
-  warning: '#F59E0B',
+  warning: colorTokens.base.warning[500],
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
 } as const;

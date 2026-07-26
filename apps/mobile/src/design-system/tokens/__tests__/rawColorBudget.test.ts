@@ -27,12 +27,12 @@ const PALETTE_FILES = [
 ];
 
 /**
- * Current debt, measured 2026-07-27 after converting the semantic colours
- * (brand primary, success, error, info) that had exact token equivalents.
+ * Current debt, measured 2026-07-27 after converting every semantic colour
+ * (brand primary, success, error, warning, info) to its token.
  *
  * Lower this when you clear some. Never raise it.
  */
-const MAX_RAW_COLORS = 534;
+const MAX_RAW_COLORS = 486;
 
 const HEX_LITERAL = /'#[0-9a-fA-F]{3,8}'/gu;
 

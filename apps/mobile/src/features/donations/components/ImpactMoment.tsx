@@ -7,6 +7,7 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Modal, Animated, Easing, Dimensions } from 'react-native';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 interface ImpactMomentProps {
   visible: boolean;
@@ -25,7 +26,7 @@ const COLORS = {
   shadow: '#000',
   textPrimary: '#1F2937',
   textSecondary: '#6B7280',
-  success: '#10B981',
+  success: colorTokens.base.success[500],
   textMuted: '#9CA3AF',
   surfaceMuted: '#F3F4F6',
 } as const;

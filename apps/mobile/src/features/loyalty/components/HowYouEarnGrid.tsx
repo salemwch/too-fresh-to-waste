@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable } from 'react-native';
 
 import { Card, Icon, Text } from '@/design-system/components/atoms';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 interface EarnMethod {
   icon: string;
@@ -26,7 +27,7 @@ const EARN_METHODS: EarnMethod[] = [
     icon: 'bag-handle-outline',
     labelKey: 'loyalty.earnSaveBag',
     points: '+10 pts',
-    color: '#10B981',
+    color: colorTokens.base.success[500],
     bgColor: '#D1FAE5',
     active: true,
   },
@@ -44,7 +45,7 @@ const EARN_METHODS: EarnMethod[] = [
     icon: 'flame-outline',
     labelKey: 'loyalty.earnDailyLogin',
     points: '+2 pts',
-    color: '#F59E0B',
+    color: colorTokens.base.warning[500],
     bgColor: '#FEF3C7',
     active: true,
   },

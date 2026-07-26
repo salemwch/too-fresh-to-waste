@@ -59,7 +59,6 @@ function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: num
   return R * 2 * Math.atan2(Math.sqrt(a2), Math.sqrt(1 - a2));
 }
 
-
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -485,7 +484,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     return (
       <View style={styles.container}>
         <View style={styles.errorContainer}>
-          <Icon name='alert-circle' family='Ionicons' size={64} color='#EF4444' />
+          <Icon
+            name='alert-circle'
+            family='Ionicons'
+            size={64}
+            color={colorTokens.base.error[500]}
+          />
           <Text variant='title' size='lg' weight='bold' style={styles.errorTitle}>
             {t('offers.offerNotFound')}
           </Text>
@@ -532,7 +536,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               >
                 {selectedFulfillment === 'pickup' && (
                   <View style={styles.paymentCardCheck}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                    <Icon
+                      name='checkmark-circle'
+                      family='Ionicons'
+                      size={16}
+                      color={colorTokens.base.success[500]}
+                    />
                   </View>
                 )}
                 <Icon
@@ -572,7 +581,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               >
                 {selectedFulfillment === 'delivery' && !isOutsideDeliveryZone && (
                   <View style={styles.paymentCardCheck}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                    <Icon
+                      name='checkmark-circle'
+                      family='Ionicons'
+                      size={16}
+                      color={colorTokens.base.success[500]}
+                    />
                   </View>
                 )}
                 <Icon
@@ -636,7 +650,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               >
                 {selectedPayment === 'cash' && (
                   <View style={styles.paymentCardCheck}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                    <Icon
+                      name='checkmark-circle'
+                      family='Ionicons'
+                      size={16}
+                      color={colorTokens.base.success[500]}
+                    />
                   </View>
                 )}
                 <Icon
@@ -668,7 +687,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               >
                 {selectedPayment === 'online' && (
                   <View style={styles.paymentCardCheck}>
-                    <Icon name='checkmark-circle' family='Ionicons' size={16} color='#10B981' />
+                    <Icon
+                      name='checkmark-circle'
+                      family='Ionicons'
+                      size={16}
+                      color={colorTokens.base.success[500]}
+                    />
                   </View>
                 )}
                 <Icon
@@ -721,7 +745,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               {/* Savings Badge */}
               {savings > 0 && (
                 <View style={styles.savingsBadge}>
-                  <Icon name='trending-down' family='Ionicons' size={16} color='#10B981' />
+                  <Icon
+                    name='trending-down'
+                    family='Ionicons'
+                    size={16}
+                    color={colorTokens.base.success[500]}
+                  />
                   <Text style={styles.savingsText}>
                     {t('checkout.youSave', { amount: savings.toFixed(2), currency })}
                   </Text>
@@ -794,7 +823,12 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           {/* Error Message */}
           {(orderError ?? validationError) != null && (
             <View style={styles.errorBanner}>
-              <Icon name='warning' family='Ionicons' size={20} color='#EF4444' />
+              <Icon
+                name='warning'
+                family='Ionicons'
+                size={20}
+                color={colorTokens.base.error[500]}
+              />
               <Text style={styles.errorText}>{orderError ?? validationError}</Text>
             </View>
           )}
@@ -869,4 +903,3 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     </View>
   );
 };
-

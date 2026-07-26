@@ -31,7 +31,7 @@ import type { PrizeClaimResponse } from '@foodwaste/shared';
 // ─── Color constants (leaderboard-specific, mirrors LeaderboardScreen) ───────
 const PRIMARY = colorTokens.base.primary[500];
 const GOLD_TEXT = '#B45309';
-const SUCCESS = '#22C55E';
+const SUCCESS = colorTokens.base.success[500];
 const SURFACE = '#FFFFFF';
 const BORDER = '#E5E7EB';
 const TEXT_PRIMARY = '#111827';

@@ -52,6 +52,7 @@ import type { Order, PickupErrorCode } from '../types/order.types';
 import type { OrdersStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 type InlinePickupError = PickupErrorCode | 'INVALID_CODE';
 
@@ -71,7 +72,7 @@ interface OrderDetailsScreenProps {
   route: OrderDetailsScreenRouteProp;
 }
 
-const SUCCESS_COLOR = '#22c55e';
+const SUCCESS_COLOR = colorTokens.base.success[500];
 
 export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
@@ -274,7 +275,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
                 name='checkmark-circle'
                 family='Ionicons'
                 size={28}
-                color={theme.colors.base?.success?.[500] ?? '#22c55e'}
+                color={theme.colors.base?.success?.[500] ?? colorTokens.base.success[500]}
               />
               <Text variant='body' size='md' weight='semibold' style={styles.successText}>
                 {t('orders.pickupConfirmed')}
@@ -291,7 +292,9 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
                 name={isPaymentExpired ? 'close-circle-outline' : 'time-outline'}
                 family='Ionicons'
                 size={28}
-                color={isPaymentExpired ? '#EF4444' : '#F59E0B'}
+                color={
+                  isPaymentExpired ? colorTokens.base.error[500] : colorTokens.base.warning[500]
+                }
               />
               <Text variant='body' size='md' weight='semibold' style={styles.pendingPaymentText}>
                 {isPaymentExpired ? t('orders.paymentWindowExpired') : t('orders.awaitingPayment')}

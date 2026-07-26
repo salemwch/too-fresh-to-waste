@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Text } from '@/design-system/components/atoms';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 interface DeletedOfferCardProps {
   onRemove: () => void;
@@ -21,7 +22,7 @@ const COLORS = {
   textSecondary: '#6B7280',
   textMuted: '#9CA3AF',
   dangerSurface: '#FEE2E2',
-  danger: '#EF4444',
+  danger: colorTokens.base.error[500],
 } as const;
 
 export const DeletedOfferCard: React.FC<DeletedOfferCardProps> = ({ onRemove, style }) => {

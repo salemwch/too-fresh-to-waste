@@ -35,6 +35,7 @@ import { useSelector } from 'react-redux';
 import { Logger } from '@/utils/logger';
 
 import type { RootState } from './index';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 // ============================================================================
 // Types
@@ -382,7 +383,7 @@ export function RehydrationGate({
     // Default loading UI
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size='large' color='#10B981' />
+        <ActivityIndicator size='large' color={colorTokens.base.success[500]} />
       </View>
     );
   }

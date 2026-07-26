@@ -55,7 +55,7 @@ interface HomeSearchBarProps {
 
 const COLORS = {
   brand: colorTokens.base.primary[500],
-  danger: '#EF4444',
+  danger: colorTokens.base.error[500],
   surface: '#F8FAFC',
   surfaceAccent: '#D1FAE5',
   border: '#E2E8F0',

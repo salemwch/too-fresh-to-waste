@@ -52,11 +52,11 @@ const SURFACE_MUTED = '#F1F5F9';
 const SURFACE_SUBTLE = '#F8FAFC';
 const INPUT_SURFACE = '#FAFAFA';
 const PRIMARY = colorTokens.base.primary[500];
-const SUCCESS = '#10B981';
+const SUCCESS = colorTokens.base.success[500];
 const SUCCESS_SURFACE = '#F0FDF4';
 const SUCCESS_BORDER = '#D1FAE5';
 const SUCCESS_TEXT = '#059669';
-const ERROR = '#EF4444';
+const ERROR = colorTokens.base.error[500];
 const ERROR_SURFACE = '#FEF2F2';
 const ERROR_BORDER = '#FECACA';
 const ERROR_TEXT = '#991B1B';
@@ -255,7 +255,12 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                     </View>
                   ) : isOrderExpired ? (
                     <View style={styles.expiredRow}>
-                      <Icon name='timer-outline' family='Ionicons' size={24} color='#EF4444' />
+                      <Icon
+                        name='timer-outline'
+                        family='Ionicons'
+                        size={24}
+                        color={colorTokens.base.error[500]}
+                      />
                       <View style={styles.expiredTextContainer}>
                         <Text style={styles.expiredTitle}>{t('orders.orderExpired')}</Text>
                         <Text style={styles.expiredSubtitle}>{t('orders.pickupWindowEnded')}</Text>
@@ -291,7 +296,12 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 
                       {pickupError ? (
                         <View style={styles.inlineError}>
-                          <Icon name='alert-circle' family='Ionicons' size={14} color='#EF4444' />
+                          <Icon
+                            name='alert-circle'
+                            family='Ionicons'
+                            size={14}
+                            color={colorTokens.base.error[500]}
+                          />
                           <Text style={styles.inlineErrorText}>
                             {t(getPickupErrorKey(pickupError))}
                           </Text>

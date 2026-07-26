@@ -61,7 +61,7 @@ const COLORS = {
 // ── Mascot configuration ─────────────────────────────────────────────────────
 
 const MASCOT_CONFIG: Record<MascotVariant, { color: string }> = {
-  urgent: { color: '#EF4444' },
+  urgent: { color: colorTokens.base.error[500] },
   hottest: { color: '#D97706' },
   today: { color: '#16A34A' },
   tomorrow: { color: '#6366F1' },
@@ -95,14 +95,14 @@ const BagMascotSvg: React.FC<{ variant: MascotVariant }> = ({ variant }) => (
         {/* Worried brows */}
         <Path
           d='M11 27 Q14 24 17 26'
-          stroke='#EF4444'
+          stroke={colorTokens.base.error[500]}
           strokeWidth='2'
           fill='none'
           strokeLinecap='round'
         />
         <Path
           d='M27 26 Q30 24 33 27'
-          stroke='#EF4444'
+          stroke={colorTokens.base.error[500]}
           strokeWidth='2'
           fill='none'
           strokeLinecap='round'
@@ -115,7 +115,7 @@ const BagMascotSvg: React.FC<{ variant: MascotVariant }> = ({ variant }) => (
         {/* Frown */}
         <Path
           d='M15 42 Q22 37 29 42'
-          stroke='#EF4444'
+          stroke={colorTokens.base.error[500]}
           strokeWidth='2.5'
           fill='none'
           strokeLinecap='round'

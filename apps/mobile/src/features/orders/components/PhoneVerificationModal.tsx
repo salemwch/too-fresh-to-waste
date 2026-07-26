@@ -26,6 +26,7 @@ import { selectAuthUser, updateUser } from '@/features/auth/store/authSlice';
 import { useAppSelector, useAppDispatch } from '@/hooks';
 import { apiClient } from '@/services/apiClient';
 import { Logger } from '@/utils/logger';
+import { colorTokens } from '@/design-system/tokens/colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const COUNTRY_PREFIX = '+216';
@@ -39,9 +40,9 @@ const TEXT_MUTED = '#374151';
 const BORDER = '#D1D5DB';
 const SURFACE_MUTED = '#E5E7EB';
 const INPUT_SURFACE = '#F9FAFB';
-const SUCCESS = '#10B981';
+const SUCCESS = colorTokens.base.success[500];
 const DISABLED = '#9CA3AF';
-const ERROR = '#EF4444';
+const ERROR = colorTokens.base.error[500];
 
 interface PhoneVerificationModalProps {
   visible: boolean;

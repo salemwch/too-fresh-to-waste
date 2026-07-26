@@ -36,7 +36,7 @@ import { loyaltyService } from '../services/loyaltyService';
 
 const SURFACE_MUTED = '#F1F5F9';
 const COPIED_BG = '#D1FAE5';
-const COPIED_FG = '#10B981';
+const COPIED_FG = colorTokens.base.success[500];
 const WHATSAPP_BG = '#D4EDDA';
 const WHATSAPP_FG = '#25D366';
 const HANDLE_COLOR = '#D1D5DB';
