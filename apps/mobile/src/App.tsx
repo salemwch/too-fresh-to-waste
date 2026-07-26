@@ -18,7 +18,7 @@ import { environment, validateEnvironmentConfig } from '@/config/environment';
 import { ThemeProvider } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { AuthFlowState } from '@/features/auth/types';
-import { authKeys } from '@/features/auth/hooks/useCurrentUser';
+import { authKeys } from '@/features/auth/queryKeys';
 import { favoriteKeys } from '@/features/favorites/hooks/favoriteKeys';
 import { QueryProvider } from '@/lib/react-query';
 import { RootNavigator } from '@/navigation';

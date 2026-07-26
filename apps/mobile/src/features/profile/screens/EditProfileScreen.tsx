@@ -36,7 +36,7 @@ import * as yup from 'yup';
 
 import { Text, Button, Card, Avatar, Icon, Input } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import { authKeys } from '@/features/auth/hooks/useCurrentUser';
+import { authKeys } from '@/features/auth/queryKeys';
 import { updateProfileAsync, updateUser } from '@/features/auth/store/authSlice';
 import { SkeletonEditProfileScreen } from '@/features/profile/components/SkeletonEditProfileScreen';
 import { userService } from '@/features/profile/services/userService';

@@ -11,7 +11,6 @@ import {
   PURGE,
   REGISTER,
   REHYDRATE,
-  createTransform,
   persistReducer,
   persistStore,
 } from 'redux-persist';
@@ -19,24 +18,12 @@ import {
 import { environment } from '@/config/environment';
 import authReducer from '@/features/auth/store/authSlice';
 import locationReducer from '@/store/slices/locationSlice';
-import type { LocationState } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
 import { isMMKVAvailable, mmkvStorage } from '@/utils/mmkvStorage';
 
 import { authSessionMiddleware } from './middleware/authSessionMiddleware';
+import { authTransform, locationTransform } from './persistTransforms';
 import { setAppStore } from './storeAccessor';
-
-import type { AuthState } from '@/features/auth/types';
-
-interface TransientSliceState<TError> {
-  error: TError;
-  isLoading: boolean;
-}
-
-type PersistedSlice<TState extends TransientSliceState<unknown>> = Omit<
-  TState,
-  'error' | 'isLoading'
->;
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -44,27 +31,6 @@ const rootReducer = combineReducers({
 });
 
 type RootStateFromReducer = ReturnType<typeof rootReducer>;
-
-const createTransientStateTransform = <TState extends TransientSliceState<unknown>>(
-  reducerKey: keyof RootStateFromReducer,
-  errorValue: TState['error'],
-) =>
-  createTransform<TState, PersistedSlice<TState>, RootStateFromReducer, RootStateFromReducer>(
-    inboundState => {
-      const { error: _error, isLoading: _isLoading, ...rest } = inboundState;
-      return rest;
-    },
-    outboundState =>
-      ({
-        ...outboundState,
-        isLoading: false,
-        error: errorValue,
-      }) as TState,
-    { whitelist: [reducerKey as string] },
-  );
-
-const authTransform = createTransientStateTransform<AuthState>('auth', undefined);
-const locationTransform = createTransientStateTransform<LocationState>('location', null);
 
 /**
  * Persist schema version.

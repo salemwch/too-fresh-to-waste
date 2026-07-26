@@ -13,6 +13,7 @@ import { backgroundStorage } from '@/utils/backgroundStorage';
 import { Logger } from '@/utils/logger';
 
 import { authService } from '../../services/authService';
+import { authKeys } from '../../queryKeys';
 
 import type { User } from '../../types';
 
@@ -79,6 +80,17 @@ export const syncCurrentUserAsync = createAsyncThunk(
       backgroundStorage.execute('sync-user-data', async () => {
         await SecureStorage.setUserData(JSON.stringify(user));
       });
+
+      // Seed the React Query cache from this one fetch. useCurrentUser is gated
+      // on isUserSynced, so it stays disabled until the fulfilled reducer below
+      // flips it — at which point this data is already present and fresh, and no
+      // second /auth/me goes out. Without the seed the two paths each fetch.
+      //
+      // Dynamic import to match deleteAccountAsync below: a static one would
+      // pull queryClient (and its ErrorHandler chain) into the module graph of
+      // every store creation, since the slice imports these thunks eagerly.
+      const { queryClient } = await import('@/lib/react-query/queryClient');
+      queryClient.setQueryData(authKeys.me(), user);
 
       Logger.info('[AUTH] User data synced successfully', { userId: user.userId });
       return user;

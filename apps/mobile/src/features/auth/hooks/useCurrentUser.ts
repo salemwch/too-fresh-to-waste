@@ -29,12 +29,9 @@ import { Freshness } from '@/lib/react-query/freshness';
 import { apiClient, unwrapBackendResponse } from '@/services/apiClient';
 import { isAuthReadyForApiCalls } from '@/utils/tokenValidator';
 
-import type { User } from '../types';
+import { authKeys } from '../queryKeys';
 
-export const authKeys = {
-  all: ['auth'] as const,
-  me: () => [...authKeys.all, 'me'] as const,
-} as const;
+import type { User } from '../types';
 
 export interface CurrentUserResult {
   /** The user. Never undefined while a session exists — falls back to Redux. */
@@ -54,6 +51,7 @@ export interface CurrentUserResult {
 export function useCurrentUser(): CurrentUserResult {
   const authState = useAppSelector(state => state.auth);
   const { isReady } = isAuthReadyForApiCalls(authState);
+  const { isUserSynced } = authState;
 
   const query = useQuery({
     queryKey: authKeys.me(),
@@ -64,7 +62,16 @@ export function useCurrentUser(): CurrentUserResult {
     // injects the token via its interceptor.
     queryFn: async (): Promise<User> =>
       unwrapBackendResponse<User>(await apiClient.get('/auth/me'), 'current user'),
-    enabled: isReady,
+    // Gated on isUserSynced as well as readiness, so this does not race the
+    // middleware's cold-start /auth/me. That sync is the one request per launch:
+    // it writes the Keychain copy and flips isUserSynced, and seeds this cache
+    // on the way (see syncCurrentUserAsync). By the time the gate opens the data
+    // is already here and fresh, so no second request is made.
+    //
+    // The flag is stripped on persist, so it is reliably false on cold start.
+    // A 401/403 sync leaves it false, which keeps this query disabled while the
+    // interceptor logs out rather than adding to a 401 flood.
+    enabled: isReady && isUserSynced,
     // The profile changes rarely and only through this device's own edits,
     // which invalidate explicitly. Refetching more often costs a request per
     // screen focus and tells us nothing new.

@@ -6,5 +6,6 @@
  * docs/plans/auth-state-ownership-audit.md.
  */
 export { useAuth } from './useAuth';
-export { useCurrentUser, authKeys } from './useCurrentUser';
+export { useCurrentUser } from './useCurrentUser';
+export { authKeys } from '../queryKeys';
 export type { CurrentUserResult } from './useCurrentUser';

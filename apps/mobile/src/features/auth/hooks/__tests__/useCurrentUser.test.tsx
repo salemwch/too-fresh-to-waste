@@ -36,10 +36,13 @@ import { useCurrentUser } from '../useCurrentUser';
 const CONSUMER = { userId: 'u1', email: 'a@b.com', role: 'consumer', firstName: 'Amine' };
 const DRIVER = { userId: 'u2', email: 'd@b.com', role: 'driver', firstName: 'Sami' };
 
+// isUserSynced true = the middleware's cold-start /auth/me has already landed,
+// which is when this query is allowed to fetch. See the gate in useCurrentUser.
 const authedState = (user: unknown) => ({
   user,
   isAuthenticated: true,
   sessionExpiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+  isUserSynced: true,
 });
 
 const clients: QueryClient[] = [];
@@ -139,7 +142,12 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
 
   describe('auth gating', () => {
     it('does not call /auth/me when unauthenticated', async () => {
-      mockAuthState = { user: null, isAuthenticated: false, sessionExpiresAt: null };
+      mockAuthState = {
+        user: null,
+        isAuthenticated: false,
+        sessionExpiresAt: null,
+        isUserSynced: false,
+      };
       const { result } = setup();
 
       await waitFor(() => expect(result.current.isRefreshing).toBe(false));
@@ -157,6 +165,7 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
         user: CONSUMER,
         isAuthenticated: true,
         sessionExpiresAt: new Date(Date.now() - 60_000).toISOString(),
+        isUserSynced: true,
       };
       const { result } = setup();
 
@@ -167,8 +176,38 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
       expect(result.current.user).toEqual(CONSUMER);
     });
 
+    // The cold-start dedup. The middleware's syncCurrentUserAsync is the one
+    // /auth/me per launch: it writes the Keychain copy, seeds this cache and
+    // flips isUserSynced. Firing before that flag is set means two requests for
+    // the same data on every cold start.
+    it('does not call /auth/me before the cold-start sync has landed', async () => {
+      mockAuthState = { ...authedState(CONSUMER), isUserSynced: false };
+      const { result } = setup();
+
+      await waitFor(() => expect(result.current.isRefreshing).toBe(false));
+      expect(mockGet).not.toHaveBeenCalled();
+      // Still serves the restored identity — the gate must not blank the user.
+      expect(result.current.user).toEqual(CONSUMER);
+    });
+
+    // A 401/403 sync deliberately leaves isUserSynced false while the response
+    // interceptor logs out. Firing here would add to a 401 flood.
+    it('stays disabled for a DRIVER awaiting sync, without losing the role', async () => {
+      mockAuthState = { ...authedState(DRIVER), isUserSynced: false };
+      const { result } = setup();
+
+      await waitFor(() => expect(result.current.isRefreshing).toBe(false));
+      expect(mockGet).not.toHaveBeenCalled();
+      expect(result.current.user?.role).toBe('driver');
+    });
+
     it('returns null after logout clears Redux', async () => {
-      mockAuthState = { user: null, isAuthenticated: false, sessionExpiresAt: null };
+      mockAuthState = {
+        user: null,
+        isAuthenticated: false,
+        sessionExpiresAt: null,
+        isUserSynced: false,
+      };
       const { result } = setup();
 
       await waitFor(() => expect(result.current.isRefreshing).toBe(false));
