@@ -8,7 +8,6 @@
  * Animation pattern reused from PlaceOffersBottomSheet (spring + timing parallel).
  */
 
-import { Currency } from '@foodwaste/shared';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Animated, Pressable, Dimensions } from 'react-native';
@@ -18,14 +17,14 @@ import FastImage from 'react-native-fast-image';
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { FavoriteOfferCard } from '@/features/favorites';
-import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
+
+import { distanceToMeters, mapOfferSummaryToListItem } from '../../utils/offerMappers';
 
 import type {
   ProximitySearchResult,
   MapEstablishment,
   MapOfferSummary,
 } from '@/features/offers/hooks';
-import type { OfferListItem } from '@/features/offers/types/offer.types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
@@ -47,60 +46,6 @@ interface EstablishmentBottomSheetProps {
   /** Extra bottom inset to keep sheet above tab bar */
   bottomInset?: number;
 }
-
-// ============================================================================
-// Helpers
-// ============================================================================
-
-/**
- * Map a MapOfferSummary (from the establishment's embedded offers)
- * into an OfferListItem for FavoriteOfferCard.
- *
- * @param establishmentProfileImage - The establishment's profile image URI.
- *   Passed explicitly because MapOfferSummary (a lightweight summary) does
- *   not carry it — only the parent MapEstablishment does.
- */
-const mapOfferToListItem = (
-  offer: MapOfferSummary,
-  establishmentName: string,
-  establishmentProfileImage: string | null | undefined,
-  distanceMeters: number,
-): OfferListItem => ({
-  id: offer._id,
-  title: offer.title,
-  type: OfferType.SURPRISE_BAG,
-  image: offer.images?.[0] ?? undefined,
-  pricing: {
-    originalPrice: offer.pricing.originalPrice,
-    discountedPrice: offer.pricing.discountedPrice,
-    discountPercentage: offer.pricing.discountPercentage,
-    currency: (offer.pricing.currency as Currency | null | undefined) ?? Currency.TND,
-  },
-  availableQuantity: offer.availableQuantity,
-  availableFrom: offer.availableFrom,
-  availableUntil: offer.availableUntil,
-  establishment: {
-    name: establishmentName,
-    // Only set when non-null so exactOptionalPropertyTypes is satisfied
-    ...(establishmentProfileImage != null ? { profileImage: establishmentProfileImage } : {}),
-  },
-  distance: distanceMeters,
-  ctaState:
-    new Date() < new Date(offer.availableFrom)
-      ? CtaState.NOT_STARTED
-      : offer.availableQuantity > 0
-        ? CtaState.AVAILABLE
-        : CtaState.SOLD_OUT,
-  status: OfferStatus.ACTIVE,
-});
-
-/** Convert distance to meters regardless of unit */
-const toMeters = (result: ProximitySearchResult<MapEstablishment>): number => {
-  const { value, unit } = result.distance;
-  if (unit === 'kilometers') return value * 1000;
-  if (unit === 'miles') return value * 1609.34;
-  return value;
-};
 
 // ============================================================================
 // Component
@@ -150,12 +95,17 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
   }, [visible, slideAnim, opacityAnim]);
 
   const item = establishment?.item;
-  const distanceMeters = establishment ? toMeters(establishment) : 0;
+  const distanceMeters = establishment ? distanceToMeters(establishment.distance) : 0;
 
   const renderItem = useCallback(
     ({ item: offer }: { item: MapOfferSummary }) => {
       if (!item) return null;
-      const offerData = mapOfferToListItem(offer, item.name, item.profileImage, distanceMeters);
+      const offerData = mapOfferSummaryToListItem(
+        offer,
+        item.name,
+        item.profileImage,
+        distanceMeters,
+      );
       return (
         <FavoriteOfferCard
           offer={offerData}

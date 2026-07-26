@@ -9,7 +9,6 @@
  * @module PlaceOffersBottomSheet
  */
 
-import { Currency } from '@foodwaste/shared';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Animated, Pressable, ActivityIndicator, Dimensions } from 'react-native';
@@ -18,10 +17,10 @@ import { FlashList } from '@shopify/flash-list';
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { FavoriteOfferCard } from '@/features/favorites';
-import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
+
+import { nearbyOfferToListItem } from '../../utils/offerMappers';
 
 import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
-import type { OfferListItem } from '@/features/offers/types/offer.types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
@@ -47,48 +46,6 @@ interface PlaceOffersBottomSheetProps {
   /** Called when an offer is tapped */
   onOfferPress: (offerId: string) => void;
 }
-
-// ============================================================================
-// Helpers
-// ============================================================================
-
-const mapToOfferListItem = (result: ProximitySearchResult<NearbyOffer>): OfferListItem => {
-  const { item, distance } = result;
-
-  let distanceInMeters = distance.value;
-  if (distance.unit === 'kilometers') {
-    distanceInMeters = distance.value * 1000;
-  } else if (distance.unit === 'miles') {
-    distanceInMeters = distance.value * 1609.34;
-  }
-
-  return {
-    id: item._id,
-    title: item.title,
-    type: OfferType.SURPRISE_BAG,
-    image: item.images?.[0] ?? undefined,
-    pricing: {
-      originalPrice: item.pricing.originalPrice,
-      discountedPrice: item.pricing.discountedPrice,
-      discountPercentage: item.pricing.discountPercentage,
-      currency: (item.pricing.currency as Currency | null | undefined) ?? Currency.TND,
-    },
-    availableQuantity: item.availableQuantity,
-    availableFrom: item.availableFrom,
-    availableUntil: item.availableUntil,
-    establishment: {
-      name: item.establishmentName,
-    },
-    distance: distanceInMeters,
-    ctaState:
-      new Date() < new Date(item.availableFrom)
-        ? CtaState.NOT_STARTED
-        : item.availableQuantity > 0
-          ? CtaState.AVAILABLE
-          : CtaState.SOLD_OUT,
-    status: OfferStatus.ACTIVE,
-  };
-};
 
 // ============================================================================
 // Component
@@ -141,7 +98,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
 
   const renderItem = useCallback(
     ({ item }: { item: ProximitySearchResult<NearbyOffer> }) => {
-      const offerData = mapToOfferListItem(item);
+      const offerData = nearbyOfferToListItem(item);
       return (
         <FavoriteOfferCard
           offer={offerData}

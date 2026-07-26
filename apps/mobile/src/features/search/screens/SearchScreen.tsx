@@ -11,7 +11,6 @@
  * - Session token optimization for Google billing
  */
 
-import { Currency } from '@foodwaste/shared';
 import { FlashList } from '@shopify/flash-list';
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -40,7 +39,6 @@ import {
   type NearbyEstablishment,
   type MapEstablishment,
 } from '@/features/offers/hooks';
-import { OfferType, CtaState, OfferStatus } from '@/features/offers/types/offer.types';
 import { useAppDispatch } from '@/hooks/redux';
 import { useLocation } from '@/hooks/useLocation';
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
@@ -56,8 +54,13 @@ import {
 } from '../components';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 import { usePlaceSearch } from '../hooks/usePlaceSearch';
+import {
+  NO_OFFERS,
+  groupOffersByEstablishment,
+  type EstablishmentGroup,
+} from '../utils/groupOffers';
+import { nearbyOfferToListItem } from '../utils/offerMappers';
 
-import type { OfferListItem } from '@/features/offers/types/offer.types';
 import type { SearchScreenNavigationProp } from '@/navigation/types';
 import type { ILocationResult } from '@/types/location.types';
 import type { Region } from 'react-native-maps';
@@ -81,54 +84,6 @@ const SURFACE_SHADOW = '#000';
 const SEARCH_CAROUSEL_CARD_WIDTH = 260;
 
 // ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Convert ProximitySearchResult<NearbyOffer> to OfferListItem
- */
-const mapSearchResultToOfferListItem = (
-  result: ProximitySearchResult<NearbyOffer>,
-): OfferListItem => {
-  const { item, distance } = result;
-
-  let distanceInMeters = distance.value;
-  if (distance.unit === 'kilometers') {
-    distanceInMeters = distance.value * 1000;
-  } else if (distance.unit === 'miles') {
-    distanceInMeters = distance.value * 1609.34;
-  }
-
-  return {
-    id: item._id,
-    title: item.title,
-    type: OfferType.SURPRISE_BAG,
-    image: item.images?.[0] ?? undefined,
-    pricing: {
-      originalPrice: item.pricing.originalPrice,
-      discountedPrice: item.pricing.discountedPrice,
-      discountPercentage: item.pricing.discountPercentage,
-      currency: (item.pricing.currency as Currency | null | undefined) ?? Currency.TND,
-    },
-    availableQuantity: item.availableQuantity,
-    availableFrom: item.availableFrom,
-    availableUntil: item.availableUntil,
-    establishment: {
-      name: item.establishmentName,
-      ...(item.establishmentLogo ? { profileImage: item.establishmentLogo } : {}),
-    },
-    distance: distanceInMeters,
-    ctaState:
-      new Date() < new Date(item.availableFrom)
-        ? CtaState.NOT_STARTED
-        : item.availableQuantity > 0
-          ? CtaState.AVAILABLE
-          : CtaState.SOLD_OUT,
-    status: OfferStatus.ACTIVE,
-  };
-};
-
-// ============================================================================
 // Types
 // ============================================================================
 
@@ -142,46 +97,6 @@ interface SelectedPlace {
   address: string;
   coordinates: { latitude: number; longitude: number };
 }
-
-interface EstablishmentGroup {
-  establishmentId: string;
-  establishmentName: string;
-  establishmentLogo: string | null;
-  offers: ProximitySearchResult<NearbyOffer>[];
-}
-
-// ============================================================================
-// Helper Functions (grouping)
-// ============================================================================
-
-/**
- * Stable empty fallback. `offers ?? []` allocates a new array on every render
- * while the query is loading, which changes `displayOffers`' identity each time
- * and makes the useMemo that groups them recompute forever. One frozen constant
- * keeps the identity stable.
- */
-const NO_OFFERS: ProximitySearchResult<NearbyOffer>[] = [];
-
-const groupOffersByEstablishment = (
-  offers: ProximitySearchResult<NearbyOffer>[],
-): EstablishmentGroup[] => {
-  const map = new Map<string, EstablishmentGroup>();
-  for (const result of offers) {
-    const { establishmentId, establishmentName, establishmentLogo } = result.item;
-    const existing = map.get(establishmentId);
-    if (existing) {
-      existing.offers.push(result);
-    } else {
-      map.set(establishmentId, {
-        establishmentId,
-        establishmentName,
-        establishmentLogo,
-        offers: [result],
-      });
-    }
-  }
-  return Array.from(map.values());
-};
 
 // ============================================================================
 // EstablishmentOfferRow — one section per business in list view
@@ -223,7 +138,7 @@ const EstablishmentOfferRow = React.memo(({ group, onOfferPress }: Establishment
   const renderOffer = useCallback(
     ({ item }: { item: ProximitySearchResult<NearbyOffer> }) => (
       <FavoriteOfferCard
-        offer={mapSearchResultToOfferListItem(item)}
+        offer={nearbyOfferToListItem(item)}
         variant='default'
         imageAspectRatio={1.8}
         onPress={() => onOfferPress(item)}
