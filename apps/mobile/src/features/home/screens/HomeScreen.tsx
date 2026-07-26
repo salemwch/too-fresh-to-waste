@@ -25,13 +25,11 @@ import { LocationPromptBanner } from '@/design-system/components/molecules';
 import { ManualLocationModal, LocationSelectionModal } from '@/design-system/components/organisms';
 import { useTheme } from '@/design-system/providers';
 import { ImpactBanner } from '@/features/donations';
-import { useLocationSearch } from '@/features/offers/hooks/useGeocode.v2';
 import { FilterBottomSheet } from '@/features/search/components';
 import { useAppDispatch } from '@/hooks/redux';
 import { useLocation } from '@/hooks/useLocation';
 import { LocationPickerBottomSheet, LocationHeader } from '@/navigation/components';
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
-import { transformLocationResultsToItems } from '@/utils/location';
 import { Logger } from '@/utils/logger';
 
 import heartInHandsImg from '../../../assets/images/heart-in-hands.png';
@@ -47,6 +45,7 @@ import { OFFER_SECTIONS } from '../constants/homeConstants';
 import {
   useHomeFilters,
   useHomeOffers,
+  useLocationPicker,
   useLocationSetup,
   useRecentLocations,
   COMMUNITY_GOAL_QUERY_KEY,
@@ -54,7 +53,6 @@ import {
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 import { FloatingVoteTab } from '@/features/voting/components/FloatingVoteTab';
 
-import type { LocationItem } from '@/navigation/components';
 import type { HomeScreenNavigationProp } from '@/navigation/types';
 import type { RootState } from '@/types';
 
@@ -179,8 +177,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // Location Picker State & Search
   // ──────────────────────────────────────────────────────────────────────────
 
-  const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
-  const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [isCharitySheetVisible, setIsCharitySheetVisible] = useState(false);
 
   // ============================================================================
@@ -211,38 +207,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   //
   // Extracted to named variables because the rule cannot statically check an
   // expression written inline in the dependency array.
-  const coarseLat = coordinates ? Math.round(coordinates.latitude * 10) / 10 : null;
-  const coarseLng = coordinates ? Math.round(coordinates.longitude * 10) / 10 : null;
-
-  const userCoords = useMemo(
-    () => (coordinates ? { lat: coordinates.latitude, lng: coordinates.longitude } : undefined),
-    // `coordinates` is deliberately omitted: reacting to it is the exact
-    // behaviour the rounding exists to prevent. The coarse pair is the intended
-    // trigger, and it is derived from `coordinates`, so the value read inside
-    // can never be older than the last meaningful move.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [coarseLat, coarseLng],
-  );
-
-  // Hybrid location search hook with session token cost optimization + geo-ranking
-  const {
-    data: locationResults,
-    isLoading: isSearchingLocations,
-    resolveGooglePlace,
-    resetSessionToken,
-  } = useLocationSearch(locationSearchQuery, {
-    debounceDelay: 300,
-    minLength: 2,
-    maxResults: 10,
-    enableRemoteFallback: true,
-    ...(userCoords ? { userCoords } : {}),
-  });
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-
-  const locationSearchResults = useMemo<LocationItem[]>(() => {
-    if (!locationResults) return [];
-    return transformLocationResultsToItems(locationResults, false);
-  }, [locationResults]);
 
   /**
    * Filters hook - Centralized filter state management
@@ -296,10 +261,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const { recentLocations, saveToRecentLocations } = useRecentLocations();
 
+  const locationPicker = useLocationPicker({
+    coordinates,
+    requestLocation,
+    setManualLocationValue,
+    saveToRecentLocations,
+    dispatch,
+  });
+
   const [refreshing, setRefreshing] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const flatListRef = useRef<FlashList<Section>>(null);
-  // Note: isLocationPickerVisible moved to top with location search state
 
   /**
    * Home tab re-tap: scroll to top + refetch all offers
@@ -372,7 +344,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     () => navigation.navigate('Leaderboard'),
     [navigation],
   );
-  const handleLocationPress = useCallback(() => setIsLocationPickerVisible(true), []);
+  const handleLocationPress = locationPicker.open;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -458,100 +430,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // ============================================================================
   // Location Picker Handlers
   // ============================================================================
-
-  const [isLoadingGPS, setIsLoadingGPS] = useState(false);
-
-  /**
-   * Use current GPS location from bottom sheet
-   *
-   * Production flow:
-   * 1. Get GPS coordinates
-   * 2. Trigger reverse geocoding to get location name
-   * 3. Wait for location name (or timeout after 15s)
-   * 4. Close bottom sheet and show location name in header
-   *
-   * Best Practice: Keep loading state visible until location name is resolved
-   */
-  const handleUseCurrentLocation = useCallback(async () => {
-    setIsLoadingGPS(true);
-
-    try {
-      // Step 1: Get GPS coordinates
-      const result = await requestLocation();
-
-      if (!result.success || !result.coordinates) {
-        setIsLoadingGPS(false);
-        return;
-      }
-
-      // Step 2: Trigger reverse geocoding to get location name
-      Logger.debug('[HomeScreen] GPS acquired, reverse geocoding...');
-
-      try {
-        await dispatch(reverseGeocodeAsync(result.coordinates)).unwrap();
-        Logger.info('[HomeScreen] ✅ Reverse geocoding completed - location name resolved');
-      } catch (error) {
-        // Non-blocking: If reverse geocoding fails, still use GPS coordinates
-        // Header will show "Current Location" fallback
-        Logger.warn('[HomeScreen] ⚠️ Reverse geocoding failed, using fallback', {
-          error: String(error),
-        });
-      }
-
-      // Step 3: Close bottom sheet (location name is now in Redux state)
-      setIsLocationPickerVisible(false);
-    } catch (error) {
-      Logger.error('[HomeScreen] Failed to get current location:', {}, error as Error);
-    } finally {
-      setIsLoadingGPS(false);
-    }
-  }, [requestLocation, dispatch]);
-
-  /**
-   * Select a location from bottom sheet
-   * ✅ Updates Redux immediately (non-blocking), saves to AsyncStorage as side effect
-   */
-  const handleSelectLocationFromPicker = useCallback(
-    async (location: LocationItem) => {
-      let { latitude, longitude } = location;
-
-      // For GOOGLE results, fetch real coordinates via Place Details
-      if (location.googlePlaceId != null) {
-        const resolved = await resolveGooglePlace(location.googlePlaceId);
-        if (resolved) {
-          latitude = resolved.coords.lat;
-          longitude = resolved.coords.lng;
-        } else {
-          return; // Failed to resolve - don't select
-        }
-      }
-
-      if (latitude != null && longitude != null) {
-        const displayName = location.city ?? location.name;
-        setManualLocationValue({ latitude, longitude }, displayName);
-
-        // Save to recent locations with resolved coords
-        saveToRecentLocations({ ...location, latitude, longitude });
-      }
-      setIsLocationPickerVisible(false);
-      setLocationSearchQuery('');
-    },
-    [setManualLocationValue, saveToRecentLocations, resolveGooglePlace],
-  );
-
-  /**
-   * Handle location search query change
-   */
-  const handleLocationSearchChange = useCallback((query: string) => {
-    setLocationSearchQuery(query);
-  }, []);
-
-  // Reset session token when location picker closes
-  useEffect(() => {
-    if (!isLocationPickerVisible) {
-      resetSessionToken();
-    }
-  }, [isLocationPickerVisible, resetSessionToken]);
 
   // ============================================================================
   // FlatList Data - Section Structure
@@ -833,21 +711,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
       {/* Location Picker Bottom Sheet */}
       <LocationPickerBottomSheet
-        visible={isLocationPickerVisible}
+        visible={locationPicker.isVisible}
         currentLocation={manualLocationName}
         recentLocations={recentLocations}
-        searchResults={locationSearchResults} // 🆕 Pass search results
-        isLoadingGPS={isLoadingGPS}
-        isSearching={isSearchingLocations} // 🆕 Pass search loading state
-        searchQuery={locationSearchQuery} // 🆕 Pass current search query
-        onClose={() => setIsLocationPickerVisible(false)}
-        onUseCurrentLocation={() => {
-          void handleUseCurrentLocation();
-        }}
-        onSelectLocation={loc => {
-          void handleSelectLocationFromPicker(loc);
-        }}
-        onSearchChange={handleLocationSearchChange} // 🆕 Wire up search handler
+        searchResults={locationPicker.searchResults}
+        isLoadingGPS={locationPicker.isLoadingGPS}
+        isSearching={locationPicker.isSearching}
+        searchQuery={locationPicker.searchQuery}
+        onClose={locationPicker.close}
+        onUseCurrentLocation={locationPicker.onUseCurrentLocation}
+        onSelectLocation={locationPicker.onSelectLocation}
+        onSearchChange={locationPicker.onSearchChange}
       />
     </View>
   );
