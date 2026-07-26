@@ -53,10 +53,16 @@ jest.mock('./VoteBottomSheet', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock useAppSelector — returns firstName for the logged-in user
+// Mock useCurrentUser — the hook VotingCard now reads identity from. Mocking it
+// rather than providing a QueryClientProvider keeps this a unit test: no real
+// /auth/me request, and apiClient → i18n → mmkv stays out of the module graph.
 // ---------------------------------------------------------------------------
-jest.mock('@/hooks/redux', () => ({
-  useAppSelector: () => 'Salem',
+jest.mock('@/features/auth/hooks/useCurrentUser', () => ({
+  useCurrentUser: () => ({
+    user: { firstName: 'Salem' },
+    isRefreshing: false,
+    isFresh: true,
+  }),
 }));
 
 // ---------------------------------------------------------------------------

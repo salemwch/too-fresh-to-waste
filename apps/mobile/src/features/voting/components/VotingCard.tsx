@@ -27,7 +27,6 @@ import {
 
 import { Icon, Text } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
-import { useAppSelector } from '@/hooks/redux';
 
 import { useActiveVotingCycle } from '../hooks/useVoting';
 import {
@@ -38,6 +37,7 @@ import {
 
 import { DiscountClaimModal } from '@/features/leaderboard/components/DiscountClaimModal';
 import { VoteBottomSheet } from './VoteBottomSheet';
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 
 // Colors from design system
 const PRIMARY_500 = colorTokens.base.primary[500];
@@ -217,7 +217,8 @@ export const VotingCard: React.FC = () => {
   const isCompletedCycle = cycle?.status === 'COMPLETED';
   const { data: votingPrize } = useVotingPrizeStatus(isCompletedCycle);
   const claimVotingPrize = useClaimVotingPrize();
-  const firstName = useAppSelector(state => state.auth.user?.firstName ?? '');
+  const { user } = useCurrentUser();
+  const firstName = user?.firstName ?? '';
 
   if (isLoading || !cycle) return null;
   if (cycle.status === 'ARCHIVED' || cycle.status === 'EXPIRED') return null;
@@ -499,7 +500,7 @@ export const VotingCard: React.FC = () => {
           </Text>
         </View>
         <View style={styles.progressTrack}>
-          { }
+          {}
           <View style={[styles.progressFill, { width: `${pct}%` }]} />
         </View>
         <Text variant='body' size='xs' style={styles.subtleText}>

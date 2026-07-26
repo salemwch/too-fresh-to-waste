@@ -26,10 +26,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAppSelector } from '@/hooks/redux';
 import { Freshness } from '@/lib/react-query/freshness';
-import { SecureStorage } from '@/services/SecureStorage';
+import { apiClient, unwrapBackendResponse } from '@/services/apiClient';
 import { isAuthReadyForApiCalls } from '@/utils/tokenValidator';
-
-import { authService } from '../services/authService';
 
 import type { User } from '../types';
 
@@ -59,13 +57,13 @@ export function useCurrentUser(): CurrentUserResult {
 
   const query = useQuery({
     queryKey: authKeys.me(),
-    queryFn: async (): Promise<User> => {
-      const accessToken = await SecureStorage.getAccessToken();
-      if (accessToken == null || accessToken === '') {
-        throw new Error('No access token available');
-      }
-      return authService.getCurrentUser(accessToken);
-    },
+    // apiClient rather than authService: authService reads the token by hand and
+    // pulls in errorHandler and toast, which would land react-native-toast-message,
+    // vector-icons and i18n in the module graph of every component that shows a
+    // name or an avatar. apiClient is the pattern every other query hook uses and
+    // injects the token via its interceptor.
+    queryFn: async (): Promise<User> =>
+      unwrapBackendResponse<User>(await apiClient.get('/auth/me'), 'current user'),
     enabled: isReady,
     // The profile changes rarely and only through this device's own edits,
     // which invalidate explicitly. Refetching more often costs a request per

@@ -9,14 +9,13 @@ import { View, StyleSheet, Animated, Easing } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { Avatar, Icon, Text } from '@/design-system/components/atoms';
-import { useAppSelector } from '@/hooks/redux';
-import { selectAuthUser } from '@/features/auth/store/authSlice';
 
 import { getTierConfig, getTierProgress, getPointsToNextTier } from '../constants/tiers';
 
 import { AnimatedCounter } from './AnimatedCounter';
 
 import type { TierName } from '../types/loyalty.types';
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 
 /** Teal gradient matching the app's --gradient-teal CSS variable */
 const HERO_GRADIENT: [string, string] = ['#005251', '#2DB89B'];
@@ -38,7 +37,7 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
   currentTier,
   votingLive,
 }) => {
-  const user = useAppSelector(selectAuthUser);
+  const { user } = useCurrentUser();
   const userImageUri = user?.profileImage ?? user?.avatar ?? undefined;
 
   const tierConfig = getTierConfig(currentTier);

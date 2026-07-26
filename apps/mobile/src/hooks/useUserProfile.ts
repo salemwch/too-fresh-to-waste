@@ -1,15 +1,24 @@
 /**
- * useUserProfile — Centralized hook for user profile data + resolved avatar URI.
+ * useUserProfile — display-oriented user data + resolved avatar URI.
  *
- * Single source of truth for any screen needing user info.
- * Pure derivation from Redux `auth.user` — no API calls, zero latency.
+ * Hybrid ownership (see docs/plans/auth-state-ownership-audit.md):
  *
- * Rationale: User data is populated on login/register/verify and kept
- * in sync via `updateProfileAsync` / `updateUser`. Adding TanStack Query
- * would create two sources of truth (Redux auth + RQ cache).
+ *   display fields  ← useCurrentUser, so an edit made on another device shows
+ *                     up without a relaunch
+ *   isAuthenticated ← Redux, always. It is a session fact, not profile data,
+ *                     and something will eventually gate on it. Deriving it
+ *                     from a query would make an authorization-shaped value
+ *                     depend on a fetch that can be loading, failed, or
+ *                     disabled.
+ *
+ * useCurrentUser falls back to the Redux/Keychain user while its fetch is in
+ * flight, so this hook is never empty for a signed-in user — no avatar flash,
+ * no User placeholder appearing on a cold start.
  */
 
 import { useMemo } from 'react';
+
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 
 import { useAppSelector } from './redux';
 
@@ -24,7 +33,7 @@ interface UseUserProfileReturn {
   readonly initials: string;
   /** "FirstName LastName" or "User" fallback */
   readonly displayName: string;
-  /** Whether a user session exists */
+  /** Whether a user session exists. Redux-sourced — never query-derived. */
   readonly isAuthenticated: boolean;
 }
 
@@ -38,7 +47,10 @@ function resolveUri(value: string | null | undefined): string | null {
 }
 
 export function useUserProfile(): UseUserProfileReturn {
-  const user = useAppSelector(state => state.auth.user);
+  // Display data: freshest available, falling back to the restored identity.
+  const { user } = useCurrentUser();
+  // Session fact: Redux only.
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
 
   return useMemo(() => {
     if (user == null) {
@@ -47,7 +59,7 @@ export function useUserProfile(): UseUserProfileReturn {
         avatarUri: null,
         initials: 'U',
         displayName: 'User',
-        isAuthenticated: false,
+        isAuthenticated,
       };
     }
 
@@ -69,7 +81,7 @@ export function useUserProfile(): UseUserProfileReturn {
       avatarUri,
       initials,
       displayName,
-      isAuthenticated: true,
+      isAuthenticated,
     };
-  }, [user]);
+  }, [user, isAuthenticated]);
 }

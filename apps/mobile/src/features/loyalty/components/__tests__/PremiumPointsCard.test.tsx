@@ -26,17 +26,21 @@ jest.mock('@/design-system/providers', () => ({
   }),
 }));
 
-jest.mock('@/hooks/redux', () => ({
-  useAppSelector: () => ({
-    firstName: 'John',
-    lastName: 'Doe',
-    profileImage: null,
-    avatar: null,
+// The card reads identity through useCurrentUser, not Redux directly. Mocking
+// the hook (rather than wrapping in a QueryClientProvider) keeps this a unit
+// test of the card: no real /auth/me, and none of apiClient → i18n → mmkv is
+// pulled into the module graph just to render a name.
+jest.mock('@/features/auth/hooks/useCurrentUser', () => ({
+  useCurrentUser: () => ({
+    user: {
+      firstName: 'John',
+      lastName: 'Doe',
+      profileImage: null,
+      avatar: null,
+    },
+    isRefreshing: false,
+    isFresh: true,
   }),
-}));
-
-jest.mock('@/features/auth/store/authSlice', () => ({
-  selectAuthUser: (state: unknown) => state,
 }));
 
 jest.mock('../../constants/tiers', () => ({
@@ -85,7 +89,7 @@ describe('PremiumPointsCard', () => {
     expect(getByText('Silver')).toBeTruthy();
   });
 
-  it('renders user name from Redux store', () => {
+  it('renders user name from the current-user hook', () => {
     const { getByText } = render(<PremiumPointsCard {...defaultProps} />);
     expect(getByText('John')).toBeTruthy();
     expect(getByText('Doe')).toBeTruthy();

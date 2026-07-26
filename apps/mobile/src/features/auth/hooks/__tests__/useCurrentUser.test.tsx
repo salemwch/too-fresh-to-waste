@@ -16,14 +16,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
-const mockGetCurrentUser = jest.fn();
-jest.mock('../../services/authService', () => ({
-  authService: { getCurrentUser: (...a: unknown[]) => mockGetCurrentUser(...a) },
-}));
-
-const mockGetAccessToken = jest.fn();
-jest.mock('@/services/SecureStorage', () => ({
-  SecureStorage: { getAccessToken: () => mockGetAccessToken() },
+const mockGet = jest.fn();
+jest.mock('@/services/apiClient', () => ({
+  apiClient: { get: (...a: unknown[]) => mockGet(...a) },
+  unwrapBackendResponse: (r: { data: { data: unknown } }) => r.data.data,
 }));
 
 jest.mock('@/utils/logger', () => ({
@@ -60,8 +56,7 @@ function setup() {
 describe('useCurrentUser (Phase 1 parallel read)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetAccessToken.mockResolvedValue('token-abc');
-    mockGetCurrentUser.mockResolvedValue(CONSUMER);
+    mockGet.mockResolvedValue({ data: { data: CONSUMER } });
     mockAuthState = authedState(CONSUMER);
   });
 
@@ -88,7 +83,7 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
 
     it('prefers the server copy once it lands', async () => {
       const updated = { ...CONSUMER, firstName: 'Renamed' };
-      mockGetCurrentUser.mockResolvedValue(updated);
+      mockGet.mockResolvedValue({ data: { data: updated } });
 
       const { result } = setup();
       await waitFor(() => expect(result.current.user).toEqual(updated));
@@ -114,7 +109,7 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
 
     it('keeps the driver role after the server responds', async () => {
       mockAuthState = authedState(DRIVER);
-      mockGetCurrentUser.mockResolvedValue(DRIVER);
+      mockGet.mockResolvedValue({ data: { data: DRIVER } });
 
       const { result } = setup();
       await waitFor(() => expect(result.current.isFresh).toBe(true));
@@ -122,15 +117,18 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
     });
 
     it('falls back to Redux when /auth/me fails', async () => {
-      mockGetCurrentUser.mockRejectedValue(new Error('500'));
+      mockGet.mockRejectedValue(new Error('500'));
       const { result } = setup();
 
       await waitFor(() => expect(result.current.isRefreshing).toBe(false));
       expect(result.current.user).toEqual(CONSUMER);
     });
 
-    it('falls back to Redux when there is no access token (offline cold start)', async () => {
-      mockGetAccessToken.mockResolvedValue(null);
+    // Offline cold start: the token is injected by apiClient's interceptor, so
+    // a missing token or a dead network both surface here as a failed request.
+    // Either way the restored Keychain identity must still be served.
+    it('falls back to Redux when the request cannot be made (offline cold start)', async () => {
+      mockGet.mockRejectedValue(new Error('Network request failed'));
       const { result } = setup();
 
       await waitFor(() => expect(result.current.isRefreshing).toBe(false));
@@ -145,7 +143,7 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
       const { result } = setup();
 
       await waitFor(() => expect(result.current.isRefreshing).toBe(false));
-      expect(mockGetCurrentUser).not.toHaveBeenCalled();
+      expect(mockGet).not.toHaveBeenCalled();
       expect(result.current.user).toBeNull();
     });
 
@@ -163,7 +161,7 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
       const { result } = setup();
 
       await waitFor(() => expect(result.current.isRefreshing).toBe(false));
-      expect(mockGetCurrentUser).not.toHaveBeenCalled();
+      expect(mockGet).not.toHaveBeenCalled();
       // Still serves the restored identity — an expired access token does not
       // mean logged out; the refresh token may well be valid.
       expect(result.current.user).toEqual(CONSUMER);

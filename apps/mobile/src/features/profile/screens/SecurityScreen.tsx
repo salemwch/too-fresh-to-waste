@@ -13,9 +13,8 @@ import * as yup from 'yup';
 
 import { Text, Button, Card, Input, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import { selectAuthUser } from '@/features/auth/store/authSlice';
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { userService } from '@/features/profile/services/userService';
-import { useAppSelector } from '@/hooks';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -86,7 +85,10 @@ function parseServerError(error: unknown): string {
 export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const user = useAppSelector(selectAuthUser);
+  // Display only — freshness matters here (a password change on another
+  // device should reflect), and useCurrentUser falls back to the restored
+  // identity so this is never empty for a signed-in user.
+  const { user } = useCurrentUser();
   const isOAuthAccount = user?.authProvider !== undefined && user.authProvider !== 'local';
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);

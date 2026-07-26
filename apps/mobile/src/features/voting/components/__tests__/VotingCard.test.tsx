@@ -63,9 +63,12 @@ jest.mock('../../hooks/useVotingPrize', () => ({
   votingPrizeToClaimData: () => null,
 }));
 
-// Mock useAppSelector (only firstName needed in VotingCard)
-jest.mock('@/hooks/redux', () => ({
-  useAppSelector: () => '',
+// VotingCard reads identity through useCurrentUser (only firstName is used).
+// Mocking the hook rather than providing a QueryClientProvider keeps this a
+// unit test: no real /auth/me request, and apiClient → i18n → mmkv stays out
+// of the module graph. A null user exercises the anonymous fallback ('').
+jest.mock('@/features/auth/hooks/useCurrentUser', () => ({
+  useCurrentUser: () => ({ user: null, isRefreshing: false, isFresh: true }),
 }));
 
 // Mock DiscountClaimModal — only rendered when isPrizeWinner, so a no-op

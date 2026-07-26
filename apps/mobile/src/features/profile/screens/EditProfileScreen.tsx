@@ -17,6 +17,7 @@
  */
 
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
@@ -35,6 +36,7 @@ import * as yup from 'yup';
 
 import { Text, Button, Card, Avatar, Icon, Input } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { authKeys } from '@/features/auth/hooks/useCurrentUser';
 import { updateProfileAsync, updateUser } from '@/features/auth/store/authSlice';
 import { SkeletonEditProfileScreen } from '@/features/profile/components/SkeletonEditProfileScreen';
 import { userService } from '@/features/profile/services/userService';
@@ -127,6 +129,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
   const { t } = useTranslation();
   const theme = useTheme();
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
   const { user, avatarUri, initials } = useUserProfile();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -161,7 +164,6 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
    * Handle profile image selection
    */
   const handleSelectImage = useCallback(() => {
-     
     launchImageLibrary(
       {
         mediaType: 'photo',
@@ -246,6 +248,12 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
         // Update profile fields
         if (Object.keys(updates).length > 0) {
           await dispatch(updateProfileAsync(updates)).unwrap();
+
+          // Redux and Keychain were updated in place by the thunk, but the
+          // ['auth','me'] cache still holds the pre-edit profile. Without this
+          // the screens now reading useCurrentUser would show stale data until
+          // its staleTime elapsed.
+          void queryClient.invalidateQueries({ queryKey: authKeys.me() });
           Logger.info('Profile fields updated successfully', { userId: user?.userId });
         }
 
@@ -260,6 +268,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
               profileImage: uploadResult.profileImage,
             };
             dispatch(updateUser(imageUpdate));
+            void queryClient.invalidateQueries({ queryKey: authKeys.me() });
 
             if (user != null) {
               const persistedUser = { ...user, ...imageUpdate };
@@ -300,7 +309,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
         setIsSaving(false);
       }
     },
-    [dispatch, user, imageUri, reset],
+    [dispatch, queryClient, user, imageUri, reset],
   );
 
   /**
@@ -597,7 +606,11 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
               size={16}
               color={theme.colors.error}
             />
-            <Text variant='body' size='sm' style={[styles.inlineErrorText, { color: theme.colors.error }]}>
+            <Text
+              variant='body'
+              size='sm'
+              style={[styles.inlineErrorText, { color: theme.colors.error }]}
+            >
               {saveError}
             </Text>
           </View>
@@ -717,7 +730,7 @@ const styles = StyleSheet.create({
   saveButton: {
     marginBottom: 12,
   },
-   
+
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',

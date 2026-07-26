@@ -57,22 +57,75 @@ jest.mock('react-native-fast-image', () => {
   return MockFastImage;
 });
 
-// MMKV mock
-jest.mock('react-native-mmkv', () => ({
-  MMKV: jest.fn().mockImplementation(() => ({
-    getString: jest.fn(),
-    set: jest.fn(),
-    delete: jest.fn(),
-    contains: jest.fn(),
-    getAllKeys: jest.fn().mockReturnValue([]),
-  })),
-}));
+// MMKV mock.
+//
+// The app is on MMKV v4, which exposes `createMMKV()` rather than the v3 `MMKV`
+// class, and uses `remove()` rather than `delete()` (a reserved word in C++).
+// This mock previously only provided the v3 class, so anything importing
+// src/storage/mmkv — which creates its stores at module scope — died with
+// "createMMKV is not a function" before a single test ran.
+//
+// Backed by a real Map per store id rather than bare jest.fn()s: several call
+// sites write a value and read it back (the offline write queue, the query
+// persister), and stubs returning undefined make those silently no-op.
+jest.mock('react-native-mmkv', () => {
+  const stores = new Map();
+
+  const createMMKV = (config = {}) => {
+    const id = config.id ?? 'default';
+    if (!stores.has(id)) stores.set(id, new Map());
+    const store = stores.get(id);
+
+    return {
+      set: (key, value) => store.set(key, value),
+      getString: key => store.get(key),
+      getNumber: key => store.get(key),
+      getBoolean: key => store.get(key),
+      remove: key => store.delete(key),
+      contains: key => store.has(key),
+      clearAll: () => store.clear(),
+      getAllKeys: () => Array.from(store.keys()),
+    };
+  };
+
+  return {
+    createMMKV,
+    // Kept for any straggler still constructing the v3 class.
+    MMKV: jest.fn().mockImplementation(config => createMMKV(config)),
+  };
+});
 
 // Reanimated mock
 jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
 
 // react-native-config — stub with empty config for tests
 jest.mock('react-native-config', () => ({ Config: {} }));
+
+// react-native-localize — reads the device locale through a TurboModule, which
+// is not registered in the Jest runtime, so importing it throws
+// "RNLocalize could not be found" and takes the whole suite down with it.
+//
+// This is not niche: src/i18n imports it, and i18n is reachable from apiClient,
+// so any component that ends up touching the API client transitively needs this
+// mock. Returning a fixed en-US locale keeps translation output deterministic.
+jest.mock('react-native-localize', () => ({
+  getLocales: () => [
+    { countryCode: 'US', languageTag: 'en-US', languageCode: 'en', isRTL: false },
+  ],
+  findBestLanguageTag: () => ({ languageTag: 'en-US', isRTL: false }),
+  getNumberFormatSettings: () => ({ decimalSeparator: '.', groupingSeparator: ',' }),
+  getCalendar: () => 'gregorian',
+  getCountry: () => 'US',
+  getCurrencies: () => ['TND'],
+  getTemperatureUnit: () => 'celsius',
+  getTimeZone: () => 'Africa/Tunis',
+  uses24HourClock: () => true,
+  usesMetricSystem: () => true,
+  usesAutoDateAndTime: () => true,
+  usesAutoTimeZone: () => true,
+  addEventListener: () => ({ remove: () => {} }),
+  removeEventListener: () => {},
+}));
 
 // Vector icons — handled by moduleNameMapper in jest config
 // (maps @react-native-vector-icons/* to jest.vectorIconsStub.js)
