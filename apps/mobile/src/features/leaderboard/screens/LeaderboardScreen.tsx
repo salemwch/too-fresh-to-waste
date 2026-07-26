@@ -11,19 +11,9 @@
 import { FlashList, type ViewToken } from '@shopify/flash-list';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-  Platform,
-  Modal,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from 'react-native';
 
 import { SkeletonLeaderboardScreen } from '../components/SkeletonLeaderboardScreen';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
 import { useCommunityBagGoal } from '@/features/home/hooks/useCommunityBagGoal';
@@ -36,6 +26,7 @@ import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
 import { WinnerCelebrationModal } from '../components/WinnerCelebrationModal';
 import { LeaderboardRow } from '../components/LeaderboardRow';
 import { PodiumTop5 } from '../components/PodiumTop5';
+import { PrizeInfoModal } from '../components/PrizeInfoModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useNeighborhood } from '../hooks/useNeighborhood';
 import { usePrizeClaimStatus, useClaimSmartphone, useClaimDiscount } from '../hooks/usePrizeClaim';
@@ -44,22 +35,15 @@ import {
   BG_DARK,
   BORDER_CARD,
   BORDER_GOLD,
-  BORDER_SUBTLE,
   CHAMPION_GOLD,
   GOLD_04,
   GOLD_06,
   GOLD_10,
   GOLD_15,
-  OVERLAY,
-  PRIMARY,
-  SURFACE,
   TEXT_25,
   TEXT_30,
   TEXT_40,
   TEXT_85,
-  TEXT_PRIMARY,
-  TEXT_SECONDARY,
-  TEXT_TERTIARY,
   TEXT_WHITE,
 } from '../constants/palette';
 import { getCountdown } from '../utils/countdown';
@@ -67,100 +51,6 @@ import { getRowTier } from '../utils/prizeTiers';
 
 import type { LeaderboardEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
-
-// ─── Prize info modal ────────────────────────────────────────────────────────
-interface PrizeModalProps {
-  visible: boolean;
-  onClose: () => void;
-  daysLeft: number | null;
-}
-
-const PrizeModal: React.FC<PrizeModalProps> = ({ visible, onClose, daysLeft }) => {
-  const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const sheetBottomPad = Math.max(insets.bottom, 24);
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType='slide'
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.modalOverlay} onPress={onClose} accessible={false}>
-        <Pressable
-          accessible={false}
-          style={[styles.modalSheet, { paddingBottom: sheetBottomPad }]}
-          onPress={() => undefined}
-        >
-          <View style={styles.modalHandle} />
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.modalScrollContent}
-          >
-            <Text style={styles.modalTitle}>{t('leaderboard.howGrandPrizeWorks')}</Text>
-
-            <View style={styles.modalGoalRow}>
-              <View style={styles.modalGoalDot} />
-              <Text style={styles.modalGoalTxt}>
-                {daysLeft != null && daysLeft > 0 ? (
-                  <>
-                    Prizes unlock in{' '}
-                    <Text style={styles.modalGoalBold}>
-                      {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
-                    </Text>
-                  </>
-                ) : (
-                  <Text style={styles.modalGoalBold}>{t('leaderboard.prizeDropLive')}</Text>
-                )}
-              </Text>
-            </View>
-
-            <View style={styles.modalDivider} />
-
-            <View style={styles.modalTier}>
-              <View style={[styles.modalTierIcon, { backgroundColor: `${PRIMARY}12` }]}>
-                <Text style={styles.modalTierEmoji}>📱</Text>
-              </View>
-              <View style={styles.modalTierInfo}>
-                <Text style={styles.modalTierTitle}>Smartphone</Text>
-                <Text style={styles.modalTierRank}>Top 5 · 5 winners</Text>
-                <Text style={styles.modalTierDesc}>
-                  The top 5 point earners each win a smartphone when the challenge ends.
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.modalTier}>
-              <View style={[styles.modalTierIcon, styles.modalTierIconDiscount]}>
-                <Text style={styles.modalTierEmoji}>🎁</Text>
-              </View>
-              <View style={styles.modalTierInfo}>
-                <Text style={styles.modalTierTitle}>10% Discount</Text>
-                <Text style={styles.modalTierRank}>Rank 6 and above</Text>
-                <Text style={styles.modalTierDesc}>
-                  Every other participant earns a 10% discount at a partner business of their
-                  choice.
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.modalDivider} />
-            <Text style={styles.modalNote}>
-              Rankings are based on total loyalty points. Points are awarded each time you save a
-              bag.
-            </Text>
-          </ScrollView>
-
-          <Pressable style={styles.modalBtn} onPress={onClose} accessibilityRole='button'>
-            <Text style={styles.modalBtnTxt}>{t('leaderboard.gotItExclaim')}</Text>
-          </Pressable>
-        </Pressable>
-      </Pressable>
-    </Modal>
-  );
-};
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 interface Props {
@@ -440,7 +330,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         visible={consentModalVisible}
         onConsentSaved={() => setConsentModalVisible(false)}
       />
-      <PrizeModal
+      <PrizeInfoModal
         visible={showPrizeModal}
         onClose={() => setShowPrizeModal(false)}
         daysLeft={
@@ -726,82 +616,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: CHAMPION_GOLD,
   },
-
-  // ── Prize modal (keeps light theme for readability) ──
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: OVERLAY,
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: SURFACE,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    maxHeight: '85%',
-  },
-  modalScrollContent: { paddingBottom: 16 },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E8EEEF',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: TEXT_PRIMARY,
-    marginBottom: 12,
-  },
-  modalGoalRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    marginBottom: 16,
-  },
-  modalGoalDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: PRIMARY,
-    marginTop: 6,
-  },
-  modalGoalTxt: { flex: 1, fontSize: 14, color: TEXT_SECONDARY, lineHeight: 20 },
-  modalGoalBold: { fontWeight: '700', color: TEXT_PRIMARY },
-  modalDivider: {
-    height: 1,
-    backgroundColor: BORDER_SUBTLE,
-    marginVertical: 16,
-  },
-  modalTier: {
-    flexDirection: 'row',
-    gap: 14,
-    marginBottom: 16,
-    alignItems: 'flex-start',
-  },
-  modalTierIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalTierIconDiscount: { backgroundColor: '#F0FDF4' },
-  modalTierEmoji: { fontSize: 22 },
-  modalTierInfo: { flex: 1 },
-  modalTierTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 2 },
-  modalTierRank: { fontSize: 12, color: PRIMARY, fontWeight: '600', marginBottom: 4 },
-  modalTierDesc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 19 },
-  modalNote: { fontSize: 13, color: TEXT_TERTIARY, lineHeight: 19, marginBottom: 12 },
-  modalBtn: {
-    backgroundColor: BG_DARK,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  modalBtnTxt: { fontSize: 15, fontWeight: '700', color: TEXT_WHITE },
 });

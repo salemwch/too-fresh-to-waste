@@ -55,14 +55,14 @@ describe('PodiumTop5', () => {
     // The whole point of the component: ranked order in, 5-3-1-2-4 out.
     it('lays the five out with the champion centre', () => {
       const { getAllByText } = render(<PodiumTop5 entries={entries(5)} />);
-      const names = getAllByText(/^Name\d$/).map(n => n.props.children);
+      const names = getAllByText(/^Name\d$/).map(n => n.props['children']);
 
       expect(names).toEqual(['Name5', 'Name3', 'Name1', 'Name2', 'Name4']);
     });
 
     it('keeps the layout centred when there are fewer than five', () => {
       const { getAllByText } = render(<PodiumTop5 entries={entries(3)} />);
-      const names = getAllByText(/^Name\d$/).map(n => n.props.children);
+      const names = getAllByText(/^Name\d$/).map(n => n.props['children']);
 
       // Ranks 4 and 5 become empty spacers, so 3 and 1 and 2 stay in place.
       expect(names).toEqual(['Name3', 'Name1', 'Name2']);
