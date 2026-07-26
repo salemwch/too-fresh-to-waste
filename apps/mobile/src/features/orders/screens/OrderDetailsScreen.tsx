@@ -6,13 +6,13 @@
  *   useQueryWithFocus → ordersService.getOrderById → Order
  *   useMutation        → ordersService.confirmPickup → invalidate order query
  *
- * Sections (DRY – each rendered by a dedicated component):
- *   OrderHeader        – orderNumber + status badge
- *   ItemsList          – per-item pricing row
- *   PricingSummary     – price / discount / final price / fee / total
- *   PickupDetails      – date, time-slot, instructions
- *   ConfirmPickupSection – 6-digit input + submit + error/success states
- *   ImpactMoment       – donation animation overlay (shown once on mount)
+ * The screen owns data fetching, the confirm-pickup mutation, payment retry and
+ * the modal/overlay sequencing. Everything it renders lives in its own file:
+ *
+ *   components/OrderDetailCards    header, items, pricing, pickup details
+ *   components/ConfirmPickupSection  code entry + confirmed/expired states
+ *   utils/orderStatus              status badges, expiry, pickup errors
+ *   hooks/useOncePerOrderFlag      per-order "already shown" persistence
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,12 +28,25 @@ import { useTheme } from '@/design-system/providers';
 import { ImpactMoment, useDonationStats } from '@/features/donations';
 import { useQueryWithFocus } from '@/lib/react-query';
 import { analytics } from '@/utils/analytics';
-import { mmkv } from '@/utils/mmkvStorage';
 
+import { ConfirmPickupSection } from '../components/ConfirmPickupSection';
+import {
+  OrderHeader,
+  OrderItemsCard,
+  OrderPricingCard,
+  PickupDetailsCard,
+} from '../components/OrderDetailCards';
 import { SkeletonOrderDetailsScreen } from '../components/SkeletonOrderDetailsScreen';
+import { useOncePerOrderFlag } from '../hooks/useOncePerOrderFlag';
 import { usePaymentPolling } from '../hooks/usePaymentPolling';
 import { ordersService } from '../services/ordersService';
 import { OrderStatus, isPickupError } from '../types/order.types';
+import {
+  canConfirmPickup,
+  getEstablishmentId,
+  isOrderExpired,
+  isPickedUp,
+} from '../utils/orderStatus';
 
 import type { Order, PickupErrorCode } from '../types/order.types';
 import type { OrdersStackParamList } from '@/navigation/types';
@@ -58,32 +71,7 @@ interface OrderDetailsScreenProps {
   route: OrderDetailsScreenRouteProp;
 }
 
-// ---------------------------------------------------------------------------
-import { ConfirmPickupSection } from '../components/ConfirmPickupSection';
-import {
-  OrderHeader,
-  OrderItemsCard,
-  OrderPricingCard,
-  PickupDetailsCard,
-} from '../components/OrderDetailCards';
-import {
-  canConfirmPickup,
-  getEstablishmentId,
-  isOrderExpired,
-  isPickedUp,
-} from '../utils/orderStatus';
-
-const DIVIDER = '#e5e7eb';
-const CODE_INPUT_BACKGROUND = '#fafafa';
 const SUCCESS_COLOR = '#22c55e';
-
-// ---------------------------------------------------------------------------
-// Sub-components (pure, no side-effects – extracted for DRY & readability)
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Main screen
-// ---------------------------------------------------------------------------
 
 export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
@@ -164,53 +152,13 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const reviewDismissedRef = React.useRef(false);
 
-  // Persist reviewed state across sessions via MMKV
-  const [hasReviewed, setHasReviewed] = useState(() => {
-    try {
-      const stored = mmkv.getString?.('reviewed_orders');
-      if (!stored) return false;
-      return (JSON.parse(stored) as string[]).includes(orderId);
-    } catch {
-      return false;
-    }
-  });
-
-  const markOrderReviewed = useCallback(() => {
-    try {
-      const stored = mmkv.getString?.('reviewed_orders');
-      const ids: string[] = stored ? (JSON.parse(stored) as string[]) : [];
-      if (!ids.includes(orderId)) {
-        mmkv.set?.('reviewed_orders', JSON.stringify([...ids, orderId]));
-      }
-    } catch {
-      // storage errors are non-fatal
-    }
-    setHasReviewed(true);
-  }, [orderId]);
-
-  // Persist "impact shown" state across sessions so ImpactMoment shows exactly once per order
-  const [impactMomentShown, setImpactMomentShown] = useState(() => {
-    try {
-      const stored = mmkv.getString?.('impact_shown_orders');
-      if (!stored) return false;
-      return (JSON.parse(stored) as string[]).includes(orderId);
-    } catch {
-      return false;
-    }
-  });
-
-  const markImpactMomentShown = useCallback(() => {
-    try {
-      const stored = mmkv.getString?.('impact_shown_orders');
-      const ids: string[] = stored ? (JSON.parse(stored) as string[]) : [];
-      if (!ids.includes(orderId)) {
-        mmkv.set?.('impact_shown_orders', JSON.stringify([...ids, orderId]));
-      }
-    } catch {
-      // storage errors are non-fatal
-    }
-    setImpactMomentShown(true);
-  }, [orderId]);
+  // Both survive a remount: React Navigation keeps this screen mounted, and the
+  // user can leave and return. Same shape, different keys — see the hook.
+  const [hasReviewed, markOrderReviewed] = useOncePerOrderFlag('reviewed_orders', orderId);
+  const [impactMomentShown, markImpactMomentShown] = useOncePerOrderFlag(
+    'impact_shown_orders',
+    orderId,
+  );
 
   const { data: donationStats } = useDonationStats();
 
@@ -475,91 +423,20 @@ const styles = StyleSheet.create({
   },
 
   // Header
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  orderNumber: {
-    marginTop: 2,
-  },
 
   // Cards
   card: {
     padding: 16,
     marginBottom: 12,
   },
-  sectionTitle: {
-    marginBottom: 12,
-    letterSpacing: 0.8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: DIVIDER,
-    marginVertical: 8,
-  },
 
   // Item rows
-  itemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  itemLeft: {
-    flex: 1,
-  },
-  itemRight: {
-    alignItems: 'flex-end',
-  },
-  originalPrice: {
-    textDecorationLine: 'line-through',
-  },
 
   // Pricing rows
-  pricingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
 
   // Pickup details
-  pickupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  pickupText: {
-    marginStart: 10,
-  },
 
   // Confirm pickup
-  confirmHint: {
-    marginBottom: 12,
-  },
-  codeInput: {
-    height: 56,
-    borderWidth: 1.5,
-    borderRadius: 12,
-    fontSize: 24,
-    fontWeight: 'bold',
-    letterSpacing: 8,
-    backgroundColor: CODE_INPUT_BACKGROUND,
-  },
-  inlineError: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 8,
-    paddingHorizontal: 4,
-  },
-  inlineErrorText: {
-    flex: 1,
-  },
-  confirmButton: {
-    marginTop: 16,
-  },
 
   // Success state
   successRow: {
@@ -580,14 +457,4 @@ const styles = StyleSheet.create({
   },
 
   // Expired state
-  expiredRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 4,
-  },
-  expiredTextContainer: {
-    flex: 1,
-    gap: 2,
-  },
 });
