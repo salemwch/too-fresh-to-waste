@@ -37,12 +37,23 @@ user.
 
 ### Account state
 
-| Variant                  | Field                |
-| ------------------------ | -------------------- |
-| Active                   | `isActive === true`  |
-| Soft-deleted / suspended | `isActive === false` |
+There is **no `isActive` field on the User schema** — account state lives in
+`status: UserStatus`. Guard on that.
 
-**Rule**: Never send auth emails (reset, verification) to inactive accounts.
+| Variant                                | Field                                                 |
+| -------------------------------------- | ----------------------------------------------------- |
+| Active                                 | `status === UserStatus.ACTIVE`                        |
+| Registered, not yet verified           | `status === UserStatus.PENDING`                       |
+| Suspended / blocked / deleted / anon'd | `SUSPENDED` \| `BLOCKED` \| `DELETED` \| `ANONYMIZED` |
+
+**Rule**: Never send auth emails (reset, verification) to a disabled account.
+Use `MAILABLE_STATUSES` in `auth.service.ts` — `ACTIVE` and `PENDING` only.
+`PENDING` is included on purpose: an unverified user is exactly who needs a
+verification or reset link.
+
+**Rule**: the response for unknown / disabled / OAuth / local must be
+byte-identical, or the endpoint becomes an oracle for which emails have accounts
+and how they sign in.
 
 ### Role
 
@@ -62,6 +73,12 @@ Before marking any auth-related task done, answer:
 4. **Inactive user** — is the account gated before any processing?
 5. **Token expiry / reuse** — what happens if the link is clicked twice or after
    the expiry time?
+
+> **Clearing a token is not the same as assigning `undefined`.** Mongoose
+> deletes `undefined` keys from an update before it reaches MongoDB, so
+> `{ passwordResetToken: undefined }` is a silent no-op and the token stays
+> valid for the rest of its window. Always `$unset`. Covered by
+> `users/test/user-update-password.spec.ts`.
 
 If you cannot answer all five from the code, the implementation is incomplete.
 

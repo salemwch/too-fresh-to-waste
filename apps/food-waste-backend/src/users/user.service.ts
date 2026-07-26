@@ -926,14 +926,27 @@ export class UsersService implements IUsersService {
     const updatedHistory = this.passwordHistoryService.addToHistory(user.password, currentHistory);
 
     // 5. Build update object - only include $push if auditData is provided
+    //
+    // The cleared fields MUST go through $unset. Mongoose deletes any key whose
+    // value is `undefined` before the update leaves the process
+    // (lib/helpers/query/castUpdate.js), so `passwordResetToken: undefined`
+    // silently did nothing: the reset token survived its own use and stayed
+    // valid for the rest of its one-hour window, making reset links replayable.
+    // `accountLockedUntil` had the same problem — a locked account could not be
+    // freed by resetting its password even though failedLoginAttempts (0, not
+    // undefined, so it did apply) was being cleared right beside it.
     const updateObj: Record<string, unknown> = {
-      password: hashedPassword,
-      passwordResetToken: undefined,
-      passwordResetExpires: undefined,
-      failedLoginAttempts: 0, // Reset failed attempts on password change
-      accountLockedUntil: undefined,
-      'securitySettings.lastPasswordChange': new Date(),
-      'securitySettings.passwordHistory': updatedHistory,
+      $set: {
+        password: hashedPassword,
+        failedLoginAttempts: 0, // Reset failed attempts on password change
+        'securitySettings.lastPasswordChange': new Date(),
+        'securitySettings.passwordHistory': updatedHistory,
+      },
+      $unset: {
+        passwordResetToken: 1,
+        passwordResetExpires: 1,
+        accountLockedUntil: 1,
+      },
     };
 
     // Only add audit log if audit data is provided

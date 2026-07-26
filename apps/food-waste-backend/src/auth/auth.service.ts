@@ -83,6 +83,19 @@ interface RefreshTokenPayload {
   jti?: string;
 }
 
+/**
+ * Account states allowed to receive authentication mail (password reset,
+ * verification).
+ *
+ * PENDING is included deliberately: a user who registered but has not verified
+ * yet is precisely who needs a verification — or reset — link. Every other
+ * state (suspended, blocked, deleted, anonymized) describes a disabled account,
+ * and a working link would hand back a way in.
+ *
+ * @see .claude/rules/auth-scenarios.md — "Never send auth emails to inactive accounts"
+ */
+const MAILABLE_STATUSES: ReadonlySet<UserStatus> = new Set([UserStatus.ACTIVE, UserStatus.PENDING]);
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -679,6 +692,18 @@ export class AuthService {
       };
     }
 
+    // Suspended / soft-deleted accounts get the same neutral response as an
+    // unknown email, and no mail at all. Sending a working reset link to a
+    // disabled account would hand back a way in.
+    if (!MAILABLE_STATUSES.has(user.status)) {
+      this.logger.warn('Password reset requested for inactive account', {
+        userId: user._id.toString(),
+      });
+      return {
+        message: 'If an account with this email exists, you will receive a password reset link.',
+      };
+    }
+
     // OAuth accounts have no password — send a "sign in with <provider>" email instead
     // of a reset link that would fail at the reset step.
     if (user.authProvider !== 'local') {
@@ -751,6 +776,18 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
+      return {
+        message:
+          'If an account with this email exists and is not verified, a new verification email will be sent.',
+      };
+    }
+
+    // Same rule as forgotPassword: no auth mail to a disabled account, and the
+    // response stays neutral so it cannot be used to probe account state.
+    if (!MAILABLE_STATUSES.has(user.status)) {
+      this.logger.warn('Verification email requested for inactive account', {
+        userId: user._id.toString(),
+      });
       return {
         message:
           'If an account with this email exists and is not verified, a new verification email will be sent.',
