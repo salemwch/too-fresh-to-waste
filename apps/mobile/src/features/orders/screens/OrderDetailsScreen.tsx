@@ -18,7 +18,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 
 import { KonnectPaymentSheet } from '../components/KonnectPaymentSheet';
 import { ReviewModal } from '../components/ReviewModal';
@@ -59,6 +59,7 @@ interface OrderDetailsScreenProps {
 }
 
 // ---------------------------------------------------------------------------
+import { ConfirmPickupSection } from '../components/ConfirmPickupSection';
 import {
   OrderHeader,
   OrderItemsCard,
@@ -68,7 +69,6 @@ import {
 import {
   canConfirmPickup,
   getEstablishmentId,
-  getPickupErrorKey,
   isOrderExpired,
   isPickedUp,
 } from '../utils/orderStatus';
@@ -80,137 +80,6 @@ const SUCCESS_COLOR = '#22c55e';
 // ---------------------------------------------------------------------------
 // Sub-components (pure, no side-effects – extracted for DRY & readability)
 // ---------------------------------------------------------------------------
-
-/** Confirm-pickup section (input + button + error/success states) */
-const ConfirmPickupSection: React.FC<{
-  onConfirm: (code: string) => void;
-  onClearError: () => void;
-  isLoading: boolean;
-  errorCode: InlinePickupError | null;
-  isConfirmed: boolean;
-  isExpired: boolean;
-}> = ({ onConfirm, onClearError, isLoading, errorCode, isConfirmed, isExpired }) => {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  const [code, setCode] = useState('');
-
-  if (isConfirmed) {
-    return (
-      <Card style={styles.card}>
-        <View style={styles.successRow}>
-          <Icon
-            name='checkmark-circle'
-            family='Ionicons'
-            size={28}
-            color={theme.colors.base?.success?.[500] ?? '#22c55e'}
-          />
-          <Text variant='body' size='md' weight='semibold' style={styles.successText}>
-            {t('orders.pickupConfirmed')}
-          </Text>
-        </View>
-      </Card>
-    );
-  }
-
-  if (isExpired) {
-    return (
-      <Card style={styles.card}>
-        <View style={styles.expiredRow}>
-          <Icon
-            name='timer-outline'
-            family='Ionicons'
-            size={28}
-            color={theme.colors.base?.error?.[500] ?? '#ef4444'}
-          />
-          <View style={styles.expiredTextContainer}>
-            <Text
-              variant='body'
-              size='md'
-              weight='semibold'
-              style={{ color: theme.colors.base?.error?.[500] ?? '#ef4444' }}
-            >
-              {t('orders.orderExpired')}
-            </Text>
-            <Text variant='body' size='sm' color='secondary'>
-              {t('orders.orderExpiredMessage')}
-            </Text>
-          </View>
-        </View>
-      </Card>
-    );
-  }
-
-  return (
-    <Card style={styles.card}>
-      <Text variant='body' size='sm' weight='bold' color='secondary' style={styles.sectionTitle}>
-        {t('orders.confirmPickup')}
-      </Text>
-      <Text variant='body' size='sm' color='secondary' style={styles.confirmHint}>
-        {t('orders.confirmPickupHint')}
-      </Text>
-
-      {/* 6-digit numeric input */}
-      <TextInput
-        style={[
-          styles.codeInput,
-          {
-            borderColor: errorCode
-              ? (theme.colors.base?.error?.[500] ?? '#ef4444')
-              : (theme.colors.base?.neutral?.[300] ?? '#d1d5db'),
-          },
-          { color: theme.colors.onBackground ?? '#000' },
-        ]}
-        value={code}
-        onChangeText={text => {
-          setCode(text);
-          if (errorCode) onClearError();
-        }}
-        keyboardType='numeric'
-        maxLength={6}
-        placeholder={t('orders.pickupCodePlaceholder')}
-        placeholderTextColor='#aaa'
-        autoFocus={false}
-        editable={!isLoading}
-        textAlign='center'
-        accessibilityLabel={t('orders.a11yPickupCodeInput')}
-        accessibilityHint={t('orders.a11yPickupCodeHint')}
-      />
-
-      {/* Inline error directly under input */}
-      {errorCode && (
-        <View style={styles.inlineError}>
-          <Icon
-            name='alert-circle'
-            family='Ionicons'
-            size={16}
-            color={theme.colors.base?.error?.[500] ?? '#ef4444'}
-          />
-          <Text
-            variant='body'
-            size='sm'
-            style={[
-              styles.inlineErrorText,
-              { color: theme.colors.base?.error?.[500] ?? '#ef4444' },
-            ]}
-          >
-            {t(getPickupErrorKey(errorCode))}
-          </Text>
-        </View>
-      )}
-
-      <Button
-        variant='primary'
-        size='lg'
-        disabled={code.length !== 6 || isLoading}
-        loading={isLoading}
-        onPress={() => onConfirm(code)}
-        style={styles.confirmButton}
-      >
-        {t('orders.confirmPickupButton')}
-      </Button>
-    </Card>
-  );
-};
 
 // ---------------------------------------------------------------------------
 // Main screen
