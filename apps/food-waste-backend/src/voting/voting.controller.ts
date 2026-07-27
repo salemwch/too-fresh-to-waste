@@ -18,7 +18,6 @@ import { GetUser } from '../common/decorators/get-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
 import { CastVoteDto } from './dto/cast-vote.dto';
-import { ClaimVotingPrizeDto } from './dto/claim-voting-prize.dto';
 import { VotingPrizeService } from './services/voting-prize.service';
 import { VotingService } from './voting.service';
 
@@ -92,13 +91,16 @@ export class VotingController {
   @UseGuards(RolesGuard, ThrottlerGuard)
   @Roles(UserRole.CONSUMER)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @ApiOperation({ summary: 'Claim a discount voucher as a voting winner' })
-  @ApiResponse({ status: 201, description: 'Voucher claimed' })
+  @ApiOperation({
+    summary: 'Claim the grand prize the community voted for',
+    description:
+      'Open to the top `recipientCount` of the leaderboard, whoever they voted for. The grand prize is a physical item delivered by an admin, so no establishment is chosen — that applies to the discount every other participant receives.',
+  })
+  @ApiResponse({ status: 201, description: 'Grand prize claimed' })
   @ApiResponse({ status: 400, description: 'Not a winner / no completed cycle' })
-  @ApiResponse({ status: 404, description: 'Establishment not found' })
   @ApiResponse({ status: 409, description: 'Already claimed' })
-  async claimPrize(@GetUser('id') userId: string, @Body() dto: ClaimVotingPrizeDto) {
-    const data = await this.votingPrizeService.claimPrize(userId, dto.establishmentId);
+  async claimPrize(@GetUser('id') userId: string) {
+    const data = await this.votingPrizeService.claimPrize(userId);
     return { status: 'success', message: 'Voting prize claimed', data };
   }
 }

@@ -51,6 +51,7 @@ interface FakeAccount {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
   totalPoints: number;
+  totalBagsSaved: number;
   isActive: boolean;
   leaderboardConsent: { given: boolean };
 }
@@ -63,6 +64,8 @@ const account = (n: number, totalPoints: number, over: Partial<FakeAccount> = {}
   _id: new Types.ObjectId(`aa000000000000000000000${n}`),
   userId: new Types.ObjectId(`66000000000000000000000${n}`),
   totalPoints,
+  // Anyone with points has saved bags; the zero case is tested explicitly.
+  totalBagsSaved: 1,
   isActive: true,
   leaderboardConsent: { given: true },
   ...over,
@@ -373,13 +376,47 @@ describe('PrizeClaimService', () => {
         });
       });
 
-      // Deactivation is the only thing that removes a player, and it does
-      // renumber — a closed account is not in the running at all.
+      // Deactivation removes a player, and it does renumber — a closed account
+      // is not in the running at all.
       it('closes the gap left by a deactivated account', async () => {
         const accounts = defaultAccounts();
         accounts[1] = account(2, 4000, { isActive: false });
 
         expect(await rankWith(accounts, '660000000000000000000003')).toBe(2);
+      });
+
+      /*
+       * The entry price: you take part by rescuing food. An account that has
+       * saved nothing has not taken part, so it does not place and cannot claim
+       * the discount — otherwise a brand-new account would be handed a voucher
+       * for having done nothing.
+       */
+      describe('a user who has never saved a bag', () => {
+        const noBags = () => {
+          const accounts = defaultAccounts();
+          accounts[0] = account(1, 5000, { totalBagsSaved: 0 });
+          return accounts;
+        };
+
+        it('is not ranked', async () => {
+          expect(await rankWith(noBags(), USER_ID)).toBeNull();
+        });
+
+        it('cannot claim a discount', async () => {
+          const scoped = buildMocks(noBags());
+
+          await expect(buildService(scoped).claimDiscount(USER_ID, EST_ID)).rejects.toThrow(
+            BadRequestException,
+          );
+        });
+
+        // One bag is the whole requirement — the boundary, stated.
+        it('places as soon as they save one', async () => {
+          const accounts = defaultAccounts();
+          accounts[0] = account(1, 5000, { totalBagsSaved: 1 });
+
+          expect(await rankWith(accounts, USER_ID)).toBe(1);
+        });
       });
     });
 

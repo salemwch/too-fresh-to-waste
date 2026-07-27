@@ -29,8 +29,18 @@ import {
   PrizeType,
 } from '../schemas/prize-claim.schema';
 
-/** Ranks 1..3 win a smartphone; rank 4 and below win a discount voucher. */
+/** Ranks 1..3 win the grand prize; rank 4 and below win a discount voucher. */
 const PHONE_MAX_RANK = 3;
+
+/**
+ * Bags a user must have saved to place on the leaderboard at all, and so to
+ * qualify for the discount.
+ *
+ * One: the entry price is taking part. Voting has a much higher bar
+ * (`VotingCycle.minimumBags`, 25) because voting steers the prize; the
+ * discount only rewards what you personally saved.
+ */
+const MIN_BAGS_FOR_DISCOUNT = 1;
 
 /**
  * One message for both duplicate-claim paths — the pre-check and the unique
@@ -237,16 +247,19 @@ export class PrizeClaimService {
   private async getUserRank(userId: string): Promise<number | null> {
     const account = await this.loyaltyModel
       .findOne({ userId: new Types.ObjectId(userId) })
-      .select('_id totalPoints isActive')
+      .select('_id totalPoints isActive totalBagsSaved')
       .lean();
 
     /*
-     * Only two ways to be unranked: no loyalty account, or a deactivated one.
-     * Leaderboard consent deliberately plays no part — hiding your name hides
+     * Three ways to be unranked: no loyalty account, a deactivated one, or
+     * never having saved a bag. The last is the entry price — you take part by
+     * rescuing food, so an account that has saved nothing has not taken part.
+     *
+     * Leaderboard consent deliberately plays no part: hiding your name hides
      * the name, not the player. A user shown as "Anonymous" still holds their
      * rank and still wins the prize that rank earns.
      */
-    if (!account?.isActive) {
+    if (!account?.isActive || (account.totalBagsSaved ?? 0) < MIN_BAGS_FOR_DISCOUNT) {
       return null;
     }
 

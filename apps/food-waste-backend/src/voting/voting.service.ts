@@ -440,7 +440,6 @@ export class VotingService {
     if (completed.winnerPrizeId) {
       void this.votingPrizeService.notifyWinners(
         (completed._id as Types.ObjectId).toString(),
-        completed.winnerPrizeId,
         completed.recipientCount,
         completed.winner?.name ?? 'the winning prize',
       );

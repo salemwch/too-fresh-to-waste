@@ -456,10 +456,14 @@ describe('VotingService (extended)', () => {
       const result = await service.closeBallotAndTally(mockCycleId.toString());
 
       expect(result?.status).toBe(CycleStatus.COMPLETED);
-      // Fire-and-forget: notifyWinners must have been called (void, no await)
+      /*
+       * Fire-and-forget: notifyWinners must have been called (void, no await).
+       *
+       * No winnerPrizeId argument — winners are the leaderboard top N, so which
+       * prize won is only needed for the message text, not to pick recipients.
+       */
       expect(votingPrizeServiceMock.notifyWinners).toHaveBeenCalledWith(
         mockCycleId.toString(),
-        winnerPrizeId,
         3,
         'Phone',
       );

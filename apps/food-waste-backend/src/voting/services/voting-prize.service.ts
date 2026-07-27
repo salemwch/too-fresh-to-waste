@@ -1,18 +1,15 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { randomBytes } from 'crypto';
 import { Model, Types } from 'mongoose';
 
 import {
-  Establishment,
-  type EstablishmentDocument,
-} from '../../establishments/schemas/establishment.schema';
+  LEADERBOARD_PARTICIPANT_FILTER,
+  LEADERBOARD_SORT,
+} from '../../loyalty/constants/leaderboard-ranking';
+import {
+  LoyaltyAccount,
+  type LoyaltyAccountDocument,
+} from '../../loyalty/schemas/loyalty-account.schema';
 import {
   PrizeClaim,
   PrizeClaimDocument,
@@ -21,7 +18,6 @@ import {
   PrizeType,
 } from '../../loyalty/schemas/prize-claim.schema';
 import { PushNotificationService } from '../../notifications/services/push-notification.service';
-import { Vote, type VoteDocument } from '../schemas/vote.schema';
 import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
 
 export interface VotingWinnerRow {
@@ -61,47 +57,47 @@ export class VotingPrizeService {
   private readonly logger = new Logger(VotingPrizeService.name);
 
   constructor(
-    @InjectModel(Vote.name) private readonly voteModel: Model<VoteDocument>,
     @InjectModel(VotingCycle.name) private readonly cycleModel: Model<VotingCycleDocument>,
+    @InjectModel(LoyaltyAccount.name)
+    private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
     @InjectModel(PrizeClaim.name) private readonly prizeClaimModel: Model<PrizeClaimDocument>,
-    @InjectModel(Establishment.name)
-    private readonly establishmentModel: Model<EstablishmentDocument>,
     private readonly pushNotificationService: PushNotificationService,
   ) {}
 
   /**
-   * Top `recipientCount` voters for the winning prize, ranked by pointsSnapshot
-   * desc, then votedAt asc for ties. Deterministic — ties broken by insertion
-   * order (_id asc) as a final tiebreaker.
+   * The users who win the voted prize: the top `recipientCount` of the
+   * **leaderboard**.
+   *
+   * The vote decides *what* the prize is. The leaderboard decides *who* gets
+   * it. Voting is not a lottery ticket.
+   *
+   * This previously ranked the top voters **who had backed the winning prize**,
+   * which is a different population and a perverse one: the #1 user in the
+   * country won nothing if they voted for the phone and the scooter won, while
+   * someone at #14 who happened to back the scooter took a prize. It punished
+   * people for voting honestly.
+   *
+   * Ranked with the shared leaderboard predicate so the winner list and the
+   * list the user was shown cannot disagree — including the `_id` tiebreak,
+   * without which ties resolve in an order MongoDB does not guarantee between
+   * calls and the winner set could change under the same data.
    */
-  async getWinningVoterRanks(
-    cycleId: string,
-    winnerPrizeId: Types.ObjectId,
-    recipientCount: number,
-  ): Promise<VotingWinnerRow[]> {
+  async getPrizeWinners(recipientCount: number): Promise<VotingWinnerRow[]> {
     if (recipientCount <= 0) {
       return [];
     }
 
-    const rows = await this.voteModel.aggregate<{
-      userId: Types.ObjectId;
-      pointsSnapshot: number;
-    }>([
-      {
-        $match: {
-          cycleId: new Types.ObjectId(cycleId),
-          prizeId: new Types.ObjectId(winnerPrizeId.toString()),
-        },
-      },
-      { $sort: { pointsSnapshot: -1, votedAt: 1, _id: 1 } },
-      { $limit: recipientCount },
-      { $project: { _id: 0, userId: 1, pointsSnapshot: 1 } },
-    ]);
+    const rows = await this.loyaltyModel
+      .find(LEADERBOARD_PARTICIPANT_FILTER)
+      .sort(LEADERBOARD_SORT)
+      .limit(recipientCount)
+      .select('userId totalPoints')
+      .lean();
 
-    return rows.slice(0, recipientCount).map((row, idx) => ({
+    return rows.map((row, idx) => ({
       userId: row.userId.toString(),
       rank: idx + 1,
-      pointsSnapshot: row.pointsSnapshot,
+      pointsSnapshot: row.totalPoints,
     }));
   }
 
@@ -122,11 +118,7 @@ export class VotingPrizeService {
     }
 
     const cycleId = (cycle._id as Types.ObjectId).toString();
-    const ranks = await this.getWinningVoterRanks(
-      cycleId,
-      cycle.winnerPrizeId,
-      cycle.recipientCount,
-    );
+    const ranks = await this.getPrizeWinners(cycle.recipientCount);
     const mine = ranks.find(r => r.userId === userId);
 
     const prizeName = cycle.winner?.name ?? null;
@@ -163,22 +155,32 @@ export class VotingPrizeService {
     };
   }
 
-  /** Claims a voting prize voucher for a winner user at the chosen establishment. */
-  async claimPrize(userId: string, establishmentId: string): Promise<VotingPrizeStatus> {
+  /**
+   * Claims the grand prize the community voted for.
+   *
+   * No establishment and no voucher code: the grand prize is a physical item —
+   * a scooter, a hotel stay, a gym year — delivered by an admin, not redeemed
+   * at a business. Only the *discount*, which every other participant gets, is
+   * tied to an establishment of their choosing.
+   *
+   * Previously this stamped `prizeType: DISCOUNT` on every winner whatever they
+   * had actually won, and demanded an establishment for a scooter, so the
+   * record of what was awarded was wrong and the claim flow asked a question
+   * that made no sense.
+   */
+  async claimPrize(userId: string): Promise<VotingPrizeStatus> {
     const cycle = await this.getLatestCompletedCycle();
     if (!cycle?.winnerPrizeId) {
       throw new BadRequestException('No completed voting cycle is available to claim.');
     }
 
     const cycleId = (cycle._id as Types.ObjectId).toString();
-    const ranks = await this.getWinningVoterRanks(
-      cycleId,
-      cycle.winnerPrizeId,
-      cycle.recipientCount,
-    );
+    const ranks = await this.getPrizeWinners(cycle.recipientCount);
     const mine = ranks.find(r => r.userId === userId);
     if (!mine) {
-      throw new BadRequestException('You are not among the winning voters for this cycle.');
+      throw new BadRequestException(
+        `Only the top ${cycle.recipientCount} on the leaderboard can claim this prize.`,
+      );
     }
 
     const duplicate = await this.prizeClaimModel.findOne({
@@ -190,65 +192,56 @@ export class VotingPrizeService {
       throw new ConflictException('You have already claimed your voting prize for this cycle.');
     }
 
-    const establishment = await this.establishmentModel.findById(establishmentId);
-    if (!establishment) {
-      throw new NotFoundException('Establishment not found');
+    const winningPrize = cycle.prizes?.find(
+      p => p._id.toString() === cycle.winnerPrizeId?.toString(),
+    );
+
+    try {
+      await this.prizeClaimModel.create({
+        userId: new Types.ObjectId(userId),
+        prizeType: PrizeType.GRAND_PRIZE,
+        // Snapshotted so an admin editing the catalogue later cannot rewrite
+        // what this user was told they won.
+        ...(cycle.winner?.name !== undefined ? { prizeName: cycle.winner.name } : {}),
+        ...(winningPrize?.category !== undefined ? { prizeCategory: winningPrize.category } : {}),
+        status: PrizeClaimStatus.PENDING,
+        rank: mine.rank,
+        totalPoints: mine.pointsSnapshot,
+        cycleNumber: cycle.cycleNumber,
+        source: PrizeSource.VOTING,
+        votingCycleId: new Types.ObjectId(cycleId),
+      });
+    } catch (err) {
+      // The read-then-write above lets two concurrent claims through; the
+      // partial unique index is what actually stops the second one.
+      if (typeof err === 'object' && err !== null && (err as { code?: unknown }).code === 11000) {
+        throw new ConflictException('You have already claimed your voting prize for this cycle.');
+      }
+      throw err;
     }
 
-    const voucherCode = await this.generateVoucherCode();
-
-    await this.prizeClaimModel.create({
-      userId: new Types.ObjectId(userId),
-      prizeType: PrizeType.DISCOUNT,
-      status: PrizeClaimStatus.PENDING,
-      rank: mine.rank,
-      totalPoints: mine.pointsSnapshot,
-      cycleNumber: cycle.cycleNumber,
-      source: PrizeSource.VOTING,
-      votingCycleId: new Types.ObjectId(cycleId),
-      establishmentId: new Types.ObjectId(establishmentId),
-      establishmentName: establishment.name,
-      voucherCode,
-    });
-
     this.logger.log(
-      `Voting prize claimed by user ${userId} (rank ${mine.rank}) at ${establishment.name} for cycle ${cycleId}`,
+      `Voting grand prize claimed by user ${userId} (rank ${mine.rank}) for cycle ${cycleId}`,
     );
 
     return this.getMyPrize(userId);
   }
 
-  /** Generates a unique TFW-XXXXXX voucher code, retrying up to 10 times on collision. */
-  private async generateVoucherCode(): Promise<string> {
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const code = `TFW-${randomBytes(3).toString('hex').toUpperCase()}`;
-      const exists = await this.prizeClaimModel.exists({ voucherCode: code });
-      if (!exists) {
-        return code;
-      }
-    }
-    // Fallback: base-36 timestamp suffix (extremely unlikely to reach this path)
-    return `TFW-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-  }
-
   /**
-   * Fire one push notification per winning voter. Swallows all errors — never
+   * Fire one push notification per prize winner. Swallows all errors — never
    * blocks tally. Call fire-and-forget with `void` from runTally.
    */
-  async notifyWinners(
-    cycleId: string,
-    winnerPrizeId: Types.ObjectId,
-    recipientCount: number,
-    prizeName: string,
-  ): Promise<void> {
+  async notifyWinners(cycleId: string, recipientCount: number, prizeName: string): Promise<void> {
     try {
-      const winners = await this.getWinningVoterRanks(cycleId, winnerPrizeId, recipientCount);
+      const winners = await this.getPrizeWinners(recipientCount);
 
       const sendPromises = winners.map(async winner => {
         const result = await this.pushNotificationService.send(
           {
             title: '🎉 You won a prize!',
-            body: `You ranked #${winner.rank} in the community vote and won a ${prizeName} discount. Claim your prize now!`,
+            // "on the leaderboard", not "in the vote": the vote chose the
+            // prize, the leaderboard chose the winners.
+            body: `You finished #${winner.rank} on the leaderboard and won the ${prizeName}. Claim your prize now!`,
             data: { type: 'voting_prize', cycleId, rank: String(winner.rank) },
           },
           { userId: winner.userId },

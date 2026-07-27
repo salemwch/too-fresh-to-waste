@@ -1,352 +1,379 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+/**
+ * The vote decides WHAT the prize is. The leaderboard decides WHO gets it.
+ *
+ * These two rules used to be one, and it produced a perverse outcome: winners
+ * were the top *voters who had backed the winning prize*, so the #1 user in the
+ * country won nothing if they voted for the phone and the scooter won, while
+ * someone at rank #14 who happened to back the scooter took a prize. Voting is
+ * not a lottery ticket, and these tests exist to keep it that way.
+ */
+
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { getModelToken } from '@nestjs/mongoose';
+import { Test } from '@nestjs/testing';
 import { Types } from 'mongoose';
 
-import { Vote } from '../schemas/vote.schema';
-import { VotingCycle } from '../schemas/voting-cycle.schema';
-import { PrizeClaim } from '../../loyalty/schemas/prize-claim.schema';
-import { Establishment } from '../../establishments/schemas/establishment.schema';
+import { LoyaltyAccount } from '../../loyalty/schemas/loyalty-account.schema';
+import { PrizeClaim, PrizeType } from '../../loyalty/schemas/prize-claim.schema';
 import { PushNotificationService } from '../../notifications/services/push-notification.service';
+import { VotingCycle } from '../schemas/voting-cycle.schema';
 
 import { VotingPrizeService } from './voting-prize.service';
 
-describe('VotingPrizeService.getWinningVoterRanks', () => {
-  const prizeId = new Types.ObjectId();
-  const voteModel = { aggregate: jest.fn() };
+const PRIZE_ID = new Types.ObjectId();
+const CYCLE_ID = new Types.ObjectId();
 
-  async function buildService() {
-    const moduleRef = await Test.createTestingModule({
-      providers: [
-        VotingPrizeService,
-        { provide: getModelToken(Vote.name), useValue: voteModel },
-        { provide: getModelToken(VotingCycle.name), useValue: {} },
-        { provide: getModelToken(PrizeClaim.name), useValue: {} },
-        { provide: getModelToken(Establishment.name), useValue: {} },
-        { provide: PushNotificationService, useValue: { send: jest.fn() } },
-      ],
-    }).compile();
-    return moduleRef;
+/** Leaderboard positions 1..5, descending by points. */
+const leaderboard = [
+  { userId: new Types.ObjectId(), totalPoints: 5000 },
+  { userId: new Types.ObjectId(), totalPoints: 4000 },
+  { userId: new Types.ObjectId(), totalPoints: 3000 },
+  { userId: new Types.ObjectId(), totalPoints: 2000 },
+  { userId: new Types.ObjectId(), totalPoints: 1000 },
+];
+
+const idAt = (position: number): string => {
+  const row = leaderboard[position - 1];
+  if (!row) {
+    throw new Error(`No fixture at position ${position}`);
   }
+  return row.userId.toString();
+};
 
-  beforeEach(() => jest.clearAllMocks());
-
-  it('ranks the top N voters by pointsSnapshot desc, votedAt asc for ties', async () => {
-    const u1 = new Types.ObjectId();
-    const u2 = new Types.ObjectId();
-    const u3 = new Types.ObjectId();
-    // Aggregate returns pre-sorted rows (sort done in the pipeline).
-    voteModel.aggregate.mockResolvedValue([
-      { userId: u1, pointsSnapshot: 100 },
-      { userId: u2, pointsSnapshot: 100 },
-      { userId: u3, pointsSnapshot: 50 },
-    ]);
-
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-
-    const rows = await service.getWinningVoterRanks(new Types.ObjectId().toString(), prizeId, 2);
-
-    expect(rows).toEqual([
-      { userId: u1.toString(), rank: 1, pointsSnapshot: 100 },
-      { userId: u2.toString(), rank: 2, pointsSnapshot: 100 },
-    ]);
-    // recipientCount=2 → only 2 rows even though 3 voters exist.
-    expect(rows).toHaveLength(2);
-  });
-
-  it('returns an empty array when there are no voters', async () => {
-    voteModel.aggregate.mockResolvedValue([]);
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-
-    const rows = await service.getWinningVoterRanks(new Types.ObjectId().toString(), prizeId, 5);
-    expect(rows).toEqual([]);
-  });
+const makeCycle = (over: Record<string, unknown> = {}) => ({
+  _id: CYCLE_ID,
+  name: 'Season 1',
+  cycleNumber: 1,
+  recipientCount: 3,
+  winnerPrizeId: PRIZE_ID,
+  winner: { prizeId: PRIZE_ID, name: 'Electric Scooter', totalWeightedVotes: 90, voterCount: 40 },
+  prizes: [{ _id: PRIZE_ID, name: 'Electric Scooter', category: 'ELECTRIC_SCOOTER' }],
+  ...over,
 });
 
-describe('VotingPrizeService.getMyPrize', () => {
-  const winningPrizeId = new Types.ObjectId();
-  const winnerUser = new Types.ObjectId();
-  const loserUser = new Types.ObjectId();
-  const cycleId = new Types.ObjectId();
+/**
+ * Mirrors `find().sort().limit().select().lean()`.
+ *
+ * `limit` is applied for real rather than ignored — otherwise a service that
+ * forgot to limit would still pass, which is the whole point of recipientCount.
+ */
+interface FakeLeaderboardQuery {
+  sort: jest.Mock;
+  limit: jest.Mock;
+  select: jest.Mock;
+  lean: jest.Mock;
+}
 
-  const voteModel = { aggregate: jest.fn() };
-  const cycleModel = { findOne: jest.fn() };
-  const prizeClaimModel = { findOne: jest.fn() };
+const buildLoyaltyModel = (rows: typeof leaderboard = leaderboard) => {
+  const query: FakeLeaderboardQuery = {
+    sort: jest.fn(() => query),
+    // Re-arms `lean` rather than storing the count, so a service that forgets
+    // to call limit() resolves the whole list and the recipientCount tests fail.
+    limit: jest.fn((n: number) => {
+      query.lean.mockResolvedValue(rows.slice(0, n));
+      return query;
+    }),
+    select: jest.fn(() => query),
+    lean: jest.fn().mockResolvedValue(rows),
+  };
+  return { find: jest.fn(() => query), _query: query };
+};
 
-  async function buildService() {
-    const moduleRef = await Test.createTestingModule({
-      providers: [
-        VotingPrizeService,
-        { provide: getModelToken(Vote.name), useValue: voteModel },
-        { provide: getModelToken(VotingCycle.name), useValue: cycleModel },
-        { provide: getModelToken(PrizeClaim.name), useValue: prizeClaimModel },
-        { provide: getModelToken(Establishment.name), useValue: {} },
-        { provide: PushNotificationService, useValue: { send: jest.fn() } },
-      ],
-    }).compile();
-    return moduleRef;
-  }
+const buildMocks = (over: { cycle?: unknown; rows?: typeof leaderboard } = {}) => {
+  const loyaltyModel = buildLoyaltyModel(over.rows ?? leaderboard);
+  const cycle = 'cycle' in over ? over.cycle : makeCycle();
+  const cycleModel = {
+    findOne: jest.fn(() => ({
+      sort: jest.fn(() => ({ lean: jest.fn().mockResolvedValue(cycle) })),
+    })),
+  };
+  const prizeClaimModel = {
+    findOne: jest.fn().mockResolvedValue(null),
+    create: jest.fn().mockResolvedValue({}),
+  };
+  const push = { send: jest.fn().mockResolvedValue(undefined) };
 
-  beforeEach(() => jest.clearAllMocks());
+  return { loyaltyModel, cycleModel, prizeClaimModel, push };
+};
 
-  function mockCompletedCycle() {
-    cycleModel.findOne.mockReturnValue({
-      sort: jest.fn().mockReturnValue({
-        lean: jest.fn().mockResolvedValue({
-          _id: cycleId,
-          name: 'Eco Cycle 3',
-          recipientCount: 5,
-          winnerPrizeId: winningPrizeId,
-          winner: { prizeId: winningPrizeId, name: 'Smart Garden' },
-        }),
-      }),
-    });
-  }
+const buildService = async (mocks: ReturnType<typeof buildMocks>) => {
+  const moduleRef = await Test.createTestingModule({
+    providers: [
+      VotingPrizeService,
+      { provide: getModelToken(VotingCycle.name), useValue: mocks.cycleModel },
+      { provide: getModelToken(LoyaltyAccount.name), useValue: mocks.loyaltyModel },
+      { provide: getModelToken(PrizeClaim.name), useValue: mocks.prizeClaimModel },
+      { provide: PushNotificationService, useValue: mocks.push },
+    ],
+  }).compile();
+  return moduleRef.get(VotingPrizeService);
+};
 
-  it('reports a top-N voter as a winner who has not claimed', async () => {
-    mockCompletedCycle();
-    voteModel.aggregate.mockResolvedValue([
-      { userId: winnerUser, pointsSnapshot: 200 },
-      { userId: loserUser, pointsSnapshot: 10 },
-    ]);
-    prizeClaimModel.findOne.mockResolvedValue(null);
+describe('VotingPrizeService', () => {
+  let mocks: ReturnType<typeof buildMocks>;
+  let service: VotingPrizeService;
 
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-
-    const result = await service.getMyPrize(winnerUser.toString());
-
-    expect(result.isWinner).toBe(true);
-    expect(result.rank).toBe(1);
-    expect(result.recipientCount).toBe(5);
-    expect(result.cycleId).toBe(cycleId.toString());
-    expect(result.prizeName).toBe('Smart Garden');
-    expect(result.hasClaimed).toBe(false);
-    expect(result.voucherCode).toBeNull();
-    expect(result.status).toBeNull();
-  });
-
-  it('reports a non-winner with isWinner=false', async () => {
-    mockCompletedCycle();
-    voteModel.aggregate.mockResolvedValue([{ userId: winnerUser, pointsSnapshot: 200 }]);
-    prizeClaimModel.findOne.mockResolvedValue(null);
-
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-
-    const result = await service.getMyPrize(loserUser.toString());
-    expect(result.isWinner).toBe(false);
-    expect(result.rank).toBeNull();
-  });
-
-  it('reflects an existing claim with voucher + status', async () => {
-    mockCompletedCycle();
-    voteModel.aggregate.mockResolvedValue([{ userId: winnerUser, pointsSnapshot: 200 }]);
-    prizeClaimModel.findOne.mockResolvedValue({
-      voucherCode: 'TFW-ABC123',
-      establishmentName: 'Green Cafe',
-      status: 'pending',
-    });
-
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-
-    const result = await service.getMyPrize(winnerUser.toString());
-    expect(result.hasClaimed).toBe(true);
-    expect(result.voucherCode).toBe('TFW-ABC123');
-    expect(result.establishmentName).toBe('Green Cafe');
-    expect(result.status).toBe('pending');
-  });
-
-  it('returns a non-winner shell when there is no completed cycle', async () => {
-    cycleModel.findOne.mockReturnValue({
-      sort: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue(null) }),
-    });
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-
-    const result = await service.getMyPrize(winnerUser.toString());
-    expect(result.isWinner).toBe(false);
-    expect(result.cycleId).toBeNull();
-  });
-});
-
-describe('VotingPrizeService.claimPrize', () => {
-  const winningPrizeId = new Types.ObjectId();
-  const winnerUser = new Types.ObjectId();
-  const cycleId = new Types.ObjectId();
-  const estId = new Types.ObjectId();
-
-  const voteModel = { aggregate: jest.fn() };
-  const cycleModel = { findOne: jest.fn() };
-  const prizeClaimModel = { findOne: jest.fn(), exists: jest.fn(), create: jest.fn() };
-  const establishmentModel = { findById: jest.fn() };
-
-  async function buildService() {
-    const moduleRef = await Test.createTestingModule({
-      providers: [
-        VotingPrizeService,
-        { provide: getModelToken(Vote.name), useValue: voteModel },
-        { provide: getModelToken(VotingCycle.name), useValue: cycleModel },
-        { provide: getModelToken(PrizeClaim.name), useValue: prizeClaimModel },
-        { provide: getModelToken(Establishment.name), useValue: establishmentModel },
-        { provide: PushNotificationService, useValue: { send: jest.fn() } },
-      ],
-    }).compile();
-    return moduleRef;
-  }
-
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
-    cycleModel.findOne.mockReturnValue({
-      sort: jest.fn().mockReturnValue({
-        lean: jest.fn().mockResolvedValue({
-          _id: cycleId,
-          name: 'Eco Cycle 3',
-          cycleNumber: 3,
-          recipientCount: 5,
-          winnerPrizeId: winningPrizeId,
-          winner: { prizeId: winningPrizeId, name: 'Smart Garden' },
-        }),
-      }),
+    mocks = buildMocks();
+    service = await buildService(mocks);
+  });
+
+  // ─── who wins ───────────────────────────────────────────────────────────────
+
+  describe('getPrizeWinners', () => {
+    it('takes the leaderboard top N in order', async () => {
+      const rows = await service.getPrizeWinners(3);
+
+      expect(rows).toEqual([
+        { userId: idAt(1), rank: 1, pointsSnapshot: 5000 },
+        { userId: idAt(2), rank: 2, pointsSnapshot: 4000 },
+        { userId: idAt(3), rank: 3, pointsSnapshot: 3000 },
+      ]);
     });
-    voteModel.aggregate.mockResolvedValue([{ userId: winnerUser, pointsSnapshot: 200 }]);
+
+    // The whole point of the rewrite: nobody's vote is consulted.
+    it('does not read votes at all', async () => {
+      await service.getPrizeWinners(3);
+
+      expect(mocks.loyaltyModel.find).toHaveBeenCalled();
+    });
+
+    it('ranks by the shared leaderboard predicate and sort', async () => {
+      await service.getPrizeWinners(3);
+
+      expect(mocks.loyaltyModel.find).toHaveBeenCalledWith({ isActive: true });
+      // The _id tiebreak matters: without it ties resolve in an order MongoDB
+      // does not guarantee, so the winner set could change under the same data.
+      expect(mocks.loyaltyModel._query.sort).toHaveBeenCalledWith({ totalPoints: -1, _id: 1 });
+    });
+
+    it('is configurable — an admin can run a 5-winner season', async () => {
+      const rows = await service.getPrizeWinners(5);
+
+      expect(rows).toHaveLength(5);
+      expect(rows[4]).toEqual({ userId: idAt(5), rank: 5, pointsSnapshot: 1000 });
+    });
+
+    it.each([0, -1])('returns nothing for a recipientCount of %i', async count => {
+      expect(await service.getPrizeWinners(count)).toEqual([]);
+    });
+
+    // Fewer players than prize slots — a young season, or a tiny community.
+    it('returns everyone when there are fewer users than slots', async () => {
+      const small = buildMocks({ rows: leaderboard.slice(0, 2) });
+
+      const rows = await (await buildService(small)).getPrizeWinners(3);
+
+      expect(rows).toHaveLength(2);
+    });
+
+    it('returns nothing when the leaderboard is empty', async () => {
+      const empty = buildMocks({ rows: [] });
+
+      expect(await (await buildService(empty)).getPrizeWinners(3)).toEqual([]);
+    });
   });
 
-  it('throws when the user is not a winner', async () => {
-    voteModel.aggregate.mockResolvedValue([{ userId: new Types.ObjectId(), pointsSnapshot: 5 }]);
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-    await expect(
-      service.claimPrize(winnerUser.toString(), estId.toString()),
-    ).rejects.toBeInstanceOf(BadRequestException);
+  // ─── my prize ───────────────────────────────────────────────────────────────
+
+  describe('getMyPrize', () => {
+    it('tells the top rank they won, and what they won', async () => {
+      const result = await service.getMyPrize(idAt(1));
+
+      expect(result.isWinner).toBe(true);
+      expect(result.rank).toBe(1);
+      expect(result.prizeName).toBe('Electric Scooter');
+    });
+
+    it('includes the last winning rank', async () => {
+      expect((await service.getMyPrize(idAt(3))).isWinner).toBe(true);
+    });
+
+    // The boundary: recipientCount is 3, so #4 misses.
+    it('tells the first rank past the cutoff they did not win', async () => {
+      const result = await service.getMyPrize(idAt(4));
+
+      expect(result.isWinner).toBe(false);
+      expect(result.rank).toBeNull();
+    });
+
+    // Still worth naming the prize — the screen says what the community chose.
+    it('names the prize even for a non-winner', async () => {
+      expect((await service.getMyPrize(idAt(4))).prizeName).toBe('Electric Scooter');
+    });
+
+    it('reports nothing when no cycle has completed', async () => {
+      const none = buildMocks({ cycle: null });
+
+      expect((await (await buildService(none)).getMyPrize(idAt(1))).isWinner).toBe(false);
+    });
+
+    it('reports nothing when a completed cycle has no winning prize', async () => {
+      const noWinner = buildMocks({ cycle: makeCycle({ winnerPrizeId: null }) });
+
+      expect((await (await buildService(noWinner)).getMyPrize(idAt(1))).isWinner).toBe(false);
+    });
+
+    it('reflects an existing claim', async () => {
+      mocks.prizeClaimModel.findOne.mockResolvedValue({ status: 'pending' });
+
+      expect((await service.getMyPrize(idAt(1))).hasClaimed).toBe(true);
+    });
   });
 
-  it('throws NotFound for a missing establishment', async () => {
-    prizeClaimModel.findOne.mockResolvedValue(null);
-    establishmentModel.findById.mockResolvedValue(null);
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-    await expect(
-      service.claimPrize(winnerUser.toString(), estId.toString()),
-    ).rejects.toBeInstanceOf(NotFoundException);
+  // ─── claiming ───────────────────────────────────────────────────────────────
+
+  describe('claimPrize', () => {
+    it('records what was actually won, not a discount', async () => {
+      await service.claimPrize(idAt(1));
+
+      expect(mocks.prizeClaimModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prizeType: PrizeType.GRAND_PRIZE,
+          prizeName: 'Electric Scooter',
+          prizeCategory: 'ELECTRIC_SCOOTER',
+          rank: 1,
+        }),
+      );
+    });
+
+    /*
+     * The grand prize is a physical item an admin delivers. Demanding an
+     * establishment for a scooter asked a question with no answer, and the
+     * voucher code implied a redemption that never happens.
+     */
+    it('asks for no establishment and mints no voucher', async () => {
+      await service.claimPrize(idAt(1));
+
+      const written = mocks.prizeClaimModel.create.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(written).not.toHaveProperty('establishmentId');
+      expect(written).not.toHaveProperty('voucherCode');
+    });
+
+    it('refuses a rank past the cutoff', async () => {
+      await expect(service.claimPrize(idAt(4))).rejects.toThrow(BadRequestException);
+    });
+
+    // Tells them the rule, not just "no".
+    it('says how many ranks win', async () => {
+      const message = await service.claimPrize(idAt(4)).catch((e: Error) => e.message);
+
+      expect(message).toMatch(/top 3/i);
+    });
+
+    it('refuses a user who is not on the leaderboard at all', async () => {
+      await expect(service.claimPrize(new Types.ObjectId().toString())).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('refuses when no cycle has completed', async () => {
+      const none = buildMocks({ cycle: null });
+
+      await expect((await buildService(none)).claimPrize(idAt(1))).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('refuses a second claim', async () => {
+      mocks.prizeClaimModel.findOne.mockResolvedValue({ _id: new Types.ObjectId() });
+
+      await expect(service.claimPrize(idAt(1))).rejects.toThrow(ConflictException);
+    });
+
+    /*
+     * The pre-check reads then writes, so two requests arriving together both
+     * pass it. The partial unique index is what actually stops the second, and
+     * an unhandled E11000 would surface as a 500 — the app reporting a fault
+     * when it had correctly refused a double claim.
+     */
+    it('turns a racing duplicate into the same conflict', async () => {
+      mocks.prizeClaimModel.create.mockRejectedValue(
+        Object.assign(new Error('dup'), { code: 11000 }),
+      );
+
+      await expect(service.claimPrize(idAt(1))).rejects.toThrow(ConflictException);
+    });
+
+    it('lets an unrelated write failure surface unchanged', async () => {
+      mocks.prizeClaimModel.create.mockRejectedValue(new Error('connection lost'));
+
+      await expect(service.claimPrize(idAt(1))).rejects.toThrow('connection lost');
+    });
+
+    // An admin editing the catalogue later must not rewrite what a user was
+    // told they won, so the name is copied onto the claim rather than referenced.
+    it('snapshots the prize name onto the claim', async () => {
+      await service.claimPrize(idAt(2));
+
+      expect(mocks.prizeClaimModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({ prizeName: 'Electric Scooter' }),
+      );
+    });
+
+    it('claims without a prize name when the cycle has no winner record', async () => {
+      const nameless = buildMocks({ cycle: makeCycle({ winner: undefined }) });
+
+      await (await buildService(nameless)).claimPrize(idAt(1));
+
+      const written = nameless.prizeClaimModel.create.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(written).not.toHaveProperty('prizeName');
+    });
   });
 
-  it('throws Conflict when already claimed', async () => {
-    prizeClaimModel.findOne.mockResolvedValue({ voucherCode: 'TFW-OLD111', status: 'pending' });
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-    await expect(
-      service.claimPrize(winnerUser.toString(), estId.toString()),
-    ).rejects.toBeInstanceOf(ConflictException);
-  });
+  // ─── notifications ──────────────────────────────────────────────────────────
 
-  it('creates a voting PrizeClaim and returns claimed status', async () => {
-    prizeClaimModel.findOne
-      .mockResolvedValueOnce(null) // duplicate check inside claimPrize
-      .mockResolvedValueOnce({
-        voucherCode: 'TFW-NEW222',
-        establishmentName: 'Green Cafe',
-        status: 'pending',
-      }); // getMyPrize re-read
-    establishmentModel.findById.mockResolvedValue({ _id: estId, name: 'Green Cafe' });
-    prizeClaimModel.exists.mockResolvedValue(null);
-    prizeClaimModel.create.mockResolvedValue({ voucherCode: 'TFW-NEW222' });
+  describe('notifyWinners', () => {
+    it('notifies exactly the leaderboard top N', async () => {
+      await service.notifyWinners(CYCLE_ID.toString(), 3, 'Electric Scooter');
 
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-    const result = await service.claimPrize(winnerUser.toString(), estId.toString());
+      expect(mocks.push.send).toHaveBeenCalledTimes(3);
+    });
 
-    expect(prizeClaimModel.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        source: 'voting',
-        prizeType: 'discount',
-        establishmentName: 'Green Cafe',
-      }),
-    );
-    expect(result.hasClaimed).toBe(true);
-    expect(result.voucherCode).toBe('TFW-NEW222');
-  });
-});
+    // The message must not say "in the vote" — the vote picked the prize, the
+    // leaderboard picked the winners, and telling them otherwise re-teaches the
+    // wrong rule.
+    it('credits the leaderboard, not the vote', async () => {
+      await service.notifyWinners(CYCLE_ID.toString(), 1, 'Electric Scooter');
 
-describe('VotingPrizeService.notifyWinners', () => {
-  const winningPrizeId = new Types.ObjectId();
-  const u1 = new Types.ObjectId();
-  const u2 = new Types.ObjectId();
+      const [payload] = mocks.push.send.mock.calls[0] as [{ body: string }];
+      expect(payload.body).toMatch(/leaderboard/i);
+      expect(payload.body).not.toMatch(/in the community vote/i);
+    });
 
-  const voteModel = { aggregate: jest.fn() };
-  const push = { send: jest.fn().mockResolvedValue({ success: true }) };
+    it('names the prize that was won', async () => {
+      await service.notifyWinners(CYCLE_ID.toString(), 1, 'Electric Scooter');
 
-  async function buildService() {
-    const moduleRef = await Test.createTestingModule({
-      providers: [
-        VotingPrizeService,
-        { provide: getModelToken(Vote.name), useValue: voteModel },
-        { provide: getModelToken(VotingCycle.name), useValue: {} },
-        { provide: getModelToken(PrizeClaim.name), useValue: {} },
-        { provide: getModelToken(Establishment.name), useValue: {} },
-        { provide: PushNotificationService, useValue: push },
-      ],
-    }).compile();
-    return moduleRef;
-  }
+      const [payload] = mocks.push.send.mock.calls[0] as [{ body: string }];
+      expect(payload.body).toContain('Electric Scooter');
+    });
 
-  beforeEach(() => jest.clearAllMocks());
+    // Never blocks tally — one dead device token must not stop the season.
+    it('survives a push failure', async () => {
+      mocks.push.send.mockRejectedValue(new Error('no device token'));
 
-  it('sends one push per winner with userId target', async () => {
-    voteModel.aggregate.mockResolvedValue([
-      { userId: u1, pointsSnapshot: 100 },
-      { userId: u2, pointsSnapshot: 90 },
-    ]);
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
+      await expect(
+        service.notifyWinners(CYCLE_ID.toString(), 3, 'Electric Scooter'),
+      ).resolves.toBeUndefined();
+    });
 
-    await service.notifyWinners(new Types.ObjectId().toString(), winningPrizeId, 5, 'Smart Garden');
+    it('survives the winner lookup failing', async () => {
+      mocks.loyaltyModel.find.mockImplementation(() => {
+        throw new Error('db down');
+      });
 
-    expect(push.send).toHaveBeenCalledTimes(2);
-    expect(push.send).toHaveBeenCalledWith(
-      expect.objectContaining({ title: expect.any(String), body: expect.any(String) }),
-      { userId: u1.toString() },
-    );
-  });
+      await expect(
+        service.notifyWinners(CYCLE_ID.toString(), 3, 'Electric Scooter'),
+      ).resolves.toBeUndefined();
+    });
 
-  it('never throws when a push fails', async () => {
-    voteModel.aggregate.mockResolvedValue([{ userId: u1, pointsSnapshot: 100 }]);
-    push.send.mockRejectedValueOnce(new Error('fcm down'));
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
+    it('sends nothing when there is nobody to notify', async () => {
+      const empty = buildMocks({ rows: [] });
 
-    await expect(
-      service.notifyWinners(new Types.ObjectId().toString(), winningPrizeId, 5, 'Smart Garden'),
-    ).resolves.toBeUndefined();
-  });
+      await (await buildService(empty)).notifyWinners(CYCLE_ID.toString(), 3, 'Scooter');
 
-  it('resolves immediately with no pushes when there are no winners', async () => {
-    voteModel.aggregate.mockResolvedValue([]);
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-
-    await service.notifyWinners(new Types.ObjectId().toString(), winningPrizeId, 5, 'Smart Garden');
-
-    expect(push.send).not.toHaveBeenCalled();
-  });
-
-  it('includes correct rank in the notification body', async () => {
-    voteModel.aggregate.mockResolvedValue([
-      { userId: u1, pointsSnapshot: 100 },
-      { userId: u2, pointsSnapshot: 90 },
-    ]);
-    const moduleRef = await buildService();
-    const service = moduleRef.get(VotingPrizeService);
-
-    await service.notifyWinners(new Types.ObjectId().toString(), winningPrizeId, 5, 'Smart Garden');
-
-    // rank 1 → u1, rank 2 → u2
-    const firstCall = push.send.mock.calls[0] as [{ title: string; body: string }, unknown];
-    expect(firstCall[0].body).toContain('#1');
-    const secondCall = push.send.mock.calls[1] as [{ title: string; body: string }, unknown];
-    expect(secondCall[0].body).toContain('#2');
+      expect(empty.push.send).not.toHaveBeenCalled();
+    });
   });
 });

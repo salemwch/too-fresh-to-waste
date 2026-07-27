@@ -3,7 +3,20 @@ import { Document, Types } from 'mongoose';
 
 export type PrizeClaimDocument = PrizeClaim & Document;
 
+/**
+ * What kind of thing was won.
+ *
+ * `GRAND_PRIZE` is whatever the community voted for that season — a phone, a
+ * scooter, a hotel stay, a gym year, a voucher. The specific item is recorded
+ * in `prizeName` / `prizeCategory` rather than encoded here, because the
+ * catalogue is admin-defined per cycle (`VotingCycle.prizes`) and an enum
+ * cannot track it.
+ *
+ * `SMARTPHONE` is kept only so historical claims still read; nothing writes it.
+ * @deprecated use `GRAND_PRIZE` with `prizeCategory: PHONE`.
+ */
 export enum PrizeType {
+  GRAND_PRIZE = 'grand_prize',
   SMARTPHONE = 'smartphone',
   DISCOUNT = 'discount',
 }
@@ -27,6 +40,19 @@ export class PrizeClaim {
 
   @Prop({ type: String, enum: PrizeType, required: true })
   prizeType!: PrizeType;
+
+  /**
+   * The prize as the user was shown it — "Electric Scooter", "1 Year Gym + Protein".
+   *
+   * Snapshotted at claim time on purpose. An admin editing the cycle's prize
+   * catalogue afterwards must not rewrite what someone was told they won.
+   */
+  @Prop({ type: String })
+  prizeName?: string;
+
+  /** `PrizeCategory` from the voting cycle — PHONE, ELECTRIC_SCOOTER, … */
+  @Prop({ type: String })
+  prizeCategory?: string;
 
   @Prop({ type: String, enum: PrizeClaimStatus, default: PrizeClaimStatus.PENDING })
   status!: PrizeClaimStatus;

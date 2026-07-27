@@ -77,10 +77,17 @@ export class VotingCycle {
   })
   status!: string;
 
-  @Prop({ default: 50 })
+  /** Bags a user must save during the season before they may vote. */
+  @Prop({ default: 25 })
   minimumBags!: number;
 
-  @Prop({ default: 5 })
+  /**
+   * How many of the **leaderboard's** top ranks win the voted prize.
+   *
+   * Admin-configurable per cycle — the default is 3, but a season can be run
+   * with 5. Not the number of voters: see `getPrizeWinners`.
+   */
+  @Prop({ default: 3 })
   recipientCount!: number;
 
   @Prop({ type: [PrizeOptionSchema] })
