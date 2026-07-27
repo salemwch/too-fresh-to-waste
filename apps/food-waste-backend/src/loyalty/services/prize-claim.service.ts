@@ -367,6 +367,10 @@ export class PrizeClaimService {
       id: doc._id.toString(),
       userId: doc.userId.toString(),
       prizeType: doc.prizeType,
+      // What the user was actually told they won — the app shows this rather
+      // than assuming a phone.
+      ...(doc.prizeName ? { prizeName: doc.prizeName } : {}),
+      ...(doc.prizeCategory ? { prizeCategory: doc.prizeCategory } : {}),
       status: doc.status,
       rank: doc.rank,
       totalPoints: doc.totalPoints,

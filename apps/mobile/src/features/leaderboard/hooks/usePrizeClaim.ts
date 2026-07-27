@@ -14,10 +14,17 @@ export function usePrizeClaimStatus(enabled = true) {
   });
 }
 
-export function useClaimSmartphone() {
+/**
+ * Claims the grand prize the community voted for.
+ *
+ * Named for the prize tier, not the item: what the top ranks win is whatever
+ * won the vote — a phone, a scooter, a hotel stay — so nothing here should
+ * assume a phone.
+ */
+export function useClaimGrandPrize() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => prizeClaimService.claimSmartphone(),
+    mutationFn: async () => prizeClaimService.claimGrandPrize(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PRIZE_CLAIM_KEY });
     },

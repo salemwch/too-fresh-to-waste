@@ -53,16 +53,20 @@ export const votingPrizeService = {
   },
 
   /**
-   * Claim the voting voucher at the given establishment.
+   * Claim the grand prize the community voted for.
+   *
+   * Takes no establishment: the grand prize is a physical item an admin
+   * delivers — a scooter, a hotel stay, a gym year — not a voucher redeemed at
+   * a business. Choosing a business applies only to the discount that everyone
+   * outside the top ranks receives.
+   *
    * Fire-and-forget POST — intentionally takes NO AbortSignal (project rule:
    * no AbortController on fire-and-forget mutations).
    */
-  async claimPrize(establishmentId: string): Promise<VotingPrizeStatusResponse> {
+  async claimPrize(): Promise<VotingPrizeStatusResponse> {
     try {
-      const response = await apiClient.post<BackendApiResponse<VotingPrizeStatusResponse>>(
-        '/voting/claim-prize',
-        { establishmentId },
-      );
+      const response =
+        await apiClient.post<BackendApiResponse<VotingPrizeStatusResponse>>('/voting/claim-prize');
       return unwrapBackendResponse(response, 'voting prize claim');
     } catch (error) {
       throw handleApiError(error);

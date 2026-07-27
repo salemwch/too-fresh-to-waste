@@ -33,12 +33,19 @@ export const prizeClaimService = {
     }
   },
 
-  async claimSmartphone(): Promise<PrizeClaimResponse> {
+  /**
+   * Claims the grand prize for a top-ranked user.
+   *
+   * The endpoint is still `/smartphone` — renaming it is a breaking API change
+   * for older app builds, so the route stays and only the client naming moves
+   * on. What it awards is whatever the community voted for.
+   */
+  async claimGrandPrize(): Promise<PrizeClaimResponse> {
     try {
       const response = await apiClient.post<BackendApiResponse<PrizeClaimResponse>>(
         '/loyalty/prize-claim/smartphone',
       );
-      return unwrapBackendResponse(response, 'prizeClaimSmartphone');
+      return unwrapBackendResponse(response, 'prizeClaimGrandPrize');
     } catch (error) {
       throw handleApiError(error);
     }

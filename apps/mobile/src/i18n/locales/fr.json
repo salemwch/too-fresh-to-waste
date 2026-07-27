@@ -984,7 +984,15 @@
     "countdownDays": "JOURS",
     "countdownHours": "HEURES",
     "countdownMins": "MIN",
-    "countdownSecs": "SEC"
+    "countdownSecs": "SEC",
+    "congratulations": "Félicitations !",
+    "finishedRank": "Vous avez terminé #{{rank}} du défi !",
+    "youWonPrize": "Vous avez gagné {{prize}} !",
+    "grandPrizeGeneric": "le grand prix",
+    "ticketRank": "Rang #{{rank}}",
+    "statusPending": "En attente de vérification",
+    "statusVerified": "Vérifié",
+    "statusDelivered": "Livré"
   },
   "voting": {
     "a11ySelectPrizeHint": "Sélectionne ce prix comme votre choix de vote",

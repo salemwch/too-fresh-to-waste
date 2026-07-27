@@ -31,7 +31,8 @@ import { PrizeTierCards } from '../components/PrizeTierCards';
 import { PrizeInfoModal } from '../components/PrizeInfoModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useUserRowTracking } from '../hooks/useUserRowTracking';
-import { usePrizeClaimStatus, useClaimSmartphone, useClaimDiscount } from '../hooks/usePrizeClaim';
+import { usePrizeClaimStatus, useClaimGrandPrize, useClaimDiscount } from '../hooks/usePrizeClaim';
+import { useVotingPrizeStatus } from '@/features/voting/hooks/useVotingPrize';
 import {
   BG_DARK,
   CHAMPION_GOLD,
@@ -66,7 +67,14 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 
   const challengeEnded = goal?.endDate ? new Date(goal.endDate).getTime() <= Date.now() : false;
   const { data: claimStatus } = usePrizeClaimStatus(challengeEnded);
-  const claimSmartphone = useClaimSmartphone();
+  /*
+   * Names the prize the community voted for, so the celebration says "Electric
+   * Scooter" rather than assuming a phone. Gated on the challenge having ended
+   * — there is no prize to name before then, and this must not add a request
+   * to the normal leaderboard load.
+   */
+  const { data: votingPrize } = useVotingPrizeStatus(challengeEnded);
+  const claimGrandPrize = useClaimGrandPrize();
   const claimDiscount = useClaimDiscount();
 
   const firstName = user?.firstName ?? '';
@@ -112,16 +120,25 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     if (!challengeEnded || !claimStatus || prizeModalShown.current) return;
     if (claimStatus.hasClaimed) return;
     prizeModalShown.current = true;
-    if (claimStatus.eligiblePrizeType === 'smartphone') {
+    /*
+     * Both values mean "you are in the top ranks". `smartphone` is the legacy
+     * spelling still returned by the bag-goal endpoint; `grand_prize` is what
+     * the voting path writes. Accepting both keeps the modal working while the
+     * two prize paths are consolidated.
+     */
+    if (
+      claimStatus.eligiblePrizeType === 'smartphone' ||
+      claimStatus.eligiblePrizeType === 'grand_prize'
+    ) {
       setShowWinnerModal(true);
     } else if (claimStatus.eligiblePrizeType === 'discount') {
       setShowDiscountModal(true);
     }
   }, [challengeEnded, claimStatus]);
 
-  const smartphoneClaimed = (claimStatus?.hasClaimed ?? false) || claimSmartphone.isSuccess;
+  const grandPrizeClaimed = (claimStatus?.hasClaimed ?? false) || claimGrandPrize.isSuccess;
   const discountClaimed = (claimStatus?.hasClaimed ?? false) || claimDiscount.isSuccess;
-  const smartphoneClaimData = claimStatus?.claim ?? claimSmartphone.data ?? null;
+  const grandPrizeClaimData = claimStatus?.claim ?? claimGrandPrize.data ?? null;
   const discountClaimData = claimStatus?.claim ?? claimDiscount.data ?? null;
 
   const openPrizeModal = useCallback(() => setShowPrizeModal(true), []);
@@ -204,11 +221,12 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         visible={showWinnerModal}
         onClose={() => setShowWinnerModal(false)}
         rank={claimStatus?.rank ?? 0}
-        hasClaimed={smartphoneClaimed}
-        claimData={smartphoneClaimData}
-        onClaim={() => claimSmartphone.mutate()}
-        isClaiming={claimSmartphone.isPending}
-        error={claimSmartphone.error instanceof Error ? claimSmartphone.error.message : null}
+        hasClaimed={grandPrizeClaimed}
+        claimData={grandPrizeClaimData}
+        prizeName={votingPrize?.prizeName ?? null}
+        onClaim={() => claimGrandPrize.mutate()}
+        isClaiming={claimGrandPrize.isPending}
+        error={claimGrandPrize.error instanceof Error ? claimGrandPrize.error.message : null}
         firstName={firstName}
       />
       <DiscountClaimModal

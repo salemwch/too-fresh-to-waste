@@ -1,6 +1,6 @@
 /**
  * VotingCard — Voting Prize Tests
- * Tests the "Claim Your Prize" CTA and DiscountClaimModal integration
+ * Tests the "Claim Your Prize" CTA and WinnerCelebrationModal integration
  * in the Victory Lap branch (COMPLETED cycle, winner announced ≤ 7 days).
  */
 
@@ -117,24 +117,29 @@ jest.mock('../hooks/useVotingPrize', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock DiscountClaimModal — lightweight stand-in that renders its title text
-// so we can assert it opened, without pulling in Modal / SafeAreaContext /
+// Mock WinnerCelebrationModal — lightweight stand-in that renders its prize
+// name so we can assert it opened, without pulling in Modal / SafeAreaContext /
 // TanStack Query dependencies.
+//
+// The card used to open DiscountClaimModal here, which asked a grand-prize
+// winner to pick a business — there is none to pick for a scooter.
 // ---------------------------------------------------------------------------
-jest.mock('@/features/leaderboard/components/DiscountClaimModal', () => {
+jest.mock('@/features/leaderboard/components/WinnerCelebrationModal', () => {
   const mockReact = jest.requireActual<typeof import('react')>('react');
   const mockRN = jest.requireActual<typeof import('react-native')>('react-native');
 
-  const MockDiscountClaimModal = ({
+  const MockWinnerCelebrationModal = ({
     visible,
     hasClaimed,
+    prizeName,
   }: {
     visible: boolean;
     onClose: () => void;
     rank: number;
     hasClaimed: boolean;
     claimData: unknown;
-    onClaim: (id: string) => void;
+    prizeName?: string | null;
+    onClaim: () => void;
     isClaiming: boolean;
     error: string | null;
     firstName: string;
@@ -142,16 +147,16 @@ jest.mock('@/features/leaderboard/components/DiscountClaimModal', () => {
     if (!visible) return null;
     return mockReact.createElement(
       mockRN.View,
-      { testID: 'discount-claim-modal' },
+      { testID: 'grand-prize-modal' },
       mockReact.createElement(
         mockRN.Text,
         null,
-        hasClaimed ? 'Your Discount Voucher' : 'Choose a Business',
+        `${hasClaimed ? 'claimed' : 'unclaimed'}:${prizeName ?? 'none'}`,
       ),
     );
   };
 
-  return { DiscountClaimModal: MockDiscountClaimModal };
+  return { WinnerCelebrationModal: MockWinnerCelebrationModal };
 });
 
 // ---------------------------------------------------------------------------
@@ -172,15 +177,26 @@ describe('VotingCard — voting prize', () => {
     expect(screen.getByText('Claim Your Prize')).toBeTruthy();
   });
 
-  it('opens the discount modal when the CTA is pressed', () => {
+  it('opens the grand prize modal when the CTA is pressed', () => {
     render(<VotingCard />);
     fireEvent.press(screen.getByText('Claim Your Prize'));
-    expect(screen.getByText('Choose a Business')).toBeTruthy();
+    expect(screen.getByTestId('grand-prize-modal')).toBeTruthy();
+  });
+
+  // The winner is told what the community actually voted for, not a hardcoded
+  // prize — and no business picker, because a scooter is not redeemed anywhere.
+  it('passes the voted prize name through to the modal', () => {
+    render(<VotingCard />);
+    fireEvent.press(screen.getByText('Claim Your Prize'));
+
+    // "Smart Garden" is the fixture's winning prize — proving the name comes
+    // from the cycle rather than a hardcoded "Smartphone".
+    expect(screen.getByTestId('grand-prize-modal')).toHaveTextContent('unclaimed:Smart Garden');
   });
 
   it('does not render the modal before the CTA is pressed', () => {
     render(<VotingCard />);
-    expect(screen.queryByTestId('discount-claim-modal')).toBeNull();
+    expect(screen.queryByTestId('grand-prize-modal')).toBeNull();
   });
 
   it('does not show the Claim CTA for a non-winner', () => {

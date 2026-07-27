@@ -1,5 +1,10 @@
 /**
- * WinnerCelebrationModal — Full-screen celebration for top-5 challenge winners.
+ * WinnerCelebrationModal — celebration for the top-ranked challenge winners.
+ *
+ * Shown for the grand prize the community voted for, whatever it turned out to
+ * be. Used by both prize paths: the leaderboard screen and the voting card,
+ * which previously showed the *discount* modal and so asked a grand-prize
+ * winner which restaurant they wanted their scooter from.
  *
  * UX states:
  *  1. Initial (not claimed) — trophy + congrats + "Claim Your Prize" CTA
@@ -54,6 +59,15 @@ interface WinnerCelebrationModalProps {
   isClaiming: boolean;
   error: string | null;
   firstName?: string;
+  /**
+   * What the community voted for this season — "Electric Scooter", "5 Days in
+   * a Hotel", "1 Year Gym + Protein".
+   *
+   * The prize used to be hardcoded as "Smartphone", which was only ever right
+   * by accident: the catalogue is admin-defined per cycle and the community
+   * votes on it. Falls back to a generic phrase when the name has not loaded.
+   */
+  prizeName?: string | null;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -67,6 +81,7 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
   isClaiming,
   error,
   firstName,
+  prizeName,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -75,10 +90,24 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
   // Derive display status from claim data
   const statusLabel =
     claimData?.status === 'verified'
-      ? 'Verified'
+      ? t('leaderboard.statusVerified')
       : claimData?.status === 'delivered'
-        ? 'Delivered'
-        : 'Pending Verification';
+        ? t('leaderboard.statusDelivered')
+        : t('leaderboard.statusPending');
+
+  /*
+   * The claim is the record of what was actually awarded, so it wins over the
+   * live cycle — an admin editing the catalogue must not change what an
+   * already-claimed ticket says.
+   */
+  const prizeLabel = claimData?.prizeName ?? prizeName ?? t('leaderboard.grandPrizeGeneric');
+
+  /*
+   * Same rule for the rank: a claimed ticket states the rank it was awarded at,
+   * not the live one. They diverge once the next season starts and points
+   * reset, and the ticket is the record.
+   */
+  const ticketRank = claimData?.rank ?? rank;
 
   return (
     <Modal
@@ -116,9 +145,11 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
                 <Text style={styles.heading}>{t('leaderboard.prizeClaimed')}</Text>
 
                 <View style={styles.ticketCard}>
-                  <Text style={styles.ticketPrize}>Smartphone</Text>
+                  <Text style={styles.ticketPrize}>{prizeLabel}</Text>
                   {firstName != null && <Text style={styles.ticketName}>{firstName}</Text>}
-                  <Text style={styles.ticketRank}>Rank #{rank}</Text>
+                  <Text style={styles.ticketRank}>
+                    {t('leaderboard.ticketRank', { rank: ticketRank })}
+                  </Text>
                   <View style={styles.statusBadge}>
                     <Text style={styles.statusBadgeText}>{statusLabel}</Text>
                   </View>
@@ -131,11 +162,13 @@ export const WinnerCelebrationModal: React.FC<WinnerCelebrationModalProps> = ({
               <>
                 <Text style={styles.trophyEmoji}>{'\u{1F3C6}'}</Text>
 
-                <Text style={styles.heading}>Congratulations!</Text>
+                <Text style={styles.heading}>{t('leaderboard.congratulations')}</Text>
 
-                <Text style={styles.subtext}>You finished #{rank} in the challenge!</Text>
+                <Text style={styles.subtext}>{t('leaderboard.finishedRank', { rank })}</Text>
 
-                <Text style={styles.prizeText}>You've won a Smartphone!</Text>
+                <Text style={styles.prizeText}>
+                  {t('leaderboard.youWonPrize', { prize: prizeLabel })}
+                </Text>
 
                 {error != null && (
                   <View style={styles.errorBanner}>

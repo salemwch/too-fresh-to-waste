@@ -35,7 +35,7 @@ import {
   votingPrizeToClaimData,
 } from '../hooks/useVotingPrize';
 
-import { DiscountClaimModal } from '@/features/leaderboard/components/DiscountClaimModal';
+import { WinnerCelebrationModal } from '@/features/leaderboard/components/WinnerCelebrationModal';
 import { VoteBottomSheet } from './VoteBottomSheet';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 
@@ -284,14 +284,20 @@ export const VotingCard: React.FC = () => {
           )}
         </GlowCard>
 
+        {/*
+         * The celebration modal, not the discount picker. The grand prize is a
+         * physical item an admin delivers, so there is no business to choose —
+         * asking which restaurant you want your scooter from made no sense.
+         */}
         {isPrizeWinner && (
-          <DiscountClaimModal
+          <WinnerCelebrationModal
             visible={showPrizeModal}
             onClose={() => setShowPrizeModal(false)}
             rank={votingPrize?.rank ?? 0}
             hasClaimed={prizeClaimed}
             claimData={claimData}
-            onClaim={establishmentId => claimVotingPrize.mutate(establishmentId)}
+            prizeName={votingPrize?.prizeName ?? null}
+            onClaim={() => claimVotingPrize.mutate()}
             isClaiming={claimVotingPrize.isPending}
             error={claimVotingPrize.error != null ? claimVotingPrize.error.message : null}
             firstName={firstName}

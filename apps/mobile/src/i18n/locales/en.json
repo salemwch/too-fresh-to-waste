@@ -984,7 +984,15 @@
     "countdownDays": "DAYS",
     "countdownHours": "HOURS",
     "countdownMins": "MINS",
-    "countdownSecs": "SECS"
+    "countdownSecs": "SECS",
+    "congratulations": "Congratulations!",
+    "finishedRank": "You finished #{{rank}} in the challenge!",
+    "youWonPrize": "You've won {{prize}}!",
+    "grandPrizeGeneric": "the grand prize",
+    "ticketRank": "Rank #{{rank}}",
+    "statusPending": "Pending Verification",
+    "statusVerified": "Verified",
+    "statusDelivered": "Delivered"
   },
   "voting": {
     "a11ySelectPrizeHint": "Selects this prize as your vote choice",

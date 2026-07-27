@@ -1,4 +1,16 @@
+/**
+ * What kind of thing was won.
+ *
+ * `GRAND_PRIZE` is whatever the community voted for that season — a phone, a
+ * scooter, a hotel stay, a gym year, a voucher. The specific item is carried in
+ * `prizeName` / `prizeCategory`, because the catalogue is admin-defined per
+ * cycle and an enum cannot track it.
+ *
+ * `SMARTPHONE` is kept only so historical claims still read; nothing writes it.
+ * @deprecated use `GRAND_PRIZE`.
+ */
 export enum PrizeType {
+  GRAND_PRIZE = 'grand_prize',
   SMARTPHONE = 'smartphone',
   DISCOUNT = 'discount',
 }
@@ -14,6 +26,14 @@ export interface PrizeClaimResponse {
   id: string;
   userId: string;
   prizeType: PrizeType;
+  /**
+   * The prize as the user was shown it — "Electric Scooter", "5 Days in a Hotel".
+   * Snapshotted at claim time, so an admin editing the cycle's catalogue later
+   * cannot rewrite what someone was told they won.
+   */
+  prizeName?: string;
+  /** `PrizeCategory` from the voting cycle — PHONE, ELECTRIC_SCOOTER, … */
+  prizeCategory?: string;
   status: PrizeClaimStatus;
   rank: number;
   totalPoints: number;

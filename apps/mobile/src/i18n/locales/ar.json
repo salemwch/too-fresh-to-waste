@@ -996,7 +996,15 @@
     "countdownDays": "أيام",
     "countdownHours": "ساعات",
     "countdownMins": "دقائق",
-    "countdownSecs": "ثوانٍ"
+    "countdownSecs": "ثوانٍ",
+    "congratulations": "تهانينا!",
+    "finishedRank": "لقد أنهيت التحدي في المركز #{{rank}}!",
+    "youWonPrize": "لقد ربحت {{prize}}!",
+    "grandPrizeGeneric": "الجائزة الكبرى",
+    "ticketRank": "المركز #{{rank}}",
+    "statusPending": "في انتظار التحقق",
+    "statusVerified": "تم التحقق",
+    "statusDelivered": "تم التسليم"
   },
   "voting": {
     "a11ySelectPrizeHint": "يحدد هذه الجائزة كخيارك في التصويت",

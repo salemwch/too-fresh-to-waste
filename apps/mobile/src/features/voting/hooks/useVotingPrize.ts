@@ -39,15 +39,18 @@ export function useVotingPrizeStatus(enabled = true) {
 }
 
 /**
- * Mutation to claim the voting voucher at a selected establishment.
- * On success, updates the local cache immediately (optimistic set) then
- * invalidates the prize and cycle queries so background refresh can confirm.
+ * Mutation to claim the grand prize the community voted for.
+ *
+ * No argument: the prize is a physical item an admin delivers, so there is no
+ * establishment to pick. On success, updates the local cache immediately
+ * (optimistic set) then invalidates the prize and cycle queries so background
+ * refresh can confirm.
  */
 export function useClaimVotingPrize() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (establishmentId: string) => votingPrizeService.claimPrize(establishmentId),
+    mutationFn: async () => votingPrizeService.claimPrize(),
     onSuccess: data => {
       // Optimistically populate cache so UI reflects claimed state immediately.
       queryClient.setQueryData(VOTING_PRIZE_KEY, data);

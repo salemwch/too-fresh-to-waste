@@ -17,12 +17,12 @@ import type { VotingPrizeStatusResponse } from '@foodwaste/shared';
 // ─── Mock service ────────────────────────────────────────────────────────────
 
 const mockGetMyPrize = jest.fn<Promise<VotingPrizeStatusResponse>, []>();
-const mockClaimPrize = jest.fn<Promise<VotingPrizeStatusResponse>, [string]>();
+const mockClaimPrize = jest.fn<Promise<VotingPrizeStatusResponse>, []>();
 
 jest.mock('../../services/votingPrizeService', () => ({
   votingPrizeService: {
     getMyPrize: () => mockGetMyPrize(),
-    claimPrize: (id: string) => mockClaimPrize(id),
+    claimPrize: () => mockClaimPrize(),
   },
 }));
 
@@ -194,7 +194,12 @@ describe('useClaimVotingPrize', () => {
     mockClaimPrize.mockReset();
   });
 
-  it('calls claimPrize with the given establishmentId', async () => {
+  /*
+   * No establishment argument. The grand prize is a physical item an admin
+   * delivers, so there is nothing to choose — passing one meant the claim flow
+   * asked a question that had no answer.
+   */
+  it('claims without asking for an establishment', async () => {
     mockClaimPrize.mockResolvedValue(CLAIMED_STATUS);
 
     const { result } = renderHook(() => useClaimVotingPrize(), {
@@ -202,10 +207,10 @@ describe('useClaimVotingPrize', () => {
     });
 
     await act(async () => {
-      await result.current.mutateAsync('est-001');
+      await result.current.mutateAsync();
     });
 
-    expect(mockClaimPrize).toHaveBeenCalledWith('est-001');
+    expect(mockClaimPrize).toHaveBeenCalledWith();
   });
 
   it('returns the claimed status on success', async () => {
@@ -217,7 +222,7 @@ describe('useClaimVotingPrize', () => {
 
     let data: VotingPrizeStatusResponse | undefined;
     await act(async () => {
-      data = await result.current.mutateAsync('est-001');
+      data = await result.current.mutateAsync();
     });
 
     expect(data).toEqual(CLAIMED_STATUS);
@@ -237,7 +242,7 @@ describe('useClaimVotingPrize', () => {
     const { result } = renderHook(() => useClaimVotingPrize(), { wrapper });
 
     await act(async () => {
-      await result.current.mutateAsync('est-001');
+      await result.current.mutateAsync();
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith(
@@ -257,7 +262,7 @@ describe('useClaimVotingPrize', () => {
 
     await expect(
       act(async () => {
-        await result.current.mutateAsync('est-001');
+        await result.current.mutateAsync();
       }),
     ).rejects.toThrow('Already claimed');
   });
