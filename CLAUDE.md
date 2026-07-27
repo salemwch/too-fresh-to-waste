@@ -1,4 +1,5 @@
 # CLAUDE.md
+
 DOMAIN-FIRST DEVELOPMENT RULE
 
 Before creating any code, database schema, API, or infrastructure:
@@ -6,6 +7,7 @@ Before creating any code, database schema, API, or infrastructure:
 Focus first on:
 
 1. Domain Understanding
+
 - What business problem are we solving?
 - What are the core concepts?
 - What entities exist?
@@ -13,12 +15,14 @@ Focus first on:
 - What terminology does the business use?
 
 2. Actors & Permissions
+
 - Who interacts with the system?
 - What roles exist?
 - What can each role do?
 - What is forbidden for each role?
 
 3. Business Rules
+
 - What rules define the business?
 - What conditions must always be true?
 - What actions are allowed?
@@ -26,13 +30,14 @@ Focus first on:
 - What validations must happen?
 
 Example questions:
+
 - Can this entity change state?
 - Who can perform this action?
 - When is this action impossible?
 - What happens if something fails?
 
-4. Use Cases
-For every important action define:
+4. Use Cases For every important action define:
+
 - Who performs it?
 - What triggers it?
 - What inputs are required?
@@ -40,40 +45,30 @@ For every important action define:
 - What is the expected result?
 - What errors can occur?
 
-5. Workflows
-Define complete lifecycle flows:
+5. Workflows Define complete lifecycle flows:
 
-Example:
-Created
-↓
-Approved
-↓
-Processing
-↓
-Completed
+Example: Created ↓ Approved ↓ Processing ↓ Completed
 
 Include:
+
 - Normal flow
 - Failure flow
 - Cancellation flow
 - Recovery flow
 
-6. State Management
-For every important entity define:
+6. State Management For every important entity define:
+
 - Possible states
 - Allowed transitions
 - Forbidden transitions
 
 Example:
 
-Order:
-PENDING → CONFIRMED → COMPLETED
+Order: PENDING → CONFIRMED → COMPLETED
 
-Forbidden:
-COMPLETED → PENDING
+Forbidden: COMPLETED → PENDING
 
-7. Edge Cases
-Think about abnormal situations:
+7. Edge Cases Think about abnormal situations:
 
 - Duplicate actions
 - Network failure
@@ -83,8 +78,7 @@ Think about abnormal situations:
 - Race conditions
 - Fraud attempts
 
-8. Constraints
-Define technical and business limits:
+8. Constraints Define technical and business limits:
 
 - Quantity limits
 - Time limits
@@ -92,31 +86,24 @@ Define technical and business limits:
 - Geographic limits
 - Financial limits
 
-9. Domain Events
-Identify important events:
+9. Domain Events Identify important events:
 
 Example:
 
-OrderCreated
-PaymentCompleted
-PickupConfirmed
-FoodExpired
+OrderCreated PaymentCompleted PickupConfirmed FoodExpired
 
 Define:
+
 - What triggers the event?
 - Who needs to react?
 - What data is included?
 
-10. Data Requirements
-Before database design:
+10. Data Requirements Before database design:
 
 - What information must be stored?
 - What history must be preserved?
 - What data must never be deleted?
-- What needs auditing?          
-
-
-
+- What needs auditing?
 
 This file provides guidance to Claude Code (claude.ai/code) when working with
 code in this repository.
@@ -185,7 +172,7 @@ pnpm test / pnpm test:ci       # Jest
 pnpm dev                       # NestJS watch mode
 pnpm build                     # Compile to dist/
 pnpm start:prod                # Run compiled app
-pnpm type-check                # TypeScript check
+pnpm check:ts                  # TypeScript check (backend has no `type-check`)
 pnpm test / pnpm test:unit / pnpm test:integration
 pnpm check:all                 # ts + lint + format + test + docs (full gate)
 pnpm seed:admin                # Seed initial admin user
@@ -403,7 +390,7 @@ done without running the relevant check.
 
 | Scope of change          | Command to run                                         |
 | ------------------------ | ------------------------------------------------------ |
-| Backend only             | `pnpm --filter @foodwaste/backend type-check`          |
+| Backend only             | `pnpm --filter @foodwaste/backend check:ts`            |
 | Web only                 | `pnpm --filter @foodwaste/web type-check`              |
 | Mobile only              | `pnpm --filter @foodwaste/mobile type-check`           |
 | `packages/shared` change | `pnpm build:deps` → then `pnpm metro:reset` for mobile |
@@ -610,4 +597,5 @@ Understand root cause
  ↓
 Fix
  ↓
-Prevent recurrence 
+Prevent recurrence
+```
