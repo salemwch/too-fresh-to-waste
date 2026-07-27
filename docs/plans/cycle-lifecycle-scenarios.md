@@ -31,7 +31,9 @@ voting eligibility is decided by `VotingCycle`.
 
 ---
 
-## 2. Your question, answered
+## 2. Your question, answered — what the code does _today_
+
+> This section is current state, not the target. What it _should_ do is §4.
 
 > What happens if the cycle doesn't reach 30,000 bags?
 
@@ -73,18 +75,27 @@ separate sequences that were never guaranteed to match.
 
 ### B. Deadline passes, target not reached ← the question
 
-Today: voting expires; bag goal continues as if nothing happened. Needs deciding
-— see §4.1.
+Today: voting expires; bag goal continues as if nothing happened. **Decided**
+(§4.2): the season closes as a failure — no community bonus, no smartphone, no
+vote — but the personal discount voucher is still issued, and season N+1 starts
+at 0.
 
 ### C. Target reached in the same tick the deadline passes
 
-`voting.cron` checks expiry **first**, so the cycle expires even though the goal
-was met. A race decided by a 5-minute poll. Should be: whichever condition was
-true first wins, judged by timestamps rather than by poll order.
+Today `voting.cron` checks expiry **first**, so the cycle expires even though
+the goal was met — a race decided by a 5-minute poll. **§4.1 dissolves this**:
+under a fixed season, reaching the target never ends anything, so there is no
+competing transition. Only `endDate` closes a season, and the target is read
+once at that moment. Keep it that way; do not reintroduce a target-triggered
+transition.
 
 ### D. Target reached, then more bags arrive before the reset lands
 
-Today: overflow carries over — deliberate and correct. Should stay.
+Today: overflow carries into the next cycle. **§4.1 removes this** — the season
+does not end at the target, so bags past 30,000 simply keep counting until
+`endDate` and the season closes with, say, 34,000/30,000. Nothing carries over.
+The existing carry-over code becomes dead and should be deleted rather than left
+armed for a transition that can no longer fire.
 
 ### E. Deadline passes while a ballot is open
 
@@ -105,22 +116,26 @@ Handled — `retryFailedSnapshots` retries every 5 minutes while
 
 ### H. A cycle ends with prize claims still pending
 
-`PrizeClaim` records `totalPoints` at claim time. If points reset at the
-boundary, the recorded figure and the user's balance permanently disagree. Needs
-deciding: settle all pending claims before reset, or freeze them.
+`PrizeClaim` records `totalPoints` at claim time, and the reset zeroes the live
+balance, so the two permanently disagree. **Decided**: claims freeze. The
+snapshot on the claim is the record of what was earned — see scenario U.
 
 ### I. Points reset while a user holds unspent `availablePoints`
 
-If points buy anything, wiping them is confiscating something earned. Needs
-deciding: grace window, conversion, or explicit "seasonal points expire" in the
-terms — and an in-app warning before it happens.
+**Decided** (§4.3): points are converted to the discount voucher **before** the
+reset runs, so nothing is confiscated. The failure mode to design against is a
+rollover that resets before converting, or that converts twice — the conversion
+and the reset must be one operation, and it must be idempotent because the cron
+can retry.
+
+Still needs: an in-app warning before season end so the user knows the score is
+about to clear, and the conversion rate itself (§4.4).
 
 ### J. Merchant "reset"
 
 `MerchantGoal` is `targetBagsPerMonth` — **monthly**, not aligned to a 6-month
-consumer cycle at all. There is nothing to reset in step; the two run on
-different clocks by construction. Needs deciding: does a merchant season exist,
-and is it 1 month or 6?
+consumer season at all. There is nothing to reset in step; the two run on
+different clocks by construction. Open — see §4.4.
 
 ### K. Admin resets by hand mid-cycle
 
@@ -159,57 +174,153 @@ same. Any new reset job must follow that pattern.
 `participantIds` is empty, `rewardPoints` distribution is skipped, cycle
 completes or expires with nothing to pay. Safe today.
 
+### Q. A season ends short and users open the prize screen
+
+**Today the prizes are handed out anyway.** `getEndedGoal()` selects on
+`endDate: { $lte: new Date() }` alone — `currentCount` versus `targetCount` is
+never consulted. So `claimSmartphone` succeeds for the top 5 of a season that
+missed its target. Per §4.2 the discount is correct to pay; the smartphone and
+the community bonus are not. Both claim paths need a "target reached" guard.
+
+### R. Ranking cost at 5,000 users
+
+`getUserRank` runs `find({ isActive: true })` with no limit, sorts every loyalty
+account, pulls them all into memory and calls `findIndex`. It is invoked on
+every `getClaimStatus` — i.e. every time the prize screen opens, by every user,
+at the exact moment traffic spikes at season end. Should be a `countDocuments`
+of accounts with more points than the caller's, plus one lookup.
+
+It also ranks on `isActive` alone, so accounts with zero points occupy ranks.
+
+### S. Two claim requests arrive together
+
+`ensureNoDuplicateClaim` reads, then writes. The unique index on
+`{ userId, cycleNumber }` does stop the double claim, but the resulting E11000
+is unhandled, so the user sees a 500 rather than the `ConflictException` the
+code intends. Catch the duplicate-key error and map it onto the same 409.
+
+### T. The chosen establishment leaves the platform
+
+`claimDiscount` snapshots `establishmentName` on the claim, so the record
+survives — good. But the voucher has no expiry and nothing checks the
+establishment is still active at redemption time. A season-1 voucher against a
+closed merchant is currently valid forever.
+
+### U. The user claims, then the next season starts
+
+Claims are keyed by `cycleNumber`, so a pending claim from season N is
+unaffected by season N+1 opening. But `PrizeClaim.totalPoints` was captured at
+claim time and the user's live balance is now 0 — an admin comparing the two
+will find they disagree. That is correct behaviour, not a bug; it needs stating
+in the admin UI so nobody "fixes" it.
+
 ---
 
-## 4. Decisions needed before this can be built
+## 4. Decisions — made 2026-07-27
 
-These are product calls. Each changes the design.
+### 4.1 The season is a fixed 6 months. The target is pass/fail at the end.
 
-### 4.1 What does a failed cycle mean?
+**Decided:** the season always runs its full 6 months. Hitting 30,000 in month 3
+does **not** end it early, does **not** pay prizes early, and does **not** open
+the next cycle. The season runs to `endDate`; the target is evaluated once,
+then.
 
-- Do participants still receive `rewardPoints` for a cycle that fell short?
-- Does the shortfall carry over the way overflow does, or does the next cycle
-  start clean?
-- Is the voting round cancelled, or deferred to the next cycle?
+> Recorded as "option C" in the answer, but the explanation given — _"if we get
+> the target in 3 months we don't recycle or give prize, we keep going until the
+> 6 months ends, then we give the prizes"_ — is a fixed calendar season (option
+> A). The explanation is what is implemented here, because it is unambiguous and
+> because it is what the prize-claim code already assumes: `getEndedGoal()`
+> gates on `endDate: { $lte: new Date() }` and never looks at `currentCount`.
 
-### 4.2 What survives a reset?
+Consequence: overflow past the target keeps accumulating for the rest of the
+season rather than rolling into cycle N+1. The current carry-over behaviour in
+`completeAndResetGoal` becomes unreachable and should be removed, not left
+armed.
 
-`LoyaltyAccount` holds six relevant fields. Proposed split, needs confirming:
+### 4.2 A failed season pays the discount, but nothing else.
 
-| Field                  | Reset?     | Why                                      |
-| ---------------------- | ---------- | ---------------------------------------- |
-| `totalPoints`          | reset      | the seasonal competition score           |
-| `availablePoints`      | **decide** | spendable — see scenario I               |
-| `lifetimePointsEarned` | keep       | the permanent record                     |
-| `totalBagsSaved`       | **decide** | drives the "bags saved" impact figure    |
-| `totalOrdersCount`     | keep       | account history                          |
-| `currentTier`          | **decide** | does Gold drop to Bronze every 6 months? |
+Two payouts exist and they are **not** governed by the same rule. This is the
+reconciliation of what looked like a contradiction between "no prizes if we
+fail" and "everyone gets the discount even if we didn't reach the goal":
 
-`currentTier` is the sharpest one. Resetting it is a retention decision, not a
-technical one.
+| Payout                                 | On target reached | On target missed  |
+| -------------------------------------- | ----------------- | ----------------- |
+| Community bonus (`rewardPoints`)       | paid              | **not paid**      |
+| Smartphone, top 5 (`SMARTPHONE`)       | awarded           | **cancelled**     |
+| Personal discount voucher (`DISCOUNT`) | awarded           | **still awarded** |
 
-### 4.3 Is the season 6 months, or "until the target is hit"?
+The community goal unlocks the _collective_ rewards. The discount voucher is the
+_personal_ payout for the points you earned yourself, so it is unconditional —
+the user picks the establishment and receives a `voucherCode`.
 
-Today's design says the latter — the bag goal has no deadline and carries
-overflow indefinitely. Your description says the former. They are different
-products, and the answer determines whether the deadline is a hard boundary or a
-target date.
+Shortfall does **not** carry over. Season N+1 starts at 0/30,000.
+
+Voting is cancelled for a failed season, not deferred.
+
+### 4.3 What survives the reset
+
+| Field                  | Reset? | Note                                                |
+| ---------------------- | ------ | --------------------------------------------------- |
+| `totalPoints`          | reset  | the seasonal competition score                      |
+| `availablePoints`      | reset  | converted to the discount voucher first — see below |
+| `totalBagsSaved`       | reset  | seasonal; lifetime figure moves to the stats screen |
+| `currentTier`          | reset  | back to Bronze; every season starts equal           |
+| `lifetimePointsEarned` | keep   | the permanent record                                |
+| `totalOrdersCount`     | keep   | account history                                     |
+| Water / CO₂ impact     | keep   | already independent of points                       |
+
+**Points are never confiscated — they are cashed out.** The order at season end
+is: convert points to the discount voucher, _then_ reset. A user is paid for the
+season before the season is cleared, which is what makes resetting `currentTier`
+and `availablePoints` acceptable rather than punitive.
+
+**Lifetime stats stay reachable.** Resetting `totalBagsSaved` requires a
+lifetime-stats view the user can open on demand ("see my stats forever"), backed
+by `lifetimePointsEarned`, `totalOrdersCount` and the impact figures. Without
+that screen this reset is a data loss, not a season boundary.
+
+Note that `Tier` carries a `multiplier` — resetting the tier resets the earn
+rate too, so every season starts at 1×. That is intended, but it means the first
+weeks of a season earn more slowly than the last weeks of the previous one.
+
+### 4.4 Still open
+
+- **The conversion rate.** Points → discount value is undefined. Today
+  `claimDiscount` records `totalPoints` on the claim but the voucher carries no
+  amount or percentage; an admin presumably reads the number and decides. If the
+  discount is to be automatic, the rate has to be defined.
+- **Voucher expiry.** `PrizeClaim` has no expiry field. A voucher from season 1
+  is valid forever, and against a merchant who may have left the platform.
+- **Merchant season.** `MerchantGoal` is `targetBagsPerMonth` — monthly by
+  construction. Whether a 6-month merchant season exists at all is unanswered.
 
 ---
 
-## 5. Implementation order, once decided
+## 5. Implementation order
 
 1. **Reconcile the two goals into one.** Everything else is unsafe while two
    counters can disagree. Either `VotingCycle` reads from `CommunityBagGoal`, or
    the bag goal becomes a projection of the voting cycle. One writer.
-2. **Enforce the deadline** on whichever survives, using the same conditional
-   `findOneAndUpdate` guard the existing transitions use.
-3. **Season rollover as one atomic operation** — close cycle, archive
-   leaderboard, reset the agreed fields, open the next cycle. Partial completion
-   is the failure mode to design against.
+2. **Enforce `endDate` on the bag goal**, using the same conditional
+   `findOneAndUpdate` guard the existing transitions use. Per §4.1 this is the
+   only thing that ends a season — remove the reach-target-and-reset path and
+   its overflow carry-over, which §4.1 makes unreachable.
+3. **Gate the collective prizes on the target** (§4.2, scenario Q): smartphone
+   and `rewardPoints` require `currentCount >= targetCount`; the discount does
+   not.
 4. **Archive the leaderboard before resetting**, or the season's result is lost
-   with no record of who won.
-5. **Invalidate mobile caches** on rollover, not just broadcast.
+   with no record of who won. This archive is also what the lifetime-stats view
+   in §4.3 reads.
+5. **Season rollover as one atomic operation** — close season, archive
+   leaderboard, convert points to vouchers, reset the §4.3 fields, open the next
+   season. Partial completion is the failure mode to design against; the
+   ordering matters because points must be cashed out before they are cleared.
+6. **Build the lifetime-stats view** before shipping the reset. §4.3 is a data
+   loss without it.
+7. **Invalidate mobile caches** on rollover, not just broadcast.
+
+Scenarios Q–T are independent of the season work and can be fixed first — R and
+S are live defects today.
 
 ---
 
