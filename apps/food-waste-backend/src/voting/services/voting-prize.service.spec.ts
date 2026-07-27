@@ -9,12 +9,14 @@
  */
 
 import { BadRequestException, ConflictException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
 import { Types } from 'mongoose';
 
 import { LoyaltyAccount } from '../../loyalty/schemas/loyalty-account.schema';
 import { PrizeClaim, PrizeType } from '../../loyalty/schemas/prize-claim.schema';
+import { EmailNotificationService } from '../../notifications/services/email-notification.service';
 import { PushNotificationService } from '../../notifications/services/push-notification.service';
 import { VotingCycle } from '../schemas/voting-cycle.schema';
 
@@ -92,8 +94,10 @@ const buildMocks = (over: { cycle?: unknown; rows?: typeof leaderboard } = {}) =
     create: jest.fn().mockResolvedValue({}),
   };
   const push = { send: jest.fn().mockResolvedValue(undefined) };
+  const email = { sendTemplateEmail: jest.fn().mockResolvedValue(undefined) };
+  const config = { get: jest.fn().mockReturnValue('admin@test.com') };
 
-  return { loyaltyModel, cycleModel, prizeClaimModel, push };
+  return { loyaltyModel, cycleModel, prizeClaimModel, push, email, config };
 };
 
 const buildService = async (mocks: ReturnType<typeof buildMocks>) => {
@@ -104,6 +108,8 @@ const buildService = async (mocks: ReturnType<typeof buildMocks>) => {
       { provide: getModelToken(LoyaltyAccount.name), useValue: mocks.loyaltyModel },
       { provide: getModelToken(PrizeClaim.name), useValue: mocks.prizeClaimModel },
       { provide: PushNotificationService, useValue: mocks.push },
+      { provide: EmailNotificationService, useValue: mocks.email },
+      { provide: ConfigService, useValue: mocks.config },
     ],
   }).compile();
   return moduleRef.get(VotingPrizeService);
@@ -319,6 +325,68 @@ describe('VotingPrizeService', () => {
 
       const written = nameless.prizeClaimModel.create.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(written).not.toHaveProperty('prizeName');
+    });
+  });
+
+  // ─── admin notification ─────────────────────────────────────────────────────
+
+  /*
+   * Moved here from the deleted bag-goal claim path. A grand prize is
+   * physically shipped, so an admin has to learn a claim is waiting — losing
+   * this in the consolidation would have been silent.
+   */
+  describe('telling the admins', () => {
+    const flush = async () => {
+      const done = await new Promise(resolve => setTimeout(resolve, 10));
+      return done;
+    };
+
+    it('emails the admins when a prize is claimed', async () => {
+      await service.claimPrize(idAt(1));
+      await flush();
+
+      expect(mocks.email.sendTemplateEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ subject: expect.stringContaining('Electric Scooter') }),
+        expect.objectContaining({ userId: 'admin@test.com' }),
+      );
+    });
+
+    it('names the winner rank and prize in the email', async () => {
+      await service.claimPrize(idAt(2));
+      await flush();
+
+      const [payload] = mocks.email.sendTemplateEmail.mock.calls[0] as [{ textBody: string }];
+      expect(payload.textBody).toContain('#2');
+      expect(payload.textBody).toContain('Electric Scooter');
+    });
+
+    it('emails every configured admin', async () => {
+      const many = buildMocks();
+      many.config.get.mockReturnValue('a@test.com, b@test.com');
+
+      await (await buildService(many)).claimPrize(idAt(1));
+      await flush();
+
+      expect(many.email.sendTemplateEmail).toHaveBeenCalledTimes(2);
+    });
+
+    it('skips quietly when no admin address is configured', async () => {
+      const none = buildMocks();
+      none.config.get.mockReturnValue(undefined);
+
+      const result = await (await buildService(none)).claimPrize(idAt(1));
+      await flush();
+
+      expect(result.hasClaimed).toBe(false); // claim still succeeded
+      expect(none.email.sendTemplateEmail).not.toHaveBeenCalled();
+    });
+
+    // A broken mail server must not turn a successful claim into an error.
+    it('does not fail the claim when the email fails', async () => {
+      mocks.email.sendTemplateEmail.mockRejectedValue(new Error('smtp down'));
+
+      await expect(service.claimPrize(idAt(1))).resolves.toBeDefined();
+      await flush();
     });
   });
 

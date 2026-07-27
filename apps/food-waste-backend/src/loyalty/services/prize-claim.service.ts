@@ -7,7 +7,6 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
@@ -15,7 +14,6 @@ import {
   Establishment,
   EstablishmentDocument,
 } from '../../establishments/schemas/establishment.schema';
-import { EmailNotificationService } from '../../notifications/services/email-notification.service';
 import { VotingCycle, type VotingCycleDocument } from '../../voting/schemas/voting-cycle.schema';
 import { outranking } from '../constants/leaderboard-ranking';
 import { LoyaltyAccount, LoyaltyAccountDocument } from '../schemas/loyalty-account.schema';
@@ -25,9 +23,6 @@ import {
   PrizeClaimStatus,
   PrizeType,
 } from '../schemas/prize-claim.schema';
-
-/** Ranks 1..3 win the grand prize; rank 4 and below win a discount voucher. */
-const PHONE_MAX_RANK = 3;
 
 /**
  * Bags a user must have saved to place on the leaderboard at all, and so to
@@ -83,8 +78,6 @@ export class PrizeClaimService {
     @InjectModel(VotingCycle.name) private readonly seasonModel: Model<VotingCycleDocument>,
     @InjectModel(Establishment.name)
     private readonly establishmentModel: Model<EstablishmentDocument>,
-    private readonly emailService: EmailNotificationService,
-    private readonly configService: ConfigService,
   ) {}
 
   async getClaimStatus(userId: string) {
@@ -96,6 +89,7 @@ export class PrizeClaimService {
         eligiblePrizeType: null,
         rank: null,
         targetReached: false,
+        recipientCount: 0,
       };
     }
 
@@ -113,62 +107,28 @@ export class PrizeClaimService {
       eligiblePrizeType: rank !== null ? eligiblePrizeType : null,
       rank,
       targetReached: targetReached(season),
+      // The app draws the prize cutoff at this rank rather than assuming 3.
+      recipientCount: season.recipientCount,
     };
-  }
-
-  async claimSmartphone(userId: string) {
-    const season = await this.requireEndedSeason();
-    const rank = await this.requireUserRank(userId);
-
-    /*
-     * The smartphone is the community's prize, not a personal one: it is
-     * unlocked by the season hitting its bag target. When the season falls
-     * short nobody wins one — the top ranks fall back to the discount voucher
-     * along with everyone else.
-     */
-    if (!targetReached(season)) {
-      throw new BadRequestException(
-        'The community did not reach its goal this season, so the smartphone prize was not unlocked. You can still claim your discount.',
-      );
-    }
-
-    if (rank > PHONE_MAX_RANK) {
-      throw new BadRequestException(
-        `Only the top ${PHONE_MAX_RANK} users can claim a smartphone. Your rank is ${rank}.`,
-      );
-    }
-
-    await this.ensureNoDuplicateClaim(userId, season.cycleNumber);
-
-    const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
-    const totalPoints = account?.totalPoints ?? 0;
-
-    const claim = await this.createClaim({
-      userId: new Types.ObjectId(userId),
-      prizeType: PrizeType.SMARTPHONE,
-      status: PrizeClaimStatus.PENDING,
-      rank,
-      totalPoints,
-      cycleNumber: season.cycleNumber,
-    });
-
-    this.logger.log(`Smartphone claimed by user ${userId} at rank ${rank}`);
-
-    this.sendAdminNotification(userId, rank, totalPoints, season.cycleNumber).catch(err =>
-      this.logger.error(`Admin notification failed: ${(err as Error).message}`),
-    );
-
-    return this.toResponse(claim);
   }
 
   async claimDiscount(userId: string, establishmentId: string) {
     const season = await this.requireEndedSeason();
     const rank = await this.requireUserRank(userId);
 
-    // Only steer the top ranks to the smartphone when there *is* one to win.
-    if (targetReached(season) && rank <= PHONE_MAX_RANK) {
+    /*
+     * Steer the top ranks to the grand prize — but only when there is one to
+     * win. A season that fell short pays everyone a discount, top ranks
+     * included.
+     *
+     * How many rank as winners is the season's `recipientCount`, set by the
+     * admin per cycle. It used to be a hardcoded 3 here while the voting path
+     * read `recipientCount` (5 on every existing cycle), so ranks 4 and 5 were
+     * told they had won by one screen and refused by the other.
+     */
+    if (targetReached(season) && rank <= season.recipientCount) {
       throw new BadRequestException(
-        `The top ${PHONE_MAX_RANK} should claim a smartphone, not a discount.`,
+        'You are in the top ranks — claim the grand prize instead of a discount.',
       );
     }
 
@@ -213,10 +173,10 @@ export class PrizeClaimService {
    */
   private eligiblePrizeType(
     rank: number | null,
-    season: Pick<VotingCycle, 'communityGoalProgress' | 'communityGoalTarget'>,
+    season: Pick<VotingCycle, 'communityGoalProgress' | 'communityGoalTarget' | 'recipientCount'>,
   ): PrizeType {
-    return rank !== null && rank <= PHONE_MAX_RANK && targetReached(season)
-      ? PrizeType.SMARTPHONE
+    return rank !== null && rank <= season.recipientCount && targetReached(season)
+      ? PrizeType.GRAND_PRIZE
       : PrizeType.DISCOUNT;
   }
 
@@ -319,46 +279,6 @@ export class PrizeClaimService {
         throw new ConflictException(DUPLICATE_CLAIM_MESSAGE);
       }
       throw err;
-    }
-  }
-
-  private async sendAdminNotification(
-    userId: string,
-    rank: number,
-    totalPoints: number,
-    cycleNumber: number,
-  ) {
-    const adminEmails = this.configService.get<string>('ADMIN_NOTIFICATION_EMAILS');
-    if (!adminEmails) {
-      this.logger.warn('ADMIN_NOTIFICATION_EMAILS not configured — skipping prize notification');
-      return;
-    }
-
-    const emails = adminEmails
-      .split(',')
-      .map(e => e.trim())
-      .filter(Boolean);
-
-    for (const email of emails) {
-      await this.emailService.sendTemplateEmail(
-        {
-          subject: `[Prize Claim] Smartphone claimed — Rank #${rank} (Cycle ${cycleNumber})`,
-          htmlBody: `
-            <h2>Smartphone Prize Claimed</h2>
-            <p>A user has claimed their smartphone prize and needs verification.</p>
-            <table style="border-collapse:collapse;margin:16px 0">
-              <tr><td style="padding:8px;font-weight:bold">User ID</td><td style="padding:8px">${userId}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold">Rank</td><td style="padding:8px">#${rank}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold">Total Points</td><td style="padding:8px">${totalPoints.toLocaleString()}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold">Cycle</td><td style="padding:8px">${cycleNumber}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold">Status</td><td style="padding:8px;color:#F59E0B;font-weight:bold">PENDING VERIFICATION</td></tr>
-            </table>
-            <p>Please verify this claim in the admin dashboard before shipping.</p>
-          `,
-          textBody: `Smartphone Prize Claimed — Rank #${rank}, User ${userId}, Cycle ${cycleNumber}. Status: PENDING VERIFICATION.`,
-        },
-        { userId: email },
-      );
     }
   }
 

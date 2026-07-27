@@ -20,7 +20,7 @@ import {
   TEXT_30,
   TEXT_WHITE,
 } from '../../constants/palette';
-import { DISCOUNT_PRIZE_MIN_RANK, PHONE_PRIZE_MAX_RANK } from '../../utils/prizeTiers';
+import { DEFAULT_PRIZE_RANKS, firstDiscountRank } from '../../utils/prizeTiers';
 
 import type { RowTier } from '../../utils/prizeTiers';
 
@@ -109,22 +109,27 @@ const TierCard: React.FC<TierCardProps> = ({
 export interface PrizeTierCardsProps {
   /** Which tier the current user currently qualifies for. */
   userTier: RowTier;
+  /** How many top ranks win the grand prize this season. */
+  prizeRanks?: number;
 }
 
-const PrizeTierCardsComponent: React.FC<PrizeTierCardsProps> = ({ userTier }) => (
+const PrizeTierCardsComponent: React.FC<PrizeTierCardsProps> = ({
+  userTier,
+  prizeRanks = DEFAULT_PRIZE_RANKS,
+}) => (
   <View style={styles.block}>
     <TierCard
       icon='📱'
       nameKey='leaderboard.prizeSmartphone'
       tierLabelKey='leaderboard.tierTopWinners'
-      tierLabelRank={PHONE_PRIZE_MAX_RANK}
-      isYours={userTier === 'phone'}
+      tierLabelRank={prizeRanks}
+      isYours={userTier === 'grandPrize'}
     />
     <TierCard
       icon='🎁'
       nameKey='leaderboard.prizeDiscount'
       tierLabelKey='leaderboard.tierBelowPrize'
-      tierLabelRank={DISCOUNT_PRIZE_MIN_RANK}
+      tierLabelRank={firstDiscountRank(prizeRanks)}
       isYours={userTier === 'discount'}
     />
   </View>

@@ -63,10 +63,16 @@ export interface PrizeClaimStatusResponse {
   /**
    * Whether the ended season hit its community bag target.
    *
-   * The smartphone is unlocked by the community goal, so when this is false
-   * nobody wins one and every ranked user — the top 3 included — falls back to
-   * the discount voucher. `eligiblePrizeType` already accounts for it; this
+   * The grand prize is unlocked by the community goal, so when this is false
+   * nobody wins one and every ranked user — the top ranks included — falls back
+   * to the discount voucher. `eligiblePrizeType` already accounts for it; this
    * field is what lets the UI explain *why*.
    */
   targetReached: boolean;
+  /**
+   * How many top ranks win the grand prize this season — the admin sets it per
+   * cycle. The app draws its prize cutoff here rather than assuming a number,
+   * which is how the leaderboard came to say 3 while voting awarded 5.
+   */
+  recipientCount: number;
 }

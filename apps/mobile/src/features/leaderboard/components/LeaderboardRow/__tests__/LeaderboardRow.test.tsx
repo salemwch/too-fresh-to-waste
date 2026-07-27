@@ -18,7 +18,7 @@ jest.mock('../../UserAvatar', () => {
 });
 
 import { LeaderboardRow } from '../LeaderboardRow';
-import { DISCOUNT_PRIZE_MIN_RANK, PHONE_PRIZE_MAX_RANK } from '../../../utils/prizeTiers';
+import { DEFAULT_PRIZE_RANKS, firstDiscountRank } from '../../../utils/prizeTiers';
 
 import type { LeaderboardEntry } from '../../../types/leaderboard.types';
 
@@ -69,13 +69,11 @@ describe('LeaderboardRow', () => {
     // Driven by the constant rather than literal ranks: the cutoff moved from
     // 5 to 3 and a hardcoded pair silently stopped testing the boundary.
     it('highlights the points of a rank inside the cutoff', () => {
-      const { getByText } = render(
-        <LeaderboardRow entry={entry({ rank: PHONE_PRIZE_MAX_RANK })} />,
-      );
+      const { getByText } = render(<LeaderboardRow entry={entry({ rank: DEFAULT_PRIZE_RANKS })} />);
       const inside = styleOf(getByText(`${(1234).toLocaleString()} pt`));
 
       const { getByText: getOutside } = render(
-        <LeaderboardRow entry={entry({ rank: DISCOUNT_PRIZE_MIN_RANK })} />,
+        <LeaderboardRow entry={entry({ rank: firstDiscountRank() })} />,
       );
       const outside = styleOf(getOutside(`${(1234).toLocaleString()} pt`));
 

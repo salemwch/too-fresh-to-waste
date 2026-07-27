@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
@@ -17,6 +18,7 @@ import {
   PrizeSource,
   PrizeType,
 } from '../../loyalty/schemas/prize-claim.schema';
+import { EmailNotificationService } from '../../notifications/services/email-notification.service';
 import { PushNotificationService } from '../../notifications/services/push-notification.service';
 import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
 
@@ -62,6 +64,8 @@ export class VotingPrizeService {
     private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
     @InjectModel(PrizeClaim.name) private readonly prizeClaimModel: Model<PrizeClaimDocument>,
     private readonly pushNotificationService: PushNotificationService,
+    private readonly emailService: EmailNotificationService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -192,6 +196,7 @@ export class VotingPrizeService {
       throw new ConflictException('You have already claimed your voting prize for this cycle.');
     }
 
+    const prizeLabel = cycle.winner?.name ?? 'the grand prize';
     const winningPrize = cycle.prizes?.find(
       p => p._id.toString() === cycle.winnerPrizeId?.toString(),
     );
@@ -224,7 +229,61 @@ export class VotingPrizeService {
       `Voting grand prize claimed by user ${userId} (rank ${mine.rank}) for cycle ${cycleId}`,
     );
 
+    // Moved here from the deleted bag-goal claim path. A grand prize is
+    // physically shipped, so an admin has to know a claim is waiting.
+    this.notifyAdmins(userId, mine.rank, mine.pointsSnapshot, cycle.cycleNumber, prizeLabel).catch(
+      err => this.logger.error(`Admin notification failed: ${(err as Error).message}`),
+    );
+
     return this.getMyPrize(userId);
+  }
+
+  /**
+   * Email the admins that a grand prize needs verifying and shipping.
+   *
+   * Swallows its own failure — a missing SMTP config must not turn a
+   * successful claim into an error for the user.
+   */
+  private async notifyAdmins(
+    userId: string,
+    rank: number,
+    totalPoints: number,
+    cycleNumber: number,
+    prizeName: string,
+  ): Promise<void> {
+    const adminEmails = this.configService.get<string>('ADMIN_NOTIFICATION_EMAILS');
+    if (!adminEmails) {
+      this.logger.warn('ADMIN_NOTIFICATION_EMAILS not configured — skipping prize notification');
+      return;
+    }
+
+    const emails = adminEmails
+      .split(',')
+      .map(e => e.trim())
+      .filter(Boolean);
+
+    for (const email of emails) {
+      await this.emailService.sendTemplateEmail(
+        {
+          subject: `[Prize Claim] ${prizeName} claimed — Rank #${rank} (Cycle ${cycleNumber})`,
+          htmlBody: `
+            <h2>Grand Prize Claimed</h2>
+            <p>A user has claimed <strong>${prizeName}</strong> and needs verification.</p>
+            <table style="border-collapse:collapse;margin:16px 0">
+              <tr><td style="padding:8px;font-weight:bold">User ID</td><td style="padding:8px">${userId}</td></tr>
+              <tr><td style="padding:8px;font-weight:bold">Prize</td><td style="padding:8px">${prizeName}</td></tr>
+              <tr><td style="padding:8px;font-weight:bold">Rank</td><td style="padding:8px">#${rank}</td></tr>
+              <tr><td style="padding:8px;font-weight:bold">Total Points</td><td style="padding:8px">${totalPoints.toLocaleString()}</td></tr>
+              <tr><td style="padding:8px;font-weight:bold">Cycle</td><td style="padding:8px">${cycleNumber}</td></tr>
+              <tr><td style="padding:8px;font-weight:bold">Status</td><td style="padding:8px;color:#F59E0B;font-weight:bold">PENDING VERIFICATION</td></tr>
+            </table>
+            <p>Please verify this claim in the admin dashboard before shipping.</p>
+          `,
+          textBody: `${prizeName} claimed — Rank #${rank}, User ${userId}, Cycle ${cycleNumber}. Status: PENDING VERIFICATION.`,
+        },
+        { userId: email },
+      );
+    }
   }
 
   /**

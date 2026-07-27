@@ -26,7 +26,7 @@ import {
   TEXT_85,
   WHITE_04,
 } from '../../constants/palette';
-import { PHONE_PRIZE_MAX_RANK } from '../../utils/prizeTiers';
+import { DEFAULT_PRIZE_RANKS } from '../../utils/prizeTiers';
 
 import type { LeaderboardEntry } from '../../types/leaderboard.types';
 
@@ -78,13 +78,18 @@ const styles = StyleSheet.create({
 
 export interface LeaderboardRowProps {
   entry: LeaderboardEntry;
+  /** How many top ranks win the grand prize this season. */
+  prizeRanks?: number;
 }
 
-const LeaderboardRowComponent: React.FC<LeaderboardRowProps> = ({ entry }) => {
+const LeaderboardRowComponent: React.FC<LeaderboardRowProps> = ({
+  entry,
+  prizeRanks = DEFAULT_PRIZE_RANKS,
+}) => {
   // Marks the prize-winning ranks. Rank-based only: after a season that fell
   // short the top ranks keep this styling, because it marks position, not a
   // prize entitlement — the tier cards are what state what is actually won.
-  const isTopRank = entry.rank <= PHONE_PRIZE_MAX_RANK;
+  const isTopRank = entry.rank <= prizeRanks;
 
   return (
     <View style={[styles.row, isTopRank && styles.rowTopRank, entry.isCurrentUser && styles.rowMe]}>

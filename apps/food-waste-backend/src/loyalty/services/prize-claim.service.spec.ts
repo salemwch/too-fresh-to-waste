@@ -30,6 +30,8 @@ const makeGoal = (overrides: Record<string, unknown> = {}) => ({
   cycleEndDate: new Date('2025-01-01'),
   communityGoalProgress: 30_000,
   communityGoalTarget: 30_000,
+  // How many top ranks win — admin-set per cycle, no longer hardcoded.
+  recipientCount: 3,
   ...overrides,
 });
 
@@ -188,16 +190,11 @@ const buildMocks = (accounts: FakeAccount[] = defaultAccounts()) => {
     findById: jest.fn().mockResolvedValue({ _id: EST_ID, name: 'Test Restaurant' }),
   };
 
-  const emailService = { sendTemplateEmail: jest.fn().mockResolvedValue(undefined) };
-  const configService = { get: jest.fn().mockReturnValue('admin@test.com') };
-
   return {
     prizeClaimModel,
     loyaltyModel,
     seasonModel,
     establishmentModel,
-    emailService,
-    configService,
   };
 };
 
@@ -207,8 +204,6 @@ const buildService = (mocks: ReturnType<typeof buildMocks>) =>
     mocks.loyaltyModel as never,
     mocks.seasonModel as never,
     mocks.establishmentModel as never,
-    mocks.emailService as never,
-    mocks.configService as never,
   );
 
 describe('PrizeClaimService', () => {
@@ -236,14 +231,15 @@ describe('PrizeClaimService', () => {
         eligiblePrizeType: null,
         rank: null,
         targetReached: false,
+        recipientCount: 0,
       });
     });
 
-    it('should return smartphone eligible for a top 3 user', async () => {
+    it('should return the grand prize as eligible for a top-ranked user', async () => {
       const result = await service.getClaimStatus(USER_ID);
 
       expect(result.hasClaimed).toBe(false);
-      expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
+      expect(result.eligiblePrizeType).toBe(PrizeType.GRAND_PRIZE);
       expect(result.rank).toBe(1);
     });
 
@@ -353,18 +349,18 @@ describe('PrizeClaimService', () => {
 
           const result = await buildService(scoped).getClaimStatus(USER_ID);
 
-          expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
+          expect(result.eligiblePrizeType).toBe(PrizeType.GRAND_PRIZE);
         });
 
-        it('can claim that prize', async () => {
+        it('is offered the grand prize their rank earns', async () => {
           const accounts = defaultAccounts();
           accounts[0] = account(1, 5000, { leaderboardConsent: { given: false } });
           const scoped = buildMocks(accounts);
 
-          const claim = await buildService(scoped).claimSmartphone(USER_ID);
+          const result = await buildService(scoped).getClaimStatus(USER_ID);
 
-          expect(claim.prizeType).toBe(PrizeType.SMARTPHONE);
-          expect(claim.rank).toBe(1);
+          expect(result.eligiblePrizeType).toBe(PrizeType.GRAND_PRIZE);
+          expect(result.rank).toBe(1);
         });
 
         // The point of the whole rule: nobody below them moves.
@@ -469,66 +465,6 @@ describe('PrizeClaimService', () => {
     }
   });
 
-  // ─── claimSmartphone ────────────────────────────────────────────────────────
-
-  describe('claimSmartphone', () => {
-    it('should create a pending smartphone claim for rank 1 user', async () => {
-      const result = await service.claimSmartphone(USER_ID);
-
-      expect(mocks.prizeClaimModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: USER_ID_OBJ,
-          prizeType: PrizeType.SMARTPHONE,
-          status: PrizeClaimStatus.PENDING,
-          rank: 1,
-        }),
-      );
-      expect(result.prizeType).toBe(PrizeType.SMARTPHONE);
-    });
-
-    it.each([RANK_4_USER, RANK_6_USER])('should reject rank past the cutoff (%s)', async userId => {
-      await expect(service.claimSmartphone(userId)).rejects.toThrow(BadRequestException);
-    });
-
-    it('should reject when no challenge has ended', async () => {
-      mocks.seasonModel.findOne.mockReturnValue({ sort: jest.fn().mockResolvedValue(null) });
-
-      await expect(service.claimSmartphone(USER_ID)).rejects.toThrow(BadRequestException);
-    });
-
-    it('should reject duplicate claims', async () => {
-      mocks.prizeClaimModel.findOne.mockResolvedValue(makeClaim());
-
-      await expect(service.claimSmartphone(USER_ID)).rejects.toThrow(ConflictException);
-    });
-
-    it('should send admin notification email on success', async () => {
-      await service.claimSmartphone(USER_ID);
-
-      // Allow async fire-and-forget to settle
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      expect(mocks.emailService.sendTemplateEmail).toHaveBeenCalledWith(
-        expect.objectContaining({ subject: expect.stringContaining('Smartphone claimed') }),
-        expect.objectContaining({ userId: 'admin@test.com' }),
-      );
-    });
-
-    it('should not crash when ADMIN_NOTIFICATION_EMAILS is not configured', async () => {
-      mocks.configService.get.mockReturnValue(undefined);
-
-      const result = await service.claimSmartphone(USER_ID);
-
-      await new Promise(resolve => setTimeout(resolve, 10));
-      expect(result.prizeType).toBe(PrizeType.SMARTPHONE);
-      expect(mocks.emailService.sendTemplateEmail).not.toHaveBeenCalled();
-    });
-
-    it('should reject user not on the leaderboard', async () => {
-      await expect(service.claimSmartphone(UNKNOWN_USER)).rejects.toThrow(BadRequestException);
-    });
-  });
-
   // ─── claimDiscount ──────────────────────────────────────────────────────────
 
   describe('claimDiscount', () => {
@@ -620,17 +556,13 @@ describe('PrizeClaimService', () => {
       },
     );
 
-    it('refuses a smartphone claim even from rank 1', async () => {
-      await expect(missedService.claimSmartphone(USER_ID)).rejects.toThrow(BadRequestException);
-    });
+    // The rule this block exists for: with no grand prize unlocked, the top
+    // ranks are not steered away from the discount.
+    it('does not steer rank 1 toward a grand prize that was not unlocked', async () => {
+      const result = await missedService.claimDiscount(USER_ID, EST_ID);
 
-    // The user must be told the community fell short, not that they are the
-    // wrong rank — they are rank 1.
-    it('says the community fell short rather than blaming the rank', async () => {
-      const message = await missedService.claimSmartphone(USER_ID).catch((e: Error) => e.message);
-
-      expect(message).toMatch(/did not reach its goal/i);
-      expect(message).not.toMatch(/rank/i);
+      expect(result.prizeType).toBe(PrizeType.DISCOUNT);
+      expect(result.rank).toBe(1);
     });
 
     // The rule this whole block exists for: the top 3 fall back to the
@@ -662,7 +594,7 @@ describe('PrizeClaimService', () => {
       const result = await buildService(exact).getClaimStatus(USER_ID);
 
       expect(result.targetReached).toBe(true);
-      expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
+      expect(result.eligiblePrizeType).toBe(PrizeType.GRAND_PRIZE);
     });
 
     // One bag short is still short.
@@ -695,7 +627,7 @@ describe('PrizeClaimService', () => {
       const result = await buildService(over).getClaimStatus(USER_ID);
 
       expect(result.targetReached).toBe(true);
-      expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
+      expect(result.eligiblePrizeType).toBe(PrizeType.GRAND_PRIZE);
     });
   });
 
@@ -733,7 +665,7 @@ describe('PrizeClaimService', () => {
         sort: jest.fn().mockResolvedValue(makeGoal({ cycleNumber: 7 })),
       });
 
-      await buildService(scoped).claimSmartphone(USER_ID);
+      await buildService(scoped).claimDiscount(RANK_4_USER, EST_ID);
 
       expect(scoped.prizeClaimModel.create).toHaveBeenCalledWith(
         expect.objectContaining({ cycleNumber: 7 }),
@@ -781,20 +713,20 @@ describe('PrizeClaimService', () => {
     ])('reports a conflict when %s rejects the write', async (_name, keyPattern) => {
       mocks.prizeClaimModel.create.mockRejectedValue(duplicateKeyError(keyPattern));
 
-      await expect(service.claimSmartphone(USER_ID)).rejects.toThrow(ConflictException);
+      await expect(service.claimDiscount(RANK_4_USER, EST_ID)).rejects.toThrow(ConflictException);
     });
 
     it('gives the same message as the pre-check, so the path taken is invisible', async () => {
       const preChecked = buildMocks();
       preChecked.prizeClaimModel.findOne.mockResolvedValue(makeClaim());
       const preCheckMessage = await buildService(preChecked)
-        .claimSmartphone(USER_ID)
+        .claimDiscount(RANK_4_USER, EST_ID)
         .catch((e: Error) => e.message);
 
       const racing = buildMocks();
       racing.prizeClaimModel.create.mockRejectedValue(duplicateKeyError(claimIndex));
       const raceMessage = await buildService(racing)
-        .claimSmartphone(USER_ID)
+        .claimDiscount(RANK_4_USER, EST_ID)
         .catch((e: Error) => e.message);
 
       expect(raceMessage).toBe(preCheckMessage);
@@ -820,7 +752,7 @@ describe('PrizeClaimService', () => {
     it('lets an unrelated write failure surface unchanged', async () => {
       mocks.prizeClaimModel.create.mockRejectedValue(new Error('connection lost'));
 
-      await expect(service.claimSmartphone(USER_ID)).rejects.toThrow('connection lost');
+      await expect(service.claimDiscount(RANK_4_USER, EST_ID)).rejects.toThrow('connection lost');
     });
   });
 });

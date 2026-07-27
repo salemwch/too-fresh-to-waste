@@ -31,8 +31,12 @@ import { PrizeTierCards } from '../components/PrizeTierCards';
 import { PrizeInfoModal } from '../components/PrizeInfoModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useUserRowTracking } from '../hooks/useUserRowTracking';
-import { usePrizeClaimStatus, useClaimGrandPrize, useClaimDiscount } from '../hooks/usePrizeClaim';
-import { useVotingPrizeStatus } from '@/features/voting/hooks/useVotingPrize';
+import { usePrizeClaimStatus, useClaimDiscount } from '../hooks/usePrizeClaim';
+import {
+  useVotingPrizeStatus,
+  useClaimVotingPrize,
+  votingPrizeToClaimData,
+} from '@/features/voting/hooks/useVotingPrize';
 import {
   BG_DARK,
   CHAMPION_GOLD,
@@ -42,7 +46,7 @@ import {
   TEXT_40,
   TEXT_85,
 } from '../constants/palette';
-import { getRowTier } from '../utils/prizeTiers';
+import { DEFAULT_PRIZE_RANKS, getRowTier } from '../utils/prizeTiers';
 
 import type { LeaderboardEntry, LeaderboardNeighborhoodEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
@@ -74,7 +78,10 @@ export const LeaderboardScreen: React.FC<Props> = () => {
    * to the normal leaderboard load.
    */
   const { data: votingPrize } = useVotingPrizeStatus(challengeEnded);
-  const claimGrandPrize = useClaimGrandPrize();
+  // The single grand-prize path, shared with the voting card. The leaderboard
+  // used to POST /loyalty/prize-claim/smartphone, so a top-ranked user could
+  // claim the same season twice — once from each screen.
+  const claimGrandPrize = useClaimVotingPrize();
   const claimDiscount = useClaimDiscount();
 
   const firstName = user?.firstName ?? '';
@@ -104,7 +111,13 @@ export const LeaderboardScreen: React.FC<Props> = () => {
    * and the tier cards must stop promising one.
    */
   const userTier =
-    userEntry != null ? getRowTier(userEntry.rank, claimStatus?.targetReached ?? true) : 'discount';
+    userEntry != null
+      ? getRowTier(
+          userEntry.rank,
+          claimStatus?.recipientCount ?? DEFAULT_PRIZE_RANKS,
+          claimStatus?.targetReached ?? true,
+        )
+      : 'discount';
 
   const [showPrizeModal, setShowPrizeModal] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
@@ -127,8 +140,9 @@ export const LeaderboardScreen: React.FC<Props> = () => {
      * two prize paths are consolidated.
      */
     if (
-      claimStatus.eligiblePrizeType === 'smartphone' ||
-      claimStatus.eligiblePrizeType === 'grand_prize'
+      claimStatus.eligiblePrizeType === 'grand_prize' ||
+      // Legacy spelling, still on claims written before the paths merged.
+      claimStatus.eligiblePrizeType === 'smartphone'
     ) {
       setShowWinnerModal(true);
     } else if (claimStatus.eligiblePrizeType === 'discount') {
@@ -136,9 +150,16 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     }
   }, [challengeEnded, claimStatus]);
 
+  const prizeRanks = claimStatus?.recipientCount ?? DEFAULT_PRIZE_RANKS;
   const grandPrizeClaimed = (claimStatus?.hasClaimed ?? false) || claimGrandPrize.isSuccess;
   const discountClaimed = (claimStatus?.hasClaimed ?? false) || claimDiscount.isSuccess;
-  const grandPrizeClaimData = claimStatus?.claim ?? claimGrandPrize.data ?? null;
+  /*
+   * The voting endpoint returns a prize *status*, not a claim record. The same
+   * helper the voting card uses maps it into the shape the modal expects.
+   */
+  const grandPrizeClaimData =
+    claimStatus?.claim ??
+    (claimGrandPrize.data ? votingPrizeToClaimData(claimGrandPrize.data) : null);
   const discountClaimData = claimStatus?.claim ?? claimDiscount.data ?? null;
 
   const openPrizeModal = useCallback(() => setShowPrizeModal(true), []);
@@ -175,7 +196,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
       <View>
         <ChallengeHeader endDate={goal?.endDate} onInfoPress={openPrizeModal} />
 
-        <PrizeTierCards userTier={userTier} />
+        <PrizeTierCards userTier={userTier} prizeRanks={prizeRanks} />
 
         {/* Block 3: Podium */}
         {allEntries.length >= 2 && <PodiumTop5 entries={allEntries} />}
@@ -199,7 +220,17 @@ export const LeaderboardScreen: React.FC<Props> = () => {
         )}
       </View>
     ),
-    [allEntries, goal?.endDate, isError, handleRetry, userTier, data, t, openPrizeModal],
+    [
+      allEntries,
+      goal?.endDate,
+      isError,
+      handleRetry,
+      userTier,
+      prizeRanks,
+      data,
+      t,
+      openPrizeModal,
+    ],
   );
 
   return (
@@ -216,6 +247,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
             ? Math.max(0, Math.ceil((new Date(goal.endDate).getTime() - Date.now()) / 86_400_000))
             : null
         }
+        prizeRanks={prizeRanks}
       />
       <WinnerCelebrationModal
         visible={showWinnerModal}

@@ -2,6 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { prizeClaimService } from '../services/prizeClaimService';
 
+/*
+ * There is no grand-prize mutation here any more. One endpoint awards it —
+ * POST /voting/claim-prize, via useClaimVotingPrize — so the leaderboard and
+ * the voting card cannot write two different records for the same season.
+ */
+
 const PRIZE_CLAIM_KEY = ['prizeClaim', 'status'] as const;
 
 export function usePrizeClaimStatus(enabled = true) {
@@ -11,23 +17,6 @@ export function usePrizeClaimStatus(enabled = true) {
     enabled,
     staleTime: 60_000,
     gcTime: 5 * 60_000,
-  });
-}
-
-/**
- * Claims the grand prize the community voted for.
- *
- * Named for the prize tier, not the item: what the top ranks win is whatever
- * won the vote — a phone, a scooter, a hotel stay — so nothing here should
- * assume a phone.
- */
-export function useClaimGrandPrize() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async () => prizeClaimService.claimGrandPrize(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PRIZE_CLAIM_KEY });
-    },
   });
 }
 

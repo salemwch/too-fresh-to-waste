@@ -293,21 +293,6 @@ export class LoyaltyController {
     return { message: 'Prize claim status retrieved', data };
   }
 
-  @Post('prize-claim/smartphone')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Claim smartphone prize (top 3 only)',
-    description:
-      'The top 3 leaderboard users claim their smartphone, but only if the season reached its community bag target. Triggers admin notification.',
-  })
-  @ApiResponse({ status: 201, description: 'Smartphone prize claimed' })
-  @ApiResponse({ status: 400, description: 'Not eligible or challenge not ended' })
-  @ApiResponse({ status: 409, description: 'Already claimed' })
-  async claimSmartphone(@GetUser('id') userId: string) {
-    const data = await this.prizeClaimService.claimSmartphone(userId);
-    return { message: 'Smartphone prize claimed successfully', data };
-  }
-
   @Post('prize-claim/discount')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({

@@ -1,58 +1,85 @@
 /**
- * getRowTier — the rank cutoff between the phone prize and the discount.
- * Drives row styling and, downstream, which claim flow the user is offered.
+ * getRowTier — the cutoff between the grand prize and the discount.
+ *
+ * The cutoff is a *parameter*, not a constant. How many top ranks win is
+ * `VotingCycle.recipientCount`, set by the admin per season. It used to be
+ * hardcoded here at 3 while the voting path awarded 5, so ranks 4 and 5 were
+ * told they had won by one screen and refused by the other.
  */
 
-import { DISCOUNT_PRIZE_MIN_RANK, PHONE_PRIZE_MAX_RANK, getRowTier } from '../prizeTiers';
+import { DEFAULT_PRIZE_RANKS, firstDiscountRank, getRowTier } from '../prizeTiers';
 
 describe('getRowTier', () => {
-  it('gives the phone tier to the top rank', () => {
-    expect(getRowTier(1)).toBe('phone');
-  });
+  describe('with the season cutoff supplied', () => {
+    it('gives the grand prize to the top rank', () => {
+      expect(getRowTier(1, 3)).toBe('grandPrize');
+    });
 
-  // The boundary, stated explicitly: rank 3 wins a phone, rank 4 does not.
-  it('includes the cutoff rank in the phone tier', () => {
-    expect(getRowTier(PHONE_PRIZE_MAX_RANK)).toBe('phone');
-  });
+    // The boundary, both sides.
+    it.each([
+      [3, 3, 'grandPrize'],
+      [4, 3, 'discount'],
+      [5, 5, 'grandPrize'],
+      [6, 5, 'discount'],
+    ])('rank %i with a cutoff of %i is %s', (rank, cutoff, expected) => {
+      expect(getRowTier(rank, cutoff)).toBe(expected);
+    });
 
-  it('drops to the discount tier one past the cutoff', () => {
-    expect(getRowTier(PHONE_PRIZE_MAX_RANK + 1)).toBe('discount');
-  });
+    /*
+     * The case the whole parameter exists for: an admin running a 5-winner
+     * season. Hardcoding 3 told rank 4 they had lost while the server paid them.
+     */
+    it('honours a 5-winner season', () => {
+      expect(getRowTier(4, 5)).toBe('grandPrize');
+      expect(getRowTier(5, 5)).toBe('grandPrize');
+    });
 
-  it('gives the discount tier to a distant rank', () => {
-    expect(getRowTier(500)).toBe('discount');
+    it('gives the discount to a distant rank', () => {
+      expect(getRowTier(500, 3)).toBe('discount');
+    });
+
+    // An admin could set 0 — nobody wins the grand prize that season.
+    it('awards nothing when the cutoff is zero', () => {
+      expect(getRowTier(1, 0)).toBe('discount');
+    });
   });
 
   /*
-   * The smartphone is unlocked by the community bag goal, not by rank alone.
+   * The grand prize is unlocked by the community bag goal, not by rank alone.
    * A season that fell short pays everyone a discount — so the top ranks must
-   * stop being shown a phone they cannot win.
+   * stop being shown a prize they cannot win.
    */
   describe('when the community goal was missed', () => {
-    it.each([1, 2, PHONE_PRIZE_MAX_RANK])('drops rank %i to the discount tier', rank => {
-      expect(getRowTier(rank, false)).toBe('discount');
+    it.each([1, 2, 3])('drops rank %i to the discount tier', rank => {
+      expect(getRowTier(rank, 3, false)).toBe('discount');
     });
 
     it('leaves the ranks that already won a discount unchanged', () => {
-      expect(getRowTier(DISCOUNT_PRIZE_MIN_RANK, false)).toBe('discount');
+      expect(getRowTier(4, 3, false)).toBe('discount');
     });
   });
 
-  // Before the season ends there is no result yet, and the top ranks should
-  // see the prize they are playing for.
-  it('assumes the goal will be met when not told otherwise', () => {
-    expect(getRowTier(1)).toBe(getRowTier(1, true));
+  describe('before the season data has loaded', () => {
+    // The cutoff arrives with the claim status; the first paint has neither.
+    it('falls back to the default cutoff', () => {
+      expect(getRowTier(DEFAULT_PRIZE_RANKS)).toBe('grandPrize');
+      expect(getRowTier(DEFAULT_PRIZE_RANKS + 1)).toBe('discount');
+    });
+
+    // No result yet, so show the prize they are playing for.
+    it('assumes the goal will be met when not told otherwise', () => {
+      expect(getRowTier(1, 3)).toBe(getRowTier(1, 3, true));
+    });
   });
 });
 
-describe('prize rank constants', () => {
-  it('starts the discount tier immediately after the phone tier', () => {
-    expect(DISCOUNT_PRIZE_MIN_RANK).toBe(PHONE_PRIZE_MAX_RANK + 1);
+describe('firstDiscountRank', () => {
+  it('starts immediately after the grand-prize tier', () => {
+    expect(firstDiscountRank(3)).toBe(4);
+    expect(firstDiscountRank(5)).toBe(6);
   });
 
-  // Must match PHONE_MAX_RANK in the backend's prize-claim.service.ts. If these
-  // drift the app promises a prize the server will refuse to award.
-  it('awards the phone to three ranks', () => {
-    expect(PHONE_PRIZE_MAX_RANK).toBe(3);
+  it('falls back to the default cutoff', () => {
+    expect(firstDiscountRank()).toBe(DEFAULT_PRIZE_RANKS + 1);
   });
 });

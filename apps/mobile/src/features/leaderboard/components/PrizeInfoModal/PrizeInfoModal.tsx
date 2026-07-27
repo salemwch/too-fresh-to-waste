@@ -23,7 +23,7 @@ import {
   TEXT_TERTIARY,
   TEXT_WHITE,
 } from '../../constants/palette';
-import { DISCOUNT_PRIZE_MIN_RANK, PHONE_PRIZE_MAX_RANK } from '../../utils/prizeTiers';
+import { DEFAULT_PRIZE_RANKS, firstDiscountRank } from '../../utils/prizeTiers';
 
 /** Minimum bottom padding when the device has no home indicator. */
 const MIN_BOTTOM_PAD = 24;
@@ -113,9 +113,16 @@ export interface PrizeInfoModalProps {
   onClose: () => void;
   /** Days until prizes unlock; null or 0 means the drop is already live. */
   daysLeft: number | null;
+  /** How many top ranks win the grand prize this season. */
+  prizeRanks?: number;
 }
 
-export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({ visible, onClose, daysLeft }) => {
+export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({
+  visible,
+  onClose,
+  daysLeft,
+  prizeRanks = DEFAULT_PRIZE_RANKS,
+}) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const sheetBottomPad = Math.max(insets.bottom, MIN_BOTTOM_PAD);
@@ -164,10 +171,10 @@ export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({ visible, onClose
               <View style={styles.tierInfo}>
                 <Text style={styles.tierTitle}>{t('leaderboard.prizeSmartphone')}</Text>
                 <Text style={styles.tierRank}>
-                  {t('leaderboard.prizeSmartphoneRank', { count: PHONE_PRIZE_MAX_RANK })}
+                  {t('leaderboard.prizeSmartphoneRank', { count: prizeRanks })}
                 </Text>
                 <Text style={styles.tierDesc}>
-                  {t('leaderboard.prizeSmartphoneDesc', { count: PHONE_PRIZE_MAX_RANK })}
+                  {t('leaderboard.prizeSmartphoneDesc', { count: prizeRanks })}
                 </Text>
               </View>
             </View>
@@ -179,7 +186,7 @@ export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({ visible, onClose
               <View style={styles.tierInfo}>
                 <Text style={styles.tierTitle}>{t('leaderboard.prizeDiscount')}</Text>
                 <Text style={styles.tierRank}>
-                  {t('leaderboard.prizeDiscountRank', { rank: DISCOUNT_PRIZE_MIN_RANK })}
+                  {t('leaderboard.prizeDiscountRank', { rank: firstDiscountRank(prizeRanks) })}
                 </Text>
                 <Text style={styles.tierDesc}>{t('leaderboard.prizeDiscountDesc')}</Text>
               </View>
