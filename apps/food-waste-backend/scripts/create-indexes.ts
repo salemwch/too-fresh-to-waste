@@ -19,6 +19,7 @@
  * - Large collections (1M+ docs) may take 10-30 minutes per index
  */
 
+import type { IndexSpecification } from 'mongodb';
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
 import { ALL_INDEXES } from '../src/common/constants/database-indexes.constant';
@@ -26,7 +27,7 @@ import { ALL_INDEXES } from '../src/common/constants/database-indexes.constant';
 // Load environment variables
 dotenv.config();
 
-const DATABASE_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/foodwaste';
+const DATABASE_URL = process.env['DATABASE_URL'] ?? 'mongodb://localhost:27017/foodwaste';
 
 interface IndexCreationResult {
   collection: string;
@@ -76,7 +77,9 @@ async function createIndexesForCollection(
       }
 
       // Create index
-      await collection.createIndex(indexDef.fields, indexDef.options);
+      // Cast: the constant file types fields as Record<string, 1|-1|string>
+      // for readability; the driver wants its own IndexSpecification union.
+      await collection.createIndex(indexDef.fields as IndexSpecification, indexDef.options);
 
       const timeTaken = Date.now() - startTime;
       console.log(`   ✅ ${indexName} - Created (${timeTaken}ms)`);

@@ -404,6 +404,85 @@ export const PAYMENT_WEBHOOK_INDEXES: {
 ];
 
 /**
+ * Loyalty accounts — the leaderboard, and the prize ranking it decides.
+ *
+ * These were defined only on the Mongoose schema, which means they were never
+ * created in production: `autoIndex` is deliberately off there
+ * (`app.module.ts`), so a schema-only index silently does not exist. The
+ * leaderboard ranking ran as a collection scan with an in-memory sort until
+ * this was noticed with `explain()` against the live cluster.
+ *
+ * Anything added to `LoyaltyAccountSchema.index(...)` must be mirrored here or
+ * it will not reach production.
+ */
+export const LOYALTY_ACCOUNT_INDEXES: {
+  fields: Record<string, 1 | -1 | string>;
+  options?: IndexOptions;
+}[] = [
+  {
+    /*
+     * Covers the leaderboard ranking exactly: equality on `isActive`, then the
+     * sort keys in order. Field order is load-bearing — a field between
+     * `isActive` and `totalPoints` cannot be skipped, and the sort falls back
+     * to memory.
+     *
+     * Serves both halves: the paged list (IXSCAN, no SORT stage) and the rank
+     * lookup `countDocuments(outranking(...))`, which counts straight from the
+     * index with zero documents examined.
+     */
+    fields: { isActive: 1, totalPoints: -1, _id: 1 },
+    // Mongoose's default name, not an idx_ one. These indexes are also declared
+    // on the schema, so a custom name would make the two definitions collide:
+    // MongoDB rejects the same key pattern under a second name.
+    options: { name: 'isActive_1_totalPoints_-1__id_1' },
+  },
+  {
+    fields: { userId: 1 },
+    options: { name: 'userId_1', unique: true },
+  },
+  {
+    fields: { referralCode: 1 },
+    options: { name: 'referralCode_1', unique: true, sparse: true },
+  },
+];
+
+/**
+ * Prize claims — one per user per season, and one per user per voting cycle.
+ *
+ * Both unique indexes are partial. The bag-goal one must stay scoped to
+ * `source: 'bag_goal'`: voting claims carry a `cycleNumber` from a separate
+ * counter, so an unscoped index rejects a legitimate voting claim as soon as
+ * the two sequences collide. See `scripts/migrations/scope-prize-claim-index.ts`
+ * for the migration that repairs an existing unscoped index — creating it here
+ * is not enough, because MongoDB will not redefine an index whose options differ.
+ */
+export const PRIZE_CLAIM_INDEXES: {
+  fields: Record<string, 1 | -1 | string>;
+  options?: IndexOptions;
+}[] = [
+  {
+    fields: { userId: 1, cycleNumber: 1 },
+    options: {
+      name: 'userId_1_cycleNumber_1',
+      unique: true,
+      partialFilterExpression: { source: 'bag_goal' },
+    },
+  },
+  {
+    fields: { userId: 1, votingCycleId: 1 },
+    options: {
+      name: 'userId_1_votingCycleId_1',
+      unique: true,
+      partialFilterExpression: { source: 'voting' },
+    },
+  },
+  {
+    fields: { status: 1, prizeType: 1 },
+    options: { name: 'idx_prizeclaims_status_prizeType' },
+  },
+];
+
+/**
  * Aggregate all indexes for easy import
  */
 export const ALL_INDEXES = {
@@ -418,4 +497,6 @@ export const ALL_INDEXES = {
   searchqueries: SEARCH_QUERY_INDEXES,
   popularsearches: POPULAR_SEARCH_INDEXES,
   paymentwebhooks: PAYMENT_WEBHOOK_INDEXES,
+  loyaltyaccounts: LOYALTY_ACCOUNT_INDEXES,
+  prizeclaims: PRIZE_CLAIM_INDEXES,
 };
