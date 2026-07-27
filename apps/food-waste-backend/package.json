@@ -31,6 +31,8 @@
     "migration:decode-entities:execute": "ts-node -r tsconfig-paths/register scripts/migrations/decode-html-entities.ts --execute",
     "migration:cleanup-orphans": "ts-node -r tsconfig-paths/register scripts/migrations/cleanup-orphaned-data.ts",
     "migration:cleanup-orphans:execute": "ts-node -r tsconfig-paths/register scripts/migrations/cleanup-orphaned-data.ts --execute",
+    "migration:scope-prize-index": "ts-node -r tsconfig-paths/register scripts/migrations/scope-prize-claim-index.ts",
+    "migration:scope-prize-index:execute": "ts-node -r tsconfig-paths/register scripts/migrations/scope-prize-claim-index.ts --execute",
     "db:audit-indexes": "ts-node -r tsconfig-paths/register scripts/audit-indexes.ts",
     "diagnose:featured": "node scripts/diagnose-featured-offers.js",
     "test:e2e:watch": "jest --config ./test/jest-e2e.json --watch",

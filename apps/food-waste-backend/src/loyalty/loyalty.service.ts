@@ -655,7 +655,7 @@ export class LoyaltyService {
     }
 
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
-    const consentFilter = LEADERBOARD_PARTICIPANT_FILTER;
+    const participantFilter = LEADERBOARD_PARTICIPANT_FILTER;
 
     /*
      * Unlike `hydrateLoyaltyEntries`, which synthesises a doc from cached
@@ -689,7 +689,7 @@ export class LoyaltyService {
       outranking(ownEntry.totalPoints ?? 0, ownEntry._id),
     );
     const rank = aboveCount + 1;
-    const resolvedTotal = total ?? (await this.loyaltyModel.countDocuments(consentFilter));
+    const resolvedTotal = total ?? (await this.loyaltyModel.countDocuments(participantFilter));
     const entry = this.mapToLeaderboardEntry(ownEntry, rank, currentUserObjectId);
     entry.percentile = this.computePercentile(rank, resolvedTotal);
     return entry;
@@ -710,11 +710,18 @@ export class LoyaltyService {
   }> {
     const MAX_BROWSABLE = 200;
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
-    const consentFilter = LEADERBOARD_PARTICIPANT_FILTER;
+    /*
+     * Everyone active is listed, so `offset + index + 1` is the real rank.
+     * Users who have not consented to show their name appear as "Anonymous"
+     * via mapToLeaderboardEntry rather than being dropped — filtering them out
+     * renumbered everyone below them, and the rank the app showed was then not
+     * the rank their prize was awarded on.
+     */
+    const participantFilter = LEADERBOARD_PARTICIPANT_FILTER;
 
     const [raw, total] = await Promise.all([
       this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
-        { $match: consentFilter },
+        { $match: participantFilter },
         { $sort: LEADERBOARD_SORT },
         { $skip: offset },
         { $limit: limit },
@@ -729,7 +736,7 @@ export class LoyaltyService {
         },
         { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
       ]),
-      this.loyaltyModel.countDocuments(consentFilter),
+      this.loyaltyModel.countDocuments(participantFilter),
     ]);
 
     const entries: LeaderboardEntry[] = raw.map((doc, index) =>

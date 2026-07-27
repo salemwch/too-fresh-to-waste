@@ -4,20 +4,24 @@ import { Types } from 'mongoose';
  * The single definition of who is ranked, and in what order.
  *
  * This existed in four places (loyalty.service twice, leaderboard-cache once,
- * prize-claim once) and the four had already drifted: prize-claim ranked on
- * `isActive` alone, with no consent filter, so a user who had opted out of the
- * leaderboard still occupied a prize rank and pushed everyone below them down
- * one. The rank a prize is awarded on has to be the rank the user was shown.
+ * prize-claim once) and the four had already drifted, so the rank a user was
+ * shown was not the rank their prize was decided on.
  */
 
 /**
- * A user is ranked only if their account is active *and* they consented to
- * appear on the leaderboard. Opting out of the leaderboard opts you out of the
- * ranking entirely — including the prize ranking it decides.
+ * Every active account is ranked.
+ *
+ * Leaderboard consent is about **the name**, not about taking part:
+ * `showRealName` masks a user as "Anonymous", and `given` only records whether
+ * they have answered the consent prompt yet. You earn your points and your
+ * prize whether or not your name is visible.
+ *
+ * Filtering the ranking on `leaderboardConsent.given` was wrong twice over — it
+ * dropped users who had merely never been asked, and it made the public ranks
+ * disagree with the ranks prizes were awarded on.
  */
 export const LEADERBOARD_PARTICIPANT_FILTER = {
   isActive: true,
-  'leaderboardConsent.given': true,
 } as const;
 
 /**

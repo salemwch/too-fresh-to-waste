@@ -89,11 +89,27 @@ const defaultAccounts = (): FakeAccount[] => [
 const countOutranking = (accounts: FakeAccount[], filter: Record<string, unknown>): number => {
   const clauses = filter['$or'] as Array<Record<string, unknown>>;
 
+  /*
+   * Fail on any predicate key this mock does not implement.
+   *
+   * Without it the mock silently ignores whatever it does not understand, so a
+   * ranking filter that started excluding people again would be invisible here
+   * — every test would keep passing against the bug. Learned the hard way: the
+   * first version asserted `not.toHaveProperty('leaderboardConsent.given')`,
+   * which Jest reads as the *path* leaderboardConsent → given, so it never
+   * matched the literal dotted key and the mutation slipped through.
+   */
+  const supported = new Set(['isActive', '$or']);
+  const unsupported = Object.keys(filter).filter(k => !supported.has(k));
+  if (unsupported.length > 0) {
+    throw new Error(
+      `countOutranking does not implement filter key(s): ${unsupported.join(', ')}. ` +
+        'Update the mock to match the real predicate, then check the tests still hold.',
+    );
+  }
+
   return accounts.filter(a => {
     if (a.isActive !== filter['isActive']) {
-      return false;
-    }
-    if (a.leaderboardConsent.given !== filter['leaderboardConsent.given']) {
       return false;
     }
 
@@ -296,37 +312,74 @@ describe('PrizeClaimService', () => {
         expect(await rankWith(accounts, USER_ID)).toBeNull();
       });
 
-      // Opting out of the leaderboard opts you out of the prize it decides.
-      it('does not rank a user who declined leaderboard consent', async () => {
-        const accounts = defaultAccounts();
-        accounts[0] = account(1, 5000, { leaderboardConsent: { given: false } });
+      /*
+       * Hiding your name hides the name, not the player. Consent controls
+       * whether the leaderboard prints "Sara" or "Anonymous"; it has nothing to
+       * do with whether Sara is ranked or whether she wins.
+       *
+       * This was briefly implemented the other way, and it produced exactly the
+       * defect it was meant to prevent: the public list renumbered around the
+       * hidden user, so the rank shown to everyone below was not the rank their
+       * prize was decided on.
+       */
+      describe('a user who has not consented to show their name', () => {
+        const hidden = () => {
+          const accounts = defaultAccounts();
+          accounts[1] = account(2, 4000, { leaderboardConsent: { given: false } });
+          return accounts;
+        };
 
-        expect(await rankWith(accounts, USER_ID)).toBeNull();
+        it('is still ranked', async () => {
+          const accounts = defaultAccounts();
+          accounts[0] = account(1, 5000, { leaderboardConsent: { given: false } });
+
+          expect(await rankWith(accounts, USER_ID)).toBe(1);
+        });
+
+        it('still wins the prize their rank earns', async () => {
+          const accounts = defaultAccounts();
+          accounts[0] = account(1, 5000, { leaderboardConsent: { given: false } });
+          const scoped = buildMocks(accounts);
+
+          const result = await buildService(scoped).getClaimStatus(USER_ID);
+
+          expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
+        });
+
+        it('can claim that prize', async () => {
+          const accounts = defaultAccounts();
+          accounts[0] = account(1, 5000, { leaderboardConsent: { given: false } });
+          const scoped = buildMocks(accounts);
+
+          const claim = await buildService(scoped).claimSmartphone(USER_ID);
+
+          expect(claim.prizeType).toBe(PrizeType.SMARTPHONE);
+          expect(claim.rank).toBe(1);
+        });
+
+        // The point of the whole rule: nobody below them moves.
+        it('does not shift the ranks below them', async () => {
+          expect(await rankWith(hidden(), '660000000000000000000003')).toBe(3);
+          expect(await rankWith(hidden(), RANK_4_USER)).toBe(4);
+          expect(await rankWith(hidden(), RANK_6_USER)).toBe(6);
+        });
+
+        it('does not push anyone into smartphone range', async () => {
+          const scoped = buildMocks(hidden());
+
+          const result = await buildService(scoped).getClaimStatus(RANK_4_USER);
+
+          expect(result.eligiblePrizeType).toBe(PrizeType.DISCOUNT);
+        });
       });
 
-      /*
-       * The defect this replaced: prize ranking filtered on isActive alone, so
-       * an opted-out user still occupied a rank and pushed everyone below them
-       * down one — including across the smartphone boundary.
-       */
-      it('does not let an opted-out user occupy a rank', async () => {
+      // Deactivation is the only thing that removes a player, and it does
+      // renumber — a closed account is not in the running at all.
+      it('closes the gap left by a deactivated account', async () => {
         const accounts = defaultAccounts();
-        accounts[1] = account(2, 4000, { leaderboardConsent: { given: false } });
+        accounts[1] = account(2, 4000, { isActive: false });
 
         expect(await rankWith(accounts, '660000000000000000000003')).toBe(2);
-        expect(await rankWith(accounts, RANK_6_USER)).toBe(5);
-      });
-
-      it('promotes a user into smartphone range when someone above opts out', async () => {
-        const accounts = defaultAccounts();
-        accounts[1] = account(2, 4000, { leaderboardConsent: { given: false } });
-        const scoped = buildMocks(accounts);
-
-        // Rank 4 → 3, which is the cutoff.
-        const result = await buildService(scoped).getClaimStatus(RANK_4_USER);
-
-        expect(result.rank).toBe(3);
-        expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
       });
     });
 

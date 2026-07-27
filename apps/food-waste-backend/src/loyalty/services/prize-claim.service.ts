@@ -237,11 +237,16 @@ export class PrizeClaimService {
   private async getUserRank(userId: string): Promise<number | null> {
     const account = await this.loyaltyModel
       .findOne({ userId: new Types.ObjectId(userId) })
-      .select('_id totalPoints isActive leaderboardConsent')
+      .select('_id totalPoints isActive')
       .lean();
 
-    // Not ranked: no account, deactivated, or opted out of the leaderboard.
-    if (!account || !account.isActive || account.leaderboardConsent?.given !== true) {
+    /*
+     * Only two ways to be unranked: no loyalty account, or a deactivated one.
+     * Leaderboard consent deliberately plays no part — hiding your name hides
+     * the name, not the player. A user shown as "Anonymous" still holds their
+     * rank and still wins the prize that rank earns.
+     */
+    if (!account?.isActive) {
       return null;
     }
 

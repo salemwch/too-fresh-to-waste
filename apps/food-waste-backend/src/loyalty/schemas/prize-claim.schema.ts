@@ -67,7 +67,19 @@ export class PrizeClaim {
 
 export const PrizeClaimSchema = SchemaFactory.createForClass(PrizeClaim);
 
-PrizeClaimSchema.index({ userId: 1, cycleNumber: 1 }, { unique: true });
+/**
+ * One bag-goal claim per user per season.
+ *
+ * Scoped to `BAG_GOAL` deliberately. Voting claims store `cycleNumber` from the
+ * `VotingCycle` sequence, which counts independently of the `CommunityBagGoal`
+ * sequence — so without this filter the two collide as soon as the numbers
+ * coincide, and a user who claimed a season prize is refused their voting
+ * prize. Voting claims are governed by the partial index below instead.
+ */
+PrizeClaimSchema.index(
+  { userId: 1, cycleNumber: 1 },
+  { unique: true, partialFilterExpression: { source: PrizeSource.BAG_GOAL } },
+);
 PrizeClaimSchema.index({ status: 1, prizeType: 1 });
 PrizeClaimSchema.index({ cycleNumber: -1 });
 PrizeClaimSchema.index(
