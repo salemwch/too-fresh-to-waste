@@ -44,6 +44,7 @@ const authedState = (user: unknown) => ({
   isAuthenticated: true,
   sessionExpiresAt: new Date(Date.now() + 3_600_000).toISOString(),
   isUserSynced: true,
+  isRecoveringSession: false,
 });
 
 const clients: QueryClient[] = [];
@@ -216,6 +217,26 @@ describe('useCurrentUser (Phase 1 parallel read)', () => {
       expect(mockGet).not.toHaveBeenCalled();
       expect(result.current.user).toEqual(CONSUMER);
       expect(result.current.isFresh).toBe(true);
+    });
+
+    // Post-resume recovery: firing here races the middleware's refresh and
+    // answers with the stale token, which is the 401 flood the gate prevents.
+    it('does not call /auth/me while session recovery is in flight', async () => {
+      mockAuthState = { ...authedState(CONSUMER), isRecoveringSession: true };
+      const { result } = setup();
+
+      await waitFor(() => expect(result.current.isRefreshing).toBe(false));
+      expect(mockGet).not.toHaveBeenCalled();
+      // The restored identity is still served — a gate must not blank the user.
+      expect(result.current.user).toEqual(CONSUMER);
+    });
+
+    it('fires once recovery finishes', async () => {
+      mockAuthState = { ...authedState(CONSUMER), isRecoveringSession: false };
+      const { result } = setup();
+
+      await waitFor(() => expect(result.current.isFresh).toBe(true));
+      expect(mockGet).toHaveBeenCalled();
     });
 
     it('returns null after logout clears Redux', async () => {

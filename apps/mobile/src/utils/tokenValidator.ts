@@ -142,7 +142,7 @@ export const validateTokenLocally = (
  *
  * This function validates that:
  * 1. User is marked as authenticated in Redux
- * 2. Access token exists
+ * 2. Post-resume token recovery is not in flight
  * 3. Session hasn't expired locally (based on timestamp)
  *
  * USE THIS before making authenticated API calls to prevent:
@@ -167,10 +167,32 @@ export const validateTokenLocally = (
 export const isAuthReadyForApiCalls = (authState: {
   isAuthenticated: boolean;
   sessionExpiresAt: string | null;
+  isRecoveringSession: boolean;
 }): { isReady: boolean; reason?: string } => {
   // Check authentication flag
   if (!authState.isAuthenticated) {
     return { isReady: false, reason: 'not_authenticated' };
+  }
+
+  /*
+   * Post-resume token recovery is in flight.
+   *
+   * The middleware raises this on background and clears it in
+   * checkAndRefreshToken's finally block. Without the wait, TanStack Query's
+   * focusManager races the middleware on resume and refetches with the stale
+   * access token — a burst of 401s that the interceptor then has to unpick.
+   *
+   * Checked before expiry deliberately: mid-recovery the local timestamp is
+   * usually stale, and "recovering" is the truer reason to report than
+   * "expired".
+   *
+   * Safe to block on. The flag is released on every exit path — the finally in
+   * checkAndRefreshToken, the not-authenticated early return, the logged-out
+   * jitter check — and any logout resets it via `...initialState`. It is also
+   * stripped on persist, so a cold start can never begin with it raised.
+   */
+  if (authState.isRecoveringSession) {
+    return { isReady: false, reason: 'session_recovering' };
   }
 
   // NOTE: Token existence is not checked here — tokens live in Keychain, not Redux.
