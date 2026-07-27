@@ -346,11 +346,17 @@ export const LoyaltyAccountSchema = SchemaFactory.createForClass(LoyaltyAccount)
 LoyaltyAccountSchema.index({ totalPoints: -1 });
 
 /**
- * Covers the leaderboard ranking predicate — see `constants/leaderboard-ranking.ts`.
- * Every ranked read filters on `isActive` + consent and orders by points, so
- * without this the rank count degrades to a collection scan filtered in memory.
+ * Covers the leaderboard ranking query exactly — see
+ * `constants/leaderboard-ranking.ts`. Equality on `isActive`, then the sort
+ * keys in order: `totalPoints` descending, `_id` as the tiebreak.
+ *
+ * The field order is the whole point. An earlier version put
+ * `leaderboardConsent.given` between `isActive` and `totalPoints`; once consent
+ * stopped being part of the filter, that middle field could not be skipped, so
+ * the index served only the `isActive` prefix and the sort still ran in memory.
+ * Verified with explain(): the query now uses IXSCAN with no SORT stage.
  */
-LoyaltyAccountSchema.index({ isActive: 1, 'leaderboardConsent.given': 1, totalPoints: -1 });
+LoyaltyAccountSchema.index({ isActive: 1, totalPoints: -1, _id: 1 });
 LoyaltyAccountSchema.index({ currentTier: 1 });
 LoyaltyAccountSchema.index({ referralCode: 1 }, { unique: true, sparse: true });
 LoyaltyAccountSchema.index({ 'friendReferrals.friendUserId': 1 });
