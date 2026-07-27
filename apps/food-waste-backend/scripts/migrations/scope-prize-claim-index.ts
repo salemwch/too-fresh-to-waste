@@ -46,13 +46,18 @@ const log = (msg: string): void => {
 };
 
 async function run(): Promise<void> {
-  const uri = process.env['MONGODB_URI'];
+  // DATABASE_URL, matching verify-indexes.ts and the other migrations — the
+  // app itself reads it through ConfigService, but scripts run outside Nest.
+  const uri = process.env['DATABASE_URL'];
   if (!uri) {
-    throw new Error('MONGODB_URI is not set. Configure .env before running this migration.');
+    throw new Error('DATABASE_URL is not set. Configure .env before running this migration.');
   }
 
-  await mongoose.connect(uri);
-  const db = mongoose.connection.db;
+  // Use the connection `connect` hands back rather than the default
+  // `mongoose.connection` singleton — under ts-node's CommonJS interop the
+  // namespace import does not always expose it.
+  const conn = await mongoose.connect(uri);
+  const db = conn.connection.db;
   if (!db) {
     throw new Error('No database handle after connecting.');
   }
@@ -93,7 +98,7 @@ async function run(): Promise<void> {
   if (duplicates.length > 0) {
     log(`ABORT: ${duplicates.length} duplicate bag-goal claim(s) would violate the new index:`);
     for (const d of duplicates) {
-      log(`  ${JSON.stringify(d._id)} — ${String(d['n'])} claims`);
+      log(`  ${JSON.stringify(d['_id'])} — ${String(d['n'])} claims`);
     }
     log('Resolve these by hand before re-running.');
     return;
