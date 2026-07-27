@@ -17,6 +17,12 @@ import { LeaderboardCacheService } from '../leaderboard/leaderboard-cache.servic
 import { Order, OrderDocument, OrderStatus } from '../orders/schemas/order.schema';
 
 import {
+  LEADERBOARD_PARTICIPANT_FILTER,
+  LEADERBOARD_SORT,
+  outranking,
+} from './constants/leaderboard-ranking';
+
+import {
   CreateLoyaltyAccountDto,
   AddPointsDto,
   LoyaltyStatsDto,
@@ -649,9 +655,16 @@ export class LoyaltyService {
     }
 
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
-    const consentFilter = { isActive: true, 'leaderboardConsent.given': true };
+    const consentFilter = LEADERBOARD_PARTICIPANT_FILTER;
 
-    const ownRaw = await this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
+    /*
+     * Unlike `hydrateLoyaltyEntries`, which synthesises a doc from cached
+     * scores, this reads the whole account — so `_id` is present, and it is
+     * needed as the ranking tiebreak.
+     */
+    const ownRaw = await this.loyaltyModel.aggregate<
+      LeaderboardAggregateDoc & { _id: Types.ObjectId }
+    >([
       { $match: { userId: currentUserObjectId } },
       {
         $lookup: {
@@ -670,10 +683,11 @@ export class LoyaltyService {
       return null;
     }
 
-    const aboveCount = await this.loyaltyModel.countDocuments({
-      ...consentFilter,
-      totalPoints: { $gt: ownEntry.totalPoints },
-    });
+    // Same predicate the paged list sorts by, tiebreak included — without it
+    // this rank and the rank the user's row shows can disagree on a tie.
+    const aboveCount = await this.loyaltyModel.countDocuments(
+      outranking(ownEntry.totalPoints ?? 0, ownEntry._id),
+    );
     const rank = aboveCount + 1;
     const resolvedTotal = total ?? (await this.loyaltyModel.countDocuments(consentFilter));
     const entry = this.mapToLeaderboardEntry(ownEntry, rank, currentUserObjectId);
@@ -696,12 +710,12 @@ export class LoyaltyService {
   }> {
     const MAX_BROWSABLE = 200;
     const userProjection = { firstName: 1, lastName: 1, profileImage: 1, avatar: 1 };
-    const consentFilter = { isActive: true, 'leaderboardConsent.given': true };
+    const consentFilter = LEADERBOARD_PARTICIPANT_FILTER;
 
     const [raw, total] = await Promise.all([
       this.loyaltyModel.aggregate<LeaderboardAggregateDoc>([
         { $match: consentFilter },
-        { $sort: { totalPoints: -1, _id: 1 } },
+        { $sort: LEADERBOARD_SORT },
         { $skip: offset },
         { $limit: limit },
         {

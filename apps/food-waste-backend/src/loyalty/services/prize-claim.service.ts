@@ -20,6 +20,7 @@ import {
   EstablishmentDocument,
 } from '../../establishments/schemas/establishment.schema';
 import { EmailNotificationService } from '../../notifications/services/email-notification.service';
+import { outranking } from '../constants/leaderboard-ranking';
 import { LoyaltyAccount, LoyaltyAccountDocument } from '../schemas/loyalty-account.schema';
 import {
   PrizeClaim,
@@ -29,6 +30,23 @@ import {
 } from '../schemas/prize-claim.schema';
 
 const PHONE_MAX_RANK = 5;
+
+/**
+ * One message for both duplicate-claim paths — the pre-check and the unique
+ * index — so the user cannot tell which one caught them.
+ */
+const DUPLICATE_CLAIM_MESSAGE = 'You have already claimed your prize for this challenge.';
+
+/**
+ * MongoDB's duplicate-key error, narrowed enough to tell which unique index
+ * rejected the write. Both `{ userId, cycleNumber }` and the partial
+ * `{ userId, votingCycleId }` mean "already claimed"; a collision on
+ * `voucherCode` does not, and must not be reported as one.
+ */
+const isDuplicateKeyError = (
+  err: unknown,
+): err is { code: number; keyPattern?: Record<string, unknown> } =>
+  typeof err === 'object' && err !== null && (err as { code?: unknown }).code === 11000;
 
 @Injectable()
 export class PrizeClaimService {
@@ -82,7 +100,7 @@ export class PrizeClaimService {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     const totalPoints = account?.totalPoints ?? 0;
 
-    const claim = await this.prizeClaimModel.create({
+    const claim = await this.createClaim({
       userId: new Types.ObjectId(userId),
       prizeType: PrizeType.SMARTPHONE,
       status: PrizeClaimStatus.PENDING,
@@ -120,7 +138,7 @@ export class PrizeClaimService {
 
     const voucherCode = await this.generateVoucherCode();
 
-    const claim = await this.prizeClaimModel.create({
+    const claim = await this.createClaim({
       userId: new Types.ObjectId(userId),
       prizeType: PrizeType.DISCOUNT,
       status: PrizeClaimStatus.PENDING,
@@ -154,15 +172,33 @@ export class PrizeClaimService {
     return goal;
   }
 
+  /**
+   * The caller's leaderboard rank, or null if they are not ranked.
+   *
+   * Counts the accounts ahead rather than loading the leaderboard and calling
+   * findIndex on it. The old form pulled every loyalty account into memory on
+   * every prize-screen open — i.e. from every user at once, at season end,
+   * which is the one moment the collection is largest and the traffic heaviest.
+   *
+   * Deliberately reads the database rather than the Redis rank cache
+   * `resolveCurrentUserEntry` uses: a stale rank is a cosmetic problem on the
+   * leaderboard and a wrong prize here.
+   */
   private async getUserRank(userId: string): Promise<number | null> {
-    const allAccounts = await this.loyaltyModel
-      .find({ isActive: true })
-      .sort({ totalPoints: -1 })
-      .select('userId totalPoints')
+    const account = await this.loyaltyModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .select('_id totalPoints isActive leaderboardConsent')
       .lean();
 
-    const idx = allAccounts.findIndex(a => a.userId.toString() === userId);
-    return idx >= 0 ? idx + 1 : null;
+    // Not ranked: no account, deactivated, or opted out of the leaderboard.
+    if (!account || !account.isActive || account.leaderboardConsent?.given !== true) {
+      return null;
+    }
+
+    const ahead = await this.loyaltyModel.countDocuments(
+      outranking(account.totalPoints, account._id),
+    );
+    return ahead + 1;
   }
 
   private async requireUserRank(userId: string): Promise<number> {
@@ -179,7 +215,30 @@ export class PrizeClaimService {
       cycleNumber,
     });
     if (existing) {
-      throw new ConflictException('You have already claimed your prize for this challenge.');
+      throw new ConflictException(DUPLICATE_CLAIM_MESSAGE);
+    }
+  }
+
+  /**
+   * Writes the claim, translating a unique-index rejection into the same 409
+   * the pre-check raises.
+   *
+   * `ensureNoDuplicateClaim` reads and then writes, so two requests arriving
+   * together both pass the read. The unique index on `{ userId, cycleNumber }`
+   * is what actually stops the second claim — but an unhandled E11000 surfaces
+   * as a 500, telling the user the app broke when in fact it correctly refused
+   * a double claim. The pre-check stays because it fails before the voucher
+   * code and establishment lookup are spent; this is the guard that holds.
+   */
+  private async createClaim(data: Record<string, unknown>): Promise<PrizeClaimDocument> {
+    try {
+      return await this.prizeClaimModel.create(data);
+    } catch (err) {
+      // A voucherCode collision is not a duplicate claim — let it surface.
+      if (isDuplicateKeyError(err) && err.keyPattern?.['userId'] !== undefined) {
+        throw new ConflictException(DUPLICATE_CLAIM_MESSAGE);
+      }
+      throw err;
     }
   }
 

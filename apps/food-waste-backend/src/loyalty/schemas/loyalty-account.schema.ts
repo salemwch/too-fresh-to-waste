@@ -344,6 +344,13 @@ export const LoyaltyAccountSchema = SchemaFactory.createForClass(LoyaltyAccount)
 // =============================================================================
 
 LoyaltyAccountSchema.index({ totalPoints: -1 });
+
+/**
+ * Covers the leaderboard ranking predicate — see `constants/leaderboard-ranking.ts`.
+ * Every ranked read filters on `isActive` + consent and orders by points, so
+ * without this the rank count degrades to a collection scan filtered in memory.
+ */
+LoyaltyAccountSchema.index({ isActive: 1, 'leaderboardConsent.given': 1, totalPoints: -1 });
 LoyaltyAccountSchema.index({ currentTier: 1 });
 LoyaltyAccountSchema.index({ referralCode: 1 }, { unique: true, sparse: true });
 LoyaltyAccountSchema.index({ 'friendReferrals.friendUserId': 1 });

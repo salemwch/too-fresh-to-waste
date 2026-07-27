@@ -182,22 +182,44 @@ never consulted. So `claimSmartphone` succeeds for the top 5 of a season that
 missed its target. Per §4.2 the discount is correct to pay; the smartphone and
 the community bonus are not. Both claim paths need a "target reached" guard.
 
-### R. Ranking cost at 5,000 users
+### R. Ranking cost at 5,000 users — **fixed**
 
-`getUserRank` runs `find({ isActive: true })` with no limit, sorts every loyalty
-account, pulls them all into memory and calls `findIndex`. It is invoked on
-every `getClaimStatus` — i.e. every time the prize screen opens, by every user,
-at the exact moment traffic spikes at season end. Should be a `countDocuments`
-of accounts with more points than the caller's, plus one lookup.
+`getUserRank` ran `find({ isActive: true })` with no limit, sorted every loyalty
+account, pulled them all into memory and called `findIndex` — on every
+`getClaimStatus`, i.e. every prize-screen open, by every user, at the exact
+moment traffic spikes at season end. Now one `findOne` plus a `countDocuments`
+of the accounts ahead, covered by a new compound index.
 
-It also ranks on `isActive` alone, so accounts with zero points occupy ranks.
+Fixing it surfaced a worse defect underneath. **Prize ranking and leaderboard
+ranking used different predicates.** The leaderboard filters on
+`{ isActive, 'leaderboardConsent.given' }`; the prize ranking filtered on
+`isActive` alone. A user who had opted out of the leaderboard was invisible on
+it but still occupied a prize rank, pushing everyone below them down one — the
+top-5 smartphone boundary included. The rank a prize was awarded on was not the
+rank the user was shown.
 
-### S. Two claim requests arrive together
+The predicate now lives in one place,
+`loyalty/constants/leaderboard-ranking.ts`, used by `loyalty.service`,
+`leaderboard-cache.service` and `prize-claim.service`.
 
-`ensureNoDuplicateClaim` reads, then writes. The unique index on
-`{ userId, cycleNumber }` does stop the double claim, but the resulting E11000
-is unhandled, so the user sees a 500 rather than the `ConflictException` the
-code intends. Catch the duplicate-key error and map it onto the same 409.
+**Behaviour change to be aware of:** opting out of the leaderboard now opts you
+out of the prize ranking too, so a non-consenting user has no rank and cannot
+claim. That is the only self-consistent reading — you cannot win a leaderboard
+prize while absent from the leaderboard — but it is a change, not a bug fix.
+
+Ties now break on `_id`, so ranks are deterministic. Previously ties sat in an
+order MongoDB does not guarantee between calls, meaning `getClaimStatus` could
+show rank 5 and the claim then be rejected at rank 6.
+
+### S. Two claim requests arrive together — **fixed**
+
+`ensureNoDuplicateClaim` reads, then writes, so two requests arriving together
+both pass the read. The unique index on `{ userId, cycleNumber }` stopped the
+double claim, but the E11000 was unhandled — the user saw a 500, the app
+reporting that it broke when it had correctly refused a double claim. The write
+now maps a duplicate key **on a `userId` index** onto the same 409 and the same
+message as the pre-check. A `voucherCode` collision is deliberately not treated
+as a duplicate claim.
 
 ### T. The chosen establishment leaves the platform
 
@@ -319,8 +341,8 @@ weeks of a season earn more slowly than the last weeks of the previous one.
    loss without it.
 7. **Invalidate mobile caches** on rollover, not just broadcast.
 
-Scenarios Q–T are independent of the season work and can be fixed first — R and
-S are live defects today.
+Scenarios Q–T are independent of the season work. **R and S are done** (commit
+below). Q depends on §4.2 and is folded into step 3; T is still open.
 
 ---
 

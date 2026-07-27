@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 
 import { OrderStatus, PaymentStatus } from '@foodwaste/shared';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
+import { LEADERBOARD_PARTICIPANT_FILTER } from '../loyalty/constants/leaderboard-ranking';
 import { LoyaltyAccount, LoyaltyAccountDocument } from '../loyalty/schemas/loyalty-account.schema';
 import { RedisService } from '../redis/redis.service';
 
@@ -79,7 +80,7 @@ export class LeaderboardCacheService implements OnModuleInit {
     const client = await this.redisService.getClient();
 
     const accounts = await this.loyaltyModel
-      .find({ isActive: true, 'leaderboardConsent.given': true }, { userId: 1, totalPoints: 1 })
+      .find(LEADERBOARD_PARTICIPANT_FILTER, { userId: 1, totalPoints: 1 })
       .lean()
       .exec();
 
