@@ -189,7 +189,7 @@ const quickWins = [
     iconColor: 'text-secondary-dark',
     stat: 'Earn points, win prizes',
     label: 'The more you save, the more you gain',
-    body: 'Every bag earns you points. Top earners unlock the Drop — where phones and smartwatches are up for grabs.',
+    body: 'Every bag earns you points. Hit the community goal together and the Drop unlocks — phones for the top 3, a discount for everyone else.',
   },
 ];
 

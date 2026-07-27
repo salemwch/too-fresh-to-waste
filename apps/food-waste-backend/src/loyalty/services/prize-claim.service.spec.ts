@@ -9,17 +9,26 @@ const USER_ID = '660000000000000000000001';
 const USER_ID_OBJ = new Types.ObjectId(USER_ID);
 const EST_ID = '670000000000000000000001';
 
-/** Rank 6 in the default fixture — the discount tier. */
+/** Rank 4 in the default fixture — the first rank outside the phone tier. */
+const RANK_4_USER = '660000000000000000000004';
+/** Rank 6 in the default fixture — comfortably inside the discount tier. */
 const RANK_6_USER = '660000000000000000000006';
 /** Has no loyalty account at all. */
 const UNKNOWN_USER = '660000000000000000000099';
 
+/** A season that ended having met its community bag target. */
 const makeGoal = (overrides: Record<string, unknown> = {}) => ({
   _id: new Types.ObjectId(),
   cycleNumber: 1,
   endDate: new Date('2025-01-01'),
+  currentCount: 30_000,
+  targetCount: 30_000,
   ...overrides,
 });
+
+/** A season that ended short of its target — no smartphone is unlocked. */
+const makeMissedGoal = (overrides: Record<string, unknown> = {}) =>
+  makeGoal({ currentCount: 22_000, targetCount: 30_000, ...overrides });
 
 const makeClaim = (overrides: Record<string, unknown> = {}) => ({
   _id: new Types.ObjectId(),
@@ -200,15 +209,23 @@ describe('PrizeClaimService', () => {
         claim: null,
         eligiblePrizeType: null,
         rank: null,
+        targetReached: false,
       });
     });
 
-    it('should return smartphone eligible for top 5 user', async () => {
+    it('should return smartphone eligible for a top 3 user', async () => {
       const result = await service.getClaimStatus(USER_ID);
 
       expect(result.hasClaimed).toBe(false);
       expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
       expect(result.rank).toBe(1);
+    });
+
+    it('should return discount eligible for the first rank past the cutoff', async () => {
+      const result = await service.getClaimStatus(RANK_4_USER);
+
+      expect(result.eligiblePrizeType).toBe(PrizeType.DISCOUNT);
+      expect(result.rank).toBe(4);
     });
 
     it('should return discount eligible for rank 6+ user', async () => {
@@ -290,7 +307,7 @@ describe('PrizeClaimService', () => {
       /*
        * The defect this replaced: prize ranking filtered on isActive alone, so
        * an opted-out user still occupied a rank and pushed everyone below them
-       * down one — including across the top-5 smartphone boundary.
+       * down one — including across the smartphone boundary.
        */
       it('does not let an opted-out user occupy a rank', async () => {
         const accounts = defaultAccounts();
@@ -305,8 +322,10 @@ describe('PrizeClaimService', () => {
         accounts[1] = account(2, 4000, { leaderboardConsent: { given: false } });
         const scoped = buildMocks(accounts);
 
-        const result = await buildService(scoped).getClaimStatus(RANK_6_USER);
+        // Rank 4 → 3, which is the cutoff.
+        const result = await buildService(scoped).getClaimStatus(RANK_4_USER);
 
+        expect(result.rank).toBe(3);
         expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
       });
     });
@@ -370,8 +389,8 @@ describe('PrizeClaimService', () => {
       expect(result.prizeType).toBe(PrizeType.SMARTPHONE);
     });
 
-    it('should reject rank > 5 from claiming smartphone', async () => {
-      await expect(service.claimSmartphone(RANK_6_USER)).rejects.toThrow(BadRequestException);
+    it.each([RANK_4_USER, RANK_6_USER])('should reject rank past the cutoff (%s)', async userId => {
+      await expect(service.claimSmartphone(userId)).rejects.toThrow(BadRequestException);
     });
 
     it('should reject when no challenge has ended', async () => {
@@ -430,8 +449,15 @@ describe('PrizeClaimService', () => {
       expect(result.prizeType).toBe(PrizeType.DISCOUNT);
     });
 
-    it('should reject top 5 user from claiming discount', async () => {
+    it('should reject a top 3 user from claiming discount', async () => {
       await expect(service.claimDiscount(USER_ID, EST_ID)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should let the first rank past the cutoff claim a discount', async () => {
+      const result = await service.claimDiscount(RANK_4_USER, EST_ID);
+
+      expect(result.prizeType).toBe(PrizeType.DISCOUNT);
+      expect(result.rank).toBe(4);
     });
 
     it('should reject when establishment not found', async () => {
@@ -456,6 +482,111 @@ describe('PrizeClaimService', () => {
       await expect(service.claimDiscount(UNKNOWN_USER, EST_ID)).rejects.toThrow(
         BadRequestException,
       );
+    });
+  });
+
+  // ─── a season that fell short ───────────────────────────────────────────────
+
+  /*
+   * The smartphone is the community's prize, unlocked by hitting the bag
+   * target; the discount voucher is the personal payout for the points you
+   * earned yourself. So a season that fell short pays nobody a phone and pays
+   * everybody a discount — the top 3 included.
+   *
+   * Previously getEndedGoal() selected on endDate alone and never consulted
+   * currentCount, so the top ranks collected smartphones for a failed season.
+   */
+  describe('when the community missed its bag goal', () => {
+    let missed: ReturnType<typeof buildMocks>;
+    let missedService: PrizeClaimService;
+
+    beforeEach(() => {
+      missed = buildMocks();
+      missed.goalModel.findOne.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(makeMissedGoal()),
+      });
+      missedService = buildService(missed);
+    });
+
+    it('reports the goal as missed', async () => {
+      const result = await missedService.getClaimStatus(USER_ID);
+
+      expect(result.targetReached).toBe(false);
+    });
+
+    it.each([USER_ID, RANK_4_USER, RANK_6_USER])(
+      'offers %s a discount rather than a smartphone',
+      async userId => {
+        const result = await missedService.getClaimStatus(userId);
+
+        expect(result.eligiblePrizeType).toBe(PrizeType.DISCOUNT);
+      },
+    );
+
+    it('refuses a smartphone claim even from rank 1', async () => {
+      await expect(missedService.claimSmartphone(USER_ID)).rejects.toThrow(BadRequestException);
+    });
+
+    // The user must be told the community fell short, not that they are the
+    // wrong rank — they are rank 1.
+    it('says the community fell short rather than blaming the rank', async () => {
+      const message = await missedService.claimSmartphone(USER_ID).catch((e: Error) => e.message);
+
+      expect(message).toMatch(/did not reach its goal/i);
+      expect(message).not.toMatch(/rank/i);
+    });
+
+    // The rule this whole block exists for: the top 3 fall back to the
+    // discount, so the "claim a smartphone instead" guard must not fire.
+    it('lets rank 1 claim a discount instead', async () => {
+      const result = await missedService.claimDiscount(USER_ID, EST_ID);
+
+      expect(result.prizeType).toBe(PrizeType.DISCOUNT);
+      expect(result.rank).toBe(1);
+    });
+
+    it('still refuses an unranked user', async () => {
+      await expect(missedService.claimDiscount(UNKNOWN_USER, EST_ID)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    // Exactly on target is a success, not a shortfall.
+    it('treats hitting the target exactly as reached', async () => {
+      const exact = buildMocks();
+      exact.goalModel.findOne.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(makeGoal({ currentCount: 30_000, targetCount: 30_000 })),
+      });
+
+      const result = await buildService(exact).getClaimStatus(USER_ID);
+
+      expect(result.targetReached).toBe(true);
+      expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
+    });
+
+    // One bag short is still short.
+    it('treats one bag short as missed', async () => {
+      const nearly = buildMocks();
+      nearly.goalModel.findOne.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(makeGoal({ currentCount: 29_999, targetCount: 30_000 })),
+      });
+
+      const result = await buildService(nearly).getClaimStatus(USER_ID);
+
+      expect(result.eligiblePrizeType).toBe(PrizeType.DISCOUNT);
+    });
+
+    // Overshooting is normal — the season runs its full term either way.
+    it('treats overshooting the target as reached', async () => {
+      const over = buildMocks();
+      over.goalModel.findOne.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(makeGoal({ currentCount: 34_000, targetCount: 30_000 })),
+      });
+
+      const result = await buildService(over).getClaimStatus(USER_ID);
+
+      expect(result.targetReached).toBe(true);
+      expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
     });
   });
 

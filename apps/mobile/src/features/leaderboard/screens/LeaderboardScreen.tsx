@@ -89,7 +89,14 @@ export const LeaderboardScreen: React.FC<Props> = () => {
     () => data?.pages[0]?.currentUserEntry ?? allEntries.find(e => e.isCurrentUser) ?? null,
     [data, allEntries],
   );
-  const userTier = userEntry != null ? getRowTier(userEntry.rank) : 'discount';
+  /*
+   * `targetReached` only arrives once the challenge has ended, so before then
+   * assume the goal will be met — the top ranks should see the phone tier they
+   * are playing for. After a season that fell short there is no phone to win,
+   * and the tier cards must stop promising one.
+   */
+  const userTier =
+    userEntry != null ? getRowTier(userEntry.rank, claimStatus?.targetReached ?? true) : 'discount';
 
   const [showPrizeModal, setShowPrizeModal] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);

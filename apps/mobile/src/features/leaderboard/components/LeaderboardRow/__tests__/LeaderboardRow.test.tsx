@@ -18,6 +18,7 @@ jest.mock('../../UserAvatar', () => {
 });
 
 import { LeaderboardRow } from '../LeaderboardRow';
+import { DISCOUNT_PRIZE_MIN_RANK, PHONE_PRIZE_MAX_RANK } from '../../../utils/prizeTiers';
 
 import type { LeaderboardEntry } from '../../../types/leaderboard.types';
 
@@ -65,11 +66,17 @@ describe('LeaderboardRow', () => {
   // The cutoff is a prize boundary, so the styling difference is meaningful
   // rather than decorative.
   describe('the phone-prize cutoff', () => {
+    // Driven by the constant rather than literal ranks: the cutoff moved from
+    // 5 to 3 and a hardcoded pair silently stopped testing the boundary.
     it('highlights the points of a rank inside the cutoff', () => {
-      const { getByText } = render(<LeaderboardRow entry={entry({ rank: 5 })} />);
+      const { getByText } = render(
+        <LeaderboardRow entry={entry({ rank: PHONE_PRIZE_MAX_RANK })} />,
+      );
       const inside = styleOf(getByText(`${(1234).toLocaleString()} pt`));
 
-      const { getByText: getOutside } = render(<LeaderboardRow entry={entry({ rank: 6 })} />);
+      const { getByText: getOutside } = render(
+        <LeaderboardRow entry={entry({ rank: DISCOUNT_PRIZE_MIN_RANK })} />,
+      );
       const outside = styleOf(getOutside(`${(1234).toLocaleString()} pt`));
 
       expect(inside.color).not.toBe(outside.color);

@@ -132,8 +132,13 @@ describe('locale parity', () => {
           if (used.some(token => !allowed.has(token))) return true;
 
           // Dropping one is only acceptable in a plural form.
+          //
+          // Compared as sets: a source may use the same placeholder twice
+          // ("Top {{count}} · {{count}} winners"), and a translation that does
+          // the same is correct. Comparing `used.length` to `allowed.size`
+          // counted the repeat as a mismatch.
           const isPluralForm = stripPluralSuffix(path) !== path;
-          return !isPluralForm && used.length !== allowed.size;
+          return !isPluralForm && new Set(used).size !== allowed.size;
         })
         .map(([path]) => path)
         .sort();

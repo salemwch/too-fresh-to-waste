@@ -296,8 +296,9 @@ export class LoyaltyController {
   @Post('prize-claim/smartphone')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Claim smartphone prize (top 5 only)',
-    description: 'Top 5 leaderboard users claim their smartphone. Triggers admin notification.',
+    summary: 'Claim smartphone prize (top 3 only)',
+    description:
+      'The top 3 leaderboard users claim their smartphone, but only if the season reached its community bag target. Triggers admin notification.',
   })
   @ApiResponse({ status: 201, description: 'Smartphone prize claimed' })
   @ApiResponse({ status: 400, description: 'Not eligible or challenge not ended' })
@@ -310,8 +311,9 @@ export class LoyaltyController {
   @Post('prize-claim/discount')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Claim discount prize (rank 6+)',
-    description: 'Rank 6+ users choose a partner business to receive their 10% discount from.',
+    summary: 'Claim discount prize (rank 4+, or everyone if the goal was missed)',
+    description:
+      'Rank 4 and below choose a partner business to receive their 10% discount from. If the season missed its community bag target no smartphone is unlocked, so the top 3 claim a discount here too.',
   })
   @ApiResponse({ status: 201, description: 'Discount prize claimed' })
   @ApiResponse({ status: 400, description: 'Not eligible or challenge not ended' })

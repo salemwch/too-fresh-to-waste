@@ -109,8 +109,8 @@ const STEPS = [
     bullets: [
       'Points are added instantly after each confirmed pickup',
       'Check your rank on the community leaderboard anytime',
-      'Top 5 users win a smartphone — next 5 win a smartwatch',
-      'Every other user on the list receives a 10–15% discount voucher',
+      'Top 3 users win a smartphone when the community reaches its bag goal',
+      'Everyone else on the list receives a 10% discount at a business they choose',
     ],
     tip: 'The more bags you rescue, the higher you climb. Every pickup counts.',
     image: '/images/buy-screen-onoarding/MY-Points.webp',

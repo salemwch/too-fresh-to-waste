@@ -29,7 +29,8 @@ import {
   PrizeType,
 } from '../schemas/prize-claim.schema';
 
-const PHONE_MAX_RANK = 5;
+/** Ranks 1..3 win a smartphone; rank 4 and below win a discount voucher. */
+const PHONE_MAX_RANK = 3;
 
 /**
  * One message for both duplicate-claim paths — the pre-check and the unique
@@ -48,6 +49,17 @@ const isDuplicateKeyError = (
 ): err is { code: number; keyPattern?: Record<string, unknown> } =>
   typeof err === 'object' && err !== null && (err as { code?: unknown }).code === 11000;
 
+/**
+ * Did the season hit its community bag target?
+ *
+ * The season is a fixed window — see `docs/plans/cycle-lifecycle-scenarios.md`
+ * §4.1 — so reaching the target does not end it early. The target is read once,
+ * here, when the season is already over, and it decides only whether the
+ * collective prizes unlocked.
+ */
+const targetReached = (goal: Pick<CommunityBagGoal, 'currentCount' | 'targetCount'>): boolean =>
+  goal.currentCount >= goal.targetCount;
+
 @Injectable()
 export class PrizeClaimService {
   private readonly logger = new Logger(PrizeClaimService.name);
@@ -65,12 +77,17 @@ export class PrizeClaimService {
   async getClaimStatus(userId: string) {
     const goal = await this.getEndedGoal();
     if (!goal) {
-      return { hasClaimed: false, claim: null, eligiblePrizeType: null, rank: null };
+      return {
+        hasClaimed: false,
+        claim: null,
+        eligiblePrizeType: null,
+        rank: null,
+        targetReached: false,
+      };
     }
 
     const rank = await this.getUserRank(userId);
-    const eligiblePrizeType =
-      rank !== null && rank <= PHONE_MAX_RANK ? PrizeType.SMARTPHONE : PrizeType.DISCOUNT;
+    const eligiblePrizeType = this.eligiblePrizeType(rank, goal);
 
     const existing = await this.prizeClaimModel.findOne({
       userId: new Types.ObjectId(userId),
@@ -82,12 +99,25 @@ export class PrizeClaimService {
       claim: existing ? this.toResponse(existing) : null,
       eligiblePrizeType: rank !== null ? eligiblePrizeType : null,
       rank,
+      targetReached: targetReached(goal),
     };
   }
 
   async claimSmartphone(userId: string) {
     const goal = await this.requireEndedGoal();
     const rank = await this.requireUserRank(userId);
+
+    /*
+     * The smartphone is the community's prize, not a personal one: it is
+     * unlocked by the season hitting its bag target. When the season falls
+     * short nobody wins one — the top ranks fall back to the discount voucher
+     * along with everyone else.
+     */
+    if (!targetReached(goal)) {
+      throw new BadRequestException(
+        'The community did not reach its goal this season, so the smartphone prize was not unlocked. You can still claim your discount.',
+      );
+    }
 
     if (rank > PHONE_MAX_RANK) {
       throw new BadRequestException(
@@ -122,8 +152,11 @@ export class PrizeClaimService {
     const goal = await this.requireEndedGoal();
     const rank = await this.requireUserRank(userId);
 
-    if (rank <= PHONE_MAX_RANK) {
-      throw new BadRequestException('Top 5 users should claim a smartphone, not a discount.');
+    // Only steer the top ranks to the smartphone when there *is* one to win.
+    if (targetReached(goal) && rank <= PHONE_MAX_RANK) {
+      throw new BadRequestException(
+        `The top ${PHONE_MAX_RANK} should claim a smartphone, not a discount.`,
+      );
     }
 
     const establishment = await this.establishmentModel.findById(establishmentId);
@@ -155,6 +188,23 @@ export class PrizeClaimService {
     );
 
     return this.toResponse(claim);
+  }
+
+  /**
+   * Which prize this rank qualifies for, given how the season ended.
+   *
+   * Two payouts with different rules: the smartphone is collective and needs
+   * the community target; the discount voucher is the personal payout for the
+   * points you earned yourself, so it is unconditional. A season that fell
+   * short pays everyone a discount, the top ranks included.
+   */
+  private eligiblePrizeType(
+    rank: number | null,
+    goal: Pick<CommunityBagGoal, 'currentCount' | 'targetCount'>,
+  ): PrizeType {
+    return rank !== null && rank <= PHONE_MAX_RANK && targetReached(goal)
+      ? PrizeType.SMARTPHONE
+      : PrizeType.DISCOUNT;
   }
 
   private async getEndedGoal() {

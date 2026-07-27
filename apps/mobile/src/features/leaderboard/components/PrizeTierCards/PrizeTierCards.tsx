@@ -20,6 +20,7 @@ import {
   TEXT_30,
   TEXT_WHITE,
 } from '../../constants/palette';
+import { DISCOUNT_PRIZE_MIN_RANK, PHONE_PRIZE_MAX_RANK } from '../../utils/prizeTiers';
 
 import type { RowTier } from '../../utils/prizeTiers';
 
@@ -75,11 +76,22 @@ interface TierCardProps {
   icon: string;
   nameKey: string;
   tierLabelKey: string;
+  /**
+   * Interpolated into `tierLabelKey`. A primitive rather than a values object
+   * so the prop identity stays stable across renders.
+   */
+  tierLabelRank: number;
   /** Whether this is the tier the current user is on track for. */
   isYours: boolean;
 }
 
-const TierCard: React.FC<TierCardProps> = ({ icon, nameKey, tierLabelKey, isYours }) => {
+const TierCard: React.FC<TierCardProps> = ({
+  icon,
+  nameKey,
+  tierLabelKey,
+  tierLabelRank,
+  isYours,
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -87,7 +99,9 @@ const TierCard: React.FC<TierCardProps> = ({ icon, nameKey, tierLabelKey, isYour
       {isYours && <Text style={styles.youBadge}>{t('leaderboard.yourTierBadge')}</Text>}
       <Text style={styles.icon}>{icon}</Text>
       <Text style={[styles.name, isYours && styles.nameGold]}>{t(nameKey)}</Text>
-      <Text style={styles.tier}>{t(tierLabelKey)}</Text>
+      <Text style={styles.tier}>
+        {t(tierLabelKey, { count: tierLabelRank, rank: tierLabelRank })}
+      </Text>
     </View>
   );
 };
@@ -102,13 +116,15 @@ const PrizeTierCardsComponent: React.FC<PrizeTierCardsProps> = ({ userTier }) =>
     <TierCard
       icon='📱'
       nameKey='leaderboard.prizeSmartphone'
-      tierLabelKey='leaderboard.tierTop5'
+      tierLabelKey='leaderboard.tierTopWinners'
+      tierLabelRank={PHONE_PRIZE_MAX_RANK}
       isYours={userTier === 'phone'}
     />
     <TierCard
       icon='🎁'
       nameKey='leaderboard.prizeDiscount'
-      tierLabelKey='leaderboard.tierRank6Plus'
+      tierLabelKey='leaderboard.tierBelowPrize'
+      tierLabelRank={DISCOUNT_PRIZE_MIN_RANK}
       isYours={userTier === 'discount'}
     />
   </View>
