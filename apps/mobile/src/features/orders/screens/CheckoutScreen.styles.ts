@@ -14,24 +14,24 @@ import { Platform, StyleSheet } from 'react-native';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 
-export const SCREEN_BACKGROUND = '#F8FAFC';
-export const SURFACE = '#FFFFFF';
-export const TEXT_PRIMARY = '#1F2937';
-export const TEXT_SECONDARY = '#64748B';
-export const TEXT_TERTIARY = '#475569';
-export const TEXT_DISABLED = '#94A3B8';
-export const BORDER_SUBTLE = '#E2E8F0';
+const SCREEN_BACKGROUND = '#F8FAFC';
+const SURFACE = '#FFFFFF';
+const TEXT_PRIMARY = '#1F2937';
+const TEXT_SECONDARY = '#64748B';
+const TEXT_TERTIARY = '#475569';
+const TEXT_DISABLED = '#94A3B8';
+const BORDER_SUBTLE = '#E2E8F0';
 export const BRAND_PRIMARY = colorTokens.base.primary[500];
-export const SUCCESS_BORDER = colorTokens.base.success[500];
-export const SUCCESS_SURFACE = '#F0FDF4';
-export const SUCCESS_TINT = '#D1FAE5';
+const SUCCESS_BORDER = colorTokens.base.success[500];
+const SUCCESS_SURFACE = '#F0FDF4';
+const SUCCESS_TINT = '#D1FAE5';
 export const SUCCESS_TEXT = '#059669';
-export const WARNING_SURFACE = '#FEF3C7';
+const WARNING_SURFACE = '#FEF3C7';
 export const WARNING_TEXT = '#92400E';
-export const ERROR_SURFACE = '#FEF2F2';
-export const ERROR_BORDER = colorTokens.base.error[500];
+const ERROR_SURFACE = '#FEF2F2';
+const ERROR_BORDER = colorTokens.base.error[500];
 export const ERROR_TEXT = '#991B1B';
-export const WHITE = '#FFFFFF';
+const WHITE = '#FFFFFF';
 
 export const styles = StyleSheet.create({
   container: {

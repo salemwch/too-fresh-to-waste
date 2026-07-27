@@ -552,7 +552,6 @@ export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenti
 export const selectIsRecoveringSession = (state: RootState): boolean =>
   state.auth.isRecoveringSession;
 
-
 // ── Re-exports ───────────────────────────────────────────────────────────────
 // The thunks moved to ./thunks during the split. Re-exported here so every
 // existing import of '@/features/auth/store/authSlice' keeps working — the
@@ -570,4 +569,3 @@ export {
   syncCurrentUserAsync,
   updateProfileAsync,
 };
-export { initialState } from './authState';

@@ -13,21 +13,21 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const PRIMARY_COLOR = colorTokens.base.primary[500];
 
-export const SURFACE = '#fff';
-export const SURFACE_MUTED = '#e5e7eb';
-export const SURFACE_SUBTLE = '#f3f4f6';
-export const SURFACE_SOFT = '#eafaf8';
-export const SURFACE_OVERLAY = 'rgba(255,255,255,0.9)';
-export const BACKDROP = 'rgba(0,0,0,0.6)';
-export const SHADOW = '#000';
-export const TEXT_PRIMARY = '#111827';
-export const TEXT_MUTED = '#4b5563';
-export const TEXT_SECONDARY = '#6b7280';
-export const TEXT_TERTIARY = '#9ca3af';
+const SURFACE = '#fff';
+const SURFACE_MUTED = '#e5e7eb';
+const SURFACE_SUBTLE = '#f3f4f6';
+const SURFACE_SOFT = '#eafaf8';
+const SURFACE_OVERLAY = 'rgba(255,255,255,0.9)';
+const BACKDROP = 'rgba(0,0,0,0.6)';
+const SHADOW = '#000';
+const TEXT_PRIMARY = '#111827';
+const TEXT_MUTED = '#4b5563';
+const TEXT_SECONDARY = '#6b7280';
+const TEXT_TERTIARY = '#9ca3af';
 export const WHITE = '#fff';
 export const INDIGO = '#6366f1';
-export const TEAL = '#0f766e';
-export const SUCCESS_BORDER = '#a7f3d0';
+const TEAL = '#0f766e';
+const SUCCESS_BORDER = '#a7f3d0';
 
 export const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -241,4 +241,3 @@ export const styles = StyleSheet.create({
   modalDivider: { height: 1, backgroundColor: SURFACE_MUTED, marginVertical: 20 },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });
-

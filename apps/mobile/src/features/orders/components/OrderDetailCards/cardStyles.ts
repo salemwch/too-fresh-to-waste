@@ -10,7 +10,7 @@
 import { StyleSheet } from 'react-native';
 
 /** Hairline between rows and sections. */
-export const DIVIDER_COLOR = '#e5e7eb';
+const DIVIDER_COLOR = '#e5e7eb';
 
 export const cardStyles = StyleSheet.create({
   card: {

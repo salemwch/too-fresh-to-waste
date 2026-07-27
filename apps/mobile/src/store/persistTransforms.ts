@@ -30,7 +30,7 @@ interface RootPersistState {
 /**
  * @param runtimeDefaults per-run flags: stripped on write, forced on read.
  */
-export const createTransientStateTransform = <TState extends TransientSliceState<unknown>>(
+const createTransientStateTransform = <TState extends TransientSliceState<unknown>>(
   reducerKey: keyof RootPersistState,
   errorValue: TState['error'],
   runtimeDefaults: Partial<TState> = {},
