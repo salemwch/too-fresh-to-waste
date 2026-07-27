@@ -12,14 +12,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
 import {
-  CommunityBagGoal,
-  CommunityBagGoalDocument,
-} from '../../community-goal/schemas/community-bag-goal.schema';
-import {
   Establishment,
   EstablishmentDocument,
 } from '../../establishments/schemas/establishment.schema';
 import { EmailNotificationService } from '../../notifications/services/email-notification.service';
+import { VotingCycle, type VotingCycleDocument } from '../../voting/schemas/voting-cycle.schema';
 import { outranking } from '../constants/leaderboard-ranking';
 import { LoyaltyAccount, LoyaltyAccountDocument } from '../schemas/loyalty-account.schema';
 import {
@@ -62,13 +59,19 @@ const isDuplicateKeyError = (
 /**
  * Did the season hit its community bag target?
  *
- * The season is a fixed window — see `docs/plans/cycle-lifecycle-scenarios.md`
- * §4.1 — so reaching the target does not end it early. The target is read once,
- * here, when the season is already over, and it decides only whether the
- * collective prizes unlocked.
+ * Reads the **season** (`VotingCycle`, 30,000 bags), not the recurring
+ * mini-goal (`CommunityBagGoal`, 500 bags → points). Those are two different
+ * features that both count bags; gating the grand prize on the mini-goal meant
+ * it unlocked at 500. See `docs/plans/merge-two-prize-systems.md` §2.
+ *
+ * The season is a fixed window — see `cycle-lifecycle-scenarios.md` §4.1 — so
+ * reaching the target does not end it early. The target is read once, here,
+ * when the season is already over, and decides only whether the collective
+ * prizes unlocked.
  */
-const targetReached = (goal: Pick<CommunityBagGoal, 'currentCount' | 'targetCount'>): boolean =>
-  goal.currentCount >= goal.targetCount;
+const targetReached = (
+  season: Pick<VotingCycle, 'communityGoalProgress' | 'communityGoalTarget'>,
+): boolean => season.communityGoalProgress >= season.communityGoalTarget;
 
 @Injectable()
 export class PrizeClaimService {
@@ -77,7 +80,7 @@ export class PrizeClaimService {
   constructor(
     @InjectModel(PrizeClaim.name) private readonly prizeClaimModel: Model<PrizeClaimDocument>,
     @InjectModel(LoyaltyAccount.name) private readonly loyaltyModel: Model<LoyaltyAccountDocument>,
-    @InjectModel(CommunityBagGoal.name) private readonly goalModel: Model<CommunityBagGoalDocument>,
+    @InjectModel(VotingCycle.name) private readonly seasonModel: Model<VotingCycleDocument>,
     @InjectModel(Establishment.name)
     private readonly establishmentModel: Model<EstablishmentDocument>,
     private readonly emailService: EmailNotificationService,
@@ -85,8 +88,8 @@ export class PrizeClaimService {
   ) {}
 
   async getClaimStatus(userId: string) {
-    const goal = await this.getEndedGoal();
-    if (!goal) {
+    const season = await this.getEndedSeason();
+    if (!season) {
       return {
         hasClaimed: false,
         claim: null,
@@ -97,11 +100,11 @@ export class PrizeClaimService {
     }
 
     const rank = await this.getUserRank(userId);
-    const eligiblePrizeType = this.eligiblePrizeType(rank, goal);
+    const eligiblePrizeType = this.eligiblePrizeType(rank, season);
 
     const existing = await this.prizeClaimModel.findOne({
       userId: new Types.ObjectId(userId),
-      cycleNumber: goal.cycleNumber,
+      cycleNumber: season.cycleNumber,
     });
 
     return {
@@ -109,12 +112,12 @@ export class PrizeClaimService {
       claim: existing ? this.toResponse(existing) : null,
       eligiblePrizeType: rank !== null ? eligiblePrizeType : null,
       rank,
-      targetReached: targetReached(goal),
+      targetReached: targetReached(season),
     };
   }
 
   async claimSmartphone(userId: string) {
-    const goal = await this.requireEndedGoal();
+    const season = await this.requireEndedSeason();
     const rank = await this.requireUserRank(userId);
 
     /*
@@ -123,7 +126,7 @@ export class PrizeClaimService {
      * short nobody wins one — the top ranks fall back to the discount voucher
      * along with everyone else.
      */
-    if (!targetReached(goal)) {
+    if (!targetReached(season)) {
       throw new BadRequestException(
         'The community did not reach its goal this season, so the smartphone prize was not unlocked. You can still claim your discount.',
       );
@@ -135,7 +138,7 @@ export class PrizeClaimService {
       );
     }
 
-    await this.ensureNoDuplicateClaim(userId, goal.cycleNumber);
+    await this.ensureNoDuplicateClaim(userId, season.cycleNumber);
 
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     const totalPoints = account?.totalPoints ?? 0;
@@ -146,12 +149,12 @@ export class PrizeClaimService {
       status: PrizeClaimStatus.PENDING,
       rank,
       totalPoints,
-      cycleNumber: goal.cycleNumber,
+      cycleNumber: season.cycleNumber,
     });
 
     this.logger.log(`Smartphone claimed by user ${userId} at rank ${rank}`);
 
-    this.sendAdminNotification(userId, rank, totalPoints, goal.cycleNumber).catch(err =>
+    this.sendAdminNotification(userId, rank, totalPoints, season.cycleNumber).catch(err =>
       this.logger.error(`Admin notification failed: ${(err as Error).message}`),
     );
 
@@ -159,11 +162,11 @@ export class PrizeClaimService {
   }
 
   async claimDiscount(userId: string, establishmentId: string) {
-    const goal = await this.requireEndedGoal();
+    const season = await this.requireEndedSeason();
     const rank = await this.requireUserRank(userId);
 
     // Only steer the top ranks to the smartphone when there *is* one to win.
-    if (targetReached(goal) && rank <= PHONE_MAX_RANK) {
+    if (targetReached(season) && rank <= PHONE_MAX_RANK) {
       throw new BadRequestException(
         `The top ${PHONE_MAX_RANK} should claim a smartphone, not a discount.`,
       );
@@ -174,7 +177,7 @@ export class PrizeClaimService {
       throw new NotFoundException('Establishment not found');
     }
 
-    await this.ensureNoDuplicateClaim(userId, goal.cycleNumber);
+    await this.ensureNoDuplicateClaim(userId, season.cycleNumber);
 
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     const totalPoints = account?.totalPoints ?? 0;
@@ -187,7 +190,7 @@ export class PrizeClaimService {
       status: PrizeClaimStatus.PENDING,
       rank,
       totalPoints,
-      cycleNumber: goal.cycleNumber,
+      cycleNumber: season.cycleNumber,
       establishmentId: new Types.ObjectId(establishmentId),
       establishmentName: establishment.name,
       voucherCode,
@@ -210,26 +213,35 @@ export class PrizeClaimService {
    */
   private eligiblePrizeType(
     rank: number | null,
-    goal: Pick<CommunityBagGoal, 'currentCount' | 'targetCount'>,
+    season: Pick<VotingCycle, 'communityGoalProgress' | 'communityGoalTarget'>,
   ): PrizeType {
-    return rank !== null && rank <= PHONE_MAX_RANK && targetReached(goal)
+    return rank !== null && rank <= PHONE_MAX_RANK && targetReached(season)
       ? PrizeType.SMARTPHONE
       : PrizeType.DISCOUNT;
   }
 
-  private async getEndedGoal() {
-    const goal = await this.goalModel
-      .findOne({ endDate: { $lte: new Date() } })
+  /**
+   * The most recent season that has ended, or null.
+   *
+   * Reads `VotingCycle.cycleEndDate`, not the mini-goal's `endDate`. The
+   * mini-goal repeats every 500 bags and its end date says nothing about
+   * whether the season is over.
+   */
+  private async getEndedSeason() {
+    // Assigned rather than `return await`: require-await wants the await,
+    // no-return-await forbids returning it directly.
+    const season = await this.seasonModel
+      .findOne({ cycleEndDate: { $lte: new Date() } })
       .sort({ cycleNumber: -1 });
-    return goal;
+    return season;
   }
 
-  private async requireEndedGoal() {
-    const goal = await this.getEndedGoal();
-    if (!goal) {
+  private async requireEndedSeason() {
+    const season = await this.getEndedSeason();
+    if (!season) {
       throw new BadRequestException('No challenge has ended yet. Prizes cannot be claimed.');
     }
-    return goal;
+    return season;
   }
 
   /**

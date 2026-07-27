@@ -16,19 +16,26 @@ const RANK_6_USER = '660000000000000000000006';
 /** Has no loyalty account at all. */
 const UNKNOWN_USER = '660000000000000000000099';
 
-/** A season that ended having met its community bag target. */
+/**
+ * A season that ended having met its bag target.
+ *
+ * A VotingCycle, not a CommunityBagGoal. The two both count bags but are
+ * different features — the mini-goal repeats every 500 bags and pays points,
+ * the season runs to 30,000 and unlocks the grand prize. Gating prizes on the
+ * mini-goal meant they unlocked at 500.
+ */
 const makeGoal = (overrides: Record<string, unknown> = {}) => ({
   _id: new Types.ObjectId(),
   cycleNumber: 1,
-  endDate: new Date('2025-01-01'),
-  currentCount: 30_000,
-  targetCount: 30_000,
+  cycleEndDate: new Date('2025-01-01'),
+  communityGoalProgress: 30_000,
+  communityGoalTarget: 30_000,
   ...overrides,
 });
 
-/** A season that ended short of its target — no smartphone is unlocked. */
+/** A season that ended short of its target — no grand prize is unlocked. */
 const makeMissedGoal = (overrides: Record<string, unknown> = {}) =>
-  makeGoal({ currentCount: 22_000, targetCount: 30_000, ...overrides });
+  makeGoal({ communityGoalProgress: 22_000, communityGoalTarget: 30_000, ...overrides });
 
 const makeClaim = (overrides: Record<string, unknown> = {}) => ({
   _id: new Types.ObjectId(),
@@ -171,7 +178,7 @@ const buildMocks = (accounts: FakeAccount[] = defaultAccounts()) => {
     find: jest.fn(),
   };
 
-  const goalModel = {
+  const seasonModel = {
     findOne: jest.fn().mockReturnValue({
       sort: jest.fn().mockResolvedValue(makeGoal()),
     }),
@@ -187,7 +194,7 @@ const buildMocks = (accounts: FakeAccount[] = defaultAccounts()) => {
   return {
     prizeClaimModel,
     loyaltyModel,
-    goalModel,
+    seasonModel,
     establishmentModel,
     emailService,
     configService,
@@ -198,7 +205,7 @@ const buildService = (mocks: ReturnType<typeof buildMocks>) =>
   new PrizeClaimService(
     mocks.prizeClaimModel as never,
     mocks.loyaltyModel as never,
-    mocks.goalModel as never,
+    mocks.seasonModel as never,
     mocks.establishmentModel as never,
     mocks.emailService as never,
     mocks.configService as never,
@@ -219,7 +226,7 @@ describe('PrizeClaimService', () => {
 
   describe('getClaimStatus', () => {
     it('should return defaults when no challenge has ended', async () => {
-      mocks.goalModel.findOne.mockReturnValue({ sort: jest.fn().mockResolvedValue(null) });
+      mocks.seasonModel.findOne.mockReturnValue({ sort: jest.fn().mockResolvedValue(null) });
 
       const result = await service.getClaimStatus(USER_ID);
 
@@ -484,7 +491,7 @@ describe('PrizeClaimService', () => {
     });
 
     it('should reject when no challenge has ended', async () => {
-      mocks.goalModel.findOne.mockReturnValue({ sort: jest.fn().mockResolvedValue(null) });
+      mocks.seasonModel.findOne.mockReturnValue({ sort: jest.fn().mockResolvedValue(null) });
 
       await expect(service.claimSmartphone(USER_ID)).rejects.toThrow(BadRequestException);
     });
@@ -563,7 +570,7 @@ describe('PrizeClaimService', () => {
     });
 
     it('should reject when no challenge has ended', async () => {
-      mocks.goalModel.findOne.mockReturnValue({ sort: jest.fn().mockResolvedValue(null) });
+      mocks.seasonModel.findOne.mockReturnValue({ sort: jest.fn().mockResolvedValue(null) });
 
       await expect(service.claimDiscount(RANK_6_USER, EST_ID)).rejects.toThrow(BadRequestException);
     });
@@ -592,7 +599,7 @@ describe('PrizeClaimService', () => {
 
     beforeEach(() => {
       missed = buildMocks();
-      missed.goalModel.findOne.mockReturnValue({
+      missed.seasonModel.findOne.mockReturnValue({
         sort: jest.fn().mockResolvedValue(makeMissedGoal()),
       });
       missedService = buildService(missed);
@@ -644,8 +651,12 @@ describe('PrizeClaimService', () => {
     // Exactly on target is a success, not a shortfall.
     it('treats hitting the target exactly as reached', async () => {
       const exact = buildMocks();
-      exact.goalModel.findOne.mockReturnValue({
-        sort: jest.fn().mockResolvedValue(makeGoal({ currentCount: 30_000, targetCount: 30_000 })),
+      exact.seasonModel.findOne.mockReturnValue({
+        sort: jest
+          .fn()
+          .mockResolvedValue(
+            makeGoal({ communityGoalProgress: 30_000, communityGoalTarget: 30_000 }),
+          ),
       });
 
       const result = await buildService(exact).getClaimStatus(USER_ID);
@@ -657,8 +668,12 @@ describe('PrizeClaimService', () => {
     // One bag short is still short.
     it('treats one bag short as missed', async () => {
       const nearly = buildMocks();
-      nearly.goalModel.findOne.mockReturnValue({
-        sort: jest.fn().mockResolvedValue(makeGoal({ currentCount: 29_999, targetCount: 30_000 })),
+      nearly.seasonModel.findOne.mockReturnValue({
+        sort: jest
+          .fn()
+          .mockResolvedValue(
+            makeGoal({ communityGoalProgress: 29_999, communityGoalTarget: 30_000 }),
+          ),
       });
 
       const result = await buildService(nearly).getClaimStatus(USER_ID);
@@ -669,14 +684,82 @@ describe('PrizeClaimService', () => {
     // Overshooting is normal — the season runs its full term either way.
     it('treats overshooting the target as reached', async () => {
       const over = buildMocks();
-      over.goalModel.findOne.mockReturnValue({
-        sort: jest.fn().mockResolvedValue(makeGoal({ currentCount: 34_000, targetCount: 30_000 })),
+      over.seasonModel.findOne.mockReturnValue({
+        sort: jest
+          .fn()
+          .mockResolvedValue(
+            makeGoal({ communityGoalProgress: 34_000, communityGoalTarget: 30_000 }),
+          ),
       });
 
       const result = await buildService(over).getClaimStatus(USER_ID);
 
       expect(result.targetReached).toBe(true);
       expect(result.eligiblePrizeType).toBe(PrizeType.SMARTPHONE);
+    });
+  });
+
+  // ─── season vs mini-goal ────────────────────────────────────────────────────
+
+  /*
+   * Two features both count bags and must not be confused:
+   *
+   *   CommunityBagGoal  500 bags   → pays points, resets, repeats
+   *   VotingCycle       30,000     → unlocks the grand prize, once per season
+   *
+   * Prize claiming read the mini-goal, so the grand prize unlocked at 500 and
+   * claims were filed against the mini-goal's cycle number. These tests pin the
+   * season as the only thing consulted.
+   */
+  describe('reads the season, not the recurring mini-goal', () => {
+    it('is unlocked by the season target, not by 500 bags', async () => {
+      const scoped = buildMocks();
+      scoped.seasonModel.findOne.mockReturnValue({
+        // Past the 500 mini-goal, nowhere near the 30,000 season target.
+        sort: jest
+          .fn()
+          .mockResolvedValue(makeGoal({ communityGoalProgress: 600, communityGoalTarget: 30_000 })),
+      });
+
+      const result = await buildService(scoped).getClaimStatus(USER_ID);
+
+      expect(result.targetReached).toBe(false);
+      expect(result.eligiblePrizeType).toBe(PrizeType.DISCOUNT);
+    });
+
+    it('files the claim against the season cycle number', async () => {
+      const scoped = buildMocks();
+      scoped.seasonModel.findOne.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(makeGoal({ cycleNumber: 7 })),
+      });
+
+      await buildService(scoped).claimSmartphone(USER_ID);
+
+      expect(scoped.prizeClaimModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({ cycleNumber: 7 }),
+      );
+    });
+
+    // Scenario F: no season means no grand prize, not a fallback to the
+    // mini-goal — which is exactly how the bug read.
+    it('reports nothing to claim when no season has ended', async () => {
+      const scoped = buildMocks();
+      scoped.seasonModel.findOne.mockReturnValue({ sort: jest.fn().mockResolvedValue(null) });
+
+      const result = await buildService(scoped).getClaimStatus(USER_ID);
+
+      expect(result.eligiblePrizeType).toBeNull();
+      expect(result.targetReached).toBe(false);
+    });
+
+    it('ends the season on cycleEndDate', async () => {
+      const scoped = buildMocks();
+
+      await buildService(scoped).getClaimStatus(USER_ID);
+
+      expect(scoped.seasonModel.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ cycleEndDate: expect.anything() }),
+      );
     });
   });
 

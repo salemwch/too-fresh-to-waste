@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { CommunityGoalModule } from '../community-goal/community-goal.module';
+import { VotingCycle, VotingCycleSchema } from '../voting/schemas/voting-cycle.schema';
+
 import {
   CommunityBagGoal,
   CommunityBagGoalSchema,
@@ -37,6 +39,10 @@ import { PrizeClaimService } from './services/prize-claim.service';
       { name: PrizeClaim.name, schema: PrizeClaimSchema },
       { name: Establishment.name, schema: EstablishmentSchema },
       { name: CommunityBagGoal.name, schema: CommunityBagGoalSchema },
+      // The season, for prize claiming. Registered as a model rather than
+      // importing VotingModule, which would be circular — VotingModule already
+      // imports LoyaltyModule.
+      { name: VotingCycle.name, schema: VotingCycleSchema },
     ]),
     forwardRef(() => DonationsModule),
     forwardRef(() => VotingModule),
