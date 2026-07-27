@@ -5,6 +5,64 @@ be built. Grounded in the code as of 2026-07-27, not in intent.
 
 ---
 
+## 0. There are also two prize systems, not one
+
+Found 2026-07-27 after being told the prize is not only a phone — it is a
+smartphone, a year's gym membership with protein, a 1000 DNT voucher, a 5-day
+hotel stay, or an electric scooter.
+
+**All five already exist in the code**, as `PrizeCategory` in
+`packages/shared/src/enums/voting.enum.ts`: `PHONE`, `HOTEL_STAY`,
+`SHOPPING_VOUCHER`, `GYM_MEMBERSHIP`, `ELECTRIC_SCOOTER`, `CUSTOM`. They belong
+to the **voting** module, which is a second, parallel prize system that the bag
+goal knows nothing about.
+
+|               | `prize-claim.service.ts`                    | `voting-prize.service.ts`                   |
+| ------------- | ------------------------------------------- | ------------------------------------------- |
+| `PrizeSource` | `BAG_GOAL`                                  | `VOTING`                                    |
+| Who wins      | top ranks of the **leaderboard**            | top voters **who backed the winning prize** |
+| How many      | `PHONE_MAX_RANK` (3, hardcoded)             | `recipientCount` (admin-set, per cycle)     |
+| What they win | `PrizeType.SMARTPHONE` — **phones only**    | whichever `PrizeCategory` won the vote      |
+| Trigger       | `CommunityBagGoal.endDate` + target reached | `VotingCycle.status === COMPLETED`          |
+| Everyone else | `PrizeType.DISCOUNT` voucher                | nothing                                     |
+
+**The consequence:** `PrizeType` has two values (`SMARTPHONE`, `DISCOUNT`) while
+`PrizeCategory` has six. The bag-goal path can only ever award a phone. The
+scooter, the hotel stay, the gym year and the 1000 DNT voucher are reachable
+**only** through a voting cycle.
+
+So "the top 3 win a smartphone" is only correct if the community always votes
+for the phone. If the season's vote picks the scooter, the top 3 should win a
+scooter — and today's bag-goal code has no way to express that.
+
+Worse, `voting-prize.service.claimPrize` writes `prizeType: PrizeType.DISCOUNT`
+for **every** voting winner, whatever they actually won. The real prize name
+lives in `cycle.winner.name`. `PrizeClaim.prizeType` is therefore not a reliable
+record of what was awarded, and any admin screen or report reading it is wrong.
+
+### 0.1 A live index bug between the two
+
+```ts
+PrizeClaimSchema.index({ userId: 1, cycleNumber: 1 }, { unique: true }); // NOT partial
+PrizeClaimSchema.index(
+  { userId: 1, votingCycleId: 1 },
+  { unique: true, partialFilterExpression: { source: PrizeSource.VOTING } },
+);
+```
+
+The second index was written to scope voting claims — but the **first one is not
+partial**, so it applies to them as well. Voting claims store `cycleNumber` from
+the `VotingCycle` sequence, which is independent of the `CommunityBagGoal`
+sequence (§1). The moment those two numbers coincide, a user who claims a bag
+goal prize and then a voting prize is rejected by the unique index on their
+second, legitimate claim.
+
+The fix is to make the first index partial on `source: BAG_GOAL`. Note this now
+surfaces as a 409 "you have already claimed" rather than a 500 (scenario S), so
+it will look like correct behaviour rather than a bug.
+
+---
+
 ## 1. There are two community goals, not one
 
 This is the finding that everything else follows from. Two independent models
@@ -129,13 +187,13 @@ and the reset must be one operation, and it must be idempotent because the cron
 can retry.
 
 Still needs: an in-app warning before season end so the user knows the score is
-about to clear, and the conversion rate itself (§4.4).
+about to clear, and the conversion rate itself (§4.5).
 
 ### J. Merchant "reset"
 
 `MerchantGoal` is `targetBagsPerMonth` — **monthly**, not aligned to a 6-month
 consumer season at all. There is nothing to reset in step; the two run on
-different clocks by construction. Open — see §4.4.
+different clocks by construction. Open — see §4.5.
 
 ### K. Admin resets by hand mid-cycle
 
@@ -305,7 +363,27 @@ Note that `Tier` carries a `multiplier` — resetting the tier resets the earn
 rate too, so every season starts at 1×. That is intended, but it means the first
 weeks of a season earn more slowly than the last weeks of the previous one.
 
-### 4.4 Still open
+### 4.4 The prize is not always a phone — unresolved
+
+§0 shows five prize kinds exist, but only in the voting module. Three questions
+follow, and the answers decide whether the two prize systems merge or one is
+deleted:
+
+1. **Who picks the prize?** Does the community vote each season (voting module),
+   or does the admin set it (bag goal)? Both are built. They cannot both be
+   authoritative.
+2. **Is "3 winners" the leaderboard top 3, or the voting `recipientCount`?**
+   `PHONE_MAX_RANK` is now 3, but `recipientCount` is admin-configurable per
+   cycle and defines a different population — the top _voters who backed the
+   winning prize_, not the top of the leaderboard.
+3. **Do the top 3 win the voted prize, or always a phone?** Today the bag-goal
+   path hardcodes `SMARTPHONE`. If the season's vote picks the scooter, the code
+   cannot award it.
+
+Until this is settled, `PHONE_MAX_RANK = 3` and `PrizeType.SMARTPHONE` encode an
+assumption — "the prize is a phone" — that the product does not hold.
+
+### 4.5 Still open
 
 - **The conversion rate.** Points → discount value is undefined. Today
   `claimDiscount` records `totalPoints` on the claim but the voucher carries no
