@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 
-import { CommunityGoalAdminController } from '../community-goal-admin.controller';
-import { CommunityGoalService } from '../community-goal.service';
+import { MonthlyBagGoalAdminController } from '../community-goal-admin.controller';
+import { MonthlyBagGoalService } from '../community-goal.service';
 
 import type { TestingModule } from '@nestjs/testing';
 
@@ -16,25 +16,25 @@ const mockGoalStats = {
   seasonName: 'Summer Challenge',
 };
 
-describe('CommunityGoalAdminController', () => {
-  let controller: CommunityGoalAdminController;
-  let communityGoalService: {
+describe('MonthlyBagGoalAdminController', () => {
+  let controller: MonthlyBagGoalAdminController;
+  let monthlyBagGoalService: {
     setGoalTarget: jest.Mock;
     resetGoal: jest.Mock;
   };
 
   beforeEach(async () => {
-    communityGoalService = {
+    monthlyBagGoalService = {
       setGoalTarget: jest.fn().mockResolvedValue(mockGoalStats),
       resetGoal: jest.fn().mockResolvedValue(mockGoalStats),
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [CommunityGoalAdminController],
-      providers: [{ provide: CommunityGoalService, useValue: communityGoalService }],
+      controllers: [MonthlyBagGoalAdminController],
+      providers: [{ provide: MonthlyBagGoalService, useValue: monthlyBagGoalService }],
     }).compile();
 
-    controller = module.get<CommunityGoalAdminController>(CommunityGoalAdminController);
+    controller = module.get<MonthlyBagGoalAdminController>(MonthlyBagGoalAdminController);
   });
 
   describe('setTarget', () => {
@@ -42,7 +42,7 @@ describe('CommunityGoalAdminController', () => {
 
     it('should pass adminId to service (not undefined)', async () => {
       await controller.setTarget(dto as never, VALID_ADMIN_ID);
-      expect(communityGoalService.setGoalTarget).toHaveBeenCalledWith(
+      expect(monthlyBagGoalService.setGoalTarget).toHaveBeenCalledWith(
         200,
         VALID_ADMIN_ID,
         expect.any(Object),
@@ -71,7 +71,7 @@ describe('CommunityGoalAdminController', () => {
         rewardPoints: 100,
       };
       await controller.setTarget(fullDto as never, VALID_ADMIN_ID);
-      expect(communityGoalService.setGoalTarget).toHaveBeenCalledWith(500, VALID_ADMIN_ID, {
+      expect(monthlyBagGoalService.setGoalTarget).toHaveBeenCalledWith(500, VALID_ADMIN_ID, {
         causeType: 'food_bank',
         causeTitle: 'Winter Drive',
         seasonName: 'Winter 2026',
@@ -83,7 +83,7 @@ describe('CommunityGoalAdminController', () => {
   describe('reset', () => {
     it('should pass adminId to resetGoal service (not undefined)', async () => {
       await controller.reset(VALID_ADMIN_ID);
-      expect(communityGoalService.resetGoal).toHaveBeenCalledWith(VALID_ADMIN_ID);
+      expect(monthlyBagGoalService.resetGoal).toHaveBeenCalledWith(VALID_ADMIN_ID);
     });
 
     it('should return reset stats', async () => {

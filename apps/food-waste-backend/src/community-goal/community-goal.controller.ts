@@ -3,15 +3,15 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { Public } from '../common/decorators/public.decorator';
 
-import { CommunityGoalService } from './community-goal.service';
-import { CommunityGoalStatsResponseDto } from './dto/community-goal.dto';
+import { MonthlyBagGoalService } from './community-goal.service';
+import { MonthlyBagGoalStatsResponseDto } from './dto/community-goal.dto';
 
 @ApiTags('Community Goal')
 @Controller('community-goal')
-export class CommunityGoalController {
-  private readonly logger = new Logger(CommunityGoalController.name);
+export class MonthlyBagGoalController {
+  private readonly logger = new Logger(MonthlyBagGoalController.name);
 
-  constructor(private readonly communityGoalService: CommunityGoalService) {}
+  constructor(private readonly monthlyBagGoalService: MonthlyBagGoalService) {}
 
   /**
    * GET /community-goal/stats
@@ -28,15 +28,15 @@ export class CommunityGoalController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Community goal statistics retrieved successfully',
-    type: CommunityGoalStatsResponseDto,
+    type: MonthlyBagGoalStatsResponseDto,
   })
   async getStats(): Promise<{
     message: string;
-    data: CommunityGoalStatsResponseDto;
+    data: MonthlyBagGoalStatsResponseDto;
   }> {
     this.logger.log('Fetching community bag goal statistics');
     try {
-      const stats = await this.communityGoalService.getStats();
+      const stats = await this.monthlyBagGoalService.getStats();
       return {
         message: 'Community goal statistics retrieved successfully',
         data: stats,

@@ -19,7 +19,7 @@ const UNKNOWN_USER = '660000000000000000000099';
 /**
  * A season that ended having met its bag target.
  *
- * A VotingCycle, not a CommunityBagGoal. The two both count bags but are
+ * A VotingCycle, not a MonthlyBagGoal. The two both count bags but are
  * different features — the mini-goal repeats every 500 bags and pays points,
  * the season runs to 30,000 and unlocks the grand prize. Gating prizes on the
  * mini-goal meant they unlocked at 500.
@@ -28,8 +28,8 @@ const makeGoal = (overrides: Record<string, unknown> = {}) => ({
   _id: new Types.ObjectId(),
   cycleNumber: 1,
   cycleEndDate: new Date('2025-01-01'),
-  communityGoalProgress: 30_000,
-  communityGoalTarget: 30_000,
+  seasonBagProgress: 30_000,
+  seasonBagTarget: 30_000,
   // How many top ranks win — admin-set per cycle, no longer hardcoded.
   recipientCount: 3,
   ...overrides,
@@ -37,7 +37,7 @@ const makeGoal = (overrides: Record<string, unknown> = {}) => ({
 
 /** A season that ended short of its target — no grand prize is unlocked. */
 const makeMissedGoal = (overrides: Record<string, unknown> = {}) =>
-  makeGoal({ communityGoalProgress: 22_000, communityGoalTarget: 30_000, ...overrides });
+  makeGoal({ seasonBagProgress: 22_000, seasonBagTarget: 30_000, ...overrides });
 
 const makeClaim = (overrides: Record<string, unknown> = {}) => ({
   _id: new Types.ObjectId(),
@@ -586,9 +586,7 @@ describe('PrizeClaimService', () => {
       exact.seasonModel.findOne.mockReturnValue({
         sort: jest
           .fn()
-          .mockResolvedValue(
-            makeGoal({ communityGoalProgress: 30_000, communityGoalTarget: 30_000 }),
-          ),
+          .mockResolvedValue(makeGoal({ seasonBagProgress: 30_000, seasonBagTarget: 30_000 })),
       });
 
       const result = await buildService(exact).getClaimStatus(USER_ID);
@@ -603,9 +601,7 @@ describe('PrizeClaimService', () => {
       nearly.seasonModel.findOne.mockReturnValue({
         sort: jest
           .fn()
-          .mockResolvedValue(
-            makeGoal({ communityGoalProgress: 29_999, communityGoalTarget: 30_000 }),
-          ),
+          .mockResolvedValue(makeGoal({ seasonBagProgress: 29_999, seasonBagTarget: 30_000 })),
       });
 
       const result = await buildService(nearly).getClaimStatus(USER_ID);
@@ -619,9 +615,7 @@ describe('PrizeClaimService', () => {
       over.seasonModel.findOne.mockReturnValue({
         sort: jest
           .fn()
-          .mockResolvedValue(
-            makeGoal({ communityGoalProgress: 34_000, communityGoalTarget: 30_000 }),
-          ),
+          .mockResolvedValue(makeGoal({ seasonBagProgress: 34_000, seasonBagTarget: 30_000 })),
       });
 
       const result = await buildService(over).getClaimStatus(USER_ID);
@@ -636,7 +630,7 @@ describe('PrizeClaimService', () => {
   /*
    * Two features both count bags and must not be confused:
    *
-   *   CommunityBagGoal  500 bags   → pays points, resets, repeats
+   *   MonthlyBagGoal  500 bags   → pays points, resets, repeats
    *   VotingCycle       30,000     → unlocks the grand prize, once per season
    *
    * Prize claiming read the mini-goal, so the grand prize unlocked at 500 and
@@ -650,7 +644,7 @@ describe('PrizeClaimService', () => {
         // Past the 500 mini-goal, nowhere near the 30,000 season target.
         sort: jest
           .fn()
-          .mockResolvedValue(makeGoal({ communityGoalProgress: 600, communityGoalTarget: 30_000 })),
+          .mockResolvedValue(makeGoal({ seasonBagProgress: 600, seasonBagTarget: 30_000 })),
       });
 
       const result = await buildService(scoped).getClaimStatus(USER_ID);

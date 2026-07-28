@@ -2,12 +2,12 @@ import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { CommunityGoalModule } from '../community-goal/community-goal.module';
+import { MonthlyBagGoalModule } from '../community-goal/community-goal.module';
 import { VotingCycle, VotingCycleSchema } from '../voting/schemas/voting-cycle.schema';
 
 import {
-  CommunityBagGoal,
-  CommunityBagGoalSchema,
+  MonthlyBagGoal,
+  MonthlyBagGoalSchema,
 } from '../community-goal/schemas/community-bag-goal.schema';
 import { DonationsModule } from '../donations/donations.module';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
@@ -38,7 +38,7 @@ import { PrizeClaimService } from './services/prize-claim.service';
       { name: User.name, schema: UserSchema },
       { name: PrizeClaim.name, schema: PrizeClaimSchema },
       { name: Establishment.name, schema: EstablishmentSchema },
-      { name: CommunityBagGoal.name, schema: CommunityBagGoalSchema },
+      { name: MonthlyBagGoal.name, schema: MonthlyBagGoalSchema },
       // The season, for prize claiming. Registered as a model rather than
       // importing VotingModule, which would be circular — VotingModule already
       // imports LoyaltyModule.
@@ -46,7 +46,7 @@ import { PrizeClaimService } from './services/prize-claim.service';
     ]),
     forwardRef(() => DonationsModule),
     forwardRef(() => VotingModule),
-    CommunityGoalModule,
+    MonthlyBagGoalModule,
     LeaderboardModule,
     NotificationsModule,
     ConfigModule,

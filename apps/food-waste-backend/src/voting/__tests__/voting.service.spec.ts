@@ -100,7 +100,7 @@ describe('VotingService', () => {
           name: 'Summer 2026',
           cycleStartDate: '2026-07-01T00:00:00Z',
           cycleEndDate: '2026-12-31T00:00:00Z',
-          communityGoalTarget: 30000,
+          seasonBagTarget: 30000,
           minimumBags: 50,
           recipientCount: 5,
           prizes: [
@@ -446,14 +446,14 @@ describe('VotingService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should reject communityGoalTarget in ACTIVE status (locked after draft)', async () => {
+    it('should reject seasonBagTarget in ACTIVE status (locked after draft)', async () => {
       cycleModel.findById.mockResolvedValue({
         _id: mockCycleId,
         status: CycleStatus.ACTIVE,
       });
 
       await expect(
-        service.updateCycle(mockCycleId.toString(), { communityGoalTarget: 9999 }),
+        service.updateCycle(mockCycleId.toString(), { seasonBagTarget: 9999 }),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -519,28 +519,28 @@ describe('VotingService', () => {
     });
   });
 
-  // ── incrementCommunityGoalProgress ────────────────────────────────────────
+  // ── incrementSeasonBagProgress ────────────────────────────────────────
 
-  describe('incrementCommunityGoalProgress', () => {
-    it('should $inc communityGoalProgress on the ACTIVE cycle', async () => {
+  describe('incrementSeasonBagProgress', () => {
+    it('should $inc seasonBagProgress on the ACTIVE cycle', async () => {
       cycleModel.updateOne.mockResolvedValue({ modifiedCount: 1 });
 
-      await service.incrementCommunityGoalProgress(3);
+      await service.incrementSeasonBagProgress(3);
 
       expect(cycleModel.updateOne).toHaveBeenCalledWith(
         { status: CycleStatus.ACTIVE },
-        { $inc: { communityGoalProgress: 3 } },
+        { $inc: { seasonBagProgress: 3 } },
       );
     });
 
     it('should increment by exactly the provided bagCount', async () => {
       cycleModel.updateOne.mockResolvedValue({ modifiedCount: 1 });
 
-      await service.incrementCommunityGoalProgress(10);
+      await service.incrementSeasonBagProgress(10);
 
       expect(cycleModel.updateOne).toHaveBeenCalledWith(
         { status: CycleStatus.ACTIVE },
-        { $inc: { communityGoalProgress: 10 } },
+        { $inc: { seasonBagProgress: 10 } },
       );
     });
   });

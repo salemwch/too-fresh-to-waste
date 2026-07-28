@@ -7,13 +7,13 @@ import { WebSocketEvents, WEBSOCKET_ROOMS } from '../websocket/interfaces/websoc
 import { WebSocketService } from '../websocket/websocket.service';
 
 import {
-  CommunityBagGoal,
-  CommunityBagGoalDocument,
-  CommunityGoalStatus,
-  CommunityGoalCauseType,
+  MonthlyBagGoal,
+  MonthlyBagGoalDocument,
+  MonthlyGoalStatus,
+  MonthlyGoalCauseType,
 } from './schemas/community-bag-goal.schema';
 
-import type { CommunityBagGoalStats } from '@foodwaste/shared';
+import type { MonthlyBagGoalStats } from '@foodwaste/shared';
 
 const DEFAULT_TARGET = 8000;
 
@@ -24,7 +24,7 @@ interface GoalLean {
   targetCount: number;
   cycleNumber: number;
   status: string;
-  causeType?: CommunityGoalCauseType;
+  causeType?: MonthlyGoalCauseType;
   causeTitle?: string;
   causeDescription?: string;
   rewardPoints?: number;
@@ -39,12 +39,12 @@ interface GoalLean {
 }
 
 @Injectable()
-export class CommunityGoalService {
-  private readonly logger = new Logger(CommunityGoalService.name);
+export class MonthlyBagGoalService {
+  private readonly logger = new Logger(MonthlyBagGoalService.name);
 
   constructor(
-    @InjectModel(CommunityBagGoal.name)
-    private readonly goalModel: Model<CommunityBagGoalDocument>,
+    @InjectModel(MonthlyBagGoal.name)
+    private readonly goalModel: Model<MonthlyBagGoalDocument>,
     private readonly webSocketService: WebSocketService,
     @Inject(forwardRef(() => LoyaltyService))
     private readonly loyaltyService: LoyaltyService,
@@ -54,9 +54,9 @@ export class CommunityGoalService {
    * Get current community goal stats.
    * Creates a default goal (target: 8000) on first call if none exists.
    */
-  async getStats(): Promise<CommunityBagGoalStats> {
+  async getStats(): Promise<MonthlyBagGoalStats> {
     let goal: GoalLean | null = await this.goalModel
-      .findOne({ status: CommunityGoalStatus.ACTIVE })
+      .findOne({ status: MonthlyGoalStatus.ACTIVE })
       .lean<GoalLean>()
       .exec();
 
@@ -70,7 +70,7 @@ export class CommunityGoalService {
    * If the goal is reached, completes current cycle and starts a new one.
    * Broadcasts updated stats via WebSocket after every increment.
    */
-  async incrementBagCount(count: number, userId?: string): Promise<CommunityBagGoalStats> {
+  async incrementBagCount(count: number, userId?: string): Promise<MonthlyBagGoalStats> {
     if (count <= 0) {
       this.logger.warn(`Invalid bag count increment: ${count}`);
       return this.getStats();
@@ -84,7 +84,7 @@ export class CommunityGoalService {
 
     // Atomic update — safe under concurrent writes
     const updatedGoal = (await this.goalModel
-      .findOneAndUpdate({ status: CommunityGoalStatus.ACTIVE }, updateOps, {
+      .findOneAndUpdate({ status: MonthlyGoalStatus.ACTIVE }, updateOps, {
         new: true,
         lean: true,
       })
@@ -113,14 +113,14 @@ export class CommunityGoalService {
     targetCount: number,
     adminId: string,
     cause?: {
-      causeType?: CommunityGoalCauseType;
+      causeType?: MonthlyGoalCauseType;
       causeTitle?: string;
       causeDescription?: string;
       rewardPoints?: number;
       seasonName?: string;
       endDate?: string;
     },
-  ): Promise<CommunityBagGoalStats> {
+  ): Promise<MonthlyBagGoalStats> {
     const updateFields = {
       ...(cause?.causeType !== undefined && { causeType: cause.causeType }),
       ...(cause?.causeTitle !== undefined && { causeTitle: cause.causeTitle }),
@@ -132,7 +132,7 @@ export class CommunityGoalService {
 
     const goal = (await this.goalModel
       .findOneAndUpdate(
-        { status: CommunityGoalStatus.ACTIVE },
+        { status: MonthlyGoalStatus.ACTIVE },
         { $set: { targetCount, ...updateFields } },
         { new: true, lean: true },
       )
@@ -143,7 +143,7 @@ export class CommunityGoalService {
         currentCount: 0,
         targetCount,
         cycleNumber: 1,
-        status: CommunityGoalStatus.ACTIVE,
+        status: MonthlyGoalStatus.ACTIVE,
         createdBy: adminId,
         ...updateFields,
       });
@@ -160,10 +160,10 @@ export class CommunityGoalService {
   /**
    * Admin: Reset the current count to 0 on the active goal.
    */
-  async resetGoal(adminId: string): Promise<CommunityBagGoalStats> {
+  async resetGoal(adminId: string): Promise<MonthlyBagGoalStats> {
     const goal = (await this.goalModel
       .findOneAndUpdate(
-        { status: CommunityGoalStatus.ACTIVE },
+        { status: MonthlyGoalStatus.ACTIVE },
         { $set: { currentCount: 0, resetAt: new Date() } },
         { new: true, lean: true },
       )
@@ -184,10 +184,7 @@ export class CommunityGoalService {
   /**
    * Admin: Get goal history (all cycles).
    */
-  async getHistory(
-    page = 1,
-    limit = 20,
-  ): Promise<{ goals: CommunityBagGoalStats[]; total: number }> {
+  async getHistory(page = 1, limit = 20): Promise<{ goals: MonthlyBagGoalStats[]; total: number }> {
     const skip = (page - 1) * limit;
 
     const [goals, total] = await Promise.all([
@@ -215,14 +212,14 @@ export class CommunityGoalService {
    * only one concurrent writer wins the ACTIVE → COMPLETED transition.
    * Overflow bags carry over to the new cycle.
    */
-  private async completeAndResetGoal(completedGoal: GoalLean): Promise<CommunityBagGoalStats> {
+  private async completeAndResetGoal(completedGoal: GoalLean): Promise<MonthlyBagGoalStats> {
     // Atomically mark as COMPLETED (only if still ACTIVE)
     const transitioned = (await this.goalModel
       .findOneAndUpdate(
-        { _id: completedGoal._id, status: CommunityGoalStatus.ACTIVE },
+        { _id: completedGoal._id, status: MonthlyGoalStatus.ACTIVE },
         {
           $set: {
-            status: CommunityGoalStatus.COMPLETED,
+            status: MonthlyGoalStatus.COMPLETED,
             completedAt: new Date(),
           },
         },
@@ -267,7 +264,7 @@ export class CommunityGoalService {
       currentCount: overflow,
       targetCount: transitioned.targetCount,
       cycleNumber: transitioned.cycleNumber + 1,
-      status: CommunityGoalStatus.ACTIVE,
+      status: MonthlyGoalStatus.ACTIVE,
       rewardPoints: transitioned.rewardPoints,
       seasonName: transitioned.seasonName,
     });
@@ -297,14 +294,14 @@ export class CommunityGoalService {
       currentCount: 0,
       targetCount: DEFAULT_TARGET,
       cycleNumber: 1,
-      status: CommunityGoalStatus.ACTIVE,
+      status: MonthlyGoalStatus.ACTIVE,
     });
 
     this.logger.log('Created default community bag goal');
     return goal.toObject() as GoalLean;
   }
 
-  private toStats(goal: GoalLean): CommunityBagGoalStats {
+  private toStats(goal: GoalLean): MonthlyBagGoalStats {
     const progressPercentage =
       goal.targetCount > 0
         ? Math.min(100, parseFloat(((goal.currentCount / goal.targetCount) * 100).toFixed(2)))
@@ -316,7 +313,7 @@ export class CommunityGoalService {
       progressPercentage,
       remaining: Math.max(0, goal.targetCount - goal.currentCount),
       cycleNumber: goal.cycleNumber,
-      status: goal.status as CommunityBagGoalStats['status'],
+      status: goal.status as MonthlyBagGoalStats['status'],
       lastUpdatedAt: (goal.updatedAt ?? new Date()).toISOString(),
       // Cause fields are optional — omit rather than null so legacy goals stay clean
       ...(goal.causeType !== undefined && { causeType: goal.causeType }),
@@ -329,7 +326,7 @@ export class CommunityGoalService {
     };
   }
 
-  private broadcastUpdate(stats: CommunityBagGoalStats): void {
+  private broadcastUpdate(stats: MonthlyBagGoalStats): void {
     const globalRoom = WEBSOCKET_ROOMS['GLOBAL'];
     if (globalRoom) {
       this.webSocketService.sendToRoom(

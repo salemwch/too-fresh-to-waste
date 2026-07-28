@@ -4,8 +4,8 @@ import { Test } from '@nestjs/testing';
 
 import { LoyaltyService } from '../../loyalty/loyalty.service';
 import { WebSocketService } from '../../websocket/websocket.service';
-import { CommunityGoalService } from '../community-goal.service';
-import { CommunityBagGoal, CommunityGoalStatus } from '../schemas/community-bag-goal.schema';
+import { MonthlyBagGoalService } from '../community-goal.service';
+import { MonthlyBagGoal, MonthlyGoalStatus } from '../schemas/community-bag-goal.schema';
 
 import type { TestingModule } from '@nestjs/testing';
 
@@ -19,7 +19,7 @@ const makeGoal = (overrides: Record<string, unknown> = {}) => ({
   currentCount: 0,
   targetCount: 100,
   cycleNumber: 1,
-  status: CommunityGoalStatus.ACTIVE,
+  status: MonthlyGoalStatus.ACTIVE,
   rewardPoints: 50,
   seasonName: 'Test Challenge',
   participantIds: [],
@@ -72,8 +72,8 @@ const createMockModel = () => {
   return model;
 };
 
-describe('CommunityGoalService', () => {
-  let service: CommunityGoalService;
+describe('MonthlyBagGoalService', () => {
+  let service: MonthlyBagGoalService;
   let mockModel: ReturnType<typeof createMockModel>;
   let mockLoyaltyService: { addPoints: jest.Mock };
   let mockWsService: { sendToRoom: jest.Mock };
@@ -85,14 +85,14 @@ describe('CommunityGoalService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CommunityGoalService,
-        { provide: getModelToken(CommunityBagGoal.name), useValue: mockModel },
+        MonthlyBagGoalService,
+        { provide: getModelToken(MonthlyBagGoal.name), useValue: mockModel },
         { provide: LoyaltyService, useValue: mockLoyaltyService },
         { provide: WebSocketService, useValue: mockWsService },
       ],
     }).compile();
 
-    service = module.get(CommunityGoalService);
+    service = module.get(MonthlyBagGoalService);
   });
 
   describe('incrementBagCount — participant tracking', () => {
@@ -100,7 +100,7 @@ describe('CommunityGoalService', () => {
       await service.incrementBagCount(1, USER_A);
 
       expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
-        { status: CommunityGoalStatus.ACTIVE },
+        { status: MonthlyGoalStatus.ACTIVE },
         expect.objectContaining({
           $inc: { currentCount: 1 },
           $addToSet: { participantIds: USER_A },
@@ -204,7 +204,7 @@ describe('CommunityGoalService', () => {
           rewardPoints: 75,
           seasonName: 'Summer Sprint',
           cycleNumber: 2,
-          status: CommunityGoalStatus.ACTIVE,
+          status: MonthlyGoalStatus.ACTIVE,
         }),
       );
     });

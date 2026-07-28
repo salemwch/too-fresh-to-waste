@@ -55,7 +55,7 @@ const isDuplicateKeyError = (
  * Did the season hit its community bag target?
  *
  * Reads the **season** (`VotingCycle`, 30,000 bags), not the recurring
- * mini-goal (`CommunityBagGoal`, 500 bags → points). Those are two different
+ * mini-goal (`MonthlyBagGoal`, 500 bags → points). Those are two different
  * features that both count bags; gating the grand prize on the mini-goal meant
  * it unlocked at 500. See `docs/plans/merge-two-prize-systems.md` §2.
  *
@@ -65,8 +65,8 @@ const isDuplicateKeyError = (
  * prizes unlocked.
  */
 const targetReached = (
-  season: Pick<VotingCycle, 'communityGoalProgress' | 'communityGoalTarget'>,
-): boolean => season.communityGoalProgress >= season.communityGoalTarget;
+  season: Pick<VotingCycle, 'seasonBagProgress' | 'seasonBagTarget'>,
+): boolean => season.seasonBagProgress >= season.seasonBagTarget;
 
 @Injectable()
 export class PrizeClaimService {
@@ -173,7 +173,7 @@ export class PrizeClaimService {
    */
   private eligiblePrizeType(
     rank: number | null,
-    season: Pick<VotingCycle, 'communityGoalProgress' | 'communityGoalTarget' | 'recipientCount'>,
+    season: Pick<VotingCycle, 'seasonBagProgress' | 'seasonBagTarget' | 'recipientCount'>,
   ): PrizeType {
     return rank !== null && rank <= season.recipientCount && targetReached(season)
       ? PrizeType.GRAND_PRIZE

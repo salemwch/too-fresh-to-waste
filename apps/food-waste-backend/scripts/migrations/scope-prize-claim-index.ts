@@ -16,7 +16,7 @@
  * way the bug survives a deploy unless this runs.
  *
  * The bug: voting claims store `cycleNumber` from the VotingCycle sequence,
- * which counts independently of the CommunityBagGoal sequence. As soon as the
+ * which counts independently of the MonthlyBagGoal sequence. As soon as the
  * two numbers coincide, a user who claimed a season prize is refused their
  * voting prize by the unique index — and since E11000 is now mapped to a 409,
  * it reads as "you have already claimed" rather than as a fault.

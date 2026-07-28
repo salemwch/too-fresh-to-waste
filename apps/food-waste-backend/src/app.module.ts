@@ -16,7 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { GlobalSanitizationMiddleware } from './common/middleware/global-sanitization.middleware';
-import { CommunityGoalModule } from './community-goal/community-goal.module';
+import { MonthlyBagGoalModule } from './community-goal/community-goal.module';
 import { envValidationSchema } from './config/env.validation';
 import { DonationsModule } from './donations/donations.module';
 import { DriversModule } from './drivers/drivers.module';
@@ -154,7 +154,7 @@ import { VotingModule } from './voting/voting.module';
     FavoritesModule,
     DonationsModule,
     DriversModule,
-    CommunityGoalModule,
+    MonthlyBagGoalModule,
     SustainabilityModule,
     LeaderboardModule,
     WebSocketModule,

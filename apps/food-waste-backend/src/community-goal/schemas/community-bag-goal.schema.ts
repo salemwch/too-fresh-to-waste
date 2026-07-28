@@ -1,16 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type CommunityBagGoalDocument = CommunityBagGoal & Document;
+export type MonthlyBagGoalDocument = MonthlyBagGoal & Document;
 
-export enum CommunityGoalStatus {
+export enum MonthlyGoalStatus {
   ACTIVE = 'active',
   COMPLETED = 'completed',
   ARCHIVED = 'archived',
 }
 
-/** Extensible — add new values here and to the shared CommunityGoalCauseType enum */
-export enum CommunityGoalCauseType {
+/** Extensible — add new values here and to the shared MonthlyGoalCauseType enum */
+export enum MonthlyGoalCauseType {
   FOOD = 'FOOD',
   CLOTHING = 'CLOTHING',
   EDUCATION = 'EDUCATION',
@@ -18,7 +18,7 @@ export enum CommunityGoalCauseType {
 }
 
 @Schema({ timestamps: true })
-export class CommunityBagGoal {
+export class MonthlyBagGoal {
   @Prop({ required: true, default: 0, min: 0 })
   currentCount!: number;
 
@@ -30,13 +30,13 @@ export class CommunityBagGoal {
 
   @Prop({
     required: true,
-    enum: CommunityGoalStatus,
-    default: CommunityGoalStatus.ACTIVE,
+    enum: MonthlyGoalStatus,
+    default: MonthlyGoalStatus.ACTIVE,
   })
-  status!: CommunityGoalStatus;
+  status!: MonthlyGoalStatus;
 
-  @Prop({ type: String, enum: CommunityGoalCauseType })
-  causeType?: CommunityGoalCauseType;
+  @Prop({ type: String, enum: MonthlyGoalCauseType })
+  causeType?: MonthlyGoalCauseType;
 
   @Prop({ type: String, maxlength: 80 })
   causeTitle?: string;
@@ -66,10 +66,10 @@ export class CommunityBagGoal {
   resetAt?: Date;
 }
 
-export const CommunityBagGoalSchema = SchemaFactory.createForClass(CommunityBagGoal);
+export const MonthlyBagGoalSchema = SchemaFactory.createForClass(MonthlyBagGoal);
 
 // Index for fast lookup of the single active goal
-CommunityBagGoalSchema.index({ status: 1 });
+MonthlyBagGoalSchema.index({ status: 1 });
 // Compound index for history queries (admin)
-CommunityBagGoalSchema.index({ cycleNumber: -1 });
-CommunityBagGoalSchema.index({ status: 1, participantIds: 1 });
+MonthlyBagGoalSchema.index({ cycleNumber: -1 });
+MonthlyBagGoalSchema.index({ status: 1, participantIds: 1 });

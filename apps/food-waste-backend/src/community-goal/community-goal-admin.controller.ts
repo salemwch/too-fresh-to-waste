@@ -15,17 +15,17 @@ import { AdminOnlyGuard } from '../admin/guards/admin-only.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
-import { CommunityGoalService } from './community-goal.service';
-import { SetGoalTargetDto, CommunityGoalStatsResponseDto } from './dto/community-goal.dto';
+import { MonthlyBagGoalService } from './community-goal.service';
+import { SetGoalTargetDto, MonthlyBagGoalStatsResponseDto } from './dto/community-goal.dto';
 
 @ApiTags('Admin - Community Goal')
 @Controller('admin/community-goal')
 @UseGuards(JwtAuthGuard, AdminOnlyGuard)
 @ApiBearerAuth()
-export class CommunityGoalAdminController {
-  private readonly logger = new Logger(CommunityGoalAdminController.name);
+export class MonthlyBagGoalAdminController {
+  private readonly logger = new Logger(MonthlyBagGoalAdminController.name);
 
-  constructor(private readonly communityGoalService: CommunityGoalService) {}
+  constructor(private readonly monthlyBagGoalService: MonthlyBagGoalService) {}
 
   /**
    * POST /admin/community-goal/target
@@ -37,14 +37,14 @@ export class CommunityGoalAdminController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Goal target updated',
-    type: CommunityGoalStatsResponseDto,
+    type: MonthlyBagGoalStatsResponseDto,
   })
   async setTarget(
     @Body() dto: SetGoalTargetDto,
     @CurrentUser('userId') adminId: string,
-  ): Promise<{ message: string; data: CommunityGoalStatsResponseDto }> {
+  ): Promise<{ message: string; data: MonthlyBagGoalStatsResponseDto }> {
     this.logger.log(`Admin ${adminId} setting community goal target to ${dto.targetCount}`);
-    const stats = await this.communityGoalService.setGoalTarget(dto.targetCount, adminId, {
+    const stats = await this.monthlyBagGoalService.setGoalTarget(dto.targetCount, adminId, {
       ...(dto.causeType !== undefined && { causeType: dto.causeType }),
       ...(dto.causeTitle !== undefined && { causeTitle: dto.causeTitle }),
       ...(dto.causeDescription !== undefined && { causeDescription: dto.causeDescription }),
@@ -68,13 +68,13 @@ export class CommunityGoalAdminController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Goal count reset to 0',
-    type: CommunityGoalStatsResponseDto,
+    type: MonthlyBagGoalStatsResponseDto,
   })
   async reset(
     @CurrentUser('userId') adminId: string,
-  ): Promise<{ message: string; data: CommunityGoalStatsResponseDto }> {
+  ): Promise<{ message: string; data: MonthlyBagGoalStatsResponseDto }> {
     this.logger.log(`Admin ${adminId} resetting community goal`);
-    const stats = await this.communityGoalService.resetGoal(adminId);
+    const stats = await this.monthlyBagGoalService.resetGoal(adminId);
     return {
       message: 'Community goal count reset to 0',
       data: stats,
@@ -99,13 +99,13 @@ export class CommunityGoalAdminController {
     @Query('limit') limit?: string,
   ): Promise<{
     message: string;
-    data: CommunityGoalStatsResponseDto[];
+    data: MonthlyBagGoalStatsResponseDto[];
     meta: { total: number; page: number; limit: number };
   }> {
     const pageNum = Math.max(1, parseInt(page ?? '1', 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10) || 20));
 
-    const { goals, total } = await this.communityGoalService.getHistory(pageNum, limitNum);
+    const { goals, total } = await this.monthlyBagGoalService.getHistory(pageNum, limitNum);
     return {
       message: 'Community goal history retrieved successfully',
       data: goals,

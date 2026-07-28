@@ -1,32 +1,32 @@
 /**
- * Community Bag Goal Types
- * Shared types for the community bag saving goal feature
+ * Monthly Bag Goal Types
+ * Shared types for the recurring monthly bag saving goal feature (500 bags → points).
  */
 
-export enum CommunityGoalStatus {
+export enum MonthlyGoalStatus {
   ACTIVE = 'active',
   COMPLETED = 'completed',
   ARCHIVED = 'archived',
 }
 
 /** Extensible cause enum — add new values here as the programme grows */
-export enum CommunityGoalCauseType {
+export enum MonthlyGoalCauseType {
   FOOD = 'FOOD',
   CLOTHING = 'CLOTHING',
   EDUCATION = 'EDUCATION',
   MEDICINE = 'MEDICINE',
 }
 
-export interface CommunityBagGoalStats {
+export interface MonthlyBagGoalStats {
   currentCount: number;
   targetCount: number;
   progressPercentage: number;
   remaining: number;
   cycleNumber: number;
-  status: CommunityGoalStatus;
+  status: MonthlyGoalStatus;
   lastUpdatedAt: string;
   /** Optional — absent on legacy goals that pre-date the cause feature */
-  causeType?: CommunityGoalCauseType;
+  causeType?: MonthlyGoalCauseType;
   causeTitle?: string;
   causeDescription?: string;
   /** Points awarded to each participant when target is reached */

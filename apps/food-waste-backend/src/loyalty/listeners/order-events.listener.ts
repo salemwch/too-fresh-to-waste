@@ -15,7 +15,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { plainToClass } from 'class-transformer';
 
 import { OrderCompletedEvent } from '../../common/events';
-import { CommunityGoalService } from '../../community-goal/community-goal.service';
+import { MonthlyBagGoalService } from '../../community-goal/community-goal.service';
 import { LeaderboardCacheService } from '../../leaderboard/leaderboard-cache.service';
 import { VotingService } from '../../voting/voting.service';
 import { LoyaltyService } from '../loyalty.service';
@@ -29,7 +29,7 @@ export class OrderEventsListener {
   constructor(
     private readonly loyaltyService: LoyaltyService,
     private readonly gamificationService: GamificationService,
-    private readonly communityGoalService: CommunityGoalService,
+    private readonly monthlyBagGoalService: MonthlyBagGoalService,
     private readonly leaderboardCache: LeaderboardCacheService,
     private readonly votingService: VotingService,
   ) {}
@@ -150,16 +150,16 @@ export class OrderEventsListener {
 
       // Increment community bag goal (non-blocking — must NOT fail loyalty flow)
       try {
-        await this.communityGoalService.incrementBagCount(totalBags, event.userId);
+        await this.monthlyBagGoalService.incrementBagCount(totalBags, event.userId);
       } catch (goalError) {
         this.logger.warn(
           `Community goal increment failed for order ${event.orderId}: ${(goalError as Error).message}`,
         );
       }
 
-      // Increment voting cycle community goal progress (non-blocking)
+      // Increment voting cycle season bag progress (non-blocking)
       try {
-        await this.votingService.incrementCommunityGoalProgress(totalBags);
+        await this.votingService.incrementSeasonBagProgress(totalBags);
       } catch (votingError) {
         this.logger.warn(
           `Voting goal increment failed for order ${event.orderId}: ${(votingError as Error).message}`,

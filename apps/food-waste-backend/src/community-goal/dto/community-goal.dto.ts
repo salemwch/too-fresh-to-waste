@@ -1,4 +1,5 @@
-import type { SetGoalTargetInput, CommunityGoalStats } from '@foodwaste/shared';
+import type { SetGoalTargetInput, MonthlyBagGoalStats } from '@foodwaste/shared';
+import { MonthlyGoalStatus } from '@foodwaste/shared';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNumber,
@@ -11,7 +12,7 @@ import {
   IsDateString,
 } from 'class-validator';
 
-import { CommunityGoalCauseType } from '../schemas/community-bag-goal.schema';
+import { MonthlyGoalCauseType } from '../schemas/community-bag-goal.schema';
 
 export class SetGoalTargetDto implements SetGoalTargetInput {
   @ApiProperty({
@@ -25,10 +26,10 @@ export class SetGoalTargetDto implements SetGoalTargetInput {
   @Max(1_000_000)
   targetCount!: number;
 
-  @ApiPropertyOptional({ enum: CommunityGoalCauseType, example: CommunityGoalCauseType.FOOD })
+  @ApiPropertyOptional({ enum: MonthlyGoalCauseType, example: MonthlyGoalCauseType.FOOD })
   @IsOptional()
-  @IsEnum(CommunityGoalCauseType)
-  causeType?: CommunityGoalCauseType;
+  @IsEnum(MonthlyGoalCauseType)
+  causeType?: MonthlyGoalCauseType;
 
   @ApiPropertyOptional({ example: 'Feed Families This Ramadan', maxLength: 80 })
   @IsOptional()
@@ -69,7 +70,7 @@ export class SetGoalTargetDto implements SetGoalTargetInput {
   endDate?: string;
 }
 
-export class CommunityGoalStatsResponseDto implements CommunityGoalStats {
+export class MonthlyBagGoalStatsResponseDto implements MonthlyBagGoalStats {
   @ApiProperty({ example: 1234 })
   currentCount!: number;
 
@@ -85,14 +86,14 @@ export class CommunityGoalStatsResponseDto implements CommunityGoalStats {
   @ApiProperty({ example: 1 })
   cycleNumber!: number;
 
-  @ApiProperty({ example: 'active', enum: ['active', 'completed', 'archived'] })
-  status!: 'active' | 'completed' | 'archived';
+  @ApiProperty({ example: 'active', enum: MonthlyGoalStatus })
+  status!: MonthlyGoalStatus;
 
   @ApiProperty({ example: '2026-02-23T12:00:00.000Z' })
   lastUpdatedAt!: string;
 
-  @ApiPropertyOptional({ enum: CommunityGoalCauseType })
-  causeType?: CommunityGoalCauseType;
+  @ApiPropertyOptional({ enum: MonthlyGoalCauseType })
+  causeType?: MonthlyGoalCauseType;
 
   @ApiPropertyOptional({ example: 'Feed Families This Ramadan' })
   causeTitle?: string;

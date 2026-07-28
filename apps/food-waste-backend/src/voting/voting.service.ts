@@ -106,7 +106,7 @@ export class VotingService {
       name: dto.name,
       cycleStartDate: new Date(dto.cycleStartDate),
       cycleEndDate: new Date(dto.cycleEndDate),
-      communityGoalTarget: dto.communityGoalTarget,
+      seasonBagTarget: dto.seasonBagTarget,
       minimumBags: dto.minimumBags,
       recipientCount: dto.recipientCount,
       prizes: dto.prizes,
@@ -127,7 +127,7 @@ export class VotingService {
     const lockedAfterDraft: (keyof UpdateCycleDto)[] = [
       'prizes',
       'minimumBags',
-      'communityGoalTarget',
+      'seasonBagTarget',
       'cycleStartDate',
     ];
     const lockedAfterBallot: (keyof UpdateCycleDto)[] = [
@@ -163,8 +163,8 @@ export class VotingService {
     if (dto.cycleEndDate !== undefined) {
       updateFields['cycleEndDate'] = new Date(dto.cycleEndDate);
     }
-    if (dto.communityGoalTarget !== undefined) {
-      updateFields['communityGoalTarget'] = dto.communityGoalTarget;
+    if (dto.seasonBagTarget !== undefined) {
+      updateFields['seasonBagTarget'] = dto.seasonBagTarget;
     }
     if (dto.minimumBags !== undefined) {
       updateFields['minimumBags'] = dto.minimumBags;
@@ -242,13 +242,13 @@ export class VotingService {
       adminId,
     );
 
-    // Seed communityGoalProgress if cycleStartDate is in the past
+    // Seed season bag progress if cycleStartDate is in the past
     if (updated.cycleStartDate < new Date()) {
       const seedCount = await this.aggregateBagCountForCycle(updated.cycleStartDate, new Date());
       if (seedCount > 0) {
         await this.cycleModel.updateOne(
           { _id: updated._id },
-          { $inc: { communityGoalProgress: seedCount } },
+          { $inc: { seasonBagProgress: seedCount } },
         );
       }
     }
@@ -263,7 +263,7 @@ export class VotingService {
       {
         $set: {
           status: CycleStatus.BALLOT_OPEN,
-          communityGoalMetAt: now,
+          seasonGoalMetAt: now,
           ballotOpensAt: now,
           ballotClosesAt: new Date(now.getTime() + BALLOT_DURATION_MS),
           snapshotReady: false,
@@ -923,12 +923,12 @@ export class VotingService {
     return { results, totalVoters, totalEligible, participationRate };
   }
 
-  // ── Community goal increment ──────────────────────────────────────────────
+  // ── Season bag progress increment ─────────────────────────────────────────
 
-  async incrementCommunityGoalProgress(bagCount: number): Promise<void> {
+  async incrementSeasonBagProgress(bagCount: number): Promise<void> {
     await this.cycleModel.updateOne(
       { status: CycleStatus.ACTIVE },
-      { $inc: { communityGoalProgress: bagCount } },
+      { $inc: { seasonBagProgress: bagCount } },
     );
   }
 }
