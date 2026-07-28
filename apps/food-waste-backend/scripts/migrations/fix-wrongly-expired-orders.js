@@ -8,9 +8,17 @@
 
 const { MongoClient } = require('mongodb');
 
-const MONGODB_URI =
-  process.env.DATABASE_URL ||
-  'mongodb+srv://foodwaste_user:a3yoNUPRgksQvUnZ@cluster0.61uimdv.mongodb.net/toofreshtowaste?retryWrites=true&w=majority&appName=Cluster0&compressors=none';
+// No fallback. This previously defaulted to a hardcoded production Atlas URI,
+// credentials and all, which meant the connection string for the live database
+// was committed to the repository. Refusing to run without DATABASE_URL is also
+// safer than defaulting: a migration that silently picks its own target is one
+// that eventually rewrites the wrong database.
+const MONGODB_URI = process.env.DATABASE_URL;
+
+if (!MONGODB_URI) {
+  console.error('DATABASE_URL is not set. Refusing to guess a connection string.');
+  process.exit(1);
+}
 
 async function run() {
   const client = new MongoClient(MONGODB_URI);
