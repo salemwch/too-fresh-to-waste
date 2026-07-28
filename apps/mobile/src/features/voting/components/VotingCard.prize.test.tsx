@@ -82,8 +82,8 @@ jest.mock('../hooks/useVoting', () => ({
         announcedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(), // 2 days ago
       },
       ballotClosesAt: null,
-      communityGoalProgress: 0,
-      communityGoalTarget: 100,
+      seasonBagProgress: 0,
+      seasonBagTarget: 100,
       minimumBags: 50,
     },
     eligibility: null,

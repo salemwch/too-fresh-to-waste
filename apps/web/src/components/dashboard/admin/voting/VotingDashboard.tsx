@@ -91,8 +91,8 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
   // ─── Derived values ───────────────────────────────────────────────────────
 
   const goalPercent =
-    cycle.communityGoalTarget > 0
-      ? Math.min((cycle.communityGoalProgress / cycle.communityGoalTarget) * 100, 100)
+    cycle.seasonBagTarget > 0
+      ? Math.min((cycle.seasonBagProgress / cycle.seasonBagTarget) * 100, 100)
       : 0;
 
   const countdown = getCountdown(cycle);
@@ -143,8 +143,8 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
           <ProgressBar value={goalPercent} />
           <div className='flex items-center justify-between text-sm'>
             <span className='text-muted-foreground'>
-              {cycle.communityGoalProgress.toLocaleString()} /{' '}
-              {cycle.communityGoalTarget.toLocaleString()} bags saved
+              {cycle.seasonBagProgress.toLocaleString()} / {cycle.seasonBagTarget.toLocaleString()}{' '}
+              bags saved
             </span>
             <span className='font-semibold tabular-nums'>{goalPercent.toFixed(0)}%</span>
           </div>

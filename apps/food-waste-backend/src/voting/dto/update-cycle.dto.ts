@@ -35,7 +35,7 @@ export class UpdateCycleDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
-  communityGoalTarget?: number | undefined;
+  seasonBagTarget?: number | undefined;
 
   @ApiProperty({ required: false, minimum: 1, maximum: 500 })
   @IsOptional()

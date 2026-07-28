@@ -66,7 +66,7 @@ export function CycleFormDialog({
       setName(editingCycle.name);
       setStartDate(toDateInput(editingCycle.cycleStartDate));
       setEndDate(toDateInput(editingCycle.cycleEndDate));
-      setGoalTarget(editingCycle.communityGoalTarget);
+      setGoalTarget(editingCycle.seasonBagTarget);
       setMinimumBags(editingCycle.minimumBags);
       setRecipientCount(editingCycle.recipientCount);
       setPrizes(
@@ -98,7 +98,7 @@ export function CycleFormDialog({
       name,
       cycleStartDate: new Date(startDate).toISOString(),
       cycleEndDate: new Date(endDate).toISOString(),
-      communityGoalTarget: goalTarget,
+      seasonBagTarget: goalTarget,
       minimumBags,
       recipientCount,
       prizes: prizes.map(({ imageUrl, ...rest }) => ({

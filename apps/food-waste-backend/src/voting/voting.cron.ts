@@ -37,8 +37,8 @@ export class VotingCron {
         return;
       }
 
-      // Check if community goal is met
-      if (activeCycle.communityGoalProgress >= activeCycle.communityGoalTarget) {
+      // Check if season bag goal is met
+      if (activeCycle.seasonBagProgress >= activeCycle.seasonBagTarget) {
         const cycleId = (activeCycle._id as import('mongoose').Types.ObjectId).toString();
         const opened = await this.votingService.openBallot(cycleId);
         if (opened) {

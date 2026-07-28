@@ -480,8 +480,8 @@ export const VotingCard: React.FC = () => {
   }
 
   // ── ACTIVE: Community Challenge ──
-  const progress = cycle.communityGoalProgress;
-  const target = cycle.communityGoalTarget;
+  const progress = cycle.seasonBagProgress;
+  const target = cycle.seasonBagTarget;
   const ratio = target > 0 ? Math.min(progress / target, 1) : 0;
   const pct = Math.round(ratio * 100);
   const userBags = eligibility?.userBagsInCycle ?? 0;

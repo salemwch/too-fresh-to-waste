@@ -22,8 +22,8 @@ export interface VotingCycleRow {
   cycleNumber: number;
   cycleStartDate: string;
   cycleEndDate: string;
-  communityGoalTarget: number;
-  communityGoalProgress: number;
+  seasonBagTarget: number;
+  seasonBagProgress: number;
   minimumBags: number;
   recipientCount: number;
   prizes: PrizeOptionData[];
@@ -38,7 +38,7 @@ export interface CreateCyclePayload {
   name: string;
   cycleStartDate: string;
   cycleEndDate: string;
-  communityGoalTarget: number;
+  seasonBagTarget: number;
   minimumBags: number;
   recipientCount: number;
   prizes: Array<{
@@ -54,7 +54,7 @@ export interface UpdateCyclePayload {
   name?: string;
   cycleStartDate?: string;
   cycleEndDate?: string;
-  communityGoalTarget?: number;
+  seasonBagTarget?: number;
   minimumBags?: number;
   recipientCount?: number;
   prizes?: CreateCyclePayload['prizes'];

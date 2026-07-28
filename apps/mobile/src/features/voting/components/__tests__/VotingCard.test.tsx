@@ -105,8 +105,8 @@ function makeCycle(overrides: Record<string, unknown> = {}) {
     status: 'ACTIVE',
     cycleStartDate: '2026-01-01T00:00:00Z',
     cycleEndDate: '2026-07-01T00:00:00Z',
-    communityGoalTarget: 30000,
-    communityGoalProgress: 0,
+    seasonBagTarget: 30000,
+    seasonBagProgress: 0,
     ballotOpensAt: null,
     ballotClosesAt: null,
     prizes: [
@@ -173,7 +173,7 @@ describe('VotingCard', () => {
   // 3. ACTIVE state with progress
   it('renders ACTIVE state with progress bar and progress text', () => {
     mockUseActiveVotingCycle.mockReturnValue({
-      cycle: makeCycle({ communityGoalProgress: 20400, communityGoalTarget: 30000 }),
+      cycle: makeCycle({ seasonBagProgress: 20400, seasonBagTarget: 30000 }),
       eligibility: makeEligibility({ userBagsInCycle: 60, requiredBags: 50 }),
       myVote: null,
       isLoading: false,
@@ -188,7 +188,7 @@ describe('VotingCard', () => {
   // 4. ACTIVE state — eligibility hint when NOT enough bags
   it('renders ACTIVE state with eligibility hint when not enough bags', () => {
     mockUseActiveVotingCycle.mockReturnValue({
-      cycle: makeCycle({ communityGoalProgress: 5000, communityGoalTarget: 30000 }),
+      cycle: makeCycle({ seasonBagProgress: 5000, seasonBagTarget: 30000 }),
       eligibility: makeEligibility({ userBagsInCycle: 10, requiredBags: 50 }),
       myVote: null,
       isLoading: false,
@@ -202,7 +202,7 @@ describe('VotingCard', () => {
   // 5. ACTIVE state — NO eligibility hint when already eligible
   it('renders ACTIVE state without eligibility hint when eligible', () => {
     mockUseActiveVotingCycle.mockReturnValue({
-      cycle: makeCycle({ communityGoalProgress: 5000, communityGoalTarget: 30000 }),
+      cycle: makeCycle({ seasonBagProgress: 5000, seasonBagTarget: 30000 }),
       eligibility: makeEligibility({ userBagsInCycle: 60, requiredBags: 50 }),
       myVote: null,
       isLoading: false,
@@ -363,7 +363,7 @@ describe('VotingCard', () => {
   // 13. Zero community goal target — no division error, shows 0%
   it('handles zero community goal target without crash', () => {
     mockUseActiveVotingCycle.mockReturnValue({
-      cycle: makeCycle({ communityGoalProgress: 0, communityGoalTarget: 0 }),
+      cycle: makeCycle({ seasonBagProgress: 0, seasonBagTarget: 0 }),
       eligibility: makeEligibility({ userBagsInCycle: 60, requiredBags: 50 }),
       myVote: null,
       isLoading: false,
@@ -416,7 +416,7 @@ describe('VotingCard', () => {
   // 16. Singular bag — "Save 1 more bag" not "bags"
   it('uses singular "bag" when only 1 bag needed (ACTIVE)', () => {
     mockUseActiveVotingCycle.mockReturnValue({
-      cycle: makeCycle({ communityGoalProgress: 100, communityGoalTarget: 30000 }),
+      cycle: makeCycle({ seasonBagProgress: 100, seasonBagTarget: 30000 }),
       eligibility: makeEligibility({ userBagsInCycle: 49, requiredBags: 50 }),
       myVote: null,
       isLoading: false,
@@ -574,7 +574,7 @@ describe('VotingCard', () => {
   // 23. ACTIVE with progress exceeding target (clamped to 100%)
   it('clamps progress to 100% when progress exceeds target', () => {
     mockUseActiveVotingCycle.mockReturnValue({
-      cycle: makeCycle({ communityGoalProgress: 35000, communityGoalTarget: 30000 }),
+      cycle: makeCycle({ seasonBagProgress: 35000, seasonBagTarget: 30000 }),
       eligibility: makeEligibility({ userBagsInCycle: 60, requiredBags: 50 }),
       myVote: null,
       isLoading: false,
@@ -664,8 +664,8 @@ describe('VotingCard', () => {
   it('falls back to cycle.minimumBags when eligibility is null (ACTIVE)', () => {
     mockUseActiveVotingCycle.mockReturnValue({
       cycle: makeCycle({
-        communityGoalProgress: 100,
-        communityGoalTarget: 30000,
+        seasonBagProgress: 100,
+        seasonBagTarget: 30000,
         minimumBags: 50,
       }),
       eligibility: null,

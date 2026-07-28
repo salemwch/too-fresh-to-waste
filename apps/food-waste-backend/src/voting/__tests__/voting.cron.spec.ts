@@ -60,8 +60,8 @@ describe('VotingCron', () => {
         _id: mockCycleId,
         name: 'Summer 2026',
         status: CycleStatus.ACTIVE,
-        communityGoalProgress: 30000,
-        communityGoalTarget: 30000,
+        seasonBagProgress: 30000,
+        seasonBagTarget: 30000,
         cycleEndDate: futureDate,
       });
       votingService.openBallot.mockResolvedValueOnce({ _id: mockCycleId } as any);
@@ -78,8 +78,8 @@ describe('VotingCron', () => {
         _id: mockCycleId,
         name: 'Summer 2026',
         status: CycleStatus.ACTIVE,
-        communityGoalProgress: 100,
-        communityGoalTarget: 30000,
+        seasonBagProgress: 100,
+        seasonBagTarget: 30000,
         cycleEndDate: new Date('2020-01-01'),
       });
       votingService.expireCycle.mockResolvedValueOnce({ _id: mockCycleId } as any);
@@ -98,8 +98,8 @@ describe('VotingCron', () => {
         _id: mockCycleId,
         name: 'Summer 2026',
         status: CycleStatus.ACTIVE,
-        communityGoalProgress: 30001,
-        communityGoalTarget: 30000,
+        seasonBagProgress: 30001,
+        seasonBagTarget: 30000,
         cycleEndDate: futureDate,
       });
       votingService.openBallot.mockResolvedValueOnce({ _id: mockCycleId } as any);
@@ -118,8 +118,8 @@ describe('VotingCron', () => {
         _id: mockCycleId,
         name: 'Summer 2026',
         status: CycleStatus.ACTIVE,
-        communityGoalProgress: 30000,
-        communityGoalTarget: 30000,
+        seasonBagProgress: 30000,
+        seasonBagTarget: 30000,
         cycleEndDate: futureDate,
       });
       votingService.openBallot.mockResolvedValueOnce(null);

@@ -21,8 +21,8 @@ export interface VotingCycleData {
   status: string;
   cycleStartDate: string;
   cycleEndDate: string;
-  communityGoalTarget: number;
-  communityGoalProgress: number;
+  seasonBagTarget: number;
+  seasonBagProgress: number;
   ballotOpensAt: string | null;
   ballotClosesAt: string | null;
   prizes: PrizeOption[];

@@ -56,10 +56,10 @@ export class VotingCycle {
   cycleEndDate!: Date;
 
   @Prop({ required: true })
-  communityGoalTarget!: number;
+  seasonBagTarget!: number;
 
   @Prop({ type: Date })
-  communityGoalMetAt?: Date | undefined;
+  seasonGoalMetAt?: Date | undefined;
 
   @Prop({ type: Date })
   ballotOpensAt?: Date | undefined;
@@ -106,7 +106,7 @@ export class VotingCycle {
   snapshotReady!: boolean;
 
   @Prop({ default: 0 })
-  communityGoalProgress!: number;
+  seasonBagProgress!: number;
 
   @Prop({ type: Types.ObjectId })
   winnerPrizeId?: Types.ObjectId | undefined;

@@ -90,22 +90,19 @@ export function CycleTable({
     },
     {
       key: 'goal',
-      header: 'Community Goal',
+      header: 'Season Bag Goal',
       render: cycle => {
         const pct =
-          cycle.communityGoalTarget > 0
-            ? Math.min(
-                Math.round((cycle.communityGoalProgress / cycle.communityGoalTarget) * 100),
-                100,
-              )
+          cycle.seasonBagTarget > 0
+            ? Math.min(Math.round((cycle.seasonBagProgress / cycle.seasonBagTarget) * 100), 100)
             : 0;
         return (
           <div className='min-w-[120px]'>
             <div className='flex items-center gap-1 text-xs'>
               <Target className='size-3 shrink-0 text-muted-foreground' />
               <span className='tabular-nums'>
-                {cycle.communityGoalProgress.toLocaleString()} /{' '}
-                {cycle.communityGoalTarget.toLocaleString()}
+                {cycle.seasonBagProgress.toLocaleString()} /{' '}
+                {cycle.seasonBagTarget.toLocaleString()}
               </span>
               <span className='text-[10px] text-muted-foreground'>({pct}%)</span>
             </div>

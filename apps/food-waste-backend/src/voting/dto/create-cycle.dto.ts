@@ -58,7 +58,7 @@ export class CreateCycleDto {
   @ApiProperty({ example: 30000 })
   @IsNumber()
   @Min(1)
-  communityGoalTarget!: number;
+  seasonBagTarget!: number;
 
   @ApiProperty({ example: 50, minimum: 1, maximum: 500 })
   @IsNumber()

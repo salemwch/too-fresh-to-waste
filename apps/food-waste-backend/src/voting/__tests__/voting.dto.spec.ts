@@ -31,7 +31,7 @@ function validCyclePlain(
     name: 'Summer 2026',
     cycleStartDate: '2026-07-01T00:00:00.000Z',
     cycleEndDate: '2026-07-31T00:00:00.000Z',
-    communityGoalTarget: 30000,
+    seasonBagTarget: 30000,
     minimumBags: 50,
     recipientCount: 5,
     prizes: Array.from({ length: prizeCount }, () => validPrize()),
@@ -104,11 +104,11 @@ describe('CreateCycleDto', () => {
       expect(errors.some(e => e.property === 'cycleEndDate')).toBe(true);
     });
 
-    it('fails when communityGoalTarget is absent', async () => {
+    it('fails when seasonBagTarget is absent', async () => {
       const plain = validCyclePlain();
-      delete plain['communityGoalTarget'];
+      delete plain['seasonBagTarget'];
       const errors = await validateCycle(plain);
-      expect(errors.some(e => e.property === 'communityGoalTarget')).toBe(true);
+      expect(errors.some(e => e.property === 'seasonBagTarget')).toBe(true);
     });
 
     it('fails when prizes are absent', async () => {
@@ -178,15 +178,15 @@ describe('CreateCycleDto', () => {
     });
   });
 
-  describe('communityGoalTarget bounds', () => {
-    it('fails when communityGoalTarget = 0 (Min=1)', async () => {
-      const errors = await validateCycle(validCyclePlain({ communityGoalTarget: 0 }));
-      expect(errors.some(e => e.property === 'communityGoalTarget')).toBe(true);
+  describe('seasonBagTarget bounds', () => {
+    it('fails when seasonBagTarget = 0 (Min=1)', async () => {
+      const errors = await validateCycle(validCyclePlain({ seasonBagTarget: 0 }));
+      expect(errors.some(e => e.property === 'seasonBagTarget')).toBe(true);
     });
 
-    it('passes when communityGoalTarget = 1', async () => {
-      const errors = await validateCycle(validCyclePlain({ communityGoalTarget: 1 }));
-      expect(errors.every(e => e.property !== 'communityGoalTarget')).toBe(true);
+    it('passes when seasonBagTarget = 1', async () => {
+      const errors = await validateCycle(validCyclePlain({ seasonBagTarget: 1 }));
+      expect(errors.every(e => e.property !== 'seasonBagTarget')).toBe(true);
     });
   });
 
@@ -369,7 +369,7 @@ describe('UpdateCycleDto', () => {
         name: 'Updated Cycle',
         minimumBags: 100,
         recipientCount: 10,
-        communityGoalTarget: 50000,
+        seasonBagTarget: 50000,
       });
       expect(errors).toHaveLength(0);
     });
@@ -403,9 +403,9 @@ describe('UpdateCycleDto', () => {
       expect(errors.some(e => e.property === 'recipientCount')).toBe(true);
     });
 
-    it('fails when communityGoalTarget = 0 (Min=1)', async () => {
-      const errors = await validateUpdate({ communityGoalTarget: 0 });
-      expect(errors.some(e => e.property === 'communityGoalTarget')).toBe(true);
+    it('fails when seasonBagTarget = 0 (Min=1)', async () => {
+      const errors = await validateUpdate({ seasonBagTarget: 0 });
+      expect(errors.some(e => e.property === 'seasonBagTarget')).toBe(true);
     });
 
     it('fails when prizes has only 1 item (ArrayMinSize=2)', async () => {
