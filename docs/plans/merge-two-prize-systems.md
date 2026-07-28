@@ -74,13 +74,13 @@ This was introduced by taking `CommunityBagGoal` to be the season. It is not.
 `PrizeClaimService` reads the **season** — `VotingCycle` — for every
 season-level question:
 
-| Question              | Before                                  | After                                                          |
-| --------------------- | --------------------------------------- | -------------------------------------------------------------- |
-| Has the season ended? | `CommunityBagGoal.endDate`              | `VotingCycle.cycleEndDate`                                     |
-| Was the target met?   | `currentCount >= targetCount` (141/500) | `communityGoalProgress >= communityGoalTarget` (30,001/30,000) |
-| Which season is this? | mini-goal `cycleNumber`                 | voting `cycleNumber`                                           |
+| Question              | Before                                  | After                                                  |
+| --------------------- | --------------------------------------- | ------------------------------------------------------ |
+| Has the season ended? | `CommunityBagGoal.endDate`              | `VotingCycle.cycleEndDate`                             |
+| Was the target met?   | `currentCount >= targetCount` (141/500) | `seasonBagProgress >= seasonBagTarget` (30,001/30,000) |
+| Which season is this? | mini-goal `cycleNumber`                 | voting `cycleNumber`                                   |
 
-`CommunityBagGoal` keeps doing exactly what it does now — count to 500, pay
+`MonthlyBagGoal` keeps doing exactly what it does now — count to 500, pay
 points, reset — and the home banner keeps rendering it unchanged.
 
 Neither UI changes. The home banner still shows the mini-goal; the profile
@@ -88,17 +88,18 @@ voting card still shows the season.
 
 ---
 
-## 4. Rename, so this cannot happen again
+## 4. Rename — done
 
-The confusion was caused by the naming, and the naming is still there. Worth
-doing as a follow-up:
+The confusion was caused by the naming. **Fixed:**
 
-- `CommunityBagGoal` → `MonthlyBagGoal` (or `BagGoalRound`), and its collection
-  with a migration.
-- On `VotingCycle`, `communityGoalProgress` / `communityGoalTarget` →
-  `seasonBagProgress` / `seasonBagTarget`.
-
-Until then, every file touching either needs a comment saying which one it is.
+- `CommunityBagGoal` → `MonthlyBagGoal` (class, service, module, controller,
+  DTOs, shared types, mobile/web hooks and components). Collection name
+  `communitybaggoals` is unchanged — Mongoose `collection:` option keeps it
+  stable.
+- On `VotingCycle`, `communityGoalProgress` / `communityGoalTarget` /
+  `communityGoalMetAt` → `seasonBagProgress` / `seasonBagTarget` /
+  `seasonGoalMetAt`. Existing documents need a migration script (see
+  `scripts/rename-voting-cycle-fields.ts`).
 
 ---
 

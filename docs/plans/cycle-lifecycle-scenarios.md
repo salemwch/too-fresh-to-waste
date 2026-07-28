@@ -17,14 +17,14 @@ hotel stay, or an electric scooter.
 to the **voting** module, which is a second, parallel prize system that the bag
 goal knows nothing about.
 
-|               | `prize-claim.service.ts`                    | `voting-prize.service.ts`                   |
-| ------------- | ------------------------------------------- | ------------------------------------------- |
-| `PrizeSource` | `BAG_GOAL`                                  | `VOTING`                                    |
-| Who wins      | top ranks of the **leaderboard**            | top voters **who backed the winning prize** |
-| How many      | `PHONE_MAX_RANK` (3, hardcoded)             | `recipientCount` (admin-set, per cycle)     |
-| What they win | `PrizeType.SMARTPHONE` — **phones only**    | whichever `PrizeCategory` won the vote      |
-| Trigger       | `CommunityBagGoal.endDate` + target reached | `VotingCycle.status === COMPLETED`          |
-| Everyone else | `PrizeType.DISCOUNT` voucher                | nothing                                     |
+|               | `prize-claim.service.ts`                  | `voting-prize.service.ts`                   |
+| ------------- | ----------------------------------------- | ------------------------------------------- |
+| `PrizeSource` | `BAG_GOAL`                                | `VOTING`                                    |
+| Who wins      | top ranks of the **leaderboard**          | top voters **who backed the winning prize** |
+| How many      | `PHONE_MAX_RANK` (3, hardcoded)           | `recipientCount` (admin-set, per cycle)     |
+| What they win | `PrizeType.SMARTPHONE` — **phones only**  | whichever `PrizeCategory` won the vote      |
+| Trigger       | `MonthlyBagGoal.endDate` + target reached | `VotingCycle.status === COMPLETED`          |
+| Everyone else | `PrizeType.DISCOUNT` voucher              | nothing                                     |
 
 **The consequence:** `PrizeType` has two values (`SMARTPHONE`, `DISCOUNT`) while
 `PrizeCategory` has six. The bag-goal path can only ever award a phone. The
@@ -52,7 +52,7 @@ PrizeClaimSchema.index(
 
 The second index was written to scope voting claims — but the **first one is not
 partial**, so it applies to them as well. Voting claims store `cycleNumber` from
-the `VotingCycle` sequence, which is independent of the `CommunityBagGoal`
+the `VotingCycle` sequence, which is independent of the `MonthlyBagGoal`
 sequence (§1). The moment those two numbers coincide, a user who claims a bag
 goal prize and then a voting prize is rejected by the unique index on their
 second, legitimate claim.
@@ -70,10 +70,10 @@ both track "bags saved toward the community target", and an order increments
 **both**, in two separate try/catch blocks
 (`loyalty/listeners/order-events.listener.ts`):
 
-|                        | `CommunityBagGoal`                                         | `VotingCycle`                          |
+|                        | `MonthlyBagGoal`                                           | `VotingCycle`                          |
 | ---------------------- | ---------------------------------------------------------- | -------------------------------------- |
-| Counter                | `currentCount`                                             | `communityGoalProgress`                |
-| Target                 | `targetCount` (default 8000)                               | `communityGoalTarget`                  |
+| Counter                | `currentCount`                                             | `seasonBagProgress`                    |
+| Target                 | `targetCount` (default 8000)                               | `seasonBagTarget`                      |
 | Deadline               | `endDate`                                                  | `cycleEndDate`                         |
 | Cycle number           | `cycleNumber`                                              | `cycleNumber` (separate sequence)      |
 | **Deadline enforced?** | **No — display only**                                      | **Yes — `voting.cron.ts` every 5 min** |
@@ -84,7 +84,7 @@ Each increment is independently fault-tolerant — either can fail and be logged
 while the other succeeds. Nothing reconciles them afterwards, so the two numbers
 drift apart permanently on any failure.
 
-**They can already disagree today**, and the app shows `CommunityBagGoal` while
+**They can already disagree today**, and the app shows `MonthlyBagGoal` while
 voting eligibility is decided by `VotingCycle`.
 
 ---
@@ -106,7 +106,7 @@ voting eligibility is decided by `VotingCycle`.
 
 > Do we reset every 6 months?
 
-No. `CommunityBagGoal` resets on exactly two triggers: the target being reached,
+No. `MonthlyBagGoal` resets on exactly two triggers: the target being reached,
 or an admin calling `resetGoal()` by hand. Time is not one of them.
 
 > Do we reset points, leaderboard, merchant?
@@ -128,7 +128,7 @@ Those are already separate from points, so that part needs no work.
 **Target reached before the deadline.** Today: voting ballot opens, eligibility
 snapshots are written, bag goal completes and pays `rewardPoints` to
 `participantIds`, overflow carries into cycle N+1. Gap: the two cycles advance
-independently. `CommunityBagGoal.cycleNumber` and `VotingCycle.cycleNumber` are
+independently. `MonthlyBagGoal.cycleNumber` and `VotingCycle.cycleNumber` are
 separate sequences that were never guaranteed to match.
 
 ### B. Deadline passes, target not reached ← the question
@@ -198,7 +198,7 @@ different clocks by construction. Open — see §4.5.
 ### K. Admin resets by hand mid-cycle
 
 `resetGoal()` zeroes `currentCount` and stamps `resetAt`, but does **not** touch
-`VotingCycle.communityGoalProgress`. After a manual reset the two counters are
+`VotingCycle.seasonBagProgress`. After a manual reset the two counters are
 guaranteed to disagree.
 
 ### L. Admin edits `targetCount` mid-cycle
@@ -399,7 +399,7 @@ assumption — "the prize is a phone" — that the product does not hold.
 ## 5. Implementation order
 
 1. **Reconcile the two goals into one.** Everything else is unsafe while two
-   counters can disagree. Either `VotingCycle` reads from `CommunityBagGoal`, or
+   counters can disagree. Either `VotingCycle` reads from `MonthlyBagGoal`, or
    the bag goal becomes a projection of the voting cycle. One writer.
 2. **Enforce `endDate` on the bag goal**, using the same conditional
    `findOneAndUpdate` guard the existing transitions use. Per §4.1 this is the
