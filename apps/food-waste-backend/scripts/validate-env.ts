@@ -33,7 +33,9 @@ if (parsed.error) {
   process.exit(1);
 }
 
-console.log(`\n[validate-env] Validating ${envFile} (NODE_ENV=${process.env['NODE_ENV'] ?? 'development'})...\n`);
+console.log(
+  `\n[validate-env] Validating ${envFile} (NODE_ENV=${process.env['NODE_ENV'] ?? 'development'})...\n`,
+);
 
 const { error, value } = envValidationSchema.validate(process.env, {
   abortEarly: false,
@@ -50,8 +52,6 @@ if (error) {
   process.exit(1);
 }
 
-const requiredKeys = Object.keys(value).filter(
-  (k) => !['NODE_ENV', 'PORT'].includes(k),
-);
+const requiredKeys = Object.keys(value).filter(k => !['NODE_ENV', 'PORT'].includes(k));
 console.log(`[validate-env] OK — ${requiredKeys.length} variables validated successfully.\n`);
 process.exit(0);

@@ -38,7 +38,10 @@ async function main(): Promise<void> {
   const results: CleanupResult[] = [];
   const now = new Date();
 
-  const users = await db.collection('users').find({}, { projection: { _id: 1 } }).toArray();
+  const users = await db
+    .collection('users')
+    .find({}, { projection: { _id: 1 } })
+    .toArray();
   const validUserIds = new Set(users.map(u => u['_id'].toString()));
   console.log(`\nFound ${validUserIds.size} users in the database.\n`);
 
@@ -59,15 +62,21 @@ async function main(): Promise<void> {
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {
-      const res = await db.collection(collection).updateMany(
-        { _id: { $in: orphanIds } },
-        { $set: { isActive: false, lastActivity: now } },
-      );
+      const res = await db
+        .collection(collection)
+        .updateMany({ _id: { $in: orphanIds } }, { $set: { isActive: false, lastActivity: now } });
       cleaned = res.modifiedCount;
     }
 
-    results.push({ collection, orphansFound: orphanIds.length, cleaned: dryRun ? 0 : cleaned, action: 'deactivated' });
-    console.log(`[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} deactivated`}`);
+    results.push({
+      collection,
+      orphansFound: orphanIds.length,
+      cleaned: dryRun ? 0 : cleaned,
+      action: 'deactivated',
+    });
+    console.log(
+      `[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} deactivated`}`,
+    );
   }
 
   // 2. Notification preferences — sanitize orphans (clear tokens, disable channels)
@@ -101,8 +110,15 @@ async function main(): Promise<void> {
       cleaned = res.modifiedCount;
     }
 
-    results.push({ collection, orphansFound: orphanIds.length, cleaned: dryRun ? 0 : cleaned, action: 'sanitized' });
-    console.log(`[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} sanitized`}`);
+    results.push({
+      collection,
+      orphansFound: orphanIds.length,
+      cleaned: dryRun ? 0 : cleaned,
+      action: 'sanitized',
+    });
+    console.log(
+      `[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} sanitized`}`,
+    );
   }
 
   // 3. Favorites — deactivate orphans via isActive: false
@@ -122,15 +138,21 @@ async function main(): Promise<void> {
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {
-      const res = await db.collection(collection).updateMany(
-        { _id: { $in: orphanIds } },
-        { $set: { isActive: false } },
-      );
+      const res = await db
+        .collection(collection)
+        .updateMany({ _id: { $in: orphanIds } }, { $set: { isActive: false } });
       cleaned = res.modifiedCount;
     }
 
-    results.push({ collection, orphansFound: orphanIds.length, cleaned: dryRun ? 0 : cleaned, action: 'deactivated' });
-    console.log(`[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} deactivated`}`);
+    results.push({
+      collection,
+      orphansFound: orphanIds.length,
+      cleaned: dryRun ? 0 : cleaned,
+      action: 'deactivated',
+    });
+    console.log(
+      `[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} deactivated`}`,
+    );
   }
 
   // 4. User donations — soft-delete orphans
@@ -150,15 +172,24 @@ async function main(): Promise<void> {
 
     let cleaned = 0;
     if (orphanIds.length > 0 && !dryRun) {
-      const res = await db.collection(collection).updateMany(
-        { _id: { $in: orphanIds } },
-        { $set: { isDeleted: true, deletedAt: now, deletedBy: 'migration-cleanup' } },
-      );
+      const res = await db
+        .collection(collection)
+        .updateMany(
+          { _id: { $in: orphanIds } },
+          { $set: { isDeleted: true, deletedAt: now, deletedBy: 'migration-cleanup' } },
+        );
       cleaned = res.modifiedCount;
     }
 
-    results.push({ collection, orphansFound: orphanIds.length, cleaned: dryRun ? 0 : cleaned, action: 'soft-deleted' });
-    console.log(`[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} soft-deleted`}`);
+    results.push({
+      collection,
+      orphansFound: orphanIds.length,
+      cleaned: dryRun ? 0 : cleaned,
+      action: 'soft-deleted',
+    });
+    console.log(
+      `[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} soft-deleted`}`,
+    );
   }
 
   // 5. Reviews — soft-delete orphans with cascade marker
@@ -192,8 +223,15 @@ async function main(): Promise<void> {
       cleaned = res.modifiedCount;
     }
 
-    results.push({ collection, orphansFound: orphanIds.length, cleaned: dryRun ? 0 : cleaned, action: 'soft-deleted' });
-    console.log(`[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} soft-deleted`}`);
+    results.push({
+      collection,
+      orphansFound: orphanIds.length,
+      cleaned: dryRun ? 0 : cleaned,
+      action: 'soft-deleted',
+    });
+    console.log(
+      `[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} soft-deleted`}`,
+    );
   }
 
   // 6. Orders — ANONYMIZE only (preserve business records)
@@ -230,8 +268,15 @@ async function main(): Promise<void> {
       cleaned = res.modifiedCount;
     }
 
-    results.push({ collection, orphansFound: orphanIds.length, cleaned: dryRun ? 0 : cleaned, action: 'anonymized' });
-    console.log(`[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} anonymized`}`);
+    results.push({
+      collection,
+      orphansFound: orphanIds.length,
+      cleaned: dryRun ? 0 : cleaned,
+      action: 'anonymized',
+    });
+    console.log(
+      `[${collection}] ${orphanIds.length} orphaned${dryRun ? ' (dry run)' : ` -> ${cleaned} anonymized`}`,
+    );
   }
 
   // Summary
