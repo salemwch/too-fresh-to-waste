@@ -49,16 +49,44 @@ Current resolution — a version-scoped split rather than one global pin:
 ```
 
 This patches the backend's direct `minimatch 10` production path and leaves
-`^2.1.2` only where minimatch 3.x requires it. The residual exposure is:
+`^2.1.2` only where minimatch 3.x requires it.
 
-- `eslint > minimatch 3` — devDependency, never ships.
-- `geoip-lite > rimraf > glob 7 > minimatch 3` — **production dependency, but
-  `rimraf` is required only by `geoip-lite/scripts/updatedb.js`**, the manual
-  database-refresh script. `lib/geoip.js`, the runtime entry, never loads it,
-  and the glob pattern is geoip-lite's own hardcoded path. No request-path
-  reachability, no attacker-controlled input.
+**Second correction (2026-07-28).** The note above was still incomplete: it
+audited the backend and stopped. `pnpm why brace-expansion -P` in
+**apps/mobile** shows two more paths through `react-native 0.81`, which no one
+had looked at. The rule says to check every app; that means every app, not "the
+app the alert mentioned".
 
-Recorded in `pnpm.auditConfig.ignoreGhsas` on that basis.
+The `geoip-lite` path is now **gone**, and it was fixable rather than acceptable
+— `geoip-lite@2` dropped `rimraf` entirely (deps are chalk, iconv-lite,
+ip-address, lazy, yauzl). Upgrading 1.4.10 → 2.0.3 removed 179 packages and with
+them the last production path to `minimatch 3`. Its only API surface here is
+`lookup(ip)`, unchanged; `engines` requires Node ≥ 24 and the repo is on 24.x.
+The now-dead `geoip-lite>ip-address` override was removed with it, since v2
+already requires `^10.2.0`.
+
+Current residual exposure, verified per app with `-P`:
+
+- **backend production — clean.** Only
+  `minimatch 10.2.5 > brace-expansion 5.0.8`.
+- **web production — clean.** `@sentry/nextjs > glob 13 > minimatch 10 > 5.0.8`.
+- `eslint 8 > minimatch 3` — devDependency, never ships.
+- `react-native 0.81 > @react-native/codegen > glob 7 > minimatch 3` and
+  `… > chromium-edge-launcher > rimraf 3 > glob 7 > minimatch 3` — listed as
+  production deps of `react-native`, but they are **build-time** tooling
+  (codegen, Metro). They do not enter the JS bundle shipped in the APK. Not
+  fixable from here: it needs a react-native release that drops glob 7.
+
+So nothing that runs in production is affected any more, and the remaining paths
+take no attacker-controlled brace patterns — they glob hardcoded build paths.
+Still recorded in `pnpm.auditConfig.ignoreGhsas`, now on much narrower grounds.
+
+**The audit gate itself was broken.** CI ran
+`pnpm audit --audit-level=high --recursive` and `security:check` ran
+`pnpm audit --recursive`; pnpm 10 has no `--recursive` flag for `audit`, so both
+exited 1 with "Unknown option" instead of auditing anything. A gate that always
+fails is a gate nobody reads. Fixed — plain `pnpm audit` at the root already
+covers every workspace package through the shared lockfile.
 
 ## Accepting an advisory
 

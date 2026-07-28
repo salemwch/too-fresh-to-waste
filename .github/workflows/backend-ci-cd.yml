@@ -233,8 +233,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # No --recursive: pnpm 10 has no such flag for `audit` and exits 1 with
+      # "Unknown option", so this gate was failing rather than auditing. `pnpm audit`
+      # at the workspace root already covers every package via the shared lockfile.
       - name: Dependency audit
-        run: pnpm audit --audit-level=high --recursive
+        run: pnpm audit --audit-level=high
 
       - name: Check for hardcoded secrets
         uses: trufflesecurity/trufflehog@main
