@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '@/services/admin.service';
 import { dashboardService } from '@/services/dashboard.service';
-import type { DonationStats, CommunityBagGoalStats } from '@/types/dashboard';
+import type { DonationStats, MonthlyBagGoalStats } from '@/types/dashboard';
 import type {
   AnalyticsPeriod,
   UserSearchParams,
@@ -810,22 +810,22 @@ export function useAdminTopMerchants(limit = 3) {
   });
 }
 
-// ─── Community Goal ──────────────────────────────────────────────────────────
+// ─── Monthly Bag Goal ───────────────────────────────────────────────────────
 
-const COMMUNITY_GOAL_KEY = ['admin', 'community-goal'] as const;
+const MONTHLY_BAG_GOAL_KEY = ['admin', 'community-goal'] as const;
 
-export function useAdminCommunityGoal() {
+export function useAdminMonthlyBagGoal() {
   return useQuery({
-    queryKey: COMMUNITY_GOAL_KEY,
-    queryFn: async (): Promise<CommunityBagGoalStats> => {
-      const res = await dashboardService.getAdminCommunityGoal();
+    queryKey: MONTHLY_BAG_GOAL_KEY,
+    queryFn: async (): Promise<MonthlyBagGoalStats> => {
+      const res = await dashboardService.getAdminMonthlyBagGoal();
       return res.data.data;
     },
     staleTime: 30 * 1000,
   });
 }
 
-export function useUpdateCommunityGoal() {
+export function useUpdateMonthlyBagGoal() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: {
@@ -833,19 +833,19 @@ export function useUpdateCommunityGoal() {
       rewardPoints?: number;
       seasonName?: string;
       endDate?: string;
-    }) => dashboardService.updateAdminCommunityGoal(payload).then(r => r.data.data),
+    }) => dashboardService.updateAdminMonthlyBagGoal(payload).then(r => r.data.data),
     onSuccess: data => {
-      qc.setQueryData<CommunityBagGoalStats>(COMMUNITY_GOAL_KEY, data);
+      qc.setQueryData<MonthlyBagGoalStats>(MONTHLY_BAG_GOAL_KEY, data);
     },
   });
 }
 
-export function useResetCommunityGoal() {
+export function useResetMonthlyBagGoal() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => dashboardService.resetAdminCommunityGoal().then(r => r.data.data),
+    mutationFn: () => dashboardService.resetAdminMonthlyBagGoal().then(r => r.data.data),
     onSuccess: data => {
-      qc.setQueryData<CommunityBagGoalStats>(COMMUNITY_GOAL_KEY, data);
+      qc.setQueryData<MonthlyBagGoalStats>(MONTHLY_BAG_GOAL_KEY, data);
     },
   });
 }

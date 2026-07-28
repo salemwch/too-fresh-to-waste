@@ -49,7 +49,7 @@ export const dashboardKeys = {
   activeOfferCount: (estId?: string) =>
     [...dashboardKeys.all, 'active-offer-count', estId ?? 'all'] as const,
   donationStats: () => [...dashboardKeys.all, 'donation-stats'] as const,
-  communityGoal: () => [...dashboardKeys.all, 'community-goal'] as const,
+  monthlyBagGoal: () => [...dashboardKeys.all, 'community-goal'] as const,
   revenueChart: (granularity: ChartGranularity, value: number, estId?: string) =>
     [...dashboardKeys.all, 'revenue-chart', granularity, value, estId ?? 'all'] as const,
   myEstablishment: () => [...dashboardKeys.all, 'my-establishment'] as const,

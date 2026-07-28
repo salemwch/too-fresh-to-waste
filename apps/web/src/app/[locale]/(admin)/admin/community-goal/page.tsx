@@ -27,11 +27,11 @@ import {
 } from '@foodwaste/ui';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
 import {
-  useAdminCommunityGoal,
-  useUpdateCommunityGoal,
-  useResetCommunityGoal,
+  useAdminMonthlyBagGoal,
+  useUpdateMonthlyBagGoal,
+  useResetMonthlyBagGoal,
 } from '@/hooks/use-admin';
-import type { CommunityGoalStatus } from '@/types/dashboard';
+import type { MonthlyGoalStatus } from '@/types/dashboard';
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -39,10 +39,10 @@ function StatusBadge({
   status,
   t,
 }: {
-  status: CommunityGoalStatus;
+  status: MonthlyGoalStatus;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const variants: Record<CommunityGoalStatus, string> = {
+  const variants: Record<MonthlyGoalStatus, string> = {
     active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     completed: 'bg-blue-50 text-blue-700 border-blue-200',
     archived: 'bg-gray-100 text-gray-500 border-gray-200',
@@ -89,12 +89,12 @@ function KpiCard({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function AdminCommunityGoalPage() {
+export default function AdminMonthlyBagGoalPage() {
   const t = useTranslations('dashboard.adminCommunityGoal');
 
-  const { data: goal, isLoading, refetch, isFetching } = useAdminCommunityGoal();
-  const updateGoal = useUpdateCommunityGoal();
-  const resetGoal = useResetCommunityGoal();
+  const { data: goal, isLoading, refetch, isFetching } = useAdminMonthlyBagGoal();
+  const updateGoal = useUpdateMonthlyBagGoal();
+  const resetGoal = useResetMonthlyBagGoal();
 
   const [targetCount, setTargetCount] = useState('');
   const [seasonName, setSeasonName] = useState('');

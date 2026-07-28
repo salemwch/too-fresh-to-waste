@@ -14,7 +14,7 @@ import type {
   CreatedOfferResponse,
   ReactivateOfferPayload,
   DonationStats,
-  CommunityBagGoalStats,
+  MonthlyBagGoalStats,
   EsgTierResponse,
   MonthlyGoalResponse,
   CarbonMetricsResponse,
@@ -270,34 +270,34 @@ export const dashboardService = {
     return apiClient.post<BackendEnvelope<DonationStats>>('/admin/donations/pool/reset');
   },
 
-  // ── Community Bag Goal ─────────────────────────────────────────────────
+  // ── Monthly Bag Goal ───────────────────────────────────────────────────
 
   /**
    * GET /community-goal/stats
    * Public community bag goal progress (no auth required).
    */
-  getCommunityGoalStats() {
-    return apiClient.get<BackendEnvelope<CommunityBagGoalStats>>(`${COMMUNITY_GOAL_BASE}/stats`);
+  getMonthlyBagGoalStats() {
+    return apiClient.get<BackendEnvelope<MonthlyBagGoalStats>>(`${COMMUNITY_GOAL_BASE}/stats`);
   },
 
-  getAdminCommunityGoal() {
-    return apiClient.get<BackendEnvelope<CommunityBagGoalStats>>(`${COMMUNITY_GOAL_BASE}/stats`);
+  getAdminMonthlyBagGoal() {
+    return apiClient.get<BackendEnvelope<MonthlyBagGoalStats>>(`${COMMUNITY_GOAL_BASE}/stats`);
   },
 
-  updateAdminCommunityGoal(payload: {
+  updateAdminMonthlyBagGoal(payload: {
     targetCount: number;
     rewardPoints?: number;
     seasonName?: string;
     endDate?: string;
   }) {
-    return apiClient.post<BackendEnvelope<CommunityBagGoalStats>>(
+    return apiClient.post<BackendEnvelope<MonthlyBagGoalStats>>(
       '/admin/community-goal/target',
       payload,
     );
   },
 
-  resetAdminCommunityGoal() {
-    return apiClient.post<BackendEnvelope<CommunityBagGoalStats>>('/admin/community-goal/reset');
+  resetAdminMonthlyBagGoal() {
+    return apiClient.post<BackendEnvelope<MonthlyBagGoalStats>>('/admin/community-goal/reset');
   },
 
   // ── Sustainability ─────────────────────────────────────────────────────

@@ -433,15 +433,15 @@ export interface DonationStats {
 
 // ─── Community Bag Goal ─────────────────────────────────────────────────────
 
-export type CommunityGoalStatus = 'active' | 'completed' | 'archived';
+export type MonthlyGoalStatus = 'active' | 'completed' | 'archived';
 
-export interface CommunityBagGoalStats {
+export interface MonthlyBagGoalStats {
   currentCount: number;
   targetCount: number;
   progressPercentage: number;
   remaining: number;
   cycleNumber: number;
-  status: CommunityGoalStatus;
+  status: MonthlyGoalStatus;
   lastUpdatedAt: string;
   rewardPoints?: number;
   seasonName?: string;

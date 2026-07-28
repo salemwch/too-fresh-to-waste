@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { dashboardService } from '@/services/dashboard.service';
 import { dashboardKeys, useSocialImpact } from '@/hooks/use-merchant-dashboard';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
-import type { CommunityBagGoalStats, DonationStats } from '@/types/dashboard';
+import type { MonthlyBagGoalStats, DonationStats } from '@/types/dashboard';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -54,9 +54,9 @@ export default function CommunityPage() {
   const t = useTranslations('dashboard.merchantCommunity');
 
   const communityQuery = useQuery({
-    queryKey: dashboardKeys.communityGoal(),
-    queryFn: async (): Promise<CommunityBagGoalStats> => {
-      const response = await dashboardService.getCommunityGoalStats();
+    queryKey: dashboardKeys.monthlyBagGoal(),
+    queryFn: async (): Promise<MonthlyBagGoalStats> => {
+      const response = await dashboardService.getMonthlyBagGoalStats();
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
