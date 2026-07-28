@@ -18,6 +18,86 @@ project.ext.envConfigFiles = [
 ]
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
+/*
+ * Fail the build when a release env file still holds a placeholder.
+ *
+ * A production AAB shipped with STORAGE_ENCRYPTION_KEY=REPLACE_WITH_... The app
+ * refuses to start without a real key (src/storage/encryptionKey.ts), so it threw
+ * on the JS thread before the runtime was ready: white screen, then the process
+ * aborted. Nothing catches that - there is no JS runtime left to show an error -
+ * so the first sign of it was a crash on a real device from the Play Store.
+ *
+ * These values are only read at build time, so this is checkable at build time.
+ * Release variants only: dev and staging deliberately carry placeholder-ish keys
+ * and must stay buildable offline.
+ */
+def PLACEHOLDER_PREFIX = "REPLACE_WITH"
+
+// Keys that must hold a real value in a release build. STORAGE_ENCRYPTION_KEY is
+// the one that hard-crashes; the rest are checked because a placeholder shipped to
+// users is a bug regardless of whether it happens to throw.
+def REQUIRED_RELEASE_KEYS = [
+    "STORAGE_ENCRYPTION_KEY",
+    "API_BASE_URL",
+    "FIREBASE_API_KEY",
+    "FIREBASE_APP_ID",
+    "FIREBASE_MESSAGING_SENDER_ID",
+]
+
+ext.validateEnvFile = { String envFileName ->
+    def envFile = file("${rootProject.projectDir}/../${envFileName}")
+
+    if (!envFile.exists()) {
+        throw new GradleException(
+            "Release build requires ${envFileName}, which does not exist at ${envFile.absolutePath}.\n" +
+            "It is gitignored, so a fresh clone or a CI runner will not have it. Copy it from a\n" +
+            "secure store, or generate one from .env.example."
+        )
+    }
+
+    def values = [:]
+    envFile.eachLine { line ->
+        def trimmed = line.trim()
+        if (trimmed.isEmpty() || trimmed.startsWith("#")) return
+        def idx = trimmed.indexOf("=")
+        if (idx > 0) {
+            values[trimmed.substring(0, idx).trim()] = trimmed.substring(idx + 1).trim()
+        }
+    }
+
+    def problems = []
+    REQUIRED_RELEASE_KEYS.each { key ->
+        def value = values[key]
+        if (value == null || value.isEmpty()) {
+            problems << "  ${key} is missing or empty"
+        } else if (value.startsWith(PLACEHOLDER_PREFIX)) {
+            problems << "  ${key} is still a placeholder (${value})"
+        }
+    }
+
+    if (!problems.isEmpty()) {
+        throw new GradleException(
+            "${envFileName} is not ready for a release build:\n" +
+            problems.join("\n") + "\n\n" +
+            "Fill these in before building. STORAGE_ENCRYPTION_KEY must be a real secret -\n" +
+            "generate one with:  node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"\n" +
+            "Never regenerate it once users have installed the app: MMKV cannot decrypt an\n" +
+            "existing store with a different key."
+        )
+    }
+}
+
+// Hook into release variants only, once the variant graph is known.
+android.applicationVariants.all { variant ->
+    if (variant.buildType.name != "release") return
+    def envFileName = project.ext.envConfigFiles[variant.flavorName]
+    if (envFileName == null) return
+
+    variant.preBuildProvider.configure {
+        doFirst { validateEnvFile(envFileName) }
+    }
+}
+
 // React Native plugin applied above via plugins{} DSL
 // Generates PackageList class for autolinking and BuildConfig constants
 
