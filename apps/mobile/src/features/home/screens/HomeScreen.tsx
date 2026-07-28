@@ -38,7 +38,7 @@ import {
   HomeSearchBar,
   HomeOfferSection,
   SkeletonHomeSearchBar,
-  CommunityBagGoalBanner,
+  MonthlyBagGoalBanner,
   CharityDonationBottomSheet,
 } from '../components';
 import { HOME_OFFER_SECTIONS } from '../constants/homeConstants';
@@ -50,7 +50,7 @@ import {
   useLocationPicker,
   useLocationSetup,
   useRecentLocations,
-  COMMUNITY_GOAL_QUERY_KEY,
+  MONTHLY_BAG_GOAL_QUERY_KEY,
 } from '../hooks';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
 import { FloatingVoteTab } from '@/features/voting/components/FloatingVoteTab';
@@ -139,7 +139,7 @@ type SectionType =
   | 'locationPrompt'
   | 'searchBar'
   | 'impactBanner'
-  | 'communityBagGoal'
+  | 'monthlyBagGoal'
   | 'urgentOffers'
   | 'hottestDeals'
   | 'pickupToday'
@@ -301,7 +301,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
       refetch.all().catch(() => undefined);
       queryClient.invalidateQueries({ queryKey: ['donations', 'stats'] }).catch(() => undefined);
-      queryClient.invalidateQueries({ queryKey: COMMUNITY_GOAL_QUERY_KEY }).catch(() => undefined);
+      queryClient
+        .invalidateQueries({ queryKey: MONTHLY_BAG_GOAL_QUERY_KEY })
+        .catch(() => undefined);
     });
     return unsubscribe;
   }, [navigation, refetch, queryClient]);
@@ -386,7 +388,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     void Promise.all([
       refetch.all(),
       queryClient.invalidateQueries({ queryKey: ['donations', 'stats'] }),
-      queryClient.invalidateQueries({ queryKey: COMMUNITY_GOAL_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: MONTHLY_BAG_GOAL_QUERY_KEY }),
     ]).finally(() => {
       setRefreshing(false);
     });
@@ -521,7 +523,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       // Impact banner (always shown)
       { id: 'impactBanner' as const, type: 'impactBanner' as const },
       // Community bag goal (real-time progress toward community target)
-      { id: 'communityBagGoal' as const, type: 'communityBagGoal' as const },
+      { id: 'monthlyBagGoal' as const, type: 'monthlyBagGoal' as const },
       // Offer sections (always shown, component handles loading/error/empty states)
       { id: 'urgentOffers' as const, type: 'urgentOffers' as const },
       { id: 'hottestDeals' as const, type: 'hottestDeals' as const },
@@ -581,10 +583,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             </View>
           );
 
-        case 'communityBagGoal':
+        case 'monthlyBagGoal':
           return (
             <View style={styles.bannerWrapper}>
-              <CommunityBagGoalBanner />
+              <MonthlyBagGoalBanner />
             </View>
           );
 

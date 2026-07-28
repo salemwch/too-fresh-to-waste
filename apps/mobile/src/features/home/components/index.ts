@@ -6,5 +6,5 @@
 export { HomeSearchBar } from './HomeSearchBar';
 export { HomeOfferSection } from './HomeOfferSection';
 export { SkeletonHomeSearchBar } from './SkeletonHomeSearchBar';
-export { CommunityBagGoalBanner } from './CommunityBagGoalBanner';
+export { MonthlyBagGoalBanner } from './MonthlyBagGoalBanner';
 export { CharityDonationBottomSheet } from './CharityDonationBottomSheet';

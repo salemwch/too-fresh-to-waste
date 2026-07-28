@@ -16,7 +16,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { SkeletonLeaderboardScreen } from '../components/SkeletonLeaderboardScreen';
 
 import { Icon } from '@/design-system/components/atoms';
-import { useCommunityBagGoal } from '@/features/home/hooks/useCommunityBagGoal';
+import { useMonthlyBagGoal } from '@/features/home/hooks/useMonthlyBagGoal';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
 import { DiscountClaimModal } from '../components/DiscountClaimModal';
@@ -67,7 +67,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const { user } = useUserProfile();
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useLeaderboard();
-  const { data: goal } = useCommunityBagGoal();
+  const { data: goal } = useMonthlyBagGoal();
 
   const challengeEnded = goal?.endDate ? new Date(goal.endDate).getTime() <= Date.now() : false;
   const { data: claimStatus } = usePrizeClaimStatus(challengeEnded);

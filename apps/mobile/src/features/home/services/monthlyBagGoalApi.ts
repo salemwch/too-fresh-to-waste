@@ -9,7 +9,7 @@ import axios, { type AxiosError } from 'axios';
 
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
 
-import type { CommunityBagGoalStats } from '@foodwaste/shared';
+import type { MonthlyBagGoalStats } from '@foodwaste/shared';
 
 const handleApiError = (error: unknown): Error => {
   if (axios.isAxiosError(error)) {
@@ -30,14 +30,14 @@ const handleApiError = (error: unknown): Error => {
   return error as Error;
 };
 
-export const communityGoalApi = {
+export const monthlyBagGoalApi = {
   /**
    * Get community bag goal statistics (public endpoint)
    * @param signal — AbortSignal for TanStack Query cancellation
    */
-  async getStats(signal?: AbortSignal): Promise<CommunityBagGoalStats> {
+  async getStats(signal?: AbortSignal): Promise<MonthlyBagGoalStats> {
     try {
-      const response = await apiClient.get<BackendApiResponse<CommunityBagGoalStats>>(
+      const response = await apiClient.get<BackendApiResponse<MonthlyBagGoalStats>>(
         '/community-goal/stats',
         { ...(signal != null && { signal }) },
       );

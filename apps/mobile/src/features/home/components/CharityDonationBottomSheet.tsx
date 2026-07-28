@@ -19,11 +19,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { CommunityGoalCauseType } from '@foodwaste/shared';
+import type { MonthlyGoalCauseType } from '@foodwaste/shared';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 
-import { useCommunityBagGoal } from '../hooks/useCommunityBagGoal';
+import { useMonthlyBagGoal } from '../hooks/useMonthlyBagGoal';
 
 // ─── Animation constants ──────────────────────────────────────────────────────
 
@@ -41,7 +41,7 @@ interface CauseConfig {
   defaultStory: string;
 }
 
-const CAUSE_CONFIG: Record<CommunityGoalCauseType, CauseConfig> = {
+const CAUSE_CONFIG: Record<MonthlyGoalCauseType, CauseConfig> = {
   FOOD: {
     emoji: '🍞',
     accentColor: '#E65100',
@@ -141,7 +141,7 @@ interface Props {
 export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { data: stats } = useCommunityBagGoal();
+  const { data: stats } = useMonthlyBagGoal();
 
   // Keep Modal mounted until close animation fully finishes
   const [isModalMounted, setIsModalMounted] = useState(false);

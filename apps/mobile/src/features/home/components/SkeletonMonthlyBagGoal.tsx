@@ -4,7 +4,7 @@ import { View, StyleSheet } from 'react-native';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 
-interface SkeletonCommunityBagGoalProps {
+interface SkeletonMonthlyBagGoalProps {
   testID?: string;
 }
 
@@ -14,9 +14,9 @@ const COLORS = {
   brandSurface: 'rgba(255,255,255,0.15)',
 } as const;
 
-const SkeletonCommunityBagGoalComponent = ({
+const SkeletonMonthlyBagGoalComponent = ({
   testID = 'skeleton-community-bag-goal',
-}: SkeletonCommunityBagGoalProps) => {
+}: SkeletonMonthlyBagGoalProps) => {
   const anim = useShimmerAnimation();
 
   return (
@@ -35,8 +35,8 @@ const SkeletonCommunityBagGoalComponent = ({
   );
 };
 
-SkeletonCommunityBagGoalComponent.displayName = 'SkeletonCommunityBagGoal';
-export const SkeletonCommunityBagGoal = memo(SkeletonCommunityBagGoalComponent);
+SkeletonMonthlyBagGoalComponent.displayName = 'SkeletonMonthlyBagGoal';
+export const SkeletonMonthlyBagGoal = memo(SkeletonMonthlyBagGoalComponent);
 
 const styles = StyleSheet.create({
   container: {

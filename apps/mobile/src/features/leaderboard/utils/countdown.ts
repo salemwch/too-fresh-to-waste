@@ -1,7 +1,7 @@
 /**
  * Countdown to the end of a leaderboard challenge.
  *
- * Note: VotingCard and CommunityBagGoalBanner each compute their own time
+ * Note: VotingCard and MonthlyBagGoalBanner each compute their own time
  * remaining. They are deliberately not shared — the voting card shows total
  * hours with no day component, and the banner shows ceil-days clamped at zero.
  * Only the millisecond arithmetic is common, and folding three presentations

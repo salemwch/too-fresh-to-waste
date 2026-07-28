@@ -11,11 +11,11 @@ import {
   Image,
 } from 'react-native';
 
-import { useCommunityBagGoal } from '../hooks/useCommunityBagGoal';
+import { useMonthlyBagGoal } from '../hooks/useMonthlyBagGoal';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 
-import { SkeletonCommunityBagGoal } from './SkeletonCommunityBagGoal';
+import { SkeletonMonthlyBagGoal } from './SkeletonMonthlyBagGoal';
 import surpriseBoxImg from '../../../assets/images/surprise-box.png';
 
 const COLORS = {
@@ -106,10 +106,10 @@ const AnimatedProgressBar = ({
   );
 };
 
-const CommunityBagGoalBannerComponent = () => {
+const MonthlyBagGoalBannerComponent = () => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { data: stats, isLoading, isError } = useCommunityBagGoal();
+  const { data: stats, isLoading, isError } = useMonthlyBagGoal();
 
   const toggleExpand = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -117,7 +117,7 @@ const CommunityBagGoalBannerComponent = () => {
   }, []);
 
   if (isLoading || (stats === undefined && !isError)) {
-    return <SkeletonCommunityBagGoal />;
+    return <SkeletonMonthlyBagGoal />;
   }
 
   if (isError || stats === undefined) {
@@ -233,8 +233,8 @@ const CommunityBagGoalBannerComponent = () => {
   );
 };
 
-CommunityBagGoalBannerComponent.displayName = 'CommunityBagGoalBanner';
-export const CommunityBagGoalBanner = memo(CommunityBagGoalBannerComponent);
+MonthlyBagGoalBannerComponent.displayName = 'MonthlyBagGoalBanner';
+export const MonthlyBagGoalBanner = memo(MonthlyBagGoalBannerComponent);
 
 const styles = StyleSheet.create({
   container: {

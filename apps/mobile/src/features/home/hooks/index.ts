@@ -8,4 +8,4 @@ export { useHomeOffers } from './useHomeOffers';
 export { useLocationPicker } from './useLocationPicker';
 export { useLocationSetup } from './useLocationSetup';
 export { useRecentLocations } from './useRecentLocations';
-export { COMMUNITY_GOAL_QUERY_KEY } from './useCommunityBagGoal';
+export { MONTHLY_BAG_GOAL_QUERY_KEY } from './useMonthlyBagGoal';
