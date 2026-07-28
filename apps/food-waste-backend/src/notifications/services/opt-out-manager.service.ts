@@ -22,7 +22,13 @@ import {
   OptOutOperationResponseDto,
   IOptOutMetadata,
   IMessageStats,
+  IOptOutAuditEntry,
 } from '../dto/opt-out.dto';
+import {
+  OptOutAudit,
+  type OptOutAuditAction,
+  OptOutAuditDocument,
+} from '../schemas/opt-out-audit.schema';
 import {
   OptOutRecord,
   OptOutRecordDocument,
@@ -43,6 +49,7 @@ export class OptOutManagerService {
 
   constructor(
     @InjectModel(OptOutRecord.name) private readonly optOutModel: Model<OptOutRecordDocument>,
+    @InjectModel(OptOutAudit.name) private readonly auditModel: Model<OptOutAuditDocument>,
     private readonly phoneValidator: PhoneValidatorService,
     private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
@@ -56,6 +63,104 @@ export class OptOutManagerService {
     this.maxRetries = this.configService.get<number>('sms.optOut.maxRetries', 3);
     void this.rateLimitWindow;
     void this.maxRetries;
+  }
+
+  /**
+   * Audit entries for many records, grouped by record id — one query for the batch.
+   *
+   * The audit trail used to be an array embedded in each opt-out record, so reading
+   * it was free once the record was loaded. Now that it lives in its own collection,
+   * the list endpoint would issue one query per row if each record fetched its own.
+   * Callers must therefore resolve the whole page up front and look entries up from
+   * the returned map.
+   *
+   * Only call this when the caller actually asked for the audit log. Skipping it is
+   * now cheaper than the old behaviour, which loaded the array on every read whether
+   * or not anyone wanted it.
+   */
+  private async fetchAuditByRecord(
+    recordIds: Types.ObjectId[],
+  ): Promise<Map<string, IOptOutAuditEntry[]>> {
+    const grouped = new Map<string, IOptOutAuditEntry[]>();
+
+    if (recordIds.length === 0) {
+      return grouped;
+    }
+
+    const rows = await this.auditModel
+      .find({ recordId: { $in: recordIds } })
+      .sort({ timestamp: -1 })
+      .lean()
+      .exec();
+
+    for (const row of rows) {
+      const key = row.recordId.toString();
+      const entries = grouped.get(key) ?? [];
+
+      entries.push({
+        action: row.action,
+        timestamp: row.timestamp,
+        ...(row.reason !== undefined ? { reason: row.reason } : {}),
+        ...(row.userId !== undefined ? { userId: row.userId } : {}),
+        ...(row.ipAddress !== undefined ? { ipAddress: row.ipAddress } : {}),
+        ...(row.userAgent !== undefined ? { userAgent: row.userAgent } : {}),
+        ...(row.metadata !== undefined ? { metadata: row.metadata } : {}),
+      });
+
+      grouped.set(key, entries);
+    }
+
+    return grouped;
+  }
+
+  /** Audit entries for a single record, newest first. */
+  private async fetchAuditForRecord(recordId: Types.ObjectId): Promise<IOptOutAuditEntry[]> {
+    const grouped = await this.fetchAuditByRecord([recordId]);
+    return grouped.get(recordId.toString()) ?? [];
+  }
+
+  /**
+   * Append audit rows for opt-out records.
+   *
+   * These used to be `$push: { auditLog: … }` operators folded into the same
+   * `updateOne`/`updateMany` that changed the record. Now that the trail is its own
+   * collection they are a separate write, so this is always called **after** the
+   * record update succeeds — auditing first would record an event that never
+   * happened.
+   *
+   * A failure is logged and swallowed: the opt-out has already been applied, and
+   * failing the request would leave the caller believing their opt-out did not take
+   * effect when it did. For an SMS consent flow that is the worse outcome.
+   */
+  private async writeAuditEntries(
+    entries: Array<{
+      recordId: Types.ObjectId;
+      action: OptOutAuditAction;
+      reason?: string | undefined;
+      userId?: Types.ObjectId | undefined;
+      ipAddress?: string | undefined;
+      userAgent?: string | undefined;
+      metadata?: Record<string, unknown> | undefined;
+    }>,
+  ): Promise<void> {
+    if (entries.length === 0) {
+      return;
+    }
+
+    const timestamp = new Date();
+
+    try {
+      await this.auditModel.insertMany(
+        entries.map(e => ({ ...e, timestamp })),
+        // Persist every row we can rather than losing the batch to one bad entry.
+        { ordered: false },
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to write ${entries.length} opt-out audit row(s): ` +
+          `${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   async checkOptOutStatus(
@@ -113,16 +218,17 @@ export class OptOutManagerService {
           {
             status: OptOutRecordStatus.EXPIRED,
             isOptedOut: false,
-            $push: {
-              auditLog: {
-                action: 'expired',
-                timestamp: new Date(),
-                reason: 'Record automatically expired',
-                metadata: { operationId },
-              },
-            },
           },
         );
+
+        await this.writeAuditEntries([
+          {
+            recordId: record._id,
+            action: 'expired',
+            reason: 'Record automatically expired',
+            metadata: { operationId },
+          },
+        ]);
 
         this.logger.warn(`Opt-out record expired and updated`, {
           operationId,
@@ -149,7 +255,7 @@ export class OptOutManagerService {
       };
 
       if (includeAuditLog) {
-        response.auditLog = record.auditLog;
+        response.auditLog = await this.fetchAuditForRecord(record._id);
       }
 
       if (includeStats) {
@@ -225,17 +331,6 @@ export class OptOutManagerService {
         lastVerifiedAt: new Date(),
         isVerified: true,
         retryCount: 0,
-        $push: {
-          auditLog: {
-            action: 'opt_out',
-            timestamp: new Date(),
-            reason: optOutRequest.reason ?? OptOutReason.USER_REQUESTED,
-            userId: optOutRequest.userId ? new Types.ObjectId(optOutRequest.userId) : undefined,
-            ipAddress: optOutRequest.ipAddress,
-            userAgent: optOutRequest.userAgent,
-            metadata: { operationId, source: optOutRequest.source },
-          },
-        },
       };
 
       const result = await this.optOutModel
@@ -245,6 +340,20 @@ export class OptOutManagerService {
           runValidators: true,
         })
         .exec();
+
+      await this.writeAuditEntries([
+        {
+          recordId: result._id,
+          action: 'opt_out',
+          reason: optOutRequest.reason ?? OptOutReason.USER_REQUESTED,
+          ...(optOutRequest.userId !== undefined
+            ? { userId: new Types.ObjectId(optOutRequest.userId) }
+            : {}),
+          ...(optOutRequest.ipAddress !== undefined ? { ipAddress: optOutRequest.ipAddress } : {}),
+          ...(optOutRequest.userAgent !== undefined ? { userAgent: optOutRequest.userAgent } : {}),
+          metadata: { operationId, source: optOutRequest.source },
+        },
+      ]);
 
       // Emit event for downstream processing
       this.eventEmitter.emit('sms.opt-out.processed', {
@@ -372,17 +481,6 @@ export class OptOutManagerService {
             metadata,
             lastVerifiedAt: new Date(),
             isVerified: true,
-            $push: {
-              auditLog: {
-                action: 'opt_in',
-                timestamp: new Date(),
-                reason: 'User requested opt-in',
-                userId: optInRequest.userId ? new Types.ObjectId(optInRequest.userId) : undefined,
-                ipAddress: optInRequest.ipAddress,
-                userAgent: optInRequest.userAgent,
-                metadata: { operationId, source: optInRequest.source },
-              },
-            },
           },
           { new: true, runValidators: true },
         )
@@ -391,6 +489,20 @@ export class OptOutManagerService {
       if (!result) {
         throw new InternalServerErrorException('Failed to update opt-in status');
       }
+
+      await this.writeAuditEntries([
+        {
+          recordId: result._id,
+          action: 'opt_in',
+          reason: 'User requested opt-in',
+          ...(optInRequest.userId !== undefined
+            ? { userId: new Types.ObjectId(optInRequest.userId) }
+            : {}),
+          ...(optInRequest.ipAddress !== undefined ? { ipAddress: optInRequest.ipAddress } : {}),
+          ...(optInRequest.userAgent !== undefined ? { userAgent: optInRequest.userAgent } : {}),
+          metadata: { operationId, source: optInRequest.source },
+        },
+      ]);
 
       // Emit event for downstream processing
       this.eventEmitter.emit('sms.opt-in.processed', {
@@ -534,6 +646,7 @@ export class OptOutManagerService {
     recordMap: Map<string, LeanDocument<OptOutRecordDocument>>,
     existingResults: Record<string, OptOutStatusResponseDto>,
     bulkRequest: BulkOptOutCheckDto,
+    auditByRecord: Map<string, IOptOutAuditEntry[]> | undefined,
   ): {
     processedResults: Record<string, OptOutStatusResponseDto>;
     counters: { totalOptedOut: number; totalActive: number };
@@ -553,7 +666,7 @@ export class OptOutManagerService {
         results[originalNumber] = this.createActiveResponse(sanitized);
         totalActive++;
       } else {
-        const response = this.createRecordResponse(record, sanitized, bulkRequest);
+        const response = this.createRecordResponse(record, sanitized, bulkRequest, auditByRecord);
         results[originalNumber] = response;
 
         if (response.isOptedOut) {
@@ -581,10 +694,17 @@ export class OptOutManagerService {
     };
   }
 
+  /**
+   * Stays synchronous, and takes the audit entries rather than fetching them.
+   * It is called once per phone number in a bulk check — up to `maxBulkSize` (1000)
+   * — so fetching here would be an N+1 of that size. The caller resolves the whole
+   * batch in one query.
+   */
   private createRecordResponse(
     record: LeanDocument<OptOutRecordDocument>,
     sanitizedPhoneNumber: string,
     bulkRequest: BulkOptOutCheckDto,
+    auditByRecord: Map<string, IOptOutAuditEntry[]> | undefined,
   ): OptOutStatusResponseDto {
     const isExpired = record.expiresAt ? new Date() > record.expiresAt : false;
     const effectiveOptedOut = isExpired ? false : record.isOptedOut;
@@ -607,7 +727,7 @@ export class OptOutManagerService {
     };
 
     if (bulkRequest.includeAuditLog === true) {
-      response.auditLog = record.auditLog;
+      response.auditLog = auditByRecord?.get(record._id.toString()) ?? [];
     }
 
     if (bulkRequest.includeStats === true) {
@@ -682,12 +802,20 @@ export class OptOutManagerService {
       const records = await this.fetchOptOutRecords(sanitizedNumbers);
       const recordMap = this.createRecordLookupMap(records);
 
+      // One query for the whole batch, and only when the caller asked for it — a
+      // bulk check can cover up to maxBulkSize numbers.
+      const auditByRecord =
+        bulkRequest.includeAuditLog === true
+          ? await this.fetchAuditByRecord(records.map(record => record._id))
+          : undefined;
+
       const { processedResults, counters } = this.processOptOutResults(
         sanitizedNumbers,
         phoneNumberMap,
         recordMap,
         results,
         bulkRequest,
+        auditByRecord,
       );
 
       const response = this.buildBulkResponse(
@@ -788,6 +916,14 @@ export class OptOutManagerService {
       ]);
 
       // Transform records to response format
+      // Resolved before the map, in one query for the whole page. Fetching per
+      // record inside the map would be an N+1 — and it is skipped entirely when the
+      // caller did not ask for the audit log.
+      const auditByRecord =
+        query.includeAuditLog === true
+          ? await this.fetchAuditByRecord(records.map(record => record._id))
+          : undefined;
+
       const data: OptOutStatusResponseDto[] = records.map(record => {
         const isExpired = record.expiresAt ? new Date() > record.expiresAt : false;
 
@@ -809,7 +945,7 @@ export class OptOutManagerService {
         };
 
         if (query.includeAuditLog === true) {
-          response.auditLog = record.auditLog;
+          response.auditLog = auditByRecord?.get(record._id.toString()) ?? [];
         }
 
         if (query.includeStats === true) {
@@ -867,27 +1003,33 @@ export class OptOutManagerService {
     const startTime = Date.now();
 
     try {
+      const expiredFilter = {
+        expiresAt: { $lte: new Date() },
+        status: { $ne: OptOutRecordStatus.EXPIRED },
+        isOptedOut: true,
+      };
+
+      // The ids have to be collected before the update: `updateMany` reports only a
+      // count, and once the records are marked EXPIRED the filter no longer matches
+      // them, so there would be no way to know which ones to audit afterwards.
+      // Projected to _id only — nothing else is needed.
+      const expiring = await this.optOutModel.find(expiredFilter).select('_id').lean().exec();
+
       const result = await this.optOutModel
-        .updateMany(
-          {
-            expiresAt: { $lte: new Date() },
-            status: { $ne: OptOutRecordStatus.EXPIRED },
-            isOptedOut: true,
-          },
-          {
-            status: OptOutRecordStatus.EXPIRED,
-            isOptedOut: false,
-            $push: {
-              auditLog: {
-                action: 'expired',
-                timestamp: new Date(),
-                reason: 'Automatic cleanup - record expired',
-                metadata: { operationId, cleanupType: 'scheduled' },
-              },
-            },
-          },
-        )
+        .updateMany(expiredFilter, {
+          status: OptOutRecordStatus.EXPIRED,
+          isOptedOut: false,
+        })
         .exec();
+
+      await this.writeAuditEntries(
+        expiring.map(record => ({
+          recordId: record._id,
+          action: 'expired' as const,
+          reason: 'Automatic cleanup - record expired',
+          metadata: { operationId, cleanupType: 'scheduled' },
+        })),
+      );
 
       this.logger.warn(`Expired opt-out records cleanup completed`, {
         operationId,

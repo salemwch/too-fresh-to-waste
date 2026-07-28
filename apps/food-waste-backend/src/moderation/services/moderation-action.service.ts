@@ -1,6 +1,7 @@
 import { UserRole } from '@foodwaste/shared';
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   ForbiddenException,
@@ -15,6 +16,10 @@ import {
 } from '../dtos/moderation-action.dto';
 import { ModerationActionQueryDto } from '../dtos/report-query.dto';
 import {
+  ModerationActionAudit,
+  ModerationActionAuditDocument,
+} from '../schemas/moderation-action-audit.schema';
+import {
   ModerationAction,
   ModerationActionDocument,
   ModerationActionStatus,
@@ -27,13 +32,68 @@ import { ModerationLogService } from './moderation-log.service';
 /** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
 export type ModerationActionLean = FlattenMaps<ModerationAction> & { _id: Types.ObjectId };
 
+/** One field-level change to record against a moderation action. */
+interface AuditChange {
+  field: string;
+  oldValue?: string | undefined;
+  newValue?: string | undefined;
+  changedBy: Types.ObjectId;
+}
+
 @Injectable()
 export class ModerationActionService {
+  private readonly logger = new Logger(ModerationActionService.name);
+
   constructor(
     @InjectModel(ModerationAction.name)
     private readonly moderationActionModel: Model<ModerationActionDocument>,
+    @InjectModel(ModerationActionAudit.name)
+    private readonly auditModel: Model<ModerationActionAuditDocument>,
     private readonly moderationLogService: ModerationLogService,
   ) {}
+
+  /**
+   * Record field changes against an action, one row per change.
+   *
+   * Always call this **after** the action itself has been saved. The audit rows now
+   * live in their own collection, so they are no longer part of the parent's write:
+   * auditing first would leave a record of a change that never happened if the save
+   * then failed, which is the worse of the two failure modes.
+   *
+   * A failed audit write is logged and swallowed. Losing the history of a
+   * moderation change is bad, but refusing to revoke a ban because its audit row
+   * could not be written is worse — and the caller has already committed.
+   */
+  private async recordAuditChanges(
+    actionId: Types.ObjectId,
+    changes: AuditChange[],
+  ): Promise<void> {
+    if (changes.length === 0) {
+      return;
+    }
+
+    const changedAt = new Date();
+
+    try {
+      await this.auditModel.insertMany(
+        changes.map(c => ({
+          actionId,
+          field: c.field,
+          ...(c.oldValue !== undefined ? { oldValue: c.oldValue } : {}),
+          ...(c.newValue !== undefined ? { newValue: c.newValue } : {}),
+          changedBy: c.changedBy,
+          changedAt,
+        })),
+        // Record every change we can rather than aborting the batch on one bad row.
+        { ordered: false },
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to write ${changes.length} audit row(s) for moderation action ${actionId.toString()}: ` +
+          `${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
 
   /**
    * Create a moderation action with comprehensive logging
@@ -78,17 +138,19 @@ export class ModerationActionService {
       expiresAt,
       actionContext: requestContext,
       isSystemAction: false,
-      auditTrail: [
-        {
-          field: 'status',
-          newValue: ModerationActionStatus.ACTIVE,
-          changedBy: new Types.ObjectId(moderatorId),
-          changedAt: new Date(),
-        },
-      ],
     });
 
     const savedAction = await moderationAction.save();
+
+    // Opening entry of the action's change history — recorded after the save so a
+    // failed insert can never leave an audit row for an action that does not exist.
+    await this.recordAuditChanges(savedAction._id, [
+      {
+        field: 'status',
+        newValue: ModerationActionStatus.ACTIVE,
+        changedBy: new Types.ObjectId(moderatorId),
+      },
+    ]);
 
     // Log the action creation
     await this.moderationLogService.logModerationEvent({
@@ -227,15 +289,16 @@ export class ModerationActionService {
     action.revokedBy = new Types.ObjectId(revokedBy);
     action.revocationReason = revocationReason;
 
-    action.auditTrail.push({
-      field: 'status',
-      oldValue: ModerationActionStatus.ACTIVE,
-      newValue: ModerationActionStatus.REVOKED,
-      changedBy: new Types.ObjectId(revokedBy),
-      changedAt: new Date(),
-    });
-
     const updatedAction = await action.save();
+
+    await this.recordAuditChanges(action._id, [
+      {
+        field: 'status',
+        oldValue: ModerationActionStatus.ACTIVE,
+        newValue: ModerationActionStatus.REVOKED,
+        changedBy: new Types.ObjectId(revokedBy),
+      },
+    ]);
 
     // Log the revocation
     await this.moderationLogService.logModerationEvent({
@@ -313,18 +376,18 @@ export class ModerationActionService {
       action.affectedFeatures = updateDto.affectedFeatures;
     }
 
-    // Add audit trail entries
-    changes.forEach(change => {
-      action.auditTrail.push({
-        field: change.field,
-        oldValue: change.oldValue,
-        newValue: change.newValue,
-        changedBy: new Types.ObjectId(updatedBy),
-        changedAt: new Date(),
-      });
-    });
-
     const updatedAction = await action.save();
+
+    // One audit row per changed field, in a single insertMany.
+    await this.recordAuditChanges(
+      action._id,
+      changes.map(change => ({
+        field: change.field,
+        ...(change.oldValue !== undefined ? { oldValue: change.oldValue } : {}),
+        ...(change.newValue !== undefined ? { newValue: change.newValue } : {}),
+        changedBy: new Types.ObjectId(updatedBy),
+      })),
+    );
 
     const afterState = {
       expiresAt: updatedAction.expiresAt?.toISOString(),
@@ -455,15 +518,19 @@ export class ModerationActionService {
 
     for (const action of expiredActions) {
       action.status = ModerationActionStatus.EXPIRED;
-      action.auditTrail.push({
-        field: 'status',
-        oldValue: ModerationActionStatus.ACTIVE,
-        newValue: ModerationActionStatus.EXPIRED,
-        changedBy: action.moderatorId, // System change, attribute to original moderator
-        changedAt: new Date(),
-      });
 
       await action.save();
+
+      await this.recordAuditChanges(action._id, [
+        {
+          field: 'status',
+          oldValue: ModerationActionStatus.ACTIVE,
+          newValue: ModerationActionStatus.EXPIRED,
+          // Automated change; attributed to the original moderator, as before —
+          // there is no system user to attribute it to.
+          changedBy: action.moderatorId,
+        },
+      ]);
 
       // Log expiration
       await this.moderationLogService.logModerationEvent({

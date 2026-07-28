@@ -552,8 +552,16 @@ OrderSchema.index({ 'pickupExtensionRequest.approved': 1 }, { sparse: true });
 /**
  * 2dsphere index for $near queries against establishment location.
  * Standalone — cannot be combined into a compound index (MongoDB limitation for $near).
+ *
+ * No `sparse: true`. A 2dsphere index is always sparse and MongoDB ignores the
+ * option, so setting it changed nothing about behaviour — but it made the spec
+ * differ from the index already in the database, and MongoDB refuses to reconcile
+ * a same-name same-key index whose options differ ("An existing index has the same
+ * name as the requested index"). That blocked index creation for the whole orders
+ * collection.
+ * Ref: https://www.mongodb.com/docs/manual/core/index-sparse/
  */
-OrderSchema.index({ 'establishmentAddress.coordinates': '2dsphere' }, { sparse: true });
+OrderSchema.index({ 'establishmentAddress.coordinates': '2dsphere' });
 
 /**
  * Compound index covering all driver-pool filter fields.
@@ -669,3 +677,19 @@ OrderSchema.pre('aggregate', function () {
     this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   }
 });
+
+/**
+ * Expiration sweep index — range-first on purpose.
+ *
+ * `order.service.ts` expires orders with
+ * `find({ expiresAt: { $lte: now }, status: { $nin: [...] } })`. `$nin` is a
+ * negation, so it gives no equality bound the index can seek on; the only
+ * selective bound is the range on `expiresAt`, which therefore leads. This is
+ * the deliberate exception to ESR — the sibling `{ status, expiresAt }` above
+ * serves the equality-on-status queries.
+ *
+ * The explicit name matches the index already present in production. A given
+ * key pattern cannot exist under two names, so renaming it here would make
+ * creation fail with IndexOptionsConflict.
+ */
+OrderSchema.index({ expiresAt: 1, status: 1 }, { name: 'idx_orders_expiresAt_status' });

@@ -96,3 +96,27 @@ FavoriteSchema.index({ userId: 1, isActive: 1, addedAt: -1 }, { name: 'user_favo
 
 // Legacy indexes (keep for backward compatibility)
 FavoriteSchema.index({ lastInteraction: -1 });
+
+/**
+ * Indexes below were declared only in the former ALL_INDEXES constant, never on
+ * this schema. Because `autoIndex` is off in production, that constant was what
+ * production actually had, so these are live indexes. Names kept verbatim — the
+ * same key pattern cannot exist under two names.
+ *
+ * Not ported: `{ userId, isActive, type, addedAt }`. The existing
+ * `user_favorites_list` ({ userId, isActive, addedAt }) and
+ * `user_favorites_lookup` ({ userId, type, isActive }) already serve those
+ * shapes; a fourth permutation would add write cost for no new query.
+ */
+
+/** Reverse lookup: who favourited this item (recommendations, popularity). */
+FavoriteSchema.index({ itemId: 1, isActive: 1 }, { name: 'idx_favorites_itemId_isActive' });
+
+/** A single user's most recent interactions — userId leads so the scan is bounded. */
+FavoriteSchema.index(
+  { userId: 1, lastInteraction: -1 },
+  { name: 'idx_favorites_userId_lastInteraction' },
+);
+
+/** Tag filtering within a user's favourites. */
+FavoriteSchema.index({ tags: 1, userId: 1 }, { name: 'idx_favorites_tags_userId' });

@@ -17,7 +17,10 @@
       "csv-writer": ["./src/common/types/csv-writer.shim.ts"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"],
+  // scripts/ is included on purpose: index-creation and migration scripts run
+  // against production, and were previously invisible to check:ts (see 73161ed,
+  // where create-indexes.ts shipped unable to compile).
+  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx", "scripts/**/*.ts"],
   "exclude": [
     "node_modules",
     "**/node_modules",

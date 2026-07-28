@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, Logger, BadRequestException } from '@nes
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { USER_AUDIT_LOG_MAX } from '../../common/constants/database-indexes.constant';
+import { USER_AUDIT_LOG_MAX } from '../../common/constants/document-limits.constant';
 import { User, UserDocument } from '../schemas/user.schema';
 
 export interface UserPreferences {

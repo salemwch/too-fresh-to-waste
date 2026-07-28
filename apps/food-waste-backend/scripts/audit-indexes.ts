@@ -47,12 +47,16 @@ function isPrefixOf(
   const shorterKeys = Object.entries(shorter);
   const longerKeys = Object.entries(longer);
 
-  if (shorterKeys.length >= longerKeys.length) return false;
+  if (shorterKeys.length >= longerKeys.length) {
+    return false;
+  }
 
   for (let i = 0; i < shorterKeys.length; i++) {
     const [sKey, sVal] = shorterKeys[i]!;
     const [lKey, lVal] = longerKeys[i]!;
-    if (sKey !== lKey || String(sVal) !== String(lVal)) return false;
+    if (sKey !== lKey || String(sVal) !== String(lVal)) {
+      return false;
+    }
   }
   return true;
 }
@@ -112,10 +116,14 @@ async function main(): Promise<void> {
 
     // Check prefix coverage — skip unique/sparse/TTL indexes (they serve distinct purposes)
     for (const idx of nonIdIndexes) {
-      if (idx.unique || idx.sparse || idx.expireAfterSeconds !== undefined) continue;
+      if (idx.unique || idx.sparse || idx.expireAfterSeconds !== undefined) {
+        continue;
+      }
 
       for (const other of nonIdIndexes) {
-        if (idx.name === other.name) continue;
+        if (idx.name === other.name) {
+          continue;
+        }
         if (isPrefixOf(idx.key, other.key)) {
           const usage = usageMap.get(idx.name);
           candidates.push({
@@ -157,7 +165,9 @@ async function main(): Promise<void> {
   for (const r of reports) {
     console.log(`--- ${r.collection} (${r.docCount} docs, ${r.indexCount} indexes) ---`);
     if (r.candidates.length === 0) {
-      console.log(`  (empty collection with ${r.indexCount - 1} non-_id indexes — consider if needed)`);
+      console.log(
+        `  (empty collection with ${r.indexCount - 1} non-_id indexes — consider if needed)`,
+      );
     }
     for (const c of r.candidates) {
       const accessStr = c.accesses >= 0 ? ` [${c.accesses} accesses]` : ' [usage unknown]';

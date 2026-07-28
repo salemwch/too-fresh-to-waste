@@ -31,7 +31,7 @@ export interface IOptOutMetadata {
   [key: string]: string | number | boolean | Date | undefined;
 }
 
-interface IOptOutAuditEntry {
+export interface IOptOutAuditEntry {
   action: 'opt_out' | 'opt_in' | 'status_change' | 'expired' | 'revoked' | 'created' | 'updated';
   timestamp: Date;
   reason?: string;

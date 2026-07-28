@@ -28,6 +28,8 @@
 import { parsePhoneNumber, isValidPhoneNumber, CountryCode } from 'libphonenumber-js';
 import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
+
+import { USER_AUDIT_LOG_MAX } from '../../src/common/constants/document-limits.constant';
 import * as path from 'path';
 
 // Load environment variables
@@ -51,8 +53,22 @@ const CONFIG = {
 interface UserDocument {
   _id: mongoose.Types.ObjectId;
   email: string;
-  phoneNumber?: string;
+  /**
+   * `null` is included on purpose: legacy documents store an explicit null here
+   * rather than omitting the field, which is why the query below filters with
+   * `$nin: [null, '']`. Typing it as `string | undefined` would make that filter
+   * a type error and misrepresent what is actually in the collection.
+   */
+  phoneNumber?: string | null;
   isPhoneVerified?: boolean;
+  /**
+   * Declared so the collection can be typed as `Collection<UserDocument>`. The
+   * driver's `PushOperator` only accepts `$each`/`$slice` for a field it knows to
+   * be an array; on an untyped `Collection<Document>` it does not, which is what
+   * the `as any` here used to paper over. Entry shape is deliberately loose —
+   * this script only appends, never reads it.
+   */
+  auditLog?: Record<string, unknown>[];
 }
 
 interface MigrationResult {
@@ -154,9 +170,12 @@ function normalizePhoneNumber(
     // Get E.164 format
     const e164 = parsed.format('E.164');
 
+    // `parsed.country` is optional: a valid E.164 number need not resolve to a
+    // country. Conditional spread rather than `country: parsed.country`, because
+    // `exactOptionalPropertyTypes` rejects an explicit `undefined` here.
     return {
       normalized: e164,
-      country: parsed.country,
+      ...(parsed.country !== undefined ? { country: parsed.country } : {}),
       isValid: true,
     };
   } catch (error) {
@@ -182,7 +201,7 @@ function isE164Format(phoneNumber: string): boolean {
 // ============================================
 
 async function connectToDatabase(): Promise<typeof mongoose> {
-  const mongoUri = process.env.DATABASE_URL || 'mongodb://localhost:27017/foodwaste';
+  const mongoUri = process.env['DATABASE_URL'] || 'mongodb://localhost:27017/foodwaste';
 
   logger.log(
     `Connecting to MongoDB: ${mongoUri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`,
@@ -236,7 +255,7 @@ async function migratePhoneNumbers(mongooseInstance: typeof mongoose): Promise<M
     }
 
     // Access the users collection
-    const usersCollection = db.collection('users');
+    const usersCollection = db.collection<UserDocument>('users');
 
     // Count total users
     summary.totalUsers = await usersCollection.countDocuments();
@@ -267,7 +286,16 @@ async function migratePhoneNumbers(mongooseInstance: typeof mongoose): Promise<M
 
       for (const user of batch) {
         try {
-          const originalPhone = user.phoneNumber!;
+          // The query excludes null and '', so this should always hold. Checked
+          // rather than asserted with `!` because this script writes to
+          // production: a document that slips through should be counted and
+          // skipped, not passed to the parser as null.
+          const originalPhone = user.phoneNumber;
+          if (originalPhone === null || originalPhone === undefined || originalPhone === '') {
+            summary.skippedUsers++;
+            logger.log(`User ${user.email} has no usable phone number, skipping`, 'WARNING');
+            continue;
+          }
 
           // Check if already in E.164 format
           if (isE164Format(originalPhone)) {
@@ -306,9 +334,9 @@ async function migratePhoneNumbers(mongooseInstance: typeof mongoose): Promise<M
               email: user.email,
               originalPhone,
               normalizedPhone: normalization.normalized,
-              country: normalization.country,
+              ...(normalization.country !== undefined ? { country: normalization.country } : {}),
               isValid: false,
-              error: normalization.error,
+              ...(normalization.error !== undefined ? { error: normalization.error } : {}),
             });
 
             continue;
@@ -322,20 +350,29 @@ async function migratePhoneNumbers(mongooseInstance: typeof mongoose): Promise<M
                 $set: {
                   phoneNumber: normalization.normalized,
                 },
+                // $slice caps the array server-side. Without it this migration
+                // would push one entry per user past USER_AUDIT_LOG_MAX, which is
+                // the cap every other auditLog writer honours. Negative $slice
+                // keeps the newest N, matching privacy-compliance.service.ts.
                 $push: {
                   auditLog: {
-                    action: 'PHONE_NUMBER_NORMALIZED',
-                    timestamp: new Date(),
-                    ipAddress: 'system-migration',
-                    userAgent: 'phone-normalization-script',
-                    details: {
-                      originalPhone,
-                      normalizedPhone: normalization.normalized,
-                      country: normalization.country,
-                      migrationDate: new Date(),
-                    },
+                    $each: [
+                      {
+                        action: 'PHONE_NUMBER_NORMALIZED',
+                        timestamp: new Date(),
+                        ipAddress: 'system-migration',
+                        userAgent: 'phone-normalization-script',
+                        details: {
+                          originalPhone,
+                          normalizedPhone: normalization.normalized,
+                          country: normalization.country ?? null,
+                          migrationDate: new Date(),
+                        },
+                      },
+                    ],
+                    $slice: -USER_AUDIT_LOG_MAX,
                   },
-                } as any, // Bypass TypeScript strict typing for MongoDB native driver
+                },
               },
             );
           }
@@ -351,7 +388,7 @@ async function migratePhoneNumbers(mongooseInstance: typeof mongoose): Promise<M
             email: user.email,
             originalPhone,
             normalizedPhone: normalization.normalized,
-            country: normalization.country,
+            ...(normalization.country !== undefined ? { country: normalization.country } : {}),
             isValid: true,
           });
         } catch (error) {

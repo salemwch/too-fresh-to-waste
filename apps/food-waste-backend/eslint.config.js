@@ -50,6 +50,41 @@ module.exports = [
     },
   })),
 
+  /*
+   * Apply the same rules to scripts/.
+   *
+   * The shared Nest config scopes itself to `src/**` and `test/**`, so everything
+   * under `scripts/` was linted with no rules at all — silently, since ESLint
+   * reports no problems rather than "no rules applied". These scripts create
+   * indexes and migrate data in production; they warrant the same scrutiny as the
+   * application. `scripts/` was outside `check:ts` for the same reason until this
+   * change, and that is how an index script that could not compile reached
+   * production (commit 73161ed).
+   */
+  ...nestBase
+    .filter(cfg => Array.isArray(cfg.files) && cfg.files.includes('src/**/*.ts'))
+    .map(cfg => ({
+      ...cfg,
+      files: ['scripts/**/*.ts'],
+      languageOptions: {
+        ...cfg.languageOptions,
+        parserOptions: {
+          ...cfg.languageOptions?.parserOptions,
+          project: [path.resolve(__dirname, './tsconfig.eslint.json')],
+          tsconfigRootDir: __dirname,
+          createDefaultProgram: false,
+          extraFileExtensions: ['.ts'],
+          noWarnOnMultipleProjects: true,
+        },
+      },
+    })),
+
+  // These are CLI tools: stdout is their interface, not a debugging leftover.
+  {
+    files: ['scripts/**/*.ts'],
+    rules: { 'no-console': 'off' },
+  },
+
   // ── App-specific: module boundary enforcement ─────────────────────────────
   // Common module should not depend on domain modules
   {

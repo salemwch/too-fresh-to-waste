@@ -38,7 +38,7 @@ function decode(str: string): string {
 }
 
 async function run(): Promise<void> {
-  const uri = process.env.MONGODB_URI;
+  const uri = process.env['MONGODB_URI'];
   if (!uri) {
     console.error('❌ MONGODB_URI not set in .env');
     process.exit(1);

@@ -162,6 +162,27 @@ jobs:
           JWT_SECRET: test-jwt-secret-for-ci-only
           JWT_REFRESH_SECRET: test-jwt-refresh-secret-for-ci-only
 
+      # Indexes are declared on the Mongoose schemas but `autoIndex` is off in
+      # production, so nothing creates them there except db:create-indexes. These
+      # two steps prove, against a throwaway MongoDB, that every declared index is
+      # actually creatable and that the drift detector agrees.
+      #
+      # This catches a class of bug that no other check can see: an index MongoDB
+      # rejects outright never gets built, in any environment, silently. One had
+      # been broken for months — users.address.coordinates set both `sparse` and
+      # `partialFilterExpression`, which MongoDB refuses.
+      - name: Create indexes from schemas
+        run: pnpm --filter @foodwaste/backend db:create-indexes
+        env:
+          NODE_ENV: test
+          DATABASE_URL: mongodb://test:test@localhost:27017/index_gate?authSource=admin
+
+      - name: Verify no index drift
+        run: pnpm --filter @foodwaste/backend verify:indexes:strict
+        env:
+          NODE_ENV: test
+          DATABASE_URL: mongodb://test:test@localhost:27017/index_gate?authSource=admin
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

@@ -103,25 +103,13 @@ export class ModerationAction {
   @Prop({ default: false })
   isSystemAction!: boolean;
 
-  @Prop({
-    type: [
-      {
-        field: String,
-        oldValue: String,
-        newValue: String,
-        changedBy: { type: Types.ObjectId, ref: 'User' },
-        changedAt: { type: Date, default: Date.now },
-      },
-    ],
-    default: [],
-  })
-  auditTrail!: Array<{
-    field: string;
-    oldValue?: string | undefined;
-    newValue?: string | undefined;
-    changedBy: Types.ObjectId;
-    changedAt: Date;
-  }>;
+  /*
+   * The field-level change history that used to live here as an embedded
+   * `auditTrail` array now lives in its own collection — see
+   * `moderation-action-audit.schema.ts`. It was appended by four call sites with
+   * no cap, so it grew without bound toward the 16 MB document limit and made this
+   * document more expensive to read for every consumer, none of which used it.
+   */
 }
 
 export const ModerationActionSchema = SchemaFactory.createForClass(ModerationAction);

@@ -138,3 +138,27 @@ NotificationSchema.index({ status: 1, scheduledAt: 1 });
 NotificationSchema.index({ type: 1, channel: 1 });
 NotificationSchema.index({ trigger: 1 });
 NotificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+/**
+ * Indexes below were declared only in the former ALL_INDEXES constant, never on
+ * this schema. Because `autoIndex` is off in production, that constant was what
+ * production actually had, so these are live indexes. Names kept verbatim — the
+ * same key pattern cannot exist under two names.
+ */
+
+/** Unread badge and the notification feed: unread for a user, newest first. */
+NotificationSchema.index(
+  { userId: 1, isRead: 1, createdAt: -1 },
+  { name: 'idx_notifications_userId_isRead_createdAt' },
+);
+
+/**
+ * Blanket 30-day retention. Distinct from the `{ expiresAt }` TTL above, which
+ * expires individual notifications that carry an explicit expiry; this one bounds
+ * the collection regardless. Both are intentional — removing this would stop the
+ * only cleanup currently running in production.
+ */
+NotificationSchema.index(
+  { createdAt: 1 },
+  { name: 'idx_notifications_createdAt_ttl', expireAfterSeconds: 2592000 },
+);

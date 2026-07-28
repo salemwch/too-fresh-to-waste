@@ -1,197 +1,261 @@
-import mongoose from 'mongoose';
-import { UserSchema } from '../src/users/schemas/user.schema';
-import { OrderSchema } from '../src/orders/schemas/order.schema';
-import { EstablishmentSchema } from '../src/establishments/schemas/establishment.schema';
-import { OfferSchema } from '../src/offers/schemas/offer.schema';
-import { RefreshTokenSchema } from '../src/auth/schemas/refresh-token.schema';
-import { ReviewSchema } from '../src/reviews/schemas/review.schema';
-import { FavoriteSchema } from '../src/favorites/schemas/favorite.schema';
-
 /**
- * MongoDB Index Verification Script
+ * Audit the live database against the indexes declared on the Mongoose schemas.
  *
- * Validates that all enterprise-grade indexes are properly created
- * Run after deployment to ensure database performance optimization
+ * Reports three kinds of drift per collection:
+ *   MISSING     declared on a schema, absent from the database. In production this
+ *               is the default state for any newly added index, because
+ *               `autoIndex` is off there — fix by running `pnpm db:create-indexes`.
+ *   EXTRA       present in the database, declared nowhere. Either a deliberate
+ *               hand-made index or a leftover. Never auto-dropped.
+ *   MISMATCHED  same key pattern, different options — a changed TTL window, a
+ *               uniqueness constraint added or removed. These are the dangerous
+ *               ones: the index exists, so nothing looks broken, but it no longer
+ *               does what the schema says.
+ *
+ * This replaces a version that asserted index *counts* per collection
+ * (`users: 18`). A count passes with eighteen wrong indexes, and it could not
+ * detect that ten TTL policies declared in code had never been created in
+ * production — which is exactly what had happened.
  *
  * Usage:
- *   npm run verify:indexes
- *   or
- *   npx ts-node scripts/verify-indexes.ts
+ *   pnpm verify:indexes            # report, exit 0
+ *   pnpm verify:indexes --strict   # exit 1 on MISSING or MISMATCHED (for CI)
  */
 
-interface IndexInfo {
-  name: string;
-  key: Record<string, number | string>;
-  unique?: boolean;
-  sparse?: boolean;
-  expireAfterSeconds?: number;
-  '2dsphere'?: string;
+import mongoose from 'mongoose';
+import * as dotenv from 'dotenv';
+import { redactDatabaseUrl, registerAllModels, resolveDatabaseUrl } from './lib/schema-registry';
+
+dotenv.config();
+
+/** Options that change what an index does. Anything else is cosmetic. */
+interface SignificantOptions {
+  unique: boolean;
+  sparse: boolean;
+  expireAfterSeconds: number | undefined;
+  partialFilterExpression: string | undefined;
 }
 
-interface SchemaIndexCount {
-  schema: string;
-  expectedMin: number;
-  actual: number;
-  status: 'PASS' | 'FAIL' | 'WARNING';
-  indexes: IndexInfo[];
+interface Drift {
+  kind: 'MISSING' | 'EXTRA' | 'MISMATCHED';
+  detail: string;
 }
 
-const MONGODB_URI = process.env.DATABASE_URL || 'mongodb://localhost:27017/foodwaste';
+type IndexKey = Record<string, number | string>;
 
-// Expected minimum index counts per schema
-const EXPECTED_INDEXES = {
-  users: 18, // Base + Enterprise enhancements
-  orders: 20, // Base + Enterprise enhancements
-  establishments: 18, // Base + Enterprise enhancements
-  offers: 23, // Base + Enterprise enhancements
-  refreshtokens: 6, // Token security indexes
-  reviews: 10, // Review indexes
-  favorites: 5, // Favorite indexes
-};
-
-async function connectDatabase(): Promise<void> {
-  try {
-    await mongoose.connect(MONGODB_URI);
-    console.log('✅ Connected to MongoDB');
-    console.log(`📍 Database: ${mongoose.connection.db.databaseName}\n`);
-  } catch (error) {
-    console.error('❌ Database connection failed:', error);
-    process.exit(1);
-  }
+/** Canonical string for a key pattern. Field order is significant and preserved. */
+function canonicalKey(key: IndexKey): string {
+  return Object.entries(key)
+    .map(([field, value]) => `${field}:${value}`)
+    .join(',');
 }
 
-async function verifySchemaIndexes(
-  collectionName: string,
-  expectedMin: number,
-): Promise<SchemaIndexCount> {
-  const collection = mongoose.connection.db.collection(collectionName);
-  const indexes = await collection.indexes();
-
-  const status =
-    indexes.length >= expectedMin
-      ? 'PASS'
-      : indexes.length >= expectedMin * 0.8
-        ? 'WARNING'
-        : 'FAIL';
+function significantOptions(source: Record<string, unknown>): SignificantOptions {
+  const partial = source['partialFilterExpression'];
 
   return {
-    schema: collectionName,
-    expectedMin,
-    actual: indexes.length,
-    status,
-    indexes: indexes as IndexInfo[],
+    unique: source['unique'] === true,
+    sparse: source['sparse'] === true,
+    expireAfterSeconds:
+      typeof source['expireAfterSeconds'] === 'number' ? source['expireAfterSeconds'] : undefined,
+    partialFilterExpression:
+      partial === undefined || partial === null ? undefined : JSON.stringify(partial),
   };
 }
 
-function printIndexDetails(result: SchemaIndexCount): void {
-  const statusIcon = result.status === 'PASS' ? '✅' : result.status === 'WARNING' ? '⚠️' : '❌';
+function describeOptions(o: SignificantOptions): string {
+  const parts: string[] = [];
+  if (o.unique) {
+    parts.push('unique');
+  }
+  if (o.sparse) {
+    parts.push('sparse');
+  }
+  if (o.expireAfterSeconds !== undefined) {
+    parts.push(`ttl=${o.expireAfterSeconds}s`);
+  }
+  if (o.partialFilterExpression !== undefined) {
+    parts.push(`partial=${o.partialFilterExpression}`);
+  }
+  return parts.length > 0 ? parts.join(' ') : 'none';
+}
 
-  console.log(`${statusIcon} ${result.schema.toUpperCase()}`);
-  console.log(
-    `   Expected: ≥${result.expectedMin} | Actual: ${result.actual} | Status: ${result.status}`,
+function optionsDiffer(a: SignificantOptions, b: SignificantOptions): boolean {
+  return (
+    a.unique !== b.unique ||
+    a.sparse !== b.sparse ||
+    a.expireAfterSeconds !== b.expireAfterSeconds ||
+    a.partialFilterExpression !== b.partialFilterExpression
   );
-
-  if (result.status === 'FAIL') {
-    console.log(`   ⚠️  MISSING ${result.expectedMin - result.actual} INDEXES!`);
-  }
-
-  console.log('   Indexes:');
-  result.indexes.forEach((index, i) => {
-    const keyStr = Object.entries(index.key)
-      .map(([k, v]) => {
-        if (v === 1) return k;
-        if (v === -1) return `${k}↓`;
-        if (v === '2dsphere') return `${k}(geo)`;
-        if (v === 'text') return `${k}(text)`;
-        return `${k}(${v})`;
-      })
-      .join(', ');
-
-    const flags = [];
-    if (index.unique) flags.push('unique');
-    if (index.sparse) flags.push('sparse');
-    if (index.expireAfterSeconds !== undefined) flags.push(`ttl:${index.expireAfterSeconds}s`);
-
-    const flagStr = flags.length > 0 ? ` [${flags.join(', ')}]` : '';
-    console.log(`   ${i + 1}. ${keyStr}${flagStr}`);
-  });
-  console.log('');
 }
 
-function printSummary(results: SchemaIndexCount[]): void {
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('                    VERIFICATION SUMMARY');
-  console.log('═══════════════════════════════════════════════════════════');
-
-  const totalExpected = results.reduce((sum, r) => sum + r.expectedMin, 0);
-  const totalActual = results.reduce((sum, r) => sum + r.actual, 0);
-  const passed = results.filter(r => r.status === 'PASS').length;
-  const warnings = results.filter(r => r.status === 'WARNING').length;
-  const failed = results.filter(r => r.status === 'FAIL').length;
-
-  console.log(`Total Schemas Checked: ${results.length}`);
-  console.log(`Total Indexes Expected: ≥${totalExpected}`);
-  console.log(`Total Indexes Found: ${totalActual}`);
-  console.log('');
-  console.log(`✅ Passed: ${passed}`);
-  console.log(`⚠️  Warnings: ${warnings}`);
-  console.log(`❌ Failed: ${failed}`);
-  console.log('═══════════════════════════════════════════════════════════');
-
-  if (failed > 0) {
-    console.log('\n⚠️  ACTION REQUIRED:');
-    console.log('Some indexes are missing. This may impact performance.');
-    console.log('To rebuild indexes:');
-    console.log('  1. Restart the application (indexes auto-create)');
-    console.log('  2. Or run: npm run build && npm start');
-    console.log('  3. Or manually create via MongoDB shell');
-    process.exit(1);
-  } else if (warnings > 0) {
-    console.log('\n⚠️  NOTICE:');
-    console.log('Some schemas have fewer indexes than expected.');
-    console.log('Monitor query performance and add indexes if needed.');
-    process.exit(0);
-  } else {
-    console.log('\n🎉 All indexes verified successfully!');
-    console.log('Database is optimized for production workloads.');
-    process.exit(0);
-  }
+/**
+ * A text index cannot be compared by key pattern: MongoDB stores it as
+ * `{ _fts: 'text', _ftsx: 1 }` regardless of which fields were indexed, and a
+ * collection may hold only one. Matching by "is a text index" is therefore both
+ * necessary and sufficient.
+ */
+function isTextIndex(key: IndexKey): boolean {
+  return Object.values(key).includes('text') || '_fts' in key;
 }
 
-async function verifyIndexes(): Promise<void> {
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('         MONGODB INDEX VERIFICATION TOOL');
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('Checking enterprise-grade indexes across all schemas...\n');
-
-  const results: SchemaIndexCount[] = [];
-
-  // Verify each schema
-  for (const [collectionName, expectedMin] of Object.entries(EXPECTED_INDEXES)) {
-    const result = await verifySchemaIndexes(collectionName, expectedMin);
-    results.push(result);
-    printIndexDetails(result);
-  }
-
-  printSummary(results);
+interface LiveIndex {
+  name: string;
+  key: IndexKey;
+  options: SignificantOptions;
+  matched: boolean;
 }
 
 async function main(): Promise<void> {
+  const databaseUrl = resolveDatabaseUrl();
+  const strict = process.argv.includes('--strict');
+
+  console.log('Index drift audit — schema declarations vs live database');
+  console.log(`Database: ${redactDatabaseUrl(databaseUrl)}`);
+  console.log(`Mode: ${strict ? 'strict (fails on MISSING/MISMATCHED)' : 'report only'}\n`);
+
+  const conn = await mongoose.createConnection(databaseUrl).asPromise();
+
   try {
-    await connectDatabase();
-    await verifyIndexes();
-  } catch (error) {
-    console.error('❌ Verification failed:', error);
-    process.exit(1);
+    const db = conn.db;
+    if (db === undefined) {
+      throw new Error(
+        'Connected but no database handle — check the database name in DATABASE_URL.',
+      );
+    }
+
+    const models = registerAllModels(conn);
+    const existingCollections = new Set((await db.listCollections().toArray()).map(c => c.name));
+
+    const driftByCollection = new Map<string, Drift[]>();
+    let totalDeclared = 0;
+    let missing = 0;
+    let extra = 0;
+    let mismatched = 0;
+    const absentCollections: string[] = [];
+
+    for (const { collectionName, schema, sourceFile } of models) {
+      const declared = schema.indexes();
+      totalDeclared += declared.length;
+
+      if (!existingCollections.has(collectionName)) {
+        // No documents have ever been written. Indexes will be created on first
+        // write or by create-indexes; not drift.
+        if (declared.length > 0) {
+          absentCollections.push(collectionName);
+        }
+        continue;
+      }
+
+      const live: LiveIndex[] = (await db.collection(collectionName).indexes())
+        .filter(idx => idx.name !== '_id_')
+        .map(idx => ({
+          name: String(idx.name),
+          key: idx.key as IndexKey,
+          options: significantOptions(idx as unknown as Record<string, unknown>),
+          matched: false,
+        }));
+
+      const drift: Drift[] = [];
+
+      for (const [fields, rawOptions] of declared) {
+        const key = fields as IndexKey;
+        const wanted = significantOptions((rawOptions ?? {}) as Record<string, unknown>);
+        const wantedText = isTextIndex(key);
+
+        const found = live.find(
+          l =>
+            !l.matched &&
+            (wantedText ? isTextIndex(l.key) : canonicalKey(l.key) === canonicalKey(key)),
+        );
+
+        if (found === undefined) {
+          drift.push({
+            kind: 'MISSING',
+            detail: `{${canonicalKey(key)}} [${describeOptions(wanted)}]  — declared in ${sourceFile}`,
+          });
+          missing++;
+          continue;
+        }
+
+        found.matched = true;
+
+        if (optionsDiffer(wanted, found.options)) {
+          drift.push({
+            kind: 'MISMATCHED',
+            detail:
+              `${found.name} {${canonicalKey(found.key)}}\n` +
+              `      schema says: ${describeOptions(wanted)}\n` +
+              `      database has: ${describeOptions(found.options)}`,
+          });
+          mismatched++;
+        }
+      }
+
+      for (const l of live) {
+        if (l.matched) {
+          continue;
+        }
+        drift.push({
+          kind: 'EXTRA',
+          detail: `${l.name} {${canonicalKey(l.key)}} [${describeOptions(l.options)}]`,
+        });
+        extra++;
+      }
+
+      if (drift.length > 0) {
+        driftByCollection.set(collectionName, drift);
+      }
+    }
+
+    for (const [collectionName, drift] of [...driftByCollection].sort()) {
+      console.log(`--- ${collectionName} ---`);
+      for (const kind of ['MISSING', 'MISMATCHED', 'EXTRA'] as const) {
+        for (const d of drift.filter(x => x.kind === kind)) {
+          console.log(`  ${kind}: ${d.detail}`);
+        }
+      }
+      console.log('');
+    }
+
+    if (absentCollections.length > 0) {
+      console.log(
+        `Collections not yet created (no drift, indexes build on first write): ${absentCollections.join(', ')}\n`,
+      );
+    }
+
+    console.log('='.repeat(60));
+    console.log(`Schemas:            ${models.length}`);
+    console.log(`Indexes declared:   ${totalDeclared}`);
+    console.log(`MISSING:            ${missing}`);
+    console.log(`MISMATCHED:         ${mismatched}`);
+    console.log(`EXTRA:              ${extra}`);
+    console.log('='.repeat(60));
+
+    if (missing > 0 || mismatched > 0) {
+      console.log('\nTo create missing indexes: pnpm db:create-indexes');
+    }
+    if (extra > 0) {
+      console.log(
+        'EXTRA indexes are never dropped automatically. Check real usage first:\n' +
+          '  pnpm db:audit-indexes   (reads $indexStats)',
+      );
+    }
+
+    if (strict && (missing > 0 || mismatched > 0)) {
+      process.exitCode = 1;
+      return;
+    }
+
+    if (missing === 0 && mismatched === 0 && extra === 0) {
+      console.log('\nNo drift. Database matches the schemas.');
+    }
   } finally {
-    await mongoose.connection.close();
-    console.log('\n✅ Database connection closed');
+    await conn.close();
   }
 }
 
-// Run if executed directly
-if (require.main === module) {
-  main().catch(console.error);
-}
-
-export { verifyIndexes, verifySchemaIndexes };
+main().catch((error: unknown) => {
+  console.error('Index audit failed:', error);
+  process.exit(1);
+});

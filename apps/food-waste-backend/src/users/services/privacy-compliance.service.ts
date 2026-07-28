@@ -11,7 +11,7 @@ import { Connection, Model, Types } from 'mongoose';
 import {
   USER_AUDIT_LOG_MAX,
   USER_CONSENT_RECORDS_MAX,
-} from '../../common/constants/database-indexes.constant';
+} from '../../common/constants/document-limits.constant';
 import { Notification } from '../../notifications/schemas/notification.schema';
 import {
   TunisianPrivacyConsentDto,

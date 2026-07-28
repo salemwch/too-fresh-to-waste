@@ -17,7 +17,7 @@ import {
   USER_AUDIT_LOG_MAX,
   USER_LOGIN_HISTORY_MAX,
   USER_LOCATION_HISTORY_MAX,
-} from '../common/constants/database-indexes.constant';
+} from '../common/constants/document-limits.constant';
 import { AdminUserDeletedEvent, AdminUserRestoredEvent } from '../common/events/admin-user.events';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { PhoneNumberService } from '../common/services/phone-number.service';

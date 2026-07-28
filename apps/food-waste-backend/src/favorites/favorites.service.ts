@@ -1613,7 +1613,7 @@ export class FavoritesService {
         `🔍 [toggleFavorite] Existing favorite check | found: ${!!existing} | isActive: ${existing?.isActive}`,
       );
 
-      if (existing && existing.isActive) {
+      if (existing?.isActive) {
         // REMOVE favorite (soft delete)
         existing.isActive = false;
         await existing.save({ session });

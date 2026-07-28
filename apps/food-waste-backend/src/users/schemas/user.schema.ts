@@ -878,10 +878,18 @@ UserSchema.index({ isEmailVerified: 1, createdAt: -1 });
  * - Use case: User proximity searches, delivery radius calculation
  * - Strategy: Coordinate format [longitude, latitude] per GeoJSON standard
  */
+/*
+ * No `sparse: true` here. MongoDB rejects an index that sets both `sparse` and
+ * `partialFilterExpression` ("cannot mix ... options"), so this index previously
+ * failed to build in every environment and user geo queries had no index at all.
+ * It went unnoticed because index creation was never verified per key — only
+ * counted. `partialFilterExpression` already restricts which documents are
+ * indexed, and is the option MongoDB recommends over `sparse`.
+ * Ref: https://www.mongodb.com/docs/manual/core/index-partial/
+ */
 UserSchema.index(
   { 'address.coordinates': '2dsphere' },
   {
-    sparse: true,
     partialFilterExpression: {
       'address.coordinates.type': { $eq: 'Point' },
       'address.coordinates.coordinates': { $exists: true },

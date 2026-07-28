@@ -1,226 +1,127 @@
 /**
- * Enterprise-Grade MongoDB Index Creation Script
+ * Create every index declared on a Mongoose schema.
  *
- * This script creates all necessary indexes for optimal query performance.
- * Run this script BEFORE deploying to production.
+ * Production runs with `autoIndex: false` (`app.module.ts`), so Mongoose never
+ * creates indexes there. This script is what does, and it must be run before or
+ * immediately after any deploy that adds an index.
+ *
+ * Indexes come from the schemas themselves via `scripts/lib/schema-registry.ts`.
+ * There is deliberately no hand-written list here: the previous `ALL_INDEXES`
+ * constant covered 13 of 58 collections and indexed four fields that no longer
+ * existed, which is how ten TTL policies came to be declared in code and absent
+ * from production.
+ *
+ * This script only ever ADDS. `Model.createIndexes()` creates what is missing and
+ * leaves everything else alone; it never drops. Removing an index is a separate,
+ * deliberate act — run `pnpm verify:indexes` to see what is extra and
+ * `pnpm db:audit-indexes` to check real usage before dropping anything.
  *
  * Usage:
- * ```bash
- * # Development
- * pnpm ts-node scripts/create-indexes.ts
+ *   DATABASE_URL="mongodb://..." pnpm ts-node scripts/create-indexes.ts
+ *   pnpm db:create-indexes
  *
- * # Production (with connection string)
- * DATABASE_URL="mongodb://..." pnpm ts-node scripts/create-indexes.ts
- * ```
- *
- * IMPORTANT:
- * - Run during low-traffic periods (index creation blocks writes)
- * - Monitor index creation progress: db.currentOp({ $or: [{ op: "command", "command.createIndexes": { $exists: true } }] })
- * - Large collections (1M+ docs) may take 10-30 minutes per index
+ * Operational notes:
+ * - Run during low-traffic periods. Index builds on a large collection compete
+ *   with live traffic for IO.
+ * - Watch progress:
+ *   db.currentOp({ "command.createIndexes": { $exists: true } })
+ * - A collection with 1M+ documents can take tens of minutes per index.
  */
 
-import type { IndexSpecification } from 'mongodb';
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import { ALL_INDEXES } from '../src/common/constants/database-indexes.constant';
+import { redactDatabaseUrl, registerAllModels, resolveDatabaseUrl } from './lib/schema-registry';
 
-// Load environment variables
 dotenv.config();
 
-const DATABASE_URL = process.env['DATABASE_URL'] ?? 'mongodb://localhost:27017/foodwaste';
-
-interface IndexCreationResult {
-  collection: string;
-  indexName: string;
-  status: 'created' | 'already_exists' | 'error';
+interface CollectionResult {
+  collectionName: string;
+  declared: number;
+  createdOrExisting: number;
   error?: string;
-  timeTaken?: number;
 }
 
-/**
- * Create indexes for a specific collection
- */
-async function createIndexesForCollection(
-  collectionName: string,
-  indexes: { fields: Record<string, 1 | -1 | string>; options?: any }[],
-): Promise<IndexCreationResult[]> {
-  const results: IndexCreationResult[] = [];
-  const db = mongoose.connection.db;
+async function main(): Promise<void> {
+  const databaseUrl = resolveDatabaseUrl();
 
-  if (!db) {
-    throw new Error('Database connection not established');
-  }
+  console.log('MongoDB index creation');
+  console.log(`Database: ${redactDatabaseUrl(databaseUrl)}`);
+  console.log('Mode: additive — indexes are created, never dropped.\n');
 
-  const collection = db.collection(collectionName);
-
-  console.log(`\n📂 Collection: ${collectionName}`);
-  console.log(`   Creating ${indexes.length} indexes...`);
-
-  for (const indexDef of indexes) {
-    const indexName = indexDef.options?.name || Object.keys(indexDef.fields).join('_');
-    const startTime = Date.now();
-
-    try {
-      // Check if index already exists
-      const existingIndexes = await collection.indexes();
-      const indexExists = existingIndexes.some(idx => idx.name === indexName);
-
-      if (indexExists) {
-        console.log(`   ⏭️  ${indexName} - Already exists`);
-        results.push({
-          collection: collectionName,
-          indexName,
-          status: 'already_exists',
-          timeTaken: Date.now() - startTime,
-        });
-        continue;
-      }
-
-      // Create index
-      // Cast: the constant file types fields as Record<string, 1|-1|string>
-      // for readability; the driver wants its own IndexSpecification union.
-      await collection.createIndex(indexDef.fields as IndexSpecification, indexDef.options);
-
-      const timeTaken = Date.now() - startTime;
-      console.log(`   ✅ ${indexName} - Created (${timeTaken}ms)`);
-
-      results.push({
-        collection: collectionName,
-        indexName,
-        status: 'created',
-        timeTaken,
-      });
-    } catch (error) {
-      const timeTaken = Date.now() - startTime;
-      console.error(
-        `   ❌ ${indexName} - Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-
-      results.push({
-        collection: collectionName,
-        indexName,
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timeTaken,
-      });
-    }
-  }
-
-  return results;
-}
-
-/**
- * Verify index creation
- */
-async function verifyIndexes(
-  collectionName: string,
-  expectedIndexes: { fields: Record<string, 1 | -1 | string>; options?: any }[],
-): Promise<void> {
-  const db = mongoose.connection.db;
-
-  if (!db) {
-    throw new Error('Database connection not established');
-  }
-
-  const collection = db.collection(collectionName);
-  const existingIndexes = await collection.indexes();
-
-  console.log(`\n🔍 Verifying ${collectionName} indexes:`);
-  console.log(`   Expected: ${expectedIndexes.length}`);
-  console.log(`   Found: ${existingIndexes.length - 1}`); // -1 for default _id index
-
-  for (const indexDef of expectedIndexes) {
-    const indexName = indexDef.options?.name || Object.keys(indexDef.fields).join('_');
-    const exists = existingIndexes.some(idx => idx.name === indexName);
-
-    if (exists) {
-      console.log(`   ✅ ${indexName}`);
-    } else {
-      console.log(`   ❌ ${indexName} - MISSING!`);
-    }
-  }
-}
-
-/**
- * Main execution function
- */
-async function main() {
-  console.log('🚀 MongoDB Index Creation Script\n');
-  console.log(`📌 Database: ${DATABASE_URL}\n`);
-  console.log('⚠️  WARNING: Index creation may take several minutes on large collections');
-  console.log('⚠️  Indexes are created in the background but may impact performance\n');
+  const conn = await mongoose.createConnection(databaseUrl).asPromise();
 
   try {
-    // Connect to MongoDB
-    console.log('🔌 Connecting to MongoDB...');
-    await mongoose.connect(DATABASE_URL);
-    console.log('✅ Connected to MongoDB\n');
+    const models = registerAllModels(conn);
+    console.log(`Discovered ${models.length} schemas.\n`);
 
-    const allResults: IndexCreationResult[] = [];
-    const totalStartTime = Date.now();
+    const results: CollectionResult[] = [];
 
-    // Create indexes for each collection
-    for (const [collectionName, indexes] of Object.entries(ALL_INDEXES)) {
-      if (indexes.length === 0) {
-        console.log(`\n📂 Collection: ${collectionName}`);
-        console.log(`   ⏭️  No indexes defined, skipping...`);
+    for (const { modelName, collectionName, schema } of models) {
+      const declared = schema.indexes().length;
+
+      if (declared === 0) {
+        // Not a problem in itself — a collection queried only by _id needs no
+        // index. Reported so it is a visible choice rather than an oversight.
+        console.log(`  ${collectionName}: no indexes declared, skipping`);
+        results.push({ collectionName, declared: 0, createdOrExisting: 0 });
         continue;
       }
 
-      const results = await createIndexesForCollection(collectionName, indexes);
-      allResults.push(...results);
+      const model = conn.model(modelName);
 
-      // Verify indexes
-      await verifyIndexes(collectionName, indexes);
-    }
+      try {
+        // Creates missing indexes; existing ones are a no-op. Throws on a
+        // conflict, e.g. the same key pattern already present under another name.
+        await model.createIndexes();
 
-    const totalTimeTaken = Date.now() - totalStartTime;
+        const live = await model.collection.indexes();
+        // -1 for the implicit _id index, which no schema declares.
+        const liveNonId = live.length - 1;
 
-    // Summary
-    console.log('\n' + '='.repeat(60));
-    console.log('📊 SUMMARY');
-    console.log('='.repeat(60));
-
-    const created = allResults.filter(r => r.status === 'created').length;
-    const alreadyExists = allResults.filter(r => r.status === 'already_exists').length;
-    const errors = allResults.filter(r => r.status === 'error').length;
-
-    console.log(`✅ Created: ${created}`);
-    console.log(`⏭️  Already Exists: ${alreadyExists}`);
-    console.log(`❌ Errors: ${errors}`);
-    console.log(`⏱️  Total Time: ${(totalTimeTaken / 1000).toFixed(2)}s`);
-
-    if (errors > 0) {
-      console.log('\n⚠️  ERRORS OCCURRED:');
-      allResults
-        .filter(r => r.status === 'error')
-        .forEach(r => {
-          console.log(`   ❌ ${r.collection}.${r.indexName}: ${r.error}`);
+        console.log(`  ${collectionName}: ${declared} declared, ${liveNonId} live`);
+        results.push({ collectionName, declared, createdOrExisting: liveNonId });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`  ${collectionName}: FAILED — ${message}`);
+        results.push({
+          collectionName,
+          declared,
+          createdOrExisting: 0,
+          error: message,
         });
+      }
     }
 
-    console.log('\n✅ Index creation script completed successfully');
+    const failed = results.filter(r => r.error !== undefined);
+    const totalDeclared = results.reduce((sum, r) => sum + r.declared, 0);
 
-    // Performance recommendations
-    console.log('\n' + '='.repeat(60));
-    console.log('📈 NEXT STEPS');
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`Collections processed: ${results.length}`);
+    console.log(`Indexes declared:      ${totalDeclared}`);
+    console.log(`Collections failed:    ${failed.length}`);
     console.log('='.repeat(60));
-    console.log('1. Run EXPLAIN ANALYZE on your slowest queries to verify index usage');
-    console.log('2. Monitor query performance in production using MongoDB Atlas/Compass');
-    console.log(
-      '3. Review index usage after 1 week: db.collection.aggregate([{ $indexStats: {} }])',
-    );
-    console.log('4. Drop unused indexes to save disk space and write performance');
 
-    process.exit(0);
-  } catch (error) {
-    console.error('\n❌ Fatal error:', error);
-    process.exit(1);
+    if (failed.length > 0) {
+      console.error('\nFailures:');
+      for (const f of failed) {
+        console.error(`  ${f.collectionName}: ${f.error}`);
+      }
+      console.error(
+        '\nA common cause is an index whose key pattern already exists under a ' +
+          'different name. MongoDB rejects that. Either reuse the existing name in ' +
+          'the schema, or drop the old index deliberately.',
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    console.log('\nAll declared indexes exist. Run `pnpm verify:indexes` to audit for drift.');
   } finally {
-    await mongoose.disconnect();
-    console.log('\n🔌 Disconnected from MongoDB');
+    await conn.close();
   }
 }
 
-// Execute script
-main();
+main().catch((error: unknown) => {
+  console.error('Index creation failed:', error);
+  process.exit(1);
+});

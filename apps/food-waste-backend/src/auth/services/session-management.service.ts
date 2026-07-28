@@ -30,7 +30,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as geoip from 'geoip-lite';
 import { Model } from 'mongoose';
 
-import { USER_LOGIN_HISTORY_MAX } from '../../common/constants/database-indexes.constant';
+import { USER_LOGIN_HISTORY_MAX } from '../../common/constants/document-limits.constant';
 import {
   SessionInfo,
   DeviceInfo,

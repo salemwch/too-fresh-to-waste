@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
-import { USER_LOCATION_HISTORY_MAX } from '../../common/constants/database-indexes.constant';
+import { USER_LOCATION_HISTORY_MAX } from '../../common/constants/document-limits.constant';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import { SaveLocationDto, UpdateLocationPreferencesDto } from '../dto/geolocation.dto';
 import {
@@ -152,7 +152,7 @@ export class UserLocationService {
   ): Promise<SavedLocation> {
     try {
       const user = await this.userModel.findById(userId).exec();
-      if (!user || !user.locationPreferences) {
+      if (!user?.locationPreferences) {
         throw new NotFoundException('User or location preferences not found');
       }
 
@@ -214,7 +214,7 @@ export class UserLocationService {
   async deleteSavedLocation(userId: string, locationId: string): Promise<void> {
     try {
       const user = await this.userModel.findById(userId).exec();
-      if (!user || !user.locationPreferences) {
+      if (!user?.locationPreferences) {
         throw new NotFoundException('User or location preferences not found');
       }
 

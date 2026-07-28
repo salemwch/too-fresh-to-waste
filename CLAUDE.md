@@ -361,6 +361,79 @@ Redux-only.
 - Web: TanStack Query with centralized `dashboardKeys` factory + WebSocket cache
   patching
 
+### Database Indexes — schemas are the only source of truth
+
+`autoIndex` is **off in production** (`app.module.ts`). Declaring an index on a
+Mongoose schema therefore does **not** create it in production. Nothing does,
+until someone runs the script.
+
+```bash
+pnpm --filter @foodwaste/backend db:create-indexes      # additive; never drops
+pnpm --filter @foodwaste/backend verify:indexes         # drift report (read-only)
+pnpm --filter @foodwaste/backend verify:indexes:strict  # exits 1 on MISSING/MISMATCHED
+pnpm --filter @foodwaste/backend db:audit-indexes       # $indexStats usage, before any drop
+```
+
+- **Declare every index on its schema.** `scripts/lib/schema-registry.ts`
+  discovers all `*.schema.ts` by convention (`<ModelName>Schema` export) and
+  both scripts derive from it. There is no hand-maintained index list any more —
+  the old `ALL_INDEXES` constant drifted to covering 13 of 58 collections and
+  indexed four fields that no longer existed.
+- **After adding an index, run `db:create-indexes`.** Otherwise it exists only
+  in code. `verify:indexes:strict` is the CI gate that catches this.
+- **Reuse the existing index name** when a key pattern is already live under an
+  `idx_*` name. MongoDB rejects the same key pattern under a second name
+  (`IndexOptionsConflict`), so omitting the name and letting Mongoose generate
+  one makes creation fail.
+- **Never mix `sparse` with `partialFilterExpression`** — MongoDB rejects the
+  index outright and it silently never builds. Use `partialFilterExpression`
+  alone.
+- **Scope a TTL whenever the collection holds more than one kind of record.** A
+  bare `expireAfterSeconds` deletes _every_ document past the date field,
+  including ones that are permanent history. `organizationinvitations` was
+  deleting `accepted` invitations — the record of who was granted org access —
+  along with lapsed `pending` ones. The fix is a `partialFilterExpression`
+  naming the transient statuses only (`$in` needs MongoDB 6.0+). Changing that
+  filter later requires drop-and-recreate, so it needs a migration:
+  `scripts/migrations/scope-invitation-ttl.ts`.
+- **Dropping is always manual.** `create-indexes` only adds. Check
+  `db:audit-indexes` for real usage first.
+
+### Embedded arrays — cap them or move them out
+
+An array that grows per event has two valid shapes. Pick one; never leave it
+unbounded, because the 16 MB document limit is a hard failure and it arrives
+without warning.
+
+**1. Cap it** (for short, bounded history that is read with its parent).
+`document-limits.constant.ts` holds the caps (`USER_AUDIT_LOG_MAX`, etc.). Every
+write site must apply one **atomically** — `$push` with `$slice` in a single
+`updateOne`, never read-modify-`save()`. The read-modify-write form loses
+entries when two requests interleave, which for `loginHistory` is a real
+scenario (one person, two devices). Covered by
+`users/test/session-create-history.spec.ts`.
+
+**2. Move it to its own collection** (for append-only trails, anything needing a
+retention policy, or anything not read with its parent). A TTL cannot be applied
+to an embedded array — that alone forces this shape for audit data. Examples:
+`moderation_action_audit`, `sms_opt_out_audit`, both with `{ parentId, when }`
+indexes and a 2-year TTL.
+
+When extracting, three things are easy to get wrong:
+
+- **Grep for `$push` too, not just `.arrayName`.** A raw
+  `$push: { auditLog: … }` inside an `updateOne` does not match `\.auditLog`,
+  and once the field leaves the schema Mongoose's strict mode **silently
+  discards the write** — no error, no type error. Four such sites existed in
+  `opt-out-manager.service.ts`.
+- **Write the audit row after the parent save, never before.** They are separate
+  writes now, so auditing first records events that never happened. Log and
+  swallow a failed audit write; do not fail the user's operation for it.
+- **Batch the reads.** A trail that was free to read (already embedded) becomes
+  a query. Resolve a whole page with one `$in` and look up from a `Map` — see
+  `fetchAuditByRecord`. Fetching per row inside a `.map()` is an N+1, and the
+  bulk opt-out path runs up to 1000 rows.
+
 ---
 
 ## Known Issues
@@ -396,6 +469,11 @@ done without running the relevant check.
 | `packages/shared` change | `pnpm build:deps` → then `pnpm metro:reset` for mobile |
 | Before any PR (backend)  | `pnpm --filter @foodwaste/backend check:all`           |
 | Cross-app change         | `pnpm type-check` (full monorepo)                      |
+| Any `*.schema.ts` index  | `verify:indexes:strict`, then `db:create-indexes`      |
+
+`check:ts` covers `scripts/` as well as `src/` and `test/`. Do not narrow that
+`include` — migration and index scripts run against production, and while they
+sat outside the type-check project one shipped that could not compile at all.
 
 ---
 

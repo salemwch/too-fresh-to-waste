@@ -18,6 +18,7 @@ import {
   NotificationTemplateSchema,
 } from './schemas/notification-template.schema';
 import { Notification, NotificationSchema } from './schemas/notification.schema';
+import { OptOutAudit, OptOutAuditSchema } from './schemas/opt-out-audit.schema';
 import { OptOutRecord, OptOutRecordSchema } from './schemas/opt-out-record.schema';
 import { EmailNotificationService } from './services/email-notification.service';
 import { NotificationAnalyticsService } from './services/notification-analytics.service';
@@ -39,6 +40,7 @@ import { TemplateService } from './services/template.service';
       { name: NotificationPreference.name, schema: NotificationPreferenceSchema },
       { name: NotificationTemplate.name, schema: NotificationTemplateSchema },
       { name: OptOutRecord.name, schema: OptOutRecordSchema },
+      { name: OptOutAudit.name, schema: OptOutAuditSchema },
       { name: User.name, schema: UserSchema },
     ]),
   ],

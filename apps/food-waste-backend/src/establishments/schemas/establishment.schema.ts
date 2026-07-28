@@ -602,3 +602,29 @@ EstablishmentSchema.pre('aggregate', function () {
     this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   }
 });
+
+/**
+ * Indexes below were declared only in the former ALL_INDEXES constant, never on
+ * this schema. Because `autoIndex` is off in production, that constant was what
+ * production actually had — so these are live indexes, and dropping the constant
+ * without declaring them here would have removed them. Names are kept verbatim:
+ * the same key pattern cannot exist under two names.
+ */
+
+/** Owner dashboard: an owner's establishments, newest first. */
+EstablishmentSchema.index(
+  { ownerId: 1, createdAt: -1 },
+  { name: 'idx_establishments_ownerId_createdAt' },
+);
+
+/** Default public listing — active establishments, newest first. */
+EstablishmentSchema.index(
+  { isActive: 1, status: 1, createdAt: -1 },
+  { name: 'idx_establishments_isActive_status_createdAt' },
+);
+
+/** Browse by type, best-rated first. */
+EstablishmentSchema.index(
+  { type: 1, averageRating: -1 },
+  { name: 'idx_establishments_type_averageRating' },
+);

@@ -8,7 +8,7 @@ import { Model } from 'mongoose';
 import {
   USER_AUDIT_LOG_MAX,
   USER_LOGIN_HISTORY_MAX,
-} from '../../common/constants/database-indexes.constant';
+} from '../../common/constants/document-limits.constant';
 import { User, UserDocument } from '../schemas/user.schema';
 
 export interface DeviceInfo {
@@ -43,7 +43,11 @@ export class SessionManagementService {
   }
 
   async createSession(userId: string, deviceInfo: DeviceInfo): Promise<SessionInfo> {
-    const user = await this.userModel.findById(userId);
+    // Only the existence check and the log line below need this document; the
+    // history arrays are appended server-side further down. Selecting `email`
+    // alone avoids pulling loginHistory, auditLog, mfaSettings and the rest of a
+    // large user document on every single login.
+    const user = await this.userModel.findById(userId).select('email').lean();
     if (!user) {
       throw new BadRequestException('User not found');
     }
@@ -65,45 +69,58 @@ export class SessionManagementService {
       isActive: true,
     };
 
-    // Add to login history
-    const loginEntry = {
-      ipAddress: deviceInfo.ipAddress,
-      userAgent: deviceInfo.userAgent,
-      timestamp: new Date(),
-      location,
-    };
+    const now = new Date();
 
-    user.loginHistory ??= [];
-
-    user.loginHistory.unshift(loginEntry);
-
-    if (user.loginHistory.length > USER_LOGIN_HISTORY_MAX) {
-      user.loginHistory = user.loginHistory.slice(0, USER_LOGIN_HISTORY_MAX);
-    }
-
-    // Update last login
-    user.lastLoginAt = new Date();
-
-    // Add audit log entry
-    user.auditLog ??= [];
-
-    user.auditLog.unshift({
-      action: 'LOGIN',
-      timestamp: new Date(),
-      ipAddress: deviceInfo.ipAddress,
-      userAgent: deviceInfo.userAgent,
-      details: {
-        sessionId: sessionInfo.sessionId,
-        deviceId: deviceInfo.deviceId,
-        location,
+    /**
+     * Both arrays are capped by the server in a single atomic update.
+     *
+     * The previous form read the document, `unshift`ed, sliced in JS and saved.
+     * Two concurrent logins — the same person on phone and laptop, or a retried
+     * request — each read the same array and each wrote their own version back,
+     * so one login silently vanished from the history. That matters for arrays
+     * whose whole purpose is a security audit trail.
+     *
+     * `$position: 0` prepends, so a positive `$slice` keeps the newest N and
+     * discards the oldest. This matches `auth/services/session-management.service.ts`,
+     * which drives the same two fields; they must not diverge.
+     */
+    await this.userModel.updateOne(
+      { _id: userId },
+      {
+        $set: { lastLoginAt: now },
+        $push: {
+          loginHistory: {
+            $each: [
+              {
+                ipAddress: deviceInfo.ipAddress,
+                userAgent: deviceInfo.userAgent,
+                timestamp: now,
+                location,
+              },
+            ],
+            $position: 0,
+            $slice: USER_LOGIN_HISTORY_MAX,
+          },
+          auditLog: {
+            $each: [
+              {
+                action: 'LOGIN',
+                timestamp: now,
+                ipAddress: deviceInfo.ipAddress,
+                userAgent: deviceInfo.userAgent,
+                details: {
+                  sessionId: sessionInfo.sessionId,
+                  deviceId: deviceInfo.deviceId,
+                  location,
+                },
+              },
+            ],
+            $position: 0,
+            $slice: USER_AUDIT_LOG_MAX,
+          },
+        },
       },
-    });
-
-    if (user.auditLog.length > USER_AUDIT_LOG_MAX) {
-      user.auditLog = user.auditLog.slice(0, USER_AUDIT_LOG_MAX);
-    }
-
-    await user.save();
+    );
 
     this.logger.log(`Session created for user: ${user.email}, Device: ${deviceInfo.deviceName}`);
 

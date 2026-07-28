@@ -5,7 +5,7 @@ import { Model } from 'mongoose';
 import { ZxcvbnFactory, type ZxcvbnResult, type OptionsGraph } from '@zxcvbn-ts/core';
 import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
-import { USER_AUDIT_LOG_MAX } from '../../common/constants/database-indexes.constant';
+import { USER_AUDIT_LOG_MAX } from '../../common/constants/document-limits.constant';
 import { User, UserDocument } from '../schemas/user.schema';
 
 // language-common main entry has a CJS decompress bug — load adjacency graphs directly

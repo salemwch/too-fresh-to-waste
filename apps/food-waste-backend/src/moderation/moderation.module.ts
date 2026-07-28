@@ -25,6 +25,10 @@ import {
 } from './guards/moderation-rate-limit.guard';
 // Task Processor (for scheduled tasks)
 import { ModerationTaskProcessor } from './processors/moderation-task.processor';
+import {
+  ModerationActionAudit,
+  ModerationActionAuditSchema,
+} from './schemas/moderation-action-audit.schema';
 import { ModerationAction, ModerationActionSchema } from './schemas/moderation-action.schema';
 import { ModerationLog, ModerationLogSchema } from './schemas/moderation-log.schema';
 import { Report, ReportSchema } from './schemas/report.schema';
@@ -38,6 +42,7 @@ import { ReportService } from './services/report.service';
     MongooseModule.forFeature([
       { name: Report.name, schema: ReportSchema },
       { name: ModerationAction.name, schema: ModerationActionSchema },
+      { name: ModerationActionAudit.name, schema: ModerationActionAuditSchema },
       { name: ModerationLog.name, schema: ModerationLogSchema },
     ]),
 

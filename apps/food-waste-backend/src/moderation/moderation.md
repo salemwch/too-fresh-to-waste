@@ -2,11 +2,15 @@
 
 ## Overview
 
-The Moderation module provides a comprehensive content moderation system for the Too Fresh To Waste platform. It enables users to report inappropriate content, moderators to review and take action on reports, and admins to manage the entire moderation workflow with full audit trails.
+The Moderation module provides a comprehensive content moderation system for the
+Too Fresh To Waste platform. It enables users to report inappropriate content,
+moderators to review and take action on reports, and admins to manage the entire
+moderation workflow with full audit trails.
 
 **Primary responsibilities:**
 
-- User-generated content reporting (users, establishments, offers, orders, reviews)
+- User-generated content reporting (users, establishments, offers, orders,
+  reviews)
 - Moderation action management (warnings, suspensions, bans, content removal)
 - Comprehensive audit logging with 1-year TTL
 - Automated task processing (expired actions, daily summaries)
@@ -72,7 +76,8 @@ Stores user-submitted reports of content violations.
 **Enums:**
 
 - `ReportType`: `user`, `establishment`, `offer`, `order`, `review`
-- `ReportReason`: `spam`, `harassment`, `inappropriate_content`, `fraud`, `fake_profile`, `violation_of_terms`, `health_safety`, `copyright`, `other`
+- `ReportReason`: `spam`, `harassment`, `inappropriate_content`, `fraud`,
+  `fake_profile`, `violation_of_terms`, `health_safety`, `copyright`, `other`
 - `ReportStatus`: `pending`, `in_review`, `resolved`, `rejected`, `escalated`
 - `ReportPriority`: `low`, `medium`, `high`, `critical`
 
@@ -121,7 +126,8 @@ Tracks enforcement actions taken against users/content.
 
 **Enums:**
 
-- `ModerationActionType`: `warn`, `suspend`, `ban`, `delete_content`, `hide_content`, `restrict_features`, `require_verification`, `demonetize`
+- `ModerationActionType`: `warn`, `suspend`, `ban`, `delete_content`,
+  `hide_content`, `restrict_features`, `require_verification`, `demonetize`
 - `ModerationActionStatus`: `active`, `expired`, `revoked`, `appealed`
 - `ModerationSeverity`: `minor`, `moderate`, `severe`, `critical`
 
@@ -182,7 +188,8 @@ Comprehensive audit log for all moderation activities (TTL: 1 year).
 **Enums:**
 
 - `LogLevel`: `DEBUG`, `INFO`, `WARN`, `ERROR`, `CRITICAL`
-- `LogCategory`: `REPORT_HANDLING`, `ACTION_ENFORCEMENT`, `USER_MANAGEMENT`, `CONTENT_MODERATION`, `SYSTEM_EVENT`, `AUDIT_TRAIL`
+- `LogCategory`: `REPORT_HANDLING`, `ACTION_ENFORCEMENT`, `USER_MANAGEMENT`,
+  `CONTENT_MODERATION`, `SYSTEM_EVENT`, `AUDIT_TRAIL`
 
 **Key Fields:**
 
@@ -235,9 +242,8 @@ All endpoints require JWT authentication (`@UseGuards(JwtAuthGuard)`).
 POST /api/v1/moderation/reports
 ```
 
-**Access:** All authenticated users
-**Rate Limit:** `ModerationReportRateLimitGuard`
-**Body:**
+**Access:** All authenticated users **Rate Limit:**
+`ModerationReportRateLimitGuard` **Body:**
 
 ```json
 {
@@ -281,8 +287,8 @@ POST /api/v1/moderation/reports
 GET /api/v1/moderation/reports?status=pending&priority=high&page=1&limit=20
 ```
 
-**Access:** Admin, Moderator (`@UseGuards(ModerationAccessGuard)`)
-**Query Parameters:**
+**Access:** Admin, Moderator (`@UseGuards(ModerationAccessGuard)`) **Query
+Parameters:**
 
 - `type` - Filter by report type
 - `status` - Filter by status
@@ -323,8 +329,7 @@ GET /api/v1/moderation/reports?status=pending&priority=high&page=1&limit=20
 GET /api/v1/moderation/reports/dashboard/stats
 ```
 
-**Access:** Admin, Moderator
-**Response:**
+**Access:** Admin, Moderator **Response:**
 
 ```json
 {
@@ -356,8 +361,7 @@ GET /api/v1/moderation/reports/dashboard/stats
 GET /api/v1/moderation/reports/assigned-to-me?status=in_review
 ```
 
-**Access:** Moderator, Admin
-**Returns:** Reports assigned to current user
+**Access:** Moderator, Admin **Returns:** Reports assigned to current user
 
 **File:** `controllers/report.controller.ts:137`
 
@@ -369,8 +373,8 @@ GET /api/v1/moderation/reports/assigned-to-me?status=in_review
 GET /api/v1/moderation/reports/:id
 ```
 
-**Access:** Report owner (reporter) OR Admin OR assigned Moderator
-**Guard:** `ReportOwnershipGuard`
+**Access:** Report owner (reporter) OR Admin OR assigned Moderator **Guard:**
+`ReportOwnershipGuard`
 
 **File:** `controllers/report.controller.ts:154`
 
@@ -382,8 +386,7 @@ GET /api/v1/moderation/reports/:id
 PATCH /api/v1/moderation/reports/:id
 ```
 
-**Access:** Admin OR assigned Moderator
-**Body:**
+**Access:** Admin OR assigned Moderator **Body:**
 
 ```json
 {
@@ -405,8 +408,7 @@ PATCH /api/v1/moderation/reports/:id
 POST /api/v1/moderation/reports/:id/assign
 ```
 
-**Access:** Admin only (`@UseGuards(AdminOnlyModerationGuard)`)
-**Body:**
+**Access:** Admin only (`@UseGuards(AdminOnlyModerationGuard)`) **Body:**
 
 ```json
 {
@@ -420,8 +422,7 @@ POST /api/v1/moderation/reports/:id/assign
 
 ### Moderation Actions API (`/api/v1/moderation/actions`)
 
-**Controllers:** `moderation-action.controller.ts`
-**Endpoints:**
+**Controllers:** `moderation-action.controller.ts` **Endpoints:**
 
 - `POST /actions` - Create moderation action (warn, suspend, ban, etc.)
 - `GET /actions` - List actions with filters
@@ -435,8 +436,7 @@ POST /api/v1/moderation/reports/:id/assign
 
 ### Moderation Logs API (`/api/v1/moderation/logs`)
 
-**Controller:** `moderation-log.controller.ts`
-**Endpoints:**
+**Controller:** `moderation-log.controller.ts` **Endpoints:**
 
 - `GET /logs` - Query audit logs
 - `GET /logs/statistics` - Aggregated statistics
@@ -521,9 +521,8 @@ if (!allowedRoles.includes(user.role)) {
 @Cron(CronExpression.EVERY_HOUR)
 ```
 
-**Runs:** Every hour
-**Function:** Marks expired temporary suspensions/bans as `expired`
-**Logging:** Logs cleanup count to `ModerationLog`
+**Runs:** Every hour **Function:** Marks expired temporary suspensions/bans as
+`expired` **Logging:** Logs cleanup count to `ModerationLog`
 
 **File:** `processors/moderation-task.processor.ts:19`
 
@@ -535,8 +534,8 @@ if (!allowedRoles.includes(user.role)) {
 @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
 ```
 
-**Runs:** Daily at 00:00
-**Function:** Placeholder (TTL index auto-deletes logs after 1 year)
+**Runs:** Daily at 00:00 **Function:** Placeholder (TTL index auto-deletes logs
+after 1 year)
 
 **File:** `processors/moderation-task.processor.ts:65`
 
@@ -548,9 +547,8 @@ if (!allowedRoles.includes(user.role)) {
 @Cron('0 1 * * *')
 ```
 
-**Runs:** Daily at 01:00
-**Function:** Aggregates previous day's moderation statistics
-**Output:** Stored as `ModerationLog` with category `SYSTEM_EVENT`
+**Runs:** Daily at 01:00 **Function:** Aggregates previous day's moderation
+statistics **Output:** Stored as `ModerationLog` with category `SYSTEM_EVENT`
 
 **Includes:**
 
@@ -833,6 +831,5 @@ POST /actions → Verify user restrictions → GET /actions (status check)
 
 ---
 
-**Last Updated:** 2026-01-15
-**Module Version:** 1.0.0
-**Maintainer:** Backend Team
+**Last Updated:** 2026-01-15 **Module Version:** 1.0.0 **Maintainer:** Backend
+Team

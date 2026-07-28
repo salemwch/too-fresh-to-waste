@@ -240,7 +240,7 @@ export class NotificationPreferencesService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (!preferences || !preferences.locationPreferences) {
+    if (!preferences?.locationPreferences) {
       return preferences ?? this.createDefaultPreferences(userId);
     }
 

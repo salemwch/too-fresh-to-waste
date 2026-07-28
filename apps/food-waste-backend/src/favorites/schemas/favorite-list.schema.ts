@@ -78,3 +78,33 @@ FavoriteListSchema.index({ userId: 1, isActive: 1 });
 FavoriteListSchema.index({ visibility: 1 });
 FavoriteListSchema.index({ tags: 1 });
 FavoriteListSchema.index({ createdAt: -1 });
+
+/**
+ * Indexes below were declared only in the former ALL_INDEXES constant, never on
+ * this schema. Because `autoIndex` is off in production, that constant was what
+ * production actually had, so these are live indexes. Names kept verbatim — the
+ * same key pattern cannot exist under two names.
+ *
+ * Each is a superset of a shorter index declared above ({ userId, isActive } and
+ * { visibility }). The shorter ones are now prefix-redundant and are candidates
+ * for removal, but only against real usage data — run `pnpm db:audit-indexes`,
+ * which checks $indexStats before suggesting a drop.
+ */
+
+/** A user's lists, newest first. */
+FavoriteListSchema.index(
+  { userId: 1, isActive: 1, createdAt: -1 },
+  { name: 'idx_favoritelists_userId_isActive_createdAt' },
+);
+
+/** Lists shared with a given user. */
+FavoriteListSchema.index(
+  { sharedWith: 1, visibility: 1 },
+  { name: 'idx_favoritelists_sharedWith_visibility' },
+);
+
+/** Public lists, most viewed first. */
+FavoriteListSchema.index(
+  { visibility: 1, viewCount: -1 },
+  { name: 'idx_favoritelists_visibility_viewCount' },
+);

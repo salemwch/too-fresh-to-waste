@@ -394,3 +394,53 @@ OfferSchema.pre('save', function (next) {
 
   next();
 });
+
+/**
+ * Indexes below were declared only in the former ALL_INDEXES constant, never on
+ * this schema. Because `autoIndex` is off in production, that constant was what
+ * production actually had — so these are live indexes, and dropping the constant
+ * without declaring them here would have removed them. Names are kept verbatim:
+ * the same key pattern cannot exist under two names.
+ *
+ * Not ported: `{ isFeatured, status, createdAt }`. There is no `isFeatured`
+ * field — the persisted flags are `isFeaturedManual` / `isFeaturedAuto`, and
+ * `isFeatured` is only a search-DTO filter name that `offers.service.ts`
+ * translates. That index matches no document and should be dropped in
+ * production; `verify-indexes.ts` reports it as EXTRA.
+ */
+
+/** Merchant offer management, newest first. */
+OfferSchema.index(
+  { merchantId: 1, status: 1, createdAt: -1 },
+  { name: 'idx_offers_merchantId_status_createdAt' },
+);
+
+/** Establishment offer listing, newest first. */
+OfferSchema.index(
+  { establishmentId: 1, status: 1, createdAt: -1 },
+  { name: 'idx_offers_establishmentId_status_createdAt' },
+);
+
+/**
+ * Public availability window. `offers.service.ts` adds `isActive: true`
+ * alongside `status`, so both equality keys lead, then the two range keys.
+ */
+OfferSchema.index(
+  { status: 1, isActive: 1, availableFrom: 1, availableUntil: 1 },
+  { name: 'idx_offers_active_availability' },
+);
+
+/** Expiring-offers sweep and cron jobs. */
+OfferSchema.index({ availableUntil: 1, status: 1 }, { name: 'idx_offers_availableUntil_status' });
+
+/** Price-range filtering. */
+OfferSchema.index(
+  { 'pricing.discountedPrice': 1, status: 1 },
+  { name: 'idx_offers_discountedPrice_status' },
+);
+
+/** Sort by biggest discount. */
+OfferSchema.index(
+  { 'pricing.discountPercentage': -1, status: 1 },
+  { name: 'idx_offers_discountPercentage_status' },
+);
