@@ -6,6 +6,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Animated,
   Keyboard,
   Platform,
   Pressable,
@@ -14,12 +15,6 @@ import {
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-} from 'react-native-reanimated';
 
 import { useTheme } from '@/design-system/providers';
 
@@ -40,23 +35,36 @@ export const OTPInput = memo<OTPInputProps>(
     const [focusedIndex, setFocusedIndex] = useState<number | null>(autoFocus ? 0 : null);
 
     // Shake animation for error
-    const shakeAnimation = useSharedValue(0);
+    const [shakeAnimation] = useState(() => new Animated.Value(0));
 
     useEffect(() => {
-      if (error) {
-        shakeAnimation.value = withSequence(
-          withSpring(-10, { damping: 5 }),
-          withSpring(10, { damping: 5 }),
-          withSpring(-10, { damping: 5 }),
-          withSpring(10, { damping: 5 }),
-          withSpring(0, { damping: 5 }),
-        );
-      }
+      if (!error) return;
+
+      // damping alone selects Animated's physics-based spring, whose remaining
+      // defaults (stiffness 100, mass 1) are the same ones Reanimated's
+      // withSpring used — so the shake keeps its original feel.
+      const shakeTo = (toValue: number) =>
+        Animated.spring(shakeAnimation, {
+          toValue,
+          damping: 5,
+          useNativeDriver: true,
+        });
+
+      const sequence = Animated.sequence([
+        shakeTo(-10),
+        shakeTo(10),
+        shakeTo(-10),
+        shakeTo(10),
+        shakeTo(0),
+      ]);
+
+      sequence.start();
+      // Stop if `error` clears or the component unmounts mid-shake, otherwise the
+      // remaining springs keep running against an unmounted view.
+      return () => sequence.stop();
     }, [error, shakeAnimation]);
 
-    const containerAnimatedStyle = useAnimatedStyle(() => ({
-      transform: [{ translateX: shakeAnimation.value }],
-    }));
+    const containerAnimatedStyle = { transform: [{ translateX: shakeAnimation }] };
 
     // Auto-focus first input on mount
     useEffect(() => {

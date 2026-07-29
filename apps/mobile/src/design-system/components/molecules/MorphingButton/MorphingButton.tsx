@@ -2,24 +2,26 @@
  * MorphingButton - Liquid-fill login button.
  *
  * Props interface is unchanged so existing callers need no edits.
+ *
+ * Migrated off react-native-reanimated to React Native's own Animated. Every
+ * property animated here is opacity/transform, so all of it still runs on the
+ * native driver — the worklet runtime bought nothing. The two colour props
+ * (`backgroundColor`/`borderColor`) were discrete `successState === 1` ternaries
+ * rather than animations, so they are now plain style values derived from the
+ * `success` prop; that also keeps them off the non-native-driver path.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
-import { trigger as triggerHapticFeedback } from 'react-native-haptic-feedback';
-import Animated, {
+import {
+  Animated,
   Easing,
-  cancelAnimation,
-  interpolate,
-  useAnimatedStyle,
-  useDerivedValue,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+  Platform,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import { trigger as triggerHapticFeedback } from 'react-native-haptic-feedback';
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 
 import { useTheme } from '../../../providers';
@@ -27,19 +29,28 @@ import { useTheme } from '../../../providers';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 const BUTTON_HEIGHT = 56;
+/** react-native-reanimated's withTiming default, preserved so timings match. */
+const DEFAULT_EASING = Easing.inOut(Easing.quad);
 
-const CheckIcon = ({ show }: { show: { value: number } }) => {
-  const style = useAnimatedStyle(() => ({
-    opacity: withTiming(show.value ? 1 : 0, { duration: 200 }),
-    transform: [{ scale: withSpring(show.value ? 1 : 0) }],
-  }));
-
-  return (
-    <Animated.View style={[styles.iconContainer, style]}>
-      <IoniconsIcon name='checkmark' size={28} color='white' />
-    </Animated.View>
-  );
-};
+const CheckIcon = ({ progress }: { progress: Animated.Value }) => (
+  <Animated.View
+    style={[
+      styles.iconContainer,
+      {
+        // Spring overshoots past 1 to give the pop; clamp opacity so it cannot
+        // exceed 1 while scale keeps the bounce.
+        opacity: progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolate: 'clamp',
+        }),
+        transform: [{ scale: progress }],
+      },
+    ]}
+  >
+    <IoniconsIcon name='checkmark' size={28} color='white' />
+  </Animated.View>
+);
 
 interface MorphingButtonProps {
   label: string;
@@ -65,87 +76,128 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
   const { t } = useTranslation();
   const theme = useTheme();
 
-  const loadingVal = useSharedValue(0);
-  const fillProgress = useSharedValue(0);
-  const waveRotate = useSharedValue(0);
-  const successState = useSharedValue(0);
-  const scaleButton = useSharedValue(1);
+  const [labelVisible] = useState(() => new Animated.Value(1));
+  const [loadingVisible] = useState(() => new Animated.Value(0));
+  const [checkVisible] = useState(() => new Animated.Value(0));
+  const [fillProgress] = useState(() => new Animated.Value(0));
+  const [waveRotate] = useState(() => new Animated.Value(0));
+  const [scaleButton] = useState(() => new Animated.Value(1));
 
-  useDerivedValue(() => {
-    if (loading && !success) {
-      loadingVal.value = 1;
-      successState.value = 0;
-      scaleButton.value = withSequence(
-        withTiming(0.95, { duration: 100 }),
-        withTiming(1, { duration: 100 }),
-      );
-      waveRotate.value = withRepeat(
-        withTiming(360, { duration: 2000, easing: Easing.linear }),
-        -1,
-        false,
-      );
-      fillProgress.value = withTiming(0.9, {
-        duration: 2000,
-        easing: Easing.inOut(Easing.ease),
+  const isLoading = loading && !success;
+
+  // Cross-fades, fill level and the press bounce. Grouped in one parallel batch
+  // so they stay in step the way the single reanimated worklet did.
+  useEffect(() => {
+    const fade = (value: Animated.Value, toValue: number) =>
+      Animated.timing(value, {
+        toValue,
+        duration: 200,
+        easing: DEFAULT_EASING,
+        useNativeDriver: true,
       });
+
+    const animations: Animated.CompositeAnimation[] = [
+      fade(labelVisible, !loading && !success ? 1 : 0),
+      fade(loadingVisible, isLoading ? 1 : 0),
+      Animated.spring(checkVisible, {
+        toValue: success ? 1 : 0,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fillProgress, {
+        toValue: isLoading ? 0.9 : success ? 1.5 : 0,
+        duration: isLoading ? 2000 : 300,
+        easing: isLoading ? Easing.inOut(Easing.ease) : DEFAULT_EASING,
+        useNativeDriver: true,
+      }),
+    ];
+
+    if (isLoading) {
+      animations.push(
+        Animated.sequence([
+          Animated.timing(scaleButton, {
+            toValue: 0.95,
+            duration: 100,
+            easing: DEFAULT_EASING,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleButton, {
+            toValue: 1,
+            duration: 100,
+            easing: DEFAULT_EASING,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+    }
+
+    const batch = Animated.parallel(animations);
+    batch.start();
+    return () => batch.stop();
+  }, [
+    loading,
+    success,
+    isLoading,
+    labelVisible,
+    loadingVisible,
+    checkVisible,
+    fillProgress,
+    scaleButton,
+  ]);
+
+  // The wave only spins while loading. Kept separate because it is a loop with
+  // its own lifetime — reanimated did the same via cancelAnimation().
+  useEffect(() => {
+    if (!isLoading) {
+      waveRotate.setValue(0);
       return;
     }
 
-    if (success) {
-      fillProgress.value = withTiming(1.5, { duration: 300 });
-      successState.value = 1;
-      loadingVal.value = 0;
-      cancelAnimation(waveRotate);
-      waveRotate.value = 0;
-      return;
-    }
-
-    loadingVal.value = 0;
-    successState.value = 0;
-    fillProgress.value = withTiming(0, { duration: 300 });
-    cancelAnimation(waveRotate);
-    waveRotate.value = 0;
-  }, [loading, success]);
-
-  const liquidStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(
-      fillProgress.value,
-      [0, 1],
-      [BUTTON_HEIGHT * 2, -BUTTON_HEIGHT * 0.5],
+    const loop = Animated.loop(
+      Animated.timing(waveRotate, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
     );
 
-    return {
-      transform: [{ translateY }, { rotate: `${waveRotate.value}deg` }],
-      backgroundColor: successState.value === 1 ? theme.colors.success : theme.colors.primary,
+    loop.start();
+    return () => {
+      loop.stop();
+      waveRotate.setValue(0);
     };
-  });
+  }, [isLoading, waveRotate]);
 
-  const labelStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(loadingVal.value === 0 && successState.value === 0 ? 1 : 0, {
-      duration: 200,
-    }),
+  const liquidStyle = {
     transform: [
       {
-        translateY: withTiming(loadingVal.value === 0 && successState.value === 0 ? 0 : -16),
+        translateY: fillProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [BUTTON_HEIGHT * 2, -BUTTON_HEIGHT * 0.5],
+        }),
       },
-    ],
-  }));
-
-  const loadingLabelStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(loadingVal.value === 1 && successState.value === 0 ? 1 : 0, {
-      duration: 200,
-    }),
-    transform: [
       {
-        translateY: withTiming(loadingVal.value === 1 && successState.value === 0 ? 0 : 16),
+        rotate: waveRotate.interpolate({
+          inputRange: [0, 1],
+          outputRange: ['0deg', '360deg'],
+        }),
       },
     ],
-  }));
+  };
 
-  const buttonContainerStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scaleButton.value }],
-    borderColor: successState.value === 1 ? theme.colors.success : theme.colors.primary,
-  }));
+  const labelStyle = {
+    opacity: labelVisible,
+    transform: [
+      { translateY: labelVisible.interpolate({ inputRange: [0, 1], outputRange: [-16, 0] }) },
+    ],
+  };
+
+  const loadingLabelStyle = {
+    opacity: loadingVisible,
+    transform: [
+      { translateY: loadingVisible.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+    ],
+  };
 
   const handlePress = useCallback(() => {
     if (disabled || loading || success) return;
@@ -163,6 +215,8 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
 
     onPress();
   }, [disabled, loading, success, onPress]);
+
+  const accentColor = success ? theme.colors.success : theme.colors.primary;
 
   return (
     <View style={style}>
@@ -183,11 +237,12 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
             {
               backgroundColor: theme.colors.primary,
               shadowColor: theme.colors.onSurface,
+              borderColor: accentColor,
+              transform: [{ scale: scaleButton }],
             },
-            buttonContainerStyle,
           ]}
         >
-          <Animated.View style={[styles.liquid, liquidStyle]} />
+          <Animated.View style={[styles.liquid, { backgroundColor: accentColor }, liquidStyle]} />
 
           <Animated.Text style={[styles.labelText, { color: theme.colors.onPrimary }, labelStyle]}>
             {label}
@@ -200,7 +255,7 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
           </Animated.Text>
 
           <View style={styles.iconWrapper}>
-            <CheckIcon show={successState} />
+            <CheckIcon progress={checkVisible} />
           </View>
         </Animated.View>
       </TouchableWithoutFeedback>

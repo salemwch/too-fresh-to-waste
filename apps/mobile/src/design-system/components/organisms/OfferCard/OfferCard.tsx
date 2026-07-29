@@ -873,24 +873,40 @@ const createStyles = (
       marginEnd: -4,
     },
     titleContainer: {
+      // Badge and title share one line. flexDirection 'row' flips automatically
+      // under RTL, so Arabic needs no special case.
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 4,
       marginBottom: 4,
     },
     typeBadge: {
-      alignSelf: 'flex-start',
+      // Must not shrink: without this flexbox compresses the badge before the
+      // title, wrapping "Surprise Bag" onto two lines inside its own pill.
+      flexShrink: 0,
       backgroundColor: colorTokens.base.primary[50],
-      borderRadius: 6,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
+      borderRadius: 4,
+      paddingHorizontal: 5,
+      paddingVertical: 1,
     },
     typeBadgeText: {
-      fontSize: 9,
+      // Sized down now that the badge sits inline with the title: it is a
+      // secondary qualifier, so it should not compete with the offer name for
+      // attention. Tighter letterSpacing matters more than font size here —
+      // uppercase + 0.5 spacing is what made "SPECIFIC ITEMS" read as a wide
+      // block. Kept at 8pt rather than lower because it is all-caps at 700
+      // weight, which stays legible where lowercase body text would not.
+      fontSize: 8,
       fontWeight: '700',
       color: colorTokens.base.primary[500],
       textTransform: 'uppercase',
-      letterSpacing: 0.5,
+      letterSpacing: 0.2,
     },
-    title: {},
+    // flexShrink lets a long title ellipsize (numberOfLines={1}) instead of
+    // pushing the badge past the card edge.
+    title: {
+      flexShrink: 1,
+    },
     pickupTimeRow: {
       flexDirection: 'row',
       alignItems: 'center',

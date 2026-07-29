@@ -17,10 +17,9 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
 import * as yup from 'yup';
 
-import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
+import { Button, Input, Text, Card, Icon, EnteringView } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
 interface ResendVerificationModalProps {
@@ -124,7 +123,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
             disabled={isLoading}
           />
 
-          <Animated.View entering={FadeIn.duration(200)} style={styles.modalContainer}>
+          <EnteringView animation='fadeIn' duration={200} style={styles.modalContainer}>
             <ScrollView
               contentContainerStyle={styles.scrollContent}
               keyboardShouldPersistTaps='handled'
@@ -264,7 +263,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                 </View>
               </Card>
             </ScrollView>
-          </Animated.View>
+          </EnteringView>
         </KeyboardAvoidingView>
       </Modal>
     );

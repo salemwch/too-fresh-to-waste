@@ -266,7 +266,17 @@ android {
             // Enable only when the Gradle invocation targets a release task
             enable gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') && !it.toLowerCase().contains('bundle') }
             universalApk false          // no fat APK — each device gets only its ABI
-            include "arm64-v8a", "armeabi-v7a"
+            // Derived from -PreactNativeArchitectures (falling back to the
+            // gradle.properties value) so the split filter can never disagree with
+            // the ABIs that were actually compiled. This list used to be hardcoded
+            // to arm64-v8a/armeabi-v7a, so building for an emulator
+            // (-PreactNativeArchitectures=x86_64) filtered every APK down to an ABI
+            // whose .so files had never been built — an unrunnable release APK,
+            // with no error to say why.
+            include(*((project.findProperty('reactNativeArchitectures') ?: 'arm64-v8a,armeabi-v7a')
+                .split(',')
+                .collect { it.trim() }
+                .findAll { it } as String[]))
         }
     }
 

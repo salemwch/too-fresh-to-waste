@@ -179,16 +179,11 @@ module.exports = {
       },
     ],
 
-    /**
-     * React Native Reanimated Plugin
-     * MUST be listed last
-     *
-     * Transforms worklets for Reanimated animations
-     * Required for gesture-handler + reanimated
-     *
-     * @see https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-     */
-    'react-native-reanimated/plugin',
+    // react-native-reanimated/plugin was removed alongside the package itself.
+    // Its only job was transforming 'worklet' functions for the Reanimated UI
+    // runtime; every animation now uses React Native's Animated API, which needs
+    // no build-time transform. Nothing else required it — gesture-handler is used
+    // only for GestureHandlerRootView, with no gestures and no worklets.
   ],
 
   /**
