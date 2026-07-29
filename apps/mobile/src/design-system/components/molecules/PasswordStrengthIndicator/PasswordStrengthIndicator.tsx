@@ -7,7 +7,7 @@
  * - Progress bar showing overall password strength (0-100%)
  * - Individual rule indicators with check icons
  * - Haptic feedback when rules are met
- * - Smooth color animations using react-native-reanimated
+ * - Smooth color animations using React Native's Animated API
  * - Detailed feedback messages
  * - Support for basic and advanced rules
  *

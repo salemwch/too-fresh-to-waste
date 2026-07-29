@@ -95,8 +95,8 @@ jest.mock('react-native-mmkv', () => {
   };
 });
 
-// Reanimated mock
-jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
+// No reanimated mock: the package was removed in favour of React Native's own
+// Animated API, which the RN Jest preset already handles.
 
 // react-native-config — stub with empty config for tests
 jest.mock('react-native-config', () => ({ Config: {} }));

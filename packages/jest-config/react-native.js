@@ -19,7 +19,9 @@ const RN_ESM_PACKAGES = [
   '@testing-library/react-native',
   'react-native-haptic-feedback',
   'react-native-linear-gradient',
-  'react-native-reanimated',
+  // Ships ESM (`export { Toast as default }`). Reached indirectly by anything
+  // importing utils/errorHandler → utils/toast, so any screen test hits it.
+  'react-native-toast-message',
   'react-native-gesture-handler',
   'react-native-screens',
   'react-native-safe-area-context',

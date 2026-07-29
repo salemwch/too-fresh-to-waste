@@ -17,4 +17,7 @@ export { Icon } from './Icon';
 export { Input } from './Input';
 // Text
 export { Text } from './Text';
+// EnteringView (mount-entrance animation primitive)
+export { EnteringView } from './EnteringView';
+export type { EnteringAnimation } from './EnteringView';
 // ShimmerBlock (skeleton loading primitives)

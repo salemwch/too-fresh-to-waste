@@ -6,22 +6,19 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import Animated, {
-  FadeInDown,
-  FadeInUp,
-  ZoomIn,
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
+import {
+  Animated,
   Easing,
-} from 'react-native-reanimated';
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SmsRetriever from 'react-native-sms-retriever';
 
-import { Button, Text, Icon } from '@/design-system/components/atoms';
+import { Button, Text, Icon, EnteringView } from '@/design-system/components/atoms';
 import { OTPInput } from '@/design-system/components/molecules/OTPInput';
 import { useTheme } from '@/design-system/providers';
 import { showAlert, showSuccessAlert, showErrorAlert } from '@/utils/alert';
@@ -51,29 +48,40 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
   const [error, setError] = useState<string | null>(null);
 
   // Animations
-  const phoneIconRotation = useSharedValue(0);
-  const successScale = useSharedValue(0);
+  const [phoneIconRotation] = useState(() => new Animated.Value(0));
+  const [successScale] = useState(() => new Animated.Value(0));
 
   // Phone icon pulse animation
   useEffect(() => {
-    phoneIconRotation.value = withRepeat(
-      withSequence(
-        withTiming(-10, { duration: 500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(10, { duration: 500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 500, easing: Easing.inOut(Easing.ease) }),
-      ),
-      -1,
-      false,
-    );
+    const wobbleTo = (toValue: number) =>
+      Animated.timing(phoneIconRotation, {
+        toValue,
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      });
+
+    const loop = Animated.loop(Animated.sequence([wobbleTo(-10), wobbleTo(10), wobbleTo(0)]));
+
+    loop.start();
+    // Without this the loop keeps ticking after the screen unmounts.
+    return () => loop.stop();
   }, [phoneIconRotation]);
 
-  const phoneIconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${phoneIconRotation.value}deg` }],
-  }));
+  // Animated only accepts a string for `rotate`, so the driver stays numeric and
+  // is interpolated to degrees here — the native driver handles both ends.
+  const phoneIconAnimatedStyle = {
+    transform: [
+      {
+        rotate: phoneIconRotation.interpolate({
+          inputRange: [-10, 10],
+          outputRange: ['-10deg', '10deg'],
+        }),
+      },
+    ],
+  };
 
-  const successAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: successScale.value }],
-  }));
+  const successAnimatedStyle = { transform: [{ scale: successScale }] };
 
   /**
    * Cooldown timer for resend button
@@ -255,10 +263,10 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
 
       Logger.info('Phone verified successfully', { phoneNumber });
 
-      successScale.value = withSequence(
-        withTiming(1.2, { duration: 300 }),
-        withTiming(1, { duration: 200 }),
-      );
+      Animated.sequence([
+        Animated.timing(successScale, { toValue: 1.2, duration: 300, useNativeDriver: true }),
+        Animated.timing(successScale, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
 
       setTimeout(() => {
         if (fromEmailVerification === true) {
@@ -373,7 +381,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
         keyboardShouldPersistTaps='handled'
       >
         {/* Header with animated phone icon */}
-        <Animated.View entering={FadeInUp.delay(100)} style={styles.header}>
+        <EnteringView animation='fadeInUp' delay={100} style={styles.header}>
           <Animated.View
             style={[
               styles.iconContainer,
@@ -393,10 +401,10 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               </View>
             )}
           </Animated.View>
-        </Animated.View>
+        </EnteringView>
 
         {/* Title and Description */}
-        <Animated.View entering={FadeInUp.delay(200)} style={styles.titleContainer}>
+        <EnteringView animation='fadeInUp' delay={200} style={styles.titleContainer}>
           <Text variant='headline.large' style={styles.title}>
             {t('verifyPhone.title')}
           </Text>
@@ -408,11 +416,11 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               ? t('verifyPhone.codePrompt', { phone: phoneNumber })
               : t('verifyPhone.initialPrompt')}
           </Text>
-        </Animated.View>
+        </EnteringView>
 
         {/* OTP Input */}
         {hasCodeBeenSent && (
-          <Animated.View entering={ZoomIn.delay(300)} style={styles.otpContainer}>
+          <EnteringView animation='zoomIn' delay={300} style={styles.otpContainer}>
             <OTPInput
               value={code}
               onChange={setCode}
@@ -422,7 +430,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
             />
 
             {error && (
-              <Animated.View entering={FadeInDown} style={styles.errorContainer}>
+              <EnteringView animation='fadeInDown' style={styles.errorContainer}>
                 <Icon name='alert-circle' size={16} color={theme.colors.error} />
                 <Text
                   variant='body.small'
@@ -430,13 +438,13 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
                 >
                   {error}
                 </Text>
-              </Animated.View>
+              </EnteringView>
             )}
-          </Animated.View>
+          </EnteringView>
         )}
 
         {/* Action Buttons */}
-        <Animated.View entering={FadeInUp.delay(400)} style={styles.buttonContainer}>
+        <EnteringView animation='fadeInUp' delay={400} style={styles.buttonContainer}>
           {!hasCodeBeenSent ? (
             <Button
               onPress={() => {
@@ -497,10 +505,10 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               {t('common.back')}
             </Button>
           )}
-        </Animated.View>
+        </EnteringView>
 
         {/* Help Text */}
-        <Animated.View entering={FadeInUp.delay(500)} style={styles.helpContainer}>
+        <EnteringView animation='fadeInUp' delay={500} style={styles.helpContainer}>
           <Icon name='info' size={20} color={theme.colors.onSurfaceVariant} />
           <Text
             variant='body.small'
@@ -510,7 +518,7 @@ export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation
               ? t('verifyPhone.helpMandatory')
               : t('verifyPhone.helpOptional')}
           </Text>
-        </Animated.View>
+        </EnteringView>
       </ScrollView>
     </KeyboardAvoidingView>
   );
