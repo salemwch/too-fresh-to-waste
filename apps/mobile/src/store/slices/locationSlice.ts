@@ -110,6 +110,13 @@ export interface LocationResult {
   accuracy?: number;
   error?: string;
   errorCode?: number;
+  /**
+   * True when this request was dropped because an identical one was already
+   * running. It is not a failure: another caller owns the in-flight request
+   * and will update state for everyone. Callers must not show an error or
+   * fall back to manual entry on this — they should simply stand down.
+   */
+  aborted?: boolean;
 }
 
 // ============================================================================
@@ -280,118 +287,144 @@ export const checkPermissionAsync = createAsyncThunk<
 export const requestLocationAsync = createAsyncThunk<
   LocationResult,
   void,
-  { rejectValue: LocationResult }
->('location/requestLocation', async (_, { rejectWithValue }) => {
-  try {
-    // ── 1. Request permission ─────────────────────────────────────────────
-    const permission = getLocationPermission();
-    const permResult = await request(permission);
-    const permStatus = mapPermissionResult(permResult);
+  { state: { location: LocationState }; rejectValue: LocationResult }
+>(
+  'location/requestLocation',
+  async (_, { rejectWithValue }) => {
+    try {
+      // ── 1. Request permission ─────────────────────────────────────────────
+      const permission = getLocationPermission();
+      const permResult = await request(permission);
+      const permStatus = mapPermissionResult(permResult);
 
-    Logger.info('Location permission requested', { status: permStatus });
+      Logger.info('Location permission requested', { status: permStatus });
 
-    if (permStatus !== 'granted') {
+      if (permStatus !== 'granted') {
+        return rejectWithValue({
+          success: false,
+          error: 'Location permission not granted',
+          errorCode: 1,
+        });
+      }
+
+      // ── 2. Try native cached location (0-50ms) ───────────────────────────
+      const cached = await getLastKnownLocation();
+      if (
+        cached != null &&
+        cached.accuracy <= CACHED_ACCURACY_THRESHOLD &&
+        Date.now() - cached.timestamp < NATIVE_CACHE_MAX_AGE_MS
+      ) {
+        Logger.info('Location acquired from native cache', {
+          accuracy: cached.accuracy,
+          age: Date.now() - cached.timestamp,
+        });
+        return {
+          success: true,
+          coordinates: { latitude: cached.latitude, longitude: cached.longitude },
+          accuracy: cached.accuracy,
+        };
+      }
+
+      // ── 3. Fast network fix + GPS fallback (parallel) ─────────────────────
+      return new Promise<LocationResult>((resolve, reject) => {
+        let resolved = false;
+
+        // Phase A: Low accuracy, fast response (cell/WiFi, ~1-3s)
+        Geolocation.getCurrentPosition(
+          position => {
+            if (!resolved) {
+              resolved = true;
+              Logger.info('Location acquired via fast network fix', {
+                accuracy: position.coords.accuracy,
+              });
+              resolve({
+                success: true,
+                coordinates: {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                },
+                accuracy: position.coords.accuracy,
+              });
+            }
+          },
+          () => {
+            // Fast phase failed — Phase B will handle it
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: MAXIMUM_AGE_MS,
+          },
+        );
+
+        // Phase B: High accuracy fallback (GPS satellite, 5-15s)
+        Geolocation.getCurrentPosition(
+          position => {
+            if (!resolved) {
+              resolved = true;
+              Logger.info('Location acquired via GPS fix');
+              resolve({
+                success: true,
+                coordinates: {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                },
+                accuracy: position.coords.accuracy,
+              });
+            }
+          },
+          error => {
+            if (!resolved) {
+              resolved = true;
+              Logger.warn('All location phases failed', { code: error.code });
+              reject(
+                rejectWithValue({
+                  success: false,
+                  error: getErrorMessage(error),
+                  errorCode: error.code,
+                }),
+              );
+            }
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: GEOLOCATION_TIMEOUT_MS,
+            maximumAge: MAXIMUM_AGE_MS,
+          },
+        );
+      });
+    } catch (error) {
+      Logger.error('Location request failed', {}, error as Error);
       return rejectWithValue({
         success: false,
-        error: 'Location permission not granted',
-        errorCode: 1,
+        error: 'Failed to get location',
       });
     }
-
-    // ── 2. Try native cached location (0-50ms) ───────────────────────────
-    const cached = await getLastKnownLocation();
-    if (
-      cached != null &&
-      cached.accuracy <= CACHED_ACCURACY_THRESHOLD &&
-      Date.now() - cached.timestamp < NATIVE_CACHE_MAX_AGE_MS
-    ) {
-      Logger.info('Location acquired from native cache', {
-        accuracy: cached.accuracy,
-        age: Date.now() - cached.timestamp,
-      });
-      return {
-        success: true,
-        coordinates: { latitude: cached.latitude, longitude: cached.longitude },
-        accuracy: cached.accuracy,
-      };
-    }
-
-    // ── 3. Fast network fix + GPS fallback (parallel) ─────────────────────
-    return new Promise<LocationResult>((resolve, reject) => {
-      let resolved = false;
-
-      // Phase A: Low accuracy, fast response (cell/WiFi, ~1-3s)
-      Geolocation.getCurrentPosition(
-        position => {
-          if (!resolved) {
-            resolved = true;
-            Logger.info('Location acquired via fast network fix', {
-              accuracy: position.coords.accuracy,
-            });
-            resolve({
-              success: true,
-              coordinates: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              },
-              accuracy: position.coords.accuracy,
-            });
-          }
-        },
-        () => {
-          // Fast phase failed — Phase B will handle it
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: MAXIMUM_AGE_MS,
-        },
-      );
-
-      // Phase B: High accuracy fallback (GPS satellite, 5-15s)
-      Geolocation.getCurrentPosition(
-        position => {
-          if (!resolved) {
-            resolved = true;
-            Logger.info('Location acquired via GPS fix');
-            resolve({
-              success: true,
-              coordinates: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              },
-              accuracy: position.coords.accuracy,
-            });
-          }
-        },
-        error => {
-          if (!resolved) {
-            resolved = true;
-            Logger.warn('All location phases failed', { code: error.code });
-            reject(
-              rejectWithValue({
-                success: false,
-                error: getErrorMessage(error),
-                errorCode: error.code,
-              }),
-            );
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: GEOLOCATION_TIMEOUT_MS,
-          maximumAge: MAXIMUM_AGE_MS,
-        },
-      );
-    });
-  } catch (error) {
-    Logger.error('Location request failed', {}, error as Error);
-    return rejectWithValue({
-      success: false,
-      error: 'Failed to get location',
-    });
-  }
-});
+  },
+  {
+    /**
+     * Single-flight guard. Four screens dispatch this thunk (home banner, home
+     * setup modal, home location picker, search) and none of them knew about
+     * the others, so two of them firing close together called the native
+     * `request()` twice. A second runtime-permission Activity launched while
+     * the first is still starting is a window conflict — on some devices the
+     * task is pushed to the background, which reads to the user as the app
+     * closing itself.
+     *
+     * Guarding here rather than at each call site is deliberate: a per-caller
+     * flag has to be repeated correctly in every screen that ever asks for
+     * location, and the one that forgets reintroduces the bug. This is the one
+     * place all of them already go through.
+     */
+    condition: (_, { getState }) => {
+      if (getState().location.isLoading) {
+        Logger.debug('Location request already in flight, ignoring duplicate');
+        return false;
+      }
+      return true;
+    },
+  },
+);
 
 /**
  * Reverse geocode coordinates to get location name.

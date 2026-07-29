@@ -400,7 +400,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
    */
   const handleEnableLocation = useCallback(() => {
     void requestLocation().then(result => {
-      if (!result.success) {
+      // `aborted` means a request was already running, not that it failed —
+      // falling back to manual entry there would interrupt a flow that is
+      // about to succeed.
+      if (!result.success && !result.aborted) {
         // If location request failed, show manual location modal
         openManualLocationModal();
       }
@@ -514,8 +517,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const sections = useMemo<Section[]>(
     () => [
-      // Location prompt (conditional - only when no location set)
-      ...(shouldShowPrompt
+      // Location prompt — only when no location is set AND the first-run modal
+      // is not already asking. Both were computed independently, so a new user
+      // got two prompts for the same permission: the modal in front and this
+      // banner behind it. Two entry points to one runtime permission is also
+      // how the duplicate `request()` race became reachable. The modal owns
+      // first run; the banner is the persistent affordance afterwards.
+      ...(shouldShowPrompt && !showLocationSelectionModal
         ? [{ id: 'locationPrompt' as const, type: 'locationPrompt' as const }]
         : []),
       // Search bar (always shown)
@@ -530,7 +538,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       { id: 'pickupToday' as const, type: 'pickupToday' as const },
       { id: 'pickupTomorrow' as const, type: 'pickupTomorrow' as const },
     ],
-    [shouldShowPrompt],
+    [shouldShowPrompt, showLocationSelectionModal],
   );
 
   // ============================================================================

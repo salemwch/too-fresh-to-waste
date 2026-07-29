@@ -198,7 +198,15 @@ export function useLocation(): UseLocationReturn {
       const result = await dispatch(requestLocationAsync()).unwrap();
       return result;
     } catch (requestError) {
-      // Error is already in Redux state via rejected action
+      // The thunk's `condition` guard aborts duplicate requests while one is
+      // already in flight. That rejects with a ConditionError carrying no
+      // payload — it is not a location failure, so it must not be reported as
+      // one. Returning a silent unsuccessful result lets the caller stand
+      // down while the in-flight request goes on to update state for both.
+      if ((requestError as { name?: string } | null)?.name === 'ConditionError') {
+        return { success: false, aborted: true };
+      }
+      // Any real error is already in Redux state via the rejected action.
       return requestError as LocationResult;
     }
   }, [dispatch]);

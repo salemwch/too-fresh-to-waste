@@ -17,7 +17,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { userService } from '@/features/profile/services';
 import { useAppDispatch } from '@/hooks/redux';
-import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
+import { type LocationResult, reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
 
 import { HOME_STORAGE_KEYS } from '../constants/homeConstants';
@@ -95,11 +95,10 @@ interface UseLocationSetupResult {
 export function useLocationSetup(
   hasLocation: boolean,
   isAuthenticated: boolean,
-  requestLocation: () => Promise<{
-    success: boolean;
-    coordinates?: { latitude: number; longitude: number };
-    error?: string;
-  }>,
+  // Use the real result type rather than a hand-copied structural subset —
+  // the local copy silently omitted `aborted` and hid a compile error behind
+  // a shape that merely looked compatible.
+  requestLocation: () => Promise<LocationResult>,
   setManualLocationValue: (
     coordinates: { latitude: number; longitude: number },
     name: string,
@@ -275,6 +274,11 @@ export function useLocationSetup(
 
         try {
           const result = await requestLocation();
+
+          // Another caller already owns an in-flight request; it will update
+          // state for both of us. Reopening the modal with an error here
+          // would blame the user for a duplicate we deduplicated ourselves.
+          if (result.aborted) return;
 
           if (!result.success || !result.coordinates) {
             // Re-open modal with error so user can retry or pick manual
