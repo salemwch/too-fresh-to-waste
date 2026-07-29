@@ -1,12 +1,31 @@
 <resources>
 
-    <!-- Base application theme. -->
+    <!--
+      Base application theme.
+
+      Deliberately sets no system-bar *colours*. `android:statusBarColor`,
+      `android:navigationBarColor` and `android:navigationBarDividerColor` are
+      the theme route to Window.setStatusBarColor / setNavigationBarColor,
+      which Android 15 (API 35) deprecated and which Play Console flagged on
+      release 69. They are ignored outright for apps targeting 35+ — this app
+      targets 36 — and they were redundant below that too: RN's
+      WindowUtil.enableEdgeToEdge(), invoked by ReactActivityDelegate because
+      `edgeToEdgeEnabled=true` is set in gradle.properties, assigns transparent
+      bar colours itself at onCreate and overwrites whatever the theme said.
+
+      `windowDrawsSystemBarBackgrounds` is deliberately KEPT. It is not one of
+      the APIs Play flagged, and on API 21-34 it is the precondition for a
+      programmatically-set transparent bar colour to take effect at all —
+      dropping it there would give opaque system bars. On API 35+ the platform
+      ignores it, so keeping it costs nothing.
+
+      Do not re-add the colour attributes. Under edge-to-edge, bar appearance
+      is controlled by WindowInsetsControllerCompat (light/dark icons) and by
+      drawing your own background behind the inset area.
+    -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
         <item name="android:windowBackground">@android:color/white</item>
     </style>
 

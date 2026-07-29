@@ -112,7 +112,9 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
       presentationStyle='fullScreen'
       onRequestClose={onPaymentFailed}
     >
-      <StatusBar barStyle='dark-content' translucent backgroundColor='transparent' />
+      {/* barStyle only — see App.tsx: colour/translucency props hit deprecated
+          Window APIs and do nothing under edge-to-edge. */}
+      <StatusBar barStyle='dark-content' />
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* Header */}
         <View style={styles.header}>
