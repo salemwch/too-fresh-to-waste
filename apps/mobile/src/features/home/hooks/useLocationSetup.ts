@@ -22,6 +22,14 @@ import { Logger } from '@/utils/logger';
 
 import { HOME_STORAGE_KEYS } from '../constants/homeConstants';
 
+/**
+ * Upper bound on waiting for the location modal's dismiss signal before
+ * continuing anyway. Comfortably above the 300 ms fade so a healthy dismiss
+ * always wins the race; it exists only so a lost signal degrades to "slightly
+ * early" rather than "button does nothing, forever".
+ */
+const MODAL_DISMISS_TIMEOUT_MS = 1_500;
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -111,14 +119,41 @@ export function useLocationSetup(
   // pushes the app to background on fresh installs.
   const modalDismissResolverRef = useRef<(() => void) | null>(null);
 
+  // Guards the GPS branch against re-entry. Two overlapping runs would each
+  // register a dismiss resolver — the second overwrites the first, so the
+  // first `await` never settles and its flow is stranded with the modal
+  // already closed. It would also fire two permission requests.
+  const gpsRequestInFlightRef = useRef(false);
+
   const handleModalDismissComplete = useCallback(() => {
     modalDismissResolverRef.current?.();
     modalDismissResolverRef.current = null;
   }, []);
 
+  /**
+   * Resolves once the native Modal reports it has finished dismissing.
+   *
+   * Bounded on purpose: `onDismissComplete` is driven by a JS timer in the
+   * modal, and anything that stops it firing — the modal unmounting mid-fade,
+   * the screen losing focus — would otherwise strand this promise forever and
+   * leave the user on a screen where the button silently does nothing. Timing
+   * out and continuing is the recoverable failure; hanging is not.
+   */
   const waitForModalDismiss = useCallback((): Promise<void> => {
     return new Promise<void>(resolve => {
-      modalDismissResolverRef.current = resolve;
+      let settled = false;
+      const settle = (): void => {
+        if (settled) return;
+        settled = true;
+        modalDismissResolverRef.current = null;
+        resolve();
+      };
+
+      const timeout = setTimeout(settle, MODAL_DISMISS_TIMEOUT_MS);
+      modalDismissResolverRef.current = () => {
+        clearTimeout(timeout);
+        settle();
+      };
     });
   }, []);
 
@@ -229,6 +264,9 @@ export function useLocationSetup(
 
       // Check if GPS was requested (coordinates are 0,0 as signal)
       if (coordinates.latitude === 0 && coordinates.longitude === 0 && name === 'gps') {
+        if (gpsRequestInFlightRef.current) return;
+        gpsRequestInFlightRef.current = true;
+
         // Close modal and wait for the native Dialog to fully dismiss before
         // launching the Android permission Activity. Without this, the two
         // native windows conflict and push the app to background.
@@ -284,6 +322,10 @@ export function useLocationSetup(
           Logger.error('[useLocationSetup] Failed to get GPS location:', {}, error as Error);
           setShowLocationSelectionModal(true);
           setLocationError('Failed to get your location. Please try another option.');
+        } finally {
+          // Released on every exit — including the early `return` above.
+          // Leaking this flag would permanently dead-end the GPS option.
+          gpsRequestInFlightRef.current = false;
         }
       } else {
         // Manual location or default location selected

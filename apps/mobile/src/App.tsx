@@ -289,7 +289,12 @@ function AppContent(): React.JSX.Element {
         updateUrl={versionCheck.updateUrl}
         onDismiss={versionCheck.dismiss}
       />
-      <StatusBar translucent backgroundColor='transparent' />
+      {/* No `translucent` / `backgroundColor` under edge-to-edge. RN's
+          StatusBarModule.setColor has no edge-to-edge guard, so a colour prop
+          calls the deprecated Window.setStatusBarColor on every commit, and
+          setTranslucent bails out with a warning. Both are no-ops here — the
+          bars are already transparent via WindowUtil.enableEdgeToEdge(). */}
+      <StatusBar />
       <RootNavigator />
       <ForceUpdateModal
         visible={versionCheck.updateType === 'force'}

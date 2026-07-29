@@ -37,6 +37,15 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const MODAL_FADE_DURATION_MS = 300;
 
+/**
+ * Safety net for the `onShow` gate below. `onShow` is dispatched from the
+ * Android Dialog's own OnShowListener so it is reliable, but a permanently
+ * dead button would be a worse failure than the race it prevents — so the
+ * options unlock anyway if the event never arrives. Deliberately far longer
+ * than the fade so it never pre-empts the real signal.
+ */
+const APPEARANCE_FALLBACK_MS = 1_200;
+
 interface LocationSelectionModalProps {
   /** Whether modal is visible */
   visible: boolean;
@@ -69,6 +78,38 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
     const theme = useTheme();
     const [showCitySearch, setShowCitySearch] = useState(false);
     const prevVisible = useRef(visible);
+
+    /**
+     * Whether the native Dialog window has finished appearing.
+     *
+     * On Android this Modal is a real `ComponentDialog` window with a fade
+     * animation. Acting on a press while that enter animation is still running
+     * queues the dialog's `dismiss()` behind it, so the window is still
+     * attached when the caller starts the runtime-permission Activity — two
+     * native windows fight and the task gets pushed to the background, which
+     * the user experiences as the app closing.
+     *
+     * Gating on `onShow` (dispatched from the Dialog's own OnShowListener)
+     * makes that state unreachable: the press cannot land until the window has
+     * settled, so the dismiss that follows starts immediately.
+     */
+    const [hasAppeared, setHasAppeared] = useState(false);
+
+    const handleShow = useCallback(() => setHasAppeared(true), []);
+
+    useEffect(() => {
+      if (!visible) {
+        setHasAppeared(false);
+        return undefined;
+      }
+      const fallback = setTimeout(() => setHasAppeared(true), APPEARANCE_FALLBACK_MS);
+      return () => clearTimeout(fallback);
+    }, [visible]);
+
+    // Both options are inert until the window has settled. The window is
+    // opaque for the whole fade, so this is invisible to anyone tapping at
+    // human speed — it only rejects the presses that would break.
+    const canInteract = hasAppeared && !isLoading;
 
     // Android: detect visible → hidden transition and fire callback after fade completes.
     // iOS: handled natively by Modal's onDismiss prop below.
@@ -140,6 +181,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
           statusBarTranslucent
           onRequestClose={() => {}}
           onDismiss={Platform.OS === 'ios' ? onDismissComplete : undefined}
+          onShow={handleShow}
           testID={testID}
         >
           {/* Dimmed Background Overlay */}
@@ -186,7 +228,8 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                     <Pressable
                       style={[styles.optionButton, styles.outlinedButton, primaryOptionStyle]}
                       onPress={handleRequestGPSLocation}
-                      disabled={isLoading}
+                      testID={`${testID}-gps-option`}
+                      disabled={!canInteract}
                       accessibilityRole='button'
                       accessibilityLabel={t('location.a11yUseMyLocation')}
                       accessibilityHint={t('location.a11yUseMyLocationHint')}
@@ -218,7 +261,8 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                     <Pressable
                       style={[styles.searchButton, styles.outlinedButton, secondaryOptionStyle]}
                       onPress={handleSearchCityPress}
-                      disabled={isLoading}
+                      testID={`${testID}-city-option`}
+                      disabled={!canInteract}
                       accessibilityRole='button'
                       accessibilityLabel={t('location.a11ySearchCity')}
                       accessibilityHint={t('location.a11ySearchCityHint')}
