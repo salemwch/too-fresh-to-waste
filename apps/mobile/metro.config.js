@@ -180,6 +180,43 @@ const config = {
     },
 
     /**
+     * Drop the icon-font .ttf that @react-native-vector-icons requires at module
+     * scope, on Android only. Same reasoning as the Sentry stubs above: it is
+     * bundled but provably never read.
+     *
+     * `@react-native-vector-icons/ionicons/lib/module/index.js` does an
+     * unconditional `require('../../fonts/Ionicons.ttf')` to populate
+     * `fontSource`. Metro therefore emits the font a SECOND time, as
+     * res/raw/__node_modules_reactnativevectoricons_ionicons_fonts_ionicons.ttf
+     * (~380 KB), on top of android/app/src/main/assets/fonts/Ionicons.ttf.
+     *
+     * Only the assets/ copy renders anything. createIconSet() draws icons as
+     * <Text style={{fontFamily:'Ionicons'}}>, which Android resolves from
+     * assets/fonts/ and nowhere else. `fontSource` is read by exactly one code
+     * path — Expo dynamic font loading — which is gated on
+     * globalThis.expo.modules.ExpoAsset + ExpoFontLoader. This is a bare React
+     * Native app with no Expo, so isDynamicLoadingEnabled() is permanently
+     * false, Icon initialises isFontLoaded=true, and the loadFontAsync() branch
+     * is unreachable. The other reader, getImageSource(), has no call sites here.
+     *
+     * DO NOT delete android/app/src/main/assets/fonts/Ionicons.ttf — that file
+     * is what draws every icon, including the navigation back arrow.
+     *
+     * Android-only on purpose: iOS links vector-icons natively and resolves
+     * fonts differently, so leave that platform's resolution untouched.
+     */
+    resolveRequest: (context, moduleName, platform) => {
+      if (
+        platform === 'android' &&
+        moduleName.endsWith('.ttf') &&
+        context.originModulePath.includes('@react-native-vector-icons')
+      ) {
+        return { type: 'empty' };
+      }
+      return context.resolveRequest(context, moduleName, platform);
+    },
+
+    /**
      * Source file extensions
      * Metro will resolve these in order for each import
      *
