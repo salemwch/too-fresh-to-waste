@@ -2358,6 +2358,36 @@
       "refunds": "المبالغ المستردة",
       "pending": "معلّقة"
     },
+    "statuses": {
+      "pending": "قيد الانتظار",
+      "pending_payment": "في انتظار الدفع",
+      "reserved": "محجوزة",
+      "confirmed": "مؤكدة",
+      "ready_for_pickup": "جاهزة للاستلام",
+      "picked_up": "تم الاستلام",
+      "completed": "مكتملة",
+      "driver_assigned": "تم تعيين سائق",
+      "out_for_delivery": "قيد التوصيل",
+      "delivered": "تم التوصيل",
+      "cancelled": "ملغاة",
+      "expired": "منتهية",
+      "refunded": "مُستردة"
+    },
+    "delivery": {
+      "title": "التوصيل",
+      "mode": "الطريقة",
+      "pickup": "استلام",
+      "delivery": "توصيل",
+      "driver": "السائق",
+      "unassigned": "لم يُسند بعد",
+      "city": "المدينة",
+      "distance": "المسافة",
+      "driverEarnings": "أجر السائق",
+      "assignedAt": "أُسندت",
+      "pickedUpAt": "تم الاستلام",
+      "deliveredAt": "تم التوصيل",
+      "pending": "قيد الانتظار"
+    },
     "kpi": {
       "totalOrders": "إجمالي الطلبات",
       "activeOrders": "الطلبات النشطة",
@@ -2926,6 +2956,139 @@
       "owner": "معرّف المالك",
       "lastUpdated": "آخر تحديث",
       "establishmentIds": "المؤسسات المرتبطة"
+    }
+  },
+  "adminDrivers": {
+    "title": "السائقون",
+    "subtitle": "حسابات الأسطول والتوفر المباشر وأداء التوصيل",
+    "create": {
+      "title": "إنشاء حساب سائق",
+      "firstName": "الاسم",
+      "lastName": "اللقب",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "cin": "رقم بطاقة التعريف",
+      "address": "العنوان",
+      "firstNamePlaceholder": "علي",
+      "lastNamePlaceholder": "بن سالم",
+      "emailPlaceholder": "driver@example.com",
+      "phonePlaceholder": "+216 XX XXX XXX",
+      "cinPlaceholder": "12345678",
+      "addressPlaceholder": "تونس، تونس",
+      "submit": "إنشاء السائق",
+      "submitting": "جارٍ الإنشاء…",
+      "error": "تعذّر إنشاء حساب السائق. يرجى المحاولة مرة أخرى."
+    },
+    "validation": {
+      "required": "مطلوب",
+      "invalidEmail": "أدخل بريدًا إلكترونيًا صالحًا",
+      "invalidPhone": "أدخل رقم هاتف صالحًا",
+      "cinLength": "يجب أن يتكوّن رقم بطاقة التعريف من 8 أرقام بالضبط",
+      "cinDigits": "يجب أن يحتوي رقم بطاقة التعريف على أرقام فقط"
+    },
+    "list": {
+      "title": "كل السائقين",
+      "empty": "لا يوجد سائقون بعد",
+      "emptyHint": "أنشئ أول حساب سائق باستخدام النموذج أعلاه.",
+      "error": "تعذّر تحميل قائمة السائقين. يرجى المحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة"
+    },
+    "columns": {
+      "driver": "السائق",
+      "contact": "وسائل الاتصال",
+      "cin": "رقم البطاقة",
+      "availability": "التوفر",
+      "delivered": "تم توصيلها",
+      "inProgress": "قيد التنفيذ",
+      "earnings": "الأرباح",
+      "status": "الحالة",
+      "joined": "تاريخ الانضمام"
+    },
+    "availability": {
+      "online": "متصل",
+      "offline": "غير متصل",
+      "lastSeen": "آخر ظهور {when}",
+      "never": "لم يتصل قط",
+      "noPosition": "لم يتم إرسال أي موقع"
+    },
+    "accountStatus": {
+      "active": "نشط",
+      "pending": "قيد الانتظار",
+      "pendingSetup": "بانتظار الإعداد",
+      "suspended": "موقوف",
+      "blocked": "محظور",
+      "deleted": "محذوف",
+      "anonymized": "مجهول الهوية",
+      "unknown": "غير معروف"
+    },
+    "password": {
+      "title": "تم إنشاء حساب السائق",
+      "description": "شارك كلمة المرور المؤقتة هذه مع السائق. لن تُعرض مرة أخرى أبدًا.",
+      "warning": "لن تُعرض مرة أخرى أبدًا",
+      "copy": "نسخ كلمة المرور",
+      "copied": "تم النسخ",
+      "done": "تم"
+    },
+    "detail": {
+      "title": "تفاصيل السائق",
+      "error": "تعذّر تحميل بيانات هذا السائق. يرجى المحاولة مرة أخرى.",
+      "never": "أبدًا",
+      "notProvided": "غير متوفر",
+      "identity": "الهوية",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "cin": "رقم البطاقة",
+      "address": "العنوان",
+      "joined": "تاريخ الانضمام",
+      "lastLogin": "آخر تسجيل دخول",
+      "position": {
+        "title": "آخر موقع معروف",
+        "empty": "لم يرسل هذا السائق أي موقع بعد.",
+        "reportedAt": "أُرسل {when}",
+        "viewOnMap": "فتح في الخرائط"
+      },
+      "stats": {
+        "title": "الأداء الإجمالي",
+        "delivered": "تم توصيلها",
+        "assigned": "المُسندة",
+        "active": "قيد التنفيذ",
+        "earnings": "الأرباح",
+        "avgTime": "متوسط التوصيل",
+        "minutes": "{count} دقيقة",
+        "lastDelivery": "آخر توصيل",
+        "cancellations": "تم التخلي عنها",
+        "autoReleases": "انتهت مهلتها",
+        "none": "لا توجد عمليات توصيل بعد"
+      },
+      "earnings": {
+        "title": "الأرباح",
+        "today": "اليوم",
+        "thisWeek": "هذا الأسبوع",
+        "thisMonth": "هذا الشهر",
+        "allTime": "منذ البداية"
+      },
+      "orders": {
+        "title": "سجل الطلبات",
+        "empty": "لم تُسند أي طلبات إلى هذا السائق بعد.",
+        "error": "تعذّر تحميل سجل الطلبات. يرجى المحاولة مرة أخرى.",
+        "order": "الطلب",
+        "status": "الحالة",
+        "city": "المدينة",
+        "distance": "المسافة",
+        "earnings": "الأرباح",
+        "assigned": "أُسندت",
+        "delivered": "تم التوصيل",
+        "previous": "السابق",
+        "next": "التالي",
+        "page": "صفحة {page} من {total}"
+      },
+      "releases": {
+        "title": "سجل إلغاء الإسناد",
+        "empty": "لم يتخلَّ هذا السائق عن أي طلب قط.",
+        "manual": "تخلّى عنها السائق",
+        "auto": "أُطلقت بانتهاء المهلة",
+        "noReason": "لم يُذكر سبب"
+      }
     }
   }
 }

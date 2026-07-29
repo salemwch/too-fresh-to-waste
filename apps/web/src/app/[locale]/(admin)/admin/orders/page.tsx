@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
   ShoppingBag,
+  Truck,
   AlertTriangle,
   RotateCcw,
   DollarSign,
@@ -47,6 +48,7 @@ import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/adm
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { orderStatusColor } from '@/lib/order-status';
 import { toast } from 'sonner';
 import {
   useAdminOrders,
@@ -82,21 +84,34 @@ function relativeDate(iso: string) {
   return `${days}d ago`;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  pending_payment: 'bg-amber-50 text-amber-700 border-amber-200',
-  reserved: 'bg-violet-50 text-violet-700 border-violet-200',
-  confirmed: 'bg-sky-50 text-sky-700 border-sky-200',
-  ready_for_pickup: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  picked_up: 'bg-teal-50 text-teal-700 border-teal-200',
-  completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  cancelled: 'bg-rose-50 text-rose-700 border-rose-200',
-  expired: 'bg-gray-100 text-gray-500 border-gray-200',
-  refunded: 'bg-sky-50 text-sky-700 border-sky-200',
-  driver_assigned: 'bg-blue-50 text-blue-700 border-blue-200',
-  out_for_delivery: 'bg-blue-50 text-blue-700 border-blue-200',
-};
+const EM_DASH = '—';
+
+/** One timestamp in the delivery leg, or the pending placeholder. */
+function DeliveryStep({
+  label,
+  at,
+  pending,
+}: {
+  label: string;
+  at?: string | undefined;
+  pending: string;
+}) {
+  return (
+    <div className='flex items-center justify-between'>
+      <span className='text-xs text-muted-foreground'>{label}</span>
+      <span className={cn('text-xs', at ? 'font-medium' : 'text-muted-foreground')}>
+        {at
+          ? new Date(at).toLocaleString(undefined, {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : pending}
+      </span>
+    </div>
+  );
+}
 
 function getPaymentStatusIcon(status: string) {
   switch (status) {
@@ -144,6 +159,8 @@ function OrderDetailDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const tStatus = useTranslations('adminOrders.statuses');
+  const tDelivery = useTranslations('adminOrders.delivery');
   const { data: order } = useAdminOrderDetail(orderId);
 
   if (!order) {
@@ -184,11 +201,11 @@ function OrderDetailDrawer({
               </div>
               <span
                 className={cn(
-                  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize',
-                  STATUS_COLORS[order.status] ?? 'bg-gray-100 text-gray-600 border-gray-200',
+                  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+                  orderStatusColor(order.status),
                 )}
               >
-                {order.status.replace(/_/g, ' ')}
+                {tStatus(order.status)}
               </span>
             </div>
             <div className='mt-3 flex gap-2'>
@@ -255,6 +272,61 @@ function OrderDetailDrawer({
                 </div>
               </div>
             </section>
+
+            {/* Delivery — only rendered for delivery orders; pickup is the
+                default mode and has no driver leg to show. */}
+            {order.deliveryMode === 'delivery' && (
+              <>
+                <Separator />
+                <section className='space-y-3'>
+                  <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                    {tDelivery('title')}
+                  </h3>
+                  <div className='flex items-center gap-3 rounded-lg border border-border/60 p-3'>
+                    <div className='grid size-9 place-items-center rounded-lg bg-blue-50'>
+                      <Truck className='size-4 text-blue-700' />
+                    </div>
+                    <div className='min-w-0 flex-1'>
+                      <p className='text-sm font-medium'>
+                        {order.driver?.name ?? tDelivery('unassigned')}
+                      </p>
+                      <p className='text-xs text-muted-foreground'>
+                        {order.deliveryAddress?.city ?? EM_DASH}
+                        {order.estimatedDistanceKm != null &&
+                          ` · ${order.estimatedDistanceKm.toFixed(1)} km`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className='space-y-2'>
+                    <DeliveryStep
+                      label={tDelivery('assignedAt')}
+                      at={order.driverAssignedAt}
+                      pending={tDelivery('pending')}
+                    />
+                    <DeliveryStep
+                      label={tDelivery('pickedUpAt')}
+                      at={order.driverPickedUpAt}
+                      pending={tDelivery('pending')}
+                    />
+                    <DeliveryStep
+                      label={tDelivery('deliveredAt')}
+                      at={order.deliveredAt}
+                      pending={tDelivery('pending')}
+                    />
+                    {order.driverEarnings != null && (
+                      <div className='flex items-center justify-between'>
+                        <span className='text-xs text-muted-foreground'>
+                          {tDelivery('driverEarnings')}
+                        </span>
+                        <span className='text-xs font-medium tabular-nums'>
+                          {formatCurrency(order.driverEarnings)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              </>
+            )}
 
             <Separator />
 
@@ -404,6 +476,8 @@ function OrderDetailDrawer({
 
 function OrdersContent() {
   const t = useTranslations('adminOrders');
+  const tStatus = useTranslations('adminOrders.statuses');
+  const tDelivery = useTranslations('adminOrders.delivery');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'all';
 
@@ -547,16 +621,31 @@ function OrdersContent() {
       ),
     },
     {
+      key: 'delivery',
+      header: tDelivery('title'),
+      render: order =>
+        order.deliveryMode === 'delivery' ? (
+          <div className='flex items-center gap-1.5'>
+            <Truck className='size-3 shrink-0 text-blue-600' aria-hidden='true' />
+            <span className='truncate text-[11px]'>
+              {order.driver?.name ?? tDelivery('unassigned')}
+            </span>
+          </div>
+        ) : (
+          <span className='text-[11px] text-muted-foreground'>{tDelivery('pickup')}</span>
+        ),
+    },
+    {
       key: 'status',
       header: t('columns.status'),
       render: order => (
         <span
           className={cn(
-            'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize',
-            STATUS_COLORS[order.status] ?? 'bg-gray-100 text-gray-600 border-gray-200',
+            'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold',
+            orderStatusColor(order.status),
           )}
         >
-          {order.status.replace(/_/g, ' ')}
+          {tStatus(order.status)}
         </span>
       ),
     },

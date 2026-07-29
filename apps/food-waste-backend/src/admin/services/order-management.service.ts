@@ -47,6 +47,15 @@ const LIST_PROJECT: Record<string, 1> = {
   createdAt: 1,
   cancellationReason: 1,
   refundReason: 1,
+  deliveryMode: 1,
+  // The join keys must survive this projection: an inclusion `$project` drops
+  // every unlisted field, so without these the `$lookup` stages below match on
+  // a missing localField and every joined name comes back null. They are
+  // removed again by the `$unset` after the reshape.
+  customerId: 1,
+  merchantId: 1,
+  establishmentId: 1,
+  driverId: 1,
 };
 
 // ─── Service ─────────────────────────────────────────────────────────────────
@@ -117,6 +126,17 @@ export class OrderManagementService {
         },
       },
       { $unwind: { path: '$_establishment', preserveNullAndEmptyArrays: true } },
+      // Driver lookup (name) — absent on pickup and unaccepted delivery orders
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'driverId',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1 } }],
+          as: '_driver',
+        },
+      },
+      { $unwind: { path: '$_driver', preserveNullAndEmptyArrays: true } },
       // Reshape
       {
         $addFields: {
@@ -129,6 +149,16 @@ export class OrderManagementService {
             email: '$_merchant.email',
           },
           establishment: { name: '$_establishment.name' },
+          driver: {
+            $cond: [
+              { $ifNull: ['$driverId', false] },
+              {
+                _id: '$driverId',
+                name: { $concat: ['$_driver.firstName', ' ', '$_driver.lastName'] },
+              },
+              null,
+            ],
+          },
         },
       },
       {
@@ -136,9 +166,11 @@ export class OrderManagementService {
           '_customer',
           '_merchant',
           '_establishment',
+          '_driver',
           'customerId',
           'merchantId',
           'establishmentId',
+          'driverId',
         ],
       },
     ];
@@ -193,6 +225,18 @@ export class OrderManagementService {
         },
       },
       { $unwind: { path: '$_establishment', preserveNullAndEmptyArrays: true } },
+      // Driver — null on pickup orders and on delivery orders nobody has
+      // accepted yet, so the unwind must preserve empty.
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'driverId',
+          foreignField: '_id',
+          pipeline: [{ $project: { firstName: 1, lastName: 1, email: 1, phoneNumber: 1 } }],
+          as: '_driver',
+        },
+      },
+      { $unwind: { path: '$_driver', preserveNullAndEmptyArrays: true } },
       // Refund request (if exists)
       {
         $lookup: {
@@ -224,9 +268,24 @@ export class OrderManagementService {
             address: '$_establishment.address',
           },
           refundRequests: '$_refundRequests',
+          // `$ifNull` on the id rather than on the joined doc: a driver who
+          // has since been deleted still leaves `driverId` set, and the admin
+          // needs to see the order was assigned rather than a silent null.
+          driver: {
+            $cond: [
+              { $ifNull: ['$driverId', false] },
+              {
+                _id: '$driverId',
+                name: { $concat: ['$_driver.firstName', ' ', '$_driver.lastName'] },
+                email: '$_driver.email',
+                phone: '$_driver.phoneNumber',
+              },
+              null,
+            ],
+          },
         },
       },
-      { $unset: ['_customer', '_merchant', '_establishment', '_refundRequests'] },
+      { $unset: ['_customer', '_merchant', '_establishment', '_driver', '_refundRequests'] },
     ];
 
     const [order] = await this.orderModel.aggregate(pipeline).exec();

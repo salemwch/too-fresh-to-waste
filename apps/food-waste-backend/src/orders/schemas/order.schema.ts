@@ -582,6 +582,15 @@ OrderSchema.index({
 OrderSchema.index({ driverId: 1, status: 1, createdAt: -1 });
 
 /**
+ * Driver reliability lookups on the admin fleet dashboard.
+ * Multikey index over the unassignment trail.
+ * Supports: find({ 'driverUnassignments.driverId': { $in: [...] } }) — used by
+ * both the per-driver release count and the unassignment trail panel. Without
+ * it those two are collection scans of every order ever placed.
+ */
+OrderSchema.index({ 'driverUnassignments.driverId': 1 });
+
+/**
  * Payment Expiry Cron Index
  * - Query pattern: find({ status: 'pending_payment', paymentExpiresAt: { $lte: now } })
  */

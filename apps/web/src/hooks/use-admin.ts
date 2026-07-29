@@ -43,11 +43,12 @@ import type {
   OrganizationQuery,
   OrganizationStatus,
   AddLoyaltyPointsPayload,
+  DriverOrdersQuery,
 } from '@/types/admin';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
 
-const adminKeys = {
+export const adminKeys = {
   all: ['admin'] as const,
 
   // Analytics
@@ -149,6 +150,12 @@ const adminKeys = {
 
   // Order ops
   pendingOrders: (page: number) => [...adminKeys.all, 'pending-orders', page] as const,
+
+  // Drivers
+  drivers: () => [...adminKeys.all, 'drivers'] as const,
+  driverDetail: (id: string) => [...adminKeys.all, 'driver', id] as const,
+  driverOrders: (id: string, params: DriverOrdersQuery) =>
+    [...adminKeys.all, 'driver-orders', id, params] as const,
 };
 
 // ─── Analytics hooks ──────────────────────────────────────────────────────────

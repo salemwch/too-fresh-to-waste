@@ -1,37 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { z } from 'zod';
-import { Truck, Copy, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useDrivers, useCreateDriver } from '@/hooks/use-drivers';
-import type { CreateDriverResponse } from '@/services/admin.service';
+import { Check, Copy, Radio, Truck, Users, Wallet } from 'lucide-react';
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+} from '@foodwaste/ui';
+import { AdminModuleHeader } from '@/components/dashboard/admin/admin-module-header';
+import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
+import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
+import { StatusBadge } from '@/components/dashboard/admin/status-badge';
+import { useCreateDriver, useDrivers } from '@/hooks/use-drivers';
+import { formatDate, formatMoney, formatRelative } from '@/lib/format';
+import { cn } from '@/lib/utils';
+import type { CreateDriverResponse, DriverRow } from '@/types/admin';
+import { DriverDetailSheet } from './driver-detail-sheet';
 
-// ── Validation ───────────────────────────────────────────────────────────────
+/** Module-level so the Dialog never receives a new handler identity. */
+const NOOP = () => {};
+const preventDefault = (e: Event) => e.preventDefault();
 
-const schema = z.object({
-  firstName: z.string().min(1, 'Required'),
-  lastName: z.string().min(1, 'Required'),
-  email: z.string().email('Invalid email'),
-  phoneNumber: z
-    .string()
-    .transform(v => v.replace(/\s+/g, ''))
-    .pipe(z.string().min(8, 'Invalid phone')),
-  idCardNumber: z
-    .string()
-    .length(8, '8 digits required')
-    .regex(/^\d{8}$/, 'Digits only'),
-  address: z.string().min(1, 'Required'),
-});
+const PAGE_SIZE = 10;
+const EM_DASH = '—';
 
-type FormFields = keyof z.infer<typeof schema>;
+/** Frozen so the table never receives a fresh array identity per render. */
+const NO_DRIVERS: readonly DriverRow[] = Object.freeze([]) as readonly DriverRow[];
 
-const EMPTY: Record<FormFields, string> = {
+// ── Form ──────────────────────────────────────────────────────────────────────
+
+type FormFields = 'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'idCardNumber' | 'address';
+
+const EMPTY_FORM: Record<FormFields, string> = {
   firstName: '',
   lastName: '',
   email: '',
@@ -40,221 +47,417 @@ const EMPTY: Record<FormFields, string> = {
   address: '',
 };
 
-// ── Field config — 3-col rows ─────────────────────────────────────────────────
-
-const ROWS: { name: FormFields; label: string; placeholder?: string }[][] = [
+/**
+ * Field layout, three per row. Labels and placeholders are i18n keys resolved
+ * at render — the shape itself is static so it lives outside the component.
+ */
+const FORM_ROWS: { name: FormFields; labelKey: string; placeholderKey: string }[][] = [
   [
-    { name: 'firstName', label: 'First Name', placeholder: 'Ali' },
-    { name: 'lastName', label: 'Last Name', placeholder: 'Ben Salem' },
-    { name: 'email', label: 'Email', placeholder: 'driver@example.com' },
+    {
+      name: 'firstName',
+      labelKey: 'create.firstName',
+      placeholderKey: 'create.firstNamePlaceholder',
+    },
+    { name: 'lastName', labelKey: 'create.lastName', placeholderKey: 'create.lastNamePlaceholder' },
+    { name: 'email', labelKey: 'create.email', placeholderKey: 'create.emailPlaceholder' },
   ],
   [
-    { name: 'phoneNumber', label: 'Phone', placeholder: '+216 XX XXX XXX' },
-    { name: 'idCardNumber', label: 'CIN', placeholder: '12345678' },
-    { name: 'address', label: 'Address', placeholder: 'Tunis, Tunisia' },
+    { name: 'phoneNumber', labelKey: 'create.phone', placeholderKey: 'create.phonePlaceholder' },
+    { name: 'idCardNumber', labelKey: 'create.cin', placeholderKey: 'create.cinPlaceholder' },
+    { name: 'address', labelKey: 'create.address', placeholderKey: 'create.addressPlaceholder' },
   ],
 ];
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+/**
+ * Validation messages are i18n keys, not sentences — the component resolves
+ * them so the same schema serves all three locales.
+ */
+const schema = z.object({
+  firstName: z.string().trim().min(1, 'validation.required'),
+  lastName: z.string().trim().min(1, 'validation.required'),
+  email: z.string().trim().email('validation.invalidEmail'),
+  phoneNumber: z
+    .string()
+    .transform(v => v.replace(/\s+/g, ''))
+    .pipe(z.string().min(8, 'validation.invalidPhone')),
+  idCardNumber: z
+    .string()
+    .trim()
+    .length(8, 'validation.cinLength')
+    .regex(/^\d{8}$/, 'validation.cinDigits'),
+  address: z.string().trim().min(1, 'validation.required'),
+});
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DriversPage() {
-  const { data: drivers = [], isLoading } = useDrivers();
+  const t = useTranslations('adminDrivers');
+  const locale = useLocale();
+
+  const { data, isLoading, isError } = useDrivers();
   const { mutateAsync: createDriver, isPending } = useCreateDriver();
 
-  const [values, setValues] = useState<Record<FormFields, string>>(EMPTY);
+  const drivers = data ?? NO_DRIVERS;
+
+  const [values, setValues] = useState<Record<FormFields, string>>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<FormFields, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreateDriverResponse | null>(null);
   const [copied, setCopied] = useState(false);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const handleChange = (name: FormFields, value: string) => {
+  // ── Derived data ────────────────────────────────────────────────────────────
+
+  const kpis: KpiItem[] = useMemo(() => {
+    let online = 0;
+    let inProgress = 0;
+    let earnings = 0;
+    for (const d of drivers) {
+      if (d.driverProfile?.isOnline) online += 1;
+      inProgress += d.stats.activeCount;
+      earnings += d.stats.totalEarnings;
+    }
+    return [
+      {
+        label: t('columns.driver'),
+        value: String(drivers.length),
+        icon: Users,
+        iconBg: 'bg-primary/10',
+        iconColor: 'text-primary',
+      },
+      {
+        label: t('availability.online'),
+        value: String(online),
+        icon: Radio,
+        iconBg: 'bg-success/10',
+        iconColor: 'text-success',
+      },
+      {
+        label: t('columns.inProgress'),
+        value: String(inProgress),
+        icon: Truck,
+        iconBg: 'bg-secondary/10',
+        iconColor: 'text-secondary',
+      },
+      {
+        label: t('columns.earnings'),
+        value: formatMoney(locale, earnings),
+        icon: Wallet,
+        iconBg: 'bg-accent/10',
+        iconColor: 'text-accent',
+      },
+    ];
+  }, [drivers, locale, t]);
+
+  // The whole fleet arrives in one request, so search and paging stay on the
+  // client — no round trip per keystroke.
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return drivers;
+    return drivers.filter(d =>
+      `${d.firstName} ${d.lastName} ${d.email} ${d.phoneNumber ?? ''} ${
+        d.driverProfile?.idCardNumber ?? ''
+      }`
+        .toLowerCase()
+        .includes(term),
+    );
+  }, [drivers, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = useMemo(
+    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filtered, safePage],
+  );
+
+  const columns: ColumnDef<DriverRow>[] = useMemo(
+    () => [
+      {
+        key: 'driver',
+        header: t('columns.driver'),
+        render: d => (
+          <div className='min-w-0'>
+            <p className='truncate text-sm font-medium'>
+              {d.firstName} {d.lastName}
+            </p>
+            <p className='truncate text-xs text-muted-foreground'>{d.email}</p>
+          </div>
+        ),
+      },
+      {
+        key: 'contact',
+        header: t('columns.contact'),
+        render: d => (
+          <div className='min-w-0'>
+            <p className='truncate text-xs'>{d.phoneNumber ?? EM_DASH}</p>
+            <p className='truncate text-[11px] text-muted-foreground'>
+              {d.driverProfile?.address ?? EM_DASH}
+            </p>
+          </div>
+        ),
+      },
+      {
+        key: 'cin',
+        header: t('columns.cin'),
+        render: d => (
+          <span className='font-mono text-xs'>{d.driverProfile?.idCardNumber ?? EM_DASH}</span>
+        ),
+      },
+      {
+        key: 'availability',
+        header: t('columns.availability'),
+        render: d => {
+          const online = d.driverProfile?.isOnline ?? false;
+          const lastSeen = formatRelative(locale, d.driverProfile?.lastOnlineAt ?? null);
+          return (
+            <div className='flex items-center gap-1.5'>
+              <span
+                aria-hidden='true'
+                className={cn(
+                  'size-2 shrink-0 rounded-full',
+                  online ? 'bg-success' : 'bg-muted-foreground/40',
+                )}
+              />
+              <div className='min-w-0'>
+                <p className='text-xs font-medium'>
+                  {online ? t('availability.online') : t('availability.offline')}
+                </p>
+                <p className='truncate text-[10px] text-muted-foreground'>
+                  {lastSeen
+                    ? t('availability.lastSeen', { when: lastSeen })
+                    : t('availability.never')}
+                </p>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        key: 'delivered',
+        header: t('columns.delivered'),
+        className: 'text-end',
+        render: d => (
+          <span className='text-sm font-semibold tabular-nums'>{d.stats.totalDelivered}</span>
+        ),
+      },
+      {
+        key: 'inProgress',
+        header: t('columns.inProgress'),
+        className: 'text-end',
+        render: d => (
+          <span
+            className={cn(
+              'text-sm tabular-nums',
+              d.stats.activeCount > 0 ? 'font-semibold text-primary' : 'text-muted-foreground',
+            )}
+          >
+            {d.stats.activeCount}
+          </span>
+        ),
+      },
+      {
+        key: 'earnings',
+        header: t('columns.earnings'),
+        className: 'text-end',
+        render: d => (
+          <span className='text-xs tabular-nums'>{formatMoney(locale, d.stats.totalEarnings)}</span>
+        ),
+      },
+      {
+        key: 'status',
+        header: t('columns.status'),
+        render: d =>
+          d.requiresPasswordChange ? (
+            <Badge
+              variant='outline'
+              className='border-warning bg-warning/10 py-0 text-[10px] text-warning'
+            >
+              {t('accountStatus.pendingSetup')}
+            </Badge>
+          ) : (
+            <StatusBadge
+              status={d.status}
+              variant='user'
+              label={
+                t.has(`accountStatus.${d.status}`)
+                  ? t(`accountStatus.${d.status}`)
+                  : t('accountStatus.unknown')
+              }
+            />
+          ),
+      },
+      {
+        key: 'joined',
+        header: t('columns.joined'),
+        render: d => (
+          <span className='text-xs text-muted-foreground'>
+            {formatDate(locale, d.createdAt) ?? EM_DASH}
+          </span>
+        ),
+      },
+    ],
+    [locale, t],
+  );
+
+  // ── Handlers ────────────────────────────────────────────────────────────────
+
+  const handleChange = useCallback((name: FormFields, value: string) => {
     setValues(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: undefined }));
-  };
+    setErrors(prev => (prev[name] ? { ...prev, [name]: undefined } : prev));
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitError(null);
-    const parsed = schema.safeParse(values);
-    if (!parsed.success) {
-      const errs: Partial<Record<FormFields, string>> = {};
-      for (const issue of parsed.error.issues) {
-        const f = issue.path[0] as FormFields;
-        if (f && !errs[f]) errs[f] = issue.message;
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setSubmitError(null);
+
+      const parsed = schema.safeParse(values);
+      if (!parsed.success) {
+        const next: Partial<Record<FormFields, string>> = {};
+        for (const issue of parsed.error.issues) {
+          const field = issue.path[0] as FormFields | undefined;
+          if (field && !next[field]) next[field] = issue.message;
+        }
+        setErrors(next);
+        return;
       }
-      setErrors(errs);
-      return;
-    }
-    try {
-      setCreated(await createDriver(parsed.data));
-      setValues(EMPTY);
-      setErrors({});
-    } catch (err) {
-      setSubmitError('Failed to create driver. Please try again.');
-    }
-  };
 
-  const handleCopy = async () => {
+      try {
+        setCreated(await createDriver(parsed.data));
+        setValues(EMPTY_FORM);
+        setErrors({});
+      } catch {
+        // The backend message is not guaranteed to be user-appropriate, so a
+        // translated sentence is shown instead of anything from the exception.
+        setSubmitError(t('create.error'));
+      }
+    },
+    [createDriver, t, values],
+  );
+
+  const handleCopy = useCallback(async () => {
     if (!created) return;
     await navigator.clipboard.writeText(created.temporaryPassword);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
+  }, [created]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    setPage(1);
+  }, []);
+
+  const handleRowClick = useCallback((driver: DriverRow) => setSelectedId(driver._id), []);
+  const handleSheetClose = useCallback(() => setSelectedId(null), []);
+  const handleDialogDone = useCallback(() => setCreated(null), []);
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className='space-y-6'>
-      {/* Header */}
-      <div className='flex items-center gap-2'>
-        <Truck className='size-5 text-primary' />
-        <h1 className='text-xl font-semibold text-primary'>Driver Accounts</h1>
-      </div>
+    <div className='space-y-5'>
+      <AdminModuleHeader title={t('title')} subtitle={t('subtitle')} />
 
-      {/* Create form — compact card */}
-      <section className='bg-card rounded-lg border p-4'>
-        <h2 className='text-sm font-semibold mb-3 text-foreground'>Create Driver Account</h2>
-        <form onSubmit={handleSubmit} className='space-y-3'>
-          {ROWS.map((row, ri) => (
-            <div key={ri} className='grid grid-cols-3 gap-3'>
-              {row.map(({ name, label, placeholder }) => (
-                <div key={name} className='space-y-1'>
-                  <Label htmlFor={name} className='text-xs text-muted-foreground'>
-                    {label}
-                  </Label>
-                  <Input
-                    id={name}
-                    placeholder={placeholder}
-                    value={values[name]}
-                    onChange={e => handleChange(name, e.target.value)}
-                    className='h-8 text-sm'
-                  />
-                  {errors[name] && (
-                    <p className='text-destructive text-[11px] leading-tight'>{errors[name]}</p>
-                  )}
-                </div>
-              ))}
+      <AdminKpiRow items={kpis} loading={isLoading} columns={4} />
+
+      {/* Create form */}
+      <section className='rounded-lg border border-border/60 bg-card p-4'>
+        <h2 className='mb-3 text-sm font-semibold text-foreground'>{t('create.title')}</h2>
+        <form onSubmit={handleSubmit} className='space-y-3' noValidate>
+          {FORM_ROWS.map((row, rowIndex) => (
+            <div key={rowIndex} className='grid gap-3 sm:grid-cols-3'>
+              {row.map(({ name, labelKey, placeholderKey }) => {
+                const error = errors[name];
+                const errorId = `${name}-error`;
+                return (
+                  <div key={name} className='space-y-1'>
+                    <Label htmlFor={name} className='text-xs text-muted-foreground'>
+                      {t(labelKey)}
+                    </Label>
+                    <Input
+                      id={name}
+                      name={name}
+                      placeholder={t(placeholderKey)}
+                      value={values[name]}
+                      onChange={e => handleChange(name, e.target.value)}
+                      aria-invalid={!!error}
+                      {...(error ? { 'aria-describedby': errorId } : {})}
+                      className='h-8 text-sm'
+                    />
+                    {error && (
+                      <p id={errorId} className='text-[11px] leading-tight text-destructive'>
+                        {t(error)}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
 
-          {submitError && <p className='text-destructive text-xs'>{submitError}</p>}
+          {submitError && (
+            <p role='alert' className='text-xs text-destructive'>
+              {submitError}
+            </p>
+          )}
 
           <div className='flex justify-end pt-1'>
             <Button type='submit' size='sm' disabled={isPending} className='min-w-[140px]'>
-              {isPending ? 'Creating…' : 'Create Driver'}
+              {isPending ? t('create.submitting') : t('create.submit')}
             </Button>
           </div>
         </form>
       </section>
 
-      {/* Drivers table */}
-      <section className='bg-card rounded-lg border overflow-hidden'>
-        <div className='px-4 py-3 border-b bg-muted/30'>
-          <h2 className='text-sm font-semibold'>
-            All Drivers
-            {!isLoading && (
-              <span className='ms-2 text-xs font-normal text-muted-foreground'>
-                ({drivers.length})
-              </span>
-            )}
-          </h2>
+      {/* Fleet table */}
+      {isError ? (
+        <div className='rounded-lg border border-border/60 bg-card py-12 text-center'>
+          <p className='text-sm text-muted-foreground'>{t('list.error')}</p>
         </div>
-        <table className='w-full text-sm'>
-          <thead className='border-b bg-muted/20'>
-            <tr>
-              {['Name', 'Email', 'Phone', 'CIN', 'Address', 'Status', 'Joined'].map(h => (
-                <th
-                  key={h}
-                  className='text-left px-3 py-2 text-xs font-medium text-muted-foreground'
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading &&
-              Array.from({ length: 3 }).map((_, i) => (
-                <tr key={i} className='border-b last:border-0'>
-                  {Array.from({ length: 7 }).map((_, j) => (
-                    <td key={j} className='px-3 py-2'>
-                      <Skeleton className='h-4 w-full' />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            {!isLoading && drivers.length === 0 && (
-              <tr>
-                <td colSpan={7}>
-                  <div className='flex flex-col items-center justify-center py-10 gap-2 text-center'>
-                    <Truck className='size-8 text-muted-foreground/40' />
-                    <p className='text-sm text-muted-foreground'>No drivers yet</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-            {drivers.map(d => (
-              <tr
-                key={d._id}
-                className='border-b last:border-0 hover:bg-muted/20 transition-colors'
-              >
-                <td className='px-3 py-2 font-medium text-sm'>
-                  {d.firstName} {d.lastName}
-                </td>
-                <td className='px-3 py-2 text-xs text-muted-foreground'>{d.email}</td>
-                <td className='px-3 py-2 text-xs text-muted-foreground'>{d.phoneNumber ?? '—'}</td>
-                <td className='px-3 py-2 font-mono text-xs'>
-                  {d.driverProfile?.idCardNumber ?? '—'}
-                </td>
-                <td className='px-3 py-2 text-xs text-muted-foreground max-w-[140px] truncate'>
-                  {d.driverProfile?.address ?? '—'}
-                </td>
-                <td className='px-3 py-2'>
-                  {d.requiresPasswordChange ? (
-                    <Badge
-                      variant='outline'
-                      className='text-[10px] border-warning text-warning bg-warning/10 py-0'
-                    >
-                      Pending Setup
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant='outline'
-                      className='text-[10px] border-success text-success bg-success/10 py-0'
-                    >
-                      Active
-                    </Badge>
-                  )}
-                </td>
-                <td className='px-3 py-2 text-xs text-muted-foreground'>
-                  {new Date(d.createdAt).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      ) : (
+        <AdminDataTable<DriverRow>
+          columns={columns}
+          data={paged}
+          isLoading={isLoading}
+          page={safePage}
+          totalPages={totalPages}
+          total={filtered.length}
+          onPageChange={setPage}
+          searchValue={search}
+          searchPlaceholder={t('list.title')}
+          onSearchChange={handleSearchChange}
+          onRowClick={handleRowClick}
+          emptyIcon={Truck}
+          emptyTitle={t('list.empty')}
+          emptyDescription={t('list.emptyHint')}
+        />
+      )}
 
-      {/* Temp password modal — non-dismissible */}
-      <Dialog open={!!created} onOpenChange={() => {}}>
-        <DialogContent
-          onInteractOutside={e => e.preventDefault()}
-          onEscapeKeyDown={e => e.preventDefault()}
-        >
+      <DriverDetailSheet driverId={selectedId} open={!!selectedId} onClose={handleSheetClose} />
+
+      {/* Temporary password — shown once, non-dismissible by outside click */}
+      <Dialog open={!!created} onOpenChange={NOOP}>
+        <DialogContent onInteractOutside={preventDefault} onEscapeKeyDown={preventDefault}>
           <DialogHeader>
             <DialogTitle className='flex items-center gap-2'>
-              <Truck className='size-4' />
-              Driver Account Created
+              <Truck className='size-4' aria-hidden='true' />
+              {t('password.title')}
             </DialogTitle>
           </DialogHeader>
           <div className='space-y-4'>
-            <p className='text-sm text-muted-foreground'>
-              Share this temporary password with the driver. It will{' '}
-              <span className='font-semibold text-destructive'>never be shown again</span>.
-            </p>
-            <div className='flex items-center gap-2 bg-muted rounded-md px-3 py-2'>
-              <code className='flex-1 text-sm font-mono font-bold tracking-widest'>
+            <p className='text-sm text-muted-foreground'>{t('password.description')}</p>
+            <div className='flex items-center gap-2 rounded-md bg-muted px-3 py-2'>
+              <code className='flex-1 font-mono text-sm font-bold tracking-widest'>
                 {created?.temporaryPassword}
               </code>
-              <Button size='icon' variant='ghost' className='h-7 w-7 shrink-0' onClick={handleCopy}>
+              <Button
+                size='sm'
+                variant='ghost'
+                className='size-7 shrink-0 p-0'
+                onClick={handleCopy}
+                aria-label={t('password.copy')}
+              >
                 {copied ? (
                   <Check className='size-3.5 text-success' />
                 ) : (
@@ -262,8 +465,8 @@ export default function DriversPage() {
                 )}
               </Button>
             </div>
-            <Button className='w-full' size='sm' onClick={() => setCreated(null)}>
-              Done
+            <Button className='w-full' size='sm' onClick={handleDialogDone}>
+              {t('password.done')}
             </Button>
           </div>
         </DialogContent>

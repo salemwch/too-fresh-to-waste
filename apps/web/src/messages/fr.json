@@ -2370,6 +2370,36 @@
       "refunds": "Remboursements",
       "pending": "En attente"
     },
+    "statuses": {
+      "pending": "En attente",
+      "pending_payment": "Paiement en attente",
+      "reserved": "Réservée",
+      "confirmed": "Confirmée",
+      "ready_for_pickup": "Prête à récupérer",
+      "picked_up": "Récupérée",
+      "completed": "Terminée",
+      "driver_assigned": "Livreur assigné",
+      "out_for_delivery": "En cours de livraison",
+      "delivered": "Livrée",
+      "cancelled": "Annulée",
+      "expired": "Expirée",
+      "refunded": "Remboursée"
+    },
+    "delivery": {
+      "title": "Livraison",
+      "mode": "Mode",
+      "pickup": "Retrait",
+      "delivery": "Livraison",
+      "driver": "Livreur",
+      "unassigned": "Pas encore assigné",
+      "city": "Ville",
+      "distance": "Distance",
+      "driverEarnings": "Rémunération du livreur",
+      "assignedAt": "Assignée",
+      "pickedUpAt": "Récupérée",
+      "deliveredAt": "Livrée",
+      "pending": "En attente"
+    },
     "kpi": {
       "totalOrders": "Total commandes",
       "activeOrders": "Commandes actives",
@@ -2938,6 +2968,139 @@
       "owner": "ID du propriétaire",
       "lastUpdated": "Dernière mise à jour",
       "establishmentIds": "Établissements liés"
+    }
+  },
+  "adminDrivers": {
+    "title": "Livreurs",
+    "subtitle": "Comptes de la flotte, disponibilité en direct et performance de livraison",
+    "create": {
+      "title": "Créer un compte livreur",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "cin": "CIN",
+      "address": "Adresse",
+      "firstNamePlaceholder": "Ali",
+      "lastNamePlaceholder": "Ben Salem",
+      "emailPlaceholder": "livreur@exemple.com",
+      "phonePlaceholder": "+216 XX XXX XXX",
+      "cinPlaceholder": "12345678",
+      "addressPlaceholder": "Tunis, Tunisie",
+      "submit": "Créer le livreur",
+      "submitting": "Création…",
+      "error": "Le compte livreur n'a pas pu être créé. Veuillez réessayer."
+    },
+    "validation": {
+      "required": "Obligatoire",
+      "invalidEmail": "Saisissez une adresse e-mail valide",
+      "invalidPhone": "Saisissez un numéro de téléphone valide",
+      "cinLength": "Le CIN doit contenir exactement 8 chiffres",
+      "cinDigits": "Le CIN ne doit contenir que des chiffres"
+    },
+    "list": {
+      "title": "Tous les livreurs",
+      "empty": "Aucun livreur pour le moment",
+      "emptyHint": "Créez le premier compte livreur avec le formulaire ci-dessus.",
+      "error": "La liste des livreurs n'a pas pu être chargée. Veuillez réessayer.",
+      "retry": "Réessayer"
+    },
+    "columns": {
+      "driver": "Livreur",
+      "contact": "Contact",
+      "cin": "CIN",
+      "availability": "Disponibilité",
+      "delivered": "Livrées",
+      "inProgress": "En cours",
+      "earnings": "Gains",
+      "status": "Statut",
+      "joined": "Inscrit le"
+    },
+    "availability": {
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "lastSeen": "Vu {when}",
+      "never": "Jamais connecté",
+      "noPosition": "Aucune position transmise"
+    },
+    "accountStatus": {
+      "active": "Actif",
+      "pending": "En attente",
+      "pendingSetup": "Configuration en attente",
+      "suspended": "Suspendu",
+      "blocked": "Bloqué",
+      "deleted": "Supprimé",
+      "anonymized": "Anonymisé",
+      "unknown": "Inconnu"
+    },
+    "password": {
+      "title": "Compte livreur créé",
+      "description": "Communiquez ce mot de passe temporaire au livreur. Il ne sera plus jamais affiché.",
+      "warning": "ne sera plus jamais affiché",
+      "copy": "Copier le mot de passe",
+      "copied": "Copié",
+      "done": "Terminé"
+    },
+    "detail": {
+      "title": "Détails du livreur",
+      "error": "Ce livreur n'a pas pu être chargé. Veuillez réessayer.",
+      "never": "Jamais",
+      "notProvided": "Non renseigné",
+      "identity": "Identité",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "cin": "CIN",
+      "address": "Adresse",
+      "joined": "Inscrit le",
+      "lastLogin": "Dernière connexion",
+      "position": {
+        "title": "Dernière position connue",
+        "empty": "Ce livreur n'a encore transmis aucune position.",
+        "reportedAt": "Transmise {when}",
+        "viewOnMap": "Ouvrir dans Maps"
+      },
+      "stats": {
+        "title": "Performance globale",
+        "delivered": "Livrées",
+        "assigned": "Assignées",
+        "active": "En cours",
+        "earnings": "Gains",
+        "avgTime": "Livraison moy.",
+        "minutes": "{count} min",
+        "lastDelivery": "Dernière livraison",
+        "cancellations": "Abandonnées",
+        "autoReleases": "Expirées",
+        "none": "Aucune livraison"
+      },
+      "earnings": {
+        "title": "Gains",
+        "today": "Aujourd'hui",
+        "thisWeek": "Cette semaine",
+        "thisMonth": "Ce mois-ci",
+        "allTime": "Depuis le début"
+      },
+      "orders": {
+        "title": "Historique des commandes",
+        "empty": "Aucune commande n'a encore été assignée à ce livreur.",
+        "error": "L'historique des commandes n'a pas pu être chargé. Veuillez réessayer.",
+        "order": "Commande",
+        "status": "Statut",
+        "city": "Ville",
+        "distance": "Distance",
+        "earnings": "Gains",
+        "assigned": "Assignée",
+        "delivered": "Livrée",
+        "previous": "Précédent",
+        "next": "Suivant",
+        "page": "Page {page} sur {total}"
+      },
+      "releases": {
+        "title": "Historique des désassignations",
+        "empty": "Ce livreur n'a jamais abandonné de commande.",
+        "manual": "Abandonnée par le livreur",
+        "auto": "Libérée par expiration",
+        "noReason": "Aucun motif indiqué"
+      }
     }
   }
 }

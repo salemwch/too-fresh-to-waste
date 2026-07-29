@@ -64,9 +64,15 @@ interface StatusBadgeProps {
   status: string;
   variant: BadgeVariant;
   className?: string;
+  /**
+   * Translated text to display. Without it the raw status is title-cased,
+   * which leaks untranslated enum values ("Out For Delivery") into the UI —
+   * pass a translated label on any screen that has one.
+   */
+  label?: string;
 }
 
-export function StatusBadge({ status, variant, className }: StatusBadgeProps) {
+export function StatusBadge({ status, variant, className, label }: StatusBadgeProps) {
   return (
     <span
       className={cn(
@@ -75,7 +81,7 @@ export function StatusBadge({ status, variant, className }: StatusBadgeProps) {
         className,
       )}
     >
-      {formatLabel(status)}
+      {label ?? formatLabel(status)}
     </span>
   );
 }

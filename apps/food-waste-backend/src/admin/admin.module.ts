@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 // Modules
 import { CommonModule } from '../common/common.module';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
+import { DriversModule } from '../drivers/drivers.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
@@ -46,6 +47,7 @@ import {
   AdminAnalyticsService,
   AdminAuditService,
   UserManagementService,
+  DriverManagementService,
   EstablishmentManagementService,
   SystemConfigService,
   OfferManagementService,
@@ -70,6 +72,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     CommonModule, // Provides EventBusService, LoggerService, etc.
     NotificationsModule, // Provides NotificationService
     UsersModule, // Provides UsersService (for delegated soft-delete in UserManagementService)
+    DriversModule, // Provides DriversService (earnings roll-up reused by the fleet dashboard)
     PaymentModule, // Provides KonnectOrderService, RefundService
 
     MongooseModule.forFeature([
@@ -117,6 +120,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     AdminAnalyticsService,
     AdminAuditService,
     UserManagementService,
+    DriverManagementService,
     EstablishmentManagementService,
     SystemConfigService,
     OfferManagementService,
