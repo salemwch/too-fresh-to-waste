@@ -91,38 +91,16 @@ import type {
   AdminPendingOrder,
   AddLoyaltyPointsPayload,
   AnomalyAlert,
+  CreateDriverPayload,
+  CreateDriverResponse,
+  DriverRow,
+  DriverDetail,
+  DriverOrderRow,
+  DriverOrdersQuery,
 } from '@/types/admin';
 
 const ADMIN = '/admin';
 const MOD = '/moderation';
-
-// ── Driver types ───────────────────────────────────────────────────────────────
-
-export interface CreateDriverPayload {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  idCardNumber: string;
-  address: string;
-}
-
-export interface DriverRow {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber?: string;
-  requiresPasswordChange: boolean;
-  createdAt: string;
-  driverProfile: { idCardNumber: string; address: string } | null;
-}
-
-export interface CreateDriverResponse {
-  driver: { _id: string; firstName: string; lastName: string; email: string };
-  driverProfile: { idCardNumber: string; address: string };
-  temporaryPassword: string;
-}
 
 // Health controller uses VERSION_NEUTRAL — it's at /health, NOT /api/v1/health.
 // Use NEXT_PUBLIC_WS_URL (always the real backend origin) so this works in both
@@ -683,10 +661,28 @@ export const adminService = {
 
   /**
    * GET /admin/drivers
-   * List all driver accounts with their driverProfile joined.
+   * Every driver with profile, live availability and lifetime delivery stats.
    */
   getDrivers() {
     return apiClient.get<BackendEnvelope<DriverRow[]>>(`${ADMIN}/drivers`);
+  },
+
+  /**
+   * GET /admin/drivers/:id
+   * Full dossier — profile, position, stats, earnings buckets, release trail.
+   */
+  getDriverDetail(driverId: string) {
+    return apiClient.get<BackendEnvelope<DriverDetail>>(`${ADMIN}/drivers/${driverId}`);
+  },
+
+  /**
+   * GET /admin/drivers/:id/orders
+   * Paginated history of every order the driver has held. `meta` carries total.
+   */
+  getDriverOrders(driverId: string, params: DriverOrdersQuery = {}) {
+    return apiClient.get<BackendEnvelope<DriverOrderRow[]>>(`${ADMIN}/drivers/${driverId}/orders`, {
+      params,
+    });
   },
 
   // ── Team Management ─────────────────────────────────────────────────────────

@@ -30,6 +30,9 @@ import { DriverNotificationsService } from './services/driver-notifications.serv
     DeliveryOrderListener,
     DeliveryTimeoutProcessor,
   ],
-  exports: [MongooseModule],
+  // DriversService is exported so the admin fleet dashboard can reuse the
+  // earnings roll-up rather than re-deriving it and risking a different number
+  // from the one the driver sees in their own app.
+  exports: [MongooseModule, DriversService],
 })
 export class DriversModule {}

@@ -2366,6 +2366,36 @@
       "refunds": "Refunds",
       "pending": "Pending"
     },
+    "statuses": {
+      "pending": "Pending",
+      "pending_payment": "Awaiting payment",
+      "reserved": "Reserved",
+      "confirmed": "Confirmed",
+      "ready_for_pickup": "Ready for pickup",
+      "picked_up": "Picked up",
+      "completed": "Completed",
+      "driver_assigned": "Driver assigned",
+      "out_for_delivery": "Out for delivery",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "expired": "Expired",
+      "refunded": "Refunded"
+    },
+    "delivery": {
+      "title": "Delivery",
+      "mode": "Mode",
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "driver": "Driver",
+      "unassigned": "Not assigned yet",
+      "city": "City",
+      "distance": "Distance",
+      "driverEarnings": "Driver payout",
+      "assignedAt": "Assigned",
+      "pickedUpAt": "Picked up",
+      "deliveredAt": "Delivered",
+      "pending": "Pending"
+    },
     "kpi": {
       "totalOrders": "Total Orders",
       "activeOrders": "Active Orders",
@@ -2934,6 +2964,139 @@
       "owner": "Owner ID",
       "lastUpdated": "Last Updated",
       "establishmentIds": "Linked Establishments"
+    }
+  },
+  "adminDrivers": {
+    "title": "Drivers",
+    "subtitle": "Fleet accounts, live availability and delivery performance",
+    "create": {
+      "title": "Create Driver Account",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "cin": "CIN",
+      "address": "Address",
+      "firstNamePlaceholder": "Ali",
+      "lastNamePlaceholder": "Ben Salem",
+      "emailPlaceholder": "driver@example.com",
+      "phonePlaceholder": "+216 XX XXX XXX",
+      "cinPlaceholder": "12345678",
+      "addressPlaceholder": "Tunis, Tunisia",
+      "submit": "Create Driver",
+      "submitting": "Creating…",
+      "error": "The driver account could not be created. Please try again."
+    },
+    "validation": {
+      "required": "Required",
+      "invalidEmail": "Enter a valid email address",
+      "invalidPhone": "Enter a valid phone number",
+      "cinLength": "CIN must be exactly 8 digits",
+      "cinDigits": "CIN must contain digits only"
+    },
+    "list": {
+      "title": "All Drivers",
+      "empty": "No drivers yet",
+      "emptyHint": "Create the first driver account with the form above.",
+      "error": "The driver list could not be loaded. Please try again.",
+      "retry": "Try again"
+    },
+    "columns": {
+      "driver": "Driver",
+      "contact": "Contact",
+      "cin": "CIN",
+      "availability": "Availability",
+      "delivered": "Delivered",
+      "inProgress": "In progress",
+      "earnings": "Earnings",
+      "status": "Status",
+      "joined": "Joined"
+    },
+    "availability": {
+      "online": "Online",
+      "offline": "Offline",
+      "lastSeen": "Last seen {when}",
+      "never": "Never connected",
+      "noPosition": "No position reported"
+    },
+    "accountStatus": {
+      "active": "Active",
+      "pending": "Pending",
+      "pendingSetup": "Pending setup",
+      "suspended": "Suspended",
+      "blocked": "Blocked",
+      "deleted": "Deleted",
+      "anonymized": "Anonymized",
+      "unknown": "Unknown"
+    },
+    "password": {
+      "title": "Driver Account Created",
+      "description": "Share this temporary password with the driver. It will never be shown again.",
+      "warning": "never be shown again",
+      "copy": "Copy password",
+      "copied": "Copied",
+      "done": "Done"
+    },
+    "detail": {
+      "title": "Driver Details",
+      "error": "This driver could not be loaded. Please try again.",
+      "never": "Never",
+      "notProvided": "Not provided",
+      "identity": "Identity",
+      "phone": "Phone",
+      "email": "Email",
+      "cin": "CIN",
+      "address": "Address",
+      "joined": "Joined",
+      "lastLogin": "Last login",
+      "position": {
+        "title": "Last known position",
+        "empty": "This driver has not reported a position yet.",
+        "reportedAt": "Reported {when}",
+        "viewOnMap": "Open in Maps"
+      },
+      "stats": {
+        "title": "Lifetime performance",
+        "delivered": "Delivered",
+        "assigned": "Assigned",
+        "active": "In progress",
+        "earnings": "Earnings",
+        "avgTime": "Avg. delivery",
+        "minutes": "{count} min",
+        "lastDelivery": "Last delivery",
+        "cancellations": "Dropped",
+        "autoReleases": "Timed out",
+        "none": "No deliveries yet"
+      },
+      "earnings": {
+        "title": "Earnings",
+        "today": "Today",
+        "thisWeek": "This week",
+        "thisMonth": "This month",
+        "allTime": "All time"
+      },
+      "orders": {
+        "title": "Order history",
+        "empty": "No orders have been assigned to this driver yet.",
+        "error": "The order history could not be loaded. Please try again.",
+        "order": "Order",
+        "status": "Status",
+        "city": "City",
+        "distance": "Distance",
+        "earnings": "Earnings",
+        "assigned": "Assigned",
+        "delivered": "Delivered",
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {page} of {total}"
+      },
+      "releases": {
+        "title": "Unassignment history",
+        "empty": "This driver has never dropped an order.",
+        "manual": "Dropped by driver",
+        "auto": "Released by timeout",
+        "noReason": "No reason given"
+      }
     }
   }
 }

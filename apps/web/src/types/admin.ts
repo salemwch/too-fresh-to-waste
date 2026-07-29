@@ -716,6 +716,8 @@ export interface AdminOrderItem {
   customer: { name: string; email: string };
   merchant: { name: string; email: string };
   establishment: { name: string };
+  deliveryMode?: 'pickup' | 'delivery';
+  driver?: { _id: string; name: string } | null;
 }
 
 export interface AdminOrderDetail {
@@ -737,6 +739,15 @@ export interface AdminOrderDetail {
   customer: { _id: string; name: string; email: string; phone?: string };
   merchant: { _id: string; name: string; email: string; phone?: string };
   establishment: { _id: string; name: string; address?: Record<string, unknown> };
+  // Delivery — null/absent on pickup orders, which are still the default mode.
+  deliveryMode?: 'pickup' | 'delivery';
+  driver?: { _id: string; name: string; email?: string; phone?: string } | null;
+  driverAssignedAt?: string;
+  driverPickedUpAt?: string;
+  deliveredAt?: string;
+  estimatedDistanceKm?: number;
+  driverEarnings?: number;
+  deliveryAddress?: { city?: string; coordinates?: { lat: number; lng: number } };
   refundRequests: Array<{
     reason: string;
     status: string;
@@ -1389,4 +1400,107 @@ export interface AnomalyAlert {
   value: number;
   threshold: number;
   detectedAt: string;
+}
+
+// ─── Drivers ─────────────────────────────────────────────────────────────────
+
+export interface CreateDriverPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  idCardNumber: string;
+  address: string;
+}
+
+export interface CreateDriverResponse {
+  driver: { _id: string; firstName: string; lastName: string; email: string };
+  driverProfile: { idCardNumber: string; address: string };
+  temporaryPassword: string;
+}
+
+/** Last reported position. Backend flips GeoJSON [lng, lat] before sending. */
+export interface DriverPosition {
+  lat: number;
+  lng: number;
+  at: string | null;
+}
+
+export interface AdminDriverProfile {
+  idCardNumber: string;
+  address: string;
+  isOnline: boolean;
+  lastOnlineAt: string | null;
+  lastKnownLocation: DriverPosition | null;
+}
+
+/** Lifetime activity, derived from orders — never a stored counter. */
+export interface DriverStats {
+  totalAssigned: number;
+  totalDelivered: number;
+  activeCount: number;
+  totalEarnings: number;
+  avgDeliveryMinutes: number | null;
+  lastDeliveredAt: string | null;
+  cancellationCount: number;
+  autoReleaseCount: number;
+}
+
+export interface DriverRow {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  status: UserStatus;
+  requiresPasswordChange: boolean;
+  createdAt: string;
+  driverProfile: AdminDriverProfile | null;
+  stats: DriverStats;
+}
+
+export interface DriverEarnings {
+  today: number;
+  thisWeek: number;
+  thisMonth: number;
+  allTime: number;
+  deliveriesToday: number;
+  deliveriesAllTime: number;
+  currency: string;
+}
+
+export interface DriverUnassignment {
+  orderId: string;
+  orderNumber: string;
+  reason: string | null;
+  auto: boolean;
+  at: string;
+}
+
+export interface DriverDetail {
+  driver: DriverRow & { lastLoginAt: string | null };
+  earnings: DriverEarnings;
+  unassignments: DriverUnassignment[];
+}
+
+export interface DriverOrderRow {
+  _id: string;
+  orderNumber: string;
+  status: AdminOrderStatus;
+  deliveryMode: 'pickup' | 'delivery';
+  total: number;
+  currency: string;
+  driverEarnings: number | null;
+  estimatedDistanceKm: number | null;
+  deliveryCity: string | null;
+  createdAt: string;
+  driverAssignedAt: string | null;
+  driverPickedUpAt: string | null;
+  deliveredAt: string | null;
+}
+
+export interface DriverOrdersQuery {
+  page?: number;
+  limit?: number;
+  status?: AdminOrderStatus;
 }
