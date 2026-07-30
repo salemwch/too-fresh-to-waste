@@ -145,9 +145,22 @@ try {
     // Enable Logs
     enableLogs: false,
 
-    // Configure Session Replay
-    replaysSessionSampleRate: 0.1,
+    // Session Replay: on for errors, off for healthy sessions.
+    //
+    // `replaysSessionSampleRate` records a share of ALL sessions, including
+    // ones where nothing goes wrong. Mobile replay captures frames continuously
+    // and uploads them from the device, so on this market's data plans that is
+    // the user's own bandwidth and battery spent on a session no one will watch,
+    // and it exhausts the replay quota fastest on the least useful recordings.
+    // 0 on purpose — raise it temporarily and deliberately if a UX question ever
+    // needs it, not as a standing default.
+    replaysSessionSampleRate: 0,
+    // Errors keep 100% coverage: this is the recording that pays for itself.
     replaysOnErrorSampleRate: 1,
+    // mobileReplayIntegration masks by default in 7.13.0 — maskAllText,
+    // maskAllImages and maskAllVectors are all true, so replays are redacted
+    // rather than verbatim. Do not disable those: the recorded screens include
+    // checkout, the map with the user's address pinned, and profile details.
     integrations: [Sentry.mobileReplayIntegration()],
 
     // uncomment the line below to enable Spotlight (https://spotlightjs.com)
