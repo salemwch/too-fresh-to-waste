@@ -25,11 +25,11 @@ import {
   View,
 } from 'react-native';
 
-import Geolocation from '@react-native-community/geolocation';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { getCurrentPositionOnce } from '@/services/location/getCurrentPositionOnce';
 import { textAlignEnd } from '@/utils/rtl';
 import type {
   DriverOrderDetailNavigationProp,
@@ -153,18 +153,27 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
 
   // Acquire a one-time GPS fix to feed into the available-orders query.
   // We only need coords to re-use the cached query; we don't watch continuously here.
+  //
+  // Routed through getCurrentPositionOnce: this screen can open while the
+  // driver's 30s location heartbeat is mid-request, and two overlapping
+  // single-shot requests crash the process (Play Services
+  // `NullPointerException: Listener must not be null`).
   useEffect(() => {
-    try {
-      Geolocation.getCurrentPosition(
-        pos => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        _err => {
-          setCoords({ lat: 0, lng: 0 });
-        },
-        { enableHighAccuracy: true, timeout: 15_000 },
-      );
-    } catch {
-      setCoords({ lat: 0, lng: 0 });
-    }
+    let active = true;
+
+    void getCurrentPositionOnce({ enableHighAccuracy: true, timeoutMs: 15_000 })
+      .then(fix => {
+        if (active) setCoords({ lat: fix.latitude, lng: fix.longitude });
+      })
+      .catch(() => {
+        // (0, 0) is the screen's existing "no fix" sentinel — it still enables
+        // the query so the order can be found from the cached list.
+        if (active) setCoords({ lat: 0, lng: 0 });
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const hasCoords = coords !== null;

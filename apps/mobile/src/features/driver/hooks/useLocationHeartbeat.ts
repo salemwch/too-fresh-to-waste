@@ -8,8 +8,7 @@
 
 import { useEffect, useRef } from 'react';
 
-import Geolocation from '@react-native-community/geolocation';
-
+import { getCurrentPositionOnce } from '@/services/location/getCurrentPositionOnce';
 import { Logger } from '@/utils/logger';
 
 import { driverService } from '../services/driver.service';
@@ -35,22 +34,28 @@ export function useLocationHeartbeat(enabled: boolean): void {
       return;
     }
 
+    // Routed through getCurrentPositionOnce, which serializes single-shot
+    // requests process-wide. This one matters most: it fires every 30s, so it
+    // is the call most likely to overlap another screen's request — and two
+    // overlapping single-shot requests kill the process outright (Play Services
+    // `NullPointerException: Listener must not be null`). If a request is
+    // already in flight, this tick joins it instead of starting a second one,
+    // which is exactly the right behaviour for a heartbeat.
     const report = (): void => {
-      Geolocation.getCurrentPosition(
-        position => {
-          void driverService
-            .updateLocation(position.coords.latitude, position.coords.longitude)
-            .catch((error: Error) => {
-              Logger.debug('[useLocationHeartbeat] Heartbeat failed, will retry', {
-                message: error.message,
-              });
-            });
-        },
-        error => {
-          Logger.debug('[useLocationHeartbeat] GPS unavailable', { message: error.message });
-        },
-        { enableHighAccuracy: true, timeout: 15_000, maximumAge: 10_000 },
-      );
+      void getCurrentPositionOnce({
+        enableHighAccuracy: true,
+        timeoutMs: 15_000,
+        maximumAgeMs: 10_000,
+      })
+        .then(async fix => {
+          await driverService.updateLocation(fix.latitude, fix.longitude);
+        })
+        .catch((error: unknown) => {
+          // A dropped heartbeat is never surfaced to the driver — the next tick
+          // retries. Covers both "no fix" and "backend rejected the update".
+          const message = error instanceof Error ? error.message : String(error);
+          Logger.debug('[useLocationHeartbeat] Heartbeat failed, will retry', { message });
+        });
     };
 
     // Report immediately so going online dispatches without a 30s dead zone.

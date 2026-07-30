@@ -7,13 +7,12 @@
  * 2. Search bar - Search by city name
  */
 
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
   Modal,
-  Platform,
   Pressable,
   ActivityIndicator,
   ScrollView,
@@ -35,17 +34,6 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 // Types
 // ============================================================================
 
-const MODAL_FADE_DURATION_MS = 300;
-
-/**
- * Safety net for the `onShow` gate below. `onShow` is dispatched from the
- * Android Dialog's own OnShowListener so it is reliable, but a permanently
- * dead button would be a worse failure than the race it prevents — so the
- * options unlock anyway if the event never arrives. Deliberately far longer
- * than the fade so it never pre-empts the real signal.
- */
-const APPEARANCE_FALLBACK_MS = 1_200;
-
 interface LocationSelectionModalProps {
   /** Whether modal is visible */
   visible: boolean;
@@ -55,8 +43,6 @@ interface LocationSelectionModalProps {
   isLoading?: boolean;
   /** Error message to display */
   error?: string | null;
-  /** Fires after the native Modal has fully dismissed (animation complete) */
-  onDismissComplete?: () => void;
   /** Test ID for testing */
   testID?: string;
 }
@@ -71,66 +57,29 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
     onLocationSelect,
     isLoading = false,
     error = null,
-    onDismissComplete,
     testID = 'location-selection-modal',
   }) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const [showCitySearch, setShowCitySearch] = useState(false);
-    const prevVisible = useRef(visible);
 
-    /**
-     * Whether the native Dialog window has finished appearing.
-     *
-     * On Android this Modal is a real `ComponentDialog` window with a fade
-     * animation. Acting on a press while that enter animation is still running
-     * queues the dialog's `dismiss()` behind it, so the window is still
-     * attached when the caller starts the runtime-permission Activity — two
-     * native windows fight and the task gets pushed to the background, which
-     * the user experiences as the app closing.
-     *
-     * Gating on `onShow` (dispatched from the Dialog's own OnShowListener)
-     * makes that state unreachable: the press cannot land until the window has
-     * settled, so the dismiss that follows starts immediately.
-     */
-    const [hasAppeared, setHasAppeared] = useState(false);
-
-    const handleShow = useCallback(() => setHasAppeared(true), []);
-
-    useEffect(() => {
-      if (!visible) {
-        setHasAppeared(false);
-        return undefined;
-      }
-      const fallback = setTimeout(() => setHasAppeared(true), APPEARANCE_FALLBACK_MS);
-      return () => clearTimeout(fallback);
-    }, [visible]);
-
-    // Both options are inert until the window has settled. The window is
-    // opaque for the whole fade, so this is invisible to anyone tapping at
-    // human speed — it only rejects the presses that would break.
-    const canInteract = hasAppeared && !isLoading;
-
-    // Android: detect visible → hidden transition and fire callback after fade completes.
-    // iOS: handled natively by Modal's onDismiss prop below.
-    useEffect(() => {
-      if (Platform.OS !== 'android') {
-        prevVisible.current = visible;
-        return undefined;
-      }
-
-      if (prevVisible.current && !visible) {
-        const timer = setTimeout(() => {
-          onDismissComplete?.();
-        }, MODAL_FADE_DURATION_MS);
-        prevVisible.current = visible;
-        return () => clearTimeout(timer);
-      }
-
-      prevVisible.current = visible;
-      return undefined;
-    }, [visible, onDismissComplete]);
-
+    // No appearance gate and no dismiss-timing plumbing here on purpose.
+    //
+    // This component previously blocked presses until the native Dialog
+    // reported `onShow`, and told the caller when its fade had finished, so the
+    // caller could delay the runtime-permission request until the dialog window
+    // was gone. All of that was written against a diagnosis that turned out to
+    // be wrong: the app was not being pushed to the background by conflicting
+    // windows, it was crashing. `locationSlice` fired two concurrent
+    // `getCurrentPosition` calls, and Play Services throws
+    // `NullPointerException: Listener must not be null` when the second
+    // single-shot callback is delivered — proven from a release-70 logcat
+    // deobfuscated through mapping.txt. The Modal was never involved.
+    //
+    // The gate also never did what it claimed: `Dialog.show()` posts its
+    // OnShowListener to the looper, so `onShow` fires about one frame after the
+    // window attaches, not after the 300 ms fade. It cost a briefly dead button
+    // and three timing constants, and bought nothing.
     const dimOverlayStyle = { backgroundColor: theme.colors.overlay.dark };
     const modalContentStyle = {
       backgroundColor: theme.colors.surface,
@@ -180,8 +129,6 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
           animationType='fade'
           statusBarTranslucent
           onRequestClose={() => {}}
-          onDismiss={Platform.OS === 'ios' ? onDismissComplete : undefined}
-          onShow={handleShow}
           testID={testID}
         >
           {/* Dimmed Background Overlay */}
@@ -229,7 +176,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       style={[styles.optionButton, styles.outlinedButton, primaryOptionStyle]}
                       onPress={handleRequestGPSLocation}
                       testID={`${testID}-gps-option`}
-                      disabled={!canInteract}
+                      disabled={isLoading}
                       accessibilityRole='button'
                       accessibilityLabel={t('location.a11yUseMyLocation')}
                       accessibilityHint={t('location.a11yUseMyLocationHint')}
@@ -262,7 +209,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       style={[styles.searchButton, styles.outlinedButton, secondaryOptionStyle]}
                       onPress={handleSearchCityPress}
                       testID={`${testID}-city-option`}
-                      disabled={!canInteract}
+                      disabled={isLoading}
                       accessibilityRole='button'
                       accessibilityLabel={t('location.a11ySearchCity')}
                       accessibilityHint={t('location.a11ySearchCityHint')}

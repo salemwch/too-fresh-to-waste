@@ -435,10 +435,16 @@ const styles = StyleSheet.create({
   },
 });
 
-// ⚠️ DIAGNOSTIC: Temporarily bypass Sentry.wrap to test if TouchEventBoundary
-// is blocking touches. Sentry.wrap adds a TouchEventBoundary that may conflict
-// with React 19 + RN 0.81 + React Navigation v6.
-// If touch issues resolve with this change, the fix is to configure Sentry
-// without the touch tracking boundary.
-// TODO: Re-enable after confirming Sentry compatibility with React 19
-export default __DEV__ ? App : Sentry.wrap(App);
+// Wrapped unconditionally, in every build.
+//
+// This was previously `__DEV__ ? App : Sentry.wrap(App)` as a diagnostic for a
+// suspected TouchEventBoundary conflict. Leaving it that way meant dev and
+// production ran different component trees and different touch pipelines, so a
+// production-only touch-timing bug could not be reproduced locally by
+// construction — which is exactly what happened while chasing the first-run
+// location crash: two rounds of fixes were written against a theory because no
+// debug build could exhibit the behaviour.
+//
+// If TouchEventBoundary ever does need to be disabled, do it through Sentry
+// configuration so both builds stay identical, never by branching on __DEV__.
+export default Sentry.wrap(App);

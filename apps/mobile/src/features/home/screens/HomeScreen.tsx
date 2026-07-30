@@ -262,7 +262,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     closeManualLocationModal,
     handleLocationSelection,
     handleManualLocationSelect,
-    handleModalDismissComplete,
   } = useLocationSetup(hasLocation, isAuthenticated, requestLocation, setManualLocationValue);
 
   // ============================================================================
@@ -697,7 +696,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <LocationSelectionModal
         visible={showLocationSelectionModal}
         onLocationSelect={handleLocationSelectionWrapper}
-        onDismissComplete={handleModalDismissComplete}
         isLoading={isLocationLoading}
         error={locationError}
         testID='location-selection-modal'
