@@ -307,7 +307,7 @@ versioning (`/api/v1/...`) → Helmet CSP → CORS → ValidationPipe → Swagge
 
 **Module map**: Auth, Users, Establishments, Offers, Orders, Payment, Reviews,
 Notifications, Geolocation, Favorites, Donations, Loyalty, Inventory, Analytics,
-Moderation, Admin, WebSocket, Search, Archive, Health.
+Moderation, Admin, Drivers, WebSocket, Search, Archive, Health.
 
 **Global middleware**: `CorrelationIdMiddleware` (request tracing) +
 `GlobalSanitizationMiddleware` (XSS prevention).
@@ -337,6 +337,60 @@ directly.
   `ORDER_GRACE_PERIOD_MS`)
 - Pickup code validity = `order.expiresAt`
 - Mobile disables pickup input client-side when `expiresAt` is past
+
+### Delivery & the driver role
+
+An order carries `deliveryMode: 'pickup' | 'delivery'` (default `pickup`). The
+two modes are **separate status chains** — never assume one is a superset of the
+other:
+
+```
+pickup:   PENDING → RESERVED → CONFIRMED → READY_FOR_PICKUP → PICKED_UP
+delivery: PENDING → CONFIRMED → DRIVER_ASSIGNED → OUT_FOR_DELIVERY → DELIVERED
+```
+
+`DRIVER_ASSIGNED` = a driver accepted but has not collected the food yet;
+`OUT_FOR_DELIVERY` = the food is with the driver. Both are in `OrderStatus`
+(`packages/shared/src/enums/order.enum.ts`).
+
+**Money is computed once at order creation and never recalculated**
+(`order.service.ts`). Three separate figures, easily confused:
+
+| Field                        | Source                         | Default |
+| ---------------------------- | ------------------------------ | ------- |
+| `deliveryFee`                | `FLAT_DELIVERY_FEE` env        | 3.0 TND |
+| `driverEarnings`             | `DRIVER_DELIVERY_EARNINGS` env | 2.5 TND |
+| `platformDeliveryCommission` | `deliveryFee - driverEarnings` | 0.5 TND |
+
+- **`serviceFee` is NOT the delivery fee.** It is a hardcoded `DELIVERY_FEE = 3`
+  applied when `paymentMethod === 'pay_on_delivery'`, in both modes. It happens
+  to equal the `FLAT_DELIVERY_FEE` default, which makes the two trivially easy
+  to mix up when reading `pricing.total`. Changing one does not change the
+  other.
+- **Charity donation**: `subtotal * 0.19 * 0.05` — 5 % of the platform's 19 %
+  commission, i.e. 0.95 % of subtotal. Funded from platform margin, never added
+  to what the customer pays.
+- **`MAX_DELIVERY_KM`** (default 5) is a hard gate: `haversineKm` between
+  establishment and delivery address, `BadRequestException` beyond it. Order
+  creation fails — it does not silently fall back to pickup.
+- `collectionStartTime = now` (food is already prepared), `collectionEndTime =`
+  earliest offer expiry. The driver pool geo-query filters on these.
+
+**Geozones** (`admin/schemas/geozone.schema.ts`) carry their own `deliveryFee`,
+`minimumOrder`, `defaultSearchRadius` (5000 m), `timezone` (`Africa/Tunis`) and
+currency, plus a boundary polygon. Zone-level config is the intended override
+path for the flat env fee.
+
+**Driver profile**: one per user (`userId` unique), with `idCardNumber`,
+`address`, `isOnline`, and a GeoJSON `Point` location. Endpoints live under
+`/drivers`: `me`, `status`, `location`, `orders/available|active|history`,
+`earnings`, and `orders/:id/accept|pickup|deliver|unassign`.
+
+**Stale deliveries auto-release.** A Bull queue (`driver-delivery-timeouts`, job
+`auto-unassign-stale-delivery`) unassigns an order whose driver went quiet.
+Every unassignment — manual or automatic — appends to an audit array on the
+order, with an `auto` flag distinguishing the two. When adding a new
+unassignment path, write that audit entry or the trail lies.
 
 ### Establishment Population
 
@@ -442,8 +496,8 @@ When extracting, three things are easy to get wrong:
 - Shared package changes require Metro cache reset: `pnpm metro:reset`.
 - `src/store/rehydrationOrchestrator.ts` has pre-existing TS errors (JSX in .ts
   file).
-- Delivery system: NOT IMPLEMENTED — pickup-only. See
-  `DELIVERY_SYSTEM_ANALYSIS.md`.
+- Delivery is implemented (see "Delivery & the driver role" above). The old
+  `DELIVERY_SYSTEM_ANALYSIS.md` this section used to point at no longer exists.
 - Mobile Android: `edgeToEdgeEnabled=true` is set in `android/gradle.properties`
   and `<StatusBar>` usages must never pass `translucent`/`backgroundColor`
   (they're no-ops under edge-to-edge and trigger RN's deprecated

@@ -27,6 +27,10 @@ import Geolocation from '@react-native-community/geolocation';
 import { check, request, PERMISSIONS, RESULTS, type Permission } from 'react-native-permissions';
 
 import { getLastKnownLocation } from '@/native/LastKnownLocation';
+import {
+  getCurrentPositionOnce,
+  type PositionFixError,
+} from '@/services/location/getCurrentPositionOnce';
 import { Logger } from '@/utils/logger';
 
 Geolocation.setRNConfiguration({
@@ -277,12 +281,15 @@ export const checkPermissionAsync = createAsyncThunk<
 /**
  * Request location permission and get current position.
  *
- * Three-tier acquisition for fastest perceived response:
- * 1. Native OS cache (getLastLocation) — 0-50ms
- * 2. Low-accuracy network fix (cell/WiFi) — 1-3s
- * 3. Fallback: high-accuracy GPS — 5-15s
+ * Tiered acquisition for fastest perceived response:
+ * 1. Native OS cache (getLastKnownLocation) — 0-50ms
+ * 2. The library's own getLastLocation() short-circuit, when a fix newer than
+ *    `maximumAge` already exists — 0-50ms
+ * 3. A single live fused-provider request — 1-15s
  *
- * Returns as soon as the fastest tier succeeds.
+ * Tier 3 issues exactly one getCurrentPosition call. Two concurrent calls
+ * crash the process inside Play Services; see the comment at that call site
+ * before changing this.
  */
 export const requestLocationAsync = createAsyncThunk<
   LocationResult,
@@ -325,74 +332,52 @@ export const requestLocationAsync = createAsyncThunk<
         };
       }
 
-      // ── 3. Fast network fix + GPS fallback (parallel) ─────────────────────
-      return new Promise<LocationResult>((resolve, reject) => {
-        let resolved = false;
+      // ── 3. Single live fused-provider request ─────────────────────────────
+      //
+      // Routed through getCurrentPositionOnce, which serializes single-shot
+      // requests process-wide. This used to issue TWO concurrent
+      // getCurrentPosition calls (a fast tier and an accurate tier), which is
+      // what crashed the app in release 70: Play Services throws
+      // `NullPointerException: Listener must not be null` when the second
+      // single-shot callback is delivered. See that module for the full
+      // mechanism — and do not call Geolocation.getCurrentPosition from here.
+      //
+      // High accuracy on purpose: this is the only tier that can produce a
+      // first fix, and PRIORITY_LOW_POWER frequently produces none at all
+      // indoors. The two cache tiers above already serve the instant path.
+      //
+      // The failure is caught locally rather than falling through to the outer
+      // handler, which would replace this specific, translated message with a
+      // generic one.
+      try {
+        const fix = await getCurrentPositionOnce({
+          enableHighAccuracy: true,
+          timeoutMs: GEOLOCATION_TIMEOUT_MS,
+          maximumAgeMs: MAXIMUM_AGE_MS,
+        });
 
-        // Phase A: Low accuracy, fast response (cell/WiFi, ~1-3s)
-        Geolocation.getCurrentPosition(
-          position => {
-            if (!resolved) {
-              resolved = true;
-              Logger.info('Location acquired via fast network fix', {
-                accuracy: position.coords.accuracy,
-              });
-              resolve({
-                success: true,
-                coordinates: {
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                },
-                accuracy: position.coords.accuracy,
-              });
-            }
-          },
-          () => {
-            // Fast phase failed — Phase B will handle it
-          },
-          {
-            enableHighAccuracy: false,
-            timeout: 5000,
-            maximumAge: MAXIMUM_AGE_MS,
-          },
-        );
+        Logger.info('Location acquired via fused provider', { accuracy: fix.accuracy });
+        return {
+          success: true,
+          coordinates: { latitude: fix.latitude, longitude: fix.longitude },
+          accuracy: fix.accuracy,
+        };
+      } catch (fixError) {
+        // getCurrentPositionOnce rejects with `{ code, message }`. Anything
+        // else means the native module itself failed, which has no code — treat
+        // it as "position unavailable" (2) so the user still gets usable copy.
+        const failure = fixError as Partial<PositionFixError> | null | undefined;
+        const code = typeof failure?.code === 'number' ? failure.code : 2;
+        const message =
+          typeof failure?.message === 'string' ? failure.message : 'Location unavailable';
 
-        // Phase B: High accuracy fallback (GPS satellite, 5-15s)
-        Geolocation.getCurrentPosition(
-          position => {
-            if (!resolved) {
-              resolved = true;
-              Logger.info('Location acquired via GPS fix');
-              resolve({
-                success: true,
-                coordinates: {
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                },
-                accuracy: position.coords.accuracy,
-              });
-            }
-          },
-          error => {
-            if (!resolved) {
-              resolved = true;
-              Logger.warn('All location phases failed', { code: error.code });
-              reject(
-                rejectWithValue({
-                  success: false,
-                  error: getErrorMessage(error),
-                  errorCode: error.code,
-                }),
-              );
-            }
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: GEOLOCATION_TIMEOUT_MS,
-            maximumAge: MAXIMUM_AGE_MS,
-          },
-        );
-      });
+        Logger.warn('Location request failed', { code });
+        return rejectWithValue({
+          success: false,
+          error: getErrorMessage({ code, message }),
+          errorCode: code,
+        });
+      }
     } catch (error) {
       Logger.error('Location request failed', {}, error as Error);
       return rejectWithValue({

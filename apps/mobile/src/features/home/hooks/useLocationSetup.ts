@@ -22,14 +22,6 @@ import { Logger } from '@/utils/logger';
 
 import { HOME_STORAGE_KEYS } from '../constants/homeConstants';
 
-/**
- * Upper bound on waiting for the location modal's dismiss signal before
- * continuing anyway. Comfortably above the 300 ms fade so a healthy dismiss
- * always wins the race; it exists only so a lost signal degrades to "slightly
- * early" rather than "button does nothing, forever".
- */
-const MODAL_DISMISS_TIMEOUT_MS = 1_500;
-
 // ============================================================================
 // Types
 // ============================================================================
@@ -60,8 +52,6 @@ interface UseLocationSetupResult {
     coordinates: { latitude: number; longitude: number };
     name: string;
   }) => void;
-  /** Pass to LocationSelectionModal's onDismissComplete prop */
-  handleModalDismissComplete: () => void;
 }
 
 // ============================================================================
@@ -113,48 +103,10 @@ export function useLocationSetup(
   const [showManualLocationModal, setShowManualLocationModal] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Promise resolver for awaiting native Modal dismiss before launching
-  // the Android permission Activity. Prevents the window conflict that
-  // pushes the app to background on fresh installs.
-  const modalDismissResolverRef = useRef<(() => void) | null>(null);
-
-  // Guards the GPS branch against re-entry. Two overlapping runs would each
-  // register a dismiss resolver — the second overwrites the first, so the
-  // first `await` never settles and its flow is stranded with the modal
-  // already closed. It would also fire two permission requests.
+  // Guards the GPS branch against re-entry, so one flow owns the modal and the
+  // error state at a time. The permission request itself is deduplicated a
+  // level down, by `requestLocationAsync`'s `condition` option.
   const gpsRequestInFlightRef = useRef(false);
-
-  const handleModalDismissComplete = useCallback(() => {
-    modalDismissResolverRef.current?.();
-    modalDismissResolverRef.current = null;
-  }, []);
-
-  /**
-   * Resolves once the native Modal reports it has finished dismissing.
-   *
-   * Bounded on purpose: `onDismissComplete` is driven by a JS timer in the
-   * modal, and anything that stops it firing — the modal unmounting mid-fade,
-   * the screen losing focus — would otherwise strand this promise forever and
-   * leave the user on a screen where the button silently does nothing. Timing
-   * out and continuing is the recoverable failure; hanging is not.
-   */
-  const waitForModalDismiss = useCallback((): Promise<void> => {
-    return new Promise<void>(resolve => {
-      let settled = false;
-      const settle = (): void => {
-        if (settled) return;
-        settled = true;
-        modalDismissResolverRef.current = null;
-        resolve();
-      };
-
-      const timeout = setTimeout(settle, MODAL_DISMISS_TIMEOUT_MS);
-      modalDismissResolverRef.current = () => {
-        clearTimeout(timeout);
-        settle();
-      };
-    });
-  }, []);
 
   // ============================================================================
   // Effects - Location Setup Check
@@ -266,11 +218,13 @@ export function useLocationSetup(
         if (gpsRequestInFlightRef.current) return;
         gpsRequestInFlightRef.current = true;
 
-        // Close modal and wait for the native Dialog to fully dismiss before
-        // launching the Android permission Activity. Without this, the two
-        // native windows conflict and push the app to background.
+        // Close the modal and request immediately. There is deliberately no
+        // wait on the native Dialog's dismiss here: the crash this used to
+        // guard against was not a window conflict but a Play Services
+        // NullPointerException from two concurrent getCurrentPosition calls,
+        // fixed in `requestLocationAsync`. Delaying the request only delayed
+        // the permission prompt.
         setShowLocationSelectionModal(false);
-        await waitForModalDismiss();
 
         try {
           const result = await requestLocation();
@@ -357,7 +311,7 @@ export function useLocationSetup(
         }
       }
     },
-    [requestLocation, setManualLocationValue, isAuthenticated, dispatch, waitForModalDismiss],
+    [requestLocation, setManualLocationValue, isAuthenticated, dispatch],
   );
 
   /**
@@ -406,6 +360,5 @@ export function useLocationSetup(
     closeManualLocationModal,
     handleLocationSelection,
     handleManualLocationSelect,
-    handleModalDismissComplete,
   };
 }
