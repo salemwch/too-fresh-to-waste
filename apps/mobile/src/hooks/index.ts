@@ -9,6 +9,9 @@ export { useAppDispatch, useAppSelector } from './redux';
 
 // Password validation hook
 export { usePasswordRules } from './usePasswordRules';
+// Server-controlled feature switches (no store release needed to flip one)
+export { useFeatureFlags, featureFlagKeys } from './useFeatureFlags';
+export type { FeatureFlags } from './useFeatureFlags';
 // Location hook
 // Phone verification hook
 // User profile hook (centralized avatar + display name)

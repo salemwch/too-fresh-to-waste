@@ -34,4 +34,34 @@ export class AppConfigController {
       },
     };
   }
+
+  @Get('features')
+  @Public()
+  @ApiOperation({
+    summary: 'Runtime feature flags',
+    description:
+      'Lets a shipped client turn a feature off without a store release. Clients must ' +
+      'treat an unreachable endpoint as "off" for anything that takes money.',
+  })
+  getFeatures() {
+    return {
+      status: 'success',
+      message: 'Feature flags retrieved',
+      data: {
+        onlinePayment: this.isEnabled('FEATURE_ONLINE_PAYMENT'),
+      },
+    };
+  }
+
+  /**
+   * Read on every request rather than cached in the constructor like the version
+   * fields above. A flag is a switch someone flips during an incident, so the
+   * value must never be older than the process env.
+   *
+   * Default is `false`: a flag that fails to parse must not enable a payment
+   * path. Set `FEATURE_ONLINE_PAYMENT=true` explicitly to turn it on.
+   */
+  private isEnabled(key: string): boolean {
+    return this.configService.get<string>(key, 'false') === 'true';
+  }
 }

@@ -13,6 +13,7 @@ import { selectAuthUser, selectIsPhoneVerified } from '@/features/auth/store/aut
 import { offersService } from '@/features/offers/services/offersService';
 import { nearbyOffersService } from '@/features/offers/services/nearbyOffersService';
 import { useAppSelector } from '@/hooks';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useLocation } from '@/hooks/useLocation';
 import { usePressGuard } from '@/hooks/usePressGuard';
 import { analytics } from '@/utils/analytics';
@@ -76,10 +77,21 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   const [selectedPayment, setSelectedPayment] = useState<'cash' | 'online'>('cash');
   const [customerNotes] = useState('');
 
+  const { onlinePayment: onlinePaymentEnabled } = useFeatureFlags();
+
+  // The flag arrives after first paint and can flip mid-session, so a stale
+  // 'online' selection has to be walked back — otherwise the card disappears
+  // while the order still carries paymentMethod: 'online'.
+  useEffect(() => {
+    if (!onlinePaymentEnabled && selectedPayment === 'online') {
+      setSelectedPayment('cash');
+    }
+  }, [onlinePaymentEnabled, selectedPayment]);
+
   const deliveryMode = selectedFulfillment;
 
   const selectedPaymentMethod: CreateOrderDto['paymentMethod'] = (() => {
-    if (selectedPayment === 'online') return 'online';
+    if (selectedPayment === 'online' && onlinePaymentEnabled) return 'online';
     return selectedFulfillment === 'delivery' ? 'pay_on_delivery' : 'cash_on_pickup';
   })();
   const [deliveryPin, setDeliveryPin] = useState<{ lat: number; lng: number } | null>(null);
@@ -682,42 +694,44 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 </Text>
               </Pressable>
 
-              {/* Online Payment */}
-              <Pressable
-                style={[
-                  styles.paymentMethodCard,
-                  selectedPayment === 'online' && styles.paymentMethodCardActive,
-                ]}
-                onPress={() => setSelectedPayment('online')}
-                accessibilityLabel={t('checkout.onlinePayment')}
-                accessibilityHint={t('checkout.onlinePaymentHint')}
-                accessibilityRole='button'
-              >
-                {selectedPayment === 'online' && (
-                  <View style={styles.paymentCardCheck}>
-                    <Icon
-                      name='checkmark-circle'
-                      family='Ionicons'
-                      size={16}
-                      color={colorTokens.base.success[500]}
-                    />
-                  </View>
-                )}
-                <Icon
-                  name='card'
-                  family='Ionicons'
-                  size={28}
-                  color={selectedPayment === 'online' ? BRAND_PRIMARY : '#64748B'}
-                />
-                <Text
+              {/* Online Payment — server-gated, see useFeatureFlags */}
+              {onlinePaymentEnabled && (
+                <Pressable
                   style={[
-                    styles.paymentCardLabel,
-                    selectedPayment === 'online' && styles.paymentCardLabelActive,
+                    styles.paymentMethodCard,
+                    selectedPayment === 'online' && styles.paymentMethodCardActive,
                   ]}
+                  onPress={() => setSelectedPayment('online')}
+                  accessibilityLabel={t('checkout.onlinePayment')}
+                  accessibilityHint={t('checkout.onlinePaymentHint')}
+                  accessibilityRole='button'
                 >
-                  {t('checkout.onlinePayment')}
-                </Text>
-              </Pressable>
+                  {selectedPayment === 'online' && (
+                    <View style={styles.paymentCardCheck}>
+                      <Icon
+                        name='checkmark-circle'
+                        family='Ionicons'
+                        size={16}
+                        color={colorTokens.base.success[500]}
+                      />
+                    </View>
+                  )}
+                  <Icon
+                    name='card'
+                    family='Ionicons'
+                    size={28}
+                    color={selectedPayment === 'online' ? BRAND_PRIMARY : '#64748B'}
+                  />
+                  <Text
+                    style={[
+                      styles.paymentCardLabel,
+                      selectedPayment === 'online' && styles.paymentCardLabelActive,
+                    ]}
+                  >
+                    {t('checkout.onlinePayment')}
+                  </Text>
+                </Pressable>
+              )}
             </View>
           </View>
 
