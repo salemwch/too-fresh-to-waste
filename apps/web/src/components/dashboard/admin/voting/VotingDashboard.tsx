@@ -1,10 +1,12 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@foodwaste/ui';
 import { CycleStatus } from '@foodwaste/shared';
 import { votingAdminService } from '@/services/voting.service';
 import type { VotingCycleRow } from '@/types/voting';
+import { formatCount, MISSING_COUNT, seasonProgressPercent } from '@/lib/format';
 
 // ─── Status badge styles ──────────────────────────────────────────────────────
 
@@ -58,6 +60,7 @@ interface VotingDashboardProps {
 
 export function VotingDashboard({ cycle }: VotingDashboardProps) {
   const queryClient = useQueryClient();
+  const locale = useLocale();
 
   const isBallotPhase = [
     CycleStatus.BALLOT_OPEN,
@@ -90,10 +93,9 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
 
   // ─── Derived values ───────────────────────────────────────────────────────
 
-  const goalPercent =
-    cycle.seasonBagTarget > 0
-      ? Math.min((cycle.seasonBagProgress / cycle.seasonBagTarget) * 100, 100)
-      : 0;
+  // null when the cycle carries no target — the bar then sits at zero without
+  // the label claiming the season has made 0% progress.
+  const goalPercent = seasonProgressPercent(cycle.seasonBagProgress, cycle.seasonBagTarget);
 
   const countdown = getCountdown(cycle);
 
@@ -140,13 +142,15 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
           <CardTitle className='text-sm font-semibold'>Community Goal</CardTitle>
         </CardHeader>
         <CardContent className='space-y-3'>
-          <ProgressBar value={goalPercent} />
+          <ProgressBar value={goalPercent ?? 0} />
           <div className='flex items-center justify-between text-sm'>
             <span className='text-muted-foreground'>
-              {cycle.seasonBagProgress.toLocaleString()} / {cycle.seasonBagTarget.toLocaleString()}{' '}
-              bags saved
+              {formatCount(locale, cycle.seasonBagProgress)} /{' '}
+              {formatCount(locale, cycle.seasonBagTarget)} bags saved
             </span>
-            <span className='font-semibold tabular-nums'>{goalPercent.toFixed(0)}%</span>
+            <span className='font-semibold tabular-nums'>
+              {goalPercent === null ? MISSING_COUNT : `${goalPercent.toFixed(0)}%`}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -254,8 +258,9 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
           <CardContent className='space-y-1'>
             <p className='text-xl font-bold'>{cycle.winner.name}</p>
             <p className='text-sm text-muted-foreground'>
-              {cycle.winner.totalWeightedVotes.toLocaleString()} weighted votes ·{' '}
-              {cycle.winner.voterCount} voter{cycle.winner.voterCount !== 1 ? 's' : ''}
+              {formatCount(locale, cycle.winner.totalWeightedVotes)} weighted votes ·{' '}
+              {formatCount(locale, cycle.winner.voterCount)} voter
+              {cycle.winner.voterCount !== 1 ? 's' : ''}
             </p>
             <p className='text-sm text-muted-foreground'>
               Top {cycle.recipientCount} leaderboard users receive this prize.

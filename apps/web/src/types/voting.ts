@@ -10,11 +10,26 @@ interface PrizeOptionData {
 interface VotingWinnerData {
   prizeId: string;
   name: string;
-  totalWeightedVotes: number;
-  voterCount: number;
+  /** Optional for the same reason as the cycle counters below. */
+  totalWeightedVotes?: number;
+  voterCount?: number;
   announcedAt: string;
 }
 
+/**
+ * A row as the admin list actually returns it.
+ *
+ * The counters are optional because the API can genuinely omit them. The
+ * endpoint returns whole documents with no projection, so a cycle written
+ * before a field existed on the schema simply has no such key — and
+ * `seasonBagTarget` is declared `required` with no default, so nothing
+ * backfills it on read. Typing them as plain `number` was a promise the
+ * backend does not keep: `.toLocaleString()` on the missing one threw and
+ * blanked the whole admin voting page over a single legacy row.
+ *
+ * Read them through `formatCount` from `@/lib/format`, which renders an em dash
+ * for a value that is not there.
+ */
 export interface VotingCycleRow {
   _id: string;
   name: string;
@@ -22,10 +37,10 @@ export interface VotingCycleRow {
   cycleNumber: number;
   cycleStartDate: string;
   cycleEndDate: string;
-  seasonBagTarget: number;
-  seasonBagProgress: number;
-  minimumBags: number;
-  recipientCount: number;
+  seasonBagTarget?: number;
+  seasonBagProgress?: number;
+  minimumBags?: number;
+  recipientCount?: number;
   prizes: PrizeOptionData[];
   winner: VotingWinnerData | null;
   ballotOpensAt: string | null;

@@ -1,11 +1,13 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { Badge } from '@foodwaste/ui';
 import { Button } from '@foodwaste/ui';
 import { CycleStatus } from '@foodwaste/shared';
 import { CalendarDays, Target } from 'lucide-react';
 import type { VotingCycleRow } from '@/types/voting';
 import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
+import { formatCount, seasonProgressPercent } from '@/lib/format';
 
 // ─── Status badge styles ──────────────────────────────────────────────────────
 
@@ -56,6 +58,8 @@ export function CycleTable({
   onArchive,
   onDelete,
 }: CycleTableProps) {
+  const locale = useLocale();
+
   const columns: ColumnDef<VotingCycleRow>[] = [
     {
       key: 'name',
@@ -92,24 +96,23 @@ export function CycleTable({
       key: 'goal',
       header: 'Season Bag Goal',
       render: cycle => {
-        const pct =
-          cycle.seasonBagTarget > 0
-            ? Math.min(Math.round((cycle.seasonBagProgress / cycle.seasonBagTarget) * 100), 100)
-            : 0;
+        // An absent target is not a zero target: with no denominator there is no
+        // percentage to draw, so the bar stays empty rather than claiming 0%.
+        const pct = seasonProgressPercent(cycle.seasonBagProgress, cycle.seasonBagTarget);
         return (
           <div className='min-w-[120px]'>
             <div className='flex items-center gap-1 text-xs'>
               <Target className='size-3 shrink-0 text-muted-foreground' />
               <span className='tabular-nums'>
-                {cycle.seasonBagProgress.toLocaleString()} /{' '}
-                {cycle.seasonBagTarget.toLocaleString()}
+                {formatCount(locale, cycle.seasonBagProgress)} /{' '}
+                {formatCount(locale, cycle.seasonBagTarget)}
               </span>
-              <span className='text-[10px] text-muted-foreground'>({pct}%)</span>
+              {pct !== null && <span className='text-[10px] text-muted-foreground'>({pct}%)</span>}
             </div>
             <div className='mt-1 h-1 w-full overflow-hidden rounded-full bg-muted'>
               <div
                 className='h-full rounded-full bg-primary transition-all'
-                style={{ width: `${pct}%` }}
+                style={{ width: `${pct ?? 0}%` }}
               />
             </div>
           </div>
