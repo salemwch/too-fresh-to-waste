@@ -1706,7 +1706,10 @@
       "historySection": "History ({count})",
       "paginationPrev": "Prev",
       "paginationNext": "Next",
-      "paginationInfo": "Page {current} of {total}"
+      "paginationInfo": "Page {current} of {total}",
+      "statusDriverAssigned": "Driver assigned",
+      "statusOutForDelivery": "Out for delivery",
+      "statusDelivered": "Delivered"
     },
     "merchantOffers": {
       "title": "Offers",

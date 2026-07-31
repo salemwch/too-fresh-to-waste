@@ -302,7 +302,23 @@ export function useUpdateOffer() {
 // ─── Orders page hooks ───────────────────────────────────────────────────────
 
 /** All status values that belong to the "History" tab. */
-export const HISTORY_STATUSES: OrderStatus[] = ['picked_up', 'completed', 'cancelled', 'expired'];
+/**
+ * Terminal states — the Active tab is everything else.
+ *
+ * `delivered` belongs here for the same reason `picked_up` does: it is where a
+ * delivery order finishes. Leaving it out kept completed deliveries in Active
+ * forever, so a merchant's Active list only ever grew.
+ *
+ * `refunded` is deliberately absent, matching the behaviour before this note —
+ * a refunded order is usually still being discussed, so it stays visible.
+ */
+export const HISTORY_STATUSES: OrderStatus[] = [
+  'picked_up',
+  'delivered',
+  'completed',
+  'cancelled',
+  'expired',
+];
 
 /**
  * All merchant orders (up to 50) — used as the source for the orders page.

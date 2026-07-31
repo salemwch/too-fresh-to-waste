@@ -1705,7 +1705,10 @@
       "historySection": "السجل ({count})",
       "paginationPrev": "السابق",
       "paginationNext": "التالي",
-      "paginationInfo": "صفحة {current} من {total}"
+      "paginationInfo": "صفحة {current} من {total}",
+      "statusDriverAssigned": "تم تعيين سائق",
+      "statusOutForDelivery": "قيد التوصيل",
+      "statusDelivered": "تم التوصيل"
     },
     "merchantOffers": {
       "title": "العروض",

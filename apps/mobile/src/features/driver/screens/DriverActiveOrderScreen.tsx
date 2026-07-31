@@ -319,15 +319,16 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         <View style={styles.headerCard}>
           <View style={styles.orderNumberRow}>
             <Text style={styles.orderNumberLabel}>{t('driver.activeDelivery')}</Text>
-            {order?.orderNumber ? (
-              <Text style={styles.orderNumber}>#{order.orderNumber}</Text>
-            ) : (
-              <Text style={styles.orderNumber}>#{orderId.slice(-6).toUpperCase()}</Text>
-            )}
+            {/* Shrinks and ellipsises rather than pushing the row: an order
+                number is a reference the driver rarely reads, while the status
+                below it is what tells them where to go. */}
+            <Text style={styles.orderNumber} numberOfLines={1} ellipsizeMode='middle'>
+              #{order?.orderNumber ?? orderId.slice(-6).toUpperCase()}
+            </Text>
           </View>
           <View style={styles.statusPill}>
             <View style={styles.statusDot} />
-            <Text style={styles.statusText}>
+            <Text style={styles.statusText} numberOfLines={2}>
               {hasCollected ? t('driver.deliveringToCustomer') : t('driver.collectFromStore')}
             </Text>
           </View>
@@ -570,15 +571,24 @@ const styles = StyleSheet.create({
     color: ON_SURFACE_VARIANT,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    // Never gives up its width: this is the label that says what the screen is.
+    flexShrink: 0,
   },
   orderNumber: {
-    fontSize: 18,
+    // Was 18, which let a long order number push the row past the card edge and
+    // clip the status text underneath. Smaller and allowed to shrink — the
+    // driver needs the status far more than the reference.
+    fontSize: 15,
     fontWeight: '800',
     color: PRIMARY,
+    flexShrink: 1,
   },
   statusPill: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // flex-start, not center: with two lines of status text the dot should sit
+    // beside the first line rather than float in the middle.
+    alignItems: 'flex-start',
+    alignSelf: 'flex-start',
     backgroundColor: SUCCESS_CONTAINER,
     borderRadius: radius.full,
     paddingHorizontal: sp.sm,
