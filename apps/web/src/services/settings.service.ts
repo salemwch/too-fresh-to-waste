@@ -4,7 +4,7 @@ import type {
   UserProfile,
   UpdateProfilePayload,
   ChangePasswordPayload,
-  ActiveSession,
+  ActiveSessionsResponse,
   MfaStatus,
 } from '@/types/settings';
 
@@ -30,7 +30,7 @@ export const settingsService = {
   },
 
   getSessions() {
-    return apiClient.get<BackendEnvelope<ActiveSession[]>>('/auth/sessions');
+    return apiClient.get<BackendEnvelope<ActiveSessionsResponse>>('/auth/sessions');
   },
 
   terminateSession(sessionId: string) {

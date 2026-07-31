@@ -552,7 +552,9 @@
         "terminate": "إنهاء",
         "terminateSuccess": "تم إنهاء الجلسة",
         "noSessions": "لا توجد جلسات نشطة أخرى",
-        "error": "فشل تحميل الجلسات"
+        "error": "فشل تحميل الجلسات",
+        "unknownDevice": "جهاز غير معروف",
+        "lastActiveUnknown": "تاريخ النشاط غير متوفر"
       }
     },
     "logout": "تسجيل الخروج",
@@ -1705,7 +1707,10 @@
       "historySection": "السجل ({count})",
       "paginationPrev": "السابق",
       "paginationNext": "التالي",
-      "paginationInfo": "صفحة {current} من {total}"
+      "paginationInfo": "صفحة {current} من {total}",
+      "statusDriverAssigned": "تم تعيين سائق",
+      "statusOutForDelivery": "قيد التوصيل",
+      "statusDelivered": "تم التوصيل"
     },
     "merchantOffers": {
       "title": "العروض",

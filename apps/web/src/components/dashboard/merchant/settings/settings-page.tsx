@@ -47,7 +47,8 @@ import {
   useDeleteAccount,
   useMfaStatus,
 } from '@/hooks/use-settings';
-import type { ActiveSession } from '@/types/settings';
+import { describeDevice, formatSessionDate } from './session-display';
+import type { ActiveSession, SessionDeviceInfo } from '@/types/settings';
 
 // ─── Skeleton ───────────────────────────────────────────────────────────────
 
@@ -454,12 +455,22 @@ function SecurityTab() {
 
 // ─── Sessions Tab ───────────────────────────────────────────────────────────
 
-function getDeviceIcon(deviceInfo: string | undefined) {
-  if (!deviceInfo) return Monitor;
-  const lower = deviceInfo.toLowerCase();
-  if (lower.includes('mobile') || lower.includes('android') || lower.includes('iphone'))
+function getDeviceIcon(device: SessionDeviceInfo | undefined) {
+  const haystack = describeDevice(device)?.toLowerCase();
+  if (!haystack) return Monitor;
+  if (
+    haystack.includes('mobile') ||
+    haystack.includes('android') ||
+    haystack.includes('iphone') ||
+    haystack.includes('ios')
+  )
     return Smartphone;
-  if (lower.includes('chrome') || lower.includes('firefox') || lower.includes('safari'))
+  if (
+    haystack.includes('chrome') ||
+    haystack.includes('firefox') ||
+    haystack.includes('safari') ||
+    haystack.includes('edge')
+  )
     return Globe;
   return Laptop;
 }
@@ -468,6 +479,12 @@ function SessionCard({ session }: { session: ActiveSession }) {
   const t = useTranslations('dashboard.settings.sessions');
   const terminateSession = useTerminateSession();
   const DeviceIcon = getDeviceIcon(session.deviceInfo);
+  const deviceLabel = describeDevice(session.deviceInfo);
+  const ipAddress = session.deviceInfo?.ipAddress;
+  // Falls back to when the session started: a session with no recorded activity
+  // is still worth dating, and showing nothing looks like a rendering fault.
+  const lastActiveDate =
+    formatSessionDate(session.lastActivityAt) ?? formatSessionDate(session.createdAt);
 
   return (
     <div className='flex items-center justify-between rounded-xl border border-border p-4'>
@@ -477,8 +494,8 @@ function SessionCard({ session }: { session: ActiveSession }) {
         </div>
         <div>
           <div className='flex items-center gap-2'>
-            <p className='text-sm font-medium'>{session.deviceInfo || 'Unknown Device'}</p>
-            {session.isCurrent && (
+            <p className='text-sm font-medium'>{deviceLabel ?? t('unknownDevice')}</p>
+            {session.isCurrentSession && (
               <Badge
                 variant='default'
                 className='text-xs bg-emerald-500/10 text-emerald-600 border-emerald-200'
@@ -488,12 +505,12 @@ function SessionCard({ session }: { session: ActiveSession }) {
             )}
           </div>
           <p className='text-xs text-muted-foreground'>
-            {session.ipAddress && <span>{session.ipAddress} · </span>}
-            {t('lastActive', { date: new Date(session.lastActive).toLocaleDateString() })}
+            {ipAddress && <span>{ipAddress} · </span>}
+            {lastActiveDate ? t('lastActive', { date: lastActiveDate }) : t('lastActiveUnknown')}
           </p>
         </div>
       </div>
-      {!session.isCurrent && (
+      {!session.isCurrentSession && (
         <Button
           variant='outline'
           size='sm'

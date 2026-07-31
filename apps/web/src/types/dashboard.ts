@@ -123,13 +123,31 @@ interface OrderPricing {
   currency: string;
 }
 
+/**
+ * Mirrors `OrderStatus` in packages/shared/src/enums/order.enum.ts.
+ *
+ * The three delivery states were missing here long after the driver role
+ * shipped, so an order the driver had collected arrived with a status this app
+ * could not name: the merchant's status badge fell through its lookup table and
+ * rendered the raw i18n namespace, and a delivered order matched no tab. The
+ * admin type already listed them, which is why only the merchant side broke.
+ *
+ * Pickup and delivery are separate chains — a delivery order never reaches
+ * `ready_for_pickup` or `picked_up`, and a pickup order never reaches
+ * `delivered`. Anything switching on this must handle both.
+ */
 export type OrderStatus =
   | 'pending'
   | 'pending_payment'
   | 'reserved'
   | 'confirmed'
+  // Pickup chain
   | 'ready_for_pickup'
   | 'picked_up'
+  // Delivery chain: a driver accepted, then collected, then handed over
+  | 'driver_assigned'
+  | 'out_for_delivery'
+  | 'delivered'
   | 'completed'
   | 'cancelled'
   | 'expired'

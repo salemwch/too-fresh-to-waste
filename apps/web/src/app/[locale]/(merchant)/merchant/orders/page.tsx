@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Bike,
 } from 'lucide-react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
@@ -88,7 +89,10 @@ type StatusTranslationKey =
   | 'statusCompleted'
   | 'statusPendingPayment'
   | 'statusExpired'
-  | 'statusRefunded';
+  | 'statusRefunded'
+  | 'statusDriverAssigned'
+  | 'statusOutForDelivery'
+  | 'statusDelivered';
 
 const STATUS_KEY_MAP: Record<OrderStatus, StatusTranslationKey> = {
   pending: 'statusPending',
@@ -96,6 +100,9 @@ const STATUS_KEY_MAP: Record<OrderStatus, StatusTranslationKey> = {
   confirmed: 'statusConfirmed',
   ready_for_pickup: 'statusReady',
   picked_up: 'statusPickedUp',
+  driver_assigned: 'statusDriverAssigned',
+  out_for_delivery: 'statusOutForDelivery',
+  delivered: 'statusDelivered',
   cancelled: 'statusCancelled',
   completed: 'statusCompleted',
   pending_payment: 'statusPendingPayment',
@@ -109,6 +116,11 @@ const STATUS_STYLE: Record<OrderStatus, { bg: string; text: string; icon: React.
   confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', icon: CheckCircle2 },
   ready_for_pickup: { bg: 'bg-purple-100', text: 'text-purple-700', icon: Package },
   picked_up: { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle2 },
+  // Delivery in progress reads as motion, not completion — blue like confirmed,
+  // so a merchant does not mistake 'a driver has it' for 'the customer has it'.
+  driver_assigned: { bg: 'bg-blue-100', text: 'text-blue-700', icon: Bike },
+  out_for_delivery: { bg: 'bg-blue-100', text: 'text-blue-700', icon: Bike },
+  delivered: { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle2 },
   completed: { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle2 },
   pending_payment: { bg: 'bg-amber-100', text: 'text-amber-700', icon: Clock },
   cancelled: { bg: 'bg-red-100', text: 'text-red-700', icon: XCircle },

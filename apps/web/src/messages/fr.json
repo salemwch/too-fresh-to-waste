@@ -552,7 +552,9 @@
         "terminate": "Terminer",
         "terminateSuccess": "Session terminée",
         "noSessions": "Aucune autre session active",
-        "error": "Échec du chargement des sessions"
+        "error": "Échec du chargement des sessions",
+        "unknownDevice": "Appareil inconnu",
+        "lastActiveUnknown": "Date d'activité indisponible"
       }
     },
     "logout": "Se déconnecter",
@@ -1705,7 +1707,10 @@
       "historySection": "Historique ({count})",
       "paginationPrev": "Préc",
       "paginationNext": "Suiv",
-      "paginationInfo": "Page {current} sur {total}"
+      "paginationInfo": "Page {current} sur {total}",
+      "statusDriverAssigned": "Livreur assigné",
+      "statusOutForDelivery": "En cours de livraison",
+      "statusDelivered": "Livrée"
     },
     "merchantOffers": {
       "title": "Offres",

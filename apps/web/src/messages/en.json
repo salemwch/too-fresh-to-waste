@@ -552,7 +552,9 @@
         "terminate": "Terminate",
         "terminateSuccess": "Session terminated",
         "noSessions": "No other active sessions",
-        "error": "Failed to load sessions"
+        "error": "Failed to load sessions",
+        "unknownDevice": "Unknown device",
+        "lastActiveUnknown": "Activity date unavailable"
       }
     },
     "logout": "Log Out",
@@ -1706,7 +1708,10 @@
       "historySection": "History ({count})",
       "paginationPrev": "Prev",
       "paginationNext": "Next",
-      "paginationInfo": "Page {current} of {total}"
+      "paginationInfo": "Page {current} of {total}",
+      "statusDriverAssigned": "Driver assigned",
+      "statusOutForDelivery": "Out for delivery",
+      "statusDelivered": "Delivered"
     },
     "merchantOffers": {
       "title": "Offers",
