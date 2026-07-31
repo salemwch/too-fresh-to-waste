@@ -395,6 +395,20 @@ export interface ReactivateOfferPayload {
   pricing?: { originalPrice: number; discountedPrice: number };
 }
 
+/**
+ * Corrections to an offer that is still running.
+ *
+ * Every field is optional because the backend's UpdateOfferDto extends
+ * `PartialType(CreateOfferDto)` — send only what changed. The edit form omits
+ * untouched fields rather than echoing them back, so two merchants editing
+ * different things cannot overwrite each other's correction.
+ */
+export interface UpdateOfferPayload {
+  title?: string;
+  totalQuantity?: number;
+  pricing?: { originalPrice: number; discountedPrice: number };
+}
+
 // ─── Donation Pool ──────────────────────────────────────────────────────────
 
 export type DonationPoolStatus = 'active' | 'funded' | 'distributed' | 'archived';

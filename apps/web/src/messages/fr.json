@@ -1760,7 +1760,17 @@
       "discountRangeError": "La remise doit être comprise entre 40% et 90%",
       "cancel": "Annuler",
       "reactivating": "Réactivation…",
-      "reactivate": "Réactiver"
+      "reactivate": "Réactiver",
+      "editTitle": "Modifier l'offre",
+      "editFieldTitle": "Titre",
+      "editFieldDescription": "Description",
+      "editFieldPrice": "Prix initial (TND)",
+      "editFieldQuantity": "Quantité",
+      "editFieldDiscount": "Réduction",
+      "editCustomerPays": "Le client paie",
+      "editCancel": "Annuler",
+      "editSave": "Enregistrer",
+      "editSaving": "Enregistrement…"
     },
     "impactCards": {
       "rescued": {

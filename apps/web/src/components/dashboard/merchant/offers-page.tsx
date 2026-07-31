@@ -28,8 +28,10 @@ import {
   useUpdateOfferStatus,
   useDeleteOffer,
   useReactivateOffer,
+  useUpdateOffer,
 } from '@/hooks/use-merchant-dashboard';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
+import { EditOfferModal } from '@/components/dashboard/merchant/edit-offer-modal';
 import { deriveUntilFromOffer } from '@/components/dashboard/merchant/reactivate-window';
 import type { ReactivateOfferPayload, MerchantOffer } from '@/types/dashboard';
 
@@ -204,6 +206,16 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
     return untilMinutes <= nowMinutes;
   }, [day, pickupUntil]);
 
+  // Escape closes it, as any dialog should, and as the backdrop's click handler
+  // cannot offer a keyboard user.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
   // Correct stale "from" value when day changes
   useEffect(() => {
     if (day === 'today') {
@@ -251,13 +263,20 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
     (day === 'tomorrow' || fromOptions.length > 0 || pickupFrom === 'now');
 
   return (
-    <div
-      className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm'
-      onClick={onClose}
-    >
+    <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+      {/* A button rather than a div with onClick: dismissing by backdrop has to
+          be reachable without a mouse, and Escape above covers the keyboard. */}
+      <button
+        type='button'
+        aria-label={t('merchantOffers.cancel')}
+        onClick={onClose}
+        className='absolute inset-0 bg-black/40 backdrop-blur-sm'
+      />
       <div
-        className='bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[90vh]'
-        onClick={e => e.stopPropagation()}
+        role='dialog'
+        aria-modal='true'
+        aria-label={t('merchantOffers.reactivateTitle')}
+        className='relative bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[90vh]'
       >
         {/* Header */}
         <div className='flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0'>
@@ -555,6 +574,7 @@ export function MerchantOffersView() {
   const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1);
   const [reactivateTarget, setReactivateTarget] = useState<MerchantOffer | null>(null);
+  const [editTarget, setEditTarget] = useState<MerchantOffer | null>(null);
 
   // ── Status counts (lightweight — limit=1, reads meta.total) ────────────────
   const activeCount = useOfferStatusCount('active').data ?? 0;
@@ -584,6 +604,7 @@ export function MerchantOffersView() {
   const updateStatus = useUpdateOfferStatus();
   const deleteOffer = useDeleteOffer();
   const reactivate = useReactivateOffer();
+  const updateOffer = useUpdateOffer();
   const anyPending = updateStatus.isPending || deleteOffer.isPending || reactivate.isPending;
 
   // ── Client-side filter + sort (applied on top of the server-paginated list) ─
@@ -647,6 +668,22 @@ export function MerchantOffersView() {
             reactivate.mutate(
               { offerId: reactivateTarget.id, payload },
               { onSuccess: () => setReactivateTarget(null) },
+            );
+          }}
+          t={t}
+        />
+      )}
+
+      {/* Edit modal */}
+      {editTarget && (
+        <EditOfferModal
+          offer={editTarget}
+          isPending={updateOffer.isPending}
+          onClose={() => setEditTarget(null)}
+          onConfirm={payload => {
+            updateOffer.mutate(
+              { offerId: editTarget.id, payload },
+              { onSuccess: () => setEditTarget(null) },
             );
           }}
           t={t}
@@ -855,6 +892,7 @@ export function MerchantOffersView() {
                 }
                 onDelete={() => deleteOffer.mutate(offer.id)}
                 onReactivate={() => setReactivateTarget(offer)}
+                onEdit={() => setEditTarget(offer)}
               />
             ))}
           </div>

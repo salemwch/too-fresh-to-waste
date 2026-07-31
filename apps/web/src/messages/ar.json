@@ -1760,7 +1760,17 @@
       "discountRangeError": "يجب أن يكون الخصم بين 40% و 90%",
       "cancel": "إلغاء",
       "reactivating": "جارٍ إعادة التفعيل…",
-      "reactivate": "إعادة تفعيل"
+      "reactivate": "إعادة تفعيل",
+      "editTitle": "تعديل العرض",
+      "editFieldTitle": "العنوان",
+      "editFieldDescription": "الوصف",
+      "editFieldPrice": "السعر الأصلي (د.ت)",
+      "editFieldQuantity": "الكمية",
+      "editFieldDiscount": "التخفيض",
+      "editCustomerPays": "يدفع الزبون",
+      "editCancel": "إلغاء",
+      "editSave": "حفظ التغييرات",
+      "editSaving": "جارٍ الحفظ…"
     },
     "impactCards": {
       "rescued": {

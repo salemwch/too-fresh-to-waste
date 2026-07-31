@@ -1761,7 +1761,17 @@
       "discountRangeError": "Discount must be between 40% and 90%",
       "cancel": "Cancel",
       "reactivating": "Reactivating…",
-      "reactivate": "Reactivate"
+      "reactivate": "Reactivate",
+      "editTitle": "Edit offer",
+      "editFieldTitle": "Title",
+      "editFieldDescription": "Description",
+      "editFieldPrice": "Original price (TND)",
+      "editFieldQuantity": "Quantity",
+      "editFieldDiscount": "Discount",
+      "editCustomerPays": "Customer pays",
+      "editCancel": "Cancel",
+      "editSave": "Save changes",
+      "editSaving": "Saving…"
     },
     "impactCards": {
       "rescued": {
