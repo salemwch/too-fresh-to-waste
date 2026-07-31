@@ -77,7 +77,19 @@ const config: KnipConfig = {
 
     // ─── Web (Next.js) ──────────────────────────────────────────────────────
     'apps/web': {
-      entry: ['src/app/**/layout.tsx', 'src/app/**/page.tsx', 'src/app/**/not-found.tsx'],
+      entry: [
+        'src/app/**/layout.tsx',
+        'src/app/**/page.tsx',
+        'src/app/**/not-found.tsx',
+        // Declared here rather than through the jest plugin: apps/web/jest.config.js
+        // calls next/jest, which resolves relative to process.cwd() and throws
+        // "Couldn't find any pages or app directory" when knip loads it from the
+        // repo root. The plugin then contributes nothing, and every test file
+        // gets reported as unused — along with the testing-library packages only
+        // those files import.
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.spec.{ts,tsx}',
+      ],
       project: ['src/**/*.{ts,tsx}'],
       next: true,
     },

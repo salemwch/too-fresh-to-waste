@@ -9,7 +9,7 @@ import type {
   DonationHistoryItem,
 } from '@/types/loyalty';
 
-export const loyaltyKeys = {
+const loyaltyKeys = {
   all: ['loyalty'] as const,
   account: () => [...loyaltyKeys.all, 'account'] as const,
   stats: () => [...loyaltyKeys.all, 'stats'] as const,

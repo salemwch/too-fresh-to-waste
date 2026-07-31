@@ -549,8 +549,6 @@ export const selectAuthUser = (state: RootState) => state.auth.user;
 export const selectAuthIsLoading = (state: RootState) => state.auth.isLoading;
 export const selectAuthError = (state: RootState) => state.auth.error;
 export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
-export const selectIsRecoveringSession = (state: RootState): boolean =>
-  state.auth.isRecoveringSession;
 
 // ── Re-exports ───────────────────────────────────────────────────────────────
 // The thunks moved to ./thunks during the split. Re-exported here so every

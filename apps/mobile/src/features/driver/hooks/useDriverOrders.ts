@@ -24,7 +24,7 @@ import {
  * Query key factory for driver data.
  * All keys nest under ['driver'] so one invalidate refreshes the whole feature.
  */
-export const driverOrdersKeys = {
+const driverOrdersKeys = {
   all: ['driver'] as const,
   profile: () => [...driverOrdersKeys.all, 'profile'] as const,
   available: (lat: number, lng: number) =>

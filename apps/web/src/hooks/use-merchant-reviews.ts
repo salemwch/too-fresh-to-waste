@@ -13,7 +13,7 @@ import type { PaginationMeta } from '@/types/dashboard';
 
 // ─── Query keys ─────────────────────────────────────────────────────────────
 
-export const reviewKeys = {
+const reviewKeys = {
   all: ['merchant-reviews'] as const,
   list: (page: number, limit: number, filters: string) =>
     [...reviewKeys.all, 'list', page, limit, filters] as const,

@@ -63,7 +63,7 @@ function idSetFor(ids: readonly string[]): ReadonlySet<string> {
  * would replace a good id set with nothing. When `enabled` is false the query
  * does not run and existing data stays put.
  */
-export function useFavoriteIds(): UseQueryResult<readonly string[]> {
+function useFavoriteIds(): UseQueryResult<readonly string[]> {
   const authState = useAppSelector(state => state.auth);
   const { isReady } = isAuthReadyForApiCalls(authState);
 
