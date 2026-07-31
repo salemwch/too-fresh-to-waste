@@ -96,6 +96,15 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
+  /**
+   * Same flex weight as a card, nothing drawn. Keeps a single remaining payment
+   * option the same width as the two-up rows around it — a lone `flex: 1` card
+   * would otherwise span the whole row and read as a different control.
+   */
+  paymentMethodCardSpacer: {
+    flex: 1,
+    flexBasis: 0,
+  },
   paymentMethodCard: {
     flex: 1,
     flexBasis: 0,

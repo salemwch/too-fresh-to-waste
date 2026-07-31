@@ -19,6 +19,8 @@ import type { CreateSurpriseBagPayload, OfferBagType } from '@/types/dashboard';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const MIN_DISCOUNT_PCT = 40;
+/** Matches @MinLength(20) on the backend CreateOfferDto. */
+const MIN_DESCRIPTION_CHARS = 20;
 const MAX_QUANTITY = 100;
 const MAX_PRICE = 100;
 const DISCOUNT_OPTIONS = [40, 50, 60, 70, 80, 90] as const;
@@ -112,12 +114,52 @@ function toISO(day: 'today' | 'tomorrow', hour: number, minute = 0, overflow = f
   return d.toISOString();
 }
 
-/** Minimum 20 chars required by the backend */
-function autoDescription(title: string, qty: number): string {
-  return (
-    `${title} — ${qty} handpicked surplus ${qty === 1 ? 'bag' : 'bags'} from our kitchen, ` +
-    `available for pickup. Fresh, delicious, and discounted — grab yours today!`
-  );
+/**
+ * The description a customer reads on the offer.
+ *
+ * One generic sentence used to be generated for all three types, which sold a
+ * surprise bag the same way as a named dish. They are not the same promise: a
+ * surprise bag's whole appeal is that nobody knows yet what will be left, and a
+ * description that glosses over it reads as vague rather than exciting. Each
+ * type gets copy that says what that type actually offers.
+ *
+ * Pre-filled, not imposed — the merchant edits it in the form below. Backend
+ * requires 20 characters minimum; all three clear that comfortably.
+ */
+function autoDescription(type: OfferBagType, title: string, qty: number): string {
+  const bags = qty === 1 ? 'bag' : 'bags';
+  const portions = qty === 1 ? 'portion' : 'portions';
+  const meals = qty === 1 ? 'meal' : 'meals';
+
+  switch (type) {
+    case 'surprise_bag':
+      return (
+        `We'd love to tell you exactly what's inside — but honestly, we don't know yet! ` +
+        `What's left at the end of the day is never the same twice, and that's the best part. ` +
+        `Whatever lands in your ${title.toLowerCase()}, it was made fresh today and it's far too ` +
+        `good to waste. ${qty} ${bags} waiting for someone curious.`
+      );
+
+    case 'specific_items':
+      return (
+        `${title} — exactly what you see, made fresh today and every bit as good as it was ` +
+        `this morning. The only thing that changed is the price. ` +
+        `${qty} ${portions} rescued before the day ends. Come and enjoy.`
+      );
+
+    case 'meal_deal':
+      return (
+        `A proper meal, ready when you are — ${title}. Everything you need for a full plate, ` +
+        `prepared fresh today and saved from the bin at the last minute. ` +
+        `${qty} ${meals} available while they last.`
+      );
+
+    default:
+      return (
+        `${title} — made fresh today and saved from going to waste. ` +
+        `${qty} available at a price that makes it easy to say yes.`
+      );
+  }
 }
 
 // ─── Validation ───────────────────────────────────────────────────────────────
@@ -129,6 +171,7 @@ function validatePublishForm({
   parsedPrice,
   discount,
   title,
+  description,
 }: {
   establishment: { _id?: string } | null | undefined;
   pickupFrom: string;
@@ -136,6 +179,7 @@ function validatePublishForm({
   parsedPrice: number;
   discount: number;
   title: string;
+  description: string;
 }): string | null {
   if (!establishment?._id)
     return 'Your establishment could not be found. Please refresh and try again.';
@@ -143,6 +187,10 @@ function validatePublishForm({
   if (parsedPrice <= 0) return 'Please enter a valid original price.';
   if (discount < MIN_DISCOUNT_PCT) return `Minimum allowed discount is ${MIN_DISCOUNT_PCT}%.`;
   if (title.trim().length < 5) return 'Item name must be at least 5 characters.';
+  // Backend requires 20; catching it here means a cleared box gets a sentence
+  // rather than a 400.
+  if (description.trim().length < MIN_DESCRIPTION_CHARS)
+    return `Description must be at least ${MIN_DESCRIPTION_CHARS} characters.`;
   return null;
 }
 
@@ -158,6 +206,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   const [title, setTitle] = useState(DEFAULT_TITLE);
   const [quantity, setQuantity] = useState(1);
   const [bagType, setBagType] = useState<OfferBagType>('surprise_bag');
+  const [description, setDescription] = useState(() =>
+    autoDescription('surprise_bag', DEFAULT_TITLE, 1),
+  );
+  // Once the merchant edits the text we stop regenerating it. Without this,
+  // switching type or renaming would silently discard what they wrote.
+  const [descriptionTouched, setDescriptionTouched] = useState(false);
   const [rawPrice, setRawPrice] = useState(DEFAULT_PRICE.toFixed(3));
   const [discount, setDiscount] = useState<number>(DEFAULT_DISCOUNT);
   const [pickupDay, setPickupDay] = useState<'today' | 'tomorrow'>('today');
@@ -253,12 +307,21 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     return () => document.removeEventListener('keydown', onKey);
   }, [open, customOpen, onClose]);
 
+  // Keep the suggestion in step with the type, title and quantity — until the
+  // merchant writes their own, at which point it is theirs and we leave it be.
+  useEffect(() => {
+    if (descriptionTouched) return;
+    setDescription(autoDescription(bagType, title.trim() || DEFAULT_TITLE, quantity));
+  }, [bagType, title, quantity, descriptionTouched]);
+
   // ── Reset on open ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) return;
     setTitle(DEFAULT_TITLE);
     setQuantity(1);
     setBagType('surprise_bag');
+    setDescription(autoDescription('surprise_bag', DEFAULT_TITLE, 1));
+    setDescriptionTouched(false);
     setRawPrice(DEFAULT_PRICE.toFixed(3));
     setDiscount(DEFAULT_DISCOUNT);
     setPickupDay('today');
@@ -336,6 +399,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       parsedPrice,
       discount,
       title,
+      description,
     });
     if (validationError) {
       setErrorMsg(validationError);
@@ -376,7 +440,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
     const payload: CreateSurpriseBagPayload = {
       title: title.trim(),
-      description: autoDescription(title.trim(), quantity),
+      description: description.trim(),
       establishmentId: establishment?._id ?? '',
       type: bagType,
       pricing: {
@@ -407,6 +471,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     discountedPrice,
     discount,
     title,
+    description,
     quantity,
     bagType,
     pickupDay,
@@ -480,6 +545,41 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
               className='w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
               placeholder='e.g. Delicious Surprise Bag'
             />
+          </div>
+
+          {/* Description — pre-written per type, the merchant's to change */}
+          <div className='space-y-1'>
+            <div className='flex items-center justify-between'>
+              <label
+                htmlFor='offer-description'
+                className='block text-xs font-semibold text-slate-700'
+              >
+                Description
+              </label>
+              {descriptionTouched && (
+                <button
+                  type='button'
+                  onClick={() => setDescriptionTouched(false)}
+                  className='text-[11px] font-medium text-primary hover:underline'
+                >
+                  Reset to suggestion
+                </button>
+              )}
+            </div>
+            <textarea
+              id='offer-description'
+              value={description}
+              onChange={e => {
+                setDescription(e.target.value);
+                setDescriptionTouched(true);
+              }}
+              rows={4}
+              maxLength={500}
+              className='w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+            />
+            <p className='text-[11px] text-slate-400'>
+              This is what customers read on your offer. {description.trim().length}/500
+            </p>
           </div>
 
           {/* Quantity + Offer Type */}

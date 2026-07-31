@@ -48,6 +48,9 @@ interface CheckoutScreenProps {
 
 const MAX_DELIVERY_KM = 5;
 
+/** Mirrors FLAT_DELIVERY_FEE in the backend order.service.ts. */
+const DELIVERY_FEE_TND = 4;
+
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
@@ -445,11 +448,14 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   }, [createdOrder, navigation, offerId, queryClient]);
 
   /**
-   * Calculate pricing
-   * 3 TND delivery fee applies when customer selects pay_on_delivery
+   * Calculate pricing.
+   *
+   * The fee is shown here and charged by the backend, so the two must agree —
+   * a customer who sees one total and is charged another has been misled. This
+   * mirrors FLAT_DELIVERY_FEE in order.service.ts; change both together.
    */
   const subtotal = offer ? offer.pricing.discountedPrice * quantity : 0;
-  const deliveryFee = selectedFulfillment === 'delivery' ? 3 : 0;
+  const deliveryFee = selectedFulfillment === 'delivery' ? DELIVERY_FEE_TND : 0;
   const total = subtotal + deliveryFee;
   const currency = offer?.pricing.currency ?? 'TND';
   const originalPrice = offer ? offer.pricing.originalPrice * quantity : 0;
@@ -732,6 +738,11 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   </Text>
                 </Pressable>
               )}
+
+              {/* Holds the second column open when online payment is switched
+                  off, so the lone cash card keeps the width of a card in the
+                  fulfilment row above instead of stretching across the screen. */}
+              {!onlinePaymentEnabled && <View style={styles.paymentMethodCardSpacer} />}
             </View>
           </View>
 
