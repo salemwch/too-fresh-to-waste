@@ -14,6 +14,14 @@ import { CycleStatus } from '@foodwaste/shared';
 import type { VotingCycleRow, CreateCyclePayload } from '@/types/voting';
 import { PrizeBuilder, DEFAULT_PRIZES, type PrizeFormItem } from './PrizeBuilder';
 
+// ─── Form defaults ────────────────────────────────────────────────────────────
+// Shared by a brand-new cycle and by an older one that predates the field, so
+// both land the admin on an editable number rather than an empty input.
+
+const DEFAULT_GOAL_TARGET = 30000;
+const DEFAULT_MINIMUM_BAGS = 50;
+const DEFAULT_RECIPIENT_COUNT = 5;
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface CycleFormDialogProps {
@@ -55,9 +63,9 @@ export function CycleFormDialog({
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [goalTarget, setGoalTarget] = useState(30000);
-  const [minimumBags, setMinimumBags] = useState(50);
-  const [recipientCount, setRecipientCount] = useState(5);
+  const [goalTarget, setGoalTarget] = useState(DEFAULT_GOAL_TARGET);
+  const [minimumBags, setMinimumBags] = useState(DEFAULT_MINIMUM_BAGS);
+  const [recipientCount, setRecipientCount] = useState(DEFAULT_RECIPIENT_COUNT);
   const [prizes, setPrizes] = useState<PrizeFormItem[]>(DEFAULT_PRIZES);
 
   // Sync state when editingCycle changes (or dialog opens for a new cycle)
@@ -66,9 +74,13 @@ export function CycleFormDialog({
       setName(editingCycle.name);
       setStartDate(toDateInput(editingCycle.cycleStartDate));
       setEndDate(toDateInput(editingCycle.cycleEndDate));
-      setGoalTarget(editingCycle.seasonBagTarget);
-      setMinimumBags(editingCycle.minimumBags);
-      setRecipientCount(editingCycle.recipientCount);
+      // A legacy cycle can be missing these entirely, and the number inputs
+      // below cannot hold `undefined` — they would flip to uncontrolled and warn.
+      // Falling back to the same defaults a new cycle starts from keeps the form
+      // editable, and the admin sees a value they can correct.
+      setGoalTarget(editingCycle.seasonBagTarget ?? DEFAULT_GOAL_TARGET);
+      setMinimumBags(editingCycle.minimumBags ?? DEFAULT_MINIMUM_BAGS);
+      setRecipientCount(editingCycle.recipientCount ?? DEFAULT_RECIPIENT_COUNT);
       setPrizes(
         editingCycle.prizes.map(p => ({
           name: p.name,
