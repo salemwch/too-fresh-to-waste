@@ -15,10 +15,8 @@ import {
 } from '../../establishments/schemas/establishment.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import { InitiatePaymentResponseDto, SubscriptionStatusResponseDto } from '../dto/subscription.dto';
+import { nextSubscriptionExpiry, toSubscriptionCycle } from '../subscription-period';
 import { KonnectService } from './konnect.service';
-
-const YEARLY_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
-const MONTHLY_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 
 const PRICES_MILLIMES: Record<'standard' | 'pro', Record<'monthly' | 'yearly', number>> = {
   standard: {
@@ -171,17 +169,14 @@ export class SubscriptionService {
     const tier = (establishment.get('pendingTier') === 'pro' ? 'pro' : 'standard') as
       | 'standard'
       | 'pro';
-    const cycle = (establishment.get('pendingCycle') === 'yearly' ? 'yearly' : 'monthly') as
-      | 'monthly'
-      | 'yearly';
-    const duration = cycle === 'yearly' ? YEARLY_DURATION_MS : MONTHLY_DURATION_MS;
+    const cycle = toSubscriptionCycle(establishment.get('pendingCycle'));
 
-    const baseDate =
-      establishment.subscriptionStatus === 'paid' && establishment.subscriptionExpiresAt
-        ? new Date(Math.max(establishment.subscriptionExpiresAt.getTime(), Date.now()))
-        : new Date();
+    // Only a still-running paid subscription carries days worth keeping; a
+    // lapsed or trial one restarts from now.
+    const currentExpiry =
+      establishment.subscriptionStatus === 'paid' ? establishment.subscriptionExpiresAt : undefined;
 
-    const subscriptionExpiresAt = new Date(baseDate.getTime() + duration);
+    const subscriptionExpiresAt = nextSubscriptionExpiry(cycle, currentExpiry);
 
     await this.establishmentModel
       .findByIdAndUpdate(establishment._id, {

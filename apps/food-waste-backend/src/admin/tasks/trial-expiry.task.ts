@@ -191,10 +191,24 @@ export class TrialExpiryTask {
   private async suspendExpiredSubscriptions(): Promise<void> {
     const now = new Date();
 
+    /*
+     * A paid subscription with no `subscriptionExpiresAt` used to be invisible
+     * here — `$lt` never matches a missing field — so it ran forever. Every paid
+     * establishment in production was in that state, granted by the admin
+     * `markAsPaid` path which set the status and no period.
+     *
+     * That path now writes a real expiry, and the backfill migration
+     * (scripts/migrations/backfill-subscription-expiry.ts) repaired the existing
+     * documents. This arm is the guard that keeps the state from coming back: a
+     * subscription whose end date cannot be read is not one we can honour.
+     *
+     * ORDER MATTERS ON DEPLOY: run the migration before this ships, or the scan
+     * suspends every merchant still missing the field.
+     */
     const expired = await this.establishmentModel
       .find({
         subscriptionStatus: 'paid',
-        subscriptionExpiresAt: { $lt: now },
+        $or: [{ subscriptionExpiresAt: { $lt: now } }, { subscriptionExpiresAt: null }],
       })
       .populate('ownerId', '_id email firstName lastName')
       .select('name ownerId subscriptionExpiresAt')

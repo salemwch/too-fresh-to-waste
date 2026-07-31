@@ -55,7 +55,9 @@
     "validate:env:prod": "NODE_ENV=production ts-node -r tsconfig-paths/register scripts/validate-env.ts .env.production",
     "deps:validate": "depcruise src --config .dependency-cruiser.js",
     "deps:report": "depcruise src --config .dependency-cruiser.js --output-type err-long",
-    "deps:graph": "depcruise src --config .dependency-cruiser.js --output-type dot | dot -T svg > dependency-graph.svg"
+    "deps:graph": "depcruise src --config .dependency-cruiser.js --output-type dot | dot -T svg > dependency-graph.svg",
+    "migration:backfill-subscription-expiry": "ts-node -r tsconfig-paths/register scripts/migrations/backfill-subscription-expiry.ts",
+    "migration:backfill-subscription-expiry:execute": "ts-node -r tsconfig-paths/register scripts/migrations/backfill-subscription-expiry.ts --execute"
   },
   "keywords": [],
   "author": "Salem wachwacha",
