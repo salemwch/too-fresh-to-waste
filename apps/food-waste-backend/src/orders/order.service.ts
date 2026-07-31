@@ -350,8 +350,9 @@ export class OrdersService {
         );
 
         // 5. Calculate pricing
-        // 3 TND delivery fee applies only when customer chooses pay_on_delivery
-        const DELIVERY_FEE = 3;
+        // Cash-on-delivery surcharge. Kept equal to FLAT_DELIVERY_FEE below so a
+        // customer is never quoted two different delivery prices in one order.
+        const DELIVERY_FEE = 4;
         const serviceFee = createOrderDto.paymentMethod === 'pay_on_delivery' ? DELIVERY_FEE : 0;
         const taxAmount = 0;
         const total = subtotal + serviceFee + taxAmount;
@@ -393,8 +394,8 @@ export class OrdersService {
             );
           }
 
-          const fee = this.configService.get<number>('FLAT_DELIVERY_FEE') ?? 3.0;
-          const driverEarnings = this.configService.get<number>('DRIVER_DELIVERY_EARNINGS') ?? 2.5;
+          const fee = this.configService.get<number>('FLAT_DELIVERY_FEE') ?? 4.0;
+          const driverEarnings = this.configService.get<number>('DRIVER_DELIVERY_EARNINGS') ?? 3.0;
 
           deliveryFields = {
             collectionStartTime,
