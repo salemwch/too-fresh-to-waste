@@ -99,9 +99,9 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
             className='object-contain'
           />
         </div>
-        <div className='leading-tight'>
-          <div className='font-display text-[15px] font-semibold'>Too Fresh</div>
-          <div className='text-[11px] text-white/55 -mt-0.5'>to Waste &middot; Admin</div>
+        {/* One line, one size, one colour — same as the merchant sidebar. */}
+        <div className='font-display text-[15px] font-semibold leading-tight'>
+          Too Fresh to Waste
         </div>
       </div>
 
