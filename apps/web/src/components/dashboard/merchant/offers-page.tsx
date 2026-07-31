@@ -30,6 +30,7 @@ import {
   useReactivateOffer,
 } from '@/hooks/use-merchant-dashboard';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
+import { deriveUntilFromOffer } from '@/components/dashboard/merchant/reactivate-window';
 import type { ReactivateOfferPayload, MerchantOffer } from '@/types/dashboard';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -171,9 +172,11 @@ interface ReactivateModalProps {
 }
 
 function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: ReactivateModalProps) {
-  const [day, setDay] = useState<'today' | 'tomorrow'>('tomorrow');
-  const [pickupFrom, setFrom] = useState('12:00');
-  const [pickupUntil, setUntil] = useState('14:00');
+  // Opens on "today, starting now, for as long as this offer ran last time", so
+  // the common case is read-and-confirm rather than re-entering the same values.
+  const [day, setDay] = useState<'today' | 'tomorrow'>('today');
+  const [pickupFrom, setFrom] = useState('now');
+  const [pickupUntil, setUntil] = useState(() => deriveUntilFromOffer(offer));
   const [quantity, setQty] = useState(offer.totalQuantity ?? 5);
   const [rawOriginalPrice, setRawOriginalPrice] = useState(offer.pricing.originalPrice.toFixed(3));
   const [discount, setDiscount] = useState<number>(() => {
