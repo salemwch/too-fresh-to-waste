@@ -43,6 +43,63 @@ export interface NavGroup {
   items: NavItem[];
 }
 
+/**
+ * Keep only the destinations `role` is allowed to reach, dropping groups left
+ * with nothing in them.
+ *
+ * Every item already declares its `roles`, but the admin shell used to hand the
+ * raw list to the sidebar, so a moderator saw all 23 entries when the backend
+ * grants them 6. Clicking any of the other 17 produced a 403 from a screen that
+ * looked available — the navigation promised authority the server was always
+ * going to refuse.
+ *
+ * This is presentation, not protection: the real gate is the backend's @Roles
+ * guards, plus RoleGuard on the route group. Hiding a link never makes an
+ * endpoint safe.
+ */
+export function filterNavGroupsByRole(groups: NavGroup[], role: UserRole | undefined): NavGroup[] {
+  if (!role) return [];
+
+  return groups
+    .map(group => ({ ...group, items: group.items.filter(item => item.roles.includes(role)) }))
+    .filter(group => group.items.length > 0);
+}
+
+/**
+ * Whether `role` may open `pathname`, judged by the nav entry that owns it.
+ *
+ * Matching is by longest href prefix, so detail routes inherit their section's
+ * rule — /admin/users/42 is governed by the /admin/users entry. A path no entry
+ * claims is allowed: the nav does not describe every route, and this must not
+ * become a second, half-complete access list that silently locks people out of
+ * pages nobody remembered to add.
+ *
+ * Presentation again, not protection. Hiding the link stops the accident;
+ * this stops the typed URL; only the backend's @Roles guards stop an attacker.
+ *
+ * `pathname` must already have the locale prefix stripped — use `usePathname`
+ * from `@/i18n/routing`, not `next/navigation`.
+ */
+export function isNavPathAllowedForRole(
+  groups: NavGroup[],
+  pathname: string,
+  role: UserRole | undefined,
+): boolean {
+  if (!role) return false;
+
+  let owner: NavItem | undefined;
+  for (const group of groups) {
+    for (const item of group.items) {
+      const matches = pathname === item.href || pathname.startsWith(`${item.href}/`);
+      if (matches && (!owner || item.href.length > owner.href.length)) {
+        owner = item;
+      }
+    }
+  }
+
+  return owner ? owner.roles.includes(role) : true;
+}
+
 export const merchantNavItems: NavItem[] = [
   {
     titleKey: 'dashboard',

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 import { AuthGuard } from '@/components/guards/auth-guard';
@@ -10,21 +11,28 @@ import { LanguageSwitcherCompact } from '@/components/LanguageSwitcher';
 import { Breadcrumbs } from '@/components/dashboard/breadcrumbs';
 import { UserNav } from '@/components/dashboard/user-nav';
 import { NotificationBell } from '@/components/dashboard/notification-panel';
-import { adminNavGroups } from '@/config/navigation.config';
+import {
+  adminNavGroups,
+  filterNavGroupsByRole,
+  isNavPathAllowedForRole,
+} from '@/config/navigation.config';
+import { usePathname, useRouter } from '@/i18n/routing';
+import { useAuthStore } from '@/lib/auth';
 import { UserRole } from '@foodwaste/shared';
+import type { NavGroup } from '@/config/navigation.config';
 
 interface AdminLayoutShellProps {
   children: React.ReactNode;
   collapsedGroups: string[];
 }
 
-function AdminHeader() {
+function AdminHeader({ navGroups }: { navGroups: NavGroup[] }) {
   const t = useTranslations('dashboard');
 
   return (
     <header className='shrink-0 z-40 bg-white border-b border-slate-100 px-3 lg:px-5 py-1 lg:py-2 flex items-center justify-between gap-2'>
       <div className='flex items-center gap-1.5'>
-        <AdminMobileNav groups={adminNavGroups} />
+        <AdminMobileNav groups={navGroups} />
         <div className='hidden sm:block'>
           <Breadcrumbs />
         </div>
@@ -53,16 +61,35 @@ function AdminHeader() {
 }
 
 export function AdminLayoutShell({ children, collapsedGroups }: AdminLayoutShellProps) {
+  const { user } = useAuthStore();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Memoised because it rebuilds every group and item array: a fresh identity on
+  // each render would defeat any memoisation inside the sidebar and mobile nav.
+  const navGroups = useMemo(() => filterNavGroupsByRole(adminNavGroups, user?.role), [user?.role]);
+
+  // Hiding a link stops the accident; this stops the typed URL. Waits for the
+  // user to resolve, otherwise the first render — before auth rehydrates —
+  // would bounce an admin off their own page.
+  const isAllowed = user ? isNavPathAllowedForRole(adminNavGroups, pathname, user.role) : true;
+
+  useEffect(() => {
+    if (!isAllowed) router.replace('/admin/dashboard');
+  }, [isAllowed, router]);
+
   return (
     <AuthGuard>
       <RoleGuard allowedRoles={[UserRole.ADMIN, UserRole.MODERATOR]}>
         <div className='fixed inset-0 flex bg-background'>
-          <AdminSidebar groups={adminNavGroups} collapsedGroups={collapsedGroups} />
+          <AdminSidebar groups={navGroups} collapsedGroups={collapsedGroups} />
 
           <div className='flex flex-1 flex-col min-w-0'>
-            <AdminHeader />
+            <AdminHeader navGroups={navGroups} />
             <main className='flex-1 overflow-y-auto overscroll-contain min-h-0 p-4 lg:p-6'>
-              {children}
+              {/* Withheld while the redirect above runs, so a forbidden page never
+                  paints — and never fires its data hooks into a wall of 403s. */}
+              {isAllowed ? children : null}
             </main>
           </div>
         </div>
