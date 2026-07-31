@@ -14,6 +14,7 @@ import type {
   MyEstablishment,
   CreateSurpriseBagPayload,
   ReactivateOfferPayload,
+  UpdateOfferPayload,
   DonationStats,
   EsgTierResponse,
   MonthlyGoalResponse,
@@ -278,6 +279,22 @@ export function useReactivateOffer() {
   return useMutation({
     mutationFn: ({ offerId, payload }: { offerId: string; payload: ReactivateOfferPayload }) =>
       dashboardService.reactivateOffer(offerId, payload),
+    onSuccess: () => invalidateOfferCaches(queryClient),
+  });
+}
+
+/**
+ * Correct an offer that is still running.
+ *
+ * Shares invalidateOfferCaches with reactivate because an edit moves the same
+ * things a reactivation does — price, quantity, pickup window — and the offer
+ * appears in the list, the counts and the dashboard alike.
+ */
+export function useUpdateOffer() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ offerId, payload }: { offerId: string; payload: UpdateOfferPayload }) =>
+      dashboardService.updateOffer(offerId, payload),
     onSuccess: () => invalidateOfferCaches(queryClient),
   });
 }

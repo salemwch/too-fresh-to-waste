@@ -13,6 +13,7 @@ import type {
   CreateSurpriseBagPayload,
   CreatedOfferResponse,
   ReactivateOfferPayload,
+  UpdateOfferPayload,
   DonationStats,
   MonthlyBagGoalStats,
   EsgTierResponse,
@@ -239,6 +240,22 @@ export const dashboardService = {
       `${OFFERS_BASE}/${offerId}/reactivate`,
       payload,
     );
+  },
+
+  /**
+   * PATCH /offers/:id
+   * Corrects a live or draft offer in place.
+   *
+   * Distinct from reactivateOffer, which opens a *new* availability window on a
+   * finished offer. This one edits an offer that is still running, so a merchant
+   * who mistyped a price or a quantity can fix it rather than cancel and repost.
+   *
+   * The endpoint is declared multipart because it also accepts image uploads.
+   * Multer ignores a request that is not multipart, so a plain JSON body still
+   * reaches `@Body()` — images are edited elsewhere.
+   */
+  updateOffer(offerId: string, payload: UpdateOfferPayload) {
+    return apiClient.patch<BackendEnvelope<MerchantOffer>>(`${OFFERS_BASE}/${offerId}`, payload);
   },
 
   // ── Donation Pool ──────────────────────────────────────────────────────

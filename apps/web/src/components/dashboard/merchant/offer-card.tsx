@@ -53,6 +53,7 @@ interface OfferCardProps {
   onCancelOffer: () => void;
   onDelete: () => void;
   onReactivate: () => void;
+  onEdit: () => void;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -66,6 +67,7 @@ export function OfferCard({
   onCancelOffer,
   onDelete,
   onReactivate,
+  onEdit,
 }: OfferCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -119,7 +121,7 @@ export function OfferCard({
               <Lock className='h-3 w-3' /> Publish — needs approval
             </button>
           )}
-          <button type='button' className={cn(btn, sec)}>
+          <button type='button' onClick={onEdit} className={cn(btn, sec)}>
             <Edit3 className='h-3 w-3' /> Edit
           </button>
           <button
@@ -153,7 +155,7 @@ export function OfferCard({
           >
             Stop Sales
           </button>
-          <button type='button' className={cn(btn, sec)}>
+          <button type='button' onClick={onEdit} className={cn(btn, sec)}>
             <Edit3 className='h-3 w-3' /> Edit
           </button>
           <button
