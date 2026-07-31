@@ -453,6 +453,40 @@ pnpm --filter @foodwaste/backend db:audit-indexes       # $indexStats usage, bef
 - **Dropping is always manual.** `create-indexes` only adds. Check
   `db:audit-indexes` for real usage first.
 
+### `required: true` does nothing for documents already written
+
+`required` is a **write** validator. It rejects a bad `save()`; it says nothing
+about what is already in the collection. So adding a required field to a schema
+that already has documents leaves every one of them without that key, and
+`.toLocaleString()`, `.map()` or `.length` on it throws.
+
+That is not theoretical: `seasonBagTarget` on `VotingCycle` was
+`@Prop({ required: true })` with no default, and one legacy cycle took the whole
+admin voting page down — React unmounted the route, so nobody could open the
+screen at all.
+
+- **Give the prop a `default`.** Mongoose hydrates a missing path from the
+  default on read, which makes every future read safe. Without one there is
+  nothing to hydrate from. `minimumBags` and `recipientCount` sit in that same
+  schema and were never affected, precisely because they declare defaults.
+- **A default does not touch stored documents.** It fixes reads from then on;
+  the rows already written still need a backfill migration — see
+  `scripts/migrations/backfill-season-bag-target.ts`.
+- **Find the real ones before writing migrations.** A static sweep of the source
+  finds 272 required-without-default props across 58 schemas, nearly all
+  harmless. Only the database knows which are actually absent:
+
+```bash
+pnpm --filter @foodwaste/backend audit:missing-required            # every model
+pnpm --filter @foodwaste/backend audit:missing-required -- --model=VotingCycle
+```
+
+- **Do not let the frontend type claim more than the API delivers.** The web
+  `VotingCycleRow` declared these counters as plain `number`, so nothing had to
+  handle their absence. Marking them optional turned the compiler into the
+  search and surfaced fourteen unguarded reads, six of them in components that
+  had not crashed _yet_. Read counts through `formatCount` from `@/lib/format`.
+
 ### Embedded arrays — cap them or move them out
 
 An array that grows per event has two valid shapes. Pick one; never leave it

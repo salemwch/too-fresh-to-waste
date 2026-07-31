@@ -55,7 +55,18 @@ export class VotingCycle {
   @Prop({ type: Date, required: true })
   cycleEndDate!: Date;
 
-  @Prop({ required: true })
+  /**
+   * Bags the community must save for the season's prize to unlock.
+   *
+   * The default is not decoration. `required` is a write validator, so it does
+   * nothing for documents already stored, and without a default Mongoose has
+   * nothing to hydrate a missing path with — cycles written before this field
+   * existed came back `undefined` and crashed the admin voting page on
+   * `.toLocaleString()`. A default makes every future read safe; the cycles
+   * already written are handled by
+   * `scripts/migrations/backfill-season-bag-target.ts`.
+   */
+  @Prop({ required: true, default: 30000 })
   seasonBagTarget!: number;
 
   @Prop({ type: Date })
