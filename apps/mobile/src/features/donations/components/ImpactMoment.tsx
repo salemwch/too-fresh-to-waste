@@ -6,7 +6,16 @@
 
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, Modal, Animated, Easing, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  Animated,
+  Easing,
+  Dimensions,
+  Pressable,
+} from 'react-native';
 import { colorTokens } from '@/design-system/tokens/colors';
 
 interface ImpactMomentProps {
@@ -29,6 +38,7 @@ const COLORS = {
   success: colorTokens.base.success[500],
   textMuted: '#9CA3AF',
   surfaceMuted: '#F3F4F6',
+  primary: colorTokens.base.primary[500],
 } as const;
 
 const SPARKLE = '\u2728';
@@ -103,16 +113,8 @@ const ImpactMomentComponent = ({
           ]),
         ),
       ]).start();
-
-      const timer = setTimeout(() => {
-        handleDismiss();
-      }, 3000);
-
-      return () => clearTimeout(timer);
     }
-
-    return undefined;
-  }, [visible, heartScale, fadeAnim, sparkleAnim, handleDismiss]);
+  }, [visible, heartScale, fadeAnim, sparkleAnim]);
 
   const sparkleOpacity = useMemo(
     () =>
@@ -166,7 +168,18 @@ const ImpactMomentComponent = ({
             <Text style={styles.mealsText}>{mealsSummary}</Text>
           </View>
 
-          <Text style={styles.dismissText}>{t('donations.autoClosing', { seconds: 3 })}</Text>
+          {/* Stays until the customer closes it. This is the one screen that
+              tells them their order fed someone — three seconds was not long
+              enough to read the amount, let alone take it in. */}
+          <Pressable
+            onPress={handleDismiss}
+            style={styles.dismissButton}
+            accessibilityRole='button'
+            accessibilityLabel={t('donations.close')}
+            accessibilityHint={t('donations.closeHint')}
+          >
+            <Text style={styles.dismissButtonText}>{t('donations.close')}</Text>
+          </Pressable>
         </View>
       </Animated.View>
     </Modal>
@@ -256,11 +269,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.success,
   },
-  dismissText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 16,
-    fontStyle: 'italic',
+  dismissButton: {
+    marginTop: 20,
+    alignSelf: 'stretch',
+    paddingVertical: 13,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+  },
+  dismissButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.surface,
   },
 });
 

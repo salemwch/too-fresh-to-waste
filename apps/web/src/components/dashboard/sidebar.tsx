@@ -60,9 +60,11 @@ export function Sidebar({ items }: SidebarProps) {
             className='object-contain'
           />
         </div>
-        <div className='leading-tight'>
-          <div className='font-display text-[15px] font-semibold'>Too Fresh</div>
-          <div className='text-[11px] text-white/55 -mt-0.5'>to Waste · Merchant</div>
+        {/* One line, one size, one colour. It was split across two lines with
+            "to Waste" at 11px in white/55, which read as a tagline under a
+            product called "Too Fresh" rather than as the brand name. */}
+        <div className='font-display text-[15px] font-semibold leading-tight'>
+          Too Fresh to Waste
         </div>
       </div>
 
