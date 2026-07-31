@@ -734,7 +734,6 @@
     "toFeedingSomeone": "لإطعام شخص محتاج",
     "togetherDonated": "تبرّعنا معاً بـ:",
     "mealsSummary": "هذا يعادل {{count}} وجبة!",
-    "autoClosing": "إغلاق تلقائي خلال {{seconds}} ثوانٍ...",
     "togetherWeGive": "معاً نعطي",
     "everyOrderContributes": "كل طلب يساهم في مساعدة المحتاجين",
     "tndRaised": "{{currency}} تم جمعها",
@@ -743,7 +742,9 @@
     "overallProgress": "التقدّم الإجمالي",
     "goalProgress": "{{current}} / {{target}} {{currency}} الهدف",
     "donationCategories": "فئات التبرّع",
-    "fundsAllocated": "تُخصَّص الأموال لهدف الفئة النشطة"
+    "fundsAllocated": "تُخصَّص الأموال لهدف الفئة النشطة",
+    "close": "إغلاق",
+    "closeHint": "يغلق رسالة الشكر هذه"
   },
   "location": {
     "enableLocation": "تفعيل الموقع",

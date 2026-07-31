@@ -734,7 +734,6 @@
     "toFeedingSomeone": "to feeding someone in need",
     "togetherDonated": "Together we've donated:",
     "mealsSummary": "That's {{count}} meals!",
-    "autoClosing": "Auto-closing in {{seconds}}s...",
     "togetherWeGive": "Together We Give",
     "everyOrderContributes": "Every order contributes to those in need",
     "tndRaised": "{{currency}} Raised",
@@ -743,7 +742,9 @@
     "overallProgress": "Overall Progress",
     "goalProgress": "{{current}} / {{target}} {{currency}} goal",
     "donationCategories": "Donation Categories",
-    "fundsAllocated": "Funds are allocated to the active category goal"
+    "fundsAllocated": "Funds are allocated to the active category goal",
+    "close": "Close",
+    "closeHint": "Closes this thank-you message"
   },
   "location": {
     "enableLocation": "Enable Location",

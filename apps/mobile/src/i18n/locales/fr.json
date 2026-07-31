@@ -734,7 +734,6 @@
     "toFeedingSomeone": "pour nourrir une personne dans le besoin",
     "togetherDonated": "Ensemble, nous avons donné :",
     "mealsSummary": "Cela représente {{count}} repas !",
-    "autoClosing": "Fermeture automatique dans {{seconds}} s...",
     "togetherWeGive": "Ensemble, nous donnons",
     "everyOrderContributes": "Chaque commande aide ceux qui en ont besoin",
     "tndRaised": "{{currency}} collectés",
@@ -743,7 +742,9 @@
     "overallProgress": "Progression globale",
     "goalProgress": "{{current}} / {{target}} {{currency}} objectif",
     "donationCategories": "Catégories de dons",
-    "fundsAllocated": "Les fonds sont alloués à l’objectif de la catégorie active"
+    "fundsAllocated": "Les fonds sont alloués à l’objectif de la catégorie active",
+    "close": "Fermer",
+    "closeHint": "Ferme ce message de remerciement"
   },
   "location": {
     "enableLocation": "Activer la localisation",
