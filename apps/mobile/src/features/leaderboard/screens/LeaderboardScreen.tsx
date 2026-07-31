@@ -37,6 +37,8 @@ import {
   useClaimVotingPrize,
   votingPrizeToClaimData,
 } from '@/features/voting/hooks/useVotingPrize';
+import { useActiveVotingCycle } from '@/features/voting/hooks/useVoting';
+import { getBallotPrizeRows, getGrandPrizePresentation } from '../utils/prizePresentation';
 import {
   BG_DARK,
   CHAMPION_GOLD,
@@ -83,6 +85,18 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   // claim the same season twice — once from each screen.
   const claimGrandPrize = useClaimVotingPrize();
   const claimDiscount = useClaimDiscount();
+
+  /**
+   * The season's ballot: which prize it elected, and everything that was on it.
+   *
+   * Not gated on `challengeEnded` like the claim status above, because the tier
+   * card and the info modal have to be right for the whole season — someone
+   * asking what they can win on day two is exactly who this is for. The cycle is
+   * already fetched by the voting screen, so React Query serves it from cache.
+   */
+  const { cycle: activeCycle } = useActiveVotingCycle();
+  const grandPrize = useMemo(() => getGrandPrizePresentation(activeCycle), [activeCycle]);
+  const ballotPrizes = useMemo(() => getBallotPrizeRows(activeCycle), [activeCycle]);
 
   const firstName = user?.firstName ?? '';
 
@@ -196,7 +210,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
       <View>
         <ChallengeHeader endDate={goal?.endDate} onInfoPress={openPrizeModal} />
 
-        <PrizeTierCards userTier={userTier} prizeRanks={prizeRanks} />
+        <PrizeTierCards userTier={userTier} prizeRanks={prizeRanks} grandPrize={grandPrize} />
 
         {/* Block 3: Podium */}
         {allEntries.length >= 2 && <PodiumTop5 entries={allEntries} />}
@@ -227,6 +241,7 @@ export const LeaderboardScreen: React.FC<Props> = () => {
       handleRetry,
       userTier,
       prizeRanks,
+      grandPrize,
       data,
       t,
       openPrizeModal,
@@ -248,6 +263,8 @@ export const LeaderboardScreen: React.FC<Props> = () => {
             : null
         }
         prizeRanks={prizeRanks}
+        grandPrize={grandPrize}
+        ballotPrizes={ballotPrizes}
       />
       <WinnerCelebrationModal
         visible={showWinnerModal}

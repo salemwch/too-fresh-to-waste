@@ -25,6 +25,8 @@ import {
 } from '../../constants/palette';
 import { DEFAULT_PRIZE_RANKS, firstDiscountRank } from '../../utils/prizeTiers';
 
+import type { GrandPrizePresentation, PrizeRow } from '../../utils/prizePresentation';
+
 /** Minimum bottom padding when the device has no home indicator. */
 const MIN_BOTTOM_PAD = 24;
 
@@ -98,6 +100,31 @@ const styles = StyleSheet.create({
   tierRank: { fontSize: 12, color: PRIMARY, fontWeight: '600', marginBottom: 4 },
   tierDesc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 19 },
   note: { fontSize: 13, color: TEXT_TERTIARY, lineHeight: 19, marginBottom: 12 },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    marginBottom: 6,
+  },
+  prizeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  prizeEmoji: { fontSize: 20, width: 26, textAlign: 'center' },
+  prizeName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
+  prizeValue: { fontSize: 12, color: TEXT_TERTIARY, marginTop: 1 },
+  electedBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: PRIMARY,
+    backgroundColor: `${PRIMARY}12`,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
   btn: {
     backgroundColor: BG_DARK,
     borderRadius: 14,
@@ -115,13 +142,22 @@ export interface PrizeInfoModalProps {
   daysLeft: number | null;
   /** How many top ranks win the grand prize this season. */
   prizeRanks?: number;
+  /** The prize this season elected, or the undecided placeholder. */
+  grandPrize?: GrandPrizePresentation;
+  /** Everything on this season's ballot — what the user can actually win. */
+  ballotPrizes?: PrizeRow[];
 }
+
+const UNDECIDED_PRIZE: GrandPrizePresentation = { icon: '🏆', name: null };
+const NO_PRIZES: PrizeRow[] = [];
 
 export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({
   visible,
   onClose,
   daysLeft,
   prizeRanks = DEFAULT_PRIZE_RANKS,
+  grandPrize = UNDECIDED_PRIZE,
+  ballotPrizes = NO_PRIZES,
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -166,15 +202,19 @@ export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({
 
             <View style={styles.tier}>
               <View style={[styles.tierIcon, styles.tierIconPhone]}>
-                <Text style={styles.tierEmoji}>📱</Text>
+                <Text style={styles.tierEmoji}>{grandPrize.icon}</Text>
               </View>
               <View style={styles.tierInfo}>
-                <Text style={styles.tierTitle}>{t('leaderboard.prizeSmartphone')}</Text>
+                <Text style={styles.tierTitle}>
+                  {grandPrize.name ?? t('leaderboard.prizeVotedByCommunity')}
+                </Text>
                 <Text style={styles.tierRank}>
-                  {t('leaderboard.prizeSmartphoneRank', { count: prizeRanks })}
+                  {t('leaderboard.grandPrizeRank', { count: prizeRanks })}
                 </Text>
                 <Text style={styles.tierDesc}>
-                  {t('leaderboard.prizeSmartphoneDesc', { count: prizeRanks })}
+                  {grandPrize.name
+                    ? t('leaderboard.grandPrizeDesc', { count: prizeRanks })
+                    : t('leaderboard.grandPrizeUndecidedDesc', { count: prizeRanks })}
                 </Text>
               </View>
             </View>
@@ -191,6 +231,30 @@ export const PrizeInfoModal: React.FC<PrizeInfoModalProps> = ({
                 <Text style={styles.tierDesc}>{t('leaderboard.prizeDiscountDesc')}</Text>
               </View>
             </View>
+
+            {/* What is actually on offer. Read from the season's own ballot, so a
+                prize added by an admin appears here without an app release. */}
+            {ballotPrizes.length > 0 && (
+              <>
+                <View style={styles.divider} />
+                <Text style={styles.sectionTitle}>{t('leaderboard.whatYouCanWin')}</Text>
+                <Text style={styles.note}>
+                  {t('leaderboard.ballotExplainer', { count: ballotPrizes.length })}
+                </Text>
+                {ballotPrizes.map(prize => (
+                  <View key={prize.id} style={styles.prizeRow}>
+                    <Text style={styles.prizeEmoji}>{prize.icon}</Text>
+                    <View style={styles.tierInfo}>
+                      <Text style={styles.prizeName}>{prize.name}</Text>
+                      {prize.value ? <Text style={styles.prizeValue}>{prize.value}</Text> : null}
+                    </View>
+                    {prize.isElected && (
+                      <Text style={styles.electedBadge}>{t('leaderboard.electedBadge')}</Text>
+                    )}
+                  </View>
+                ))}
+              </>
+            )}
 
             <View style={styles.divider} />
             <Text style={styles.note}>{t('leaderboard.rankingNote')}</Text>
