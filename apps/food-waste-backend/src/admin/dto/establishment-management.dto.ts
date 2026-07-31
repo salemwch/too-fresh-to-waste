@@ -9,6 +9,7 @@ import {
   IsBoolean,
   IsDateString,
   IsInt,
+  IsIn,
   Min,
   Max,
 } from 'class-validator';
@@ -227,6 +228,27 @@ export class ExtendTrialDto {
 }
 
 export class MarkAsPaidDto {
+  @ApiPropertyOptional({
+    description:
+      'Billing period being granted. Monthly is 30 days, yearly is 365. ' +
+      'Defaults to monthly — the shorter grant, so an omitted value cannot ' +
+      'hand out a free year.',
+    enum: ['monthly', 'yearly'],
+    example: 'monthly',
+  })
+  @IsOptional()
+  @IsIn(['monthly', 'yearly'])
+  cycle?: 'monthly' | 'yearly';
+
+  @ApiPropertyOptional({
+    description: 'Subscription tier being granted. Defaults to standard.',
+    enum: ['standard', 'pro'],
+    example: 'standard',
+  })
+  @IsOptional()
+  @IsIn(['standard', 'pro'])
+  tier?: 'standard' | 'pro';
+
   @ApiPropertyOptional({
     description: 'Internal admin notes for audit log',
     maxLength: 1000,

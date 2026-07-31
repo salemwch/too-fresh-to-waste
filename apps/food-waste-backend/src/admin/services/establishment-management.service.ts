@@ -54,6 +54,10 @@ import {
   ExtendTrialDto,
   MarkAsPaidDto,
 } from '../dto/establishment-management.dto';
+import {
+  nextSubscriptionExpiry,
+  toSubscriptionCycle,
+} from '../../subscription/subscription-period';
 import { AdminAction } from '../interfaces/admin-analytics.interface';
 import { IEstablishmentManagementService } from '../interfaces/establishment-management.service.interface';
 import { AdminAuditLogDocument } from '../schemas/admin-audit-log.schema';
@@ -1819,10 +1823,18 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
   }
 
   /**
-   * Marks a merchant as paid (bypasses the trial scanner). Sets
-   * `subscriptionStatus = 'paid'` and clears `trialEndsAt`. Merchants in this
-   * state are excluded from the daily expiry scan forever (until manually
-   * reverted to trial via another admin action).
+   * Grants a paid subscription without going through Konnect — a merchant who
+   * paid by transfer, or a partner on an agreed arrangement.
+   *
+   * It used to set `subscriptionStatus = 'paid'` and stop there. The daily scan
+   * selects `{ subscriptionStatus: 'paid', subscriptionExpiresAt: { $lt: now } }`
+   * and a missing field never satisfies `$lt`, so every merchant granted this way
+   * was subscribed for life. Both paid establishments in production were in that
+   * state, neither having ever paid through the gateway.
+   *
+   * It now grants a real period, computed by the same function the webhook uses.
+   * Renewing before the current expiry extends it rather than resetting it, so an
+   * admin recording an early payment does not shorten what the merchant has.
    */
   async markAsPaid(
     establishmentId: string,
@@ -1839,8 +1851,20 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
 
     const previousSubscriptionStatus = establishment.subscriptionStatus;
     const previousTrialEndsAt = establishment.trialEndsAt;
+    const previousExpiresAt = establishment.subscriptionExpiresAt;
+
+    const cycle = toSubscriptionCycle(markAsPaidDto.cycle);
+    const tier = markAsPaidDto.tier === 'pro' ? 'pro' : 'standard';
+
+    // Same rule as the Konnect webhook: extend a live subscription, restart a
+    // lapsed one. Anything not currently 'paid' has no period worth keeping.
+    const currentExpiry =
+      establishment.subscriptionStatus === 'paid' ? establishment.subscriptionExpiresAt : undefined;
 
     establishment.subscriptionStatus = 'paid';
+    establishment.subscriptionTier = tier;
+    establishment.subscriptionCycle = cycle;
+    establishment.subscriptionExpiresAt = nextSubscriptionExpiry(cycle, currentExpiry);
     delete (establishment as { trialEndsAt?: Date }).trialEndsAt;
     delete (establishment as { trialExpiringNotifiedAt?: Date }).trialExpiringNotifiedAt;
     if (!establishment.isActive) {
@@ -1860,9 +1884,15 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       previousValue: {
         subscriptionStatus: previousSubscriptionStatus,
         trialEndsAt: previousTrialEndsAt,
+        subscriptionExpiresAt: previousExpiresAt,
       },
       newValue: {
         subscriptionStatus: 'paid',
+        subscriptionTier: tier,
+        subscriptionCycle: cycle,
+        // The granted period is the point of the action — an audit that omits it
+        // cannot answer "what did this admin actually give away".
+        subscriptionExpiresAt: updatedEstablishment.subscriptionExpiresAt,
         adminNotes: markAsPaidDto.adminNotes,
       },
       reason: markAsPaidDto.adminNotes,
