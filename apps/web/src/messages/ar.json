@@ -552,7 +552,9 @@
         "terminate": "إنهاء",
         "terminateSuccess": "تم إنهاء الجلسة",
         "noSessions": "لا توجد جلسات نشطة أخرى",
-        "error": "فشل تحميل الجلسات"
+        "error": "فشل تحميل الجلسات",
+        "unknownDevice": "جهاز غير معروف",
+        "lastActiveUnknown": "تاريخ النشاط غير متوفر"
       }
     },
     "logout": "تسجيل الخروج",

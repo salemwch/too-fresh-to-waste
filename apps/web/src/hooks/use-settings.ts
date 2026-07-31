@@ -59,7 +59,9 @@ export function useSessions() {
     queryKey: settingsKeys.sessions(),
     queryFn: async (): Promise<ActiveSession[]> => {
       const response = await settingsService.getSessions();
-      return response.data.data;
+      // The endpoint answers { success, sessions } with no data key, so the
+      // interceptor wraps that object whole — the array is one level deeper.
+      return response.data.data?.sessions ?? [];
     },
     staleTime: 60 * 1000,
   });

@@ -552,7 +552,9 @@
         "terminate": "Terminer",
         "terminateSuccess": "Session terminée",
         "noSessions": "Aucune autre session active",
-        "error": "Échec du chargement des sessions"
+        "error": "Échec du chargement des sessions",
+        "unknownDevice": "Appareil inconnu",
+        "lastActiveUnknown": "Date d'activité indisponible"
       }
     },
     "logout": "Se déconnecter",

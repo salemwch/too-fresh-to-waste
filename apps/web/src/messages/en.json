@@ -552,7 +552,9 @@
         "terminate": "Terminate",
         "terminateSuccess": "Session terminated",
         "noSessions": "No other active sessions",
-        "error": "Failed to load sessions"
+        "error": "Failed to load sessions",
+        "unknownDevice": "Unknown device",
+        "lastActiveUnknown": "Activity date unavailable"
       }
     },
     "logout": "Log Out",
