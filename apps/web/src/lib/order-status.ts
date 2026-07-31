@@ -9,7 +9,7 @@ import type { AdminOrderStatus } from '@/types/admin';
  * neutral grey fallback. One map means a new status is styled everywhere at
  * once.
  */
-export const ORDER_STATUS_COLORS: Record<AdminOrderStatus, string> = {
+const ORDER_STATUS_COLORS: Record<AdminOrderStatus, string> = {
   pending: 'bg-amber-50 text-amber-700 border-amber-200',
   pending_payment: 'bg-amber-50 text-amber-700 border-amber-200',
   reserved: 'bg-violet-50 text-violet-700 border-violet-200',
@@ -25,7 +25,7 @@ export const ORDER_STATUS_COLORS: Record<AdminOrderStatus, string> = {
   refunded: 'bg-sky-50 text-sky-700 border-sky-200',
 };
 
-export const ORDER_STATUS_FALLBACK_COLOR = 'bg-gray-100 text-gray-600 border-gray-200';
+const ORDER_STATUS_FALLBACK_COLOR = 'bg-gray-100 text-gray-600 border-gray-200';
 
 export function orderStatusColor(status: string): string {
   return ORDER_STATUS_COLORS[status as AdminOrderStatus] ?? ORDER_STATUS_FALLBACK_COLOR;

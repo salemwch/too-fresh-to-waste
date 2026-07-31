@@ -10,7 +10,7 @@ import type {
   MfaStatus,
 } from '@/types/settings';
 
-export const settingsKeys = {
+const settingsKeys = {
   all: ['settings'] as const,
   profile: () => [...settingsKeys.all, 'profile'] as const,
   sessions: () => [...settingsKeys.all, 'sessions'] as const,

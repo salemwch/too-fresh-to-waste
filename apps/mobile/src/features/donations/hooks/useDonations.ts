@@ -4,12 +4,10 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
 
 import { donationsApi } from '../services/donationsApi';
 
-import type { RootState } from '../../../store';
-import type { DonationStats, UserDonationStats } from '../../../types/donations';
+import type { DonationStats } from '../../../types/donations';
 import type { UseQueryResult } from '@tanstack/react-query';
 
 /**
@@ -36,35 +34,3 @@ export const useDonationStats = (): UseQueryResult<DonationStats, Error> =>
     ...DONATION_QUERY_CONFIG,
     refetchOnWindowFocus: false, // Donation stats don't need aggressive refresh
   });
-
-/**
- * Hook to fetch user-specific donation statistics
- * - Protected endpoint (requires authentication)
- * - Automatically disabled when user is not authenticated
- * - Supports automatic request cancellation on unmount
- * - Can be manually disabled via enabled parameter
- *
- * @param manuallyEnabled - Override to disable fetch (default: true)
- * @example
- * ```tsx
- * // Basic usage (auto-checks auth)
- * const { data: stats } = useUserDonationStats();
- *
- * // With manual control
- * const { data: stats } = useUserDonationStats(shouldFetch && someOtherCondition);
- * ```
- */
-export const useUserDonationStats = (
-  manuallyEnabled: boolean = true,
-): UseQueryResult<UserDonationStats, Error> => {
-  // ✅ BEST PRACTICE: Auto-check authentication to prevent unnecessary 401 errors
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-
-  return useQuery<UserDonationStats, Error>({
-    queryKey: ['donations', 'user', 'stats'],
-    queryFn: ({ signal }) => donationsApi.getUserStats(signal),
-    // ✅ BEST PRACTICE: Combine auth check with manual override
-    enabled: isAuthenticated && manuallyEnabled,
-    ...DONATION_QUERY_CONFIG,
-  });
-};

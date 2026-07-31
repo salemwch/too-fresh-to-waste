@@ -9,7 +9,7 @@ import type {
   MerchantPayment,
 } from '@/types/payments';
 
-export const paymentKeys = {
+const paymentKeys = {
   all: ['payments'] as const,
   list: (filters: string) => [...paymentKeys.all, 'list', filters] as const,
   detail: (id: string) => [...paymentKeys.all, 'detail', id] as const,

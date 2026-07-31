@@ -14,7 +14,7 @@ import { Logger } from '@/utils/logger';
 /**
  * Storage keys
  */
-export const STORAGE_KEYS = {
+const STORAGE_KEYS = {
   ACCESS_TOKEN: 'auth_access_token',
   REFRESH_TOKEN: 'auth_refresh_token',
   USER_DATA: 'auth_user_data',

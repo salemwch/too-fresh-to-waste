@@ -31,13 +31,11 @@ const FALLBACK: FeatureFlags = {
   onlinePayment: false,
 };
 
-export const featureFlagKeys = {
-  all: ['config', 'features'] as const,
-};
+const FEATURE_FLAGS_QUERY_KEY = ['config', 'features'] as const;
 
 export function useFeatureFlags(): FeatureFlags {
   const { data } = useQuery({
-    queryKey: featureFlagKeys.all,
+    queryKey: FEATURE_FLAGS_QUERY_KEY,
     queryFn: async (): Promise<FeatureFlags> => {
       const response = await axios.get<{ data: FeatureFlags }>(
         `${environment.api.baseUrl}/config/features`,

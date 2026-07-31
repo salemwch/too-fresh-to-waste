@@ -14,7 +14,7 @@ import type {
 } from '@/types/inventory';
 import type { PaginationMeta } from '@/types/dashboard';
 
-export const inventoryKeys = {
+const inventoryKeys = {
   all: ['inventory'] as const,
   list: (filters: string) => [...inventoryKeys.all, 'list', filters] as const,
   item: (id: string) => [...inventoryKeys.all, 'item', id] as const,

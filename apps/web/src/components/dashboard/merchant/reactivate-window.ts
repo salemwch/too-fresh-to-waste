@@ -1,7 +1,7 @@
 import type { MerchantOffer } from '@/types/dashboard';
 
 /** Used when an offer carries no usable pickup slot. */
-export const DEFAULT_PICKUP_MINUTES = 120;
+const DEFAULT_PICKUP_MINUTES = 120;
 
 /** Minutes in a day — the wrap point for windows that cross midnight. */
 const MINUTES_PER_DAY = 24 * 60;
