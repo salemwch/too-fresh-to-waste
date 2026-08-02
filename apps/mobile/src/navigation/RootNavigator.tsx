@@ -18,16 +18,20 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState, useRef } from 'react';
-import { View, ActivityIndicator, StyleSheet, Alert, Linking } from 'react-native';
+import {
+  InteractionManager,
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  Alert,
+  Linking,
+} from 'react-native';
 
 import { OfflineBanner } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { loadStoredAuthAsync, logoutAsync } from '@/features/auth/store/authSlice';
 import { AuthFlowState } from '@/features/auth/types';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { BiometricAuth } from '@/services/BiometricAuth';
-import { notificationService } from '@/services/NotificationService';
-import { SecureStorage } from '@/services/SecureStorage';
 import { onboardingStorage } from '@/storage/onboardingStorage';
 import { analytics } from '@/utils/analytics';
 import { Logger } from '@/utils/logger';
@@ -191,86 +195,75 @@ export const RootNavigator: React.FC = () => {
   }, []);
 
   /**
-   * PRODUCTION BOOT FLOW
+   * PRODUCTION BOOT FLOW — non-blocking
    *
-   * Strategy:
-   * 1. Check if MMKV has cached auth (warm reload)
-   * 2. If cached: Show UI immediately, validate in background
-   * 3. If not cached: Load from Keychain (cold boot)
-   * 4. Always validate tokens with backend (refresh call)
-   * 5. Never flash logout during validation
+   * 1. Read onboarding flag (sync, MMKV)
+   * 2. Mark app ready immediately — MMKV-cached flowState drives navigation
+   * 3. Defer Keychain validation + biometric to after the first frame
    */
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        // Check onboarding status first
-        const welcomeSeen = onboardingStorage.hasSeenWelcome();
-        setHasSeenWelcome(welcomeSeen);
+    const welcomeSeen = onboardingStorage.hasSeenWelcome();
+    setHasSeenWelcome(welcomeSeen);
 
-        // ✅ PRODUCTION: Load from authoritative source (Keychain) with retry
-        // This will return null if no tokens in Keychain (clean install)
-        Logger.info('[RootNavigator] Loading auth from Keychain (authoritative source)');
-        const authData = await dispatch(loadStoredAuthAsync()).unwrap();
+    // Show cached UI immediately — PersistGate already populated Redux from MMKV
+    setIsAppReady(true);
 
-        // If no auth data in Keychain, user needs to login
-        if (!authData) {
-          Logger.info('[RootNavigator] No auth data in Keychain - user needs to login');
-          setIsAppReady(true);
-          return;
-        }
+    // Validate auth from Keychain after the first frame
+    const handle = InteractionManager.runAfterInteractions(() => {
+      const validateAuth = async () => {
+        try {
+          Logger.info('[RootNavigator] Validating auth from Keychain');
+          const authData = await dispatch(loadStoredAuthAsync()).unwrap();
 
-        Logger.info('[RootNavigator] Auth loaded from Keychain - session middleware will validate');
+          if (!authData) {
+            Logger.info('[RootNavigator] No auth data in Keychain');
+            return;
+          }
 
-        // NOTE: Token refresh is NOT dispatched here.
-        // authSessionMiddleware starts immediately once flowState === AUTHENTICATED
-        // after rehydration and handles proactive refresh with its own lock.
-        // A second concurrent refresh here would race the middleware, sending the
-        // same refresh token twice; the backend revokes it on first use, so the
-        // second call returns 401 "Token has been revoked".
+          Logger.info('[RootNavigator] Auth validated — session middleware will refresh');
 
-        // Check for biometric authentication
-        const isBiometricEnabled = await SecureStorage.isBiometricEnabled();
+          // Biometric check after auth is confirmed
+          const { SecureStorage } = await import('@/services/SecureStorage');
+          const isBiometricEnabled = await SecureStorage.isBiometricEnabled();
 
-        if (isBiometricEnabled) {
-          const biometricSupport = await BiometricAuth.isSupported();
+          if (isBiometricEnabled) {
+            const { BiometricAuth } = await import('@/services/BiometricAuth');
+            const biometricSupport = await BiometricAuth.isSupported();
 
-          if (biometricSupport.success) {
-            const biometricName = BiometricAuth.getBiometricTypeName(
-              biometricSupport.biometricType!,
-            );
-
-            const authResult = await BiometricAuth.authenticate(
-              `Unlock Food Waste App with ${biometricName}`,
-            );
-
-            if (!authResult.success) {
-              Logger.warn('[RootNavigator] Biometric auth failed - clearing session');
-
-              await dispatch(logoutAsync({})).unwrap();
-
-              Alert.alert(
-                'Authentication Failed',
-                typeof authResult.errorMessage === 'string' &&
-                  authResult.errorMessage.trim().length > 0
-                  ? authResult.errorMessage
-                  : 'Please login with your credentials.',
-                [{ text: 'OK' }],
+            if (biometricSupport.success) {
+              const biometricName = BiometricAuth.getBiometricTypeName(
+                biometricSupport.biometricType!,
               );
+
+              const authResult = await BiometricAuth.authenticate(
+                `Unlock Food Waste App with ${biometricName}`,
+              );
+
+              if (!authResult.success) {
+                Logger.warn('[RootNavigator] Biometric auth failed - clearing session');
+                await dispatch(logoutAsync({})).unwrap();
+                Alert.alert(
+                  'Authentication Failed',
+                  typeof authResult.errorMessage === 'string' &&
+                    authResult.errorMessage.trim().length > 0
+                    ? authResult.errorMessage
+                    : 'Please login with your credentials.',
+                  [{ text: 'OK' }],
+                );
+              }
             }
           }
+        } catch (error) {
+          Logger.info('[RootNavigator] Failed to validate stored auth', {
+            error: (error as Error).message,
+          });
         }
-      } catch (error) {
-        // Loading stored auth failed - user will see login screen
-        Logger.info('[RootNavigator] Failed to load stored auth - showing login', {
-          error: (error as Error).message,
-        });
-      } finally {
-        // Mark app as ready to show navigation
-        setIsAppReady(true);
-      }
-    };
+      };
 
-    void initializeAuth();
+      void validateAuth();
+    });
+
+    return () => handle.cancel();
   }, [dispatch]);
 
   /**
@@ -366,9 +359,10 @@ export const RootNavigator: React.FC = () => {
     routeNameRef.current = navigationRef.getCurrentRoute()?.name;
     Logger.info('[RootNavigator] Navigation ready', { initialRoute: routeNameRef.current });
 
-    // Check if app was opened from a killed-state notification tap.
-    // Must run AFTER NavigationContainer is mounted so navigationRef.isReady() === true.
-    void notificationService.handleKilledStateNotification();
+    // Check killed-state notification tap after nav is ready (lazy import)
+    void import('@/services/NotificationService').then(({ notificationService }) =>
+      notificationService.handleKilledStateNotification(),
+    );
   };
 
   /**
@@ -442,5 +436,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colorTokens.light.background,
   },
 });

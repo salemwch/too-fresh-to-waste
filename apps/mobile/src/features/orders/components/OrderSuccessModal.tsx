@@ -24,6 +24,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { haptic } from '@/utils/haptics';
 
 import { ordersService } from '../services/ordersService';
 import { isPickupError } from '../types/order.types';
@@ -116,6 +117,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   const confirmMutation = useMutation({
     mutationFn: (pickupCode: string) => ordersService.confirmPickup(order!._id, { pickupCode }),
     onSuccess: () => {
+      haptic('success');
       updatePickupState(state => ({
         ...state,
         pickupConfirmed: true,

@@ -28,28 +28,19 @@
  * ```
  */
 
-import React, { useEffect, useRef, useState, type ReactNode } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useSelector } from 'react-redux';
 
 import { Logger } from '@/utils/logger';
 
 import type { RootState } from './index';
-import { colorTokens } from '@/design-system/tokens/colors';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 interface RehydrationGateProps {
-  /** Child components to render after rehydration is complete */
   children: ReactNode;
-
-  /** Optional custom loading component */
-  loading?: ReactNode;
-
-  /** Timeout in ms (default: 5000ms) */
-  timeout?: number;
 }
 
 interface RehydrationStatus {
@@ -65,11 +56,6 @@ interface RehydrationStatus {
   /** Time taken to rehydrate (ms) */
   duration: number | null;
 }
-
-const hasRenderableNode = (
-  value: ReactNode | undefined,
-): value is Exclude<ReactNode, null | undefined | false> =>
-  value !== null && value !== undefined && value !== false;
 
 // ============================================================================
 // Rehydration Validation
@@ -341,70 +327,19 @@ function useRehydrationStatus(timeout: number = 5000): RehydrationStatus {
 /**
  * Rehydration Gate
  *
- * Blocks app rendering until atomic rehydration is complete.
- * Prevents race conditions where UI renders with partially loaded state.
+ * Renders children immediately and validates state consistency in the
+ * background. PersistGate (MMKV-backed, synchronous) already guarantees
+ * slices are populated before this component mounts, so blocking here
+ * only adds latency — up to 5 seconds in the timeout path.
  *
- * **Why this is critical:**
- * - Without this, components render immediately after Redux Persist fires REHYDRATE
- * - But AsyncStorage may still be loading data asynchronously
- * - Can cause: coordinates loaded ✅, manualLocationName undefined ❌
- * - Result: App crashes on formatLocationName(undefined)
- *
- * **How it works:**
- * 1. Waits for ALL critical Redux slices to fully rehydrate
- * 2. Validates state consistency (no partial data)
- * 3. Auto-fixes inconsistencies (clears bad data)
- * 4. Only then allows app to render
- *
- * @example
- * ```tsx
- * <PersistGate loading={<SplashScreen />} persistor={persistor}>
- *   <RehydrationGate>
- *     <App />
- *   </RehydrationGate>
- * </PersistGate>
- * ```
+ * The validation effect still runs: it logs warnings and auto-fixes
+ * inconsistencies, but it never delays the first frame.
  */
-export function RehydrationGate({
-  children,
-  loading,
-  timeout = 5000,
-}: RehydrationGateProps): ReactNode {
-  const status = useRehydrationStatus(timeout);
+export function RehydrationGate({ children }: RehydrationGateProps): ReactNode {
+  useRehydrationStatus();
 
-  // ────────────────────────────────────────────────────────────────────────
-  // STILL REHYDRATING - Show loading UI
-  // ────────────────────────────────────────────────────────────────────────
-  if (!status.complete) {
-    if (hasRenderableNode(loading)) {
-      return loading;
-    }
-
-    // Default loading UI
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size='large' color={colorTokens.base.success[500]} />
-      </View>
-    );
-  }
-
-  // ────────────────────────────────────────────────────────────────────────
-  // REHYDRATION COMPLETE - Render app
-  // ────────────────────────────────────────────────────────────────────────
   return children;
 }
-
-// ============================================================================
-// Styles
-// ============================================================================
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 // ============================================================================
 // Export

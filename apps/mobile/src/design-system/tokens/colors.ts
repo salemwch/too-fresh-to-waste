@@ -214,8 +214,8 @@ const accessibilityColors = {
 
 // Theme-specific color mappings
 const lightThemeColors = {
-  // Surface colors
-  background: baseColors.neutral[0],
+  // Surface colors — warm cream (#F9F3F0) instead of pure white for a softer feel
+  background: '#F9F3F0',
   surface: baseColors.neutral[50],
   surfaceVariant: baseColors.neutral[100],
   surfaceContainer: baseColors.neutral[200],

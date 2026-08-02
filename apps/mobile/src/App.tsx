@@ -1,9 +1,8 @@
 import * as Sentry from '@sentry/react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import React, { Component, useEffect } from 'react';
+import React, { Component, useEffect, useRef } from 'react';
 import { Config } from 'react-native-config';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { StatusBar, StyleSheet, View, Text, Pressable } from 'react-native';
+import { InteractionManager, StatusBar, StyleSheet, View, Text, Pressable } from 'react-native';
 import i18n from '@/i18n';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -22,17 +21,11 @@ import { authKeys } from '@/features/auth/queryKeys';
 import { favoriteKeys } from '@/features/favorites/hooks/favoriteKeys';
 import { QueryProvider } from '@/lib/react-query';
 import { RootNavigator } from '@/navigation';
-import { localLocationService } from '@/services/location/LocalLocationService';
-import { notificationService } from '@/services/NotificationService';
-import { registerOfflineHandlers, stopOfflineHandlers } from '@/services/offlineHandlers';
-import { socketService } from '@/services/socketService';
 import { store, persistor } from '@/store';
 import { RehydrationGate } from '@/store/rehydrationOrchestrator';
 import { useAppVersionCheck } from '@/hooks/useAppVersionCheck';
 import { Logger } from '@/utils/logger';
-import { NativeModuleLogger } from '@/utils/nativeModuleLogger';
 import { analytics } from '@/utils/analytics';
-import { offlineManager } from '@/utils/offlineManager';
 import { toastConfig } from '@/utils/toast';
 
 import type { ErrorInfo, ReactNode } from 'react';
@@ -58,7 +51,7 @@ const crashStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    backgroundColor: colorTokens.base.neutral[0],
+    backgroundColor: colorTokens.light.background,
   },
   title: {
     fontSize: 20,
@@ -131,46 +124,29 @@ ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
   _previousHandler?.(error, isFatal);
 });
 
-// ✅ PRODUCTION: Safe Sentry initialization with error handling
-// Prevents app crash if Sentry native module fails to initialize
-try {
-  Sentry.init({
-    // DSN is injected at build time via react-native-config (SENTRY_DSN in .env.*).
-    // Never hardcode it — rotation requires a new release if baked in.
-    dsn: Config['SENTRY_DSN'] ?? '',
+// Sentry is initialized lazily after the first frame paints (see App component)
+// so that it does not block the JS thread during cold start. The global error
+// handler above still captures crashes before Sentry is ready — they are
+// forwarded once Sentry.init() completes.
+let _sentryInitialized = false;
 
-    // Adds more context data to events (IP address, cookies, user, etc.)
-    // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
-    sendDefaultPii: true,
+function initSentryIfNeeded(): void {
+  if (_sentryInitialized) return;
+  _sentryInitialized = true;
 
-    // Enable Logs
-    enableLogs: false,
-
-    // Session Replay: on for errors, off for healthy sessions.
-    //
-    // `replaysSessionSampleRate` records a share of ALL sessions, including
-    // ones where nothing goes wrong. Mobile replay captures frames continuously
-    // and uploads them from the device, so on this market's data plans that is
-    // the user's own bandwidth and battery spent on a session no one will watch,
-    // and it exhausts the replay quota fastest on the least useful recordings.
-    // 0 on purpose — raise it temporarily and deliberately if a UX question ever
-    // needs it, not as a standing default.
-    replaysSessionSampleRate: 0,
-    // Errors keep 100% coverage: this is the recording that pays for itself.
-    replaysOnErrorSampleRate: 1,
-    // mobileReplayIntegration masks by default in 7.13.0 — maskAllText,
-    // maskAllImages and maskAllVectors are all true, so replays are redacted
-    // rather than verbatim. Do not disable those: the recorded screens include
-    // checkout, the map with the user's address pinned, and profile details.
-    integrations: [Sentry.mobileReplayIntegration()],
-
-    // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-    // spotlight: __DEV__,
-  });
-  Logger.info('[App] Sentry initialized successfully');
-} catch (error) {
-  // Sentry initialization failed - log but don't crash
-  Logger.error('[App] Sentry initialization failed', {}, error as Error);
+  try {
+    Sentry.init({
+      dsn: Config['SENTRY_DSN'] ?? '',
+      sendDefaultPii: true,
+      enableLogs: false,
+      replaysSessionSampleRate: 0,
+      replaysOnErrorSampleRate: 1,
+      integrations: [Sentry.mobileReplayIntegration()],
+    });
+    Logger.info('[App] Sentry initialized successfully');
+  } catch (error) {
+    Logger.error('[App] Sentry initialization failed', {}, error as Error);
+  }
 }
 
 // ─── Startup environment validation ─────────────────────────────────────────
@@ -199,22 +175,42 @@ function AppContent(): React.JSX.Element {
   const userId = useSelector((state: RootState) => state.auth.user?.userId ?? null);
   const versionCheck = useAppVersionCheck();
 
-  // ✅ Initialize Local Location Service on app startup (runs once)
-  // Loads tunisian-cities.json into memory for fast local searches
+  // Defer location data + Google Sign-In config to after first interaction.
+  // Neither is needed for the first frame — search screen isn't the landing page
+  // and Google sign-in is only on the auth screens.
   useEffect(() => {
-    localLocationService.initialize().catch(error => {
-      Logger.error('Failed to initialize LocalLocationService', {}, error);
-    });
-  }, []);
+    const handle = InteractionManager.runAfterInteractions(() => {
+      const { localLocationService } =
+        require('@/services/location/LocalLocationService') as typeof import('@/services/location/LocalLocationService');
+      localLocationService.initialize().catch(error => {
+        Logger.error('Failed to initialize LocalLocationService', {}, error);
+      });
 
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: Config['GOOGLE_WEB_CLIENT_ID'] ?? '',
+      const { GoogleSignin } =
+        require('@react-native-google-signin/google-signin') as typeof import('@react-native-google-signin/google-signin');
+      GoogleSignin.configure({
+        webClientId: Config['GOOGLE_WEB_CLIENT_ID'] ?? '',
+      });
     });
+
+    return () => handle.cancel();
   }, []);
 
   // Track session expiry for retry logic
   const sessionExpiresAt = useSelector((state: RootState) => state.auth.sessionExpiresAt);
+
+  // Connect socket only when authenticated — no point connecting for anonymous users
+  useEffect(() => {
+    if (flowState !== AuthFlowState.AUTHENTICATED) return;
+
+    const { socketService } =
+      require('@/services/socketService') as typeof import('@/services/socketService');
+    socketService.connect();
+
+    return () => {
+      socketService.disconnect();
+    };
+  }, [flowState]);
 
   // ✅ Sync analytics user identity with auth state
   useEffect(() => {
@@ -231,13 +227,10 @@ function AppContent(): React.JSX.Element {
   // ✅ Register / unregister FCM token based on auth state
   useEffect(() => {
     if (flowState === AuthFlowState.AUTHENTICATED) {
-      // Register token so the backend can send push notifications to this device
       const registerNotificationToken = async (): Promise<void> => {
+        const { notificationService } = await import('@/services/NotificationService');
         const token = await notificationService.getToken();
-        if (!token) {
-          return;
-        }
-
+        if (!token) return;
         await notificationService.registerTokenWithBackend(token);
       };
 
@@ -248,8 +241,8 @@ function AppContent(): React.JSX.Element {
       flowState === AuthFlowState.UNAUTHENTICATED ||
       flowState === AuthFlowState.SESSION_EXPIRED
     ) {
-      // Unregister on logout so the device stops receiving notifications
       const unregisterNotificationToken = async (): Promise<void> => {
+        const { notificationService } = await import('@/services/NotificationService');
         await notificationService.unregisterTokenFromBackend();
       };
 
@@ -334,92 +327,76 @@ function AppContent(): React.JSX.Element {
  * 7. AppContent - Auth logic + RootNavigator
  */
 function App(): React.JSX.Element {
-  // ✅ Initialize offline manager (network connectivity)
+  const deferredCleanups = useRef<Array<() => void>>([]);
+
+  // Defer all non-critical services to after the first frame renders.
+  // This lets the provider tree + navigation mount and paint immediately.
   useEffect(() => {
-    Logger.info('[App] Initializing offline manager...');
-    offlineManager.initialize();
+    const handle = InteractionManager.runAfterInteractions(() => {
+      // --- Sentry ---
+      initSentryIfNeeded();
 
-    return () => {
-      offlineManager.cleanup();
-    };
-  }, []);
+      // --- Offline manager ---
+      const { offlineManager } =
+        require('@/utils/offlineManager') as typeof import('@/utils/offlineManager');
+      offlineManager.initialize();
+      deferredCleanups.current.push(() => offlineManager.cleanup());
 
-  // Register offline write queue handlers and start listening for reconnect.
-  // Must run after offlineManager initialises so the NetInfo subscription does
-  // not race the manager's own listener.
-  useEffect(() => {
-    registerOfflineHandlers();
-    return stopOfflineHandlers;
-  }, []);
+      // --- Offline write queue (must run after offlineManager) ---
+      const { registerOfflineHandlers, stopOfflineHandlers } =
+        require('@/services/offlineHandlers') as typeof import('@/services/offlineHandlers');
+      registerOfflineHandlers();
+      deferredCleanups.current.push(stopOfflineHandlers);
 
-  // ✅ Initialize WebSocket connection for real-time updates (community goal, etc.)
-  useEffect(() => {
-    socketService.connect();
-    return () => {
-      socketService.disconnect();
-    };
-  }, []);
-
-  // ✅ Initialize push notifications (FCM)
-  // Request permission + set up foreground handler.
-  // Foreground messages show as toast; navigation is handled on tap (background/killed).
-  useEffect(() => {
-    notificationService.initialize((data, title, body) => {
-      // Show in-app toast for foreground messages — do NOT auto-navigate
-      Toast.show({
-        type: 'info',
-        text1: title,
-        ...(body ? { text2: body } : {}),
-        visibilityTime: 5000,
-        onPress: () => {
-          const navigateFromForegroundNotification = async (): Promise<void> => {
-            const { navigateFromNotification } = await import('@/navigation/navigationRef');
-
-            navigateFromNotification(data);
-          };
-
-          // User tapped the foreground toast — navigate as if it were a background tap
-          navigateFromForegroundNotification().catch(error => {
-            Logger.error(
-              '[App] Failed to navigate from foreground notification tap',
-              {},
-              error as Error,
-            );
-          });
-          Toast.hide();
-        },
+      // --- Push notifications ---
+      const { notificationService } =
+        require('@/services/NotificationService') as typeof import('@/services/NotificationService');
+      notificationService.initialize((data, title, body) => {
+        Toast.show({
+          type: 'info',
+          text1: title,
+          ...(body ? { text2: body } : {}),
+          visibilityTime: 5000,
+          onPress: () => {
+            const navigateFromForegroundNotification = async (): Promise<void> => {
+              const { navigateFromNotification } = await import('@/navigation/navigationRef');
+              navigateFromNotification(data);
+            };
+            navigateFromForegroundNotification().catch(error => {
+              Logger.error(
+                '[App] Failed to navigate from foreground notification tap',
+                {},
+                error as Error,
+              );
+            });
+            Toast.hide();
+          },
+        });
       });
-    });
+      void notificationService.requestPermission();
+      deferredCleanups.current.push(() => notificationService.cleanup());
 
-    // Request permission (non-blocking — ask once, respect user's choice)
-    void notificationService.requestPermission();
-
-    return () => {
-      notificationService.cleanup();
-    };
-  }, []);
-
-  // ✅ Initialize native module debugging in development
-  useEffect(() => {
-    if (__DEV__ && environment.debug.enableNativeModuleLogging) {
-      Logger.info('[App] Initializing native module debugging...');
-
-      // Enable native module logger
-      NativeModuleLogger.enable();
-
-      // Run Maps diagnostics
-      NativeModuleLogger.logMapsDiagnostics();
-
-      // Log debug report on unmount (for diagnostics)
-      return () => {
-        if (environment.debug.enableNativeModuleLogging) {
+      // --- Native module debugging (dev only) ---
+      if (__DEV__ && environment.debug.enableNativeModuleLogging) {
+        const { NativeModuleLogger } =
+          require('@/utils/nativeModuleLogger') as typeof import('@/utils/nativeModuleLogger');
+        NativeModuleLogger.enable();
+        NativeModuleLogger.logMapsDiagnostics();
+        deferredCleanups.current.push(() => {
           const report = NativeModuleLogger.exportDebugReport();
           Logger.debug('[App] Native module debug report', { report: report.slice(0, 500) });
           NativeModuleLogger.disable();
-        }
-      };
-    }
-    return undefined;
+        });
+      }
+
+      Logger.info('[App] Deferred services initialized');
+    });
+
+    return () => {
+      handle.cancel();
+      deferredCleanups.current.forEach(fn => fn());
+      deferredCleanups.current = [];
+    };
   }, []);
 
   return (
@@ -446,6 +423,7 @@ function App(): React.JSX.Element {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: colorTokens.light.background,
   },
 });
 

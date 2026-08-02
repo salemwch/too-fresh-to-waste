@@ -18,6 +18,7 @@ import FastImage from 'react-native-fast-image';
 import Svg, { Circle, Ellipse, G, Path, Polygon, Rect } from 'react-native-svg';
 
 import { CtaState } from '@/features/offers/types';
+import { haptic } from '@/utils/haptics';
 import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 import { Logger } from '@/utils/logger';
 
@@ -316,6 +317,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
     (event: GestureResponderEvent) => {
       event.stopPropagation();
       if (!disabled && !loading && onFavorite) {
+        haptic('selection');
         onFavorite(offer);
       }
     },

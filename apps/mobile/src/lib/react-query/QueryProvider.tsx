@@ -25,7 +25,7 @@ import { queryClient } from './queryClient';
 import type { ErrorInfo, ReactNode } from 'react';
 import { colorTokens } from '@/design-system/tokens/colors';
 
-const ERROR_BACKGROUND = '#f9f9f9';
+const ERROR_BACKGROUND = colorTokens.light.background;
 const ERROR_TITLE = colorTokens.base.error[500];
 const ERROR_MESSAGE = '#666';
 const RETRY_BUTTON = '#1976d2';
