@@ -185,8 +185,11 @@ export const ReviewModal: React.FC<Props> = ({
                   key={star}
                   onPress={() => setRating(star)}
                   accessibilityRole='button'
-                  accessibilityLabel={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                  accessibilityHint={`Sets your rating to ${star} out of 5`}
+                  accessibilityLabel={t(
+                    star > 1 ? 'orders.a11yRateStarPlural' : 'orders.a11yRateStar',
+                    { count: star },
+                  )}
+                  accessibilityHint={t('orders.a11yRateStarHint', { count: star })}
                 >
                   <IoniconsIcon
                     name={star <= rating ? 'star' : 'star-outline'}
@@ -216,7 +219,9 @@ export const ReviewModal: React.FC<Props> = ({
                           styles.chip,
                           {
                             borderColor: isActive ? primaryColor : theme.colors.outlineVariant,
-                            backgroundColor: isActive ? primaryColor + CHIP_TINT_ALPHA : TRANSPARENT,
+                            backgroundColor: isActive
+                              ? primaryColor + CHIP_TINT_ALPHA
+                              : TRANSPARENT,
                           },
                         ]}
                       >

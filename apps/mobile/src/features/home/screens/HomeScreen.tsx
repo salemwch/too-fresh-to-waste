@@ -682,7 +682,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             refreshing={refreshing}
             onRefresh={handleRefresh}
             tintColor={theme.colors.primary}
-            accessibilityLabel={refreshing ? 'Refreshing offers' : 'Pull to refresh'}
+            accessibilityLabel={refreshing ? t('home.a11yRefreshing') : t('home.a11yPullRefresh')}
             accessibilityHint={t('home.a11yPullRefreshHint')}
           />
         }

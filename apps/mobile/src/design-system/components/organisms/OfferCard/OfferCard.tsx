@@ -493,7 +493,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           onPress={handleEstablishmentPress}
           disabled={!onEstablishmentPress}
           accessibilityRole='button'
-          accessibilityLabel={`View ${offer.establishment.name}`}
+          accessibilityLabel={t('offers.a11yViewEstablishment', { name: offer.establishment.name })}
           accessibilityHint={t('offers.a11yEstablishmentHint')}
           style={styles.establishmentNameContainer}
         >
@@ -513,11 +513,11 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
             onPress={handleFavoritePress}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole='button'
-            accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            accessibilityLabel={
+              isFavorite ? t('offers.a11yRemoveFavorite') : t('offers.a11yAddFavorite')
+            }
             accessibilityHint={
-              isFavorite
-                ? 'Removes this offer from your favorites'
-                : 'Adds this offer to your favorites'
+              isFavorite ? t('offers.a11yRemoveFavoriteHint') : t('offers.a11yAddFavoriteHint')
             }
             style={styles.favoriteButtonContent}
           >
@@ -783,31 +783,19 @@ const createStyles = (
       elevation: 3,
     },
     notStartedOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      ...StyleSheet.absoluteFillObject,
       backgroundColor: COLORS.NOT_STARTED_OVERLAY,
       justifyContent: 'center',
       alignItems: 'center',
     },
     soldOutOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      ...StyleSheet.absoluteFillObject,
       backgroundColor: COLORS.SOLD_OUT_OVERLAY,
       justifyContent: 'center',
       alignItems: 'center',
     },
     expiredOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      ...StyleSheet.absoluteFillObject,
       backgroundColor: COLORS.SOLD_OUT_OVERLAY,
       justifyContent: 'center',
       alignItems: 'center',
@@ -816,8 +804,8 @@ const createStyles = (
     pickupOnlyBanner: {
       position: 'absolute',
       bottom: 0,
-      left: 0,
-      right: 0,
+      insetInlineStart: 0,
+      insetInlineEnd: 0,
       backgroundColor: 'rgba(0,0,0,0.65)',
       paddingVertical: 4,
       alignItems: 'center',

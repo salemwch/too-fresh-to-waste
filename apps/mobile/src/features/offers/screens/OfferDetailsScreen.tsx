@@ -196,6 +196,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
           <View style={styles.quantityControls}>
             <Pressable
               accessibilityRole='button'
+              accessibilityLabel={t('offers.a11yDecreaseQuantity')}
               onPress={() => setQuantity(q => Math.max(1, q - 1))}
               style={[styles.qtyButton, qtyButtonStyle]}
             >
@@ -206,6 +207,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
             </Text>
             <Pressable
               accessibilityRole='button'
+              accessibilityLabel={t('offers.a11yIncreaseQuantity')}
               onPress={() => setQuantity(q => Math.min(offer.availableQuantity ?? 1, q + 1))}
               style={[styles.qtyButton, qtyButtonStyle]}
             >
@@ -444,6 +446,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           <View style={styles.topNav}>
             <Pressable
               accessibilityRole='button'
+              accessibilityLabel={t('offers.a11yBackButton')}
               style={styles.iconButton}
               onPress={() => navigation.goBack()}
             >

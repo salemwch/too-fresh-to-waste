@@ -211,10 +211,10 @@ const styles = StyleSheet.create({
     top: 20,
   },
   sparkleLeft: {
-    left: 30,
+    insetInlineStart: 30,
   },
   sparkleRight: {
-    right: 30,
+    insetInlineEnd: 30,
   },
   heartIcon: {
     fontSize: 64,

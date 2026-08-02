@@ -240,7 +240,11 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       android_ripple={{ color: 'rgba(0, 82, 80, 0.08)', borderless: false }}
       style={({ pressed }) => [styles.card, Platform.OS === 'ios' && pressed && styles.cardPressed]}
       accessibilityRole='button'
-      accessibilityLabel={`Order ${order.orderNumber}, ${firstItem?.offerTitle ?? 'Order'}, status ${statusConfig.label}`}
+      accessibilityLabel={t('orders.a11yOrderCard', {
+        orderNumber: order.orderNumber,
+        title: firstItem?.offerTitle ?? 'Order',
+        status: statusConfig.label,
+      })}
       accessibilityHint={t('orders.a11yOrderCardHint')}
     >
       {/* ── Status Badge (absolute top-right) ── */}

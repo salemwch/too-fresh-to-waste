@@ -550,9 +550,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 rightIcon={
                   <Pressable
                     accessibilityRole='button'
-                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                    accessibilityLabel={
+                      showPassword ? t('auth.a11yHidePassword') : t('auth.a11yShowPassword')
+                    }
                     accessibilityHint={
-                      showPassword ? 'Hides the password text' : 'Reveals the password text'
+                      showPassword ? t('auth.a11yHidePasswordHint') : t('auth.a11yShowPasswordHint')
                     }
                     onPress={() => setShowPassword(!showPassword)}
                   >

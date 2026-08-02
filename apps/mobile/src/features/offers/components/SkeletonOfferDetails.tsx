@@ -132,8 +132,8 @@ const styles = StyleSheet.create({
   headerTextPosition: {
     position: 'absolute',
     bottom: 20,
-    left: 90,
-    right: 20,
+    insetInlineStart: 90,
+    insetInlineEnd: 20,
   },
   contentContainer: {
     paddingHorizontal: 20,

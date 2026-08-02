@@ -645,8 +645,8 @@ const styles = StyleSheet.create({
   navButtonFloating: {
     position: 'absolute',
     bottom: sp.sm,
-    left: sp.sm,
-    right: sp.sm,
+    insetInlineStart: sp.sm,
+    insetInlineEnd: sp.sm,
     backgroundColor: PRIMARY,
     borderRadius: radius.md,
     padding: sp.sm,
