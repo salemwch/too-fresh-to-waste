@@ -15,6 +15,8 @@ import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ErrorHandler } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
 
+import { Freshness } from './freshness';
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object';
 
@@ -37,7 +39,7 @@ const DEFAULT_QUERY_OPTIONS = {
   queries: {
     // Cache Configuration
     gcTime: 1000 * 60 * 60 * 24, // 24 hours (formerly cacheTime)
-    staleTime: 1000 * 60 * 5, // 5 minutes - data considered fresh for 5 min
+    staleTime: Freshness.STANDARD,
 
     // Retry Configuration (network-aware)
     retry: (failureCount: number, error: unknown) => {

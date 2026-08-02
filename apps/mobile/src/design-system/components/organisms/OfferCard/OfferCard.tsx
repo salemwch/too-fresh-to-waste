@@ -638,6 +638,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
     <Card
       variant='elevated'
       pressable={!!onPress && !disabled && !loading}
+      pressGuardMs={400}
       onPress={handleCardPress}
       disabled={disabled || (isOutOfStock && !isNotStarted)}
       style={[styles.card, style]}
@@ -678,9 +679,7 @@ const createStyles = (
       minWidth: isHorizontal ? 160 : 170,
       maxWidth: isHorizontal ? 180 : 270,
       borderRadius: 20,
-      overflow: 'hidden',
-      padding: 5, // Override Card component's default padding: 16
-      // Enhanced shadow for better card depth
+      padding: 5,
       shadowColor: COLORS.BLACK,
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.12,

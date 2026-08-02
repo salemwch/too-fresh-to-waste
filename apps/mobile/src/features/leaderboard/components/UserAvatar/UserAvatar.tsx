@@ -5,7 +5,7 @@
  * frame is computed from `size` rather than fixed in the StyleSheet.
  */
 
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 
@@ -46,24 +46,31 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   size,
   borderColor,
 }) => {
-  const frameStyle = { width: size, height: size, borderRadius: size / 2 };
-  const ringStyle = borderColor != null ? { borderWidth: RING_WIDTH, borderColor } : undefined;
+  const [imageFailed, setImageFailed] = useState(false);
+  const handleError = useCallback(() => setImageFailed(true), []);
 
-  if (uri != null) {
+  const frameStyle = useMemo(() => ({ width: size, height: size, borderRadius: size / 2 }), [size]);
+  const ringStyle = useMemo(
+    () => (borderColor != null ? { borderWidth: RING_WIDTH, borderColor } : undefined),
+    [borderColor],
+  );
+  const fontSizeStyle = useMemo(() => ({ fontSize: size * INITIALS_SIZE_RATIO }), [size]);
+  const initials = `${firstName?.[0] ?? '?'}${lastName?.[0] ?? ''}`.toUpperCase();
+
+  if (uri != null && !imageFailed) {
     const optimizedUri = getOptimizedImageUrl(uri, IMAGE_PRESETS.avatar) ?? uri;
     return (
       <FastImage
         source={{ uri: optimizedUri, priority: FastImage.priority.normal }}
         style={[frameStyle, ringStyle]}
+        onError={handleError}
       />
     );
   }
 
-  const initials = `${firstName[0] ?? '?'}${lastName[0] ?? ''}`.toUpperCase();
-
   return (
     <View style={[styles.fallback, frameStyle, ringStyle]}>
-      <Text style={[styles.initials, { fontSize: size * INITIALS_SIZE_RATIO }]}>{initials}</Text>
+      <Text style={[styles.initials, fontSizeStyle]}>{initials}</Text>
     </View>
   );
 };

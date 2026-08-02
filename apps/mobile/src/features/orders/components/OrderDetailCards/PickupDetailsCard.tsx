@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
   },
   text: {
     marginStart: 10,
+    flex: 1,
   },
 });
 

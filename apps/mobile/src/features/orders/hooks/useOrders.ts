@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useCallback } from 'react';
 
+import { Freshness } from '@/lib/react-query/freshness';
 import { Logger } from '@/utils/logger';
 
 import { ordersService } from '../services/ordersService';
@@ -44,7 +45,7 @@ export function useOrders() {
       ordersService.getMyOrdersCursor(PAGE_SIZE, pageParam as string | undefined),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: lastPage => lastPage.meta.nextCursor ?? undefined,
-    staleTime: 1000 * 60 * 2,
+    staleTime: Freshness.SHORT,
     gcTime: 1000 * 60 * 30,
   });
 
@@ -108,7 +109,7 @@ export function usePrefetchOrder() {
       void queryClient.prefetchQuery({
         queryKey: orderDetailQueryKey(orderId),
         queryFn: () => ordersService.getOrderById(orderId),
-        staleTime: 1000 * 60 * 2,
+        staleTime: Freshness.SHORT,
       });
     },
     [queryClient],

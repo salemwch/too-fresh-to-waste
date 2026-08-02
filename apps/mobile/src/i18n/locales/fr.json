@@ -814,7 +814,9 @@
     "a11yOfflineHint": "Certaines fonctionnalités peuvent être limitées jusqu’au rétablissement de la connexion",
     "a11yDismissUpdate": "Masquer la bannière de mise à jour",
     "a11ySendSupportEmail": "Envoyer un e-mail au support",
-    "unexpectedErrorRestart": "L’application a rencontré une erreur inattendue. Veuillez la redémarrer."
+    "unexpectedErrorRestart": "L’application a rencontré une erreur inattendue. Veuillez la redémarrer.",
+    "queryBoundaryMessage": "Veuillez réessayer ou contacter le support si le problème persiste.",
+    "referralLinkFailed": "Impossible de charger le lien de parrainage. Tirez pour actualiser et réessayez."
   },
   "driver": {
     "activeDelivery": "Livraison en cours",

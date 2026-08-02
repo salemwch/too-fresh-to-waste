@@ -134,7 +134,9 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
             {/* Cause */}
             <View style={styles.causeContainer}>
               <Text style={styles.causeLabel}>{t('home.currentCause')}</Text>
-              <Text style={styles.causeText}>{cause}</Text>
+              <Text style={styles.causeText} numberOfLines={2}>
+                {cause}
+              </Text>
             </View>
           </View>
         )}

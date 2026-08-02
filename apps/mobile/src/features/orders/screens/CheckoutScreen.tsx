@@ -454,11 +454,11 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
    * a customer who sees one total and is charged another has been misled. This
    * mirrors FLAT_DELIVERY_FEE in order.service.ts; change both together.
    */
-  const subtotal = offer ? offer.pricing.discountedPrice * quantity : 0;
+  const subtotal = offer ? (offer.pricing?.discountedPrice ?? 0) * quantity : 0;
   const deliveryFee = selectedFulfillment === 'delivery' ? DELIVERY_FEE_TND : 0;
   const total = subtotal + deliveryFee;
-  const currency = offer?.pricing.currency ?? 'TND';
-  const originalPrice = offer ? offer.pricing.originalPrice * quantity : 0;
+  const currency = offer?.pricing?.currency ?? 'TND';
+  const originalPrice = offer ? (offer.pricing?.originalPrice ?? 0) * quantity : 0;
   const savings = originalPrice - subtotal;
 
   /**

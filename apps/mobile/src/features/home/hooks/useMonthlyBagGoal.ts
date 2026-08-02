@@ -7,6 +7,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
+import { Freshness } from '@/lib/react-query/freshness';
 import { socketService } from '@/services/socketService';
 
 import { monthlyBagGoalApi } from '../services/monthlyBagGoalApi';
@@ -17,7 +18,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 const MONTHLY_BAG_GOAL_QUERY_KEY = ['communityGoal', 'stats'] as const;
 
 const MONTHLY_BAG_GOAL_QUERY_CONFIG = {
-  staleTime: 30 * 1000, // 30s — more aggressive than donations since it updates in real-time
+  staleTime: Freshness.LIVE,
   gcTime: 5 * 60 * 1000, // 5 min garbage collection
   retry: 2,
 } as const;

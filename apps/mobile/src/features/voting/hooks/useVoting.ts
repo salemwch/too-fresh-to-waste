@@ -5,6 +5,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { Freshness } from '@/lib/react-query/freshness';
+
 import { votingService } from '../services/votingService';
 import type { ActiveVotingResponse } from '../types/voting.types';
 
@@ -20,7 +22,7 @@ export function useActiveVotingCycle() {
   const { data, isLoading, error, refetch, isRefetching } = useQuery<ActiveVotingResponse>({
     queryKey: VOTING_KEYS.active,
     queryFn: () => votingService.getActiveCycle(),
-    staleTime: 60_000,
+    staleTime: Freshness.SHORT,
     refetchInterval: 60_000,
   });
 

@@ -5,6 +5,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 
+import { Freshness } from '@/lib/react-query/freshness';
 import { Logger } from '@/utils/logger';
 
 import { favoritesService } from '../services';
@@ -57,7 +58,7 @@ export const useFavoritesInfinite = (filters?: Omit<FavoritesFilterRequest, 'pag
     },
     enabled: isAuthenticated,
     initialPageParam: 1,
-    staleTime: 30000,
+    staleTime: Freshness.LIVE,
     gcTime: 300000,
   });
 };

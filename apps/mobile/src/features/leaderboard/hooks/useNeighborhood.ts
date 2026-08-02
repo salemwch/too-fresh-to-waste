@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { Freshness } from '@/lib/react-query/freshness';
+
 import { leaderboardService } from '../services/leaderboardService';
 
 import type { LeaderboardNeighborhoodResponse } from '../types/leaderboard.types';
@@ -11,7 +13,7 @@ export function useNeighborhood(enabled: boolean) {
     queryKey: NEIGHBORHOOD_QUERY_KEY,
     queryFn: ({ signal }) => leaderboardService.getNeighborhood(signal),
     enabled,
-    staleTime: 60 * 1000,
+    staleTime: Freshness.SHORT,
     gcTime: 5 * 60 * 1000,
     retry: 1,
   });

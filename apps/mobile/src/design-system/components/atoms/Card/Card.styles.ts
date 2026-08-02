@@ -57,8 +57,11 @@ export const createCardStyles = (
   };
 
   // Base card styles with proper typing
+  // On Android, overflow: 'hidden' combined with elevation renders a rectangular
+  // shadow instead of respecting borderRadius. Content clipping is handled by
+  // individual child containers (imageContainer, etc.) instead.
   const baseCard: ViewStyle = {
-    overflow: 'hidden' as const,
+    ...(Platform.OS !== 'android' ? { overflow: 'hidden' as const } : {}),
     ...sizeStyles[size],
     ...variantStyles[variant],
   };

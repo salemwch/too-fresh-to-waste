@@ -113,7 +113,7 @@ const HistoryRow: React.FC<{ item: DriverAvailableOrder }> = ({ item }) => {
   return (
     <View style={styles.historyCard}>
       <View style={styles.historyBody}>
-        <Text style={styles.historyCity}>
+        <Text style={styles.historyCity} numberOfLines={1}>
           {item.deliveryAddress?.city ??
             item.establishmentAddress?.city ??
             t('driver.deliveryFallback')}

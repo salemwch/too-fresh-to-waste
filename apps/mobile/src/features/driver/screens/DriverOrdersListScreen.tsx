@@ -116,10 +116,16 @@ const OrderCard: React.FC<OrderCardProps> = ({ item, onPress }) => {
       accessibilityHint={t('driver.a11yOrderCardHint')}
     >
       <View style={styles.cardRow}>
-        <Text style={styles.cityText}>{city}</Text>
+        <Text style={styles.cityText} numberOfLines={1}>
+          {city}
+        </Text>
         {item.orderNumber ? <Text style={styles.orderNumberText}>#{item.orderNumber}</Text> : null}
       </View>
-      {street ? <Text style={styles.streetText}>{street}</Text> : null}
+      {street ? (
+        <Text style={styles.streetText} numberOfLines={1}>
+          {street}
+        </Text>
+      ) : null}
       <View style={styles.divider} />
       <View style={styles.cardRow}>
         <Text style={styles.windowLabel}>{t('driver.collectBetween')}</Text>

@@ -17,6 +17,8 @@ import type { Order } from '../../types/order.types';
 
 type OrderItem = Order['items'][0];
 
+const NO_ITEMS: readonly OrderItem[] = Object.freeze([]);
+
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
@@ -50,7 +52,7 @@ const ItemRow: React.FC<ItemRowProps> = ({ item, currency }) => {
   return (
     <View style={styles.row}>
       <View style={styles.left}>
-        <Text variant='body' size='md' weight='semibold'>
+        <Text variant='body' size='md' weight='semibold' numberOfLines={2}>
           {item.offerTitle}
         </Text>
         <Text variant='body' size='sm' color='secondary'>
@@ -89,11 +91,10 @@ const OrderItemsCardComponent: React.FC<OrderItemsCardProps> = ({ order }) => {
       >
         {t('orders.items')}
       </Text>
-      {order.items.map((item, index) => (
+      {(order.items ?? NO_ITEMS).map((item, index) => (
         <React.Fragment key={itemKey(item)}>
-          <ItemRow item={item} currency={order.pricing.currency} />
-          {/* Dividers between rows only — never a trailing one. */}
-          {index < order.items.length - 1 && <View style={cardStyles.divider} />}
+          <ItemRow item={item} currency={order.pricing?.currency ?? 'TND'} />
+          {index < (order.items ?? NO_ITEMS).length - 1 && <View style={cardStyles.divider} />}
         </React.Fragment>
       ))}
     </Card>

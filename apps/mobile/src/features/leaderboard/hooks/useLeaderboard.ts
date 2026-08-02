@@ -1,5 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 
+import { Freshness } from '@/lib/react-query/freshness';
+
 import { leaderboardService } from '../services/leaderboardService';
 
 import type { LeaderboardResponse } from '../types/leaderboard.types';
@@ -31,7 +33,7 @@ export function useLeaderboard(limit = PAGE_SIZE) {
       const loaded = allPages.reduce((sum, p) => sum + p.entries.length, 0);
       return loaded < lastPage.total && lastPage.entries.length === limit ? loaded : undefined;
     },
-    staleTime: 60 * 1000,
+    staleTime: Freshness.SHORT,
     gcTime: 5 * 60 * 1000,
     retry: 2,
   });

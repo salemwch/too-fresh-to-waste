@@ -29,6 +29,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { Freshness } from '@/lib/react-query/freshness';
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
 import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 
@@ -152,7 +153,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
       return { establishments, total } as EstablishmentPage;
     },
     enabled: visible && !hasClaimed,
-    staleTime: 60_000,
+    staleTime: Freshness.SHORT,
     placeholderData: prev => prev,
   });
 
@@ -305,9 +306,10 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
 
                 {establishments.map(est => {
                   const isSelected = selectedId === est._id;
+                  const images = est.images ?? [];
                   const imageUri =
-                    est.images.length > 0
-                      ? getOptimizedImageUrl(est.images[0], IMAGE_PRESETS.avatar)
+                    images.length > 0
+                      ? getOptimizedImageUrl(images[0], IMAGE_PRESETS.avatar)
                       : undefined;
                   const initials = est.name.slice(0, 2).toUpperCase();
 

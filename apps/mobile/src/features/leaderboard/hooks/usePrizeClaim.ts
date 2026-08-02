@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { Freshness } from '@/lib/react-query/freshness';
+
 import { prizeClaimService } from '../services/prizeClaimService';
 
 /*
@@ -15,7 +17,7 @@ export function usePrizeClaimStatus(enabled = true) {
     queryKey: PRIZE_CLAIM_KEY,
     queryFn: ({ signal }) => prizeClaimService.getClaimStatus(signal),
     enabled,
-    staleTime: 60_000,
+    staleTime: Freshness.SHORT,
     gcTime: 5 * 60_000,
   });
 }

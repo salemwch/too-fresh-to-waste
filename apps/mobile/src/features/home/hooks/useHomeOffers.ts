@@ -237,7 +237,7 @@ export function useHomeOffers(
     const todayDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Tunis' });
     return {
       ...hottestDealsRaw,
-      data: hottestDealsRaw.data.filter(offer => {
+      data: (hottestDealsRaw.data ?? []).filter(offer => {
         try {
           const offerDateStr = new Date(offer.availableFrom).toLocaleDateString('en-CA', {
             timeZone: 'Africa/Tunis',

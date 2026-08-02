@@ -29,6 +29,7 @@ import {
   type GeoCoordinates,
 } from '@/features/offers/services/nearbyOffersService';
 import { useDebounce } from '@/hooks/useDebounce';
+import { Freshness } from '@/lib/react-query/freshness';
 import { remoteLocationService } from '@/services/location/RemoteLocationService';
 import { Logger } from '@/utils/logger';
 
@@ -163,7 +164,7 @@ export function usePlaceSearch(
       return { googleResults, appResults };
     },
     enabled: isEnabled,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: Freshness.STATIC,
     gcTime: 60 * 60 * 1000, // 1 hour
     retry: 1,
     refetchOnWindowFocus: false,

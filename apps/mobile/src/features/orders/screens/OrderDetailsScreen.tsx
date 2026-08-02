@@ -341,14 +341,14 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
       </ScrollView>
 
       {/* Donation impact overlay – shown once on mount when donation > 0 */}
-      {order.donationAmount > 0 && donationStats && (
+      {(order.donationAmount ?? 0) > 0 && donationStats && (
         <ImpactMoment
           visible={showImpactMoment}
           donationAmount={order.donationAmount}
           totalDonations={donationStats.totalDonations}
           mealCount={donationStats.mealCount}
           onDismiss={markImpactMomentShown}
-          currency={order.pricing.currency}
+          currency={order.pricing?.currency ?? 'TND'}
         />
       )}
 

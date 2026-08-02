@@ -24,7 +24,7 @@ interface NeighborhoodSectionProps {
 
 const NeighborhoodRow: React.FC<{ entry: LeaderboardNeighborhoodEntry }> = ({ entry }) => {
   const isAnchor = entry.isAnchor;
-  const initials = `${entry.firstName[0] ?? '?'}${entry.lastName[0] ?? ''}`.toUpperCase();
+  const initials = `${entry.firstName?.[0] ?? '?'}${entry.lastName?.[0] ?? ''}`.toUpperCase();
   const optimizedUri =
     entry.profileImage != null
       ? (getOptimizedImageUrl(entry.profileImage, IMAGE_PRESETS.avatar) ?? entry.profileImage)
@@ -60,7 +60,7 @@ const NeighborhoodRow: React.FC<{ entry: LeaderboardNeighborhoodEntry }> = ({ en
 
       <View style={[styles.ptsPill, isAnchor && styles.ptsPillAnchor]}>
         <Text style={[styles.ptsText, isAnchor && styles.ptsTextAnchor]}>
-          {entry.totalPoints.toLocaleString()} pt
+          {(entry.totalPoints ?? 0).toLocaleString()} pt
         </Text>
       </View>
     </View>

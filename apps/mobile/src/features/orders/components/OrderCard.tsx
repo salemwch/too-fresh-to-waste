@@ -18,13 +18,14 @@
  *   - iOS: Opacity feedback via Pressable style callback
  */
 
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, Platform, Animated } from 'react-native';
 import FastImage from 'react-native-fast-image';
 
 import { Icon, Text } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { usePressGuard } from '@/hooks/usePressGuard';
 import { Logger } from '@/utils/logger';
 
 import {
@@ -35,6 +36,8 @@ import {
 } from '../types/order.types';
 
 import type { Order } from '../types/order.types';
+
+const NO_ITEMS: readonly never[] = Object.freeze([]);
 
 // ---------------------------------------------------------------------------
 // Status config — colours & labels
@@ -190,6 +193,8 @@ interface OrderCardProps {
 
 export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => {
   const { t } = useTranslation();
+  const rawPress = useCallback(() => onPress(order), [onPress, order]);
+  const { guardedPress: handlePress } = usePressGuard(rawPress, 400);
   const statusConfig = STATUS_CONFIG[order.status] ?? DEFAULT_STATUS;
   const establishmentName = getEstablishmentName(order);
 
@@ -207,9 +212,10 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
     });
   }
 
-  const firstItem = order.items[0];
-  const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
-  const currency = order.pricing.currency;
+  const items = order.items ?? NO_ITEMS;
+  const firstItem = items[0];
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+  const currency = order.pricing?.currency ?? 'TND';
 
   const pickupDetails = order.pickupDetails;
   const timeSlot = pickupDetails?.timeSlot;
@@ -223,12 +229,13 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
   );
 
   // Original price (before discount) for strikethrough
-  const originalTotal = order.items.reduce((sum, item) => sum + item.originalPrice, 0);
-  const hasDiscount = originalTotal > order.pricing.total && order.pricing.discountAmount > 0;
+  const originalTotal = items.reduce((sum, item) => sum + item.originalPrice, 0);
+  const hasDiscount =
+    originalTotal > (order.pricing?.total ?? 0) && (order.pricing?.discountAmount ?? 0) > 0;
 
   return (
     <Pressable
-      onPress={() => onPress(order)}
+      onPress={handlePress}
       android_ripple={{ color: 'rgba(0, 82, 80, 0.08)', borderless: false }}
       style={({ pressed }) => [styles.card, Platform.OS === 'ios' && pressed && styles.cardPressed]}
       accessibilityRole='button'
@@ -305,7 +312,7 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
         <View style={styles.priceContainer}>
           {hasDiscount && <Text style={styles.originalPrice}>{originalTotal.toFixed(2)}</Text>}
           <Text style={styles.activePrice}>
-            {order.pricing.total.toFixed(2)} {currency}
+            {(order.pricing?.total ?? 0).toFixed(2)} {currency}
           </Text>
         </View>
       </View>
@@ -326,9 +333,9 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     position: 'relative',
-    overflow: 'hidden',
     ...Platform.select({
       ios: {
+        overflow: 'hidden' as const,
         shadowColor: SHADOW,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,

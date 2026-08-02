@@ -5,6 +5,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 
+import { Freshness } from '@/lib/react-query/freshness';
+
 import { donationsApi } from '../services/donationsApi';
 
 import type { DonationStats } from '../../../types/donations';
@@ -15,7 +17,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
  * Centralizes cache timing and retry strategy
  */
 const DONATION_QUERY_CONFIG = {
-  staleTime: 5 * 60 * 1000, // 5 minutes - donation data doesn't change frequently
+  staleTime: Freshness.STANDARD,
   gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache longer than stale time
   retry: 2, // Retry failed requests twice before giving up
 } as const;

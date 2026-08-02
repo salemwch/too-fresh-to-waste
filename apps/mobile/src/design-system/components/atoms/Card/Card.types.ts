@@ -61,4 +61,10 @@ export interface CardProps extends Omit<ViewProps, 'style'>, StyleSystemProps {
     scale?: number;
     duration?: number;
   };
+
+  /**
+   * Minimum ms between accepted presses (0 = no guard).
+   * Prevents double-tap from firing duplicate navigation or side-effects.
+   */
+  pressGuardMs?: number;
 }

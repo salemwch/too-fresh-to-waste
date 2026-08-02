@@ -153,7 +153,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   );
 
   const showLoading = loading || !order;
-  const currency = order?.pricing.currency ?? 'TND';
+  const currency = order?.pricing?.currency ?? 'TND';
 
   return (
     <Modal
@@ -192,7 +192,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                       <Text style={styles.sectionTitle}>{t('checkout.orderSummary')}</Text>
                     </View>
 
-                    {order.items.map((item, index) => (
+                    {(order.items ?? []).map((item, index) => (
                       <View key={index} style={styles.itemRow}>
                         <View style={styles.itemLeft}>
                           <Text style={styles.itemQuantity}>{item.quantity}x</Text>
@@ -201,7 +201,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                           </Text>
                         </View>
                         <Text style={styles.itemPrice}>
-                          {item.totalPrice.toFixed(2)} {currency}
+                          {(item.totalPrice ?? 0).toFixed(2)} {currency}
                         </Text>
                       </View>
                     ))}
@@ -209,7 +209,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                     <View style={styles.totalRow}>
                       <Text style={styles.totalLabel}>{t('common.total')}</Text>
                       <Text style={styles.totalValue}>
-                        {order.pricing.total.toFixed(2)} {currency}
+                        {(order.pricing?.total ?? 0).toFixed(2)} {currency}
                       </Text>
                     </View>
                   </View>
@@ -222,18 +222,23 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                       <View style={styles.pickupRow}>
                         <Icon name='calendar' family='Ionicons' size={16} color='#64748B' />
                         <Text style={styles.pickupText}>
-                          {new Date(order.pickupDetails.scheduledDate).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
+                          {order.pickupDetails?.scheduledDate
+                            ? new Date(order.pickupDetails.scheduledDate).toLocaleDateString(
+                                'en-US',
+                                {
+                                  weekday: 'short',
+                                  month: 'short',
+                                  day: 'numeric',
+                                },
+                              )
+                            : '—'}
                         </Text>
                       </View>
                       <View style={styles.pickupRow}>
                         <Icon name='time' family='Ionicons' size={16} color='#64748B' />
                         <Text style={styles.pickupText}>
-                          {order.pickupDetails.timeSlot.startTime} -{' '}
-                          {order.pickupDetails.timeSlot.endTime}
+                          {order.pickupDetails?.timeSlot?.startTime ?? '—'} -{' '}
+                          {order.pickupDetails?.timeSlot?.endTime ?? '—'}
                         </Text>
                       </View>
                       <View style={styles.pickupRow}>
@@ -373,9 +378,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: SURFACE,
     borderRadius: 24,
-    overflow: 'hidden',
     ...Platform.select({
       ios: {
+        overflow: 'hidden' as const,
         shadowColor: SHADOW,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.25,

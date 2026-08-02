@@ -9,6 +9,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { Freshness } from '@/lib/react-query/freshness';
 import { useQueryWithFocus } from '@/lib/react-query/hooks';
 import { Logger } from '@/utils/logger';
 
@@ -39,7 +40,7 @@ const driverOrdersKeys = {
 /** The driver's profile, including the online flag that gates everything else. */
 export function useDriverProfile() {
   return useQueryWithFocus(driverOrdersKeys.profile(), () => driverService.getProfile(), {
-    staleTime: 30_000,
+    staleTime: Freshness.LIVE,
   });
 }
 
@@ -99,7 +100,7 @@ export function useAvailableOrders(lat: number, lng: number, enabled = true) {
       enabled,
       refetchInterval: 30_000,
       refetchOnWindowFocus: true,
-      staleTime: 10_000,
+      staleTime: Freshness.REALTIME,
     },
   );
 }
@@ -115,7 +116,7 @@ export function useActiveOrder(enabled = true) {
   return useQueryWithFocus(driverOrdersKeys.active(), () => driverService.getActiveOrder(), {
     enabled,
     refetchOnWindowFocus: true,
-    staleTime: 5_000,
+    staleTime: Freshness.REALTIME,
   });
 }
 
@@ -123,7 +124,7 @@ export function useDriverOrderHistory(page = 1) {
   return useQuery<DriverOrderHistoryPage>({
     queryKey: driverOrdersKeys.history(page),
     queryFn: () => driverService.getOrderHistory(page),
-    staleTime: 60_000,
+    staleTime: Freshness.SHORT,
   });
 }
 
@@ -131,7 +132,7 @@ export function useDriverEarnings() {
   return useQueryWithFocus<DriverEarningsSummary>(
     driverOrdersKeys.earnings(),
     () => driverService.getEarnings(),
-    { staleTime: 60_000 },
+    { staleTime: Freshness.SHORT },
   );
 }
 

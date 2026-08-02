@@ -17,13 +17,13 @@ import { User, UserDocument } from '../../users/schemas/user.schema';
  * Gamification Constants
  */
 export const GAMIFICATION_CONSTANTS = {
-  // Friend Referral: Friend buys 10 bags in first month → 50 points
-  FRIEND_REFERRAL_BAGS_REQUIRED: 10,
+  // Friend Referral: Friend buys 2 bags in first month → 50 points
+  FRIEND_REFERRAL_BAGS_REQUIRED: 2,
   FRIEND_REFERRAL_POINTS: 50,
   FRIEND_REFERRAL_EXPIRY_DAYS: 30,
 
-  // Business Referral: Business sells 20 bags in first month from first sale → 50 points
-  BUSINESS_REFERRAL_ORDERS_REQUIRED: 20,
+  // Business Referral: Business sells 14 bags in first month from first sale → 50 points
+  BUSINESS_REFERRAL_ORDERS_REQUIRED: 14,
   BUSINESS_REFERRAL_POINTS: 50,
   BUSINESS_REFERRAL_EXPIRY_DAYS: 30,
 

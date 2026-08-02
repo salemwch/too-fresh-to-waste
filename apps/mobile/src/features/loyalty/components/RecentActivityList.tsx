@@ -11,6 +11,8 @@ import { Card, Icon, Text } from '@/design-system/components/atoms';
 import type { PointTransaction } from '../types/loyalty.types';
 import { colorTokens } from '@/design-system/tokens/colors';
 
+const NO_TRANSACTIONS: readonly PointTransaction[] = Object.freeze([]);
+
 interface RecentActivityListProps {
   transactions: PointTransaction[];
   /** Max items to display */
@@ -45,14 +47,29 @@ function formatRelativeTime(dateString: string): string {
   }
 }
 
-const TRANSACTION_ICONS: Record<string, { icon: string; color: string }> = {
-  earned: { icon: 'arrow-up-circle-outline', color: colorTokens.base.success[500] },
-  redeemed: { icon: 'arrow-down-circle-outline', color: colorTokens.base.error[500] },
-  expired: { icon: 'time-outline', color: '#94A3B8' },
-  donated: { icon: 'heart-outline', color: '#8B5CF6' },
+const TRANSACTION_ICONS: Record<
+  string,
+  { icon: string; color: string; amountStyle: { color: string } }
+> = {
+  earned: {
+    icon: 'arrow-up-circle-outline',
+    color: colorTokens.base.success[500],
+    amountStyle: { color: colorTokens.base.success[500] },
+  },
+  redeemed: {
+    icon: 'arrow-down-circle-outline',
+    color: colorTokens.base.error[500],
+    amountStyle: { color: colorTokens.base.error[500] },
+  },
+  expired: { icon: 'time-outline', color: '#94A3B8', amountStyle: { color: '#94A3B8' } },
+  donated: { icon: 'heart-outline', color: '#8B5CF6', amountStyle: { color: '#8B5CF6' } },
 };
 
-const FALLBACK_ICON = { icon: 'arrow-up-circle-outline', color: colorTokens.base.success[500] };
+const FALLBACK_ICON = {
+  icon: 'arrow-up-circle-outline',
+  color: colorTokens.base.success[500],
+  amountStyle: { color: colorTokens.base.success[500] },
+};
 
 const TransactionRow: React.FC<{ tx: PointTransaction }> = ({ tx }) => {
   const config = TRANSACTION_ICONS[tx.type] ?? FALLBACK_ICON;
@@ -70,7 +87,7 @@ const TransactionRow: React.FC<{ tx: PointTransaction }> = ({ tx }) => {
           {formatRelativeTime(tx.createdAt)}
         </Text>
       </View>
-      <Text variant='body' size='sm' weight='bold' style={{ color: config.color }}>
+      <Text variant='body' size='sm' weight='bold' style={config.amountStyle}>
         {sign}
         {Math.abs(tx.amount)} pts
       </Text>
@@ -79,11 +96,11 @@ const TransactionRow: React.FC<{ tx: PointTransaction }> = ({ tx }) => {
 };
 
 const RecentActivityListComponent: React.FC<RecentActivityListProps> = ({
-  transactions,
+  transactions: transactionsRaw,
   limit = 5,
 }) => {
+  const transactions = transactionsRaw ?? NO_TRANSACTIONS;
   const recentTxs = useMemo(() => {
-    // Sort newest first, take limit
     const sorted = [...transactions].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );

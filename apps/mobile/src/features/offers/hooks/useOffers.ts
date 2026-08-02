@@ -279,7 +279,7 @@ export function usePrefetchOffer() {
       void queryClient.prefetchQuery({
         queryKey: offerKeys.detail(offerId),
         queryFn: () => offersService.getOfferById(offerId),
-        staleTime: 1000 * 60 * 5, // Matches useOffer — skip refetch if already fresh
+        staleTime: Freshness.STANDARD,
       });
     },
     [queryClient],

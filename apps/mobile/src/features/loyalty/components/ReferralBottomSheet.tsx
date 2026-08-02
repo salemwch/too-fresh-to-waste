@@ -227,7 +227,7 @@ export const ReferralBottomSheet: React.FC<ReferralBottomSheetProps> = ({ visibl
                     color={colorTokens.base.primary[500]}
                   />
                   <Text variant='body' size='xs' color='secondary' style={styles.infoText}>
-                    Friend buys 10 bags in first month = +50 pts
+                    Friend buys 2 bags in first month = +50 pts
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
@@ -238,14 +238,14 @@ export const ReferralBottomSheet: React.FC<ReferralBottomSheetProps> = ({ visibl
                     color={colorTokens.base.primary[500]}
                   />
                   <Text variant='body' size='xs' color='secondary' style={styles.infoText}>
-                    Business sells 20 bags in first month = +50 pts
+                    Business sells 14 bags in first month = +50 pts
                   </Text>
                 </View>
               </View>
             </>
           ) : (
             <Text variant='body' size='sm' color='error' style={styles.errorText}>
-              Failed to load referral link. Pull to refresh and try again.
+              {t('errors.referralLinkFailed')}
             </Text>
           )}
         </Pressable>

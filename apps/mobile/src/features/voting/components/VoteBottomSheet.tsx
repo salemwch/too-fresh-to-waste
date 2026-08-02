@@ -161,35 +161,37 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
                   accessibilityLabel={`${prize.name} — ${prize.value}`}
                   accessibilityHint={t('voting.a11ySelectPrizeHint')}
                 >
-                  <FastImage
-                    source={{
-                      uri: prize.imageUrl,
-                      priority: FastImage.priority.normal,
-                      cache: FastImage.cacheControl.immutable,
-                    }}
-                    style={styles.prizeImage}
-                    resizeMode={FastImage.resizeMode.cover}
-                    accessibilityIgnoresInvertColors
-                  />
+                  {prize.imageUrl ? (
+                    <FastImage
+                      source={{
+                        uri: prize.imageUrl,
+                        priority: FastImage.priority.normal,
+                        cache: FastImage.cacheControl.immutable,
+                      }}
+                      style={styles.prizeImage}
+                      resizeMode={FastImage.resizeMode.cover}
+                      accessibilityIgnoresInvertColors
+                    />
+                  ) : (
+                    <View style={[styles.prizeImage, styles.prizeImagePlaceholder]}>
+                      <Icon name='trophy-outline' family='Ionicons' size={24} color={BORDER} />
+                    </View>
+                  )}
 
                   <View style={styles.prizeInfo}>
                     <Text
                       variant='body'
                       size='md'
                       weight='semibold'
-                      style={{ color: TEXT_PRIMARY }}
+                      style={styles.prizeNameText}
+                      numberOfLines={1}
                     >
                       {prize.name}
                     </Text>
-                    <Text
-                      variant='body'
-                      size='sm'
-                      style={{ color: TEXT_SECONDARY }}
-                      numberOfLines={2}
-                    >
+                    <Text variant='body' size='sm' style={styles.prizeDescText} numberOfLines={2}>
                       {prize.description}
                     </Text>
-                    <Text variant='body' size='xs' style={{ color: TEAL }}>
+                    <Text variant='body' size='xs' style={styles.prizeValueText}>
                       {prize.value}
                     </Text>
                   </View>
@@ -308,6 +310,19 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 8,
     backgroundColor: BORDER,
+  },
+  prizeImagePlaceholder: {
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  },
+  prizeNameText: {
+    color: TEXT_PRIMARY,
+  },
+  prizeDescText: {
+    color: TEXT_SECONDARY,
+  },
+  prizeValueText: {
+    color: TEAL,
   },
   prizeInfo: {
     flex: 1,

@@ -7,6 +7,7 @@ type IconName = React.ComponentProps<typeof IoniconsIcon>['name'];
 
 import { Text } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { Freshness } from '@/lib/react-query/freshness';
 
 import { reviewsService } from '../services/reviewsService';
 
@@ -39,7 +40,7 @@ export const ReviewSummarySection: React.FC<Props> = ({ establishmentId }) => {
     queryKey: ['establishment-review-summary', establishmentId],
     queryFn: () => reviewsService.getEstablishmentSummary(establishmentId),
     enabled: !!establishmentId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: Freshness.STANDARD,
   });
 
   if (!summary || summary.totalReviews === 0) return null;

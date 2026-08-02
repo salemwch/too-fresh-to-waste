@@ -108,9 +108,7 @@ const DefaultErrorFallback: React.FC<{
   return (
     <View style={styles.errorContainer}>
       <Text style={styles.errorTitle}>{t('common.somethingWentWrong')}</Text>
-      <Text style={styles.errorMessage}>
-        Please try again or contact support if the problem persists.
-      </Text>
+      <Text style={styles.errorMessage}>{t('errors.queryBoundaryMessage')}</Text>
       <Pressable accessibilityRole='button' style={styles.retryButton} onPress={resetError}>
         <Text style={styles.retryButtonText}>{t('common.tryAgain')}</Text>
       </Pressable>

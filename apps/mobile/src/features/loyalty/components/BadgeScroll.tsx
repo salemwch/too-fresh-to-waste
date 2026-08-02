@@ -12,6 +12,8 @@ import { BADGE_METADATA, ALL_BADGE_TYPES, type BadgeMetadata } from '../constant
 
 import type { Badge, BadgeType } from '../types/loyalty.types';
 
+const NO_BADGES: readonly Badge[] = Object.freeze([]);
+
 interface BadgeScrollProps {
   earnedBadges: Badge[];
 }
@@ -64,7 +66,9 @@ const BadgeCell: React.FC<{ item: BadgeItem }> = ({ item }) => {
   );
 };
 
-const BadgeScrollComponent: React.FC<BadgeScrollProps> = ({ earnedBadges }) => {
+const BadgeScrollComponent: React.FC<BadgeScrollProps> = ({ earnedBadges: earnedBadgesRaw }) => {
+  const earnedBadges = earnedBadgesRaw ?? NO_BADGES;
+
   const earnedSet = useMemo(() => {
     const set = new Set<string>();
     earnedBadges.forEach(b => set.add(b.type));
@@ -85,7 +89,6 @@ const BadgeScrollComponent: React.FC<BadgeScrollProps> = ({ earnedBadges }) => {
     });
   }, [earnedBadges, earnedSet]);
 
-  // Sort: earned first, then locked
   const sortedItems = useMemo(
     () => [...items].sort((a, b) => (a.earned === b.earned ? 0 : a.earned ? -1 : 1)),
     [items],

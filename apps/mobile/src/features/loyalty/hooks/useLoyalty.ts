@@ -6,6 +6,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
+import { Freshness } from '@/lib/react-query/freshness';
 import { useQueryWithFocus } from '@/lib/react-query';
 
 import { loyaltyService } from '../services/loyaltyService';
@@ -22,7 +23,7 @@ export function useLoyalty() {
     LOYALTY_ACCOUNT_KEY,
     () => loyaltyService.getAccount(),
     {
-      staleTime: 1000 * 60 * 2, // 2 min
+      staleTime: Freshness.SHORT,
       gcTime: 1000 * 60 * 30, // 30 min
     },
   );
@@ -31,7 +32,7 @@ export function useLoyalty() {
     GAMIFICATION_KEY,
     () => loyaltyService.getGamification(),
     {
-      staleTime: 1000 * 60 * 2,
+      staleTime: Freshness.SHORT,
       gcTime: 1000 * 60 * 30,
     },
   );

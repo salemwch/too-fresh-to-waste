@@ -40,6 +40,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCallback, useRef } from 'react';
 
 import { useDebounce } from '@/hooks/useDebounce';
+import { Freshness } from '@/lib/react-query/freshness';
 import { hybridLocationService } from '@/services/location/HybridLocationService';
 
 import type { ILocationResult, LocationCoords } from '@/types/location.types';
@@ -154,7 +155,7 @@ export function useLocationSearch(query: string, options: UseLocationSearchOptio
         ...(userCoords ? { userCoords } : {}),
       }),
     enabled: isEnabled,
-    staleTime: 30 * 60 * 1000, // 30 minutes - location results rarely change
+    staleTime: Freshness.STATIC,
     gcTime: 60 * 60 * 1000, // 1 hour cache
     retry: 1, // Only retry once for location searches
     refetchOnWindowFocus: false, // Don't refetch on focus

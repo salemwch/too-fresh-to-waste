@@ -140,7 +140,7 @@ export const PodiumTop5: React.FC<PodiumTop5Props> = ({ entries }) => {
               {entry.firstName}
             </Text>
             <Text style={[styles.pts, isChampion && styles.ptsChampion]}>
-              {entry.totalPoints.toLocaleString()}
+              {(entry.totalPoints ?? 0).toLocaleString()}
             </Text>
           </View>
         );

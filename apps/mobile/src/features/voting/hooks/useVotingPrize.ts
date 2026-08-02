@@ -10,6 +10,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { Freshness } from '@/lib/react-query/freshness';
 import { useQueryWithFocus } from '@/lib/react-query';
 
 import { PrizeClaimStatus, PrizeType } from '@foodwaste/shared';
@@ -34,7 +35,7 @@ export function useVotingPrizeStatus(enabled = true) {
   return useQueryWithFocus<VotingPrizeStatusResponse>(
     VOTING_PRIZE_KEY,
     () => votingPrizeService.getMyPrize(),
-    { staleTime: 60_000, enabled },
+    { staleTime: Freshness.SHORT, enabled },
   );
 }
 

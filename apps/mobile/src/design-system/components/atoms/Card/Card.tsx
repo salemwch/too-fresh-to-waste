@@ -3,9 +3,10 @@
  * Flexible container component with elevation and various styling options
  */
 
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useCallback, useState } from 'react';
 import { View, Pressable, ActivityIndicator, Animated } from 'react-native';
 
+import { usePressGuard } from '../../../../hooks/usePressGuard';
 import { useTheme } from '../../../providers';
 
 import { createCardStyles } from './Card.styles';
@@ -28,6 +29,7 @@ export const Card = forwardRef<
       children,
       platform: _platform = 'auto',
       animation = { scale: 0.98, duration: 150 },
+      pressGuardMs,
       testID,
       accessibilityLabel,
       accessibilityHint,
@@ -65,11 +67,13 @@ export const Card = forwardRef<
       }
     };
 
-    const handlePress = () => {
+    const rawPress = useCallback(() => {
       if (!disabled && onPress) {
         onPress();
       }
-    };
+    }, [disabled, onPress]);
+
+    const { guardedPress: handlePress } = usePressGuard(rawPress, pressGuardMs ?? 0);
 
     // Render loading overlay
     const renderLoadingOverlay = () => {

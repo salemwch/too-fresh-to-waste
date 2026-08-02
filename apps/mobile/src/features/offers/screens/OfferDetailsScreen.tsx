@@ -135,7 +135,7 @@ const ReserveBottomSheet: React.FC<ReserveBottomSheetProps> = ({
 
   if (!visible) return null;
 
-  const discountedPrice = offer.pricing.discountedPrice;
+  const discountedPrice = offer.pricing?.discountedPrice ?? 0;
   const total = (discountedPrice * quantity).toFixed(2);
 
   // Get establishment name
@@ -307,7 +307,13 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
         <Text weight='bold' color='error'>
           ⚠️ {t('offers.errorLoading')}
         </Text>
-        <Button variant='primary' style={styles.retryButton} onPress={() => { void refetch(); }}>
+        <Button
+          variant='primary'
+          style={styles.retryButton}
+          onPress={() => {
+            void refetch();
+          }}
+        >
           {t('common.retry')}
         </Button>
       </View>
@@ -492,10 +498,12 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           )}
 
           <View style={styles.headerTextContainer}>
-            <Text weight='bold' style={styles.headerTitleText} size='xl'>
+            <Text weight='bold' style={styles.headerTitleText} size='xl' numberOfLines={1}>
               {establishment?.name ?? 'Establishment'}
             </Text>
-            <Text style={styles.headerSubtitleText}>{offer.categories?.join(' • ')}</Text>
+            <Text style={styles.headerSubtitleText} numberOfLines={1}>
+              {offer.categories?.join(' • ')}
+            </Text>
           </View>
         </View>
 
@@ -510,10 +518,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
             </View>
             <View style={styles.priceContainer}>
               <Text size='md' color='secondary' style={styles.oldPrice}>
-                {offer.pricing.originalPrice.toFixed(2)} {offer.pricing.currency}
+                {(offer.pricing?.originalPrice ?? 0).toFixed(2)} {offer.pricing?.currency ?? 'TND'}
               </Text>
               <Text weight='bold' size='lg' style={{ color: theme.colors.primary }}>
-                {offer.pricing.discountedPrice.toFixed(2)} {offer.pricing.currency}
+                {(offer.pricing?.discountedPrice ?? 0).toFixed(2)}{' '}
+                {offer.pricing?.currency ?? 'TND'}
               </Text>
             </View>
           </View>
@@ -729,4 +738,3 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
     </View>
   );
 };
-

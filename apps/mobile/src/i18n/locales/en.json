@@ -814,7 +814,9 @@
     "a11yOfflineHint": "App features may be limited until connectivity is restored",
     "a11yDismissUpdate": "Dismiss update banner",
     "a11ySendSupportEmail": "Send email to support",
-    "unexpectedErrorRestart": "The app encountered an unexpected error. Please restart."
+    "unexpectedErrorRestart": "The app encountered an unexpected error. Please restart.",
+    "queryBoundaryMessage": "Please try again or contact support if the problem persists.",
+    "referralLinkFailed": "Failed to load referral link. Pull to refresh and try again."
   },
   "driver": {
     "activeDelivery": "Active Delivery",

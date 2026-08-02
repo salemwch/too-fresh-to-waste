@@ -143,7 +143,9 @@ interface InfoRowProps {
 const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
   <View style={styles.infoRow}>
     <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
+    <Text style={styles.infoValue} numberOfLines={2}>
+      {value}
+    </Text>
   </View>
 );
 

@@ -81,9 +81,9 @@ export class Tier {
 // =============================================================================
 
 export enum FriendReferralStatus {
-  PENDING = 'pending', // Friend signed up, hasn't bought 10 bags yet
-  COMPLETED = 'completed', // Friend bought 10 bags, points awarded
-  EXPIRED = 'expired', // First month passed without 10 bags
+  PENDING = 'pending', // Friend signed up, hasn't bought 2 bags yet
+  COMPLETED = 'completed', // Friend bought 2 bags, points awarded
+  EXPIRED = 'expired', // First month passed without 2 bags
 }
 
 @Schema({ _id: false })
@@ -115,9 +115,9 @@ export class FriendReferral {
 // =============================================================================
 
 export enum BusinessReferralStatus {
-  PENDING = 'pending', // Business signed up, hasn't sold 20 bags in first month from first sale
-  COMPLETED = 'completed', // Business sold 20 bags from first sale, points awarded
-  EXPIRED = 'expired', // 30 days from first sale passed without 20 bags
+  PENDING = 'pending', // Business signed up, hasn't sold 14 bags in first month from first sale
+  COMPLETED = 'completed', // Business sold 14 bags from first sale, points awarded
+  EXPIRED = 'expired', // 30 days from first sale passed without 14 bags
 }
 
 @Schema({ _id: false })

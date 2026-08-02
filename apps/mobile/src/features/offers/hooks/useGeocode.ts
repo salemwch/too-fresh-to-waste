@@ -18,6 +18,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 
+import { Freshness } from '@/lib/react-query/freshness';
+
 import { nearbyOffersService, type GeocodeResult } from '../services/nearbyOffersService';
 
 // ============================================================================
@@ -63,7 +65,7 @@ export function useLocationSearch(query: string, options: UseLocationSearchOptio
     queryKey: geocodeKeys.search(query),
     queryFn: () => nearbyOffersService.geocodeSearch(query, limit),
     enabled: isEnabled,
-    staleTime: 30 * 60 * 1000, // 30 minutes - geocode results rarely change
+    staleTime: Freshness.STATIC,
     gcTime: 60 * 60 * 1000, // 1 hour cache
     retry: 1, // Only retry once for geocoding
   });
