@@ -236,6 +236,7 @@ export const formatPickupTime = (
     // Convert UTC to local timezone for display
     if (availableUntil != null) {
       const until = new Date(availableUntil);
+      if (Number.isNaN(until.getTime())) return null;
       const formatTime = (date: Date) =>
         date.toLocaleTimeString('en-US', {
           hour: '2-digit',
@@ -274,6 +275,7 @@ export const formatDistance = (distanceInMeters?: number): string | null => {
 export const formatStartTime = (availableFrom: string): string | null => {
   try {
     const from = new Date(availableFrom);
+    if (Number.isNaN(from.getTime())) return null;
     return from.toLocaleTimeString('en-US', {
       timeZone: 'Africa/Tunis',
       hour: '2-digit',

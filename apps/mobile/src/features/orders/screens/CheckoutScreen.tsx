@@ -17,6 +17,7 @@ import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useLocation } from '@/hooks/useLocation';
 import { usePressGuard } from '@/hooks/usePressGuard';
 import { analytics } from '@/utils/analytics';
+import { haversineKm } from '@/utils/geo';
 import { Logger } from '@/utils/logger';
 
 import { KonnectPaymentSheet } from '../components/KonnectPaymentSheet';
@@ -51,17 +52,8 @@ const MAX_DELIVERY_KM = 5;
 /** Mirrors FLAT_DELIVERY_FEE in the backend order.service.ts. */
 const DELIVERY_FEE_TND = 4;
 
-function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
-  const R = 6371;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const sinLat = Math.sin(dLat / 2);
-  const sinLng = Math.sin(dLng / 2);
-  const a2 =
-    sinLat * sinLat +
-    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * sinLng * sinLng;
-  return R * 2 * Math.atan2(Math.sqrt(a2), Math.sqrt(1 - a2));
-}
+// Re-export kept for any direct consumers — canonical home is utils/geo.ts.
+export { haversineKm } from '@/utils/geo';
 
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
   const { t } = useTranslation();

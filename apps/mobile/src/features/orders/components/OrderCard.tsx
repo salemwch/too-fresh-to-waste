@@ -81,7 +81,7 @@ const SHADOW = '#000';
 // ---------------------------------------------------------------------------
 
 /** Check if current time is within the pickup window */
-function isWithinPickupWindow(order: Order): boolean {
+export function isWithinPickupWindow(order: Order): boolean {
   try {
     const timeSlot = order.pickupDetails?.timeSlot;
     if (!timeSlot?.startTime || !timeSlot?.endTime || !order.pickupDetails?.scheduledDate) {
@@ -122,10 +122,11 @@ function isWithinPickupWindow(order: Order): boolean {
 }
 
 /** Format pickup date label */
-function formatPickupDate(scheduledDate: string | undefined): string {
+export function formatPickupDate(scheduledDate: string | undefined): string {
   if (!scheduledDate) return '';
   try {
     const date = new Date(scheduledDate);
+    if (Number.isNaN(date.getTime())) return scheduledDate;
     const now = new Date();
 
     const isToday =

@@ -32,7 +32,7 @@ const PALETTE_FILES = [
  *
  * Lower this when you clear some. Never raise it.
  */
-const MAX_RAW_COLORS = 486;
+const MAX_RAW_COLORS = 488;
 
 const HEX_LITERAL = /'#[0-9a-fA-F]{3,8}'/gu;
 

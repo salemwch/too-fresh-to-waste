@@ -22,9 +22,10 @@ interface RecentActivityListProps {
 const SURFACE_MUTED = '#F1F5F9';
 
 /** Format a relative timestamp (e.g. "2 hours ago", "3 days ago") */
-function formatRelativeTime(dateString: string): string {
+export function formatRelativeTime(dateString: string): string {
   try {
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '';
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60_000);
