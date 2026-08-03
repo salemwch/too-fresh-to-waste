@@ -2,6 +2,8 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { CronLockName, CronLockTtl } from '../common/constants/cron-lock.constant';
+import { CronLockService } from '../common/services/cron-lock.service';
 import { Queue } from 'bull';
 import { Model, Types, PipelineStage } from 'mongoose';
 
@@ -249,6 +251,7 @@ export class ReviewAnalyticsService {
     @InjectModel(Establishment.name)
     private readonly establishmentModel: Model<EstablishmentDocument>,
     @InjectQueue('review-analytics') private readonly analyticsQueue: Queue,
+    private readonly cronLock: CronLockService,
   ) {}
 
   async generateEstablishmentInsights(
@@ -787,6 +790,16 @@ export class ReviewAnalyticsService {
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async scheduleAnalyticsUpdates(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.REVIEW_ANALYTICS_DAILY,
+      CronLockTtl.HEAVY,
+      async () => {
+        await this.runAnalyticsUpdates();
+      },
+    );
+  }
+
+  private async runAnalyticsUpdates(): Promise<void> {
     try {
       this.logger.log('Starting scheduled analytics updates');
 
@@ -817,6 +830,16 @@ export class ReviewAnalyticsService {
 
   @Cron(CronExpression.EVERY_WEEK)
   async generateWeeklyReports(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.REVIEW_ANALYTICS_WEEKLY,
+      CronLockTtl.HEAVY,
+      async () => {
+        await this.runWeeklyReports();
+      },
+    );
+  }
+
+  private async runWeeklyReports(): Promise<void> {
     try {
       this.logger.log('Starting weekly industry report generation');
 
@@ -844,6 +867,16 @@ export class ReviewAnalyticsService {
 
   @Cron(CronExpression.EVERY_12_HOURS)
   async updateEstablishmentBenchmarks(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.REVIEW_ANALYTICS_TRENDING,
+      CronLockTtl.HEAVY,
+      async () => {
+        await this.runBenchmarkUpdates();
+      },
+    );
+  }
+
+  private async runBenchmarkUpdates(): Promise<void> {
     try {
       this.logger.log('Starting establishment benchmark updates');
 

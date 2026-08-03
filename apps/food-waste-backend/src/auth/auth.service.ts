@@ -765,7 +765,6 @@ export class AuthService {
     await this.tokenService.revokeAllUserTokens(user._id.toString(), 'Password reset');
     await this.usersService.markTokenInvalidation(user._id.toString());
     await this.usersService.incrementTokenRevocationVersion(user._id.toString());
-    await this.usersService.clearAllRefreshTokens(user._id.toString()); // Backward compatibility
 
     return {
       message: 'Password reset successful. Please log in with your new password.',
@@ -948,12 +947,11 @@ export class AuthService {
         });
       }
 
-      // Backward compatibility
-      await this.usersService.removeRefreshToken(userId, refreshToken);
+      // The token is revoked above via rotateToken(jti) against the hashed
+      // RefreshToken collection — that is the whole of single-session logout.
     } else {
       // Logout from all devices
       await this.tokenService.revokeAllUserTokens(userId, 'User logout (all devices)');
-      await this.usersService.clearAllRefreshTokens(userId);
 
       this.logger.log('All tokens revoked - logout from all devices', { userId });
     }
@@ -968,8 +966,11 @@ export class AuthService {
 
     const accessExpiresIn = (this.configService.get<string>('JWT_EXPIRES_IN') ??
       '15m') as NonNullable<JwtSignOptions['expiresIn']>;
+    // Fallback mirrors the Joi default in env.validation.ts. Unreachable in
+    // practice (Joi always supplies the value) but must not contradict it —
+    // the previous '365d' here read as the real policy and hid the drift.
     const refreshExpiresIn = (this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ??
-      '365d') as NonNullable<JwtSignOptions['expiresIn']>;
+      '30d') as NonNullable<JwtSignOptions['expiresIn']>;
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
@@ -1011,7 +1012,6 @@ export class AuthService {
     await this.tokenService.revokeAllUserTokens(userId, 'Forced password change');
     await this.usersService.markTokenInvalidation(userId);
     await this.usersService.incrementTokenRevocationVersion(userId);
-    await this.usersService.clearAllRefreshTokens(userId);
 
     const tokens = await this.tokenService.generateTokenPair(
       userId,

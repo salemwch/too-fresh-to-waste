@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { CronLockName, CronLockTtl } from '../common/constants/cron-lock.constant';
+import { CronLockService } from '../common/services/cron-lock.service';
 import { Model, Types, PipelineStage, FlattenMaps } from 'mongoose';
 
 import {
@@ -42,6 +44,7 @@ export class InventoryService {
 
   constructor(
     @InjectModel(InventoryItem.name) private readonly inventoryModel: Model<InventoryItemDocument>,
+    private readonly cronLock: CronLockService,
   ) {}
 
   async createInventoryItem(
@@ -458,6 +461,16 @@ export class InventoryService {
 
   @Cron(CronExpression.EVERY_HOUR)
   async checkExpiringItems(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.INVENTORY_HOURLY,
+      CronLockTtl.STANDARD,
+      async () => {
+        await this.runExpiringItemsCheck();
+      },
+    );
+  }
+
+  private async runExpiringItemsCheck(): Promise<void> {
     try {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -485,6 +498,16 @@ export class InventoryService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async updateExpiredItems(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.INVENTORY_DAILY,
+      CronLockTtl.STANDARD,
+      async () => {
+        await this.runExpiredItemsUpdate();
+      },
+    );
+  }
+
+  private async runExpiredItemsUpdate(): Promise<void> {
     try {
       // ✅ FIX: Use aggregation pipeline update to reference document fields
       // Cannot use '$currentStock' in regular update - must use pipeline syntax

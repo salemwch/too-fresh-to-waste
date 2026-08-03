@@ -17,6 +17,7 @@ jest.mock('uuid', () => ({
 }));
 
 const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60; // 31536000
+const THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60; // 2592000
 const FIFTEEN_MIN_SECONDS = 15 * 60; // 900
 
 /**
@@ -27,7 +28,9 @@ const DEFAULT_CONFIG: Record<string, string> = {
   JWT_SECRET: 'test-access-secret',
   JWT_REFRESH_SECRET: 'test-refresh-secret',
   JWT_EXPIRES_IN: '15m',
-  JWT_REFRESH_EXPIRES_IN: '365d',
+  // Mirrors the Joi defaults in config/env.validation.ts. A standard sign-in
+  // is 30d; only an explicit "remember me" gets a year.
+  JWT_REFRESH_EXPIRES_IN: '30d',
   JWT_REFRESH_REMEMBER_ME_EXPIRES_IN: '365d',
 };
 
@@ -97,12 +100,34 @@ describe('TokenService', () => {
   // generateTokenPair — standard session (rememberMe = false)
   // =================================================================
   describe('generateTokenPair — rememberMe = false (default)', () => {
-    it('should sign refresh token with JWT_REFRESH_EXPIRES_IN (365d = 31536000s)', async () => {
+    it('should sign refresh token with JWT_REFRESH_EXPIRES_IN (30d = 2592000s)', async () => {
       await service.generateTokenPair('user-1', 'a@b.com', UserRole.CONSUMER);
 
       // Promise.all preserves call order: [0] = access, [1] = refresh
       const refreshOptions = mockSignAsync.mock.calls[1][1];
-      expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
+      expect(refreshOptions.expiresIn).toBe(THIRTY_DAYS_SECONDS);
+    });
+
+    it('should NOT give a standard sign-in a year-long refresh token', async () => {
+      // Regression guard. The Joi default for JWT_REFRESH_EXPIRES_IN was '365d',
+      // and because Joi *applies* defaults the `?? '7d'` fallback in
+      // token.service.ts was dead code — every ordinary sign-in silently got a
+      // token valid for a year. A refresh token is a bearer credential, so that
+      // was a year-long account-takeover window on a stolen token.
+      await service.generateTokenPair('user-1', 'a@b.com', UserRole.CONSUMER);
+
+      const refreshOptions = mockSignAsync.mock.calls[1][1];
+      expect(refreshOptions.expiresIn).not.toBe(ONE_YEAR_SECONDS);
+      expect(refreshOptions.expiresIn).toBeLessThanOrEqual(THIRTY_DAYS_SECONDS);
+    });
+
+    it('should fall back to 30d when JWT_REFRESH_EXPIRES_IN env var is missing', async () => {
+      delete configMap['JWT_REFRESH_EXPIRES_IN'];
+
+      await service.generateTokenPair('user-1', 'a@b.com', UserRole.CONSUMER);
+
+      const refreshOptions = mockSignAsync.mock.calls[1][1];
+      expect(refreshOptions.expiresIn).toBe(THIRTY_DAYS_SECONDS);
     });
 
     it('should sign access token with JWT_EXPIRES_IN (15m = 900s)', async () => {
@@ -127,7 +152,7 @@ describe('TokenService', () => {
       expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ rememberMe: false }));
     });
 
-    it('should store expiresAt ~7 days from now', async () => {
+    it('should store expiresAt ~30 days from now', async () => {
       const before = Date.now();
       await service.generateTokenPair('user-1', 'a@b.com', UserRole.CONSUMER);
       const after = Date.now();
@@ -135,9 +160,11 @@ describe('TokenService', () => {
       const storedExpiresAt: Date = mockCreate.mock.calls[0][0].expiresAt;
 
       expect(storedExpiresAt.getTime()).toBeGreaterThanOrEqual(
-        before + ONE_YEAR_SECONDS * 1000 - 1000,
+        before + THIRTY_DAYS_SECONDS * 1000 - 1000,
       );
-      expect(storedExpiresAt.getTime()).toBeLessThanOrEqual(after + ONE_YEAR_SECONDS * 1000 + 1000);
+      expect(storedExpiresAt.getTime()).toBeLessThanOrEqual(
+        after + THIRTY_DAYS_SECONDS * 1000 + 1000,
+      );
     });
   });
 
@@ -430,7 +457,7 @@ describe('TokenService', () => {
         validation.rememberMe, // propagated flag
       );
 
-      // Refresh token must be signed with 365d expiry
+      // rememberMe propagates through rotation, so this one keeps 365d.
       const refreshOptions = mockSignAsync.mock.calls[1][1];
       expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
 
@@ -484,9 +511,10 @@ describe('TokenService', () => {
         validation.rememberMe,
       );
 
-      // Refresh token must be signed with 365d expiry
+      // A rotated standard token stays standard — rotation must never silently
+      // upgrade a 30-day session into a year-long one.
       const refreshOptions = mockSignAsync.mock.calls[1][1];
-      expect(refreshOptions.expiresIn).toBe(ONE_YEAR_SECONDS);
+      expect(refreshOptions.expiresIn).toBe(THIRTY_DAYS_SECONDS);
 
       expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ rememberMe: false }));
     });

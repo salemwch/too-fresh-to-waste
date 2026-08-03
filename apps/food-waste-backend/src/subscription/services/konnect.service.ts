@@ -1,6 +1,8 @@
 import { Injectable, Logger, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { perfLog, perfStart } from '../../common/utils/perf-log.util';
+
 const KONNECT_TIMEOUT_MS = 8_000;
 
 interface KonnectInitPaymentParams {
@@ -128,7 +130,7 @@ export class KonnectService implements OnModuleInit {
       theme: 'light',
     };
 
-    const t0 = performance.now();
+    const t0 = perfStart();
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), KONNECT_TIMEOUT_MS);
@@ -144,10 +146,7 @@ export class KonnectService implements OnModuleInit {
       });
       clearTimeout(timer);
 
-      const tResponse = performance.now();
-      this.logger.log(
-        `[PERF] Konnect HTTP response: ${(tResponse - t0).toFixed(0)}ms (status=${response.status})`,
-      );
+      perfLog(m => this.logger.log(m), 'Konnect HTTP response', t0, `status=${response.status}`);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -156,8 +155,11 @@ export class KonnectService implements OnModuleInit {
       }
 
       const data = (await response.json()) as KonnectPaymentResponse;
-      this.logger.log(
-        `[PERF] Konnect total (incl. body parse): ${(performance.now() - t0).toFixed(0)}ms | ref=${data.paymentRef}`,
+      perfLog(
+        m => this.logger.log(m),
+        'Konnect total (incl. body parse)',
+        t0,
+        `ref=${data.paymentRef}`,
       );
       return data;
     } catch (error) {

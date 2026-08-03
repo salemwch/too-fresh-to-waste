@@ -118,7 +118,8 @@ interface OrderPricing {
   subtotal: number;
   discountAmount: number;
   taxAmount: number;
-  serviceFee: number;
+  /** Delivery fee in TND. 0 for pickup. Included in `total`. */
+  deliveryFee: number;
   total: number;
   currency: string;
 }

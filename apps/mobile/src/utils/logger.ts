@@ -78,11 +78,35 @@ class LoggerService {
     return level >= this.logLevel;
   }
 
+  /**
+   * Appends to the in-memory ring buffer.
+   *
+   * Two things here are load-bearing for frame rate:
+   *
+   * 1. **The level check.** `shouldLog` used to gate only console output, so
+   *    setting `logLevel: 'error'` in production still paid for every DEBUG
+   *    entry — the object allocation, the `toISOString()`, and the buffer
+   *    write. The buffer only ever feeds diagnostics, so anything the
+   *    configured level suppresses should cost nothing at all.
+   *
+   * 2. **`shift()` instead of `slice(-maxLogs)`.** `slice` allocates a fresh
+   *    1000-element array on *every* call once the buffer is full, which it
+   *    reaches within a minute of use. That copy landed on the JS thread on
+   *    every query resolution (the QueryCache hooks call through here), which
+   *    is exactly where React Native jank comes from. `shift()` is amortised
+   *    O(1) in V8 for arrays of this size and allocates nothing.
+   */
   private addLog(entry: LogEntry): void {
+    if (!this.shouldLog(entry.level)) {
+      return;
+    }
+
     this.logs.push(entry);
 
-    if (this.logs.length > this.maxLogs) {
-      this.logs = this.logs.slice(-this.maxLogs);
+    // `while`, not `if` — a lowered maxLogs would otherwise leave the buffer
+    // permanently over budget, trimming one entry per call and never catching up.
+    while (this.logs.length > this.maxLogs) {
+      this.logs.shift();
     }
   }
 

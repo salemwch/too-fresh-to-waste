@@ -96,7 +96,7 @@ export class TrialExpiryListener {
     };
 
     try {
-      await this.notificationService.sendNotification(notificationData);
+      await this.notificationService.queueNotification(notificationData);
       this.logger.log(
         `Sent trial-expiring-soon notification for establishment ${event.establishmentId} (${event.daysRemaining}d remaining)`,
       );
@@ -167,7 +167,7 @@ export class TrialExpiryListener {
     };
 
     try {
-      await this.notificationService.sendNotification(notificationData);
+      await this.notificationService.queueNotification(notificationData);
       this.logger.log(`Sent trial-expired notification for establishment ${event.establishmentId}`);
     } catch (error) {
       this.logger.error(

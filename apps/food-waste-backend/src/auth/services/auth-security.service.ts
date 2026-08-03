@@ -7,6 +7,7 @@ import {
   calculateLockoutDuration,
 } from '../../common/constants/lockout-policy.constant';
 import { EventBusService } from '../../common/services/event-bus/event-bus.service';
+import { deleteByPattern } from '../../common/utils/redis-scan.util';
 import { RedisService } from '../../redis/redis.service';
 import { SecurityEvent, SecurityEventType, SecuritySeverity } from '../events/security-events';
 
@@ -867,10 +868,9 @@ export class AuthSecurityService {
       const redisClient = await this.getRedisClient();
 
       if (redisClient) {
-        const keys = await redisClient.keys(`${this.REDIS_KEYS.BLOCKED_IPS}*`);
-        if (keys.length > 0) {
-          clearedCount = await redisClient.del(keys);
-        }
+        // SCAN, never KEYS — this Redis also backs the throttler, Bull and the
+        // Socket.IO adapter, so a blocking command stalls all four at once.
+        clearedCount = await deleteByPattern(redisClient, `${this.REDIS_KEYS.BLOCKED_IPS}*`);
       } else {
         clearedCount = this.fallbackBlockedIps.size;
         this.fallbackBlockedIps.clear();
@@ -890,13 +890,13 @@ export class AuthSecurityService {
       const redisClient = await this.getRedisClient();
 
       if (redisClient) {
-        const attemptKeys = await redisClient.keys(`${this.REDIS_KEYS.ATTEMPTS}*`);
-        const requestKeys = await redisClient.keys(`${this.REDIS_KEYS.REQUESTS}*`);
-        const allKeys = [...attemptKeys, ...requestKeys];
-
-        if (allKeys.length > 0) {
-          clearedCount = await redisClient.del(allKeys);
-        }
+        // Two separate SCAN traversals rather than one KEYS per pattern.
+        // Summed because DEL reports exactly what it removed.
+        const [attemptsCleared, requestsCleared] = await Promise.all([
+          deleteByPattern(redisClient, `${this.REDIS_KEYS.ATTEMPTS}*`),
+          deleteByPattern(redisClient, `${this.REDIS_KEYS.REQUESTS}*`),
+        ]);
+        clearedCount = attemptsCleared + requestsCleared;
       } else {
         clearedCount = this.fallbackAttempts.size + this.fallbackRequests.size;
         this.fallbackAttempts.clear();

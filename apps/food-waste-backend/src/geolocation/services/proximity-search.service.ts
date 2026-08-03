@@ -21,7 +21,12 @@ import {
   DistanceUnit,
   AddressInfo,
 } from '../interfaces/geolocation.interface';
-import { DistanceCalculator, EARTH_RADIUS } from '../utils/distance.util';
+// EARTH_RADIUS is no longer needed here: it existed to convert the radius into
+// radians for $centerSphere. $geoNear takes `maxDistance` in metres directly,
+// which also removes the risk of that constant drifting from the one
+// DistanceCalculator uses and quietly misaligning the filter boundary with the
+// distance shown to the user.
+import { DistanceCalculator } from '../utils/distance.util';
 
 export interface ProximitySearchOptions {
   includeEstablishments?: boolean | undefined;
@@ -139,23 +144,15 @@ export class ProximitySearchService {
       // Build MongoDB aggregation pipeline
       const pipeline: PipelineStage[] = [];
 
-      // Convert radius from meters to radians for $centerSphere
-      // Must match EARTH_RADIUS.METERS (6371000) used by DistanceCalculator
-      // and the Haversine $addFields stage so the filter boundary aligns
-      // with the distance shown to the user.
-      const radiusInRadians = searchDto.radius / EARTH_RADIUS.METERS;
-
-      // Match stage - filter by location and other criteria
-      // Using $geoWithin with $centerSphere instead of $near (works in aggregation pipelines)
+      /*
+       * Non-geo filters. These go into $geoNear's `query` option rather than a
+       * separate $match, so MongoDB applies them *during* the index walk and
+       * can stop as soon as $limit is satisfied. A trailing $match would force
+       * the index to yield every document in the radius first.
+       *
+       * The geo predicate itself is NOT here — $geoNear owns it.
+       */
       const matchConditions: FilterQuery<EstablishmentDocument> = {
-        'address.coordinates': {
-          $geoWithin: {
-            $centerSphere: [
-              [centerPoint.coordinates[0], centerPoint.coordinates[1]], // [lng, lat]
-              radiusInRadians,
-            ],
-          },
-        },
         status:
           options.onlyActive !== false
             ? EstablishmentStatus.ACTIVE
@@ -200,54 +197,45 @@ export class ProximitySearchService {
         }
       }
 
-      pipeline.push({ $match: matchConditions });
-
-      // Add calculated distance field
+      /*
+       * $geoNear replaces three stages that used to follow a $geoWithin match:
+       * an $addFields computing haversine in aggregation trigonometry, a $sort
+       * on that computed field, and the implicit cost of both.
+       *
+       * Why that mattered: $geoWithin uses the 2dsphere index to *filter* but
+       * returns documents unordered, so the $sort was a blocking in-memory sort
+       * over every establishment in the radius — with no index to satisfy it and
+       * no allowDiskUse. MongoDB caps blocking sorts at 100 MB and then fails
+       * the query outright, so a dense enough neighbourhood did not merely get
+       * slow, it errored. Computing trigonometry for 10,000 establishments to
+       * return 20 was the cheaper half of the problem.
+       *
+       * $geoNear walks the 2dsphere index in ascending distance order and emits
+       * documents already sorted, writing the distance into `distanceField`
+       * itself. $limit can then short-circuit the walk.
+       *
+       * It must be the FIRST stage in the pipeline — hence the non-geo filters
+       * moving into `query` above.
+       */
       pipeline.push({
-        $addFields: {
-          distance: {
-            $let: {
-              vars: {
-                lon1: { $arrayElemAt: ['$address.coordinates.coordinates', 0] },
-                lat1: { $arrayElemAt: ['$address.coordinates.coordinates', 1] },
-                lon2: centerPoint.coordinates[0],
-                lat2: centerPoint.coordinates[1],
-              },
-              in: {
-                $multiply: [
-                  6371000, // Earth radius in meters
-                  {
-                    $acos: {
-                      $add: [
-                        {
-                          $multiply: [
-                            { $sin: { $degreesToRadians: '$$lat1' } },
-                            { $sin: { $degreesToRadians: '$$lat2' } },
-                          ],
-                        },
-                        {
-                          $multiply: [
-                            { $cos: { $degreesToRadians: '$$lat1' } },
-                            { $cos: { $degreesToRadians: '$$lat2' } },
-                            { $cos: { $degreesToRadians: { $subtract: ['$$lon2', '$$lon1'] } } },
-                          ],
-                        },
-                      ],
-                    },
-                  },
-                ],
-              },
-            },
-          },
+        $geoNear: {
+          near: { type: 'Point', coordinates: centerPoint.coordinates },
+          distanceField: 'distance',
+          maxDistance: searchDto.radius,
+          spherical: true,
+          key: 'address.coordinates',
+          query: matchConditions,
         },
       });
 
-      // Sort by distance if requested
-      if (searchDto.sortByDistance !== false) {
-        pipeline.push({ $sort: { distance: 1 } });
-      }
-
-      // Pagination
+      /*
+       * No $sort: $geoNear already emits in ascending distance order.
+       *
+       * `sortByDistance: false` asks for an unspecified order, and the cheapest
+       * correct way to honour that is to leave the index order alone — imposing
+       * a different one would reintroduce exactly the blocking sort this change
+       * removes. Distance-ascending is a valid answer to "any order".
+       */
       if (searchDto.skip && searchDto.skip > 0) {
         pipeline.push({ $skip: searchDto.skip });
       }
@@ -687,19 +675,10 @@ export class ProximitySearchService {
       );
 
       const centerPoint = DistanceCalculator.coordinateToPoint(searchDto.center);
-      const radiusInRadians = searchDto.radius / EARTH_RADIUS.METERS;
       const now = new Date();
 
-      // ── Match: geo + active ────────────────────────────────────────────
+      // ── Non-geo filters (passed to $geoNear's `query`, see pipeline) ────
       const matchConditions: FilterQuery<EstablishmentDocument> = {
-        'address.coordinates': {
-          $geoWithin: {
-            $centerSphere: [
-              [centerPoint.coordinates[0], centerPoint.coordinates[1]],
-              radiusInRadians,
-            ],
-          },
-        },
         status:
           options.onlyActive !== false
             ? EstablishmentStatus.ACTIVE
@@ -733,7 +712,43 @@ export class ProximitySearchService {
       }
 
       const pipeline: PipelineStage[] = [
-        { $match: matchConditions },
+        /*
+         * $geoNear first — it must be, and it wants to be.
+         *
+         * It walks the 2dsphere index in ascending distance order, applies the
+         * non-geo filters during that walk, and writes the distance into
+         * `distance` itself. That removes the blocking in-memory $sort that used
+         * to run after a $geoWithin match (unindexed, capped at 100 MB, so a
+         * dense enough area errored rather than merely slowed) and the
+         * aggregation-trigonometry $addFields that fed it.
+         */
+        {
+          $geoNear: {
+            near: { type: 'Point', coordinates: centerPoint.coordinates },
+            distanceField: 'distance',
+            maxDistance: searchDto.radius,
+            spherical: true,
+            key: 'address.coordinates',
+            query: matchConditions,
+          },
+        },
+
+        /*
+         * Paginate BEFORE the lookups.
+         *
+         * This is the larger win on this endpoint. Both $lookups below used to
+         * run for every establishment inside the radius — a users join and an
+         * offers sub-pipeline each — and only then did $limit discard all but
+         * 50. In a dense area that is thousands of joins performed to throw
+         * away. Nothing after the lookups filters on their output, so limiting
+         * first is behaviour-preserving: at most `limit` establishments are
+         * ever enriched.
+         *
+         * Safe only because $geoNear has already ordered the stream. Against an
+         * unordered source, an early $limit would pick arbitrary rows.
+         */
+        ...(searchDto.skip && searchDto.skip > 0 ? [{ $skip: searchDto.skip }] : []),
+        { $limit: searchDto.limit ?? 50 },
 
         // ── Lookup merchant profile image from users ───────────────────
         {
@@ -787,50 +802,16 @@ export class ProximitySearchService {
         },
 
         // ── Computed fields ────────────────────────────────────────────
+        // `distance` is supplied by $geoNear; only the offer count is derived.
+        // Cheap here: it runs on at most `limit` documents, not the whole radius.
         {
           $addFields: {
             activeOfferCount: { $size: '$activeOffers' },
-            distance: {
-              $let: {
-                vars: {
-                  lon1: { $arrayElemAt: ['$address.coordinates.coordinates', 0] },
-                  lat1: { $arrayElemAt: ['$address.coordinates.coordinates', 1] },
-                  lon2: centerPoint.coordinates[0],
-                  lat2: centerPoint.coordinates[1],
-                },
-                in: {
-                  $multiply: [
-                    6371000,
-                    {
-                      $acos: {
-                        $add: [
-                          {
-                            $multiply: [
-                              { $sin: { $degreesToRadians: '$$lat1' } },
-                              { $sin: { $degreesToRadians: '$$lat2' } },
-                            ],
-                          },
-                          {
-                            $multiply: [
-                              { $cos: { $degreesToRadians: '$$lat1' } },
-                              { $cos: { $degreesToRadians: '$$lat2' } },
-                              { $cos: { $degreesToRadians: { $subtract: ['$$lon2', '$$lon1'] } } },
-                            ],
-                          },
-                        ],
-                      },
-                    },
-                  ],
-                },
-              },
-            },
           },
         },
 
-        // ── Sort + paginate ─────────────────────────────────────────────
-        ...(searchDto.sortByDistance !== false ? [{ $sort: { distance: 1 as const } }] : []),
-        ...(searchDto.skip && searchDto.skip > 0 ? [{ $skip: searchDto.skip }] : []),
-        { $limit: searchDto.limit ?? 50 },
+        // Sorting and pagination already happened — $geoNear ordered the stream
+        // and $skip/$limit ran before the lookups.
 
         // ── Project ────────────────────────────────────────────────────
         {

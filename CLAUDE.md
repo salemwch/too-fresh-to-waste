@@ -353,23 +353,40 @@ delivery: PENDING → CONFIRMED → DRIVER_ASSIGNED → OUT_FOR_DELIVERY → DEL
 `OUT_FOR_DELIVERY` = the food is with the driver. Both are in `OrderStatus`
 (`packages/shared/src/enums/order.enum.ts`).
 
-**Money is computed once at order creation and never recalculated**
-(`order.service.ts`). Three separate figures, easily confused:
+**Money is computed once at order creation and never recalculated.** All of it
+lives in `orders/utils/order-pricing.util.ts` — never inline a fee anywhere
+else.
+
+```
+Customer pays  =  food (subtotal)  +  deliveryFee
+
+Food      →  merchant 81 %   platform 19 %
+Delivery  →  driver 3.00 TND  platform 1.00 TND
+```
 
 | Field                        | Source                         | Default |
 | ---------------------------- | ------------------------------ | ------- |
-| `deliveryFee`                | `FLAT_DELIVERY_FEE` env        | 3.0 TND |
-| `driverEarnings`             | `DRIVER_DELIVERY_EARNINGS` env | 2.5 TND |
-| `platformDeliveryCommission` | `deliveryFee - driverEarnings` | 0.5 TND |
+| `pricing.deliveryFee`        | `FLAT_DELIVERY_FEE` env        | 4.0 TND |
+| `driverEarnings`             | `DRIVER_DELIVERY_EARNINGS` env | 3.0 TND |
+| `platformDeliveryCommission` | `deliveryFee - driverEarnings` | 1.0 TND |
 
-- **`serviceFee` is NOT the delivery fee.** It is a hardcoded `DELIVERY_FEE = 3`
-  applied when `paymentMethod === 'pay_on_delivery'`, in both modes. It happens
-  to equal the `FLAT_DELIVERY_FEE` default, which makes the two trivially easy
-  to mix up when reading `pricing.total`. Changing one does not change the
-  other.
+- **Pickup is food only.** `deliveryFee` is 0.
+- **Payment method is a payment method, not a fee.** Cash never adds a charge.
+  There is no `serviceFee` any more — it was a hardcoded 4 TND applied whenever
+  `paymentMethod === 'pay_on_delivery'` in _both_ modes, so a cash pickup was
+  charged 4 TND while an online-paid delivery was charged nothing. The separate
+  `deliveryFee` field was written to the order and never added to `total`, so
+  the platform funded every online delivery's 3 TND driver payout from its own
+  margin and booked a 1 TND commission it had never collected. Renamed on stored
+  orders by `scripts/migrations/rename-service-fee-to-delivery-fee.ts`.
+- **Settlement splits `pricing.subtotal`, never `pricing.total`.** `total`
+  includes the delivery fee, and the merchant has no part in delivery — 81 % of
+  `total` would leave the platform paying a 3 TND driver out of a 0.76 TND
+  share. Use `calculateFoodRevenueSplit(order.pricing.subtotal)`.
 - **Charity donation**: `subtotal * 0.19 * 0.05` — 5 % of the platform's 19 %
-  commission, i.e. 0.95 % of subtotal. Funded from platform margin, never added
-  to what the customer pays.
+  commission on **food**, i.e. 0.95 % of subtotal. Delivery margin is excluded;
+  it funds the driver network. Funded from platform margin, never added to what
+  the customer pays.
 - **`MAX_DELIVERY_KM`** (default 5) is a hard gate: `haversineKm` between
   establishment and delivery address, `BadRequestException` beyond it. Order
   creation fails — it does not silently fall back to pickup.
@@ -521,6 +538,109 @@ When extracting, three things are easy to get wrong:
   a query. Resolve a whole page with one `$in` and look up from a `Map` — see
   `fetchAuditByRecord`. Fetching per row inside a `.map()` is an N+1, and the
   bulk opt-out path runs up to 1000 rows.
+
+### Never put the viewer's id in a cache key
+
+A cache key containing `userId` is not a cache — it is N private caches, and it
+stops working at exactly the scale you built it for. A session here is "open the
+app, browse, leave", which ends long before a 60–120s TTL can be reused, so the
+hit rate collapses toward zero as users grow. Two second-order costs come free
+with it: Redis holds N near-identical copies, and every `delByPrefix`
+invalidation has to SCAN all of them.
+
+Both discovery lists had this. Split the payload instead:
+
+- **Cache what every viewer shares** — the aggregation result, keyed only by
+  `(page, limit)` and whatever genuinely changes the query.
+- **Compute the per-viewer fields per request** — `isFavorite` from one indexed
+  favourites read, `distance` from arithmetic. Microseconds against a
+  multi-stage `$lookup`.
+
+See `CachedOfferPage` and `personalizeOfferPage` in `offers.service.ts`.
+
+- **Key on the _effective_ limit, not the requested one.**
+  `Math.min(limit, 100)` belongs in the key, or an attacker mints unbounded
+  entries in front of the most expensive query in the product.
+- **Check whether "it varies per user" is actually true.** `getUrgentOffers`
+  skipped the cache entirely whenever a location was passed, on that reasoning —
+  but the pipeline neither filters nor sorts on location, so only a decorated
+  `distance` differed. The hottest path in the app was uncached for a reason
+  that did not hold. Read the pipeline before believing the comment.
+- **`OfferCardDto` carries no coordinates on purpose** (privacy). Distance is
+  recomputed from a `coordinates` map cached _beside_ the cards, never by adding
+  the address to the DTO.
+- **Personalisation must not mutate the cached page.** Today that is defensive —
+  `CacheService.set()` snapshots before personalising, and hits are fresh
+  `JSON.parse`s. It becomes load-bearing the moment anything holds a page in
+  process (an LRU in front of Redis, single-flight coalescing of concurrent
+  misses), at which point in-place mutation leaks one user's `isFavorite` to
+  everyone. Asserted directly in `discovery-cache-sharing.spec.ts`, since no
+  cache shape can demonstrate the consequence yet.
+
+### Backend process model — three numbers that multiply
+
+Node runs one thread, so how the backend is _started_ bounds everything the
+query layer does well. The container runs **PM2 in cluster mode**
+(`ecosystem.config.js`, started by `pm2-runtime` — plain `pm2 start` daemonises
+and exits, which a container reads as a crash). It previously ran
+`node dist/main.js`: one core, with all HTTP, 29 `@Cron` jobs and every Bull
+processor on one event loop, so a heavy analytics rollup blocked checkout for
+its whole runtime.
+
+**`PROCESS_ROLE`** (`src/config/process-role.ts`) decides whether a process runs
+scheduled work — `api` | `worker` | `all`, gated centrally inside
+`CronLockService.runExclusive`, so it covers all 29 jobs and cannot be forgotten
+on a new one.
+
+- **Default is `all`, and must stay that way.** Setting `api` without a `worker`
+  process beside it means _no_ scheduled job runs — payouts, order expiry, trial
+  expiry all stop — and the service still reports healthy. Split only in pairs.
+- **This is not what makes crons safe.** The Redis lock is. The role gate only
+  stops API replicas from waking up to lose a lock race they should not enter.
+
+**Sizing is detected, not hardcoded.** `src/config/container-resources.ts` reads
+the cgroup CPU and memory limits, so one image is correct on a free 0.1-CPU
+instance and on an 8-core paid one. Changing plan is a dashboard action.
+
+- **`os.cpus()` lies inside a container** — it reports the _host's_ cores, not
+  this container's share. PM2's `instances: 'max'` is built on it, which is why
+  it is never used here: on a 16-core host with a 0.5-CPU limit it forks 16
+  workers to fight over half a core, and opens 16× the Mongo pool.
+- **Below two whole CPUs the detector returns 1.** Cluster mode there costs
+  memory and gains nothing.
+- **`--max-old-space-size` must fit the container, divided by worker count.**
+  Promise V8 more heap than the cgroup allows and the kernel `SIGKILL`s the
+  process — no graceful shutdown, every in-flight request dropped. A hardcoded
+  `2048` on a 512 MB instance is a scheduled crash, not a tuning choice.
+- **Never bake `WEB_CONCURRENCY` into the Dockerfile.** An explicit value always
+  wins over detection, so setting it there disables the whole mechanism
+  everywhere.
+
+**Render is defined in `render.yaml`** (Blueprint) — both the `web` API service
+and the `worker` service, sharing one env group. Free tier cannot run a
+background worker at all, and free web services spin down after ~15 min idle,
+which stops every cron with them: they are in-process timers, so those ticks are
+lost, not deferred.
+
+**Three settings multiply into one number**, and exceeding the database's
+connection limit takes the API down:
+
+```
+total Mongo sockets = MONGO_MAX_POOL_SIZE × WEB_CONCURRENCY × replicas
+```
+
+`MONGO_MAX_POOL_SIZE` is **per process**, not per service. At the default 100 on
+an 8-core host, one container opens 800 sockets. `WEB_CONCURRENCY` is set
+explicitly rather than PM2's `instances: 'max'` precisely so the core count
+stays visible in that formula.
+
+The same arithmetic bounds queue concurrency
+(`common/constants/queue-concurrency.constant.ts`): every `@Process()` without
+options runs **one job at a time**, which is what made notification delivery
+serial system-wide. Concurrency is now declared per queue and env-overridable,
+sized for I/O-bound work — but `sum(concurrency) × processes` draws from the
+same pool, so a queue burst that outgrows it starves HTTP handlers and presents
+as an unexplained API outage.
 
 ---
 

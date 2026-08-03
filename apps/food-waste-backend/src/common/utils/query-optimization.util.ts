@@ -20,7 +20,6 @@
  */
 export const USER_EXCLUDED_FIELDS = [
   '-password',
-  '-refreshTokens',
   '-emailVerificationToken',
   '-phoneVerificationCode',
   '-passwordResetToken',

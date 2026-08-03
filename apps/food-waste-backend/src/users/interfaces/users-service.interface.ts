@@ -102,20 +102,10 @@ export interface IUsersService {
    */
   updateStatus(id: string, status: UserStatus): Promise<User>;
 
-  /**
-   * Add refresh token to user
-   */
-  addRefreshToken(userId: string, refreshToken: string): Promise<void>;
-
-  /**
-   * Remove refresh token from user
-   */
-  removeRefreshToken(userId: string, refreshToken: string): Promise<void>;
-
-  /**
-   * Clear all refresh tokens for user
-   */
-  clearAllRefreshTokens(userId: string): Promise<void>;
+  // REMOVED: addRefreshToken / removeRefreshToken / clearAllRefreshTokens.
+  // They maintained the plaintext `user.refreshTokens` array, which no auth
+  // path read. Revocation lives in TokenService against the hashed
+  // RefreshToken collection. See the note on user.schema.ts.
 
   /**
    * Mark token invalidation timestamp (for token rotation)

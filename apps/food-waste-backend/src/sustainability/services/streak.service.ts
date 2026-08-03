@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
+import { CronLockName, CronLockTtl } from '../../common/constants/cron-lock.constant';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { Model, Types } from 'mongoose';
 
 import { User, UserDocument } from '../../users/schemas/user.schema';
@@ -14,7 +16,10 @@ const FREEZE_EVERY_N_DAYS = 7;
 export class StreakService {
   private readonly logger = new Logger(StreakService.name);
 
-  constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly cronLock: CronLockService,
+  ) {}
 
   private getTodayTunis(): string {
     return new Date().toLocaleDateString('en-CA', { timeZone: TUNIS_TZ });
@@ -99,6 +104,12 @@ export class StreakService {
    */
   @Cron('1 0 * * *', { timeZone: TUNIS_TZ })
   async processNightlyBreaks(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.STREAK_ROLLOVER, CronLockTtl.HEAVY, async () => {
+      await this.runNightlyBreaks();
+    });
+  }
+
+  private async runNightlyBreaks(): Promise<void> {
     const yesterday = this.getYesterdayTunis();
 
     this.logger.log(`Processing nightly streak breaks. Yesterday: ${yesterday}`);

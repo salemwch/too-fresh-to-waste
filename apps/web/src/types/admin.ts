@@ -726,7 +726,10 @@ export interface AdminOrderDetail {
   status: AdminOrderStatus;
   paymentStatus: AdminPaymentStatus;
   paymentProvider: string;
-  pricing: { total: number; currency: string; deliveryFee?: number; serviceFee?: number };
+  // `serviceFee` removed — it was a cash surcharge applied in both delivery and
+  // pickup, and is now folded into `deliveryFee`, which depends only on
+  // deliveryMode.
+  pricing: { total: number; currency: string; deliveryFee?: number };
   items: Array<{ offerId: string; title?: string; quantity: number; unitPrice: number }>;
   pickupCode?: string;
   expiresAt?: string;

@@ -16,6 +16,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model, Types, ClientSession, PipelineStage, FilterQuery } from 'mongoose';
 
+import { CronLockName, CronLockTtl } from '../common/constants/cron-lock.constant';
+import { CronLockService } from '../common/services/cron-lock.service';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { AppLoggerService } from '../common/services/logger.service';
 import {
@@ -173,6 +175,7 @@ export class ReviewsService {
     private readonly configService: ConfigService,
     private readonly eventBus: EventBusService,
     private readonly appLogger: AppLoggerService,
+    private readonly cronLock: CronLockService,
     @Optional()
     @Inject(forwardRef(() => GamificationService))
     private readonly gamificationService?: GamificationService,
@@ -1899,6 +1902,12 @@ export class ReviewsService {
    */
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async recalculateEstablishmentRatings(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.REVIEW_CLEANUP, CronLockTtl.HEAVY, async () => {
+      await this.runRatingRecalculation();
+    });
+  }
+
+  private async runRatingRecalculation(): Promise<void> {
     try {
       const establishments = await this.establishmentModel
         .find({
@@ -1921,6 +1930,16 @@ export class ReviewsService {
 
   @Cron(CronExpression.EVERY_HOUR)
   async processManualModerationQueue(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.REVIEW_REMINDERS,
+      CronLockTtl.STANDARD,
+      async () => {
+        await this.runManualModerationQueue();
+      },
+    );
+  }
+
+  private async runManualModerationQueue(): Promise<void> {
     try {
       const reviewsToModerate = await this.reviewModel
         .find({

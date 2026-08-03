@@ -74,7 +74,6 @@ interface IPhoneVerificationResult {
  */
 const SENSITIVE_FIELDS = [
   '-password',
-  '-refreshTokens',
   '-emailVerificationToken',
   '-phoneVerificationCode',
   '-passwordResetToken',
@@ -403,7 +402,7 @@ export class UsersService implements IUsersService {
       this.userModel
         .find(query)
         .select(
-          '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken -privacySettings.consentRecords -auditLog',
+          '-password -emailVerificationToken -phoneVerificationCode -passwordResetToken -privacySettings.consentRecords -auditLog',
         )
         .skip(skip)
         .limit(safeLimit)
@@ -431,7 +430,7 @@ export class UsersService implements IUsersService {
     const user = await this.userModel
       .findOne(query)
       .select(
-        '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken -privacySettings.consentRecords -auditLog',
+        '-password -emailVerificationToken -phoneVerificationCode -passwordResetToken -privacySettings.consentRecords -auditLog',
       )
       .lean() // ✅ OPTIMIZATION: Read-only operation, use lean()
       .exec();
@@ -1159,9 +1158,7 @@ export class UsersService implements IUsersService {
   async updateStatus(id: string, status: UserStatus): Promise<User> {
     const user = await this.userModel
       .findByIdAndUpdate(id, { status }, { new: true })
-      .select(
-        '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken',
-      )
+      .select('-password -emailVerificationToken -phoneVerificationCode -passwordResetToken')
       .exec();
 
     if (!user) {
@@ -1171,17 +1168,17 @@ export class UsersService implements IUsersService {
     return user;
   }
 
-  async addRefreshToken(userId: string, refreshToken: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, { $set: { refreshTokens: [refreshToken] } });
-  }
-
-  async removeRefreshToken(userId: string, refreshToken: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, { $pull: { refreshTokens: refreshToken } });
-  }
-
-  async clearAllRefreshTokens(userId: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, { refreshTokens: [] });
-  }
+  // REMOVED: addRefreshToken / removeRefreshToken / clearAllRefreshTokens.
+  //
+  // These maintained the plaintext `user.refreshTokens` array, which nothing
+  // read for authentication. Every call site already performed the real
+  // revocation immediately beforehand — `tokenService.revokeAllUserTokens()`
+  // plus `markTokenInvalidation()` and `incrementTokenRevocationVersion()` —
+  // and was annotated "Backward compatibility". Deleting them removes writes,
+  // not a security control.
+  //
+  // To revoke sessions, use TokenService: `revokeAllUserTokens(userId, reason)`
+  // for every device, or `rotateToken(jti)` for one.
 
   /**
    * Mark token invalidation timestamp
@@ -1297,7 +1294,8 @@ export class UsersService implements IUsersService {
       deletedAt: now,
       deletionReason: reason,
       lastTokenInvalidation: now,
-      refreshTokens: [],
+      // Sessions are invalidated by the tokenRevocationVersion bump below —
+      // validateRefreshToken() rejects any token whose `ver` claim is stale.
       $inc: { tokenRevocationVersion: 1 },
       $push: {
         auditLog: {
@@ -1372,9 +1370,7 @@ export class UsersService implements IUsersService {
         },
         { new: true },
       )
-      .select(
-        '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken',
-      );
+      .select('-password -emailVerificationToken -phoneVerificationCode -passwordResetToken');
 
     this.logger.log(`User restored: ${id}`);
     if (!restoredUser) {
@@ -1542,7 +1538,7 @@ export class UsersService implements IUsersService {
           $or: [{ firstName: searchRegex }, { lastName: searchRegex }, { email: searchRegex }],
         })
         .select(
-          '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken -privacySettings -auditLog',
+          '-password -emailVerificationToken -phoneVerificationCode -passwordResetToken -privacySettings -auditLog',
         )
         .skip(skip)
         .limit(safeLimit)

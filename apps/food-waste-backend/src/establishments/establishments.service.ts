@@ -642,13 +642,20 @@ export class EstablishmentsService {
       )
       .exec();
 
-    // Invalidate all cached data for this establishment
-    void Promise.all([
-      this.cacheService.del(`estab:owner:${id}`),
-      ...(deleted?.googlePlaceId
-        ? [this.cacheService.del(`estab:place:${deleted.googlePlaceId}`)]
-        : []),
-    ]);
+    // Invalidate all cached data for this establishment.
+    // Not awaited — the delete already committed — but caught, so a Redis
+    // outage is logged rather than swallowed by the global unhandledRejection
+    // handler in main.ts.
+    Promise.all(
+      [
+        `estab:owner:${id}`,
+        ...(deleted?.googlePlaceId ? [`estab:place:${deleted.googlePlaceId}`] : []),
+      ].map(async key => {
+        await this.cacheService.del(key);
+      }),
+    ).catch((err: unknown) => {
+      this.logger.warn(`Cache invalidation failed for deleted establishment ${id}: ${String(err)}`);
+    });
 
     // ✅ EVENT: Emit establishment deleted event
     try {

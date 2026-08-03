@@ -126,7 +126,7 @@ export class AdminAuthController {
         deletedAt: null,
         accountLockedUntil: { $gt: currentDate },
       })
-      .select('-password -refreshTokens -emailVerificationToken -passwordResetToken')
+      .select('-password -emailVerificationToken -passwordResetToken')
       .skip(skip)
       .limit(limit)
       .sort({ accountLockedUntil: -1 })

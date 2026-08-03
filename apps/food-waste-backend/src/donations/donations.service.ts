@@ -7,6 +7,8 @@ import {
 import { InjectQueue } from '@nestjs/bull';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { CronLockName, CronLockTtl } from '../common/constants/cron-lock.constant';
+import { CronLockService } from '../common/services/cron-lock.service';
 import { Queue } from 'bull';
 import { Model, Types } from 'mongoose';
 
@@ -53,6 +55,7 @@ export class DonationsService {
     private readonly userDonationModel: Model<UserDonationDocument>,
     @InjectQueue('donations')
     private readonly donationsQueue: Queue<PostDonationJobData>,
+    private readonly cronLock: CronLockService,
   ) {
     this.initializeDefaultPool().catch(error => {
       this.logger.error('Failed to initialize default donation pool', error);
@@ -455,6 +458,16 @@ export class DonationsService {
    */
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async refreshCategorySnapshots(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.DONATIONS_DAILY,
+      CronLockTtl.STANDARD,
+      async () => {
+        await this.runCategorySnapshotRefresh();
+      },
+    );
+  }
+
+  private async runCategorySnapshotRefresh(): Promise<void> {
     try {
       const snapshots = await this.snapshotModel.find().lean();
       const ops = snapshots.map(snap => {
@@ -478,6 +491,16 @@ export class DonationsService {
    */
   @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
   async archiveCompletedPools(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.DONATIONS_MONTHLY,
+      CronLockTtl.HEAVY,
+      async () => {
+        await this.runCompletedPoolArchival();
+      },
+    );
+  }
+
+  private async runCompletedPoolArchival(): Promise<void> {
     try {
       const fundedPools = await this.donationPoolModel
         .find({

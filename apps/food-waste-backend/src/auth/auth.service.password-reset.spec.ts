@@ -79,7 +79,6 @@ describe('AuthService — password reset actor matrix', () => {
             updatePassword: jest.fn().mockResolvedValue(undefined),
             markTokenInvalidation: jest.fn().mockResolvedValue(undefined),
             incrementTokenRevocationVersion: jest.fn().mockResolvedValue(undefined),
-            clearAllRefreshTokens: jest.fn().mockResolvedValue(undefined),
             updateEmailVerificationToken: jest.fn().mockResolvedValue(undefined),
           },
         },
@@ -300,10 +299,18 @@ describe('AuthService — password reset actor matrix', () => {
         newPassword: 'NewPass123!@#',
       });
 
+      // These three are the whole of revocation:
+      //  - revokeAllUserTokens marks every stored token record revoked
+      //  - markTokenInvalidation sets the cutoff that rejects older tokens
+      //  - incrementTokenRevocationVersion invalidates tokens by `ver` claim
+      //
+      // A fourth call, usersService.clearAllRefreshTokens, used to be asserted
+      // here. It emptied the plaintext `user.refreshTokens` array, which no auth
+      // path ever read — so it revoked nothing, and asserting it implied a
+      // guarantee that did not exist. The field and its helpers are gone.
       expect(tokenService.revokeAllUserTokens).toHaveBeenCalledWith(USER_ID, 'Password reset');
       expect(usersService.markTokenInvalidation).toHaveBeenCalledWith(USER_ID);
       expect(usersService.incrementTokenRevocationVersion).toHaveBeenCalledWith(USER_ID);
-      expect(usersService.clearAllRefreshTokens).toHaveBeenCalledWith(USER_ID);
     });
 
     // Single-use is enforced by updatePassword $unset-ing the token, which is

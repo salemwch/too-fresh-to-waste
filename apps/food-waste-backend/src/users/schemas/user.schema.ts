@@ -119,14 +119,24 @@ export class User {
     | undefined;
 
   /**
-   * @deprecated Legacy refresh token storage — tokens are stored as plain strings in an array.
-   * Prefer the RefreshToken schema (auth/schemas/refresh-token.schema.ts) which stores tokens
-   * with metadata (deviceInfo, ipAddress, expiresAt) and supports per-session revocation.
-   * This field is still actively read by auth.service.ts and session-management.service.ts;
-   * removal requires a data migration to the RefreshToken collection.
+   * REMOVED — `refreshTokens: string[]`.
+   *
+   * This held refresh tokens as **plaintext**. It was written on login/logout
+   * but never read for authentication: `auth.service.refreshTokens()` validates
+   * exclusively against the `RefreshToken` collection, which stores a SHA-256
+   * hash (`token.service.ts`) plus rotation, family-theft detection and TTLs.
+   *
+   * That made it pure downside. A raw token from this array is still a working
+   * credential — validation hashes whatever is presented and looks it up — so a
+   * database dump handed out live bearer tokens in exchange for nothing.
+   *
+   * Removal is behaviour-neutral by construction; the field had no readers.
+   * Existing documents are cleaned up by
+   * `scripts/migrations/unset-legacy-refresh-tokens.ts`.
+   *
+   * If you need per-session revocation, use the RefreshToken collection —
+   * it already supports it. Do not reintroduce a token array here.
    */
-  @Prop({ type: [String], default: [] })
-  refreshTokens!: string[];
 
   /**
    * Token Security Tracking

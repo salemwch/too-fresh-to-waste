@@ -1672,7 +1672,7 @@
       "subtotal": "Sous-total",
       "discount": "Remise",
       "tax": "Taxe",
-      "serviceFee": "Frais de service",
+      "deliveryFee": "Frais de livraison",
       "total": "Total",
       "pickupCode": "Code de retrait",
       "pickupCodeHint": "Écrivez ce code sur le sac physique",

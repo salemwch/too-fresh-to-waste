@@ -1672,7 +1672,7 @@
       "subtotal": "المجموع الفرعي",
       "discount": "الخصم",
       "tax": "الضريبة",
-      "serviceFee": "رسوم الخدمة",
+      "deliveryFee": "رسوم التوصيل",
       "total": "الإجمالي",
       "pickupCode": "رمز الاستلام",
       "pickupCodeHint": "اكتب هذا الرمز على الكيس",

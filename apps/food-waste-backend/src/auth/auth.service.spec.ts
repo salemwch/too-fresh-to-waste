@@ -108,11 +108,8 @@ describe('AuthService', () => {
             verifyEmail: jest.fn(),
             incrementFailedLoginAttempts: jest.fn(),
             resetFailedLoginAttempts: jest.fn(),
-            addRefreshToken: jest.fn(),
             updateLastLogin: jest.fn(),
             findOneWithTokens: jest.fn(),
-            removeRefreshToken: jest.fn(),
-            clearAllRefreshTokens: jest.fn(),
           },
         },
         {

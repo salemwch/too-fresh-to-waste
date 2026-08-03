@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { deleteByPattern } from '../common/utils/redis-scan.util';
 import { RedisService } from '../redis/redis.service';
 import { ReviewDocument, ReviewSentimentAnalysis } from '../reviews/schemas/review.schema';
 
@@ -219,10 +220,8 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
 
       const redisClient = await this.getRedisClient();
       if (redisClient) {
-        const keys = await redisClient.keys(pattern);
-        if (keys.length > 0) {
-          await redisClient.del(keys);
-        }
+        // SCAN, never KEYS — KEYS blocks the shared Redis event loop.
+        await deleteByPattern(redisClient, pattern);
       } else {
         // For in-memory cache, we need to iterate and find matching keys
         const keysToDelete: string[] = [];
@@ -252,10 +251,8 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
 
       const redisClient = await this.getRedisClient();
       if (redisClient) {
-        const keys = await redisClient.keys(pattern);
-        if (keys.length > 0) {
-          await redisClient.del(keys);
-        }
+        // SCAN, never KEYS — KEYS blocks the shared Redis event loop.
+        await deleteByPattern(redisClient, pattern);
       } else {
         const keysToDelete: string[] = [];
         this.fallbackCache.forEach((_value, key) => {
@@ -313,10 +310,9 @@ export class ReviewCacheService implements OnModuleInit, OnModuleDestroy {
     try {
       const redisClient = await this.getRedisClient();
       if (redisClient) {
-        const keys = await redisClient.keys(`${this.CACHE_KEY_PREFIX}*`);
-        if (keys.length > 0) {
-          await redisClient.del(keys);
-        }
+        // SCAN, never KEYS — this walks the whole review cache namespace, which
+        // is exactly the size at which KEYS stalls Redis for everyone.
+        await deleteByPattern(redisClient, `${this.CACHE_KEY_PREFIX}*`);
       } else {
         this.fallbackCache.clear();
       }

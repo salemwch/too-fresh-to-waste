@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { deleteByPattern } from '../../common/utils/redis-scan.util';
 import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
@@ -46,10 +47,8 @@ export class SearchCacheService {
   async clearPattern(pattern: string): Promise<void> {
     try {
       const redis = await this.redisService.getClient();
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        await redis.del(keys);
-      }
+      // SCAN, never KEYS — KEYS blocks the shared Redis event loop.
+      await deleteByPattern(redis, pattern);
     } catch {
       // Fail silently
     }

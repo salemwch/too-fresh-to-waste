@@ -301,9 +301,11 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'Password does not meet policy requirements' })
   async updatePassword(@Request() req: AuthenticatedRequest, @Body() dto: UpdatePasswordDto) {
     await this.usersService.updatePassword(req.user.userId, dto.newPassword, dto.currentPassword);
+    // Bumping the revocation version is what invalidates existing refresh
+    // tokens: validateRefreshToken() rejects any token whose `ver` claim is
+    // behind the user's current tokenRevocationVersion.
     await this.usersService.markTokenInvalidation(req.user.userId);
     await this.usersService.incrementTokenRevocationVersion(req.user.userId);
-    await this.usersService.clearAllRefreshTokens(req.user.userId);
     return { message: 'Password updated successfully' };
   }
 

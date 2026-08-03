@@ -313,9 +313,7 @@ export class UserManagementService {
           .sort(sort)
           .skip(skip)
           .limit(limit)
-          .select(
-            '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken',
-          )
+          .select('-password -emailVerificationToken -phoneVerificationCode -passwordResetToken')
           .lean()
           .exec(),
         this.userModel.countDocuments(filter),
@@ -361,9 +359,7 @@ export class UserManagementService {
     try {
       const user = await this.userModel
         .findById(userId)
-        .select(
-          '-password -refreshTokens -emailVerificationToken -phoneVerificationCode -passwordResetToken',
-        )
+        .select('-password -emailVerificationToken -phoneVerificationCode -passwordResetToken')
         .lean()
         .exec();
 

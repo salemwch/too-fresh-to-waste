@@ -1673,7 +1673,7 @@
       "subtotal": "Subtotal",
       "discount": "Discount",
       "tax": "Tax",
-      "serviceFee": "Service Fee",
+      "deliveryFee": "Delivery Fee",
       "total": "Total",
       "pickupCode": "Pickup Code",
       "pickupCodeHint": "Write this code on the physical bag",

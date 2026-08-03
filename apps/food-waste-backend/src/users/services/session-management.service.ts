@@ -180,13 +180,14 @@ export class SessionManagementService {
       throw new BadRequestException('User not found');
     }
 
-    // Clear all refresh tokens except current session
-    if (currentSessionId) {
-      // In a real implementation, you'd preserve the current session's refresh token
-      user.refreshTokens = [];
-    } else {
-      user.refreshTokens = [];
-    }
+    // NOTE: this service is not registered in any module — it is dead code,
+    // superseded by auth/services/session-management.service.ts. The lines that
+    // used to clear `user.refreshTokens` were removed with that field (it was
+    // plaintext and never read for auth). They were not a revocation control:
+    // this method never called TokenService, so it only ever wrote an audit
+    // entry. If it is ever revived, it must call
+    // `tokenService.revokeAllUserTokens()` to actually end sessions.
+    void currentSessionId;
 
     // Add audit log entry
     user.auditLog ??= [];

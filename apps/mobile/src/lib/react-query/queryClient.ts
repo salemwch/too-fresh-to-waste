@@ -20,8 +20,6 @@ import { Freshness } from './freshness';
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object';
 
-const hasValue = (value: unknown): boolean => value !== null && value !== undefined;
-
 const getAxiosStatus = (error: unknown): number | undefined => {
   if (!isRecord(error) || !('response' in error) || !isRecord(error['response'])) {
     return undefined;
@@ -104,20 +102,17 @@ const queryCache = new QueryCache({
     });
   },
 
-  onSuccess: (data, query) => {
-    Logger.debug('Query success', {
-      queryKey: query.queryKey,
-      dataType: typeof data,
-    });
-  },
-
-  onSettled: (data, error, query) => {
-    Logger.debug('Query settled', {
-      queryKey: query.queryKey,
-      hasError: hasValue(error),
-      hasData: hasValue(data),
-    });
-  },
+  // NOTE: no onSuccess / onSettled here, deliberately.
+  //
+  // These fire for EVERY query in the app, and both logged the same resolution
+  // — two log entries per query, each allocating a context object and a
+  // timestamp on the JS thread. On a screen resolving ten queries that is
+  // twenty allocations before a single pixel changes.
+  //
+  // They also told us nothing actionable: a successful query is the expected
+  // case, and Sentry already receives breadcrumbs on the paths that matter via
+  // Logger.error below. Failures are still captured — onError is what carries
+  // diagnostic value, so it stays.
 });
 
 /**
@@ -141,17 +136,12 @@ const mutationCache = new MutationCache({
     });
   },
 
+  // Mutations are far rarer than queries, so `onSuccess` is affordable here and
+  // genuinely useful — it marks the user-intent boundary in a Sentry trail.
+  // `onSettled` is dropped: it duplicated onSuccess/onError with no new signal.
   onSuccess: (_data, _variables, _context, mutation) => {
     Logger.info('Mutation success', {
       mutationKey: mutation.options.mutationKey,
-    });
-  },
-
-  onSettled: (data, error, _variables, _context, mutation) => {
-    Logger.debug('Mutation settled', {
-      mutationKey: mutation.options.mutationKey,
-      hasError: hasValue(error),
-      hasData: hasValue(data),
     });
   },
 });

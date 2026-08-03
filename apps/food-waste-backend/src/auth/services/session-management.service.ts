@@ -40,8 +40,18 @@ import {
   SessionValidationResult,
   SessionActivity,
 } from '../../common/security/interfaces/session.interface';
+import { scanBatches } from '../../common/utils/redis-scan.util';
 import { RedisService } from '../../redis/redis.service';
 import { User, UserDocument } from '../../users/schemas/user.schema';
+
+/**
+ * Redis key prefixes. Centralised because the cleanup routine has to rebuild
+ * a `session:` key from a member of a `user:sessions:` set — if the two ever
+ * drift apart, cleanup silently treats every live session as an orphan and
+ * empties the mapping sets.
+ */
+const SESSION_KEY_PREFIX = 'session:';
+const USER_SESSIONS_KEY_PREFIX = 'user:sessions:';
 
 interface SerializedDeviceInfo extends Omit<DeviceInfo, 'lastActiveAt' | 'createdAt'> {
   readonly lastActiveAt: string | Date;
@@ -674,29 +684,68 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Clean up expired sessions
+   * Prune session IDs that no longer resolve to a live session.
+   *
+   * Storage layout:
+   *   session:{sessionId}      → session JSON, carries a TTL
+   *   user:sessions:{userId}   → SET of sessionIds, carries NO TTL
+   *
+   * Redis expires the `session:*` keys on its own, but the member IDs left
+   * behind in `user:sessions:*` are never removed — that set grows without
+   * bound for the lifetime of the account, and it is what `getUserSessionIds`
+   * reads to answer "where is this user signed in?".
+   *
+   * This previously scanned `session:*` with a KEYS command. That was doubly
+   * wrong: KEYS blocks the single-threaded Redis that also backs the throttler,
+   * Bull and the Socket.IO adapter, and — because TTL has already removed the
+   * expired keys — a scan of `session:*` returns only *live* sessions and so
+   * can never observe the orphans that actually leak. It was expensive work
+   * that could not find the thing it was looking for.
+   *
+   * We now walk the sets themselves via SCAN (far fewer keys than sessions,
+   * one per signed-in user) and resolve each set's members in a single MGET.
    */
   private async cleanupExpiredSessions(): Promise<void> {
-    // Redis TTL will auto-expire keys, but we clean up user session mappings
     const redisClient = await this.redisService.getClient();
-    const keys = await redisClient.keys('session:*');
 
-    let cleaned = 0;
+    let orphansRemoved = 0;
+    let setsEmptied = 0;
 
-    for (const key of keys) {
-      const sessionJson = await redisClient.get(key);
-      if (sessionJson) {
-        const session = this.deserializeSession(sessionJson);
+    await scanBatches(redisClient, `${USER_SESSIONS_KEY_PREFIX}*`, async setKeys => {
+      for (const setKey of setKeys) {
+        const sessionIds = await redisClient.sMembers(setKey);
+        if (sessionIds.length === 0) {
+          // An empty set still occupies a key; reclaim it.
+          await redisClient.del([setKey]);
+          setsEmptied++;
+          continue;
+        }
 
-        if (new Date() > session.expiresAt) {
-          await this.destroySession(session.sessionId);
-          cleaned++;
+        // One round-trip resolves every member. MGET returns null in the slot
+        // of any key that no longer exists — those are exactly the orphans.
+        const sessionKeys = sessionIds.map(id => `${SESSION_KEY_PREFIX}${id}`);
+        const payloads = await redisClient.mGet(sessionKeys);
+
+        const orphaned = sessionIds.filter((_id, i) => payloads[i] === null);
+
+        if (orphaned.length > 0) {
+          await redisClient.sRem(setKey, orphaned);
+          orphansRemoved += orphaned.length;
+        }
+
+        if (orphaned.length === sessionIds.length) {
+          // Every member was stale — the user has no live session left.
+          await redisClient.del([setKey]);
+          setsEmptied++;
         }
       }
-    }
+    });
 
-    if (cleaned > 0) {
-      this.logger.log(`Cleaned up ${cleaned} expired sessions`);
+    if (orphansRemoved > 0 || setsEmptied > 0) {
+      this.logger.log(
+        `Session cleanup: removed ${orphansRemoved} orphaned session ` +
+          `reference(s), reclaimed ${setsEmptied} empty set(s)`,
+      );
     }
   }
 
@@ -710,7 +759,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   private async storeSessionInRedis(session: SessionInfo): Promise<void> {
     try {
       const redisClient = await this.redisService.getClient();
-      const key = `session:${session.sessionId}`;
+      const key = `${SESSION_KEY_PREFIX}${session.sessionId}`;
       const ttl = Math.ceil((session.expiresAt.getTime() - Date.now()) / 1000);
 
       if (ttl <= 0) {
@@ -735,7 +784,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   private async getSessionFromRedis(sessionId: string): Promise<SessionInfo | null> {
     try {
       const redisClient = await this.redisService.getClient();
-      const key = `session:${sessionId}`;
+      const key = `${SESSION_KEY_PREFIX}${sessionId}`;
       const sessionJson = await redisClient.get(key);
 
       if (sessionJson) {
@@ -755,7 +804,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   private async deleteSessionFromRedis(sessionId: string): Promise<void> {
     try {
       const redisClient = await this.redisService.getClient();
-      const key = `session:${sessionId}`;
+      const key = `${SESSION_KEY_PREFIX}${sessionId}`;
       await redisClient.del(key);
     } catch (error) {
       this.logger.warn(
@@ -771,7 +820,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   private async addSessionToUser(userId: string, sessionId: string): Promise<void> {
     try {
       const redisClient = await this.redisService.getClient();
-      const key = `user:sessions:${userId}`;
+      const key = `${USER_SESSIONS_KEY_PREFIX}${userId}`;
       await redisClient.sAdd(key, sessionId);
     } catch (error) {
       this.logger.warn(
@@ -795,7 +844,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   private async removeSessionFromUser(userId: string, sessionId: string): Promise<void> {
     try {
       const redisClient = await this.redisService.getClient();
-      const key = `user:sessions:${userId}`;
+      const key = `${USER_SESSIONS_KEY_PREFIX}${userId}`;
       await redisClient.sRem(key, sessionId);
     } catch (error) {
       this.logger.warn(
@@ -811,7 +860,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   private async getUserSessionIds(userId: string): Promise<string[]> {
     try {
       const redisClient = await this.redisService.getClient();
-      const key = `user:sessions:${userId}`;
+      const key = `${USER_SESSIONS_KEY_PREFIX}${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
       this.logger.warn(

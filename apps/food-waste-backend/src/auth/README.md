@@ -364,8 +364,9 @@ Promise<boolean>
 
 JWT_SECRET=your-256-bit-secret-here # Access token secret
 JWT_REFRESH_SECRET=your-refresh-secret-here # Refresh token secret
-JWT_EXPIRES_IN=15m # Access token TTL JWT_REFRESH_EXPIRES_IN=7d # Refresh token
-TTL
+JWT_EXPIRES_IN=15m # Access token TTL JWT_REFRESH_EXPIRES_IN=30d # Refresh token
+TTL (standard sign-in) JWT_REFRESH_REMEMBER_ME_EXPIRES_IN=365d # Refresh token
+TTL ("remember me")
 
 # Password Policy
 
@@ -374,9 +375,9 @@ Maximum password length
 
 # Account Security
 
-LOGIN_MAX_ATTEMPTS=10 # Max failed login attempts LOGIN_LOCKOUT_DURATION=300000 #
-Lockout duration (15 min in ms) IP_BLOCK_DURATION=3600000 # IP block duration (1
-hour)
+LOGIN_MAX_ATTEMPTS=10 # Max failed login attempts
+LOGIN_LOCKOUT_DURATION=300000 # Lockout duration (15 min in ms)
+IP_BLOCK_DURATION=3600000 # IP block duration (1 hour)
 
 # MFA Configuration
 

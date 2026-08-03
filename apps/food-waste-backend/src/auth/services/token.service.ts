@@ -130,7 +130,11 @@ export class TokenService {
     const refreshExpiresInSec = this.parseExpiration(
       this.configService.get<string>(
         rememberMe ? 'JWT_REFRESH_REMEMBER_ME_EXPIRES_IN' : 'JWT_REFRESH_EXPIRES_IN',
-      ) ?? (rememberMe ? '365d' : '7d'),
+        // Fallbacks mirror the Joi defaults in env.validation.ts. Both are
+        // unreachable (Joi supplies each) but kept aligned so neither misstates
+        // the policy — the old '7d' here was contradicted by a '365d' schema
+        // default, and the schema is what actually won.
+      ) ?? (rememberMe ? '365d' : '30d'),
     );
 
     // Create token payloads WITHOUT exp/iat - let JWT library handle them
