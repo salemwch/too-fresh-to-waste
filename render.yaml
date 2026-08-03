@@ -125,7 +125,22 @@ services:
 #
 #   DATABASE_URL, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, JWT_SECRET,
 #   JWT_REFRESH_SECRET, RESEND_API_KEY, CORS_ORIGINS, SENTRY_DSN,
-#   KONNECT_API_KEY, KONNECT_WALLET_ID, FIREBASE_*
+#   KONNECT_API_KEY, KONNECT_WALLET_ID, FIREBASE_PROJECT_ID,
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, TWILIO_*,
+#   PRIVACY_ENCRYPTION_KEY, COOKIE_SECRET, BACKEND_URL, FRONTEND_URL,
+#   KONNECT_ORDER_WEBHOOK_URL, EMAIL_FROM_ADDRESS
+#
+# Firebase credentials: set **FIREBASE_SERVICE_ACCOUNT** to the service account
+# JSON itself, as a single env var. Do NOT use FIREBASE_SERVICE_ACCOUNT_PATH
+# here — it points at a file, and there is no secrets file in the image (the
+# JSON must never be committed). The schema accepts either and the app prefers
+# the path when both are set; on a container the inline form is the workable
+# one. Requiring the path alone is what crashlooped the first deploy: the API
+# exited on config validation, PM2 restarted it, no port was ever bound, and
+# Render reported only "no open ports detected".
+#
+# Render Secret Files are the alternative if you prefer a path: mount the JSON
+# and point FIREBASE_SERVICE_ACCOUNT_PATH at the mount location.
 #
 # Both services read the same DATABASE_URL and REDIS_* — that is required, not
 # incidental: the Redis cron lock only excludes replicas that share a Redis.

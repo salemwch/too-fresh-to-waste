@@ -168,14 +168,33 @@ export const envValidationSchema = Joi.object({
   }),
 
   // ── Firebase ─────────────────────────────────────────────────────────
-  FIREBASE_SERVICE_ACCOUNT_PATH: Joi.when('NODE_ENV', {
+  //
+  // Two credential sources, mirroring FirebaseAdminService.initializeFirebase:
+  // a path to the service account file, or the same JSON inline. The service
+  // has always accepted either (path wins when both are set), but this schema
+  // required the path alone — so a container, which cannot ship a secrets file
+  // and must take credentials through the environment, could not boot
+  // production at all. That is what crashlooped the Render deploy: the API
+  // exited on config validation, PM2 restarted it, and no port was ever bound.
+  //
+  // Production still requires one of them, so push notifications cannot be
+  // silently unconfigured. Anything below production stays fully optional.
+  FIREBASE_SERVICE_ACCOUNT_PATH: Joi.string().when('NODE_ENV', {
     is: 'production',
-    then: Joi.string().required().messages({
-      'any.required':
-        'FIREBASE_SERVICE_ACCOUNT_PATH is required in production (push notifications)',
+    then: Joi.when('FIREBASE_SERVICE_ACCOUNT', {
+      is: Joi.exist(),
+      then: Joi.optional(),
+      otherwise: Joi.required().messages({
+        'any.required':
+          'Push notifications need Firebase credentials in production: set FIREBASE_SERVICE_ACCOUNT_PATH (path to the service account file) or FIREBASE_SERVICE_ACCOUNT (the same JSON inline, which is what container platforms such as Render need).',
+      }),
     }),
-    otherwise: Joi.string().optional(),
+    otherwise: Joi.optional(),
   }),
+  // Declared so the pairing above is visible in one place; allowUnknown would
+  // have let it through undeclared, which is how it stayed invisible here while
+  // the service supported it.
+  FIREBASE_SERVICE_ACCOUNT: Joi.string().optional(),
   FIREBASE_PROJECT_ID: Joi.when('NODE_ENV', {
     is: 'production',
     then: Joi.string().required().messages({
