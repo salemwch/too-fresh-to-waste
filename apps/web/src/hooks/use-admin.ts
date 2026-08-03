@@ -746,6 +746,30 @@ export function useResetDonationPool() {
   });
 }
 
+export function useStartDonationSeason() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => dashboardService.startAdminDonationSeason().then(r => r.data.data),
+    onSuccess: data => {
+      qc.setQueryData<DonationStats>(DONATION_POOL_KEY, data);
+      void qc.invalidateQueries({ queryKey: DONATION_HISTORY_KEY });
+    },
+  });
+}
+
+const DONATION_HISTORY_KEY = ['admin', 'donation-history'] as const;
+
+export function useAdminDonationHistory() {
+  return useQuery({
+    queryKey: DONATION_HISTORY_KEY,
+    queryFn: async () => {
+      const res = await dashboardService.getAdminDonationHistory();
+      return res.data.data;
+    },
+    staleTime: 60 * 1000,
+  });
+}
+
 // ─── Payment hooks ───────────────────────────────────────────────────────────
 
 export function useAdminPaymentStats() {

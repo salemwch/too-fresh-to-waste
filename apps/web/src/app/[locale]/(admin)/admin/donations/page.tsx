@@ -13,6 +13,8 @@ import {
   Save,
   AlertTriangle,
   CalendarX,
+  History,
+  Sparkles,
 } from 'lucide-react';
 import {
   Card,
@@ -38,7 +40,9 @@ import {
   useAdminDonationPool,
   useUpdateDonationPool,
   useResetDonationPool,
+  useStartDonationSeason,
 } from '@/hooks/use-admin';
+import { Link } from '@/i18n/routing';
 import type {
   DonationPoolStatus,
   DonationGoalCategory,
@@ -67,6 +71,7 @@ function StatusBadge({
     funded: 'bg-blue-50 text-blue-700 border-blue-200',
     distributed: 'bg-purple-50 text-purple-700 border-purple-200',
     archived: 'bg-gray-100 text-gray-500 border-gray-200',
+    season_complete: 'bg-amber-50 text-amber-700 border-amber-200',
   };
   return (
     <span
@@ -116,6 +121,7 @@ export default function AdminDonationPoolPage() {
   const { data: pool, isLoading, refetch, isFetching } = useAdminDonationPool();
   const updatePool = useUpdateDonationPool();
   const resetPool = useResetDonationPool();
+  const startSeason = useStartDonationSeason();
 
   const [targetAmount, setTargetAmount] = useState('');
   const [cause, setCause] = useState('');
@@ -131,6 +137,7 @@ export default function AdminDonationPoolPage() {
     MEDICINE: { itemPrice: '5', targetCount: '500' },
   });
   const [resetDialog, setResetDialog] = useState(false);
+  const [seasonDialog, setSeasonDialog] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Sync form with fetched data
@@ -212,6 +219,12 @@ export default function AdminDonationPoolPage() {
     });
   }
 
+  function handleStartSeason() {
+    startSeason.mutate(undefined, {
+      onSuccess: () => setSeasonDialog(false),
+    });
+  }
+
   if (isLoading) {
     return (
       <div className='flex items-center justify-center py-24'>
@@ -232,6 +245,17 @@ export default function AdminDonationPoolPage() {
         </div>
         <div className='flex items-center gap-2'>
           {pool && <StatusBadge status={pool.status} t={t} />}
+          {pool && (
+            <span className='text-xs text-muted-foreground'>
+              {t('season', { number: pool.season ?? 1 })}
+            </span>
+          )}
+          <Link href='/admin/donations/history'>
+            <Button size='sm' variant='outline' className='h-7 px-2.5 text-xs'>
+              <History className='me-1.5 size-3.5' />
+              {t('viewHistory')}
+            </Button>
+          </Link>
           <Button
             size='sm'
             variant='outline'
@@ -507,6 +531,24 @@ export default function AdminDonationPoolPage() {
         </CardContent>
       </Card>
 
+      {/* Start New Season */}
+      {pool?.status === 'season_complete' && (
+        <Card className='border-amber-300/60 bg-amber-50/30'>
+          <CardHeader>
+            <CardTitle className='flex items-center gap-2 text-sm text-amber-700'>
+              <Sparkles className='size-4' />
+              {t('startNewSeason')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button size='sm' className='h-7 px-3 text-xs' onClick={() => setSeasonDialog(true)}>
+              <Sparkles className='me-1.5 size-3.5' />
+              {t('startNewSeason')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Reset confirm dialog */}
       <ConfirmActionDialog
         open={resetDialog}
@@ -517,6 +559,18 @@ export default function AdminDonationPoolPage() {
         variant='warning'
         isLoading={resetPool.isPending}
         onConfirm={handleReset}
+      />
+
+      {/* Start season confirm dialog */}
+      <ConfirmActionDialog
+        open={seasonDialog}
+        onOpenChange={setSeasonDialog}
+        title={t('startSeasonConfirmTitle')}
+        description={t('startSeasonConfirmDescription')}
+        confirmLabel={t('startSeasonConfirm')}
+        variant='warning'
+        isLoading={startSeason.isPending}
+        onConfirm={handleStartSeason}
       />
     </div>
   );

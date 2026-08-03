@@ -17,6 +17,7 @@ import { DEFAULT_CURRENCY, DonationGoalCategory } from '@foodwaste/shared';
 import { DonationStatsResponseDto, UserDonationStatsResponseDto } from './dto/donation-stats.dto';
 import type { PostDonationJobData } from './processors/donation.processor';
 
+import { getFirstGoal, getNextGoal } from './constants/goal-sequence.constant';
 import {
   CreateDonationInput,
   DONATION_CONSTANTS,
@@ -76,16 +77,22 @@ export class DonationsService {
       if (!existingPool) {
         this.logger.log('No active donation pool found. Creating default pool...');
 
+        const firstCategory = getFirstGoal();
+        const defaults = DEFAULT_CATEGORY_PRICES[firstCategory];
+
         const defaultPool = new this.donationPoolModel({
           currentAmount: 0,
-          targetAmount: DONATION_CONSTANTS.DEFAULT_TARGET_AMOUNT,
+          targetAmount: defaults.itemPrice * defaults.targetCount,
           mealCount: 0,
           contributorCount: 0,
           totalDistributed: 0,
           status: DonationPoolStatus.ACTIVE,
-          cause: 'Community Food Relief 2025',
-          activeGoalCategory: DonationGoalCategory.TSHIRTS,
+          cause: 'Community Food Relief',
+          activeGoalCategory: firstCategory,
           startDate: new Date(),
+          season: 1,
+          goalIndex: 0,
+          completedGoals: [],
           distributionHistory: [],
           isArchived: false,
         });
@@ -131,7 +138,7 @@ export class DonationsService {
   /**
    * Calculate donation amount from order total
    * Formula: (orderTotal * platformFeePercentage) * donationPercentage
-   * Example: (5 DT * 0.25) * 0.05 = 0.0625 DT
+   * Example: (5 DT * 0.19) * 0.05 = 0.0475 DT
    */
   calculateDonationAmount(orderTotal: number): number {
     if (orderTotal <= 0) {
@@ -240,16 +247,16 @@ export class DonationsService {
         { $inc: { totalAmount: input.amount, totalItems: estimatedMeals } },
       );
 
-      // Inline target check using the doc we already have.
+      // Target reached — advance to next goal with overflow
       if (
         updatedPool &&
         updatedPool.currentAmount >= updatedPool.targetAmount &&
         updatedPool.status === DonationPoolStatus.ACTIVE
       ) {
-        await this.donationPoolModel.findByIdAndUpdate(pool._id, {
-          $set: { status: DonationPoolStatus.FUNDED },
-        });
-        this.logger.log(`Donation pool ${pool._id} reached target — status set to FUNDED`);
+        const overflow = parseFloat(
+          Math.max(0, updatedPool.currentAmount - updatedPool.targetAmount).toFixed(3),
+        );
+        await this.advanceToNextGoal(updatedPool, overflow);
       }
 
       // Off the critical path: contributor count + badge assignment.
@@ -268,6 +275,98 @@ export class DonationsService {
       this.logger.error('Failed to create donation', error);
       throw new InternalServerErrorException('Failed to create donation record');
     }
+  }
+
+  /**
+   * Advance from a completed goal to the next one in the sequence.
+   * The funded pool is capped at its target; overflow seeds the new pool.
+   */
+  private async advanceToNextGoal(
+    fundedPool: DonationPoolDocument,
+    overflow: number,
+  ): Promise<void> {
+    const nextCategory = getNextGoal(fundedPool.activeGoalCategory);
+
+    if (!nextCategory) {
+      await this.completeSeason(fundedPool);
+      return;
+    }
+
+    const nextIndex = fundedPool.goalIndex + 1;
+    const defaults = DEFAULT_CATEGORY_PRICES[nextCategory];
+    const nextTarget = defaults.itemPrice * defaults.targetCount;
+
+    // Cap the funded pool at its target and record the completed goal
+    await this.donationPoolModel.findByIdAndUpdate(fundedPool._id, {
+      $set: {
+        status: DonationPoolStatus.FUNDED,
+        currentAmount: fundedPool.targetAmount,
+      },
+      $push: { completedGoals: fundedPool.activeGoalCategory },
+    });
+
+    // Create the next goal's pool
+    const newPool = new this.donationPoolModel({
+      currentAmount: overflow,
+      targetAmount: nextTarget,
+      mealCount: 0,
+      contributorCount: 0,
+      totalDistributed: 0,
+      status: DonationPoolStatus.ACTIVE,
+      cause: fundedPool.cause,
+      activeGoalCategory: nextCategory,
+      startDate: new Date(),
+      season: fundedPool.season,
+      goalIndex: nextIndex,
+      completedGoals: [...fundedPool.completedGoals, fundedPool.activeGoalCategory],
+      distributionHistory: [],
+      isArchived: false,
+    });
+
+    await newPool.save();
+
+    // Update the next category's snapshot with overflow
+    if (overflow > 0) {
+      const mealOverflow = this.calculateMealCount(overflow);
+      await this.snapshotModel.updateOne(
+        { category: nextCategory },
+        { $inc: { totalAmount: overflow, totalItems: mealOverflow } },
+      );
+    }
+
+    this.logger.log(
+      `Goal auto-rotated: ${fundedPool.activeGoalCategory} → ${nextCategory} (overflow: ${overflow} TND, season ${fundedPool.season})`,
+    );
+
+    // If overflow already fills the next goal, recurse
+    if (overflow >= nextTarget) {
+      const nextPoolDoc = await this.donationPoolModel.findOne({
+        status: DonationPoolStatus.ACTIVE,
+        isArchived: false,
+      });
+      if (nextPoolDoc) {
+        const nextOverflow = parseFloat((overflow - nextTarget).toFixed(3));
+        await this.advanceToNextGoal(nextPoolDoc, nextOverflow);
+      }
+    }
+  }
+
+  /**
+   * All 5 goals completed — mark the pool as SEASON_COMPLETE.
+   * A new season requires admin approval via the start-season endpoint.
+   */
+  private async completeSeason(lastPool: DonationPoolDocument): Promise<void> {
+    await this.donationPoolModel.findByIdAndUpdate(lastPool._id, {
+      $set: {
+        status: DonationPoolStatus.SEASON_COMPLETE,
+        currentAmount: lastPool.targetAmount,
+      },
+      $push: { completedGoals: lastPool.activeGoalCategory },
+    });
+
+    this.logger.log(
+      `Season ${lastPool.season} complete! All 5 goals funded. Awaiting admin approval for new season.`,
+    );
   }
 
   /**
@@ -291,6 +390,9 @@ export class DonationsService {
         activeGoalCategory: pool.activeGoalCategory,
         currency: DEFAULT_CURRENCY,
         targetDate: pool.targetDate ? pool.targetDate.toISOString() : undefined,
+        season: pool.season ?? 1,
+        goalIndex: pool.goalIndex ?? 0,
+        completedGoals: pool.completedGoals ?? [],
         categoryProgress: snapshots.map(s => {
           const targetAmount = s.itemPrice * s.targetCount;
           return {
@@ -427,29 +529,135 @@ export class DonationsService {
    * Existing donation records are kept; pool counters reset to zero.
    */
   async resetPool(): Promise<DonationStatsResponseDto> {
-    await this.donationPoolModel.updateOne(
-      { status: DonationPoolStatus.ACTIVE, isArchived: false },
+    // Find the current highest season number
+    const currentPool = await this.donationPoolModel
+      .findOne({ isArchived: false })
+      .sort({ season: -1 })
+      .select('season')
+      .lean();
+
+    const nextSeason = (currentPool?.season ?? 0) + 1;
+
+    // Archive ALL non-archived pools (handles SEASON_COMPLETE and any stragglers)
+    await this.donationPoolModel.updateMany(
+      { isArchived: false },
       { $set: { isArchived: true, archivedAt: new Date() } },
     );
 
+    const firstCategory = getFirstGoal();
+    const defaults = DEFAULT_CATEGORY_PRICES[firstCategory];
+
     const newPool = new this.donationPoolModel({
       currentAmount: 0,
-      targetAmount: DONATION_CONSTANTS.DEFAULT_TARGET_AMOUNT,
+      targetAmount: defaults.itemPrice * defaults.targetCount,
       mealCount: 0,
       contributorCount: 0,
       totalDistributed: 0,
       status: DonationPoolStatus.ACTIVE,
       cause: 'Community Food Relief',
-      activeGoalCategory: DonationGoalCategory.TSHIRTS,
+      activeGoalCategory: firstCategory,
       startDate: new Date(),
+      season: nextSeason,
+      goalIndex: 0,
+      completedGoals: [],
       distributionHistory: [],
       isArchived: false,
     });
 
     await newPool.save();
-    this.logger.log('Donation pool reset: old pool archived, new pool created');
+
+    // Reset category snapshots for the new season
+    const resetOps = Object.values(DonationGoalCategory).map(category => {
+      const catDefaults = DEFAULT_CATEGORY_PRICES[category];
+      return this.snapshotModel.updateOne(
+        { category },
+        {
+          $set: {
+            totalAmount: 0,
+            totalItems: 0,
+            percent: 0,
+            itemPrice: catDefaults.itemPrice,
+            targetCount: catDefaults.targetCount,
+            targetAmount: catDefaults.itemPrice * catDefaults.targetCount,
+          },
+        },
+      );
+    });
+    await Promise.all(resetOps);
+
+    this.logger.log(`New season ${nextSeason} started: old pools archived, snapshots reset`);
 
     return this.getCurrentStats();
+  }
+
+  /**
+   * Get donation history: all archived/funded/season_complete pools grouped by season.
+   * Admin sees the full history of every goal in every season.
+   */
+  async getDonationHistory(): Promise<
+    Array<{
+      season: number;
+      pools: Array<{
+        _id: string;
+        activeGoalCategory: string;
+        targetAmount: number;
+        currentAmount: number;
+        status: string;
+        cause: string;
+        startDate: string;
+        archivedAt?: string;
+        contributorCount: number;
+        mealCount: number;
+        goalIndex: number;
+        completedGoals: string[];
+      }>;
+    }>
+  > {
+    const pools = await this.donationPoolModel
+      .find({
+        status: {
+          $in: [
+            DonationPoolStatus.FUNDED,
+            DonationPoolStatus.ARCHIVED,
+            DonationPoolStatus.SEASON_COMPLETE,
+          ],
+        },
+      })
+      .sort({ season: 1, goalIndex: 1 })
+      .select(
+        'season activeGoalCategory targetAmount currentAmount status cause startDate archivedAt contributorCount mealCount goalIndex completedGoals',
+      )
+      .lean();
+
+    const seasonMap = new Map<number, typeof pools>();
+    for (const pool of pools) {
+      const season = pool.season ?? 1;
+      if (!seasonMap.has(season)) {
+        seasonMap.set(season, []);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      seasonMap.get(season)!.push(pool);
+    }
+
+    return Array.from(seasonMap.entries())
+      .sort(([a], [b]) => b - a)
+      .map(([season, seasonPools]) => ({
+        season,
+        pools: seasonPools.map(p => ({
+          _id: String(p._id),
+          activeGoalCategory: p.activeGoalCategory,
+          targetAmount: p.targetAmount,
+          currentAmount: p.currentAmount,
+          status: p.status,
+          cause: p.cause,
+          startDate: p.startDate.toISOString(),
+          ...(p.archivedAt ? { archivedAt: p.archivedAt.toISOString() } : {}),
+          contributorCount: p.contributorCount,
+          mealCount: p.mealCount,
+          goalIndex: p.goalIndex ?? 0,
+          completedGoals: (p.completedGoals ?? []) as string[],
+        })),
+      }));
   }
 
   /**
@@ -502,19 +710,12 @@ export class DonationsService {
 
   private async runCompletedPoolArchival(): Promise<void> {
     try {
-      const fundedPools = await this.donationPoolModel
-        .find({
-          status: DonationPoolStatus.FUNDED,
-          isArchived: false,
-        })
-        .limit(50)
-        .lean();
-
-      for (const pool of fundedPools) {
-        pool.isArchived = true;
-        pool.archivedAt = new Date();
-        await pool.save();
-        this.logger.log(`Archived donation pool ${pool._id}`);
+      const result = await this.donationPoolModel.updateMany(
+        { status: DonationPoolStatus.FUNDED, isArchived: false },
+        { $set: { isArchived: true, archivedAt: new Date(), status: DonationPoolStatus.ARCHIVED } },
+      );
+      if (result.modifiedCount > 0) {
+        this.logger.log(`Archived ${result.modifiedCount} funded donation pool(s)`);
       }
     } catch (error) {
       this.logger.error('Failed to archive completed pools', error);

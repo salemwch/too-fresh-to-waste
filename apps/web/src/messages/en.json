@@ -1446,7 +1446,8 @@
         "active": "Active",
         "funded": "Funded",
         "distributed": "Distributed",
-        "archived": "Archived"
+        "archived": "Archived",
+        "season_complete": "Season Complete"
       },
       "settings": {
         "title": "Pool Settings",
@@ -1484,6 +1485,26 @@
         "confirmDescription": "The current pool will be archived and a new one will be created with default settings. Donation history is not deleted.",
         "confirm": "Yes, Reset Pool",
         "success": "Donation pool reset successfully"
+      },
+      "season": "Season {number}",
+      "viewHistory": "View History",
+      "startNewSeason": "Start New Season",
+      "startSeasonConfirmTitle": "Start New Season?",
+      "startSeasonConfirmDescription": "This will archive all current pools, reset category snapshots, and begin a new season. All donation records are preserved.",
+      "startSeasonConfirm": "Yes, Start Season",
+      "history": {
+        "title": "Donation History",
+        "description": "Browse past donation seasons and their goals",
+        "empty": "No history yet",
+        "emptyDescription": "Completed donation seasons will appear here once the first season is archived.",
+        "seasonLabel": "Season {number}",
+        "seasonSummary": "{goals}/{total} goals funded · {raised} TND raised · {contributors} contributors",
+        "goal": "Goal",
+        "status": "Status",
+        "raised": "Raised",
+        "target": "Target",
+        "progressCol": "Progress",
+        "date": "Started"
       }
     },
     "adminCommunityGoal": {

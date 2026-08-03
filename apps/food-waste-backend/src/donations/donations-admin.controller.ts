@@ -97,4 +97,54 @@ export class DonationsAdminController {
       data: stats,
     };
   }
+
+  @Post('pool/start-season')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Start a new donation season (admin)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'New season started',
+    type: DonationStatsResponseDto,
+  })
+  async startNewSeason(
+    @CurrentUser('userId') adminId: string,
+  ): Promise<{ message: string; data: DonationStatsResponseDto }> {
+    this.logger.log(`Admin ${adminId} starting new donation season`);
+    const stats = await this.donationsService.resetPool();
+    return {
+      message: 'New donation season started successfully',
+      data: stats,
+    };
+  }
+
+  @Get('history')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get donation pool history grouped by season (admin)' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Donation history retrieved' })
+  async getDonationHistory(): Promise<{
+    message: string;
+    data: Array<{
+      season: number;
+      pools: Array<{
+        _id: string;
+        activeGoalCategory: string;
+        targetAmount: number;
+        currentAmount: number;
+        status: string;
+        cause: string;
+        startDate: string;
+        archivedAt?: string;
+        contributorCount: number;
+        mealCount: number;
+        goalIndex: number;
+        completedGoals: string[];
+      }>;
+    }>;
+  }> {
+    const history = await this.donationsService.getDonationHistory();
+    return {
+      message: 'Donation history retrieved successfully',
+      data: history,
+    };
+  }
 }

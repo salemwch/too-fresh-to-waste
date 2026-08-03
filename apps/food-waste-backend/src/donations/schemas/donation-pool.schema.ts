@@ -13,6 +13,7 @@ export enum DonationPoolStatus {
   FUNDED = 'funded',
   DISTRIBUTED = 'distributed',
   ARCHIVED = 'archived',
+  SEASON_COMPLETE = 'season_complete',
 }
 
 /**
@@ -102,6 +103,15 @@ export class DonationPool {
   @Prop({ type: Object })
   metadata?: DonationPoolMetadata;
 
+  @Prop({ required: true, default: 1, min: 1 })
+  season!: number;
+
+  @Prop({ required: true, default: 0, min: 0 })
+  goalIndex!: number;
+
+  @Prop({ type: [String], enum: DonationGoalCategory, default: [] })
+  completedGoals!: DonationGoalCategory[];
+
   @Prop({ default: false })
   isArchived!: boolean;
 
@@ -115,6 +125,7 @@ export const DonationPoolSchema = SchemaFactory.createForClass(DonationPool);
 DonationPoolSchema.index({ status: 1, isArchived: 1 });
 DonationPoolSchema.index({ startDate: -1 });
 DonationPoolSchema.index({ createdAt: -1 });
+DonationPoolSchema.index({ season: 1, status: 1 });
 
 // Virtual for calculating progress percentage
 DonationPoolSchema.virtual('progressPercentage').get(function (this: DonationPoolDocument) {

@@ -426,6 +426,47 @@ Redux-only.
 - `totalBagsSaved` tracks bags; `totalOrdersCount` tracks orders
 - `addPoints()` only increments counters when `orderId` is present
 
+### Donation Goal Auto-Rotation
+
+Goals follow a fixed sequence defined in
+`donations/constants/goal-sequence.constant.ts`:
+
+```
+TSHIRTS → PANTS → SHOES → CHILDREN_STUDIES → MEDICINE
+```
+
+- **Formula**:
+  `subtotal * PLATFORM_FOOD_SHARE(0.19) * DONATION_RATE_OF_COMMISSION(0.05)` =
+  0.95% of food subtotal. Single source of truth: constants exported from
+  `orders/utils/order-pricing.util.ts`. The `DONATION_CONSTANTS` in
+  `donations/interfaces/donation.interface.ts` must mirror these values — never
+  inline a separate rate.
+- **Auto-rotation**: When a goal's target is reached, the pool status changes to
+  `FUNDED` and its `currentAmount` is capped at `targetAmount`. A new `ACTIVE`
+  pool is created for the next category in the sequence.
+- **Overflow**: If a donation pushes `currentAmount` past `targetAmount`, the
+  excess (`currentAmount - targetAmount`) becomes the new pool's starting
+  `currentAmount`. Calculated as `Math.max(0, currentAmount - targetAmount)`.
+- **Cascade**: If overflow exceeds the next goal's target too, rotation recurses
+  through the sequence until the overflow is absorbed or all goals are funded.
+- **Season**: One round of all 5 goals = one season. When `MEDICINE` (last goal)
+  is funded, the pool status becomes `SEASON_COMPLETE`. Admin must call
+  `POST /admin/donations/pool/start-season` to begin a new season — this
+  increments the season number, archives all non-archived pools, and resets
+  category snapshots.
+- **History**: `GET /admin/donations/history` returns all archived/funded/
+  season-complete pools grouped by season number, sorted descending.
+- **Funded pools are locked**: `currentAmount` is capped at `targetAmount` on
+  the funded pool. No code path decrements a `FUNDED` pool.
+- **Pool fields**: `season` (number, default 1), `goalIndex` (number, default
+  0), `completedGoals` (array of funded categories so far in this season).
+- **`DonationPoolStatus`**: `ACTIVE` | `FUNDED` | `SEASON_COMPLETE` | `ARCHIVED`
+  | `PAUSED`. `SEASON_COMPLETE` lives in both the backend schema enum and
+  `@foodwaste/shared` — keep them in sync.
+- **Target per category**: computed from `DEFAULT_CATEGORY_PRICES[category]` as
+  `itemPrice * targetCount`. Never hardcoded — admin may override via the
+  existing `updatePool` endpoint.
+
 ### Data Fetching
 
 - Mobile: `useQueryWithFocus` for screen-level queries (refetch on focus)

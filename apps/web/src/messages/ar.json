@@ -1445,7 +1445,8 @@
         "active": "نشط",
         "funded": "ممول",
         "distributed": "موزع",
-        "archived": "مؤرشف"
+        "archived": "مؤرشف",
+        "season_complete": "الموسم مكتمل"
       },
       "settings": {
         "title": "إعدادات الصندوق",
@@ -1483,6 +1484,26 @@
         "confirmDescription": "سيتم أرشفة الصندوق الحالي وإنشاء صندوق جديد بالإعدادات الافتراضية. لن يتم حذف سجل التبرعات.",
         "confirm": "نعم، إعادة تعيين",
         "success": "تمت إعادة تعيين صندوق التبرعات بنجاح"
+      },
+      "season": "الموسم {number}",
+      "viewHistory": "عرض السجل",
+      "startNewSeason": "بدء موسم جديد",
+      "startSeasonConfirmTitle": "بدء موسم جديد؟",
+      "startSeasonConfirmDescription": "سيتم أرشفة جميع الصناديق الحالية وإعادة تعيين الفئات وبدء موسم جديد. جميع سجلات التبرعات محفوظة.",
+      "startSeasonConfirm": "نعم، ابدأ الموسم",
+      "history": {
+        "title": "سجل التبرعات",
+        "description": "تصفح مواسم التبرعات السابقة وأهدافها",
+        "empty": "لا يوجد سجل بعد",
+        "emptyDescription": "ستظهر مواسم التبرعات المكتملة هنا بمجرد أرشفة الموسم الأول.",
+        "seasonLabel": "الموسم {number}",
+        "seasonSummary": "{goals}/{total} أهداف ممولة · {raised} د.ت مجموعة · {contributors} مساهمين",
+        "goal": "الهدف",
+        "status": "الحالة",
+        "raised": "المجموع",
+        "target": "الهدف",
+        "progressCol": "التقدم",
+        "date": "تاريخ البدء"
       }
     },
     "adminCommunityGoal": {

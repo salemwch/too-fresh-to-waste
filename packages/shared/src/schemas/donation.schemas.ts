@@ -57,6 +57,9 @@ export const DonationStatsResponseSchema = z.object({
   currency: z.string(),
   targetDate: z.string().datetime().optional(),
   categoryProgress: z.array(CategoryProgressSchema),
+  season: z.number().min(1),
+  goalIndex: z.number().min(0),
+  completedGoals: z.array(z.nativeEnum(DonationGoalCategory)),
 });
 
 export type DonationStatsResponse = z.infer<typeof DonationStatsResponseSchema>;

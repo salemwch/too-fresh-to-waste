@@ -430,7 +430,12 @@ export interface UpdateOfferPayload {
 
 // ─── Donation Pool ──────────────────────────────────────────────────────────
 
-export type DonationPoolStatus = 'active' | 'funded' | 'distributed' | 'archived';
+export type DonationPoolStatus =
+  | 'active'
+  | 'funded'
+  | 'distributed'
+  | 'archived'
+  | 'season_complete';
 
 export type DonationGoalCategory = 'TSHIRTS' | 'PANTS' | 'SHOES' | 'CHILDREN_STUDIES' | 'MEDICINE';
 
@@ -462,6 +467,9 @@ export interface DonationStats {
   currency: string;
   targetDate?: string;
   categoryProgress: CategoryProgress[];
+  season: number;
+  goalIndex: number;
+  completedGoals: DonationGoalCategory[];
 }
 
 // ─── Community Bag Goal ─────────────────────────────────────────────────────

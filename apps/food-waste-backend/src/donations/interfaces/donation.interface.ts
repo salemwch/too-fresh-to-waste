@@ -7,7 +7,7 @@ import type { Types } from 'mongoose';
  * Interface for donation calculation configuration
  */
 export interface DonationCalculationConfig {
-  platformFeePercentage: number; // 25% = 0.25
+  platformFeePercentage: number; // 19% = 0.19
   donationPercentage: number; // 5% = 0.05
   mealCostEstimate: number; // Cost per meal in TND
 }
@@ -78,7 +78,7 @@ export interface BadgeCriteria {
  * Constants for donation business logic
  */
 export const DONATION_CONSTANTS = {
-  PLATFORM_FEE_PERCENTAGE: 0.25, // 25% platform fee
+  PLATFORM_FEE_PERCENTAGE: 0.19, // 19% platform food commission (matches PLATFORM_FOOD_SHARE)
   DONATION_PERCENTAGE: 0.05, // 5% of platform fee goes to donations
   MEAL_COST_ESTIMATE_TND: 2.5, // Estimated cost per meal in TND (1 meal per 2.5 TND)
   DEFAULT_TARGET_AMOUNT: 300, // Default pool target (changed from 1000)

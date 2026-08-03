@@ -16,6 +16,10 @@ import { plainToClass } from 'class-transformer';
 import { Types } from 'mongoose';
 
 import { OrderCompletedEvent } from '../../common/events';
+import {
+  PLATFORM_FOOD_SHARE,
+  DONATION_RATE_OF_COMMISSION,
+} from '../../orders/utils/order-pricing.util';
 import { DonationsService } from '../donations.service';
 
 @Injectable()
@@ -63,14 +67,16 @@ export class OrderEventsListener {
   }
 
   /**
-   * Shared logic: Process donation round-up (1% of order total)
+   * Shared logic: Process donation for 5% of platform's 19% food commission
    */
   private async processOrderDonation(event: OrderCompletedEvent): Promise<void> {
     try {
       this.logger.log(`Processing order.completed event for donations: ${event.orderId}`);
 
-      // Charity is 5% of platform's cut — calculated from bag price only, not delivery fee
-      const donationAmount = parseFloat((event.subtotalAmount * 0.01).toFixed(3));
+      // Charity is 5% of platform's 19% food commission — calculated from subtotal only, not delivery fee
+      const donationAmount = parseFloat(
+        (event.subtotalAmount * PLATFORM_FOOD_SHARE * DONATION_RATE_OF_COMMISSION).toFixed(3),
+      );
 
       if (donationAmount > 0) {
         await this.donationsService.createDonation({

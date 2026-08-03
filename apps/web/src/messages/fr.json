@@ -1445,7 +1445,8 @@
         "active": "Active",
         "funded": "Financée",
         "distributed": "Distribuée",
-        "archived": "Archivée"
+        "archived": "Archivée",
+        "season_complete": "Saison terminée"
       },
       "settings": {
         "title": "Paramètres",
@@ -1483,6 +1484,26 @@
         "confirmDescription": "La cagnotte actuelle sera archivée et une nouvelle sera créée. L'historique des dons n'est pas supprimé.",
         "confirm": "Oui, réinitialiser",
         "success": "Cagnotte réinitialisée avec succès"
+      },
+      "season": "Saison {number}",
+      "viewHistory": "Voir l'historique",
+      "startNewSeason": "Nouvelle saison",
+      "startSeasonConfirmTitle": "Démarrer une nouvelle saison ?",
+      "startSeasonConfirmDescription": "Cela archivera toutes les cagnottes actuelles, réinitialisera les catégories et commencera une nouvelle saison. Tous les dons sont conservés.",
+      "startSeasonConfirm": "Oui, démarrer",
+      "history": {
+        "title": "Historique des dons",
+        "description": "Parcourir les saisons de dons passées et leurs objectifs",
+        "empty": "Aucun historique",
+        "emptyDescription": "Les saisons de dons terminées apparaîtront ici une fois la première saison archivée.",
+        "seasonLabel": "Saison {number}",
+        "seasonSummary": "{goals}/{total} objectifs financés · {raised} TND collectés · {contributors} contributeurs",
+        "goal": "Objectif",
+        "status": "Statut",
+        "raised": "Collecté",
+        "target": "Objectif",
+        "progressCol": "Progression",
+        "date": "Débuté"
       }
     },
     "adminCommunityGoal": {

@@ -29,6 +29,9 @@ export interface DonationStats {
   currency: string;
   targetDate?: string;
   categoryProgress: CategoryProgress[];
+  season: number;
+  goalIndex: number;
+  completedGoals: DonationGoalCategory[];
 }
 
 /**

@@ -152,6 +152,26 @@ export class DonationStatsResponseDto implements DonationStatsResponse {
   @ValidateNested({ each: true })
   @Type(() => CategoryProgressDto)
   categoryProgress!: CategoryProgressDto[];
+
+  @ApiProperty({ description: 'Current season number (round of 5 goals)', example: 1, minimum: 1 })
+  @IsNumber()
+  @Min(1)
+  season!: number;
+
+  @ApiProperty({ description: 'Current goal index in sequence (0-4)', example: 0, minimum: 0 })
+  @IsNumber()
+  @Min(0)
+  goalIndex!: number;
+
+  @ApiProperty({
+    description: 'Goals already completed in this season',
+    enum: DonationGoalCategory,
+    isArray: true,
+    example: [DonationGoalCategory.TSHIRTS],
+  })
+  @IsArray()
+  @IsEnum(DonationGoalCategory, { each: true })
+  completedGoals!: DonationGoalCategory[];
 }
 
 /**

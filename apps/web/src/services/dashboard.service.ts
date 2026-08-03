@@ -287,6 +287,34 @@ export const dashboardService = {
     return apiClient.post<BackendEnvelope<DonationStats>>('/admin/donations/pool/reset');
   },
 
+  startAdminDonationSeason() {
+    return apiClient.post<BackendEnvelope<DonationStats>>('/admin/donations/pool/start-season');
+  },
+
+  getAdminDonationHistory() {
+    return apiClient.get<
+      BackendEnvelope<
+        Array<{
+          season: number;
+          pools: Array<{
+            _id: string;
+            activeGoalCategory: string;
+            targetAmount: number;
+            currentAmount: number;
+            status: string;
+            cause: string;
+            startDate: string;
+            archivedAt?: string;
+            contributorCount: number;
+            mealCount: number;
+            goalIndex: number;
+            completedGoals: string[];
+          }>;
+        }>
+      >
+    >('/admin/donations/history');
+  },
+
   // ── Monthly Bag Goal ───────────────────────────────────────────────────
 
   /**

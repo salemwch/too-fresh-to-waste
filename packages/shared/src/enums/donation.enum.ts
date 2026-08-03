@@ -8,6 +8,7 @@ export enum DonationPoolStatus {
   FUNDED = 'funded',
   DISTRIBUTED = 'distributed',
   ARCHIVED = 'archived',
+  SEASON_COMPLETE = 'season_complete',
 }
 
 /** Fixed categories for the donation pool goal system. Admin selects from this list only. */
