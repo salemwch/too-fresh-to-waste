@@ -32,8 +32,11 @@ COPY patches/ ./patches/
 COPY apps/food-waste-backend/package.json ./apps/food-waste-backend/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install ALL dependencies (including devDependencies for build)
-RUN pnpm install --frozen-lockfile --prefer-offline
+# Install ALL dependencies (including devDependencies for build).
+# --ignore-scripts: the root postinstall runs `build:deps` (tsc on shared),
+# which needs source files not present in this stage. Native modules and the
+# shared package are built in the builder stage after full source is copied.
+RUN pnpm install --frozen-lockfile --prefer-offline --ignore-scripts
 
 # ============================================
 # STAGE 2: Builder
@@ -53,14 +56,20 @@ COPY --from=deps /app/apps/food-waste-backend/node_modules ./apps/food-waste-bac
 # Copy source code
 COPY . .
 
-# Set working directory to backend
-WORKDIR /app/apps/food-waste-backend
+# Rebuild native addons (argon2, zstd) whose install scripts were skipped
+RUN pnpm rebuild
 
-# Build the application
+# Build shared package first (backend imports from @foodwaste/shared)
+RUN pnpm run build:deps
+
+# Build the backend
+WORKDIR /app/apps/food-waste-backend
 RUN pnpm build
 
-# Remove devDependencies to reduce size
-RUN pnpm install --prod --frozen-lockfile
+# Remove devDependencies to reduce image size.
+# --ignore-scripts: build:deps already ran; tsc would fail anyway since
+# TypeScript (a devDependency) is being removed by this very command.
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # ============================================
 # STAGE 3: Production Runtime
