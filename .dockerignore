@@ -1,17 +1,36 @@
-# Node modules
+# -------------------------------------------------------
+# Backend Docker build — .dockerignore
+#
+# Controls what enters the Docker build context. Anything
+# listed here is invisible to every COPY instruction.
+# -------------------------------------------------------
+
+# pnpm config — node-linker=hoisted is needed for Metro but causes a Zod 3/4
+# hoisting conflict in Docker. Omitting it lets pnpm default to isolated mode,
+# where each workspace package resolves its own correct version.
+.npmrc
+
+# Dependencies and build artefacts (installed fresh in the deps stage)
 node_modules
 **/node_modules
-
-# Environment files
-.env
-.env.*
-!.env.example
-
-# Build outputs
 dist
 build
 *.tsbuildinfo
 .turbo
+.next
+.metro-cache
+
+# Workspace packages not needed for backend compilation.
+# Excluding them prevents pnpm from pulling react-native, next.js, and other
+# frontend dep trees during the prod-install prune step.
+apps/mobile
+apps/web
+packages/ui
+
+# Version control
+.git
+.gitignore
+.gitattributes
 
 # IDE
 .vscode
@@ -30,48 +49,39 @@ logs
 npm-debug.log*
 pnpm-debug.log*
 
+# Environment files
+.env
+.env.*
+!.env.example
+
 # Cache
 .eslintcache
 *.cache
-.metro-cache
 
-# Testing
+# Test output
 coverage
 .nyc_output
 
-# Git
-.git
-.gitignore
-.gitattributes
+# Docker (prevent recursive inclusion)
+.dockerignore
+docker-compose*.yml
 
 # Documentation
 *.md
-!README.md
 
 # CI/CD
 .github
 .gitlab-ci.yml
 
-# Docker
-.dockerignore
-docker-compose*.yml
-
 # Temporary
 .tmp
 temp
 
-# Firebase
+# Secrets & keys
 **/firebase-service-account.json
-
-# Secrets & Keys
 *.pem
 *.key
 *.keystore
 
-# Workspace packages not needed for backend Docker build
-apps/mobile
-apps/web
-packages/ui
-
-# Design docs, plans, etc.
+# Plans and docs
 docs
