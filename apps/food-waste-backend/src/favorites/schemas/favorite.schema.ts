@@ -101,13 +101,34 @@ FavoriteSchema.index({ lastInteraction: -1 });
  * Indexes below were declared only in the former ALL_INDEXES constant, never on
  * this schema. Because `autoIndex` is off in production, that constant was what
  * production actually had, so these are live indexes. Names kept verbatim — the
- * same key pattern cannot exist under two names.
- *
- * Not ported: `{ userId, isActive, type, addedAt }`. The existing
- * `user_favorites_list` ({ userId, isActive, addedAt }) and
- * `user_favorites_lookup` ({ userId, type, isActive }) already serve those
- * shapes; a fourth permutation would add write cost for no new query.
+ * same key pattern cannot exist under two names, so re-declaring one under a
+ * generated name fails with IndexOptionsConflict and silently never builds.
  */
+
+/**
+ * The favourites list: `{ userId, isActive, type }` sorted by `-addedAt`, paged.
+ *
+ * This was previously left undeclared on the grounds that `user_favorites_list`
+ * and `user_favorites_lookup` "already serve those shapes". They do not — not
+ * together, which is what `getUserFavorites` asks for:
+ *
+ * - `user_favorites_lookup` ({ userId, type, isActive }) matches all three
+ *   equality predicates but carries no `addedAt`, so MongoDB adds a **blocking
+ *   in-memory SORT** over the user's whole filtered set — on every page, not
+ *   just the first, and capped at 32 MB before it fails outright.
+ * - `user_favorites_list` ({ userId, isActive, addedAt }) is pre-sorted but has
+ *   no `type`, so filtering by tab means fetching every favourite the user has
+ *   and discarding most of them.
+ *
+ * With `type` between the equality fields and the sort key, this one answers
+ * filter *and* order from the index, so `skip`/`limit` short-circuits instead of
+ * sorting the whole set. It is the index the live database already had; only
+ * the declaration was missing.
+ */
+FavoriteSchema.index(
+  { userId: 1, isActive: 1, type: 1, addedAt: -1 },
+  { name: 'idx_favorites_userId_isActive_type_addedAt' },
+);
 
 /** Reverse lookup: who favourited this item (recommendations, popularity). */
 FavoriteSchema.index({ itemId: 1, isActive: 1 }, { name: 'idx_favorites_itemId_isActive' });

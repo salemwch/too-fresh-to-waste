@@ -9,7 +9,9 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Connection, Model, Types, isValidObjectId, PipelineStage, FlattenMaps } from 'mongoose';
 
 import { UserRole } from '@foodwaste/shared';
+import { CronLockName, CronLockTtl } from '../common/constants/cron-lock.constant';
 import { CacheService } from '../common/services/cache.service';
+import { CronLockService } from '../common/services/cron-lock.service';
 import { AppLoggerService } from '../common/services/logger.service';
 import { TimezoneUtil } from '../common/utils/timezone.util';
 import { EstablishmentsService } from '../establishments/establishments.service';
@@ -184,6 +186,45 @@ interface FavoriteSignalRecord {
   itemName?: string;
 }
 
+/**
+ * A discovery page in the shape it is cached: identical for every viewer.
+ *
+ * ## Why this type exists
+ *
+ * The featured and urgent lists used to be cached under a key containing the
+ * caller's `userId`, because the cards carry `isFavorite`. That made the cache
+ * per-user rather than shared, and at 50k users it stops being a cache at all:
+ * a session is "open the app, browse, leave", which is over long before the
+ * 60–120s TTL can be reused, so nearly every home screen ran the full
+ * aggregation — the exact query the cache existed to avoid. It also stored
+ * ~50k near-identical copies of the same list, and made each offer mutation's
+ * `delByPrefix` SCAN walk all of them.
+ *
+ * The fix is to cache only what every viewer shares, and compute the two
+ * per-viewer fields in process:
+ *
+ * - `isFavorite` — from the viewer's favourite ids (one indexed query).
+ * - `distance`   — pure arithmetic from `coordinates` below.
+ *
+ * Both are microseconds of CPU against a multi-stage `$lookup` aggregation, so
+ * one cache entry now serves every user *and* every location.
+ */
+interface CachedOfferPage {
+  /** Cards with `isFavorite` and `distance` deliberately unset. */
+  data: OfferCardDto[];
+  total: number;
+  /**
+   * `offerId -> [lng, lat]`, used only to recompute `distance` per request.
+   *
+   * Carried alongside the cards rather than on them because `OfferCardDto`
+   * intentionally exposes no establishment address — see the privacy note on
+   * that DTO. These coordinates never reach a client; they exist so the
+   * location-aware variant can share the same cache entry as everyone else,
+   * instead of bypassing the cache entirely as it did before.
+   */
+  coordinates: Record<string, [number, number]>;
+}
+
 @Injectable()
 export class OffersService {
   // Cache TTL constants (seconds)
@@ -198,7 +239,31 @@ export class OffersService {
     private readonly establishmentsService: EstablishmentsService,
     private readonly cacheService: CacheService,
     private readonly streakService: StreakService,
+    private readonly cronLock: CronLockService,
   ) {}
+
+  /**
+   * Purges cached discovery lists after an offer mutation.
+   *
+   * Deliberately not awaited: the offer write has already committed, and a
+   * Redis hiccup must not turn a successful mutation into a 500. But the
+   * rejection is caught and logged here rather than left floating — an
+   * unhandled rejection reaches the global handler in `main.ts`, which
+   * suppresses it, so a Redis outage would silently serve stale offer lists
+   * with nothing in the logs to explain it.
+   */
+  private invalidateDiscoveryCaches(...prefixes: string[]): void {
+    Promise.all(
+      prefixes.map(async prefix => {
+        await this.cacheService.delByPrefix(prefix);
+      }),
+    ).catch((err: unknown) => {
+      this.logger.warn(
+        `Offer cache invalidation failed for [${prefixes.join(', ')}]: ${String(err)}`,
+        'OffersService',
+      );
+    });
+  }
 
   // ============================================================================
   // PRODUCTION-GRADE: Helper for mapping offers with isFavorite field
@@ -273,6 +338,130 @@ export class OffersService {
       .filter((category): category is string => category.length > 0);
 
     return { establishmentIds, categories };
+  }
+
+  /**
+   * The viewer's favourited offer ids, or an empty set.
+   *
+   * Never throws: a favourites outage must degrade to "no hearts filled in",
+   * not to a failed home screen. Mirrors the graceful degradation already in
+   * `mapOffersToDto`.
+   *
+   * Deliberately **not** cached in Redis. The query is served by the
+   * `user_favorites_lookup` index on `{ userId, type, isActive }` and returns a
+   * handful of ids, so the win would be small — while a stale entry means a
+   * user taps the heart and watches it revert, which is exactly the kind of
+   * "the app is broken" moment worth one indexed read per request to avoid.
+   */
+  private async getFavoriteOfferIdSet(userId: string): Promise<Set<string>> {
+    try {
+      return new Set(await this.getUserFavoriteOfferIds(userId));
+    } catch (error) {
+      this.logger.warn(
+        'Failed to fetch user favorites, serving discovery list without isFavorite',
+        'OffersService',
+        { userId, error },
+      );
+      return new Set();
+    }
+  }
+
+  /**
+   * Applies the two per-viewer fields to a shared cached page.
+   *
+   * Returns new card objects rather than mutating the ones it was given.
+   *
+   * With today's `CacheService` that is defensive, not load-bearing: a hit
+   * arrives as a fresh `JSON.parse`, a miss produces a fresh aggregation
+   * result, and `set()` snapshots the value before this method ever sees it —
+   * so nothing is shared to corrupt.
+   *
+   * It stops being merely defensive the moment anything holds a page in
+   * process — an LRU in front of Redis, or single-flight coalescing so
+   * concurrent misses share one factory call. Both are natural next steps for
+   * this exact path, and under either one, personalising in place would write
+   * the first user's `isFavorite` into the object handed to everyone else.
+   * Copying costs one shallow spread per card and removes the trap in advance.
+   * `personalizeOfferPage` leaves its input untouched — asserted directly, since
+   * no cache shape available here can demonstrate the consequence.
+   */
+  private async personalizeOfferPage(
+    page: CachedOfferPage,
+    userId?: string,
+    userLocation?: { latitude: number; longitude: number },
+  ): Promise<{ data: OfferCardDto[]; total: number }> {
+    const favoriteSet = userId ? await this.getFavoriteOfferIdSet(userId) : undefined;
+
+    // Nothing to personalise — hand back the cards unchanged rather than
+    // allocating a parallel array on every anonymous request.
+    if (!favoriteSet && !userLocation) {
+      return { data: page.data, total: page.total };
+    }
+
+    const data = page.data.map(card => {
+      const personalized: OfferCardDto = { ...card };
+
+      if (favoriteSet) {
+        personalized.isFavorite = favoriteSet.has(card.id);
+      }
+
+      if (userLocation) {
+        const coordinates = page.coordinates[card.id];
+        // Absent for an establishment with no geocoded address. Leaving
+        // `distance` unset is correct: the card renders without it, whereas a
+        // fabricated 0 would sort that offer to the top as "nearest".
+        if (coordinates) {
+          const [longitude, latitude] = coordinates;
+          personalized.distance = Math.round(
+            this.calculateDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              latitude,
+              longitude,
+            ),
+          );
+        }
+      }
+
+      return personalized;
+    });
+
+    return { data, total: page.total };
+  }
+
+  /**
+   * Extracts `offerId -> [lng, lat]` from populated aggregation results.
+   *
+   * Only entries with a well-formed coordinate pair are included, so a missing
+   * or malformed address simply yields no distance rather than `NaN` — which
+   * would serialise as `null` and read to the client as "distance unknown"
+   * only by accident.
+   */
+  private extractOfferCoordinates(
+    offers: (OfferDocument | OfferLean)[],
+  ): Record<string, [number, number]> {
+    const coordinates: Record<string, [number, number]> = {};
+
+    for (const offer of offers) {
+      const establishment = (offer as OfferLean).establishmentId as PopulatedEstRef | undefined;
+      const pair = establishment?.address?.coordinates?.coordinates;
+
+      if (!Array.isArray(pair) || pair.length !== 2) {
+        continue;
+      }
+
+      const [longitude, latitude] = pair;
+      if (typeof longitude !== 'number' || typeof latitude !== 'number') {
+        continue;
+      }
+
+      const offerId = typeof offer._id === 'string' ? offer._id : (offer._id?.toString() ?? '');
+      if (offerId.length > 0) {
+        coordinates[offerId] = [longitude, latitude];
+      }
+    }
+
+    return coordinates;
   }
 
   private async mapOffersToDto(
@@ -1039,9 +1228,11 @@ export class OffersService {
       throw new NotFoundException('Offer not found');
     }
 
-    // Activating/deactivating an offer changes the featured and urgent lists
-    void this.cacheService.delByPrefix('offers:featured:');
-    void this.cacheService.delByPrefix('offers:urgent:');
+    // Activating/deactivating an offer changes the featured and urgent lists.
+    // Not awaited — a cache miss must not fail an offer update that already
+    // committed — but the rejection is logged rather than left to the global
+    // unhandledRejection handler, which discards it silently.
+    this.invalidateDiscoveryCaches('offers:featured:', 'offers:urgent:');
 
     // Record streak only when a merchant (not admin) publishes an offer
     if (status === OfferStatus.ACTIVE && merchantId) {
@@ -1219,10 +1410,7 @@ export class OffersService {
       .exec();
 
     // Purge from any cached lists — deleted offer must not reappear
-    void Promise.all([
-      this.cacheService.delByPrefix('offers:featured:'),
-      this.cacheService.delByPrefix('offers:urgent:'),
-    ]);
+    this.invalidateDiscoveryCaches('offers:featured:', 'offers:urgent:');
 
     this.logger.log(`Offer ${id} soft deleted by user ${userId} (${userRole})`);
   }
@@ -1391,25 +1579,32 @@ export class OffersService {
   async getFeaturedOffers(
     page: number = 1,
     limit: number = 10,
-    userId?: string, // NEW: For isFavorite computation
+    userId?: string, // For isFavorite computation — applied after the cache, not inside it
   ): Promise<{ data: OfferCardDto[]; total: number }> {
-    const cacheKey = `offers:featured:${page}:${Math.min(limit, 100)}:${userId ?? 'anon'}`;
-    const result = await this.cacheService.getOrSet(
-      cacheKey,
+    const safeLimit = Math.min(limit, 100);
+
+    /*
+     * Key carries no userId: the featured list is identical for everyone, so
+     * one entry serves all of them. See `CachedOfferPage` for what putting the
+     * userId here used to cost.
+     *
+     * The `offers:featured:` prefix is preserved because
+     * `invalidateDiscoveryCaches` purges by exactly that prefix.
+     */
+    const cached = await this.cacheService.getOrSet<CachedOfferPage>(
+      `offers:featured:${page}:${safeLimit}`,
       async () => {
-        const offers = await this.fetchFeaturedOffers(page, limit, userId);
-        return offers;
+        const shared = await this.fetchFeaturedOffers(page, safeLimit);
+        return shared;
       },
       OffersService.TTL_FEATURED,
     );
-    return result;
+
+    const personalized = await this.personalizeOfferPage(cached, userId);
+    return personalized;
   }
 
-  private async fetchFeaturedOffers(
-    page: number,
-    limit: number,
-    userId?: string,
-  ): Promise<{ data: OfferCardDto[]; total: number }> {
+  private async fetchFeaturedOffers(page: number, limit: number): Promise<CachedOfferPage> {
     // ✅ ENTERPRISE: DOS protection - limit max page size
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
@@ -1442,10 +1637,11 @@ export class OffersService {
       this.offerModel.countDocuments(query),
     ]);
 
-    // ✅ Map to DTOs with isFavorite field
-    const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
+    // Mapped without a userId: this result is shared, so `isFavorite` is left
+    // unset here and applied per request by `personalizeOfferPage`.
+    const data = await this.mapOffersToDto(offers as OfferDocument[]);
 
-    return { data, total };
+    return { data, total, coordinates: this.extractOfferCoordinates(offers as OfferDocument[]) };
   }
   /**
    * Get nearby offers with enterprise-grade pagination and geolocation
@@ -1625,6 +1821,27 @@ export class OffersService {
     userId?: string,
     userLocation?: { latitude: number; longitude: number },
   ): Promise<{ data: OfferCardDto[]; total: number }> {
+    const shared = await this.fetchExpiringOffers(hoursUntilExpiry, page, limit);
+
+    const personalized = await this.personalizeOfferPage(shared, userId, userLocation);
+    return personalized;
+  }
+
+  /**
+   * The shared half of the expiring list — everything that does not depend on
+   * who is asking or where they are.
+   *
+   * Location genuinely does not belong here: the pipeline selects on
+   * `availableUntil` and sorts by it, so a viewer's coordinates change neither
+   * which offers come back nor their order. Distance was only ever a field
+   * decorated onto the results afterwards, which is why it can move out to
+   * `personalizeOfferPage` and let every location share one cache entry.
+   */
+  private async fetchExpiringOffers(
+    hoursUntilExpiry: number,
+    page: number,
+    limit: number,
+  ): Promise<CachedOfferPage> {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
 
@@ -1652,31 +1869,9 @@ export class OffersService {
       this.offerModel.countDocuments(query),
     ]);
 
-    // Enrich raw offers with distance before DTO mapping
-    if (userLocation) {
-      for (const offer of offers) {
-        const est = (offer as OfferLean).establishmentId as PopulatedEstRef | undefined;
-        const coords = est?.address?.coordinates?.coordinates;
-        if (coords && Array.isArray(coords) && coords.length === 2) {
-          const [longitude, latitude] = coords;
-          if (typeof longitude !== 'number' || typeof latitude !== 'number') {
-            continue;
-          }
-          (offer as OfferLean).distance = Math.round(
-            this.calculateDistance(
-              userLocation.latitude,
-              userLocation.longitude,
-              latitude,
-              longitude,
-            ),
-          );
-        }
-      }
-    }
+    const data = await this.mapOffersToDto(offers as OfferDocument[]);
 
-    const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
-
-    return { data, total };
+    return { data, total, coordinates: this.extractOfferCoordinates(offers as OfferDocument[]) };
   }
 
   /**
@@ -1703,21 +1898,31 @@ export class OffersService {
     userId?: string,
     userLocation?: { latitude: number; longitude: number },
   ): Promise<{ data: OfferCardDto[]; total: number }> {
-    // Location-based results vary per user — only cache the non-location variant
-    if (userLocation) {
-      return this.getExpiringOffers(hoursUntilExpiry, page, limit, userId, userLocation);
-    }
     const safeLimit = Math.min(limit, 100);
-    const cacheKey = `offers:urgent:${hoursUntilExpiry}:${page}:${safeLimit}:${userId ?? 'anon'}`;
-    const result = await this.cacheService.getOrSet(
-      cacheKey,
+
+    /*
+     * Every caller now shares this entry, including the location-aware ones.
+     *
+     * The previous version returned early whenever `userLocation` was set,
+     * "because location-based results vary per user" — but they do not: the
+     * pipeline neither filters nor sorts on location (see
+     * `fetchExpiringOffers`), so only the decorated `distance` differed. Since
+     * that is the main path the mobile app takes, the hottest discovery query
+     * in the product was running uncached on every request.
+     *
+     * Prefix stays `offers:urgent:` for `invalidateDiscoveryCaches`.
+     */
+    const cached = await this.cacheService.getOrSet<CachedOfferPage>(
+      `offers:urgent:${hoursUntilExpiry}:${page}:${safeLimit}`,
       async () => {
-        const offers = await this.getExpiringOffers(hoursUntilExpiry, page, limit, userId);
-        return offers;
+        const shared = await this.fetchExpiringOffers(hoursUntilExpiry, page, safeLimit);
+        return shared;
       },
       OffersService.TTL_URGENT,
     );
-    return result;
+
+    const personalized = await this.personalizeOfferPage(cached, userId, userLocation);
+    return personalized;
   }
 
   /**
@@ -2506,7 +2711,7 @@ export class OffersService {
     );
 
     // Invalidate featured cache — featured list changed
-    void this.cacheService.delByPrefix('offers:featured:');
+    this.invalidateDiscoveryCaches('offers:featured:');
 
     return offer;
   }
@@ -2644,11 +2849,21 @@ export class OffersService {
    * Runs every 5 minutes (configurable via AUTO_FEATURE_CRON_SCHEDULE)
    */
   @Cron(AUTO_FEATURE_CRON_SCHEDULE)
-  async handleAutoFeaturing() {
+  async handleAutoFeaturing(): Promise<void> {
     if (!AUTO_FEATURE_ENABLED) {
       return;
     }
 
+    await this.cronLock.runExclusive(
+      CronLockName.OFFER_AUTO_FEATURE,
+      CronLockTtl.STANDARD,
+      async () => {
+        await this.runAutoFeaturing();
+      },
+    );
+  }
+
+  private async runAutoFeaturing(): Promise<void> {
     try {
       const startTime = Date.now();
 
@@ -2680,11 +2895,13 @@ export class OffersService {
    * Runs every 5 minutes
    */
   @Cron(CronExpression.EVERY_5_MINUTES)
-  async handleUpdateExpired() {
-    const updated = await this.updateExpiredOffers();
-    if (updated > 0) {
-      this.logger.log(`Expired offers updated: ${updated}`, 'OffersService');
-    }
+  async handleUpdateExpired(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.OFFER_EXPIRY, CronLockTtl.STANDARD, async () => {
+      const updated = await this.updateExpiredOffers();
+      if (updated > 0) {
+        this.logger.log(`Expired offers updated: ${updated}`, 'OffersService');
+      }
+    });
   }
 
   // =========================================================================

@@ -22,3 +22,20 @@ export const USER_AUDIT_LOG_MAX = 20;
 export const USER_LOGIN_HISTORY_MAX = 20;
 export const USER_LOCATION_HISTORY_MAX = 20;
 export const USER_CONSENT_RECORDS_MAX = 50;
+
+/**
+ * `loyaltyAccount.reviewTracking.reviewedOrderIds` — the set of orders a user
+ * has already earned review points for.
+ *
+ * Larger than the caps above because this one is not history, it is an
+ * idempotency ledger: an id that falls off the end becomes claimable again.
+ * 500 reviewed orders is far beyond any real consumer's lifetime volume in this
+ * market, while still bounding the array at roughly 6 KB.
+ *
+ * The precise shape for this is its own collection with a unique
+ * `{ userId, orderId }` index, which would make re-claiming impossible at any
+ * volume rather than merely implausible. That is a migration, not an edit; the
+ * cap plus the `$ne` guard in `awardReviewPoints` closes the exploitable window
+ * in the meantime.
+ */
+export const LOYALTY_REVIEWED_ORDER_IDS_MAX = 500;

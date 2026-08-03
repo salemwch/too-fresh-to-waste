@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { RedisService } from '../../redis/redis.service';
+import { deleteByPattern } from '../utils/redis-scan.util';
 
 /**
  * Generic Redis caching service.
@@ -49,23 +50,18 @@ export class CacheService {
   }
 
   /**
-   * Delete all keys matching a prefix using SCAN (non-blocking, O(N) but cursor-based).
+   * Delete all keys matching a prefix using SCAN (non-blocking, cursor-based).
    * Never use KEYS in production — it blocks the Redis event loop.
+   *
+   * @returns the number of keys removed (0 when Redis is unreachable)
    */
-  async delByPrefix(prefix: string): Promise<void> {
+  async delByPrefix(prefix: string): Promise<number> {
     try {
       const client = await this.redisService.getClient();
-      // node-redis v4+ uses string cursors ('0' signals start/end of iteration)
-      let cursor = '0';
-      do {
-        const reply = await client.scan(cursor, { MATCH: `${prefix}*`, COUNT: 100 });
-        cursor = String(reply.cursor);
-        if (reply.keys.length > 0) {
-          await client.del(reply.keys);
-        }
-      } while (cursor !== '0');
+      return await deleteByPattern(client, `${prefix}*`);
     } catch (err) {
       this.logger.warn(`Cache DEL_BY_PREFIX failed for "${prefix}": ${(err as Error).message}`);
+      return 0;
     }
   }
 

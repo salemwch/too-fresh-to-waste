@@ -1,6 +1,9 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { CronLockName, CronLockTtl } from '../../common/constants/cron-lock.constant';
+import { LOYALTY_REVIEWED_ORDER_IDS_MAX } from '../../common/constants/document-limits.constant';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { Model, Types } from 'mongoose';
 
 import { LoyaltyService } from '../loyalty.service';
@@ -56,6 +59,7 @@ export class GamificationService {
     private readonly referredIdentityModel: Model<ReferredIdentityDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly loyaltyService: LoyaltyService,
+    private readonly cronLock: CronLockService,
   ) {}
 
   // =============================================================================
@@ -740,30 +744,46 @@ export class GamificationService {
   // =============================================================================
 
   /**
-   * Award points for a review (if valid)
-   * Called from ReviewService when review is created
+   * Award points for a review (if valid).
+   * Called from ReviewService when a review is created.
+   *
+   * ## Why the claim is a single atomic update
+   *
+   * This previously read the account, checked `reviewedOrderIds` in memory,
+   * awarded the points, then wrote the whole `reviewTracking` sub-document back.
+   * Two reviews submitted close together both read the pre-write array, and the
+   * second write replaced the first — dropping an order id and leaving that
+   * order claimable again. The counters lost an increment the same way. On a
+   * single process this needs only two overlapping requests; across replicas it
+   * is routine.
+   *
+   * The fix is to make "has this order been claimed?" and "mark it claimed" one
+   * indivisible operation: the `$ne` guard lives in the **filter**, so MongoDB
+   * evaluates it against the current document under the document-level write
+   * lock. Exactly one of two concurrent claims can match. `$push`/`$inc` also
+   * replace the read-modify-write, so no concurrent update can be clobbered.
+   *
+   * ## Why the claim happens before the points are awarded
+   *
+   * The two writes cannot be one transaction without a session, so one of them
+   * must go first and a crash in between must be survivable.
+   *
+   * - Award first, claim second → a crash loses the claim, the user re-reviews
+   *   and is paid twice. Points are currency here; that is a money leak.
+   * - Claim first, award second → a crash costs the user one review's points,
+   *   recoverable by hand and visible in the logged error below.
+   *
+   * Failing closed on the money is the correct trade, so the claim goes first.
    */
   async awardReviewPoints(
     userId: string,
     orderId: string,
     reviewText: string,
   ): Promise<{ awarded: boolean; pointsAwarded: number; reason?: string }> {
-    const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
-    if (!account) {
-      return { awarded: false, pointsAwarded: 0, reason: 'Loyalty account not found' };
-    }
-
-    // Check if already reviewed this order
-    const reviewTracking = account.reviewTracking ?? {
-      reviewedOrderIds: [],
-      totalReviewsCount: 0,
-      totalReviewPoints: 0,
-    };
-    if (reviewTracking.reviewedOrderIds?.some(id => id.toString() === orderId)) {
-      return { awarded: false, pointsAwarded: 0, reason: 'Already reviewed this order' };
-    }
-
-    // Check minimum word count
+    /*
+     * Validate before touching the database. A too-short review is the common
+     * rejection and costs nothing to detect, so it should not consume a write.
+     */
     const wordCount = reviewText
       .trim()
       .split(/\s+/)
@@ -776,25 +796,67 @@ export class GamificationService {
       };
     }
 
-    // Award points
+    const orderObjectId = new Types.ObjectId(orderId);
     const pointsAwarded = GAMIFICATION_CONSTANTS.REVIEW_POINTS;
 
-    await this.loyaltyService.addPoints(userId, {
-      amount: pointsAwarded,
-      reason: 'Review submitted for order',
-      orderId,
-      bypassMultiplier: true,
-    });
+    /*
+     * Atomic claim. `$slice` bounds the array at the cap — see
+     * LOYALTY_REVIEWED_ORDER_IDS_MAX for why this ledger is capped rather than
+     * left to grow, and what the exact fix would be.
+     */
+    const claim = await this.loyaltyModel.updateOne(
+      {
+        userId: new Types.ObjectId(userId),
+        'reviewTracking.reviewedOrderIds': { $ne: orderObjectId },
+      },
+      {
+        $push: {
+          'reviewTracking.reviewedOrderIds': {
+            $each: [orderObjectId],
+            $slice: -LOYALTY_REVIEWED_ORDER_IDS_MAX,
+          },
+        },
+        $inc: {
+          'reviewTracking.totalReviewsCount': 1,
+          'reviewTracking.totalReviewPoints': pointsAwarded,
+        },
+      },
+    );
 
-    // Update review tracking
-    reviewTracking.reviewedOrderIds = [
-      ...(reviewTracking.reviewedOrderIds ?? []),
-      new Types.ObjectId(orderId),
-    ];
-    reviewTracking.totalReviewsCount = (reviewTracking.totalReviewsCount || 0) + 1;
-    reviewTracking.totalReviewPoints = (reviewTracking.totalReviewPoints || 0) + pointsAwarded;
+    if (claim.matchedCount === 0) {
+      /*
+       * Either there is no loyalty account, or this order was already claimed.
+       * Distinguishing them needs a second read, and only the "no account" case
+       * is actionable — "already reviewed" is an ordinary duplicate submission.
+       */
+      const accountExists = await this.loyaltyModel.exists({
+        userId: new Types.ObjectId(userId),
+      });
 
-    await this.loyaltyModel.findByIdAndUpdate(account._id, { reviewTracking });
+      return accountExists
+        ? { awarded: false, pointsAwarded: 0, reason: 'Already reviewed this order' }
+        : { awarded: false, pointsAwarded: 0, reason: 'Loyalty account not found' };
+    }
+
+    try {
+      await this.loyaltyService.addPoints(userId, {
+        amount: pointsAwarded,
+        reason: 'Review submitted for order',
+        orderId,
+        bypassMultiplier: true,
+      });
+    } catch (err) {
+      /*
+       * The claim is already committed, so the user cannot retry for these
+       * points. Log loudly with both ids: this is the one branch that needs a
+       * human, and it is invisible to the user otherwise.
+       */
+      this.logger.error(
+        `Claimed review points for order ${orderId} (user ${userId}) but addPoints failed — ` +
+          `${pointsAwarded} points owed and not credited: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      throw err;
+    }
 
     this.logger.log(`Awarded ${pointsAwarded} review points to ${userId} for order ${orderId}`);
 
@@ -887,6 +949,16 @@ export class GamificationService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async expireStaleReferrals(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.GAMIFICATION_DAILY,
+      CronLockTtl.STANDARD,
+      async () => {
+        await this.runStaleReferralExpiry();
+      },
+    );
+  }
+
+  private async runStaleReferralExpiry(): Promise<void> {
     const now = new Date();
 
     // Expire friend referrals
