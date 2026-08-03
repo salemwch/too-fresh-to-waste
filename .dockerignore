@@ -68,9 +68,10 @@ temp
 *.key
 *.keystore
 
-# Mobile / Web apps (not needed for backend Docker build)
+# Workspace packages not needed for backend Docker build
 apps/mobile
 apps/web
+packages/ui
 
 # Design docs, plans, etc.
 docs

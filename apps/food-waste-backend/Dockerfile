@@ -26,11 +26,18 @@ WORKDIR /app
 # Install pnpm globally (must match engines.pnpm in package.json)
 RUN npm install -g pnpm@10.17.0
 
-# Copy package management files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Copy package management files + every workspace package.json the backend needs.
+# This must match what the builder stage sees after COPY . . (minus .dockerignore
+# exclusions), or pnpm's workspace scope differs between stages and rebuild/install
+# fails on metadata mismatches.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY patches/ ./patches/
 COPY apps/food-waste-backend/package.json ./apps/food-waste-backend/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/email-templates/package.json ./packages/email-templates/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/jest-config/package.json ./packages/jest-config/
+COPY packages/tsconfig/package.json ./packages/tsconfig/
 
 # Install ALL dependencies (including devDependencies for build).
 # --ignore-scripts: the root postinstall runs `build:deps` (tsc on shared),
@@ -49,18 +56,26 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@10.17.0
 
-# Copy source code first so pnpm sees the full workspace
-COPY . .
-
-# Copy dependencies from deps stage (after source so they aren't overwritten)
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/food-waste-backend/node_modules ./apps/food-waste-backend/node_modules
 
-# Re-run install to execute scripts skipped in deps stage (argon2, zstd native
-# builds). pnpm 10's `rebuild` validates .modules.yaml against the full
-# workspace and fails on hoisted-location mismatches; a fresh install with
-# packages already present is fast and rebuilds .modules.yaml from scratch.
-RUN pnpm install --frozen-lockfile
+# Copy source code (.dockerignore excludes apps/mobile, apps/web, packages/ui
+# so the workspace scope matches what the deps stage installed for)
+COPY . .
+
+# Rebuild only native addons whose install scripts were skipped in deps stage.
+# npm rebuild targets specific packages without validating pnpm's .modules.yaml,
+# avoiding the ERR_PNPM_MISSING_HOISTED_LOCATIONS that pnpm rebuild triggers
+# when workspace scope differs even slightly between stages.
+# argon2: ships linux-x64 prebuilds, no compilation needed.
+# @mongodb-js/zstd: downloads prebuilt via prebuild-install; if unavailable for
+# musl/Alpine, falls back to node-gyp which needs build tools — install them
+# temporarily so both paths work.
+RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+    && npm rebuild argon2 \
+    && npm rebuild @mongodb-js/zstd \
+    && apk del .build-deps
 
 # Build shared package first (backend imports from @foodwaste/shared)
 RUN pnpm run build:deps
