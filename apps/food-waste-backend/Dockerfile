@@ -39,6 +39,11 @@ LABEL version="1.0.0"
 
 WORKDIR /app
 
+# pnpm treats a missing TTY as "cannot confirm destructive actions" and aborts
+# (ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY). CI=true is pnpm's documented
+# non-interactive signal and is required for the --prod prune in the builder.
+ENV CI=true
+
 RUN npm install -g pnpm@10.17.0
 
 # Copy workspace root manifests (no .npmrc — see header comment #1).
@@ -66,6 +71,9 @@ FROM node:24.11.1-alpine AS builder
 
 WORKDIR /app
 
+# See the deps stage — required for the --prod prune below.
+ENV CI=true
+
 RUN npm install -g pnpm@10.17.0
 
 # Copy the full dependency tree from deps.
@@ -80,14 +88,6 @@ COPY --from=deps /app/packages/email-templates/node_modules ./packages/email-tem
 # node_modules, .npmrc, and build artifacts).
 COPY . .
 
-# Rebuild native addons whose install scripts were skipped.
-# Build tools are installed temporarily for @mongodb-js/zstd's node-gyp
-# fallback on musl/Alpine.
-RUN apk add --no-cache --virtual .build-deps python3 make g++ \
-    && npm rebuild argon2 \
-    && npm rebuild @mongodb-js/zstd \
-    && apk del .build-deps
-
 # Build shared + email-templates (backend imports from both).
 RUN pnpm run build:deps
 
@@ -98,6 +98,21 @@ RUN pnpm --filter @foodwaste/backend build
 # --ignore-scripts: TypeScript (a devDep) is being removed by this command,
 # so any script that invokes tsc would fail.
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+
+# Rebuild native addons LAST — order is load-bearing.
+#
+# The prune above re-links node_modules from the pnpm store, discarding any
+# binary produced before it. Rebuilding earlier therefore ships argon2 and
+# @mongodb-js/zstd without their compiled .node files, and the container dies
+# on the first password hash rather than at build time.
+#
+# npm rebuild (not pnpm rebuild) targets individual packages without validating
+# pnpm's .modules.yaml — see header comment #2.
+# Build tools are temporary, for @mongodb-js/zstd's node-gyp fallback on musl.
+RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+    && npm rebuild argon2 \
+    && npm rebuild @mongodb-js/zstd \
+    && apk del .build-deps
 
 # ============================================
 # STAGE 3: Production Runtime

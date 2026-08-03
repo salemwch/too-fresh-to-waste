@@ -91,6 +91,37 @@ module.exports = [
     files: ['src/**/*.ts'],
     plugins: { import: importPlugin },
     rules: {
+      /*
+       * Catch phantom dependencies — packages imported here but never declared
+       * in this app's package.json.
+       *
+       * The root .npmrc sets node-linker=hoisted (Metro needs a flat tree), so
+       * locally every package in the monorepo is visible at the root and an
+       * undeclared import resolves fine. The Docker build installs with pnpm's
+       * isolated linker, where a package sees only what it declares — so the
+       * same import fails there, at deploy time, on a stage that takes minutes
+       * to reach.
+       *
+       * `import/no-unresolved` cannot catch this: under hoisting these DO
+       * resolve. This rule checks against package.json instead, which is the
+       * only thing that reflects what the isolated linker will actually link.
+       *
+       * react, @types/react and @types/ms reached production this way.
+       */
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          // Test files may use devDependencies (@nestjs/testing and friends).
+          devDependencies: [
+            '**/*.spec.ts',
+            '**/*.test.ts',
+            '**/test/**',
+            '**/__tests__/**',
+          ],
+          optionalDependencies: false,
+          peerDependencies: false,
+        },
+      ],
       'import/no-restricted-paths': [
         'warn',
         {
