@@ -106,6 +106,45 @@ patched version, pin the old version _for that consumer_ and take the fix
 everywhere else, rather than leaving the whole tree on the vulnerable release.
 pnpm supports `parent>child`, `pkg@range`, and `parent@range>child` selectors.
 
+## A `parent>child` selector only covers the majors you name (2026-08-03)
+
+`brace-expansion` GHSA-rgw5-rvv9-x895 (a different advisory from the
+`GHSA-mh99-v99m-4gvg` above) needed `>=5.0.9` on the v5 line and `>=2.1.4` on
+v2. The overrides in place named two consumers:
+
+```jsonc
+"minimatch@^3>brace-expansion":  "^2.1.2",
+"minimatch@^10>brace-expansion": "^5.0.8"
+```
+
+Bumping just those two left `brace-expansion@2.1.2` in the tree, because
+`minimatch@5.1.9`, `minimatch@8.0.7` and `minimatch@9.0.9` are also in there and
+no selector named them. `pnpm why` on the app looked clean — it showed the
+patched copies — while the vulnerable one sat under majors nobody had thought to
+enumerate.
+
+**Prefer a version-scoped selector (`pkg@range`) over `parent>child` when the
+fix applies to every consumer of a major.** `brace-expansion@^2` covers 3, 5, 8,
+9 and anything added later; `parent>child` silently covers only what you list.
+Reach for `parent>child` when one specific consumer needs holding back, which is
+what it is for. Grep the lockfile to confirm:
+
+```bash
+grep -oE "brace-expansion@[0-9]+\.[0-9]+\.[0-9]+" pnpm-lock.yaml | sort -u
+```
+
+Resolved in the same pass, all patch-level inside their existing majors:
+`socket.io-parser >=4.2.7` (production, via `socket.io`), `ip-address >=10.3.1`
+(production, via `geoip-lite`), `fast-uri >=4.1.2` (dev, via `commitlint`).
+`pnpm audit` is clean, so `ignoreGhsas` still lists only `GHSA-mh99-v99m-4gvg`.
+
+**These bumps were safe for the reason the earlier one was not.** The override
+that broke ESLint crossed a major (v2 → v5, where v5 exports a namespace object
+and minimatch 3 calls `expand()` as a function). Everything here stays inside
+the major it was already on, so no API surface moves. That distinction is the
+thing to check before deciding how much verification a bump needs — not the
+severity label.
+
 ## Never
 
 - Floating `latest`.
