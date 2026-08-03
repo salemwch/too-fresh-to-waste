@@ -7,6 +7,7 @@ import { PaymentStatus } from '@foodwaste/shared';
 
 import { Order } from '../../orders/schemas/order.schema';
 import { PaymentAttempt } from '../schemas/payment-attempt.schema';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { KonnectOrderService } from '../services/konnect-order.service';
 
 import { PaymentReconciliationTask } from './payment-reconciliation.task';
@@ -56,6 +57,18 @@ describe('PaymentReconciliationTask', () => {
         { provide: getModelToken(PaymentAttempt.name), useValue: attemptModel },
         { provide: getModelToken(Order.name), useValue: orderModel },
         { provide: KonnectOrderService, useValue: konnectOrderService },
+        // Always wins the lock — see cron-lock.service.spec.ts for the lock itself.
+        {
+          provide: CronLockService,
+          useValue: {
+            runExclusive: jest.fn(
+              async (_name: string, _ttl: number, fn: () => Promise<unknown>) => {
+                const result = await fn();
+                return result;
+              },
+            ),
+          },
+        },
       ],
     }).compile();
 

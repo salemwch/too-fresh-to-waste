@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Types } from 'mongoose';
 
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { VotingCycle } from '../schemas/voting-cycle.schema';
 import { VotingCron } from '../voting.cron';
 import { VotingService } from '../voting.service';
@@ -38,6 +39,18 @@ describe('VotingCron', () => {
         VotingCron,
         { provide: VotingService, useValue: votingService },
         { provide: getModelToken(VotingCycle.name), useValue: cycleModel },
+        // Always wins the lock — see cron-lock.service.spec.ts for the lock itself.
+        {
+          provide: CronLockService,
+          useValue: {
+            runExclusive: jest.fn(
+              async (_name: string, _ttl: number, fn: () => Promise<unknown>) => {
+                const result = await fn();
+                return result;
+              },
+            ),
+          },
+        },
       ],
     }).compile();
 

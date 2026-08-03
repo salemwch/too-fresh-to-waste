@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { CronLockName, CronLockTtl } from '../../common/constants/cron-lock.constant';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { TokenService } from '../services/token.service';
 
 /**
@@ -13,17 +15,22 @@ import { TokenService } from '../services/token.service';
 export class AuthCleanupTask {
   private readonly logger = new Logger(AuthCleanupTask.name);
 
-  constructor(private readonly tokenService: TokenService) {}
+  constructor(
+    private readonly tokenService: TokenService,
+    private readonly cronLock: CronLockService,
+  ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async cleanupExpiredTokens(): Promise<void> {
-    try {
-      const deletedCount = await this.tokenService.cleanupTokens(2);
-      if (deletedCount > 0) {
-        this.logger.log(`Cleaned up ${deletedCount} expired refresh tokens`);
+    await this.cronLock.runExclusive(CronLockName.AUTH_CLEANUP, CronLockTtl.STANDARD, async () => {
+      try {
+        const deletedCount = await this.tokenService.cleanupTokens(2);
+        if (deletedCount > 0) {
+          this.logger.log(`Cleaned up ${deletedCount} expired refresh tokens`);
+        }
+      } catch (error) {
+        this.logger.error('Failed to cleanup expired tokens', (error as Error).stack);
       }
-    } catch (error) {
-      this.logger.error('Failed to cleanup expired tokens', (error as Error).stack);
-    }
+    });
   }
 }

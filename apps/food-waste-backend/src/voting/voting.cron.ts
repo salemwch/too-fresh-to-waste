@@ -4,6 +4,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 
+import { CronLockName, CronLockTtl } from '../common/constants/cron-lock.constant';
+import { CronLockService } from '../common/services/cron-lock.service';
+
 import { VotingCycle, type VotingCycleDocument } from './schemas/voting-cycle.schema';
 import { VotingService } from './voting.service';
 
@@ -14,10 +17,25 @@ export class VotingCron {
   constructor(
     @InjectModel(VotingCycle.name) private readonly cycleModel: Model<VotingCycleDocument>,
     private readonly votingService: VotingService,
+    private readonly cronLock: CronLockService,
   ) {}
 
+  /**
+   * Locked: this transitions cycle state. Two replicas racing here can close
+   * or expire the same cycle twice, double-firing the downstream events.
+   */
   @Cron('*/5 * * * *')
   async checkCommunityGoal(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.VOTING_CYCLE_TRANSITION,
+      CronLockTtl.QUICK,
+      async () => {
+        await this.runCommunityGoalCheck();
+      },
+    );
+  }
+
+  private async runCommunityGoalCheck(): Promise<void> {
     try {
       const activeCycle = await this.cycleModel.findOne({ status: CycleStatus.ACTIVE });
       if (!activeCycle) {
@@ -65,6 +83,12 @@ export class VotingCron {
 
   @Cron('* * * * *')
   async checkBallotClose(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.VOTING_TALLY, CronLockTtl.QUICK, async () => {
+      await this.runBallotCloseCheck();
+    });
+  }
+
+  private async runBallotCloseCheck(): Promise<void> {
     try {
       const now = new Date();
       const openCycle = await this.cycleModel.findOne({
@@ -91,6 +115,12 @@ export class VotingCron {
 
   @Cron('*/5 * * * *')
   async retryFailedSnapshots(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.VOTING_CLEANUP, CronLockTtl.QUICK, async () => {
+      await this.runFailedSnapshotRetry();
+    });
+  }
+
+  private async runFailedSnapshotRetry(): Promise<void> {
     try {
       const cycle = await this.cycleModel.findOne({
         status: CycleStatus.BALLOT_OPEN,

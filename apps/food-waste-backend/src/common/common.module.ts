@@ -12,6 +12,7 @@ import { QueryComplexityGuard } from './guards/query-complexity.guard';
 import { GlobalSanitizationMiddleware } from './middleware/global-sanitization.middleware';
 import { CacheService } from './services/cache.service';
 import { ConfigParserService } from './services/config-parser.service';
+import { CronLockService } from './services/cron-lock.service';
 import { EventEmitter2Adapter } from './services/event-bus/adapters/eventemitter2.adapter';
 import { RabbitMQAdapter } from './services/event-bus/adapters/rabbitmq.adapter';
 import { EventBusService } from './services/event-bus/event-bus.service';
@@ -38,6 +39,7 @@ import { IsNotProfaneConstraint } from './validators/business-constraints.valida
     QueryComplexityGuard,
     ConfigParserService,
     CacheService,
+    CronLockService, // Single-owner execution for @Cron jobs across replicas
     AppLoggerService,
     SentryService, // Enterprise error tracking and monitoring
     PrometheusMetricsService, // Prometheus metrics collection
@@ -57,6 +59,7 @@ import { IsNotProfaneConstraint } from './validators/business-constraints.valida
     QueryComplexityGuard,
     ConfigParserService,
     CacheService,
+    CronLockService, // Export so every module with a @Cron can lock it
     AppLoggerService,
     SentryService, // Export for global error tracking
     PrometheusMetricsService, // Export for application-wide metrics

@@ -7,6 +7,8 @@ import {
   EstablishmentTrialExpiringSoonEvent,
   EstablishmentTrialExpiredEvent,
 } from '../../common/events/admin-establishment.events';
+import { CronLockName, CronLockTtl } from '../../common/constants/cron-lock.constant';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import {
   Establishment,
@@ -43,10 +45,21 @@ export class TrialExpiryTask {
     @InjectModel(Establishment.name)
     private readonly establishmentModel: Model<EstablishmentDocument>,
     private readonly eventBus: EventBusService,
+    private readonly cronLock: CronLockService,
   ) {}
 
+  /**
+   * Locked: each expiry emits a domain event, so an unlocked run on N replicas
+   * would send merchants N suspension notices for the same trial.
+   */
   @Cron('10 0 * * *', { name: 'trial-expiry-scan', timeZone: 'UTC' })
   async handleTrialExpiryScan(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.TRIAL_EXPIRY, CronLockTtl.HEAVY, async () => {
+      await this.runTrialExpiryScan();
+    });
+  }
+
+  private async runTrialExpiryScan(): Promise<void> {
     this.logger.log('Starting daily trial-expiry scan…');
 
     try {

@@ -1,11 +1,13 @@
 /* eslint-disable require-await */
 import { Test } from '@nestjs/testing';
 
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { PayoutService } from '../services/payout.service';
 import { WalletPayoutService } from '../services/wallet-payout.service';
 
 import { PayoutTask } from './payout.task';
 
+import type { PayoutBatchSummary } from '../dto/create-ledger.dto';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('PayoutTask', () => {
@@ -16,6 +18,22 @@ describe('PayoutTask', () => {
     retryFailedPayouts: jest.Mock;
   };
   let walletPayoutService: { processWeeklyWalletPayouts: jest.Mock };
+  let cronLock: { runExclusive: jest.Mock };
+
+  /**
+   * Runs the payout batch and asserts the lock was acquired.
+   *
+   * `processWeeklyPayouts` now resolves to `undefined` when another replica
+   * owns the tick. These tests configure the lock to always be won, so an
+   * `undefined` here means the harness is wrong, not the batch.
+   */
+  const runPayouts = async (): Promise<PayoutBatchSummary> => {
+    const summary = await task.processWeeklyPayouts();
+    if (summary === undefined) {
+      throw new Error('Expected the payout lock to be acquired in tests');
+    }
+    return summary;
+  };
 
   beforeEach(async () => {
     payoutService = {
@@ -26,12 +44,21 @@ describe('PayoutTask', () => {
     walletPayoutService = {
       processWeeklyWalletPayouts: jest.fn(),
     };
+    // Default: this replica wins the lock, so the batch actually runs and the
+    // existing behavioural assertions below still exercise real code.
+    cronLock = {
+      runExclusive: jest.fn(async (_name: string, _ttl: number, fn: () => Promise<unknown>) => {
+        const result = await fn();
+        return result;
+      }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PayoutTask,
         { provide: PayoutService, useValue: payoutService },
         { provide: WalletPayoutService, useValue: walletPayoutService },
+        { provide: CronLockService, useValue: cronLock },
       ],
     }).compile();
 
@@ -51,7 +78,7 @@ describe('PayoutTask', () => {
       payoutService.aggregatePendingByMerchant.mockResolvedValue([]);
       walletPayoutService.processWeeklyWalletPayouts.mockResolvedValue([]);
 
-      const summary = await task.processWeeklyPayouts();
+      const summary = await runPayouts();
 
       expect(summary.totalMerchants).toBe(0);
       expect(summary.successfulPayouts).toBe(0);
@@ -81,7 +108,7 @@ describe('PayoutTask', () => {
         .mockResolvedValueOnce({ success: true, totalAmount: 200, entryCount: 3 });
       walletPayoutService.processWeeklyWalletPayouts.mockResolvedValue([]);
 
-      const summary = await task.processWeeklyPayouts();
+      const summary = await runPayouts();
 
       expect(summary.totalMerchants).toBe(2);
       expect(summary.successfulPayouts).toBe(2);
@@ -118,7 +145,7 @@ describe('PayoutTask', () => {
         });
       walletPayoutService.processWeeklyWalletPayouts.mockResolvedValue([]);
 
-      const summary = await task.processWeeklyPayouts();
+      const summary = await runPayouts();
 
       expect(summary.successfulPayouts).toBe(1);
       expect(summary.failedPayouts).toBe(1);
@@ -139,7 +166,7 @@ describe('PayoutTask', () => {
       payoutService.processMerchantPayout.mockRejectedValue(new Error('Connection refused'));
       walletPayoutService.processWeeklyWalletPayouts.mockResolvedValue([]);
 
-      const summary = await task.processWeeklyPayouts();
+      const summary = await runPayouts();
 
       expect(summary.failedPayouts).toBe(1);
       expect(summary.successfulPayouts).toBe(0);
@@ -195,7 +222,7 @@ describe('PayoutTask', () => {
       });
       walletPayoutService.processWeeklyWalletPayouts.mockRejectedValue(new Error('Wallet DB down'));
 
-      const summary = await task.processWeeklyPayouts();
+      const summary = await runPayouts();
 
       expect(summary).toBeDefined();
       expect(summary.successfulPayouts).toBe(1);
@@ -204,7 +231,7 @@ describe('PayoutTask', () => {
     it('should generate batch ID with correct prefix', async () => {
       payoutService.aggregatePendingByMerchant.mockResolvedValue([]);
 
-      const summary = await task.processWeeklyPayouts();
+      const summary = await runPayouts();
 
       expect(summary.batchId).toMatch(/^BATCH-\d{4}-\d{2}/);
     });

@@ -5,6 +5,8 @@ import { Model, Connection } from 'mongoose';
 
 import { OrderStatus, PaymentStatus } from '@foodwaste/shared';
 
+import { CronLockName, CronLockTtl } from '../../common/constants/cron-lock.constant';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
 import { Offer } from '../../offers/schemas/offer.schema';
 import { KonnectService } from '../../subscription/services/konnect.service';
@@ -24,10 +26,21 @@ export class PaymentExpiryTask {
     private readonly paymentAttemptModel: Model<PaymentAttempt>,
     private readonly konnectService: KonnectService,
     private readonly konnectOrderService: KonnectOrderService,
+    private readonly cronLock: CronLockService,
   ) {}
 
+  /**
+   * Expires unpaid orders and releases their reserved stock. Locked because
+   * concurrent replicas would each issue the release/refund for the same order.
+   */
   @Cron('*/2 * * * *', { timeZone: 'Africa/Tunis' })
   async handlePaymentExpiry(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.PAYMENT_EXPIRY, CronLockTtl.QUICK, async () => {
+      await this.expireStalePayments();
+    });
+  }
+
+  private async expireStalePayments(): Promise<void> {
     const now = new Date();
     const expiredOrders = await this.orderModel
       .find({

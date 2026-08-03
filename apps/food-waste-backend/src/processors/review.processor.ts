@@ -16,6 +16,7 @@ import {
   SentimentType,
   ReviewSentimentAnalysis,
 } from '../reviews/schemas/review.schema';
+import { QueueConcurrency } from '../common/constants/queue-concurrency.constant';
 import { ReviewModerationService } from '../services/review-moderation.service';
 import { User, UserDocument } from '../users/schemas/user.schema';
 
@@ -41,7 +42,7 @@ export class ReviewProcessor {
     void this.userModel;
   }
 
-  @Process('process')
+  @Process({ name: 'process', concurrency: QueueConcurrency.REVIEW_PROCESSING })
   async handleReview(job: Job<ReviewJobData>): Promise<void> {
     try {
       const { reviewId, action, metadata } = job.data;

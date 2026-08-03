@@ -166,6 +166,20 @@ export class WebSocketService {
     // was a race condition where notifications fired before the join completed.
     await socket.join(`user-${socket.userId}`);
 
+    /*
+     * Role room, for sendToRole(). Joined here rather than at authentication so
+     * that it shares this method's single idempotent registration point — the
+     * two rooms can then never disagree about whether a socket is registered.
+     *
+     * Guarded because `role` is optional on the socket: a socket that
+     * authenticated without one must still get its user room, and silently
+     * joining `role-undefined` would build a room that some future broadcast
+     * could address by accident.
+     */
+    if (socket.role !== undefined && socket.role !== null) {
+      await socket.join(`role-${socket.role}`);
+    }
+
     this.logger.log(
       `[registerUserSocket] SUCCESS — userId=${socket.userId} socketId=${socket.id} role=${socket.role} ` +
         `totalRegisteredUsers=${this.userSockets.size}`,
@@ -279,14 +293,30 @@ export class WebSocketService {
   }
 
   /**
-   * Send event to users with specific role
+   * Send event to every connected user holding a given role.
+   *
+   * Emits through the `role-{role}` room rather than iterating
+   * `connectedClients`. That map only ever holds sockets attached to *this*
+   * process, so the previous implementation silently reached one replica's
+   * worth of recipients: with N processes behind the load balancer, roughly 1/N
+   * of admins and moderators got each alert, and which ones varied per emit.
+   * Nothing failed — the message simply never arrived, which is the hardest
+   * class of bug to notice in a notification path.
+   *
+   * `server.to(room)` goes through the Redis adapter, which fans out across
+   * every process. Membership is established in registerUserSocket().
    */
   sendToRole(role: UserRole, event: string, data: unknown): void {
-    for (const [_socketId, socket] of this.connectedClients.entries()) {
-      if (socket.role === role) {
-        socket.emit(event, this.wrapEventPayload(event, data, socket.userId));
-      }
+    if (this.server === null || this.server === undefined) {
+      return;
     }
+
+    /*
+     * No per-recipient userId in the payload: one emit now serves many users,
+     * so there is no single correct value. sendToUser remains the path for
+     * anything that needs the recipient stamped into the envelope.
+     */
+    this.server.to(`role-${role}`).emit(event, this.wrapEventPayload(event, data));
     this.logger.debug(`Sent ${event} to all users with role ${role}`);
   }
 

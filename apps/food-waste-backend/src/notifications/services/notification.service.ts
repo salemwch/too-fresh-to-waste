@@ -1,6 +1,8 @@
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
+import { Queue } from 'bull';
 import { Model, Types, FilterQuery, UpdateQuery } from 'mongoose';
 
 import { SanitizationUtil } from '../../common/utils/sanitization.util';
@@ -10,6 +12,11 @@ import {
   INotificationMetadata,
   NotificationResult,
 } from '../interfaces/notification.interfaces';
+import {
+  NOTIFICATION_JOB,
+  NOTIFICATION_JOB_OPTIONS,
+  NOTIFICATION_QUEUE,
+} from '../notifications.constants';
 import { NotificationPreference } from '../schemas/notification-preference.schema';
 import { NotificationTemplate } from '../schemas/notification-template.schema';
 import { Notification } from '../schemas/notification.schema';
@@ -70,8 +77,50 @@ export class NotificationService {
     private readonly templateService: TemplateService,
     private readonly eventEmitter: EventEmitter2,
     private readonly sanitizationUtil: SanitizationUtil,
+    @InjectQueue(NOTIFICATION_QUEUE)
+    private readonly notificationQueue: Queue<ISendNotificationRequest>,
   ) {}
 
+  /**
+   * Durable send: hands the notification to Bull and returns immediately.
+   *
+   * Prefer this everywhere the caller does not need the delivery outcome —
+   * which is nearly everywhere, since almost every call site is already
+   * fire-and-forget with a `.catch()` that logs and moves on.
+   *
+   * What it buys over {@link sendNotification}:
+   *  - **Retries.** Resend and FCM are third-party HTTP. A slow minute at the
+   *    provider currently loses the notification outright; here it is retried
+   *    with exponential backoff.
+   *  - **Survives a restart.** The job lives in Redis, not in a promise
+   *    attached to a request that is about to end.
+   *  - **Bounded latency for the caller.** Order creation no longer waits on
+   *    an external provider to accept a push before responding.
+   *
+   * Failure to *enqueue* is swallowed deliberately: if Redis is unreachable we
+   * have already lost the notification, and throwing here would fail the order
+   * that triggered it. That trade is the whole reason notifications are
+   * fire-and-forget. It is logged at error level so the loss is visible.
+   */
+  async queueNotification(request: ISendNotificationRequest): Promise<void> {
+    try {
+      await this.notificationQueue.add(NOTIFICATION_JOB, request, NOTIFICATION_JOB_OPTIONS);
+    } catch (error) {
+      this.logger.error(
+        `Failed to enqueue notification (type=${request.type} trigger=${request.trigger}): ` +
+          `${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  /**
+   * Immediate send — dispatches to the provider inline and reports the outcome.
+   *
+   * Kept for callers that genuinely need the result, and used by
+   * {@link NotificationProcessor} to perform each queued attempt. If you are
+   * not inspecting the returned `NotificationResult`, use
+   * {@link queueNotification} instead: an inline send that fails is gone.
+   */
   async sendNotification(request: ISendNotificationRequest): Promise<NotificationResult> {
     try {
       // Sanitize input to prevent XSS attacks

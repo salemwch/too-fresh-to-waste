@@ -7,6 +7,7 @@ import { OrderStatus, PaymentStatus } from '@foodwaste/shared';
 
 import { Order } from '../../orders/schemas/order.schema';
 import { Offer } from '../../offers/schemas/offer.schema';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { KonnectService } from '../../subscription/services/konnect.service';
 import { KonnectOrderService } from '../services/konnect-order.service';
 import { PaymentAttempt } from '../schemas/payment-attempt.schema';
@@ -67,6 +68,20 @@ describe('PaymentExpiryTask', () => {
         { provide: getModelToken(PaymentAttempt.name), useValue: attemptModel },
         { provide: KonnectService, useValue: konnectService },
         { provide: KonnectOrderService, useValue: konnectOrderService },
+        // Always wins the lock, so the existing assertions still exercise the
+        // real job body. Lock behaviour itself is covered in
+        // common/services/__tests__/cron-lock.service.spec.ts.
+        {
+          provide: CronLockService,
+          useValue: {
+            runExclusive: jest.fn(
+              async (_name: string, _ttl: number, fn: () => Promise<unknown>) => {
+                const result = await fn();
+                return result;
+              },
+            ),
+          },
+        },
       ],
     }).compile();
 

@@ -1,6 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 
+import { QueueConcurrency } from '../common/constants/queue-concurrency.constant';
 import { AppLoggerService } from '../common/services/logger.service';
 import {
   ReviewModerationService,
@@ -14,7 +15,7 @@ export class ReviewModerationProcessor {
     private readonly appLogger: AppLoggerService,
   ) {}
 
-  @Process('moderate')
+  @Process({ name: 'moderate', concurrency: QueueConcurrency.REVIEW_MODERATION })
   async moderateReview(job: Job<ReviewModerationData>): Promise<void> {
     const moderated = await Promise.resolve(this.moderationService.moderateReview(job.data));
     this.appLogger.log(

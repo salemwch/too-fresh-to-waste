@@ -2,6 +2,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bull';
 
+import { QueueConcurrency } from '../../common/constants/queue-concurrency.constant';
 import { SearchAnalyticsService } from '../services/search-analytics.service';
 import { SearchIndexService } from '../services/search-index.service';
 
@@ -15,7 +16,7 @@ export class SearchProcessor {
     private readonly searchAnalyticsService: SearchAnalyticsService,
   ) {}
 
-  @Process('index-offer')
+  @Process({ name: 'index-offer', concurrency: QueueConcurrency.SEARCH_INDEXING })
   async indexOffer(job: Job<{ offerId: string }>) {
     try {
       this.logger.log(`Processing offer indexing: ${job.data.offerId}`);
@@ -27,7 +28,7 @@ export class SearchProcessor {
     }
   }
 
-  @Process('index-establishment')
+  @Process({ name: 'index-establishment', concurrency: QueueConcurrency.SEARCH_INDEXING })
   async indexEstablishment(job: Job<{ establishmentId: string }>) {
     try {
       this.logger.log(`Processing establishment indexing: ${job.data.establishmentId}`);
@@ -39,7 +40,7 @@ export class SearchProcessor {
     }
   }
 
-  @Process('remove-from-index')
+  @Process({ name: 'remove-from-index', concurrency: QueueConcurrency.SEARCH_INDEXING })
   async removeFromIndex(job: Job<{ type: 'offers' | 'establishments'; id: string }>) {
     try {
       this.logger.log(`Processing removal from index: ${job.data.type} ${job.data.id}`);
@@ -51,7 +52,7 @@ export class SearchProcessor {
     }
   }
 
-  @Process('rebuild-index')
+  @Process({ name: 'rebuild-index', concurrency: QueueConcurrency.SEARCH_INDEXING })
   async rebuildIndex(_job: Job) {
     try {
       this.logger.log('Processing full index rebuild...');
@@ -64,7 +65,7 @@ export class SearchProcessor {
     }
   }
 
-  @Process('record-search')
+  @Process({ name: 'record-search', concurrency: QueueConcurrency.SEARCH_INDEXING })
   async recordSearch(
     job: Job<{
       query: string;
@@ -90,7 +91,7 @@ export class SearchProcessor {
     }
   }
 
-  @Process('cleanup-analytics')
+  @Process({ name: 'cleanup-analytics', concurrency: QueueConcurrency.SEARCH_INDEXING })
   cleanupAnalytics(job: Job<{ olderThanDays: number }>) {
     try {
       this.logger.log(`Cleaning up search analytics older than ${job.data.olderThanDays} days`);

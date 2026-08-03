@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { CronLockName, CronLockTtl } from '../../common/constants/cron-lock.constant';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { ArchiveService } from '../archive.service';
 
 /**
@@ -19,10 +21,19 @@ import { ArchiveService } from '../archive.service';
 export class ArchiveTask {
   private readonly logger = new Logger(ArchiveTask.name);
 
-  constructor(private readonly archiveService: ArchiveService) {}
+  constructor(
+    private readonly archiveService: ArchiveService,
+    private readonly cronLock: CronLockService,
+  ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_5AM)
   async handleArchiveCron(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.ARCHIVE_DAILY, CronLockTtl.HEAVY, async () => {
+      await this.runArchive();
+    });
+  }
+
+  private async runArchive(): Promise<void> {
     this.logger.log('Starting nightly archive of expired soft-deleted records…');
 
     try {

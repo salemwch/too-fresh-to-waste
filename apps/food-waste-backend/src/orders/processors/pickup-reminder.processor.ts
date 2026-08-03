@@ -2,6 +2,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bull';
 
+import { QueueConcurrency } from '../../common/constants/queue-concurrency.constant';
 import { NotificationService } from '../../notifications/services/notification.service';
 import {
   NotificationPriority,
@@ -24,7 +25,7 @@ export class PickupReminderProcessor {
 
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Process('send-2h-reminder')
+  @Process({ name: 'send-2h-reminder', concurrency: QueueConcurrency.PICKUP_REMINDERS })
   async handlePickupReminder(job: Job<PickupReminderJobData>): Promise<void> {
     const { orderId, customerId, establishmentName, offerTitle, availableUntil } = job.data;
 

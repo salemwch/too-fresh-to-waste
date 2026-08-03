@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Job } from 'bull';
 import { Model, Types } from 'mongoose';
 
+import { QueueConcurrency } from '../../common/constants/queue-concurrency.constant';
 import { DonationPool, DonationPoolDocument } from '../schemas/donation-pool.schema';
 import { PoolContributor, PoolContributorDocument } from '../schemas/pool-contributor.schema';
 import { DonationBadge, UserDonation, UserDonationDocument } from '../schemas/user-donation.schema';
@@ -28,7 +29,7 @@ export class DonationProcessor {
     private readonly poolContributorModel: Model<PoolContributorDocument>,
   ) {}
 
-  @Process('post-donation')
+  @Process({ name: 'post-donation', concurrency: QueueConcurrency.DONATIONS })
   async handlePostDonation(job: Job<PostDonationJobData>): Promise<void> {
     const userId = new Types.ObjectId(job.data.userId);
     const donationId = new Types.ObjectId(job.data.donationId);

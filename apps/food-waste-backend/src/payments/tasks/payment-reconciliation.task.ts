@@ -5,6 +5,8 @@ import { Model } from 'mongoose';
 
 import { PaymentStatus } from '@foodwaste/shared';
 
+import { CronLockName, CronLockTtl } from '../../common/constants/cron-lock.constant';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
 import { PaymentAttempt } from '../schemas/payment-attempt.schema';
 import { KonnectOrderService } from '../services/konnect-order.service';
@@ -19,10 +21,25 @@ export class PaymentReconciliationTask {
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
     private readonly konnectOrderService: KonnectOrderService,
+    private readonly cronLock: CronLockService,
   ) {}
 
+  /**
+   * Re-queries the provider for payments stuck in limbo. Locked because two
+   * replicas reconciling the same attempt can both settle it.
+   */
   @Cron('*/5 * * * *', { timeZone: 'Africa/Tunis' })
   async reconcilePendingPayments(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.PAYMENT_RECONCILIATION,
+      CronLockTtl.STANDARD,
+      async () => {
+        await this.runReconciliation();
+      },
+    );
+  }
+
+  private async runReconciliation(): Promise<void> {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
     const staleAttempts = await this.paymentAttemptModel

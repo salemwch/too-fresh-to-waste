@@ -2,6 +2,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bull';
 
+import { QueueConcurrency } from '../common/constants/queue-concurrency.constant';
 import { AppLoggerService } from '../common/services/logger.service';
 import { ReviewAnalyticsService } from '../reviews/review-analytics.service';
 
@@ -15,7 +16,10 @@ export class ReviewAnalyticsProcessor {
     private readonly appLogger: AppLoggerService,
   ) {}
 
-  @Process('update-establishment-analytics')
+  @Process({
+    name: 'update-establishment-analytics',
+    concurrency: QueueConcurrency.REVIEW_ANALYTICS,
+  })
   async updateEstablishmentAnalytics(
     job: Job<{ establishmentId: string; timeframe: number }>,
   ): Promise<void> {
@@ -33,7 +37,7 @@ export class ReviewAnalyticsProcessor {
     }
   }
 
-  @Process('generate-industry-report')
+  @Process({ name: 'generate-industry-report', concurrency: QueueConcurrency.REVIEW_ANALYTICS })
   async generateIndustryReport(
     job: Job<{ industryType: string; timeframe: number }>,
   ): Promise<void> {
@@ -58,7 +62,10 @@ export class ReviewAnalyticsProcessor {
     }
   }
 
-  @Process('update-establishment-benchmark')
+  @Process({
+    name: 'update-establishment-benchmark',
+    concurrency: QueueConcurrency.REVIEW_ANALYTICS,
+  })
   async updateEstablishmentBenchmark(job: Job<{ establishmentId: string }>): Promise<void> {
     const { establishmentId } = job.data;
 
@@ -79,7 +86,7 @@ export class ReviewAnalyticsProcessor {
     }
   }
 
-  @Process('update')
+  @Process({ name: 'update', concurrency: QueueConcurrency.REVIEW_ANALYTICS })
   updateAnalytics(job: Job<Record<string, unknown>>): void {
     this.logger.warn('Generic update job received - consider using specific job types', job.data);
     this.appLogger.log(

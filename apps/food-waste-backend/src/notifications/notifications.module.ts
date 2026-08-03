@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -5,6 +6,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { CommonModule } from '../common/common.module';
 import { User, UserSchema } from '../users/schemas/user.schema';
+
+import { NOTIFICATION_JOB_OPTIONS, NOTIFICATION_QUEUE } from './notifications.constants';
+import { NotificationProcessor } from './processors/notification.processor';
 
 import { NotificationsController } from './controllers/notifications.controller';
 import { AdminUserEventsListener } from './listeners/admin-user-events.listener';
@@ -35,6 +39,10 @@ import { TemplateService } from './services/template.service';
     ConfigModule,
     EventEmitterModule,
     CommonModule,
+    BullModule.registerQueue({
+      name: NOTIFICATION_QUEUE,
+      defaultJobOptions: NOTIFICATION_JOB_OPTIONS,
+    }),
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
       { name: NotificationPreference.name, schema: NotificationPreferenceSchema },
@@ -57,6 +65,7 @@ import { TemplateService } from './services/template.service';
     OptOutManagerService,
     TrialExpiryListener,
     AdminUserEventsListener,
+    NotificationProcessor,
   ],
   exports: [
     NotificationService,

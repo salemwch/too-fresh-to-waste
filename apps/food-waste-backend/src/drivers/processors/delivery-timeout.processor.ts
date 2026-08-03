@@ -2,6 +2,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bull';
 
+import { QueueConcurrency } from '../../common/constants/queue-concurrency.constant';
 import { DriversService } from '../drivers.service';
 import {
   DELIVERY_TIMEOUT_JOB,
@@ -25,7 +26,7 @@ export class DeliveryTimeoutProcessor {
 
   constructor(private readonly driversService: DriversService) {}
 
-  @Process(DELIVERY_TIMEOUT_JOB)
+  @Process({ name: DELIVERY_TIMEOUT_JOB, concurrency: QueueConcurrency.DELIVERY_TIMEOUTS })
   async handleDeliveryTimeout(job: Job<DeliveryTimeoutJobData>): Promise<void> {
     const { orderId, driverId } = job.data;
 

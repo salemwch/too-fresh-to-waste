@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { CronLockName, CronLockTtl } from '../../common/constants/cron-lock.constant';
+import { CronLockService } from '../../common/services/cron-lock.service';
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';
 import { ModerationActionService } from '../services/moderation-action.service';
 import { ModerationLogService } from '../services/moderation-log.service';
@@ -12,6 +14,7 @@ export class ModerationTaskProcessor {
   constructor(
     private readonly moderationActionService: ModerationActionService,
     private readonly moderationLogService: ModerationLogService,
+    private readonly cronLock: CronLockService,
   ) {}
 
   /**
@@ -19,6 +22,16 @@ export class ModerationTaskProcessor {
    */
   @Cron(CronExpression.EVERY_HOUR)
   async processExpiredActions(): Promise<void> {
+    await this.cronLock.runExclusive(
+      CronLockName.MODERATION_HOURLY,
+      CronLockTtl.STANDARD,
+      async () => {
+        await this.runExpiredActionProcessing();
+      },
+    );
+  }
+
+  private async runExpiredActionProcessing(): Promise<void> {
     try {
       this.logger.log('Starting expired actions processing...');
 
@@ -65,17 +78,19 @@ export class ModerationTaskProcessor {
    * Clean up old moderation logs (older than 1 year) - runs daily at midnight
    */
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  cleanupOldLogs(): void {
-    try {
-      this.logger.log('Starting old logs cleanup...');
-
-      // Note: The schema already has TTL index for automatic cleanup after 1 year
-      // This is just for additional cleanup if needed
-
-      this.logger.log('Old logs cleanup completed (handled by TTL index)');
-    } catch (error) {
-      this.logger.error('Failed to cleanup old logs', error);
-    }
+  async cleanupOldLogs(): Promise<void> {
+    // This job performs no writes — the schema's TTL index does the deleting.
+    // It is locked anyway so that "every @Cron is wrapped in runExclusive"
+    // stays a simple, mechanically checkable invariant (see cron-lock-coverage
+    // .spec.ts) rather than a rule with judgement-call exceptions.
+    await this.cronLock.runExclusive(
+      CronLockName.MODERATION_REPORT_CLEANUP,
+      CronLockTtl.QUICK,
+      async () => {
+        this.logger.log('Old logs cleanup — handled by the TTL index, nothing to do');
+        await Promise.resolve();
+      },
+    );
   }
 
   /**
@@ -83,6 +98,12 @@ export class ModerationTaskProcessor {
    */
   @Cron('0 1 * * *')
   async generateDailyModerationSummary(): Promise<void> {
+    await this.cronLock.runExclusive(CronLockName.MODERATION_DAILY, CronLockTtl.HEAVY, async () => {
+      await this.runDailyModerationSummary();
+    });
+  }
+
+  private async runDailyModerationSummary(): Promise<void> {
     try {
       this.logger.log('Generating daily moderation summary...');
 
