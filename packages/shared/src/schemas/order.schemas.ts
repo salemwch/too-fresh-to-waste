@@ -179,7 +179,14 @@ export const PricingResponseSchema = z.object({
   subtotal: z.number(),
   discountAmount: z.number(),
   taxAmount: z.number(),
-  serviceFee: z.number(),
+  /**
+   * Delivery fee, in TND. `0` for pickup orders and included in `total`.
+   *
+   * Renamed from `serviceFee`, which was charged whenever the payment method
+   * was cash — in both delivery and pickup. The fee now depends only on
+   * deliveryMode; how the customer pays never changes what they are charged.
+   */
+  deliveryFee: z.number(),
   total: z.number(),
   currency: z.string(),
 });

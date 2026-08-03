@@ -24,6 +24,15 @@ import { EventBusService } from '../common/services/event-bus/event-bus.service'
 import { AppLoggerService } from '../common/services/logger.service';
 import { CacheService } from '../common/services/cache.service';
 import { haversineKm } from '../common/utils/geo.util';
+import { perfLog, perfStart } from '../common/utils/perf-log.util';
+
+import {
+  DEFAULT_DRIVER_DELIVERY_EARNINGS,
+  DEFAULT_FLAT_DELIVERY_FEE,
+  calculateDeliveryEconomics,
+  calculateFoodRevenueSplit,
+  calculateOrderPricing,
+} from './utils/order-pricing.util';
 import { ORDER_LIST_FIELDS, ORDER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import {
@@ -213,6 +222,14 @@ export class OrdersService {
     void this.POINTS_PER_BAG;
   }
 
+  /**
+   * Emits a `[PERF]` timing line for one step of order creation.
+   * Silent in production unless PERF_LOGGING=true — see perf-log.util.ts.
+   */
+  private perf(label: string, startedAt: number, detail?: string): void {
+    perfLog(message => this.appLogger.log(message, 'OrderService'), label, startedAt, detail);
+  }
+
   private async invalidateOrderCaches(merchantId: string, customerId: string): Promise<void> {
     await Promise.all([
       this.cacheService.delByPrefix(`orders:stats:${merchantId}`),
@@ -232,16 +249,13 @@ export class OrdersService {
         // The offer query depends only on createOrderDto (offerIds, establishment,
         // pickupDate) — never on the customer/establishment docs — so it is safe to
         // issue concurrently. Collapses two sequential Atlas round-trips into one.
-        const tFetch = performance.now();
+        const tFetch = perfStart();
         const [customer, establishment, offers] = await Promise.all([
           this.userModel.findById(customerId).session(session),
           this.establishmentModel.findById(createOrderDto.establishmentId).session(session),
           this.findActiveOffersForOrder(createOrderDto, session),
         ]);
-        this.appLogger.log(
-          `[PERF] fetch customer+establishment+offers: ${(performance.now() - tFetch).toFixed(0)}ms`,
-          'OrderService',
-        );
+        this.perf('fetch customer+establishment+offers', tFetch);
         if (!customer) {
           throw new NotFoundException('Customer not found');
         }
@@ -259,19 +273,16 @@ export class OrdersService {
             requiresPhoneVerification: false,
           });
         }
-        const tValidate = performance.now();
+        const tValidate = perfStart();
         const { orderItems, subtotal, totalDiscountAmount, updates, earliestOfferExpiry } =
           this.validateAndBuildOrderItems(createOrderDto, offers);
-        this.appLogger.log(
-          `[PERF] validateAndBuildOrderItems: ${(performance.now() - tValidate).toFixed(0)}ms`,
-          'OrderService',
-        );
+        this.perf('validateAndBuildOrderItems', tValidate);
 
         // Reserve stock AND increment the slot counter in a SINGLE atomic
         // findOneAndUpdate per offer. The $elemMatch guarantees the positional
         // `$` targets the exact pickup slot, while $expr enforces availability.
         // This collapses what were two sequential Atlas round-trips into one.
-        const tReserve = performance.now();
+        const tReserve = perfStart();
         const reservationResults = await Promise.all(
           updates.map(update =>
             this.offerModel.findOneAndUpdate(
@@ -306,15 +317,12 @@ export class OrdersService {
             });
           }
         }
-        this.appLogger.log(
-          `[PERF] reserve stock + slot increment (parallel): ${(performance.now() - tReserve).toFixed(0)}ms`,
-          'OrderService',
-        );
+        this.perf('reserve stock + slot increment (parallel)', tReserve);
 
         // Sold-out status is a derived display flag. It only needs a write when an
         // offer just crossed the availability boundary — the common case is zero
         // writes, so this rarely adds a round-trip.
-        const tStatus = performance.now();
+        const tStatus = perfStart();
         const soldOutUpdates = (reservationResults as OfferDocument[]).flatMap(offer => {
           if (!offer) {
             return [];
@@ -344,26 +352,39 @@ export class OrdersService {
         if (soldOutUpdates.length > 0) {
           await Promise.all(soldOutUpdates);
         }
-        this.appLogger.log(
-          `[PERF] sold-out status (${soldOutUpdates.length} writes): ${(performance.now() - tStatus).toFixed(0)}ms`,
-          'OrderService',
-        );
+        this.perf('sold-out status', tStatus, `${soldOutUpdates.length} writes`);
 
-        // 5. Calculate pricing
-        // Cash-on-delivery surcharge. Kept equal to FLAT_DELIVERY_FEE below so a
-        // customer is never quoted two different delivery prices in one order.
-        const DELIVERY_FEE = 4;
-        const serviceFee = createOrderDto.paymentMethod === 'pay_on_delivery' ? DELIVERY_FEE : 0;
-        const taxAmount = 0;
-        const total = subtotal + serviceFee + taxAmount;
+        // 5. Calculate pricing — see orders/utils/order-pricing.util.ts.
+        //
+        // Customer pays food + deliveryFee. The fee depends ONLY on
+        // deliveryMode; payment method is a payment method, not a surcharge.
+        const isDelivery = createOrderDto.deliveryMode === 'delivery';
+        const flatDeliveryFee =
+          this.configService.get<number>('FLAT_DELIVERY_FEE') ?? DEFAULT_FLAT_DELIVERY_FEE;
+        const driverDeliveryEarnings =
+          this.configService.get<number>('DRIVER_DELIVERY_EARNINGS') ??
+          DEFAULT_DRIVER_DELIVERY_EARNINGS;
 
-        // 5.1. Charity donation: 5% of platform's 19% commission, based on subtotal
-        // Formula: subtotal * 0.19 * 0.05 = 0.95% of subtotal
-        const platformFeeForDonation = subtotal * 0.19;
-        const donationAmount = parseFloat((platformFeeForDonation * 0.05).toFixed(3));
+        const pricing = calculateOrderPricing({
+          subtotal,
+          discountAmount: totalDiscountAmount,
+          isDelivery,
+          flatDeliveryFee,
+          driverDeliveryEarnings,
+        });
+
+        // 5.1. Charity donation: 5% of the platform's 19% commission on FOOD.
+        // Delivery margin is excluded — it funds the driver, not the platform's
+        // giving. Formula: subtotal * 0.19 * 0.05 = 0.95% of subtotal.
+        const donationAmount = calculateFoodRevenueSplit(subtotal).donation;
 
         // --- Delivery fields (computed once, never recalculated) ---
-        const isDelivery = createOrderDto.deliveryMode === 'delivery';
+        const deliveryEconomics = calculateDeliveryEconomics({
+          isDelivery,
+          flatDeliveryFee,
+          driverDeliveryEarnings,
+        });
+
         let deliveryFields: {
           collectionStartTime?: Date;
           collectionEndTime?: Date;
@@ -394,16 +415,14 @@ export class OrdersService {
             );
           }
 
-          const fee = this.configService.get<number>('FLAT_DELIVERY_FEE') ?? 4.0;
-          const driverEarnings = this.configService.get<number>('DRIVER_DELIVERY_EARNINGS') ?? 3.0;
-
           deliveryFields = {
             collectionStartTime,
             collectionEndTime,
             estimatedDistanceKm: distKm,
-            deliveryFee: fee,
-            driverEarnings,
-            platformDeliveryCommission: parseFloat((fee - driverEarnings).toFixed(3)),
+            // Same numbers the customer was quoted in `pricing.deliveryFee`.
+            // Both come from calculateDeliveryEconomics/calculateOrderPricing,
+            // so the settlement record and the invoice cannot disagree.
+            ...(deliveryEconomics ?? {}),
           };
         }
 
@@ -439,15 +458,11 @@ export class OrdersService {
           },
           paymentDetails: {
             method: createOrderDto.paymentMethod,
-            amount: total,
+            amount: pricing.total,
             currency: DEFAULT_CURRENCY,
           },
           pricing: {
-            subtotal,
-            discountAmount: totalDiscountAmount,
-            taxAmount,
-            serviceFee,
-            total,
+            ...pricing,
             currency: DEFAULT_CURRENCY,
           },
           establishmentAddress: establishment.address,
@@ -476,12 +491,9 @@ export class OrdersService {
           ...deliveryFields,
         });
 
-        const tSave = performance.now();
+        const tSave = perfStart();
         const savedOrder = await order.save({ session });
-        this.appLogger.log(
-          `[PERF] order.save: ${(performance.now() - tSave).toFixed(0)}ms`,
-          'OrderService',
-        );
+        this.perf('order.save', tSave);
 
         // 8. Hydrate populated refs from already-fetched documents.
         //    customer, establishment were loaded at the top of the
@@ -513,7 +525,19 @@ export class OrdersService {
 
       const createdOrder: OrderDocument = finalOrder;
 
-      void this.invalidateOrderCaches(createdOrder.merchantId.toString(), customerId);
+      // Cache invalidation is deliberately not awaited — a stale merchant
+      // dashboard must never fail an order that is already committed. But the
+      // rejection has to surface: without this catch it reaches the global
+      // unhandledRejection handler in main.ts, which swallows it silently, so
+      // a Redis outage would leave dashboards stale with no diagnostic trail.
+      this.invalidateOrderCaches(createdOrder.merchantId.toString(), customerId).catch(
+        (err: Error) => {
+          this.appLogger.error(
+            `Order cache invalidation failed for order ${createdOrder.orderNumber}: ${err.message}`,
+            'OrderService.invalidateOrderCaches',
+          );
+        },
+      );
 
       this.notifyMerchantNewOrder(createdOrder).catch((err: Error) => {
         this.appLogger.error(
@@ -699,8 +723,13 @@ export class OrdersService {
       this.webSocketService.sendToUser(uid, 'order:new', payload);
     }
 
-    // 2. Push notification — visible even when app is in background
-    await this.notificationService.sendNotification({
+    // 2. Push notification — visible even when app is in background.
+    //
+    // Queued rather than sent inline: this runs on the order-creation path, and
+    // an inline FCM call put a third party's latency in front of the merchant
+    // hearing about a new order — and lost the notification outright if that
+    // call failed. Bull retries with backoff and survives a restart.
+    await this.notificationService.queueNotification({
       type: 'push',
       trigger: 'order_confirmed',
       target: { userId: merchantId },
@@ -2640,14 +2669,23 @@ export class OrdersService {
       );
 
       const merchantIds = [...new Set(ordersToCancel.map(o => o.merchantId.toString()))];
-      void Promise.all([
-        this.cacheService.delByPrefix(`orders:stats:${userId}`),
-        this.cacheService.delByPrefix(`orders:chart:${userId}`),
-        ...merchantIds.flatMap(mid => [
-          this.cacheService.delByPrefix(`orders:stats:${mid}`),
-          this.cacheService.delByPrefix(`orders:chart:${mid}`),
-        ]),
-      ]);
+      // Not awaited — the cancellations already committed — but caught, so a
+      // Redis outage is logged rather than swallowed by the global
+      // unhandledRejection handler in main.ts.
+      Promise.all(
+        [
+          `orders:stats:${userId}`,
+          `orders:chart:${userId}`,
+          ...merchantIds.flatMap(mid => [`orders:stats:${mid}`, `orders:chart:${mid}`]),
+        ].map(async prefix => {
+          await this.cacheService.delByPrefix(prefix);
+        }),
+      ).catch((err: unknown) => {
+        this.appLogger.error(
+          `Cache invalidation failed after cancelling orders for user ${userId}: ${String(err)}`,
+          'OrderService.cancelUserPendingOrders',
+        );
+      });
 
       // Process refunds for cancelled orders
       for (const order of ordersToCancel) {

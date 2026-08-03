@@ -27,7 +27,7 @@ class PricingResponseDto implements PricingResponse {
   @Expose() subtotal!: number;
   @Expose() discountAmount!: number;
   @Expose() taxAmount!: number;
-  @Expose() serviceFee!: number;
+  @Expose() deliveryFee!: number;
   @Expose() total!: number;
   @Expose() currency!: string;
 }

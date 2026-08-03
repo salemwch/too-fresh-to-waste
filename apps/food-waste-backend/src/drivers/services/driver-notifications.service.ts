@@ -142,7 +142,10 @@ export class DriverNotificationsService {
     }
 
     try {
-      await this.notificationService.sendNotification({
+      // Queued: delivery status changes are exactly the notifications a
+      // customer must not miss ("your driver is on the way"), and an inline
+      // send that fails is gone with no retry.
+      await this.notificationService.queueNotification({
         type: NotificationType.PUSH,
         trigger,
         target: { userId: customerId },

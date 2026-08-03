@@ -45,6 +45,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { AppVersionGuard } from '../common/guards/app-version.guard';
 import { QueryComplexityGuard, QueryComplexity } from '../common/guards/query-complexity.guard';
 import { AppLoggerService } from '../common/services/logger.service';
+import { perfLog, perfStart } from '../common/utils/perf-log.util';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
 import { KonnectOrderService } from '../payments/services/konnect-order.service';
 
@@ -167,11 +168,11 @@ export class OrdersController {
   @Roles(UserRole.CONSUMER)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createOrderDto: CreateOrderDto, @Request() req: AuthenticatedRequest) {
-    const t0 = performance.now();
+    const t0 = perfStart();
 
     const order = await this.ordersService.create(createOrderDto, req.user.userId);
-    const tOrder = performance.now();
-    this.logger.log(`[PERF] ordersService.create: ${(tOrder - t0).toFixed(0)}ms`);
+    const tOrder = perfStart();
+    perfLog(m => this.logger.log(m), 'ordersService.create', t0);
 
     let payUrl: string | undefined;
     if (createOrderDto.paymentMethod === 'online') {
@@ -186,10 +187,10 @@ export class OrdersController {
         email: customer.email ?? req.user.email,
       });
       payUrl = payment.payUrl;
-      this.logger.log(`[PERF] initOrderPayment: ${(performance.now() - tOrder).toFixed(0)}ms`);
+      perfLog(m => this.logger.log(m), 'initOrderPayment', tOrder);
     }
 
-    const tSer = performance.now();
+    const tSer = perfStart();
     const plain = toPlain(order) as Record<string, unknown>;
     if (payUrl) {
       plain['payUrl'] = payUrl;
@@ -197,10 +198,12 @@ export class OrdersController {
     const data = plainToInstance(ConsumerOrderResponseDto, plain, {
       excludeExtraneousValues: true,
     });
-    this.logger.log(`[PERF] serialization: ${(performance.now() - tSer).toFixed(0)}ms`);
-
-    this.logger.log(
-      `[PERF] POST /orders total: ${(performance.now() - t0).toFixed(0)}ms (payment=${createOrderDto.paymentMethod})`,
+    perfLog(m => this.logger.log(m), 'serialization', tSer);
+    perfLog(
+      m => this.logger.log(m),
+      'POST /orders total',
+      t0,
+      `payment=${createOrderDto.paymentMethod}`,
     );
 
     return {

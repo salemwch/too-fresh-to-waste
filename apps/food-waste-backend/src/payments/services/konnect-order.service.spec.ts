@@ -42,7 +42,7 @@ const makeOrder = (overrides: Record<string, unknown> = {}) =>
     paymentStatus: PaymentStatus.PENDING,
     paymentMethod: 'online',
     deliveryMode: 'pickup',
-    pricing: { total: 10.0, currency: 'TND' },
+    pricing: { subtotal: 10.0, deliveryFee: 0, total: 10.0, currency: 'TND' },
     paymentAttemptSequence: 0,
     paymentSession: null,
     ...overrides,
@@ -250,7 +250,9 @@ describe('KonnectOrderService', () => {
     });
 
     it('should handle fractional TND amounts correctly (millimes conversion)', async () => {
-      const fractionalOrder = makeOrder({ pricing: { total: 7.55, currency: 'TND' } });
+      const fractionalOrder = makeOrder({
+        pricing: { subtotal: 7.55, deliveryFee: 0, total: 7.55, currency: 'TND' },
+      });
       orderModel.findByIdAndUpdate.mockResolvedValue({
         ...fractionalOrder,
         paymentAttemptSequence: 1,
@@ -761,7 +763,7 @@ describe('KonnectOrderService', () => {
 
   describe('processPickupConfirmation', () => {
     it('should move funds from pending to available balance', async () => {
-      const order = makeOrder({ pricing: { total: 10.0 } });
+      const order = makeOrder({ pricing: { subtotal: 10.0, deliveryFee: 0, total: 10.0 } });
       establishmentModel.findById.mockReturnValue({
         select: jest.fn().mockReturnValue({
           lean: jest.fn().mockResolvedValue({ _id: ESTABLISHMENT_ID, ownerId: MERCHANT_ID }),
@@ -811,7 +813,7 @@ describe('KonnectOrderService', () => {
 
     it('should reverse wallet balance, create refund records', async () => {
       const order = makeOrder({
-        pricing: { total: 10.0 },
+        pricing: { subtotal: 10.0, deliveryFee: 0, total: 10.0 },
         paymentSession: { reference: PAYMENT_REF },
       });
 
@@ -859,7 +861,7 @@ describe('KonnectOrderService', () => {
     });
 
     it('should handle merchant_cancel reason', async () => {
-      const order = makeOrder({ pricing: { total: 5.0 } });
+      const order = makeOrder({ pricing: { subtotal: 5.0, deliveryFee: 0, total: 5.0 } });
 
       await service.processRefundRequest(order, MERCHANT_ID, 'merchant_cancel', mockSession);
 
@@ -870,7 +872,7 @@ describe('KonnectOrderService', () => {
     });
 
     it('should calculate correct amounts for non-round totals', async () => {
-      const order = makeOrder({ pricing: { total: 7.55 } });
+      const order = makeOrder({ pricing: { subtotal: 7.55, deliveryFee: 0, total: 7.55 } });
 
       await service.processRefundRequest(order, CUSTOMER_ID, 'consumer_cancel', mockSession);
 

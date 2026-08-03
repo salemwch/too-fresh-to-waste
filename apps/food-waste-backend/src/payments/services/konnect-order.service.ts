@@ -11,6 +11,8 @@ import { Model, Types, Connection, ClientSession } from 'mongoose';
 
 import { OrderStatus, PaymentStatus } from '@foodwaste/shared';
 
+import { perfLog, perfStart } from '../../common/utils/perf-log.util';
+import { calculateFoodRevenueSplit } from '../../orders/utils/order-pricing.util';
 import { Establishment } from '../../establishments/schemas/establishment.schema';
 import { KonnectService, toMillimes } from '../../subscription/services/konnect.service';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
@@ -20,9 +22,15 @@ import { PlatformTransaction } from '../schemas/platform-transaction.schema';
 import { WalletTransaction } from '../schemas/wallet-transaction.schema';
 import { RefundRequest } from '../schemas/refund-request.schema';
 
-const MERCHANT_SHARE = 0.81;
-const PLATFORM_FEE_RATE = 0.19;
-const DONATION_RATE_OF_COMMISSION = 0.05;
+/**
+ * Revenue splitting lives in orders/utils/order-pricing.util.ts.
+ *
+ * The rates that used to sit here (0.81 / 0.19 / 0.05) were applied to
+ * `order.pricing.total`. Now that `total` includes the delivery fee, that would
+ * pay the merchant 81% of a fee they have no part in earning — leaving the
+ * platform to fund a 3 TND driver out of a 0.76 TND share. Every split below
+ * therefore uses `pricing.subtotal`, the food line.
+ */
 
 @Injectable()
 export class KonnectOrderService implements OnModuleInit {
@@ -101,10 +109,8 @@ export class KonnectOrderService implements OnModuleInit {
         },
       ),
     ]);
-    const tKonnect = performance.now();
-    this.logger.log(
-      `[PERF] DB increment + Konnect API (parallel): ${(tKonnect - t0).toFixed(0)}ms`,
-    );
+    const tKonnect = perfStart();
+    perfLog(m => this.logger.log(m), 'DB increment + Konnect API (parallel)', t0);
 
     const attemptNumber = updatedOrder?.paymentAttemptSequence ?? 1;
     const providerExpiresAt = new Date(Date.now() + this.paymentTimeoutMinutes * 60 * 1000);
@@ -134,10 +140,8 @@ export class KonnectOrderService implements OnModuleInit {
         { writeConcern: { w: 1, j: false } },
       ),
     ]);
-    this.logger.log(
-      `[PERF] Post-Konnect DB writes (parallel): ${(performance.now() - tKonnect).toFixed(0)}ms`,
-    );
-    this.logger.log(`[PERF] initOrderPayment total: ${(performance.now() - t0).toFixed(0)}ms`);
+    perfLog(m => this.logger.log(m), 'Post-Konnect DB writes (parallel)', tKonnect);
+    perfLog(m => this.logger.log(m), 'initOrderPayment total', t0);
 
     return { payUrl: result.payUrl, paymentRef: result.paymentRef };
   }
@@ -396,7 +400,7 @@ export class KonnectOrderService implements OnModuleInit {
       throw new NotFoundException('Establishment not found');
     }
 
-    const merchantAmount = parseFloat((order.pricing.total * MERCHANT_SHARE).toFixed(3));
+    const { merchantAmount } = calculateFoodRevenueSplit(order.pricing.subtotal);
 
     await this.walletModel.findOneAndUpdate(
       { establishmentId: order.establishmentId },
@@ -416,10 +420,12 @@ export class KonnectOrderService implements OnModuleInit {
     reason: 'consumer_cancel' | 'merchant_cancel',
     session: ClientSession,
   ): Promise<void> {
-    const merchantAmount = parseFloat((order.pricing.total * MERCHANT_SHARE).toFixed(3));
-    const platformFee = parseFloat((order.pricing.total * PLATFORM_FEE_RATE).toFixed(3));
-    const donation = parseFloat((platformFee * DONATION_RATE_OF_COMMISSION).toFixed(3));
-    const netCommission = parseFloat((platformFee - donation).toFixed(3));
+    // The refund reverses what was recorded on sale: the merchant's food share
+    // and the platform's NET commission. Gross `platformFee` is not needed —
+    // the donation was already deducted from it when the sale was booked.
+    const { merchantAmount, donation, netCommission } = calculateFoodRevenueSplit(
+      order.pricing.subtotal,
+    );
 
     await this.walletModel.findOneAndUpdate(
       { establishmentId: order.establishmentId },
@@ -495,10 +501,9 @@ export class KonnectOrderService implements OnModuleInit {
       return;
     }
 
-    const merchantAmount = parseFloat((order.pricing.total * MERCHANT_SHARE).toFixed(3));
-    const platformFee = parseFloat((order.pricing.total * PLATFORM_FEE_RATE).toFixed(3));
-    const donation = parseFloat((platformFee * DONATION_RATE_OF_COMMISSION).toFixed(3));
-    const netCommission = parseFloat((platformFee - donation).toFixed(3));
+    const { merchantAmount, platformFee, donation, netCommission } = calculateFoodRevenueSplit(
+      order.pricing.subtotal,
+    );
 
     await this.walletTxModel.create(
       [

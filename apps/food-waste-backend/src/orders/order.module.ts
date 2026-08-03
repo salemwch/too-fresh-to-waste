@@ -28,7 +28,25 @@ import { OrderExpiryTask } from './tasks/order-expiry.task';
     forwardRef(() => PaymentModule),
     forwardRef(() => WebSocketModule),
     forwardRef(() => NotificationsModule),
-    BullModule.registerQueue({ name: 'pickup-reminders' }),
+    BullModule.registerQueue({
+      name: 'pickup-reminders',
+      /*
+       * Bull retains completed and failed jobs in Redis forever by default.
+       * At one reminder per order, 100k orders/day silently accumulates 100k
+       * job hashes per day in the same Redis that backs the throttler, the
+       * cache and the Socket.IO adapter — a slow leak that ends in eviction of
+       * live keys, not in an error anyone can trace back to here.
+       *
+       * These caps only affect jobs that have already run; a pending delayed
+       * reminder is untouched and still fires at its scheduled time.
+       */
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 50,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+      },
+    }),
     MongooseModule.forFeature([
       { name: Order.name, schema: OrderSchema },
       { name: Offer.name, schema: OfferSchema },

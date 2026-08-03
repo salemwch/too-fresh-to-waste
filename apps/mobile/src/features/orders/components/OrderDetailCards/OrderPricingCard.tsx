@@ -95,12 +95,18 @@ const OrderPricingCardComponent: React.FC<OrderPricingCardProps> = ({ order }) =
         currency={pricing.currency}
       />
 
-      {pricing.serviceFee > 0 && (
+      {/*
+        Was `pricing.serviceFee`, already displayed under the "delivery fee"
+        label — the value simply did not match the label. It was charged on any
+        cash order including pickup, and never on an online-paid delivery. The
+        field now matches what it is called.
+      */}
+      {pricing.deliveryFee > 0 && (
         <>
           <View style={cardStyles.divider} />
           <PricingRow
             label={t('orders.deliveryFee')}
-            value={pricing.serviceFee}
+            value={pricing.deliveryFee}
             currency={pricing.currency}
           />
         </>

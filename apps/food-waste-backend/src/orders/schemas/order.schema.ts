@@ -156,7 +156,12 @@ export class Order {
       subtotal: { type: Number, required: true, min: 0 },
       discountAmount: { type: Number, required: true, min: 0 },
       taxAmount: { type: Number, default: 0, min: 0 },
-      serviceFee: { type: Number, default: 0, min: 0 },
+      // Renamed from `serviceFee`. It was a cash-on-delivery surcharge applied
+      // in both modes — so a pickup order paid in cash was charged it, and a
+      // delivery order paid online was not. The fee now depends only on
+      // deliveryMode. Existing documents are renamed by
+      // scripts/migrations/rename-service-fee-to-delivery-fee.ts.
+      deliveryFee: { type: Number, default: 0, min: 0 },
       total: { type: Number, required: true, min: 0 },
       currency: { type: String, required: true, default: DEFAULT_CURRENCY },
     },
@@ -165,7 +170,8 @@ export class Order {
     subtotal: number;
     discountAmount: number;
     taxAmount: number;
-    serviceFee: number;
+    /** 0 for pickup. Included in `total`. */
+    deliveryFee: number;
     total: number;
     currency: string;
   };

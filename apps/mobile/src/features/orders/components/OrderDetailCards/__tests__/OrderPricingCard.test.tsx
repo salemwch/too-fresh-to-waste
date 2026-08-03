@@ -31,7 +31,7 @@ const order = (pricing: Partial<Order['pricing']>): Order =>
     pricing: {
       subtotal: 8,
       discountAmount: 12,
-      serviceFee: 0,
+      deliveryFee: 0,
       total: 8,
       currency: 'TND',
       ...pricing,
@@ -89,11 +89,11 @@ describe('OrderPricingCard', () => {
 
   describe('the service fee', () => {
     it('is shown when charged', () => {
-      expect(render$(order({ serviceFee: 2.5, total: 10.5 }))).toContain('2.50');
+      expect(render$(order({ deliveryFee: 2.5, total: 10.5 }))).toContain('2.50');
     });
 
     it('is omitted when zero', () => {
-      const output = render$(order({ serviceFee: 0, subtotal: 8, discountAmount: 0, total: 8 }));
+      const output = render$(order({ deliveryFee: 0, subtotal: 8, discountAmount: 0, total: 8 }));
 
       expect(output).not.toContain('0.00');
     });

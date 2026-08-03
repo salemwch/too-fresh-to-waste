@@ -19,7 +19,25 @@ import { DriverNotificationsService } from './services/driver-notifications.serv
       { name: Order.name, schema: OrderSchema },
       { name: DriverProfile.name, schema: DriverProfileSchema },
     ]),
-    BullModule.registerQueue({ name: DELIVERY_TIMEOUT_QUEUE }),
+    BullModule.registerQueue({
+      name: DELIVERY_TIMEOUT_QUEUE,
+      /*
+       * Bounded for the same reason as pickup-reminders: Bull keeps completed
+       * jobs forever by default, and this queue gets a job per delivery.
+       * Only already-run jobs are trimmed — a pending timeout still fires.
+       *
+       * `attempts: 3` matters here: this job unassigns a stale driver and
+       * writes the audit entry that distinguishes an automatic unassignment
+       * from a manual one. Losing it to a transient DB blip would leave an
+       * order assigned to a driver who has gone quiet.
+       */
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 50,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+      },
+    }),
     NotificationsModule,
     ConfigModule,
   ],

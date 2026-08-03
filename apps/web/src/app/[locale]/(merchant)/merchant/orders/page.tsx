@@ -718,7 +718,7 @@ function OrderDetailContent({
               value: order.pricing?.discountAmount ? -order.pricing.discountAmount : null,
             },
             { label: t('tax'), value: order.pricing?.taxAmount },
-            { label: t('serviceFee'), value: order.pricing?.serviceFee },
+            { label: t('deliveryFee'), value: order.pricing?.deliveryFee },
           ]
             .filter(r => r.value != null && r.value !== 0)
             .map(row => (
