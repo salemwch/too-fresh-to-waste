@@ -1,0 +1,76 @@
+# Node modules
+node_modules
+**/node_modules
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist
+build
+*.tsbuildinfo
+.turbo
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Cache
+.eslintcache
+*.cache
+.metro-cache
+
+# Testing
+coverage
+.nyc_output
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Docker
+.dockerignore
+docker-compose*.yml
+
+# Temporary
+.tmp
+temp
+
+# Firebase
+**/firebase-service-account.json
+
+# Secrets & Keys
+*.pem
+*.key
+*.keystore
+
+# Mobile / Web apps (not needed for backend Docker build)
+apps/mobile
+apps/web
+
+# Design docs, plans, etc.
+docs
