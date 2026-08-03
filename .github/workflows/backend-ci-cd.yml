@@ -710,3 +710,79 @@ jobs:
           package-name: ${{ github.event.repository.name }}/backend
           package-type: container
           min-versions-to-keep: 5
+
+  # ============================================
+  # Job 9 — Create production indexes
+  #
+  # `autoIndex` is off in production (app.module.ts), so declaring an index on a
+  # schema does NOT create it there. Nothing does, until this runs. Before this
+  # job existed the only route was a developer remembering to run the script
+  # from a laptop, which is how ten TTL policies once came to be declared in
+  # code and absent from the database.
+  #
+  # Why CI and not a Render pre-deploy command: the script needs `ts-node`,
+  # `tsconfig-paths` and the `*.schema.ts` sources. All three are absent from
+  # the production image — devDependencies are stripped, `tsconfig.build.json`
+  # excludes `scripts/`, and only compiled `dist/*.js` is copied. A pre-deploy
+  # hook runs inside that image and would fail with `ts-node: not found`.
+  #
+  # Safe to run on every deploy: `createIndexes()` is additive and idempotent —
+  # it creates what is missing and never drops. Dropping stays a deliberate
+  # manual act (see `db:audit-indexes`).
+  #
+  # Gated on integration-tests because that job already proves every declared
+  # index is actually creatable, by building them against a throwaway database.
+  # An index MongoDB rejects — `sparse` combined with `partialFilterExpression`,
+  # say — silently never builds in any environment, and this is what catches it
+  # before production sees it.
+  # ============================================
+  create-indexes-production:
+    name: Create Production Indexes
+    runs-on: ubuntu-latest
+    needs: [integration-tests]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    timeout-minutes: 30
+
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The schemas import @foodwaste/shared, which resolves to
+      # packages/shared/dist — unbuilt, every schema fails to load.
+      - name: Build workspace packages
+        run: pnpm build:deps
+
+      # Index builds compete with live traffic for IO, and a large collection
+      # can take tens of minutes. Running after the deploy rather than before
+      # means a slow build never blocks a rollout; new queries are briefly
+      # unindexed, which is slow but correct.
+      - name: Create indexes from schemas (additive — never drops)
+        run: pnpm --filter @foodwaste/backend db:create-indexes
+        env:
+          NODE_ENV: production
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
+      # Fails the job on MISSING or MISMATCHED. Extra indexes are reported but
+      # do not fail: dropping is manual by design, so an index this repo no
+      # longer declares is a decision for a human with `db:audit-indexes`.
+      - name: Verify no index drift against production
+        run: pnpm --filter @foodwaste/backend verify:indexes:strict
+        env:
+          NODE_ENV: production
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}

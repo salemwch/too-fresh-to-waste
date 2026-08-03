@@ -9,12 +9,36 @@
 
 import Joi from 'joi';
 
+import { PROCESS_ROLE_VALUES, ProcessRole } from './process-role';
+
 export const envValidationSchema = Joi.object({
   // ── Application ──────────────────────────────────────────────────────
   NODE_ENV: Joi.string()
     .valid('development', 'staging', 'production', 'test')
     .default('development'),
   PORT: Joi.number().default(3000),
+
+  /*
+   * Which responsibilities this process carries — see `process-role.ts`.
+   *
+   * Validated here so a typo fails at startup rather than silently disabling
+   * every scheduled job. `getProcessRole()` reads `process.env` directly and
+   * falls back to `all`, so an unvalidated value would not crash; it would just
+   * quietly stop payouts. Joi is what makes that unreachable.
+   */
+  PROCESS_ROLE: Joi.string()
+    .valid(...PROCESS_ROLE_VALUES)
+    .default(ProcessRole.ALL)
+    .messages({
+      'any.only': `PROCESS_ROLE must be one of: ${PROCESS_ROLE_VALUES.join(', ')}`,
+    }),
+
+  /*
+   * PM2 cluster worker count. Not read by the app itself — `ecosystem.config.js`
+   * uses it — but validated here because it multiplies MONGO_MAX_POOL_SIZE into
+   * the real connection count, and getting it wrong exhausts the database.
+   */
+  WEB_CONCURRENCY: Joi.number().integer().min(1).default(2),
 
   // ── Database ─────────────────────────────────────────────────────────
   DATABASE_URL: Joi.string().required().messages({
@@ -39,7 +63,24 @@ export const envValidationSchema = Joi.object({
     'string.min': 'JWT_REFRESH_SECRET must be at least 32 characters',
   }),
   JWT_EXPIRES_IN: Joi.string().default('15m'),
-  JWT_REFRESH_EXPIRES_IN: Joi.string().default('365d'),
+  /**
+   * Standard (non "remember me") refresh token lifetime.
+   *
+   * Was '365d'. Because Joi APPLIES this default, `configService.get()` always
+   * returns a value — which made the `?? '7d'` fallback in token.service.ts
+   * dead code and silently gave every ordinary sign-in a token valid for a
+   * year. A stolen refresh token is a bearer credential, so that was a
+   * year-long account-takeover window on a token the code intended to be
+   * short-lived. The cookie maxAge in auth.controller.ts already documents the
+   * intent as 30 days; this now matches it.
+   */
+  JWT_REFRESH_EXPIRES_IN: Joi.string().default('30d'),
+  /**
+   * "Remember me" refresh token lifetime. Longer by design — the user opted in.
+   * Declared explicitly so the value is validated and discoverable rather than
+   * living only as a `??` fallback inside token.service.ts.
+   */
+  JWT_REFRESH_REMEMBER_ME_EXPIRES_IN: Joi.string().default('365d'),
 
   // ── CORS ─────────────────────────────────────────────────────────────
   CORS_ORIGINS: Joi.when('NODE_ENV', {
@@ -199,6 +240,41 @@ export const envValidationSchema = Joi.object({
     otherwise: Joi.string().optional(),
   }),
   RABBITMQ_ENABLED: Joi.boolean().default(false),
+  /**
+   * Analytics result caching (analytics.service.ts).
+   *
+   * Declared here because it is read as `configService.get<boolean>(...)`.
+   * Environment variables arrive as strings, and Joi is what coerces them —
+   * without an entry, setting `ANALYTICS_CACHE_ENABLED=false` yielded the
+   * *string* `"false"`, which is truthy, so the flag could be set but never
+   * actually turned the cache off. The `<boolean>` type argument made it look
+   * safe: it asserts a type, it does not convert anything.
+   */
+  ANALYTICS_CACHE_ENABLED: Joi.boolean().default(true),
+
+  // ── Delivery economics ───────────────────────────────────────────────
+  //
+  // Declared so Joi COERCES them to numbers. They are read as
+  // `configService.get<number>(...)`, but env vars arrive as strings and the
+  // type argument only asserts — it converts nothing. Undeclared,
+  // `FLAT_DELIVERY_FEE=4.0` yielded the string "4.0"; it survived only because
+  // `fee - earnings` coerces, and the first `+` written against it would have
+  // silently concatenated into a nonsense total.
+  //
+  // Model: customer pays food + FLAT_DELIVERY_FEE on delivery orders (never on
+  // pickup, and never because of the payment method). The fee splits
+  // driver / platform as DRIVER_DELIVERY_EARNINGS / the remainder, so the
+  // driver's share must not exceed the fee.
+  FLAT_DELIVERY_FEE: Joi.number().min(0).default(4.0),
+  DRIVER_DELIVERY_EARNINGS: Joi.number()
+    .min(0)
+    .max(Joi.ref('FLAT_DELIVERY_FEE'))
+    .default(3.0)
+    .messages({
+      'number.max':
+        'DRIVER_DELIVERY_EARNINGS cannot exceed FLAT_DELIVERY_FEE — the platform would pay the driver more than it collects on every delivery.',
+    }),
+  MAX_DELIVERY_KM: Joi.number().positive().default(5),
 }).options({
   // Allow additional env vars not listed above (system vars, optional config)
   allowUnknown: true,

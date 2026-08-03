@@ -1,0 +1,143 @@
+# =============================================================================
+# Render Blueprint — Too Fresh To Waste backend
+# =============================================================================
+#
+# Infrastructure as code for Render. Both services are defined here so that
+# scaling up is a plan change in the dashboard, never a code change and never a
+# service hand-configured from memory at the moment you can least afford a
+# mistake.
+#
+# ## Applying it
+#
+#   Render Dashboard → Blueprints → New Blueprint Instance → pick this repo.
+#
+# An existing dashboard-configured service is NOT adopted automatically. Either
+# let the Blueprint create fresh services and cut DNS over, or keep managing the
+# current one by hand — running both against the same database is the one
+# combination to avoid, because two API services would both hold `PROCESS_ROLE`
+# defaults and run every cron twice. (The Redis lock makes that safe, but it is
+# still two of everything you are paying for.)
+#
+# ## The two services
+#
+# | Service              | Type              | Runs crons | Public URL |
+# | -------------------- | ----------------- | ---------- | ---------- |
+# | foodwaste-api        | web               | no*        | yes        |
+# | foodwaste-worker     | worker            | yes        | no         |
+#
+# *`PROCESS_ROLE` below is `api` — correct ONLY because the worker service is
+# defined right beside it. On a deployment without the worker, that value stops
+# every scheduled job — payouts, order expiry, trial expiry — while health
+# checks stay green. If you delete the worker service, change it back to `all`.
+#
+# ## Free tier
+#
+# Background workers are not available on Render's free plan, and free web
+# services spin down after ~15 minutes idle — which also stops every cron,
+# since they are in-process timers. To run free, comment out the worker service
+# and set the API's PROCESS_ROLE to `all`; accept that scheduled jobs only fire
+# while the service happens to be awake.
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # API — serves HTTP and WebSocket traffic.
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: foodwaste-api
+    runtime: docker
+    dockerfilePath: ./apps/food-waste-backend/Dockerfile
+    # Build context is the repo root: the Dockerfile copies the pnpm workspace
+    # manifests and packages/shared, so a backend-only context cannot build.
+    dockerContext: .
+    plan: starter
+    region: frankfurt # Closest Render region to Tunisia.
+    branch: master
+    healthCheckPath: /health/liveness
+
+    # Docker CMD already targets the API app; repeated here so the Blueprint
+    # states it rather than depending on a default defined elsewhere.
+    dockerCommand: dumb-init pm2-runtime start ecosystem.config.js --only food-waste-api --env production
+
+    envVars:
+      - key: PROCESS_ROLE
+        value: api # See the warning above before changing.
+
+      # Left unset on purpose. `container-resources.ts` reads the cgroup CPU
+      # limit, so the worker count follows the plan automatically — and returns
+      # 1 below two whole CPUs, where cluster mode is a net loss. Set this only
+      # to override a measured workload.
+      # - key: WEB_CONCURRENCY
+      #   value: 4
+
+      # Per PROCESS, not per service: total sockets are
+      # MONGO_MAX_POOL_SIZE × workers × instances. Sized for `starter`
+      # (1 worker). Raise deliberately when raising the plan, and check it
+      # against your cluster's connection limit — Atlas M0 allows 500, M10
+      # 1500.
+      - key: MONGO_MAX_POOL_SIZE
+        value: "40"
+      - key: MONGO_MIN_POOL_SIZE
+        value: "5"
+
+      - fromGroup: foodwaste-backend-shared
+
+  # ---------------------------------------------------------------------------
+  # Worker — owns every @Cron and drains the Bull queues.
+  #
+  # Separated so a heavy analytics rollup cannot block checkout: Node has one
+  # thread per process, and before this split they shared it.
+  # ---------------------------------------------------------------------------
+  - type: worker
+    name: foodwaste-worker
+    runtime: docker
+    dockerfilePath: ./apps/food-waste-backend/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    branch: master
+
+    dockerCommand: dumb-init pm2-runtime start ecosystem.config.js --only food-waste-worker --env production
+
+    envVars:
+      - key: PROCESS_ROLE
+        value: worker
+
+      # Smaller than the API's: one fork-mode process, and queue concurrency
+      # (queue-concurrency.constant.ts) already bounds its in-flight work.
+      - key: MONGO_MAX_POOL_SIZE
+        value: "20"
+      - key: MONGO_MIN_POOL_SIZE
+        value: "5"
+
+      - fromGroup: foodwaste-backend-shared
+
+# =============================================================================
+# Shared configuration
+#
+# Everything both services must agree on lives in one env group, so they cannot
+# drift. Create it once:
+#
+#   Dashboard → Env Groups → New → name it `foodwaste-backend-shared`
+#
+# Secrets are deliberately NOT listed with values here — this file is committed.
+# Add them in the dashboard:
+#
+#   DATABASE_URL, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, JWT_SECRET,
+#   JWT_REFRESH_SECRET, RESEND_API_KEY, CORS_ORIGINS, SENTRY_DSN,
+#   KONNECT_API_KEY, KONNECT_WALLET_ID, FIREBASE_*
+#
+# Both services read the same DATABASE_URL and REDIS_* — that is required, not
+# incidental: the Redis cron lock only excludes replicas that share a Redis.
+# =============================================================================
+#
+# PORT is deliberately absent. Render assigns it per web service and then probes
+# that exact port to decide whether the deploy succeeded. Pinning it in a shared
+# group would override the assignment for the API service, the probe would find
+# nothing listening, and the deploy would fail with "no open ports detected"
+# while the app ran perfectly well on a port nobody was watching.
+envVarGroups:
+  - name: foodwaste-backend-shared
+    envVars:
+      - key: NODE_ENV
+        value: production
