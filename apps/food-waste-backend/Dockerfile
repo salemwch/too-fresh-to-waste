@@ -49,15 +49,18 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@10.17.0
 
-# Copy dependencies from deps stage
+# Copy source code first so pnpm sees the full workspace
+COPY . .
+
+# Copy dependencies from deps stage (after source so they aren't overwritten)
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/food-waste-backend/node_modules ./apps/food-waste-backend/node_modules
 
-# Copy source code
-COPY . .
-
-# Rebuild native addons (argon2, zstd) whose install scripts were skipped
-RUN pnpm rebuild
+# Re-run install to execute scripts skipped in deps stage (argon2, zstd native
+# builds). pnpm 10's `rebuild` validates .modules.yaml against the full
+# workspace and fails on hoisted-location mismatches; a fresh install with
+# packages already present is fast and rebuilds .modules.yaml from scratch.
+RUN pnpm install --frozen-lockfile
 
 # Build shared package first (backend imports from @foodwaste/shared)
 RUN pnpm run build:deps
