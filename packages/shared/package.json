@@ -10,7 +10,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --cache",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --cache",
     "type-check": "tsc --noEmit",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:ci": "jest --ci --coverage --watchAll=false --passWithNoTests",
     "test:watch": "jest --watch",
     "clean": "rimraf dist node_modules",

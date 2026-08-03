@@ -429,8 +429,11 @@
     "a11yRemoveFavorite": "Remove from favorites",
     "a11yRemoveFavoriteHint": "Removes this offer from your favorites",
     "a11yDecreaseQuantity": "Decrease quantity",
+    "a11yDecreaseQuantityHint": "Reserves one fewer bag from this offer",
     "a11yIncreaseQuantity": "Increase quantity",
+    "a11yIncreaseQuantityHint": "Reserves one more bag from this offer",
     "a11yBackButton": "Go back",
+    "a11yBackButtonHint": "Returns to the previous screen",
     "a11yReserveOffer": "Reserve this offer"
   },
   "orders": {

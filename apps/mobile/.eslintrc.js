@@ -2,10 +2,70 @@
 
 module.exports = {
   root: true,
+  /*
+   * The lint script is `eslint .`, which without this walks generated output as
+   * if it were source. Istanbul writes plain CommonJS into coverage/, so every
+   * report emitted `require() style import is forbidden` — six files' worth of
+   * errors describing code nobody wrote and nobody can fix. Real problems in
+   * src/ were sitting underneath that noise.
+   */
+  ignorePatterns: [
+    'coverage/',
+    'android/',
+    'ios/',
+    'dist/',
+    'build/',
+    '.metro-cache/',
+    'node_modules/',
+  ],
   extends: [
     '@react-native',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-native-a11y/all',
+  ],
+  overrides: [
+    {
+      /*
+       * Build tooling config, loaded by Node as CommonJS before any bundler is
+       * involved. Metro, Babel and Jest read these with require(), so `import`
+       * is not an option here and no-require-imports is reporting the only
+       * form that works.
+       */
+      files: [
+        '*.config.js',
+        'jest.setup.js',
+        '.eslintrc.js',
+        'react-native.config.js',
+        'metro.config.js',
+        'babel.config.js',
+      ],
+      // Node/Jest globals: these run outside the app bundle, so the React
+      // Native env does not declare `require`, `module`, `__dirname` or `jest`.
+      env: { node: true, jest: true },
+      rules: {
+        '@typescript-eslint/no-require-imports': 'off',
+      },
+    },
+    {
+      /*
+       * App.tsx defers heavy modules — LocalLocationService, Google Sign-In,
+       * socketService — until after InteractionManager reports the first
+       * interactions are done, so they do not sit on the startup path. Only a
+       * few screens need any of them.
+       *
+       * require() is what makes that possible: `import` is hoisted and
+       * evaluated eagerly, so rewriting these to satisfy the rule would pull
+       * all three back into the initial bundle evaluation and undo the
+       * deferral. Startup cost is a product requirement here, not a
+       * preference — see .claude/rules/performance.md ("keep the module graph
+       * shallow"). Each call site is typed via `as typeof import(...)`, so the
+       * types are still checked.
+       */
+      files: ['src/App.tsx'],
+      rules: {
+        '@typescript-eslint/no-require-imports': 'off',
+      },
+    },
   ],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint', 'react-native-a11y'],

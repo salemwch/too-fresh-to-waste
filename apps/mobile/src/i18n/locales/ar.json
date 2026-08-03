@@ -429,8 +429,11 @@
     "a11yRemoveFavorite": "إزالة من المفضلة",
     "a11yRemoveFavoriteHint": "يزيل هذا العرض من مفضلتك",
     "a11yDecreaseQuantity": "تقليل الكمية",
+    "a11yDecreaseQuantityHint": "يحجز كيسًا واحدًا أقل من هذا العرض",
     "a11yIncreaseQuantity": "زيادة الكمية",
+    "a11yIncreaseQuantityHint": "يحجز كيسًا واحدًا إضافيًا من هذا العرض",
     "a11yBackButton": "رجوع",
+    "a11yBackButtonHint": "يعود إلى الشاشة السابقة",
     "a11yReserveOffer": "حجز هذا العرض"
   },
   "orders": {

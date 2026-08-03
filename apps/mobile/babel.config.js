@@ -13,8 +13,6 @@
  * @see https://reactnative.dev/docs/environment-setup
  */
 
-const path = require('path');
-
 /**
  * Environment detection
  * Different optimizations for dev vs production

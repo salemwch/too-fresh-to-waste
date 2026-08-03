@@ -67,7 +67,9 @@ const isProd = process.env.NODE_ENV === 'production';
 
 // Pull default resolver lists so we can move SVG out of assets and into sources
 const defaultConfig = getDefaultConfig(__dirname);
-const { assetExts: defaultAssetExts, sourceExts: defaultSourceExts } = defaultConfig.resolver;
+// Only sourceExts is derived from the defaults — assetExts below is an explicit
+// list (svg is deliberately absent so react-native-svg-transformer handles it).
+const { sourceExts: defaultSourceExts } = defaultConfig.resolver;
 
 const config = {
   /**
@@ -388,11 +390,13 @@ const config = {
     createModuleIdFactory: function () {
       const fileToIdMap = new Map();
       let nextId = 0;
-      return path => {
-        if (!fileToIdMap.has(path)) {
-          fileToIdMap.set(path, nextId++);
+      // Named modulePath, not path — the `path` module is imported at the top
+      // of this file and shadowing it here hides it from the whole factory.
+      return modulePath => {
+        if (!fileToIdMap.has(modulePath)) {
+          fileToIdMap.set(modulePath, nextId++);
         }
-        return fileToIdMap.get(path);
+        return fileToIdMap.get(modulePath);
       };
     },
 

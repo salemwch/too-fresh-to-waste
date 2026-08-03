@@ -429,8 +429,11 @@
     "a11yRemoveFavorite": "Retirer des favoris",
     "a11yRemoveFavoriteHint": "Retire cette offre de vos favoris",
     "a11yDecreaseQuantity": "Diminuer la quantité",
+    "a11yDecreaseQuantityHint": "Réserve un panier de moins sur cette offre",
     "a11yIncreaseQuantity": "Augmenter la quantité",
+    "a11yIncreaseQuantityHint": "Réserve un panier de plus sur cette offre",
     "a11yBackButton": "Retour",
+    "a11yBackButtonHint": "Revient à l'écran précédent",
     "a11yReserveOffer": "Réserver cette offre"
   },
   "orders": {
