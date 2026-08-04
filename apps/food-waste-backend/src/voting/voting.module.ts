@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { CommonModule } from '../common/common.module';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { PrizeClaim, PrizeClaimSchema } from '../loyalty/schemas/prize-claim.schema';
@@ -21,6 +22,9 @@ import { VotingService } from './voting.service';
 
 @Module({
   imports: [
+    // VotingCron injects CronLockService from CommonModule, which is not
+    // @Global — without this import Nest cannot resolve it.
+    CommonModule,
     MongooseModule.forFeature([
       { name: VotingCycle.name, schema: VotingCycleSchema },
       { name: Vote.name, schema: VoteSchema },

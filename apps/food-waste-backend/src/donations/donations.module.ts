@@ -2,6 +2,8 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { CommonModule } from '../common/common.module';
+
 import { DonationsAdminController } from './donations-admin.controller';
 import { DonationsController } from './donations.controller';
 import { DonationsService } from './donations.service';
@@ -18,6 +20,9 @@ import { UserDonation, UserDonationSchema } from './schemas/user-donation.schema
 
 @Module({
   imports: [
+    // DonationsService injects CronLockService from CommonModule, which is not
+    // @Global — without this import Nest cannot resolve it.
+    CommonModule,
     MongooseModule.forFeature([
       { name: DonationPool.name, schema: DonationPoolSchema },
       { name: DonationPoolSnapshot.name, schema: DonationPoolSnapshotSchema },

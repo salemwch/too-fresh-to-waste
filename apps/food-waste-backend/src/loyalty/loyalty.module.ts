@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { CommonModule } from '../common/common.module';
 import { MonthlyBagGoalModule } from '../community-goal/community-goal.module';
 import { VotingCycle, VotingCycleSchema } from '../voting/schemas/voting-cycle.schema';
 
@@ -31,6 +32,9 @@ import { PrizeClaimService } from './services/prize-claim.service';
 
 @Module({
   imports: [
+    // GamificationService injects CronLockService from CommonModule, which is
+    // not @Global — without this import Nest cannot resolve it.
+    CommonModule,
     MongooseModule.forFeature([
       { name: LoyaltyAccount.name, schema: LoyaltyAccountSchema },
       { name: ReferredIdentity.name, schema: ReferredIdentitySchema },
