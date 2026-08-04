@@ -25,7 +25,18 @@
 jest.mock('ioredis', () => {
   const instances: Array<Record<string, unknown>> = [];
   const MockRedis = jest.fn().mockImplementation((options: Record<string, unknown>) => {
-    const instance = { options, id: instances.length };
+    // Node's EventEmitter default, so the listener-budget assertions below
+    // measure the same starting point the real connection has.
+    let maxListeners = 10;
+    const instance = {
+      options,
+      id: instances.length,
+      getMaxListeners: () => maxListeners,
+      setMaxListeners: (next: number) => {
+        maxListeners = next;
+        return instance;
+      },
+    };
     instances.push(instance);
     return instance;
   });
@@ -159,6 +170,69 @@ describe('createBullClientFactory', () => {
         port: 6379,
         password: 'secret',
       });
+    });
+  });
+
+  describe('listener budget on shared connections', () => {
+    /*
+     * Bull attaches handlers per queue to whatever connection it is given.
+     * Those used to spread across six clients; sharing concentrates them on
+     * one, which crossed Node's default of ten and printed in production:
+     *
+     *   MaxListenersExceededWarning: Possible EventEmitter memory leak
+     *   detected. 11 error listeners added to [Commander]
+     */
+    it.each(['client', 'subscriber'] as const)(
+      'raises the ceiling on %s as more queues share it',
+      role => {
+        const createClient = createBullClientFactory(CONFIG);
+
+        const connection = createClient(role) as unknown as {
+          getMaxListeners: () => number;
+        };
+        const afterOne = connection.getMaxListeners();
+
+        createClient(role);
+        createClient(role);
+
+        expect(connection.getMaxListeners()).toBeGreaterThan(afterOne);
+      },
+    );
+
+    it('clears the default ceiling at the six queues in production', () => {
+      // Ten was not enough for six queues, which is what produced the warning.
+      const createClient = createBullClientFactory(CONFIG);
+
+      let connection!: { getMaxListeners: () => number };
+      for (let queue = 0; queue < 6; queue += 1) {
+        connection = createClient('client') as unknown as { getMaxListeners: () => number };
+      }
+
+      expect(connection.getMaxListeners()).toBeGreaterThan(10 + 6);
+    });
+
+    it('keeps a finite ceiling rather than disabling the detector', () => {
+      // setMaxListeners(0) would silence the warning permanently and take the
+      // real leak signal with it. The ceiling must stay a number that a
+      // runaway registration can still exceed.
+      const createClient = createBullClientFactory(CONFIG);
+
+      const connection = createClient('client') as unknown as {
+        getMaxListeners: () => number;
+      };
+
+      expect(connection.getMaxListeners()).toBeGreaterThan(0);
+      expect(Number.isFinite(connection.getMaxListeners())).toBe(true);
+    });
+
+    it('does not touch the ceiling on bclient, which is never shared', () => {
+      const createClient = createBullClientFactory(CONFIG);
+
+      const connection = createClient('bclient') as unknown as {
+        getMaxListeners: () => number;
+      };
+
+      expect(connection.getMaxListeners()).toBe(10);
     });
   });
 

@@ -197,6 +197,15 @@ export function buildBullRedisOptions(redisConfig: RedisConnectionConfig) {
 export type BullClientType = 'client' | 'subscriber' | 'bclient';
 
 /**
+ * Event-listener headroom granted per queue on a shared Bull connection.
+ *
+ * Bull registers `error` and may add further handlers per queue. Four leaves
+ * room for that without being so generous that a real leak goes unreported —
+ * the point is to move the ceiling with legitimate use, not to remove it.
+ */
+const LISTENERS_PER_QUEUE = 4;
+
+/**
  * One connection factory for every Bull queue, so they share instead of each
  * opening its own set.
  *
@@ -253,15 +262,43 @@ export function createBullClientFactory(redisConfig: RedisConnectionConfig) {
   let sharedClient: IORedis | undefined;
   let sharedSubscriber: IORedis | undefined;
 
+  /*
+   * Raise the listener ceiling in step with the queues actually sharing this
+   * connection.
+   *
+   * Bull attaches its own handlers — `error` at minimum — to every connection
+   * it is handed. Those used to land on six separate clients; sharing puts them
+   * all on one, which crosses Node's default limit of ten and prints:
+   *
+   *   MaxListenersExceededWarning: Possible EventEmitter memory leak detected.
+   *   11 error listeners added to [Commander]
+   *
+   * Here that warning is a false positive: the listeners are one bounded set
+   * per queue, registered at startup and never re-added. But it is worth
+   * handling rather than ignoring, because a warning that always fires is one
+   * nobody reads — and this is the exact signal that would announce a genuine
+   * listener leak later.
+   *
+   * Granting a budget per handout rather than setting a fixed ceiling keeps
+   * the detector working: it tracks the real number of consumers, so adding a
+   * seventh queue needs no change here, while a runaway that registered
+   * listeners repeatedly would still trip it. `setMaxListeners(0)` would also
+   * silence the warning, and would disable the detection permanently.
+   */
+  const grantListenerBudget = (connection: IORedis): IORedis => {
+    connection.setMaxListeners(connection.getMaxListeners() + LISTENERS_PER_QUEUE);
+    return connection;
+  };
+
   return (type: BullClientType): IORedis => {
     switch (type) {
       case 'client':
         sharedClient ??= new IORedis(base);
-        return sharedClient;
+        return grantListenerBudget(sharedClient);
 
       case 'subscriber':
         sharedSubscriber ??= new IORedis(blockingOptions);
-        return sharedSubscriber;
+        return grantListenerBudget(sharedSubscriber);
 
       case 'bclient':
         return new IORedis(blockingOptions);
