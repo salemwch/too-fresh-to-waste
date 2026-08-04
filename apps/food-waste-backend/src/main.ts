@@ -156,10 +156,28 @@ async function bootstrap() {
   const appConfigService = app.get(ConfigService);
   const metricsService = app.get(PrometheusMetricsService);
 
-  // Trust the first proxy (Render/Cloudflare) so Express resolves req.ip from
-  // X-Forwarded-For instead of always seeing 127.0.0.1. Critical for rate limiting.
+  /*
+   * Resolve req.ip from X-Forwarded-For rather than the socket address.
+   *
+   * This was `1`, meaning "trust exactly one hop". Render routes through more
+   * than one internal proxy, so req.ip settled on an RFC1918 address belonging
+   * to the platform instead of the caller — visible in production as
+   * AuthSecurityService blocking 10.27.19.6 and 10.25.61.250.
+   *
+   * Every IP-keyed defence was therefore aimed at the load balancer: rate
+   * limits counted all users behind a proxy as one caller, and a single
+   * abusive client could get that proxy blocked, locking out everyone sharing
+   * it. A self-inflicted outage, triggerable by anyone.
+   *
+   * Naming the private ranges instead of a hop count makes Express walk back
+   * through the chain and stop at the first address that is not internal —
+   * correct no matter how many hops the platform adds, and not dependent on a
+   * number that changes without notice. A spoofed X-Forwarded-For cannot beat
+   * it either: Render appends the real peer address at the edge, so the
+   * rightmost public entry is the one it observed.
+   */
   const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.set('trust proxy', 1);
+  expressApp.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
   // Don't advertise the framework (Express) in response headers — trivially
   // helps automated CMS/framework-fingerprinting scanners.
