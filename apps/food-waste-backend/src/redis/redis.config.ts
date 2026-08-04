@@ -200,10 +200,16 @@ export type BullClientType = 'client' | 'subscriber' | 'bclient';
  * One connection factory for every Bull queue, so they share instead of each
  * opening its own set.
  *
- * Bull opens three connections *per queue* by default. At four queues that is
- * twelve, plus two for the Socket.IO adapter, one for RedisService and one for
- * the throttler — about sixteen from a single process. Production hit its
- * provider's ceiling and could not finish booting:
+ * Bull opens three connections *per queue* by default. There are six queues —
+ * donations, pickup-reminders, review-processing, search-indexing, plus the
+ * two registered under constants (DELIVERY_TIMEOUT_QUEUE, NOTIFICATION_QUEUE),
+ * which is easy to undercount when grepping for string literals. That is
+ * eighteen, plus two for the Socket.IO adapter, one for RedisService and one
+ * for the throttler: twenty-two from a single process, against a Redis Cloud
+ * free plan that allows thirty.
+ *
+ * One process therefore left eight connections spare, and a deploy briefly
+ * runs two — forty-four. Production could not finish booting:
  *
  *   ERROR [RedisService] Redis error: ERR max number of clients reached
  *   ERROR Failed to start the application: Max reconnection attempts reached
@@ -213,8 +219,9 @@ export type BullClientType = 'client' | 'subscriber' | 'bclient';
  * killed mid-bootstrap, so they lapse on TCP timeout rather than closing. Each
  * restart made the shortage worse, so the loop could not exit on its own.
  *
- * Sharing takes the Bull total from 3n to n + 2 — twelve connections down to
- * six at four queues.
+ * Sharing takes the Bull total from 3n to n + 2 — eighteen connections down to
+ * eight at six queues, so the process holds twelve rather than twenty-two.
+ * Measured at twelve on the Redis Cloud connections graph after deploying.
  *
  * Two roles cannot be shared or reconfigured casually:
  *

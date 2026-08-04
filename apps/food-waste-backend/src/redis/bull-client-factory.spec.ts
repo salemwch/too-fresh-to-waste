@@ -97,17 +97,20 @@ describe('createBullClientFactory', () => {
       expect(IORedis).not.toHaveBeenCalled();
     });
 
-    it('opens six connections for four queues instead of twelve', () => {
-      // The whole point: 3n becomes n + 2.
+    it('opens eight connections for the six real queues instead of eighteen', () => {
+      // The whole point: 3n becomes n + 2. Six is the production count —
+      // donations, pickup-reminders, review-processing, search-indexing, and
+      // the two registered under constants rather than string literals.
+      const QUEUE_COUNT = 6;
       const createClient = createBullClientFactory(CONFIG);
 
-      for (let queue = 0; queue < 4; queue += 1) {
+      for (let queue = 0; queue < QUEUE_COUNT; queue += 1) {
         createClient('client');
         createClient('subscriber');
         createClient('bclient');
       }
 
-      expect(IORedis).toHaveBeenCalledTimes(6);
+      expect(IORedis).toHaveBeenCalledTimes(QUEUE_COUNT + 2);
     });
   });
 
