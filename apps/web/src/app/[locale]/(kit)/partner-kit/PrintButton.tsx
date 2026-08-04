@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+// From @/i18n/routing, not next/link — this one keeps the locale prefix.
+import { Link } from '@/i18n/routing';
 
 export function PrintButton() {
   return (

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+
+// From @/i18n/routing, not next/link — this one keeps the locale prefix.
+import { Link } from '@/i18n/routing';
 
 export const metadata: Metadata = {
   title: 'Terms and Conditions | Too Fresh To Waste',
