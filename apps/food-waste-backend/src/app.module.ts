@@ -35,9 +35,9 @@ import { OrganizationsModule } from './organizations/organizations.module';
 import { PaymentModule } from './payments/payments.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import {
-  buildBullRedisOptions,
   buildRedisUrl,
   buildThrottlerRedisOptions,
+  createBullClientFactory,
   getRedisConnectionConfig,
 } from './redis/redis.config';
 import { RedisModule } from './redis/redis.module';
@@ -90,7 +90,12 @@ import { VotingModule } from './voting/voting.module';
     ScheduleModule.forRoot(),
     BullModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
-        redis: buildBullRedisOptions(getRedisConnectionConfig(configService)),
+        // `createClient` rather than `redis`: with a plain options object Bull
+        // opens three connections per queue, which exhausted the provider's
+        // client limit and stopped the app booting. The factory shares the
+        // `client` and `subscriber` roles across every queue — see
+        // createBullClientFactory for why `bclient` still cannot be shared.
+        createClient: createBullClientFactory(getRedisConnectionConfig(configService)),
         settings: {
           stalledInterval: 30000,
           maxStalledCount: 1,

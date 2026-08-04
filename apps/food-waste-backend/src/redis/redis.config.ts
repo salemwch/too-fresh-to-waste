@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import IORedis from 'ioredis';
 
 import type { ConnectionOptions, SecureVersion } from 'tls';
 
@@ -189,6 +190,83 @@ export function buildBullRedisOptions(redisConfig: RedisConnectionConfig) {
     retryDelayOnFailover: 100,
     connectTimeout: redisConfig.connectTimeout,
     commandTimeout: redisConfig.commandTimeout,
+  };
+}
+
+/** The three connection roles Bull asks its `createClient` factory for. */
+export type BullClientType = 'client' | 'subscriber' | 'bclient';
+
+/**
+ * One connection factory for every Bull queue, so they share instead of each
+ * opening its own set.
+ *
+ * Bull opens three connections *per queue* by default. At four queues that is
+ * twelve, plus two for the Socket.IO adapter, one for RedisService and one for
+ * the throttler — about sixteen from a single process. Production hit its
+ * provider's ceiling and could not finish booting:
+ *
+ *   ERROR [RedisService] Redis error: ERR max number of clients reached
+ *   ERROR Failed to start the application: Max reconnection attempts reached
+ *
+ * That failure exits the process, PM2 restarts it, and the replacement asks for
+ * sixteen more while the killed process's sockets are still held open — it was
+ * killed mid-bootstrap, so they lapse on TCP timeout rather than closing. Each
+ * restart made the shortage worse, so the loop could not exit on its own.
+ *
+ * Sharing takes the Bull total from 3n to n + 2 — twelve connections down to
+ * six at four queues.
+ *
+ * Two roles cannot be shared or reconfigured casually:
+ *
+ * - `bclient` must be its own connection per queue. It issues blocking reads
+ *   (BRPOPLPUSH), which occupy a connection for their whole duration; sharing
+ *   one would serialise every queue behind whichever blocked first.
+ *
+ * - `bclient` and `subscriber` must not carry `commandTimeout`. A blocking read
+ *   is *meant* to sit idle waiting for work, so a command timeout aborts it and
+ *   the queue silently stops consuming — it looks like jobs are never picked up
+ *   rather than like a misconfiguration. `maxRetriesPerRequest` is likewise
+ *   null on these, which is what ioredis requires for blocking and pub/sub use.
+ *
+ * @see https://github.com/OptimalBits/bull/blob/develop/PATTERNS.md#reusing-redis-connections
+ */
+export function createBullClientFactory(redisConfig: RedisConnectionConfig) {
+  const base = buildBullRedisOptions(redisConfig);
+
+  // `commandTimeout` is deliberately dropped for the blocking/pub-sub roles.
+  const { commandTimeout: _commandTimeout, ...blockingSafe } = base;
+  const blockingOptions = {
+    ...blockingSafe,
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  };
+
+  // Created on first request rather than up front, so a process that registers
+  // no queues opens no Bull connections at all.
+  let sharedClient: IORedis | undefined;
+  let sharedSubscriber: IORedis | undefined;
+
+  return (type: BullClientType): IORedis => {
+    switch (type) {
+      case 'client':
+        sharedClient ??= new IORedis(base);
+        return sharedClient;
+
+      case 'subscriber':
+        sharedSubscriber ??= new IORedis(blockingOptions);
+        return sharedSubscriber;
+
+      case 'bclient':
+        return new IORedis(blockingOptions);
+
+      default: {
+        // Bull only ever asks for the three above; a fourth would mean the
+        // library changed under us, and guessing a connection shape here would
+        // be worse than failing loudly.
+        const unreachable: never = type;
+        throw new Error(`Unsupported Bull client type: ${String(unreachable)}`);
+      }
+    }
   };
 }
 
