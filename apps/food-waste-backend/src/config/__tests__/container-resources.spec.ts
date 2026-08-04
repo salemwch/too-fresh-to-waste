@@ -120,6 +120,43 @@ describe('resolveMaxMemoryRestart', () => {
 
     expect(result).toMatch(/^\d+M$/);
   });
+
+  /*
+   * The 128 MB guard above only catches an absurdly small fraction. It does not
+   * catch the case that actually broke production: a fraction that looks
+   * reasonable but lands under the app's steady-state footprint.
+   *
+   * On Render's 512 MB free instance, 0.7 produced a 358 MB threshold against a
+   * ~367 MB baseline, so PM2 recycled every worker the moment it finished
+   * booting. Because the app answered health checks in the gaps between
+   * restarts, it presented as intermittent 502s and "no open ports detected"
+   * rather than as anything memory-shaped.
+   *
+   * Asserted as arithmetic rather than by calling the resolver, because the
+   * container limit is read from cgroup files that do not exist on a dev
+   * machine — the resolver would take its fallback path and prove nothing.
+   */
+  describe('threshold versus the app baseline', () => {
+    const CONTAINER_MB = 512; // Render free tier
+    const BASELINE_MB = 370; // measured after a full boot in production
+
+    const thresholdMb = (fraction: number) => Math.floor(CONTAINER_MB * fraction);
+
+    it('restart-loops at the fraction that shipped', () => {
+      // Documents the regression: below baseline means recycle-on-boot, forever.
+      expect(thresholdMb(0.7)).toBeLessThan(BASELINE_MB);
+    });
+
+    it('leaves headroom above baseline at the fraction now configured', () => {
+      expect(thresholdMb(0.9)).toBeGreaterThan(BASELINE_MB);
+    });
+
+    it('still recycles before the kernel would OOM-kill', () => {
+      // PM2 has to win the race, or shutdown is a SIGKILL and in-flight
+      // requests are dropped instead of drained.
+      expect(thresholdMb(0.9)).toBeLessThan(CONTAINER_MB);
+    });
+  });
 });
 
 describe('resolveOldSpaceMb', () => {

@@ -37,6 +37,25 @@
 # since they are in-process timers. To run free, comment out the worker service
 # and set the API's PROCESS_ROLE to `all`; accept that scheduled jobs only fire
 # while the service happens to be awake.
+#
+# ## Memory: free (512 MB) is marginal for this app
+#
+# A fully booted API sits at roughly 370 MB before serving any traffic —
+# geoip-lite holds its IP database in memory, plus sharp, the Mongo and Redis
+# pools, and the warmed leaderboard caches. That leaves ~140 MB of working room
+# on a 512 MB instance.
+#
+# This is not theoretical. PM2's max_memory_restart was 70% of the limit, which
+# on 512 MB is 358 MB — under the baseline — so every worker was recycled the
+# instant it finished booting, forever. The service answered health checks
+# between restarts, so it looked like intermittent 502s and "no open ports
+# detected" rather than a memory problem. The share is now 0.9
+# (ecosystem.config.js), which clears the baseline while still letting PM2
+# recycle before the kernel OOM-kills and drops in-flight requests.
+#
+# 0.9 stops the loop; it does not create headroom that is not there. `starter`
+# (2 GB) is the smallest plan this app genuinely fits in, and is what the
+# services below request.
 # =============================================================================
 
 services:

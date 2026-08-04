@@ -88,9 +88,30 @@ const instances = resources.resolveClusterInstances(process.env.WEB_CONCURRENCY)
  * kernel OOM-kills the process long before PM2 intervenes — dropping every
  * in-flight request with no graceful shutdown — and on a large instance it
  * restarts a healthy process that had headroom to spare.
+ *
+ * The share must sit ABOVE the app's steady-state footprint, or PM2 recycles a
+ * process that is merely finished booting. At 0.7 on Render's 512 MB free
+ * instance the threshold landed at 358 MB against a ~367 MB baseline, so every
+ * worker was killed the moment it came up:
+ *
+ *   [PM2][WORKER] Process 0 restarted because it exceeds --max-memory-restart
+ *   (current_memory=385396736 max_memory_limit=375390208)
+ *
+ * The app served health checks in the gaps, so this surfaced as intermittent
+ * 502s and "no open ports detected" rather than as a memory problem.
+ *
+ * 0.9 keeps PM2 ahead of the kernel — it still recycles before the cgroup
+ * limit, so shutdown stays graceful — while leaving room for a baseline that
+ * legitimately occupies most of a small container. This is a leak catcher of
+ * last resort, not a tuning knob; it should never be the thing bounding normal
+ * operation.
+ *
+ * Baseline is ~370 MB (geoip-lite's in-memory database, sharp, the Mongo and
+ * Redis pools, warmed leaderboard caches). Anything at or below 512 MB is
+ * therefore marginal — see the note in render.yaml.
  */
-const apiMaxMemory = resources.resolveMaxMemoryRestart(0.7, '512M');
-const workerMaxMemory = resources.resolveMaxMemoryRestart(0.8, '512M');
+const apiMaxMemory = resources.resolveMaxMemoryRestart(0.9, '512M');
+const workerMaxMemory = resources.resolveMaxMemoryRestart(0.9, '512M');
 
 /*
  * V8 heap ceiling per process. Derived for the same reason: promising V8 more
