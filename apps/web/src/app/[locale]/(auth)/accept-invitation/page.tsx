@@ -133,8 +133,11 @@ function AcceptInvitationInner() {
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='grid grid-cols-2 gap-3'>
             <div className='space-y-1'>
-              <label className='text-sm font-medium'>First Name</label>
+              <label htmlFor='firstName' className='text-sm font-medium'>
+                First Name
+              </label>
               <input
+                id='firstName'
                 type='text'
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
@@ -145,8 +148,11 @@ function AcceptInvitationInner() {
               />
             </div>
             <div className='space-y-1'>
-              <label className='text-sm font-medium'>Last Name</label>
+              <label htmlFor='lastName' className='text-sm font-medium'>
+                Last Name
+              </label>
               <input
+                id='lastName'
                 type='text'
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
@@ -159,8 +165,11 @@ function AcceptInvitationInner() {
           </div>
 
           <div className='space-y-1'>
-            <label className='text-sm font-medium'>Password</label>
+            <label htmlFor='password' className='text-sm font-medium'>
+              Password
+            </label>
             <input
+              id='password'
               type='password'
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -173,10 +182,11 @@ function AcceptInvitationInner() {
           </div>
 
           <div className='space-y-1'>
-            <label className='text-sm font-medium'>
+            <label htmlFor='phoneNumber' className='text-sm font-medium'>
               Phone <span className='text-muted-foreground font-normal'>(optional)</span>
             </label>
             <input
+              id='phoneNumber'
               type='tel'
               value={phoneNumber}
               onChange={e => setPhoneNumber(e.target.value)}

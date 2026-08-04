@@ -23,7 +23,15 @@ export function AdminTabNav({ tabs, paramName = 'tab' }: AdminTabNavProps) {
 
   return (
     <div className='border-b border-border/60'>
-      <nav className='flex gap-0' role='tablist'>
+      {/*
+        Plain navigation, not an ARIA tablist. These entries are links that
+        change the URL; the ARIA tab pattern additionally requires a tabpanel,
+        aria-controls and roving tabindex, none of which exist here. Claiming
+        role='tab'/'tablist' told screen readers to expect behaviour the
+        component does not implement — aria-current='page' is what actually
+        describes it.
+      */}
+      <nav className='flex gap-0'>
         {tabs.map(tab => {
           const isActive = currentTab === tab.key;
           const href = tab.key === tabs[0]?.key ? pathname : `${pathname}?${paramName}=${tab.key}`;
@@ -32,8 +40,7 @@ export function AdminTabNav({ tabs, paramName = 'tab' }: AdminTabNavProps) {
             <Link
               key={tab.key}
               href={href}
-              role='tab'
-              aria-selected={isActive}
+              {...(isActive ? { 'aria-current': 'page' as const } : {})}
               className={cn(
                 'relative px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap',
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',

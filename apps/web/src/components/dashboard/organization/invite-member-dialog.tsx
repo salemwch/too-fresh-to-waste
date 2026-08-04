@@ -51,10 +51,13 @@ export function InviteMemberDialog({ orgId, establishments, trigger }: InviteMem
         </DialogHeader>
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <label className='text-sm font-medium'>Email</label>
+            <label htmlFor='inviteEmail' className='text-sm font-medium'>
+              Email
+            </label>
             <div className='relative'>
               <Mail className='absolute start-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground' />
               <input
+                id='inviteEmail'
                 type='email'
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -66,9 +69,11 @@ export function InviteMemberDialog({ orgId, establishments, trigger }: InviteMem
           </div>
 
           <div className='space-y-2'>
-            <label className='text-sm font-medium'>Assign to Location</label>
+            <label htmlFor='assignLocation' className='text-sm font-medium'>
+              Assign to Location
+            </label>
             <Select value={establishmentId} onValueChange={setEstablishmentId}>
-              <SelectTrigger>
+              <SelectTrigger id='assignLocation'>
                 <SelectValue placeholder='Select a location' />
               </SelectTrigger>
               <SelectContent>

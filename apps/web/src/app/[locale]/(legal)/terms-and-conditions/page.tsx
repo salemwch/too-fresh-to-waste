@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Terms and Conditions | Too Fresh To Waste',
@@ -78,12 +79,12 @@ export default function TermsAndConditionsPage() {
             <p className='text-sm leading-relaxed text-muted-foreground mt-3'>
               These Terms are governed by the laws of Tunisia. By accepting them, you confirm that
               you have also read and accepted our{' '}
-              <a
+              <Link
                 href='/privacy-policy'
                 className='text-primary-500 underline underline-offset-2 hover:opacity-75'
               >
                 Privacy Policy
-              </a>
+              </Link>
               .
             </p>
           </section>
@@ -333,12 +334,12 @@ export default function TermsAndConditionsPage() {
             <p className='text-sm text-muted-foreground'>
               We take your privacy seriously. When you use the Platform, we collect and process
               personal data about you in accordance with our{' '}
-              <a
+              <Link
                 href='/privacy-policy'
                 className='text-primary-500 underline underline-offset-2 hover:opacity-75'
               >
                 Privacy Policy
-              </a>
+              </Link>
               , which complies with Tunisian data protection law (INPDP) and applicable
               international standards.
             </p>

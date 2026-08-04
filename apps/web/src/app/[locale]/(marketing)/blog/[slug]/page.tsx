@@ -53,25 +53,34 @@ const TAG_LABELS: Record<string, string> = {
 };
 
 const mdxComponents = {
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+  // children is destructured rather than left in the spread so the element
+  // visibly has content: MDX always supplies it, but a lone {...props} hides
+  // that from static analysis and reads as an empty heading.
+  h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h2
       className='font-display text-3xl font-light mt-12 mb-5 text-brand-deep leading-snug'
       {...props}
-    />
+    >
+      {children}
+    </h2>
   ),
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className='text-lg font-semibold mt-8 mb-3 text-brand-deep' {...props} />
+  h3: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h3 className='text-lg font-semibold mt-8 mb-3 text-brand-deep' {...props}>
+      {children}
+    </h3>
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p className='text-[15px] leading-[1.85] text-brand-deep/80 mb-5' {...props} />
   ),
-  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+  a: ({ children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
       className='text-brand-coral underline underline-offset-2 hover:text-brand-deep transition-colors'
       target={props.href?.startsWith('http') ? '_blank' : undefined}
       rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
       {...props}
-    />
+    >
+      {children}
+    </a>
   ),
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
     <ul

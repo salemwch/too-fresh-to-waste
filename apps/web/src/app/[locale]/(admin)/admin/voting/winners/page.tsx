@@ -22,7 +22,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { votingAdminService } from '@/services/voting.service';
 import type { VotingCycleRow, PrizeClaimRow, UpdatePrizeClaimPayload } from '@/types/voting';
-import { cn } from '@/lib/utils';
+import { activateOnKey, cn } from '@/lib/utils';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -199,8 +199,11 @@ function PrizeClaimsSection() {
           {claims.map(claim => (
             <div
               key={claim._id}
+              role='button'
+              tabIndex={0}
               className='flex items-center gap-3 rounded-lg border border-border/60 p-3 cursor-pointer hover:bg-muted/30 transition-colors'
               onClick={() => setSelectedClaim(claim)}
+              onKeyDown={activateOnKey(() => setSelectedClaim(claim))}
             >
               <Avatar className='size-8'>
                 <AvatarFallback className='text-[10px]'>

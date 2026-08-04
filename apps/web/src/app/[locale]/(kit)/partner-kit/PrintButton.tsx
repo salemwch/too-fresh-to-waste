@@ -1,9 +1,11 @@
 'use client';
 
+import Link from 'next/link';
+
 export function PrintButton() {
   return (
     <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 50, display: 'flex', gap: 12 }}>
-      <a
+      <Link
         href='/partners'
         style={{
           background: 'white',
@@ -18,7 +20,7 @@ export function PrintButton() {
         }}
       >
         ← Back
-      </a>
+      </Link>
       <button
         onClick={() => window.print()}
         style={{

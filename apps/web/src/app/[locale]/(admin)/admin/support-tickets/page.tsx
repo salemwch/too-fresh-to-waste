@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import { activateOnKey } from '@/lib/utils';
 import {
   useTickets,
   useTicketStats,
@@ -139,8 +140,11 @@ export default function SupportTicketsPage() {
           {tickets.map(ticket => (
             <div
               key={ticket._id}
+              role='button'
+              tabIndex={0}
               className='grid grid-cols-[1fr_120px_100px_100px_80px] gap-4 p-3 border-b last:border-0 items-center cursor-pointer hover:bg-muted/30'
               onClick={() => setSelectedId(ticket._id)}
+              onKeyDown={activateOnKey(() => setSelectedId(ticket._id))}
             >
               <div className='min-w-0'>
                 <p className='text-sm font-medium truncate'>{ticket.subject}</p>

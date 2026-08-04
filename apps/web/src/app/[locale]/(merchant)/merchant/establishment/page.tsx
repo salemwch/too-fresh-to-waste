@@ -1100,9 +1100,12 @@ export default function MerchantEstablishmentPage() {
               {establishment.address && (
                 <>
                   <div className='space-y-1.5'>
-                    <label className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
+                    {/* Caption, not a label — the value below is read-only text,
+                        not a form control, so <label> would announce a control
+                        that does not exist. */}
+                    <span className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
                       Address
-                    </label>
+                    </span>
                     <div className='relative'>
                       <MapPin className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                       <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600 truncate'>
@@ -1112,9 +1115,9 @@ export default function MerchantEstablishmentPage() {
                   </div>
                   <div className='grid grid-cols-2 gap-3'>
                     <div className='space-y-1.5'>
-                      <label className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
+                      <span className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
                         City
-                      </label>
+                      </span>
                       <div className='relative'>
                         <MapPin className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                         <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600'>
@@ -1123,9 +1126,9 @@ export default function MerchantEstablishmentPage() {
                       </div>
                     </div>
                     <div className='space-y-1.5'>
-                      <label className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
+                      <span className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
                         Postal Code
-                      </label>
+                      </span>
                       <div className='relative'>
                         <Hash className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                         <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600'>

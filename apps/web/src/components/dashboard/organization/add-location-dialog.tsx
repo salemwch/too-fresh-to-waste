@@ -232,7 +232,20 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
 
   return (
     <>
-      {/* Trigger — rendered outside the Dialog so it's always in the DOM */}
+      {/*
+        Trigger — rendered outside the Dialog so it's always in the DOM.
+
+        This span is a click-delegation wrapper with `display: contents`; it
+        renders no box of its own and `trigger` is always a real <Button>.
+        Enter and Space on that button fire a native click, which bubbles here,
+        so the dialog already opens from the keyboard.
+
+        Deliberately NOT given role='button' and tabIndex={0}: that would make
+        the wrapper focusable around an already-focusable button, producing two
+        tab stops for one action — worse for keyboard users than the warning it
+        would silence.
+      */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <span onClick={() => handleOpenChange(true)} className='contents'>
         {trigger}
       </span>

@@ -22,7 +22,13 @@ export async function generateMetadata({ params }: HumanityMissionPageProps): Pr
 // SVG icons for the four pillars
 const PillarIcons = [
   // Zero Hungry Nights — bowl of food
-  <svg viewBox='0 0 64 64' fill='none' className='w-8 h-8' aria-hidden='true'>
+  <svg
+    key='zero-hungry-nights'
+    viewBox='0 0 64 64'
+    fill='none'
+    className='w-8 h-8'
+    aria-hidden='true'
+  >
     <path
       d='M8 36c0-13.255 10.745-24 24-24s24 10.745 24 24'
       stroke='currentColor'
@@ -38,7 +44,13 @@ const PillarIcons = [
     <circle cx='32' cy='28' r='4' fill='currentColor' opacity='0.4' />
   </svg>,
   // Dignity for the Elderly — heart with medical cross
-  <svg viewBox='0 0 64 64' fill='none' className='w-8 h-8' aria-hidden='true'>
+  <svg
+    key='dignity-for-the-elderly'
+    viewBox='0 0 64 64'
+    fill='none'
+    className='w-8 h-8'
+    aria-hidden='true'
+  >
     <path
       d='M32 54S8 40 8 22a12 12 0 0 1 24 0 12 12 0 0 1 24 0c0 18-24 32-24 32z'
       stroke='currentColor'
@@ -48,7 +60,13 @@ const PillarIcons = [
     <path d='M32 20v8M28 24h8' stroke='currentColor' strokeWidth='3' strokeLinecap='round' />
   </svg>,
   // Empowering the Next Generation — open book
-  <svg viewBox='0 0 64 64' fill='none' className='w-8 h-8' aria-hidden='true'>
+  <svg
+    key='empowering-next-generation'
+    viewBox='0 0 64 64'
+    fill='none'
+    className='w-8 h-8'
+    aria-hidden='true'
+  >
     <path
       d='M32 16c-4-4-12-6-20-4v36c8-2 16 0 20 4 4-4 12-6 20-4V12c-8-2-16 0-20 4z'
       stroke='currentColor'
@@ -65,7 +83,7 @@ const PillarIcons = [
     />
   </svg>,
   // Warmth & Care — folded shirt
-  <svg viewBox='0 0 64 64' fill='none' className='w-8 h-8' aria-hidden='true'>
+  <svg key='warmth-and-care' viewBox='0 0 64 64' fill='none' className='w-8 h-8' aria-hidden='true'>
     <path
       d='M20 10L8 22l8 4 4-4v28h24V22l4 4 8-4L44 10c-2 4-6 6-12 6S22 14 20 10z'
       stroke='currentColor'

@@ -93,8 +93,16 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
 
             <form onSubmit={handleSubmit} className='space-y-4'>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Organization Name</label>
+                <label htmlFor='orgName' className='text-sm font-medium'>
+                  Organization Name
+                </label>
+                {/*
+                  No autoFocus: Radix Dialog already moves focus into the
+                  content when it opens, so this was redundant, and an
+                  unannounced focus jump is disorienting with a screen reader.
+                */}
                 <input
+                  id='orgName'
                   type='text'
                   value={name}
                   onChange={e => setName(e.target.value)}
@@ -103,7 +111,6 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
                   required
                   minLength={2}
                   maxLength={100}
-                  autoFocus
                 />
                 <p className='text-xs text-muted-foreground'>
                   The brand or company name that groups your locations.
