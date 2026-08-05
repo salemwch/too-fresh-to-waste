@@ -303,17 +303,29 @@ async function bootstrap() {
 
   app.use(compression());
 
-  // Render health-check probe sends HEAD / — respond before NestJS routing
-  // (NestJS URI versioning does not reliably register HEAD on VERSION_NEUTRAL controllers)
+  // Root path handler — Render health-check probe sends HEAD /, browsers and
+  // curious visitors send GET /. Respond before NestJS routing so neither
+  // generates a 404 log entry.
   app.use(
     (
       req: import('express').Request,
       res: import('express').Response,
       next: import('express').NextFunction,
     ) => {
-      if (req.method === 'HEAD' && req.path === '/') {
-        res.status(200).end();
-        return;
+      if (req.path === '/') {
+        if (req.method === 'HEAD') {
+          res.status(200).end();
+          return;
+        }
+        if (req.method === 'GET') {
+          res.status(200).json({
+            status: 'ok',
+            service: 'Too Fresh To Waste API',
+            docs: '/api/v1/api-docs',
+            health: '/health',
+          });
+          return;
+        }
       }
       next();
     },

@@ -2,6 +2,8 @@ import { OrderStatus, PaymentStatus, DEFAULT_CURRENCY } from '@foodwaste/shared'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Query, Types } from 'mongoose';
 
+import { applySoftDeleteFilter } from '../../common/utils/soft-delete-aggregate.util';
+
 export type OrderDocument = Order & Document;
 
 export { OrderStatus, PaymentStatus };
@@ -689,7 +691,7 @@ OrderSchema.pre<Query<OrderDocument[], OrderDocument>>(/^find/, function (next) 
 OrderSchema.pre('aggregate', function () {
   const options = (this as { options?: Record<string, unknown> }).options;
   if (options?.['includeDeleted'] !== true) {
-    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    applySoftDeleteFilter(this);
   }
 });
 

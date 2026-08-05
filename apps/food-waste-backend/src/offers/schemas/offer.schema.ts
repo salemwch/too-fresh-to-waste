@@ -2,6 +2,8 @@ import { OfferStatus, OfferType, Currency } from '@foodwaste/shared';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types, Query } from 'mongoose';
 
+import { applySoftDeleteFilter } from '../../common/utils/soft-delete-aggregate.util';
+
 export type OfferDocument = Offer &
   Document & {
     availableQuantity: number;
@@ -337,13 +339,14 @@ OfferSchema.pre<Query<OfferDocument[], OfferDocument>>(/^find/, function (next) 
 });
 
 /**
- * Pre-aggregate middleware to exclude soft-deleted offers
+ * Pre-aggregate middleware to exclude soft-deleted offers.
+ * $geoNear-safe: merges into `query` instead of prepending a `$match`.
  * Bypass with: .setOptions({ includeDeleted: true })
  */
 OfferSchema.pre('aggregate', function () {
   const options = (this as { options?: Record<string, unknown> }).options;
   if (options?.['includeDeleted'] !== true) {
-    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    applySoftDeleteFilter(this);
   }
 });
 

@@ -2,6 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 import { Document, Model, Types, Query } from 'mongoose';
 
+import { applySoftDeleteFilter } from '../../common/utils/soft-delete-aggregate.util';
+
 // Interface for review metadata
 export interface IReviewMetadata {
   // Processing metadata
@@ -442,7 +444,7 @@ ReviewSchema.pre<Query<ReviewDocument[], ReviewDocument>>(/^find/, function (nex
 ReviewSchema.pre('aggregate', function () {
   const options = (this as { options?: Record<string, unknown> }).options ?? {};
   if (options['includeDeleted'] !== true) {
-    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    applySoftDeleteFilter(this);
   }
 });
 

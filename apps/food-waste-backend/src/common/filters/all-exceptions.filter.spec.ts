@@ -280,4 +280,32 @@ describe('AllExceptionsFilter', () => {
       expect(mockRequest.headers?.['authorization']).toBeDefined();
     });
   });
+
+  describe('Scanner noise log demotion', () => {
+    it('should log 404 on non-API paths at debug level', () => {
+      (mockRequest as { url: string }).url = '/wp-login.php';
+      const exception = new HttpException('Not Found', HttpStatus.NOT_FOUND);
+
+      const debugSpy = jest.spyOn(filter['logger'], 'debug');
+      const warnSpy = jest.spyOn(filter['logger'], 'warn');
+
+      filter.catch(exception, mockArgumentsHost as ArgumentsHost);
+
+      expect(debugSpy).toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should log 404 on API paths at warn level', () => {
+      (mockRequest as { url: string }).url = '/api/v1/nonexistent';
+      const exception = new HttpException('Not Found', HttpStatus.NOT_FOUND);
+
+      const warnSpy = jest.spyOn(filter['logger'], 'warn');
+      const debugSpy = jest.spyOn(filter['logger'], 'debug');
+
+      filter.catch(exception, mockArgumentsHost as ArgumentsHost);
+
+      expect(warnSpy).toHaveBeenCalled();
+      expect(debugSpy).not.toHaveBeenCalled();
+    });
+  });
 });

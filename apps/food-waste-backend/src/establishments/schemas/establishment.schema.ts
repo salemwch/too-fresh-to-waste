@@ -4,6 +4,7 @@ import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 import { Document, Types, Query } from 'mongoose';
 
+import { applySoftDeleteFilter } from '../../common/utils/soft-delete-aggregate.util';
 import { CoordinatesDto } from '../DTO/cordinates.dto';
 
 export type EstablishmentDocument = Establishment & Document;
@@ -593,13 +594,14 @@ EstablishmentSchema.pre<Query<EstablishmentDocument[], EstablishmentDocument>>(
 );
 
 /**
- * Pre-aggregate middleware to exclude soft-deleted establishments
+ * Pre-aggregate middleware to exclude soft-deleted establishments.
+ * $geoNear-safe: merges into `query` instead of prepending a `$match`.
  * Bypass with: .setOptions({ includeDeleted: true })
  */
 EstablishmentSchema.pre('aggregate', function () {
   const options = (this as { options?: Record<string, unknown> }).options;
   if (options?.['includeDeleted'] !== true) {
-    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    applySoftDeleteFilter(this);
   }
 });
 

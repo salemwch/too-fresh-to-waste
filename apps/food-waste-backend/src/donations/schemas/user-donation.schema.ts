@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Query, Types } from 'mongoose';
 
+import { applySoftDeleteFilter } from '../../common/utils/soft-delete-aggregate.util';
+
 export type UserDonationDocument = UserDonation & Document;
 
 /**
@@ -101,6 +103,6 @@ UserDonationSchema.pre<Query<UserDonationDocument[], UserDonationDocument>>(
 UserDonationSchema.pre('aggregate', function () {
   const options = (this as { options?: Record<string, unknown> }).options;
   if (options?.['includeDeleted'] !== true) {
-    this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+    applySoftDeleteFilter(this);
   }
 });

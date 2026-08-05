@@ -135,11 +135,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = 'An unexpected error occurred. Please contact support with the error ID.';
     }
 
-    // Log with structured logging. Only genuine server-side failures (5xx) are
-    // logged at ERROR — 4xx (validation failures, 404s from scanner/bot noise
-    // like /wp-includes/..., unauthorized access attempts, etc.) are expected
-    // client-side outcomes and logged at WARN so they don't pollute error
-    // dashboards/alerts or drown out real errors.
+    // 5xx → ERROR, 404 on non-API paths → DEBUG (scanner/bot noise),
+    // other 4xx → WARN.
     const ipAddress =
       request.ip && request.ip.length > 0 ? request.ip : request.socket.remoteAddress;
     const logMetadata = {
@@ -155,14 +152,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
       // Note: Do NOT log request body as it may contain sensitive data (passwords, etc.)
     };
     const isServerError = status >= HttpStatus.INTERNAL_SERVER_ERROR;
+    const isScannerNoise = status === HttpStatus.NOT_FOUND && !path.startsWith('/api/');
+    const logMessage = `${method} ${path} - ${errorName}: ${message}`;
     const errorId = isServerError
       ? this.logger.error(
-          `${method} ${path} - ${errorName}: ${message}`,
+          logMessage,
           exception instanceof Error ? exception : undefined,
           'ExceptionFilter',
           logMetadata,
         )
-      : this.warnWithErrorId(`${method} ${path} - ${errorName}: ${message}`, logMetadata);
+      : isScannerNoise
+        ? this.debugWithErrorId(logMessage, logMetadata)
+        : this.warnWithErrorId(logMessage, logMetadata);
 
     // Send error to Sentry — 5xx only; 4xx are expected client errors (wrong password,
     // missing cookies, bad request) and produce noise without indicating real backend bugs.
@@ -216,6 +217,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private warnWithErrorId(message: string, metadata: Record<string, unknown>): string {
     const errorId = `ERR-${Date.now()}-${uuidv4().substring(0, 8).toUpperCase()}`;
     this.logger.warn(message, 'ExceptionFilter', { ...metadata, errorId });
+    return errorId;
+  }
+
+  private debugWithErrorId(message: string, metadata: Record<string, unknown>): string {
+    const errorId = `ERR-${Date.now()}-${uuidv4().substring(0, 8).toUpperCase()}`;
+    this.logger.debug(message, 'ExceptionFilter', { ...metadata, errorId });
     return errorId;
   }
 
