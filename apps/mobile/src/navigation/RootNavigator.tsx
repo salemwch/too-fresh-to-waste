@@ -31,6 +31,8 @@ import { OfflineBanner } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { loadStoredAuthAsync, logoutAsync } from '@/features/auth/store/authSlice';
 import { AuthFlowState } from '@/features/auth/types';
+
+import { canRenderNavigator } from './canRenderNavigator';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { onboardingStorage } from '@/storage/onboardingStorage';
 import { analytics } from '@/utils/analytics';
@@ -296,9 +298,18 @@ export const RootNavigator: React.FC = () => {
     // GATE 1: Authentication (user-level) - HIGHEST PRIORITY
     // ✅ Authenticated users go directly to MainStack (bypass onboarding)
     switch (flowState) {
-      // App is initializing - show loading
-      case AuthFlowState.INITIALIZING:
-        return null; // Will show LoadingScreen below
+      /*
+       * INITIALIZING deliberately has no case of its own.
+       *
+       * It used to `return null` on the assumption that the loading guard below
+       * would have rendered first — it does not, and an empty <Stack.Navigator>
+       * throws "Couldn't find any screens for the navigator", which the query
+       * error boundary caught as "Something went wrong" on every fresh install.
+       *
+       * The guard now covers INITIALIZING, so this is unreachable. Falling
+       * through to `default` anyway means the navigator still gets a screen if
+       * that guard is ever changed — no reachable branch may return null here.
+       */
 
       // Admin-created account: must set a new password before using the app
       case AuthFlowState.PASSWORD_CHANGE_REQUIRED:
@@ -402,7 +413,23 @@ export const RootNavigator: React.FC = () => {
   /**
    * Wait for both auth AND navigation to be ready
    */
-  if (!isAppReady || !isNavigationReady) {
+  /*
+   * Hold the navigator back until the auth flow state is known.
+   *
+   * flowState was missing from this guard, and that is what crashed every
+   * fresh install. On a clean install nothing is persisted, so Redux starts at
+   * INITIALIZING; `setIsAppReady(true)` runs synchronously in the mount effect
+   * while auth validation is deferred behind InteractionManager; and
+   * isNavigationReady is seeded `!__DEV__`, so in a release build it is already
+   * true on the first render. All three conditions passed while flowState was
+   * still INITIALIZING, renderNavigator returned null, and React Navigation
+   * threw "Couldn't find any screens for the navigator".
+   *
+   * It never reproduced in development because isNavigationReady starts false
+   * there, which delays the first render past the point auth has resolved — and
+   * never on a second launch, because MMKV then holds a real flowState.
+   */
+  if (!canRenderNavigator({ isAppReady, isNavigationReady, flowState })) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size='large' color={colorTokens.base.success[500]} />
