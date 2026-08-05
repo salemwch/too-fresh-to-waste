@@ -51,7 +51,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
     (lang: AppLanguage) => {
       if (lang === currentLang) return;
 
-      const wasRTL = I18nManager.isRTL;
+      const wasRTL = currentLang === 'ar';
       const willBeRTL = lang === 'ar';
       const directionChanges = wasRTL !== willBeRTL;
 

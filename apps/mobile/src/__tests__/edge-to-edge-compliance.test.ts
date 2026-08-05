@@ -5,14 +5,12 @@ import { join } from 'path';
  * Guards the edge-to-edge contract that Google Play checks on upload.
  *
  * Two Play Console warnings on release 69 traced back to app code:
- *   - `Window.setStatusBarColor` — RN's `StatusBarModule.setColor` has **no**
- *     edge-to-edge guard, so a `backgroundColor` prop calls the deprecated
- *     setter on every commit.
- *   - `Window.setNavigationBarColor` / `setStatusBarColor` via theme
+ *   - `Window.setStatusBarColor` / `setNavigationBarColor` via theme
  *     attributes in `styles.xml`.
- *
- * `setTranslucent` does check the flag, but only to log a warning and return —
- * so `translucent` is dead weight that spams logcat.
+ *   - `Window.setStatusBarColor` via RN's `StatusBarModule.setColor` when the
+ *     `backgroundColor` prop is passed. Both `setColor` and `setTranslucent`
+ *     are guarded by `isEdgeToEdgeFeatureFlagOn` and return early, but Play's
+ *     static analyser still flags the call site in the framework AAR.
  *
  * These are static-source assertions rather than render tests on purpose: the
  * failure mode is "an attribute exists in a file the APK ships", which is

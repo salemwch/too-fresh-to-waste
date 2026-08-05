@@ -330,12 +330,12 @@ function AppContent(): React.JSX.Element {
         updateUrl={versionCheck.updateUrl}
         onDismiss={versionCheck.dismiss}
       />
-      {/* No `translucent` / `backgroundColor` under edge-to-edge. RN's
-          StatusBarModule.setColor has no edge-to-edge guard, so a colour prop
-          calls the deprecated Window.setStatusBarColor on every commit, and
-          setTranslucent bails out with a warning. Both are no-ops here — the
-          bars are already transparent via WindowUtil.enableEdgeToEdge(). */}
-      <StatusBar />
+      {/* Under edge-to-edge, StatusBarModule.setColor and setTranslucent
+          are guarded by isEdgeToEdgeFeatureFlagOn and return early —
+          backgroundColor and translucent props are no-ops. Only barStyle
+          (light/dark icons) is active; screen-level statusBarStyle from
+          react-native-screens takes precedence per screen. */}
+      <StatusBar barStyle='dark-content' />
       <RootNavigator />
       <ForceUpdateModal
         visible={versionCheck.updateType === 'force'}

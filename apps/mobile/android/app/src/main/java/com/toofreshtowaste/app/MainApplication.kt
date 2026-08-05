@@ -11,6 +11,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
+import com.facebook.react.views.view.setEdgeToEdgeFeatureFlagOn
 import com.facebook.soloader.SoLoader
 import com.margelo.nitro.NitroModulesPackage
 
@@ -42,6 +43,9 @@ class MainApplication : Application(), ReactApplication {
     initializeMmkvNative()
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       load()
+    }
+    if (BuildConfig.IS_EDGE_TO_EDGE_ENABLED) {
+      setEdgeToEdgeFeatureFlagOn()
     }
   }
 
