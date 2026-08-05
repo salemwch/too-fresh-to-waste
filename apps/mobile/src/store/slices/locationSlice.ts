@@ -32,6 +32,7 @@ import {
   type PositionFixError,
 } from '@/services/location/getCurrentPositionOnce';
 import { Logger } from '@/utils/logger';
+import { CancelledError, TimeoutError, withTimeout } from '@/utils/withTimeout';
 
 Geolocation.setRNConfiguration({
   locationProvider: 'playServices',
@@ -480,22 +481,6 @@ export const reverseGeocodeAsync = createAsyncThunk<
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // Timeout: Reject if response takes > 15 seconds
-    // ────────────────────────────────────────────────────────────────────────
-    const TIMEOUT_MS = 15000;
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      const timeoutId = setTimeout(() => {
-        reject(new Error('Reverse geocoding timeout'));
-      }, TIMEOUT_MS);
-
-      // ✅ Clear timeout if cancelled via signal
-      signal.addEventListener('abort', () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Cancelled'));
-      });
-    });
-
-    // ────────────────────────────────────────────────────────────────────────
     // Round coordinates to improve cache hit rate
     // ────────────────────────────────────────────────────────────────────────
     const roundedCoords = roundCoordinates(coordinates);
@@ -518,6 +503,20 @@ export const reverseGeocodeAsync = createAsyncThunk<
       return { city: localName, country: 'Tunisia' };
     }
 
+    /*
+     * The deadline is armed here, not earlier.
+     *
+     * It used to be constructed above, before the local-JSON lookup. A hit
+     * there returns early, so nothing ever raced that promise — but its timer
+     * was still armed and rejected fifteen seconds later with no handler
+     * attached. Sentry recorded a "Reverse geocoding timeout" error for a
+     * lookup that had actually succeeded, on the path most Tunisian users take.
+     *
+     * withTimeout owns the timer for the duration of the call and clears it on
+     * every exit, so it cannot outlive the operation it bounds.
+     */
+    const REVERSE_GEOCODE_TIMEOUT_MS = 15_000;
+
     // ✅ Pass Redux signal to API call for proper cancellation
     const geocodePromise = nearbyOffersService.reverseGeocode(
       roundedCoords,
@@ -525,8 +524,12 @@ export const reverseGeocodeAsync = createAsyncThunk<
       signal, // Redux Toolkit will abort this when thunk is cancelled
     );
 
-    // Race between geocoding and timeout
-    const addressInfo = await Promise.race([geocodePromise, timeoutPromise]);
+    const addressInfo = await withTimeout(
+      geocodePromise,
+      REVERSE_GEOCODE_TIMEOUT_MS,
+      signal,
+      'Reverse geocoding timeout',
+    );
 
     // Final abort check before returning
     if (signal.aborted) {
@@ -549,12 +552,15 @@ export const reverseGeocodeAsync = createAsyncThunk<
       country,
     };
   } catch (error) {
-    if (signal.aborted || (error instanceof Error && error.message === 'Cancelled')) {
+    // Typed rather than matched on message text: a reworded string would
+    // silently fall through to rejectWithValue and surface a raw error to the
+    // user instead of the coordinate fallback.
+    if (signal.aborted || error instanceof CancelledError) {
       Logger.debug('Reverse geocoding cancelled');
       return rejectWithValue('Cancelled');
     }
 
-    if (error instanceof Error && error.message === 'Reverse geocoding timeout') {
+    if (error instanceof TimeoutError) {
       Logger.warn('Reverse geocoding timed out, using coordinates as fallback');
       return { city: '', country: 'Tunisia' };
     }
