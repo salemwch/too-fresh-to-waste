@@ -58,6 +58,51 @@ Each of these was found by writing the failure case, not the happy one:
 
 ---
 
+## First run is its own test surface (mobile)
+
+A device that has already run the app is not a new user's device. It has Redux
+state in MMKV, a warm query cache, tokens in the Keychain, and granted
+permissions. Nothing in the normal loop — dev builds, unit tests, a hot-reloaded
+emulator — ever starts without those, so the first-run path is effectively
+untested by default.
+
+Emulators make it worse rather than better: the BlueStacks image **pre-grants
+runtime permissions**, so permission-dependent branches cannot be reached there
+at all. See `android_repro_rig_bluestacks` in project memory.
+
+Three production bugs came from this in one week, each invisible locally and
+each found only after a real Play Store install:
+
+| Bug                                            | Why only on first run                                                                                                       |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Empty `<Stack.Navigator>` crash (`699633aa`)   | nothing persisted, so `flowState` was still `INITIALIZING`; a second launch rehydrates a real value and cannot reproduce it |
+| Phantom Sentry timeout (`235663e4`)            | the local-cities early return fires before the race, leaving a timer armed — a success path, not a failure one              |
+| Notification prompt at cold start (`c2b2deb1`) | Android 13+ gives one prompt per install; a device that already answered never shows it again                               |
+
+**Before any release build, run the gate:**
+
+```bash
+pnpm --filter @foodwaste/mobile check:fresh-install
+```
+
+It force-stops the app, `pm clear`s it (wiping MMKV, AsyncStorage and Keychain
+together), revokes every runtime permission, clears logcat, launches cold and
+watches for fatal, unhandled and React-Native-error signatures. It is a release
+gate, not a unit test — point it at the build you intend to ship.
+
+It proves the app _launches_ cleanly, not that the first-run UI is right. Still
+confirm by hand that the location chooser appears and that **no permission
+dialog is shown before sign-in**.
+
+**When writing tests, model the cold state rather than the warm one.** The
+navigator regression is covered without a device by driving the decision as a
+pure predicate over every `AuthFlowState` — see
+`navigation/__tests__/canRenderNavigator.test.ts`. Prefer that shape: extract
+the decision, then assert it across the whole enum, so a state added later fails
+in CI instead of in the Play Store.
+
+---
+
 ## Running
 
 ```bash

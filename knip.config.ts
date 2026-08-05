@@ -11,6 +11,8 @@ const config: KnipConfig = {
     'pod',
     'fastlane',
     'semgrep',
+    // Ships with Windows; runs scripts/fresh-install-check.ps1.
+    'powershell',
   ],
 
   ignoreDependencies: [
@@ -70,6 +72,9 @@ const config: KnipConfig = {
     'apps/mobile': {
       entry: ['src/App.tsx', 'src/**/types/*.ts'],
       project: ['src/**/*.{ts,tsx}'],
+      // Ships with Windows; runs scripts/fresh-install-check.ps1. Repeated from
+      // the root list because workspace config replaces it rather than merging.
+      ignoreBinaries: ['powershell'],
       jest: {
         entry: ['src/**/*.test.{ts,tsx}', 'src/**/*.spec.{ts,tsx}'],
       },
