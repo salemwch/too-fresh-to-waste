@@ -212,6 +212,40 @@ function AppContent(): React.JSX.Element {
     };
   }, [flowState]);
 
+  /*
+   * Ask for notification permission once the user is signed in.
+   *
+   * This used to fire unconditionally at startup, so a fresh install showed the
+   * OS notification dialog before the user had signed in or seen what the app
+   * does. Android 13+ gives exactly one prompt — a denial there is final and
+   * can only be undone in system settings — and that single prompt was being
+   * spent on someone with no reason yet to say yes, including people who never
+   * signed up at all.
+   *
+   * Authentication is the first point where the permission has a visible
+   * purpose: notifications here are order updates and pickup reminders, which
+   * only exist for an account. `ensurePermission` prompts only when the OS has
+   * not already decided.
+   *
+   * The ref keeps it to one attempt per launch. flowState reaches AUTHENTICATED
+   * again on token refresh and rehydration, and without the guard each of those
+   * would re-enter the request for no benefit.
+   */
+  const hasRequestedNotificationPermission = useRef(false);
+  useEffect(() => {
+    if (flowState !== AuthFlowState.AUTHENTICATED) return;
+    if (hasRequestedNotificationPermission.current) return;
+
+    hasRequestedNotificationPermission.current = true;
+
+    const { notificationService } =
+      require('@/services/NotificationService') as typeof import('@/services/NotificationService');
+
+    void notificationService.ensurePermission().then(granted => {
+      Logger.info('[App] Notification permission resolved after sign-in', { granted });
+    });
+  }, [flowState]);
+
   // ✅ Sync analytics user identity with auth state
   useEffect(() => {
     if (flowState === AuthFlowState.AUTHENTICATED && userId) {
@@ -373,7 +407,8 @@ function App(): React.JSX.Element {
           },
         });
       });
-      void notificationService.requestPermission();
+      // Listeners are wired up here, but the permission prompt is NOT. It is
+      // deferred until the user is authenticated — see the effect below.
       deferredCleanups.current.push(() => notificationService.cleanup());
 
       // --- Native module debugging (dev only) ---

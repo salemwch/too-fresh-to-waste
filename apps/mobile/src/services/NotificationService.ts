@@ -24,7 +24,7 @@ import {
 } from '@react-native-firebase/messaging';
 import axios from 'axios';
 import { Platform } from 'react-native';
-import { RESULTS, requestNotifications } from 'react-native-permissions';
+import { RESULTS, checkNotifications, requestNotifications } from 'react-native-permissions';
 
 import { environment } from '@/config/environment';
 import { navigateFromNotification, type NotificationNavData } from '@/navigation/navigationRef';
@@ -57,6 +57,45 @@ class NotificationService {
       return granted;
     } catch (error) {
       Logger.warn('[NotificationService] Permission request failed', {}, error as Error);
+      return false;
+    }
+  }
+
+  /**
+   * Prompt for notification permission only if the OS has not already decided.
+   *
+   * Android 13+ shows the POST_NOTIFICATIONS dialog once. A denial there is
+   * final — the app cannot prompt again, and the user has to go into system
+   * settings to reverse it. There is exactly one prompt to spend, so it must be
+   * spent at a moment the user can see a reason to accept.
+   *
+   * Calling `requestPermission` when the status is already decided prompts
+   * nothing; it just re-reports the existing answer. Checking first keeps the
+   * intent explicit and avoids the pointless round-trip.
+   *
+   * @returns whether notifications are permitted now.
+   */
+  async ensurePermission(): Promise<boolean> {
+    try {
+      const { status } = await checkNotifications();
+
+      if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+        return true;
+      }
+
+      // BLOCKED means the user said no and the OS will not ask again; UNAVAILABLE
+      // means the device has no notification support. Prompting in either case
+      // does nothing, so report the answer rather than pretending to ask.
+      if (status !== RESULTS.DENIED) {
+        Logger.debug('[NotificationService] Permission already decided, not prompting', {
+          status,
+        });
+        return false;
+      }
+
+      return await this.requestPermission();
+    } catch (error) {
+      Logger.warn('[NotificationService] Permission check failed', {}, error as Error);
       return false;
     }
   }
