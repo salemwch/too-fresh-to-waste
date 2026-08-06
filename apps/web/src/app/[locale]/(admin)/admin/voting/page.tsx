@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@foodwaste/ui';
 import { Button } from '@foodwaste/ui';
-import { Plus, RefreshCw, Vote } from 'lucide-react';
+import { Plus, RefreshCw, Vote, BarChart3, Trophy } from 'lucide-react';
+import { Link } from '@/i18n/routing';
 import { votingAdminService } from '@/services/voting.service';
 import type { VotingCycleRow, CreateCyclePayload } from '@/types/voting';
 import { CycleTable } from '@/components/dashboard/admin/voting/CycleTable';
@@ -122,6 +123,22 @@ export default function VotingAdminPage() {
             Create Cycle
           </Button>
         </div>
+      </div>
+
+      {/* Sub-page navigation */}
+      <div className='flex flex-wrap gap-2'>
+        <Link href='/admin/voting/dashboard'>
+          <Button size='sm' variant='outline' className='h-7 px-3 text-xs'>
+            <BarChart3 className='me-1.5 size-3.5' />
+            Live Dashboard
+          </Button>
+        </Link>
+        <Link href='/admin/voting/winners'>
+          <Button size='sm' variant='outline' className='h-7 px-3 text-xs'>
+            <Trophy className='me-1.5 size-3.5' />
+            Winners & Claims
+          </Button>
+        </Link>
       </div>
 
       {/* Stats row */}

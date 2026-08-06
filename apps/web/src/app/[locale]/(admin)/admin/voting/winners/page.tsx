@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { Trophy, Crown, Medal, CheckCircle2, Package, XCircle, Eye } from 'lucide-react';
+import { Trophy, Crown, Medal, CheckCircle2, Package, XCircle, Eye, ArrowLeft } from 'lucide-react';
+import { Link } from '@/i18n/routing';
 import {
   Card,
   CardContent,
@@ -388,9 +389,17 @@ export default function VotingWinnersPage() {
 
   return (
     <div className='space-y-5'>
-      <div>
-        <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-        <p className='mt-0.5 text-sm text-muted-foreground'>{t('subtitle')}</p>
+      <div className='flex items-center gap-3'>
+        <Link href='/admin/voting'>
+          <Button size='sm' variant='ghost' className='h-7 px-2 text-xs'>
+            <ArrowLeft className='me-1 size-3.5' />
+            Cycles
+          </Button>
+        </Link>
+        <div>
+          <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
+          <p className='mt-0.5 text-sm text-muted-foreground'>{t('subtitle')}</p>
+        </div>
       </div>
 
       {/* Tab buttons */}

@@ -2,7 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { CycleStatus } from '@foodwaste/shared';
-import { Card, CardContent } from '@foodwaste/ui';
+import { Card, CardContent, Button } from '@foodwaste/ui';
+import { ArrowLeft } from 'lucide-react';
+import { Link } from '@/i18n/routing';
 import { votingAdminService } from '@/services/voting.service';
 import type { VotingCycleRow } from '@/types/voting';
 import { VotingDashboard } from '@/components/dashboard/admin/voting/VotingDashboard';
@@ -58,7 +60,15 @@ export default function VotingDashboardPage() {
   if (!liveCycle) {
     return (
       <div className='p-6'>
-        <h1 className='mb-4 text-xl font-bold tracking-tight'>Voting Dashboard</h1>
+        <div className='mb-4 flex items-center gap-3'>
+          <Link href='/admin/voting'>
+            <Button size='sm' variant='ghost' className='h-7 px-2 text-xs'>
+              <ArrowLeft className='me-1 size-3.5' />
+              Cycles
+            </Button>
+          </Link>
+          <h1 className='text-xl font-bold tracking-tight'>Voting Dashboard</h1>
+        </div>
         <Card className='border-border/60'>
           <CardContent className='flex flex-col items-center justify-center py-12 text-center'>
             <p className='text-sm font-medium'>No active voting cycle</p>
@@ -76,7 +86,15 @@ export default function VotingDashboardPage() {
   return (
     <div className='p-6'>
       <div className='mb-5 flex items-center justify-between'>
-        <h1 className='text-xl font-bold tracking-tight'>Voting Dashboard</h1>
+        <div className='flex items-center gap-3'>
+          <Link href='/admin/voting'>
+            <Button size='sm' variant='ghost' className='h-7 px-2 text-xs'>
+              <ArrowLeft className='me-1 size-3.5' />
+              Cycles
+            </Button>
+          </Link>
+          <h1 className='text-xl font-bold tracking-tight'>Voting Dashboard</h1>
+        </div>
       </div>
       <VotingDashboard cycle={liveCycle} />
     </div>
