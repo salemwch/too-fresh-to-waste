@@ -1435,10 +1435,15 @@ export class OffersService {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
 
+    const now = new Date();
+    const todayStart = TimezoneUtil.getStartOfDay(now);
+    const todayEnd = TimezoneUtil.getEndOfDay(now);
+
     const offerQuery = {
       status: OfferStatus.ACTIVE,
       isActive: true,
-      isPickupToday: true,
+      availableFrom: { $lte: todayEnd },
+      availableUntil: { $gte: todayStart },
     };
 
     // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
@@ -1512,10 +1517,17 @@ export class OffersService {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
 
+    const now = new Date();
+    const todayEnd = TimezoneUtil.getEndOfDay(now);
+    const tomorrow = new Date(Date.now() + 86_400_000);
+    const tomorrowStart = TimezoneUtil.getStartOfDay(tomorrow);
+    const tomorrowEnd = TimezoneUtil.getEndOfDay(tomorrow);
+
     const offerQuery = {
       status: OfferStatus.ACTIVE,
       isActive: true,
-      isPickupTomorrow: true,
+      availableFrom: { $gt: todayEnd, $lte: tomorrowEnd },
+      availableUntil: { $gte: tomorrowStart },
     };
 
     // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
