@@ -331,7 +331,6 @@ export const dashboardService = {
 
   updateAdminMonthlyBagGoal(payload: {
     targetCount: number;
-    rewardPoints?: number;
     seasonName?: string;
     endDate?: string;
   }) {

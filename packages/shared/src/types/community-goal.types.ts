@@ -29,8 +29,6 @@ export interface MonthlyBagGoalStats {
   causeType?: MonthlyGoalCauseType;
   causeTitle?: string;
   causeDescription?: string;
-  /** Points awarded to each participant when target is reached */
-  rewardPoints?: number;
   /** Admin-set display name for this challenge cycle */
   seasonName?: string;
   /** Optional deadline — challenge expires if bags not reached by this date */

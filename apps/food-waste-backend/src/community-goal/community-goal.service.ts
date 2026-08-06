@@ -1,8 +1,7 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { LoyaltyService } from '../loyalty/loyalty.service';
 import { WebSocketEvents, WEBSOCKET_ROOMS } from '../websocket/interfaces/websocket.interface';
 import { WebSocketService } from '../websocket/websocket.service';
 
@@ -27,7 +26,6 @@ interface GoalLean {
   causeType?: MonthlyGoalCauseType;
   causeTitle?: string;
   causeDescription?: string;
-  rewardPoints?: number;
   seasonName?: string;
   endDate?: Date;
   participantIds?: { toString(): string }[];
@@ -46,8 +44,6 @@ export class MonthlyBagGoalService {
     @InjectModel(MonthlyBagGoal.name)
     private readonly goalModel: Model<MonthlyBagGoalDocument>,
     private readonly webSocketService: WebSocketService,
-    @Inject(forwardRef(() => LoyaltyService))
-    private readonly loyaltyService: LoyaltyService,
   ) {}
 
   /**
@@ -116,7 +112,6 @@ export class MonthlyBagGoalService {
       causeType?: MonthlyGoalCauseType;
       causeTitle?: string;
       causeDescription?: string;
-      rewardPoints?: number;
       seasonName?: string;
       endDate?: string;
     },
@@ -125,7 +120,6 @@ export class MonthlyBagGoalService {
       ...(cause?.causeType !== undefined && { causeType: cause.causeType }),
       ...(cause?.causeTitle !== undefined && { causeTitle: cause.causeTitle }),
       ...(cause?.causeDescription !== undefined && { causeDescription: cause.causeDescription }),
-      ...(cause?.rewardPoints !== undefined && { rewardPoints: cause.rewardPoints }),
       ...(cause?.seasonName !== undefined && { seasonName: cause.seasonName }),
       ...(cause?.endDate !== undefined && { endDate: new Date(cause.endDate) }),
     };
@@ -235,37 +229,11 @@ export class MonthlyBagGoalService {
     // Carry over overflow bags
     const overflow = Math.max(0, transitioned.currentCount - transitioned.targetCount);
 
-    // ── Distribute reward points to all participants ──
-    const rewardPoints = transitioned.rewardPoints ?? 0;
-    const participantIds = transitioned.participantIds ?? [];
-
-    if (rewardPoints > 0 && participantIds.length > 0) {
-      this.logger.log(
-        `Distributing ${rewardPoints} points to ${participantIds.length} participants for cycle ${transitioned.cycleNumber}`,
-      );
-
-      const results = await Promise.allSettled(
-        participantIds.map(async id => {
-          const account = await this.loyaltyService.addPoints(id.toString(), {
-            amount: rewardPoints,
-            reason: `Community challenge cycle ${transitioned.cycleNumber} completed`,
-          });
-          return account;
-        }),
-      );
-
-      const succeeded = results.filter(r => r.status === 'fulfilled').length;
-      const failed = results.filter(r => r.status === 'rejected').length;
-
-      this.logger.log(`Reward distribution complete: ${succeeded} succeeded, ${failed} failed`);
-    }
-
     const newGoal = await this.goalModel.create({
       currentCount: overflow,
       targetCount: transitioned.targetCount,
       cycleNumber: transitioned.cycleNumber + 1,
       status: MonthlyGoalStatus.ACTIVE,
-      rewardPoints: transitioned.rewardPoints,
       seasonName: transitioned.seasonName,
     });
 
@@ -319,7 +287,6 @@ export class MonthlyBagGoalService {
       ...(goal.causeType !== undefined && { causeType: goal.causeType }),
       ...(goal.causeTitle !== undefined && { causeTitle: goal.causeTitle }),
       ...(goal.causeDescription !== undefined && { causeDescription: goal.causeDescription }),
-      ...(goal.rewardPoints !== undefined && { rewardPoints: goal.rewardPoints }),
       ...(goal.seasonName !== undefined && { seasonName: goal.seasonName }),
       ...(goal.endDate !== undefined && { endDate: goal.endDate.toISOString() }),
       participantCount: goal.participantIds?.length ?? 0,

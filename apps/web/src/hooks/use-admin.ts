@@ -859,12 +859,8 @@ export function useAdminMonthlyBagGoal() {
 export function useUpdateMonthlyBagGoal() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: {
-      targetCount: number;
-      rewardPoints?: number;
-      seasonName?: string;
-      endDate?: string;
-    }) => dashboardService.updateAdminMonthlyBagGoal(payload).then(r => r.data.data),
+    mutationFn: (payload: { targetCount: number; seasonName?: string; endDate?: string }) =>
+      dashboardService.updateAdminMonthlyBagGoal(payload).then(r => r.data.data),
     onSuccess: data => {
       qc.setQueryData<MonthlyBagGoalStats>(MONTHLY_BAG_GOAL_KEY, data);
     },

@@ -48,7 +48,6 @@ export class MonthlyBagGoalAdminController {
       ...(dto.causeType !== undefined && { causeType: dto.causeType }),
       ...(dto.causeTitle !== undefined && { causeTitle: dto.causeTitle }),
       ...(dto.causeDescription !== undefined && { causeDescription: dto.causeDescription }),
-      ...(dto.rewardPoints !== undefined && { rewardPoints: dto.rewardPoints }),
       ...(dto.seasonName !== undefined && { seasonName: dto.seasonName }),
       ...(dto.endDate !== undefined && { endDate: dto.endDate }),
     });

@@ -68,14 +68,12 @@ describe('MonthlyBagGoalAdminController', () => {
         causeType: 'food_bank',
         causeTitle: 'Winter Drive',
         seasonName: 'Winter 2026',
-        rewardPoints: 100,
       };
       await controller.setTarget(fullDto as never, VALID_ADMIN_ID);
       expect(monthlyBagGoalService.setGoalTarget).toHaveBeenCalledWith(500, VALID_ADMIN_ID, {
         causeType: 'food_bank',
         causeTitle: 'Winter Drive',
         seasonName: 'Winter 2026',
-        rewardPoints: 100,
       });
     });
   });

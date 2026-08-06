@@ -126,7 +126,6 @@ const MonthlyBagGoalBannerComponent = () => {
 
   const { currentCount, targetCount, progressPercentage } = stats;
   const seasonName = stats.seasonName ?? t('home.challengeDefault');
-  const rewardPoints = stats.rewardPoints ?? 0;
 
   const daysLeft = stats.endDate
     ? Math.max(0, Math.ceil((new Date(stats.endDate).getTime() - Date.now()) / 86_400_000))
@@ -221,9 +220,7 @@ const MonthlyBagGoalBannerComponent = () => {
               />
 
               <Text style={styles.rewardText}>
-                {rewardPoints > 0
-                  ? t('home.rewardEarnPoints', { points: rewardPoints })
-                  : t('home.rewardCalloutNoPrize').replace('⚡ ', '')}
+                {t('home.rewardCalloutNoPrize').replace('⚡ ', '')}
               </Text>
             </View>
           </View>

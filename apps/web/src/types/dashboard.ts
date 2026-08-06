@@ -484,7 +484,6 @@ export interface MonthlyBagGoalStats {
   cycleNumber: number;
   status: MonthlyGoalStatus;
   lastUpdatedAt: string;
-  rewardPoints?: number;
   seasonName?: string;
   endDate?: string;
   participantCount?: number;

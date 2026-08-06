@@ -43,18 +43,6 @@ export class SetGoalTargetDto implements SetGoalTargetInput {
   @MaxLength(600)
   causeDescription?: string;
 
-  @ApiPropertyOptional({
-    description: 'Points awarded to each participant when target is reached',
-    minimum: 1,
-    maximum: 10_000,
-    example: 50,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(10_000)
-  rewardPoints?: number;
-
   @ApiPropertyOptional({ example: 'June Challenge', maxLength: 80 })
   @IsOptional()
   @IsString()
@@ -100,9 +88,6 @@ export class MonthlyBagGoalStatsResponseDto implements MonthlyBagGoalStats {
 
   @ApiPropertyOptional()
   causeDescription?: string;
-
-  @ApiPropertyOptional({ example: 50 })
-  rewardPoints?: number;
 
   @ApiPropertyOptional({ example: 'June Challenge' })
   seasonName?: string;

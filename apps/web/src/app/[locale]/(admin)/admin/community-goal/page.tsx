@@ -12,7 +12,6 @@ import {
   Save,
   AlertTriangle,
   CalendarX,
-  Hash,
 } from 'lucide-react';
 import {
   Card,
@@ -98,7 +97,6 @@ export default function AdminMonthlyBagGoalPage() {
 
   const [targetCount, setTargetCount] = useState('');
   const [seasonName, setSeasonName] = useState('');
-  const [rewardPoints, setRewardPoints] = useState('');
   const [endDate, setEndDate] = useState('');
   const [resetDialog, setResetDialog] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -107,7 +105,6 @@ export default function AdminMonthlyBagGoalPage() {
     if (goal) {
       setTargetCount(String(goal.targetCount));
       setSeasonName(goal.seasonName ?? '');
-      setRewardPoints(String(goal.rewardPoints ?? 50));
       setEndDate(goal.endDate ? goal.endDate.slice(0, 10) : '');
     }
   }, [goal]);
@@ -116,7 +113,6 @@ export default function AdminMonthlyBagGoalPage() {
     goal &&
     (Number(targetCount) !== goal.targetCount ||
       seasonName !== (goal.seasonName ?? '') ||
-      Number(rewardPoints) !== (goal.rewardPoints ?? 50) ||
       endDate !== (goal.endDate ? goal.endDate.slice(0, 10) : ''));
 
   function handleSave() {
@@ -124,7 +120,6 @@ export default function AdminMonthlyBagGoalPage() {
       {
         targetCount: Number(targetCount),
         ...(seasonName ? { seasonName } : {}),
-        ...(rewardPoints ? { rewardPoints: Number(rewardPoints) } : {}),
         ...(endDate ? { endDate: new Date(endDate).toISOString() } : {}),
       },
       {
@@ -194,10 +189,10 @@ export default function AdminMonthlyBagGoalPage() {
           sub={`${goal?.remaining ?? 0} remaining`}
         />
         <KpiCard
-          label={t('rewardPts')}
-          value={String(goal?.rewardPoints ?? 0)}
+          label={t('cycle')}
+          value={`#${goal?.cycleNumber ?? 1}`}
           icon={Zap}
-          sub={`${t('cycle')} #${goal?.cycleNumber ?? 1}`}
+          sub={goal?.seasonName ?? '—'}
         />
         <KpiCard
           label={t('participants')}
@@ -269,25 +264,6 @@ export default function AdminMonthlyBagGoalPage() {
               className='h-7 text-xs max-w-xs'
             />
             <p className='text-xs text-muted-foreground'>{t('settings.seasonNameHint')}</p>
-          </div>
-
-          <Separator />
-
-          {/* Reward Points */}
-          <div className='space-y-1.5'>
-            <Label className='text-xs font-medium'>{t('settings.rewardPoints')}</Label>
-            <div className='flex items-center gap-2 max-w-xs'>
-              <Hash className='size-3.5 text-muted-foreground' />
-              <Input
-                type='number'
-                min={1}
-                max={10_000}
-                value={rewardPoints}
-                onChange={e => setRewardPoints(e.target.value)}
-                className='h-7 text-xs'
-              />
-            </div>
-            <p className='text-xs text-muted-foreground'>{t('settings.rewardPointsHint')}</p>
           </div>
 
           <Separator />
