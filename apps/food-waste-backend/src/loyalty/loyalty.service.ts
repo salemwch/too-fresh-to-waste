@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 
 import { DonationsService } from '../donations/donations.service';
 import { DEFAULT_CURRENCY } from '@foodwaste/shared';
@@ -243,21 +243,6 @@ export class LoyaltyService {
     try {
       const account = await this.getLoyaltyAccount(userId);
 
-      // IDEMPOTENCY CHECK: Prevent duplicate point awards for same order
-      if (addPointsDto.orderId) {
-        const orderIdObj = new Types.ObjectId(addPointsDto.orderId);
-        const alreadyProcessed = account.pointsHistory.some(
-          transaction => transaction.orderId?.toString() === orderIdObj.toString(),
-        );
-
-        if (alreadyProcessed) {
-          this.logger.warn(
-            `Points already awarded for order ${addPointsDto.orderId} to user ${userId}. Skipping duplicate.`,
-          );
-          return account; // Return existing account without modifications
-        }
-      }
-
       const currentTier = this.getCurrentTier(account.totalPoints);
       // Gamification points (login streak, purchase streak, referrals, reviews) bypass the
       // tier multiplier so the advertised flat amounts are always awarded accurately.
@@ -289,8 +274,17 @@ export class LoyaltyService {
           ? addPointsDto.orderId
           : 'N/A';
 
+      // Atomic idempotency: when an orderId is provided, the filter rejects the
+      // update if pointsHistory already contains that orderId. Two concurrent
+      // calls race on this single findOneAndUpdate — only one can match, so
+      // points are never awarded twice for the same order.
+      const filter: FilterQuery<LoyaltyAccount> = { userId: new Types.ObjectId(userId) };
+      if (addPointsDto.orderId) {
+        filter['pointsHistory.orderId'] = { $ne: new Types.ObjectId(addPointsDto.orderId) };
+      }
+
       const updatedAccount = await this.loyaltyModel.findOneAndUpdate(
-        { userId: new Types.ObjectId(userId) },
+        filter,
         {
           $inc: {
             totalPoints: multipliedPoints,
@@ -310,6 +304,12 @@ export class LoyaltyService {
       );
 
       if (!updatedAccount) {
+        if (addPointsDto.orderId) {
+          this.logger.warn(
+            `Points already awarded for order ${addPointsDto.orderId} to user ${userId}. Skipping duplicate.`,
+          );
+          return account;
+        }
         throw new NotFoundException('Loyalty account not found');
       }
 

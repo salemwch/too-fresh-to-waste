@@ -166,6 +166,7 @@ export class OrdersController {
   @UseFilters(OrderExceptionFilter)
   @UseGuards(AppVersionGuard, JwtAuthGuard, RolesGuard)
   @Roles(UserRole.CONSUMER)
+  @Throttle({ default: { limit: 1, ttl: 5000 } })
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createOrderDto: CreateOrderDto, @Request() req: AuthenticatedRequest) {
     const t0 = perfStart();
