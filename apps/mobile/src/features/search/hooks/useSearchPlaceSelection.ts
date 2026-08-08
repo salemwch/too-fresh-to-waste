@@ -24,7 +24,7 @@ interface Coordinates {
 }
 
 /** A chosen place: drives the bottom sheet and re-centres the offer query. */
-export interface SelectedPlace {
+interface SelectedPlace {
   name: string;
   address: string;
   coordinates: Coordinates;

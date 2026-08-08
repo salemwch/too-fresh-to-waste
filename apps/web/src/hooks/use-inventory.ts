@@ -7,22 +7,16 @@ import type {
   InventoryItem,
   InventoryFilters,
   StockUpdatePayload,
-  BulkUpdatePayload,
   InventoryAlert,
   InventoryAnalytics,
-  StockHistoryEntry,
 } from '@/types/inventory';
 import type { PaginationMeta } from '@/types/dashboard';
 
 const inventoryKeys = {
   all: ['inventory'] as const,
   list: (filters: string) => [...inventoryKeys.all, 'list', filters] as const,
-  item: (id: string) => [...inventoryKeys.all, 'item', id] as const,
   analytics: () => [...inventoryKeys.all, 'analytics'] as const,
   alerts: () => [...inventoryKeys.all, 'alerts'] as const,
-  lowStock: () => [...inventoryKeys.all, 'low-stock'] as const,
-  expiring: (days: number) => [...inventoryKeys.all, 'expiring', days] as const,
-  history: (id: string) => [...inventoryKeys.all, 'history', id] as const,
 };
 
 interface InventoryListResult {
@@ -100,33 +94,11 @@ export function useInventoryItems(filters: InventoryFilters) {
   });
 }
 
-export function useInventoryItem(id: string) {
-  return useQuery({
-    queryKey: inventoryKeys.item(id),
-    queryFn: async (): Promise<InventoryItem> => {
-      const response = await inventoryService.getItem(id);
-      return response.data.data;
-    },
-    enabled: !!id,
-    staleTime: 60 * 1000,
-  });
-}
-
 export function useUpdateStock() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: StockUpdatePayload }) =>
       inventoryService.updateStock(id, payload),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
-    },
-  });
-}
-
-export function useBulkUpdateStock() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: BulkUpdatePayload) => inventoryService.bulkUpdateStock(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
     },
@@ -154,41 +126,5 @@ export function useInventoryAlerts() {
     },
     staleTime: 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
-  });
-}
-
-export function useLowStockReport() {
-  return useQuery({
-    queryKey: inventoryKeys.lowStock(),
-    queryFn: async (): Promise<InventoryItem[]> => {
-      const response = await inventoryService.getLowStockReport();
-      const payload: unknown = response.data.data;
-      return extractItems<InventoryItem>(payload);
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-}
-
-export function useExpiringReport(days = 7) {
-  return useQuery({
-    queryKey: inventoryKeys.expiring(days),
-    queryFn: async (): Promise<InventoryItem[]> => {
-      const response = await inventoryService.getExpiringReport(days);
-      const payload: unknown = response.data.data;
-      return extractItems<InventoryItem>(payload);
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-}
-
-export function useStockHistory(id: string) {
-  return useQuery({
-    queryKey: inventoryKeys.history(id),
-    queryFn: async (): Promise<StockHistoryEntry[]> => {
-      const response = await inventoryService.getStockHistory(id);
-      return response.data.data;
-    },
-    enabled: !!id,
-    staleTime: 60 * 1000,
   });
 }

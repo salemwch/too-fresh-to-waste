@@ -2,17 +2,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { paymentsService } from '@/services/payments.service';
-import type {
-  PaymentListResponse,
-  PaymentQueryFilters,
-  PaymentStats,
-  MerchantPayment,
-} from '@/types/payments';
+import type { PaymentListResponse, PaymentQueryFilters, PaymentStats } from '@/types/payments';
 
 const paymentKeys = {
   all: ['payments'] as const,
   list: (filters: string) => [...paymentKeys.all, 'list', filters] as const,
-  detail: (id: string) => [...paymentKeys.all, 'detail', id] as const,
   stats: () => [...paymentKeys.all, 'stats'] as const,
 };
 
@@ -26,18 +20,6 @@ export function useMerchantPayments(filters: PaymentQueryFilters) {
     },
     staleTime: 60 * 1000,
     placeholderData: prev => prev,
-  });
-}
-
-export function usePaymentDetail(id: string) {
-  return useQuery({
-    queryKey: paymentKeys.detail(id),
-    queryFn: async (): Promise<MerchantPayment> => {
-      const response = await paymentsService.getPaymentById(id);
-      return response.data.data;
-    },
-    enabled: !!id,
-    staleTime: 60 * 1000,
   });
 }
 

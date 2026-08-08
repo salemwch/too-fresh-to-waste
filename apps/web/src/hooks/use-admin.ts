@@ -30,12 +30,9 @@ import type {
   UpdateTeamMemberPermissionsPayload,
   TicketSearchParams,
   UpdateTicketStatusPayload,
-  AssignTicketPayload,
-  UpdateTicketPriorityPayload,
   ReplyToTicketPayload,
   AnnouncementSearchParams,
   CreateAnnouncementPayload,
-  UpdateAnnouncementPayload,
   GeozoneSearchParams,
   CreateGeozonePayload,
   UpdateGeozonePayload,
@@ -108,8 +105,6 @@ export const adminKeys = {
 
   // Team
   teamMembers: (params: TeamSearchParams) => [...adminKeys.all, 'team-members', params] as const,
-  teamMember: (id: string) => [...adminKeys.all, 'team-member', id] as const,
-  teamPermissions: () => [...adminKeys.all, 'team-permissions'] as const,
 
   // Support Tickets
   tickets: (params: TicketSearchParams) => [...adminKeys.all, 'tickets', params] as const,
@@ -119,12 +114,10 @@ export const adminKeys = {
   // Announcements
   announcements: (params: AnnouncementSearchParams) =>
     [...adminKeys.all, 'announcements', params] as const,
-  announcementDetail: (id: string) => [...adminKeys.all, 'announcement', id] as const,
 
   // Geozones
   geozones: (params: GeozoneSearchParams) => [...adminKeys.all, 'geozones', params] as const,
   geozoneStats: () => [...adminKeys.all, 'geozone-stats'] as const,
-  geozoneDetail: (id: string) => [...adminKeys.all, 'geozone', id] as const,
 
   // Offers
   offerStats: () => [...adminKeys.all, 'offer-stats'] as const,
@@ -149,7 +142,6 @@ export const adminKeys = {
   expiringOffers: (hours: number) => [...adminKeys.all, 'expiring-offers', hours] as const,
 
   // Order ops
-  pendingOrders: (page: number) => [...adminKeys.all, 'pending-orders', page] as const,
 
   // Drivers
   drivers: () => [...adminKeys.all, 'drivers'] as const,
@@ -888,23 +880,6 @@ export function useTeamMembers(params: TeamSearchParams = {}) {
   });
 }
 
-export function useTeamMember(id: string | null) {
-  return useQuery({
-    queryKey: adminKeys.teamMember(id ?? ''),
-    queryFn: () => adminService.getTeamMember(id!).then(r => r.data.data),
-    enabled: !!id,
-    staleTime: 2 * 60 * 1000,
-  });
-}
-
-export function useAvailablePermissions() {
-  return useQuery({
-    queryKey: adminKeys.teamPermissions(),
-    queryFn: () => adminService.getAvailablePermissions().then(r => r.data.data),
-    staleTime: 30 * 60 * 1000,
-  });
-}
-
 export function useInviteTeamMember() {
   const qc = useQueryClient();
   return useMutation({
@@ -987,28 +962,6 @@ export function useUpdateTicketStatus() {
   });
 }
 
-export function useAssignTicket() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: AssignTicketPayload }) =>
-      adminService.assignTicket(id, payload).then(r => r.data.data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'tickets'] });
-    },
-  });
-}
-
-export function useUpdateTicketPriority() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateTicketPriorityPayload }) =>
-      adminService.updateTicketPriority(id, payload).then(r => r.data.data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'tickets'] });
-    },
-  });
-}
-
 export function useReplyToTicket() {
   const qc = useQueryClient();
   return useMutation({
@@ -1032,30 +985,11 @@ export function useAnnouncements(params: AnnouncementSearchParams = {}) {
   });
 }
 
-export function useAnnouncementDetail(id: string | null) {
-  return useQuery({
-    queryKey: adminKeys.announcementDetail(id ?? ''),
-    queryFn: () => adminService.getAnnouncement(id!).then(r => r.data.data),
-    enabled: !!id,
-  });
-}
-
 export function useCreateAnnouncement() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateAnnouncementPayload) =>
       adminService.createAnnouncement(payload).then(r => r.data.data),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'announcements'] });
-    },
-  });
-}
-
-export function useUpdateAnnouncement() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateAnnouncementPayload }) =>
-      adminService.updateAnnouncement(id, payload).then(r => r.data.data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'announcements'] });
     },
@@ -1108,14 +1042,6 @@ export function useGeozoneStats() {
     queryKey: adminKeys.geozoneStats(),
     queryFn: () => adminService.getGeozoneStats().then(r => r.data.data),
     staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useGeozoneDetail(id: string | null) {
-  return useQuery({
-    queryKey: adminKeys.geozoneDetail(id ?? ''),
-    queryFn: () => adminService.getGeozone(id!).then(r => r.data.data),
-    enabled: !!id,
   });
 }
 
@@ -1292,19 +1218,6 @@ export function useUpdateExpiredOffers() {
 }
 
 // ─── Order operation hooks ──────────────────────────────────────────────────
-
-export function usePendingOrders(page = 1, limit = 20) {
-  return useQuery({
-    queryKey: adminKeys.pendingOrders(page),
-    queryFn: () =>
-      adminService.getPendingOrders(page, limit).then(r => ({
-        data: r.data.data,
-        meta: r.data.meta,
-      })),
-    staleTime: 30 * 1000,
-    placeholderData: prev => prev,
-  });
-}
 
 export function useDeleteOrder() {
   const qc = useQueryClient();

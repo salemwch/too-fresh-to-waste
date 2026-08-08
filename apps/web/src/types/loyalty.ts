@@ -1,6 +1,6 @@
 export type LoyaltyTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
 
-export type BadgeType =
+type BadgeType =
   | 'newcomer'
   | 'eco_warrior'
   | 'frequent_saver'

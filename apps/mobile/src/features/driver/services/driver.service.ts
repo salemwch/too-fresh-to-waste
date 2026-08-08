@@ -13,7 +13,7 @@ import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/ser
 import { Logger } from '@/utils/logger';
 
 /** Backend may return either a GeoJSON point or a plain lat/lng pair. */
-export type DriverCoordinates =
+type DriverCoordinates =
   | { lat: number; lng: number }
   | { type: string; coordinates: [number, number] };
 

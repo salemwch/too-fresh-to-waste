@@ -6,4 +6,5 @@ export { BreadcrumbSchema } from './breadcrumb-schema';
 export { SoftwareAppSchema } from './software-app-schema';
 export { DonateActionSchema } from './donate-action-schema';
 export { WebPageSchema } from './webpage-schema';
-export { EventSchema } from './event-schema';
+// EventSchema is intentionally absent: no page renders it, and its only
+// consumer (the schema test suite) imports ./event-schema directly.

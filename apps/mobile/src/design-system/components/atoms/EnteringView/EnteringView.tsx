@@ -29,7 +29,7 @@ import { Animated, Easing } from 'react-native';
 
 import type { StyleProp, ViewStyle } from 'react-native';
 
-export type EnteringAnimation = 'fadeIn' | 'fadeInUp' | 'fadeInDown' | 'zoomIn';
+type EnteringAnimation = 'fadeIn' | 'fadeInUp' | 'fadeInDown' | 'zoomIn';
 
 /** Reanimated's default layout-animation duration. */
 const DEFAULT_DURATION = 300;

@@ -44,7 +44,7 @@ import type { CreateReviewRequest } from '@foodwaste/shared';
  * One entry per operation — this is the only place that needs editing to add a
  * new one.
  */
-export interface QueueOperations {
+interface QueueOperations {
   /** Add or remove a favorite. Collapses by offer: last intent wins. */
   FAVORITE_TOGGLE: {
     favoriteType: string; // FavoriteType enum value (string)
@@ -63,9 +63,9 @@ export interface QueueOperations {
   REVIEW_SUBMIT: CreateReviewRequest;
 }
 
-export type QueueItemType = keyof QueueOperations;
+type QueueItemType = keyof QueueOperations;
 
-export interface QueueItem<T extends QueueItemType = QueueItemType> {
+interface QueueItem<T extends QueueItemType = QueueItemType> {
   /** Stable id in the form `TYPE:subjectId`, so duplicates collapse. */
   id: string;
   type: T;

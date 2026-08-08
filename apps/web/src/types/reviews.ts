@@ -1,18 +1,10 @@
-export type {
-  Review,
-  ReviewSummary,
-  ReviewResponseEntry,
-  ReviewReportRequest,
-  ReviewResponseRequest,
-  ReviewQueryParams,
-  DetailedRatings,
-  ReviewMetrics,
-  ReviewImage,
-  ReviewSentiment,
-  ReviewListResponse,
-} from '@foodwaste/shared';
+// Passthroughs from @foodwaste/shared, narrowed to what web actually imports.
+// Re-exporting the whole surface made this file look like the canonical home for
+// review types; anything not listed here should be imported from
+// @foodwaste/shared directly rather than added back.
+export type { Review, ReviewSummary } from '@foodwaste/shared';
 
-export { ReviewStatus, ReviewType, SentimentType, REPORT_REASONS } from '@foodwaste/shared';
+export { REPORT_REASONS } from '@foodwaste/shared';
 
 // ─── Frontend-specific types ────────────────────────────────────────────────
 

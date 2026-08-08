@@ -614,13 +614,6 @@ export interface AdminDeletedOfferItem {
   createdAt: string;
 }
 
-export interface AdminOfferListResponse {
-  data: AdminOfferItem[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
 export interface AdminOfferQuery {
   page?: number;
   limit?: number;
@@ -768,13 +761,6 @@ export interface AdminOrderStats {
   countByStatus: Record<string, number>;
   countByPaymentStatus: Record<string, number>;
   refundTotal: number;
-}
-
-export interface AdminOrderListResponse {
-  data: AdminOrderItem[];
-  total: number;
-  page: number;
-  limit: number;
 }
 
 export interface AdminOrderQuery {
@@ -933,13 +919,6 @@ export interface AdminPayoutSummary {
   lastPayoutDate?: string;
 }
 
-export interface AdminPayoutListResponse {
-  data: AdminPayoutSummary[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
 // ─── Notification Management ────────────────────────────────────────────────
 
 export interface AdminNotificationStats {
@@ -1067,7 +1046,7 @@ export interface TeamSearchParams {
 
 export type TicketStatus = 'open' | 'in_progress' | 'awaiting_user' | 'resolved' | 'closed';
 export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
-export type TicketCategory =
+type TicketCategory =
   | 'order_issue'
   | 'payment_dispute'
   | 'account_problem'
@@ -1076,7 +1055,7 @@ export type TicketCategory =
   | 'feature_request'
   | 'other';
 
-export interface TicketReply {
+interface TicketReply {
   authorId: string;
   authorRole: 'user' | 'admin' | 'system';
   message: string;
@@ -1139,7 +1118,7 @@ export interface ReplyToTicketPayload {
 // ─── Announcements / CMS ────────────────────────────────────────────────────
 
 export type AnnouncementType = 'banner' | 'maintenance' | 'promotion' | 'update' | 'alert';
-export type AnnouncementTarget = 'all' | 'consumers' | 'merchants' | 'specific_zone';
+type AnnouncementTarget = 'all' | 'consumers' | 'merchants' | 'specific_zone';
 export type AnnouncementStatusType = 'draft' | 'scheduled' | 'active' | 'expired' | 'archived';
 
 export interface AnnouncementRow {
@@ -1277,7 +1256,7 @@ export interface SecurityStats {
   summary: { totalLoginAttempts: number; successRate: string };
 }
 
-export interface LockedAccount {
+interface LockedAccount {
   _id: string;
   firstName: string;
   lastName: string;
@@ -1423,13 +1402,13 @@ export interface CreateDriverResponse {
 }
 
 /** Last reported position. Backend flips GeoJSON [lng, lat] before sending. */
-export interface DriverPosition {
+interface DriverPosition {
   lat: number;
   lng: number;
   at: string | null;
 }
 
-export interface AdminDriverProfile {
+interface AdminDriverProfile {
   idCardNumber: string;
   address: string;
   isOnline: boolean;
@@ -1462,7 +1441,7 @@ export interface DriverRow {
   stats: DriverStats;
 }
 
-export interface DriverEarnings {
+interface DriverEarnings {
   today: number;
   thisWeek: number;
   thisMonth: number;

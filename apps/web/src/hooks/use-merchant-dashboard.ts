@@ -15,7 +15,6 @@ import type {
   CreateSurpriseBagPayload,
   ReactivateOfferPayload,
   UpdateOfferPayload,
-  DonationStats,
   EsgTierResponse,
   MonthlyGoalResponse,
   CarbonMetricsResponse,
@@ -26,8 +25,6 @@ import type {
   StreakResponse,
   BusinessMetrics,
   BusinessMetricsRequest,
-  QuickStatsResponse,
-  RealTimeMetrics,
   CustomerLocationItem,
 } from '@/types/dashboard';
 
@@ -65,8 +62,6 @@ export const dashboardKeys = {
   streak: () => [...dashboardKeys.all, 'streak'] as const,
   businessMetrics: (startDate: string, endDate: string, estId?: string) =>
     [...dashboardKeys.all, 'business-metrics', startDate, endDate, estId ?? 'all'] as const,
-  quickStats: (period: string) => [...dashboardKeys.all, 'quick-stats', period] as const,
-  realTimeMetrics: () => [...dashboardKeys.all, 'real-time'] as const,
   customerLocations: (limit: number, estId?: string) =>
     [...dashboardKeys.all, 'customer-locations', limit, estId ?? 'all'] as const,
   pricingSuggestions: () => [...dashboardKeys.all, 'pricing-suggestions'] as const,
@@ -156,21 +151,6 @@ export function useMyEstablishments() {
       return Array.isArray(list) ? list : [];
     },
     staleTime: 10 * 60 * 1000,
-  });
-}
-
-/**
- * Community donation pool statistics (public endpoint).
- * Backend: GET /donations/stats
- */
-export function useDonationStats() {
-  return useQuery({
-    queryKey: dashboardKeys.donationStats(),
-    queryFn: async (): Promise<DonationStats> => {
-      const response = await dashboardService.getDonationStats();
-      return response.data.data;
-    },
-    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -541,29 +521,6 @@ export function useBusinessMetrics(startDate: string, endDate: string) {
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useQuickStats(period: 'today' | 'week' | 'month' | 'quarter' = 'month') {
-  return useQuery({
-    queryKey: dashboardKeys.quickStats(period),
-    queryFn: async (): Promise<QuickStatsResponse> => {
-      const response = await dashboardService.getQuickStats(period);
-      return response.data.data;
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-}
-
-export function useRealTimeMetrics() {
-  return useQuery({
-    queryKey: dashboardKeys.realTimeMetrics(),
-    queryFn: async (): Promise<RealTimeMetrics> => {
-      const response = await dashboardService.getRealTimeMetrics();
-      return response.data.data;
-    },
-    staleTime: 30 * 1000,
-    refetchInterval: 30 * 1000,
   });
 }
 

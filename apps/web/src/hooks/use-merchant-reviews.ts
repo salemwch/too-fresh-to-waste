@@ -84,17 +84,6 @@ export function useTrendingKeywords(days = 30) {
   });
 }
 
-export function useRespondToReview() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ reviewId, responseText }: { reviewId: string; responseText: string }) =>
-      reviewsService.respondToReview(reviewId, responseText),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: reviewKeys.all });
-    },
-  });
-}
-
 export function useReportReview() {
   const queryClient = useQueryClient();
   return useMutation({

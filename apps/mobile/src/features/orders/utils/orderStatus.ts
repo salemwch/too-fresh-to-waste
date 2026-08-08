@@ -16,7 +16,7 @@ import { OrderStatus } from '@foodwaste/shared';
 
 import type { PickupErrorCode } from '@foodwaste/shared';
 
-export type BadgeVariant = 'warning' | 'info' | 'success' | 'error' | 'neutral';
+type BadgeVariant = 'warning' | 'info' | 'success' | 'error' | 'neutral';
 
 export interface StatusBadge {
   variant: BadgeVariant;

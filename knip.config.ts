@@ -145,6 +145,19 @@ const config: KnipConfig = {
       ],
     },
 
+    // ─── Shared ESLint presets ──────────────────────────────────────────────
+    'packages/eslint-config': {
+      ignoreDependencies: [
+        // Referenced by ./react and ./react-native, and deliberately declared
+        // optional: a consumer importing only ./base or ./nest (the backend)
+        // must not be forced to install React lint plugins. Knip sees the
+        // reference and wants them non-optional, which would invert that.
+        'eslint-plugin-react',
+        'eslint-plugin-react-hooks',
+        'eslint-plugin-react-native',
+      ],
+    },
+
     // ─── Shared tsconfig presets (JSON only — no source) ────────────────────
     'packages/tsconfig': {
       ignoreDependencies: [

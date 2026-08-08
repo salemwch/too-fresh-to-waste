@@ -6,7 +6,7 @@ export type PaymentStatus =
   | 'refunded'
   | 'cancelled';
 
-export type PaymentMethod = 'cash' | 'card' | 'smt_gateway' | 'wallet';
+type PaymentMethod = 'cash' | 'card' | 'smt_gateway' | 'wallet';
 
 export interface MerchantPayment {
   id: string;

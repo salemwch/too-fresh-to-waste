@@ -267,11 +267,6 @@ export type DriverActiveOrderNavigationProp = NativeStackNavigationProp<
   'DriverActiveOrder'
 >;
 
-export type DriverEarningsNavigationProp = NativeStackNavigationProp<
-  DriverStackParamList,
-  'DriverEarnings'
->;
-
 /**
  * Route Props for Screens with Parameters
  */
