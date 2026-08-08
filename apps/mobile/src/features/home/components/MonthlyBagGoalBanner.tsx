@@ -29,41 +29,11 @@ const COLORS = {
   textOnBrandSoft: 'rgba(255,255,255,0.8)',
   textOnBrandDim: 'rgba(255,255,255,0.35)',
   brandSurface: 'rgba(255,255,255,0.15)',
-  brandSurfaceSolid: 'rgba(255,255,255,0.20)',
   progressTrackPrize: 'rgba(255,255,255,0.10)',
   progressTrackChallenge: 'rgba(255,255,255,0.08)',
   challengeSurface: 'rgba(255,255,255,0.06)',
   challengeBorder: 'rgba(255,255,255,0.06)',
 } as const;
-
-const PulsingDot = () => {
-  const [opacity] = useState(() => new Animated.Value(1));
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    animation.start();
-    return () => {
-      animation.stop();
-    };
-  }, [opacity]);
-
-  return <Animated.View style={[styles.liveDot, { opacity }]} />;
-};
 
 const AnimatedProgressBar = ({
   percentage,
@@ -151,13 +121,9 @@ const MonthlyBagGoalBannerComponent = () => {
             <Image source={surpriseBoxImg} style={styles.icon} accessibilityIgnoresInvertColors />
           </View>
           <View style={styles.textContainer}>
-            <View style={styles.titleRow}>
-              <Text style={styles.collapsedTitle}>{seasonName}</Text>
-              <View style={styles.collapsedLiveBadge}>
-                <PulsingDot />
-                <Text style={styles.collapsedLiveText}>{t('home.live')}</Text>
-              </View>
-            </View>
+            <Text style={styles.collapsedTitle} numberOfLines={1}>
+              {seasonName}
+            </Text>
             <Text style={styles.collapsedSubtitle} numberOfLines={1}>
               {t('home.challengeProgress', {
                 current: currentCount.toLocaleString(),
@@ -199,13 +165,9 @@ const MonthlyBagGoalBannerComponent = () => {
             {/* Monthly Challenge Panel */}
             <View style={styles.challengePanel}>
               <View style={styles.challengeTop}>
-                <View style={styles.challengeLeft}>
-                  <Text style={styles.challengeName}>{seasonName}</Text>
-                  <View style={styles.liveBadge}>
-                    <PulsingDot />
-                    <Text style={styles.liveText}>{t('home.live')}</Text>
-                  </View>
-                </View>
+                <Text style={styles.challengeName} numberOfLines={1}>
+                  {seasonName}
+                </Text>
                 <Text style={styles.challengeCount}>
                   {currentCount.toLocaleString()}
                   <Text style={styles.challengeCountMuted}> / {targetCount.toLocaleString()}</Text>
@@ -269,31 +231,11 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
   collapsedTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.textOnBrand,
-  },
-  collapsedLiveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.brandSurfaceSolid,
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginStart: 8,
-  },
-  collapsedLiveText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textOnBrand,
-    letterSpacing: 0.5,
-    marginStart: 4,
+    marginBottom: 2,
   },
   collapsedSubtitle: {
     fontSize: 13,
@@ -388,36 +330,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  challengeLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   challengeName: {
+    flex: 1,
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.textOnBrandSoft,
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  liveDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: COLORS.green,
-  },
-  liveText: {
-    fontSize: 9,
-    fontWeight: '600',
-    color: COLORS.green,
   },
   challengeCount: {
     fontSize: 13,
     fontWeight: '700',
     color: COLORS.white,
+    marginStart: 8,
   },
   challengeCountMuted: {
     fontWeight: '500',
