@@ -347,6 +347,3 @@ export const adminNavGroups: NavGroup[] = [
     ],
   },
 ];
-
-// Flat array derived from groups — used by mobile nav, header, and guards
-export const adminNavItems: NavItem[] = adminNavGroups.flatMap(g => g.items);

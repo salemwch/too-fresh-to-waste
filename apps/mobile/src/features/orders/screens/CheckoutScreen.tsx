@@ -52,9 +52,6 @@ const MAX_DELIVERY_KM = 5;
 /** Mirrors FLAT_DELIVERY_FEE in the backend order.service.ts. */
 const DELIVERY_FEE_TND = 4;
 
-// Re-export kept for any direct consumers — canonical home is utils/geo.ts.
-export { haversineKm } from '@/utils/geo';
-
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();

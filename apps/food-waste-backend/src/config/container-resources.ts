@@ -110,7 +110,7 @@ export function parseCgroupV1Cpu(
  * Not rounded here — the caller decides what to do with a fractional core, and
  * rounding early would turn 0.1 into either 0 (unusable) or 1 (a lie).
  */
-export function detectCpuLimit(): number {
+function detectCpuLimit(): number {
   const v2 = parseCgroupV2Cpu(readOptional(CGROUP_V2_CPU_MAX));
   if (v2 !== undefined) {
     return v2;
@@ -129,7 +129,7 @@ export function detectCpuLimit(): number {
 }
 
 /** Memory ceiling in bytes, or undefined when unrestricted. */
-export function detectMemoryLimitBytes(): number | undefined {
+function detectMemoryLimitBytes(): number | undefined {
   for (const path of [CGROUP_V2_MEMORY_MAX, CGROUP_V1_MEMORY_MAX]) {
     const raw = readOptional(path);
     if (raw === undefined || raw === 'max') {
