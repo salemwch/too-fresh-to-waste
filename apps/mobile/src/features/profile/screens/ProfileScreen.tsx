@@ -83,6 +83,20 @@ const SOCIAL_LINKS: ReadonlyArray<{
   },
 ];
 
+/** Upper bound on a social icon; below this the row shrinks to fit the card. */
+const SOCIAL_ICON_MAX_SIZE = 42;
+const SOCIAL_ICON_GAP = 8;
+/**
+ * Horizontal slop is capped at half the gap so neighbouring icons never claim
+ * the same pixel; the vertical axis is free to grow the 44dp touch target.
+ */
+const SOCIAL_ICON_HIT_SLOP = {
+  top: 10,
+  bottom: 10,
+  left: SOCIAL_ICON_GAP / 2,
+  right: SOCIAL_ICON_GAP / 2,
+} as const;
+
 interface MenuItemProps {
   icon: string;
   label: string;
@@ -573,9 +587,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 accessibilityRole='link'
                 accessibilityLabel={`Follow us on ${link.key}`}
                 accessibilityHint={`Opens ${link.key} in your browser or app`}
-                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                hitSlop={SOCIAL_ICON_HIT_SLOP}
               >
-                <link.Svg width={42} height={42} />
+                <link.Svg width='100%' height='100%' />
               </Pressable>
             ))}
           </View>
@@ -766,16 +780,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingHorizontal: 4,
   },
+  // The six icons must survive any screen width. A fixed 42dp box × 6 plus gaps
+  // is 322dp, wider than the card's inner width on a 360dp device (296dp), and
+  // Card omits overflow:'hidden' on Android on purpose — so the row spilled past
+  // the card edges. flex:1 lets each cell shrink to the space that exists and
+  // maxWidth stops them inflating past the intended size on tablets.
   socialRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 14,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SOCIAL_ICON_GAP,
     marginTop: 12,
     paddingVertical: 4,
   },
   socialIcon: {
-    width: 42,
-    height: 42,
+    flex: 1,
+    maxWidth: SOCIAL_ICON_MAX_SIZE,
+    aspectRatio: 1,
     borderRadius: 10,
     overflow: 'hidden',
   },
