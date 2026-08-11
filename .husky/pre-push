@@ -1,7 +1,7 @@
 # Last gate before GitHub and Vercel both run `pnpm install --frozen-lockfile`.
 # Unconditional because drift also arrives without a manifest edit in the push:
 # a rebase or a merge that resolved pnpm-lock.yaml by taking one side produces a
-# lockfile matching neither manifest. <1s, and it writes nothing.
+# lockfile matching neither manifest. <1s, and it installs no node_modules.
 if ! pnpm install --frozen-lockfile --lockfile-only --ignore-scripts; then
   echo ""
   echo "pnpm-lock.yaml is out of sync with a package.json (see above)."
@@ -10,5 +10,9 @@ if ! pnpm install --frozen-lockfile --lockfile-only --ignore-scripts; then
   exit 1
 fi
 
-echo "Running type-check + unit tests for changed packages..."
-pnpm turbo run type-check test:unit --filter=...[origin/master]
+# `lint` is in the list because it was not, and two ESLint errors sat on master
+# in packages/shared until 4321efc9. Nothing ran a full lint: CI has not started
+# a run since January, and pre-commit's lint-staged only sees staged files — so
+# an error introduced in one commit stays invisible in every later one.
+echo "Running lint + type-check + unit tests for changed packages..."
+pnpm turbo run lint type-check test:unit --filter=...[origin/master]

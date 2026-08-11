@@ -3,9 +3,15 @@
 # A package.json edit whose pnpm-lock.yaml was never regenerated passes every
 # local check — type-check, tests and builds all run against an already-installed
 # node_modules — and then fails `pnpm install --frozen-lockfile` on CI and on
-# Vercel, after the push. Catch it here instead. Costs <1s and writes nothing.
+# Vercel, after the push. Catch it here instead. Costs <1s and installs no
+# node_modules. It is not read-only, though: `--lockfile-only` normalises a
+# non-canonical lockfile, and leaves an already-canonical one byte-identical.
+#
+# The `|| true` is load-bearing: husky runs hooks as `sh -e`, and grep exits 1
+# when it matches nothing — so without it, every commit that touches no manifest
+# aborts here.
 manifests_staged=$(git diff --cached --name-only |
-  grep -E '(^|/)package\.json$|^pnpm-workspace\.yaml$|^pnpm-lock\.yaml$')
+  grep -E '(^|/)package\.json$|^pnpm-workspace\.yaml$|^pnpm-lock\.yaml$' || true)
 
 if [ -n "$manifests_staged" ]; then
   # 1. The lockfile must match the manifests as they exist on disk.
