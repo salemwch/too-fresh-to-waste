@@ -47,9 +47,8 @@ export interface PrizeClaimResponse {
   createdAt: string;
 }
 
-export interface ClaimSmartphoneRequest {
-  /** No fields needed — rank is validated server-side from leaderboard */
-}
+/** No fields needed — rank is validated server-side from leaderboard. */
+export type ClaimSmartphoneRequest = Record<string, never>;
 
 export interface ClaimDiscountRequest {
   establishmentId: string;

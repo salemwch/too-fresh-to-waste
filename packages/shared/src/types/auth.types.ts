@@ -1,6 +1,6 @@
 import type { UserResponse } from './user.types';
-import type { UserRole } from '../enums/user.enum';
 import type { EstablishmentType } from '../enums/establishment.enum';
+import type { UserRole } from '../enums/user.enum';
 
 export interface LoginRequest {
   email: string;

@@ -160,3 +160,30 @@ severity label.
   is not done until the lockfile is regenerated" in CLAUDE.md.
 - Passing `--no-frozen-lockfile` to make a failing deploy install. It ships a
   tree that differs from the committed lockfile.
+
+## `image-size` has no patched version at all (2026-08-11)
+
+Dependabot raised six high alerts; four were patch-level bumps inside their
+existing majors and were taken as such — `js-yaml` 3.15.0 → `^3.15.1` and 4.3.0
+→ `^4.3.1` (both already had version-scoped overrides pinned at exactly the
+vulnerable release), and a new `nanoid@^3` → `^3.3.17`, which also collapsed two
+copies (3.3.12 and 3.3.16) into one 3.3.18.
+
+`image-size` is different: `pnpm audit` reports `Patched versions <0.0.0` for
+GHSA-5p2g-fcmc-qvqq and GHSA-w3rx-r6r6-pgpr, i.e. **no released version fixes
+it**. There is nothing to bump to, so the only options are accepting it or
+removing the dependency — and it is not ours to remove.
+
+Verified per app with `-P`, as the rule above demands rather than assuming:
+
+- **web production — not present.** No path.
+- **backend production — not present.** No path.
+- **mobile — one path**, via `react-native 0.81`, its
+  `@react-native/community-cli-plugin`, then `metro-config` and `metro`.
+  Build-time tooling, exactly like the `minimatch 3` paths recorded above: Metro
+  bundles the app, it does not ship inside the APK, and it reads image
+  dimensions from files in the repo rather than from attacker-controlled input.
+
+Recorded in `pnpm.auditConfig.ignoreGhsas`. Re-check when React Native ships a
+Metro release that drops or replaces `image-size` — that is the only thing that
+can clear it, and no override can.
