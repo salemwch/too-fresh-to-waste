@@ -56,6 +56,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
+      # Runs before the install so lockfile drift reports as its own failed step
+      # rather than as a generic "Install dependencies" failure. Resolution only
+      # — no node_modules written, ~1s.
+      - name: Verify lockfile matches every package.json
+        run: pnpm install --frozen-lockfile --lockfile-only --ignore-scripts
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -64,6 +70,11 @@ jobs:
 
       - name: Type check
         run: pnpm turbo run type-check
+
+      # knip was added and brought to 0 findings in db2ea3ca; gating it here is
+      # what stops it drifting back into an unrun config, as it did before.
+      - name: Dead code (knip)
+        run: pnpm knip:strict
 
       - name: Unit tests
         run: pnpm turbo run test:unit

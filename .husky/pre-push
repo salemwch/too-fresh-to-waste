@@ -1,2 +1,14 @@
+# Last gate before GitHub and Vercel both run `pnpm install --frozen-lockfile`.
+# Unconditional because drift also arrives without a manifest edit in the push:
+# a rebase or a merge that resolved pnpm-lock.yaml by taking one side produces a
+# lockfile matching neither manifest. <1s, and it writes nothing.
+if ! pnpm install --frozen-lockfile --lockfile-only --ignore-scripts; then
+  echo ""
+  echo "pnpm-lock.yaml is out of sync with a package.json (see above)."
+  echo "Pushing this would fail the Vercel and CI installs."
+  echo "Fix:  pnpm fix:lockfile && git add pnpm-lock.yaml"
+  exit 1
+fi
+
 echo "Running type-check + unit tests for changed packages..."
 pnpm turbo run type-check test:unit --filter=...[origin/master]

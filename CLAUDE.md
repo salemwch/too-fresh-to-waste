@@ -719,10 +719,43 @@ done without running the relevant check.
 | Before any PR (backend)  | `pnpm --filter @foodwaste/backend check:all`           |
 | Cross-app change         | `pnpm type-check` (full monorepo)                      |
 | Any `*.schema.ts` index  | `verify:indexes:strict`, then `db:create-indexes`      |
+| Any `package.json` edit  | `pnpm check:lockfile`                                  |
 
 `check:ts` covers `scripts/` as well as `src/` and `test/`. Do not narrow that
 `include` — migration and index scripts run against production, and while they
 sat outside the type-check project one shipped that could not compile at all.
+
+### A manifest edit is not done until the lockfile is regenerated
+
+Nothing you run locally reads `pnpm-lock.yaml`. Type-checks, tests and even a
+full `pnpm --filter @foodwaste/web build` all run against a `node_modules` that
+is **already installed**, so a `package.json` edited without a matching lockfile
+update passes every one of them. CI and Vercel install with `--frozen-lockfile`,
+compare specifiers, and fail before a single line is compiled — after the push.
+
+That is how `db2ea3ca` shipped: `@testing-library/jest-dom` was dropped from
+`apps/web/package.json` while the lockfile's `apps/web` importer kept it, and
+the commit's own verification (knip, three type-checks, 1067 + 108 tests, a web
+build) could not see it.
+
+```bash
+pnpm check:lockfile   # resolution only, no node_modules written, ~1s
+pnpm fix:lockfile     # regenerate after a manifest edit, then `git add` it
+```
+
+- **Never reach for `--no-frozen-lockfile`** to get a deploy through. It makes
+  the deployed tree differ from the committed lockfile, which is the problem the
+  lockfile exists to prevent.
+- **Commit the manifest and the lockfile together.** Split across two commits,
+  the first one is unbuildable — and `git bisect` lands on it.
+- **A lockfile can drift without any manifest edit in your diff.** A rebase or a
+  merge resolved by taking one side of `pnpm-lock.yaml` yields a lockfile
+  matching neither manifest, which is why the `pre-push` hook checks
+  unconditionally rather than only when a `package.json` is staged.
+- **Expect peer-suffix churn in the diff.** Adding one root devDependency that
+  pulls `ts-node`/`@swc/core` rewrites every `jest@29.7.0(...)` key in the file.
+  It is noise, not a version change — confirm by filtering it out and reading
+  what is left.
 
 ---
 

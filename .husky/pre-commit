@@ -1,1 +1,31 @@
+# Lockfile drift gate.
+#
+# A package.json edit whose pnpm-lock.yaml was never regenerated passes every
+# local check — type-check, tests and builds all run against an already-installed
+# node_modules — and then fails `pnpm install --frozen-lockfile` on CI and on
+# Vercel, after the push. Catch it here instead. Costs <1s and writes nothing.
+manifests_staged=$(git diff --cached --name-only |
+  grep -E '(^|/)package\.json$|^pnpm-workspace\.yaml$|^pnpm-lock\.yaml$')
+
+if [ -n "$manifests_staged" ]; then
+  # 1. The lockfile must match the manifests as they exist on disk.
+  if ! pnpm install --frozen-lockfile --lockfile-only --ignore-scripts; then
+    echo ""
+    echo "pnpm-lock.yaml is out of sync with a package.json (see above)."
+    echo "Fix:  pnpm fix:lockfile && git add pnpm-lock.yaml"
+    exit 1
+  fi
+
+  # 2. ...and the matching lockfile must be going into THIS commit. The check
+  #    above reads the working tree, so staging a manifest while leaving the
+  #    regenerated lockfile unstaged would still commit a broken pair.
+  if ! git diff --quiet -- pnpm-lock.yaml; then
+    echo ""
+    echo "A manifest is staged but pnpm-lock.yaml has unstaged changes."
+    echo "They must land in the same commit, or CI installs a stale lockfile."
+    echo "Fix:  git add pnpm-lock.yaml"
+    exit 1
+  fi
+fi
+
 pnpm exec lint-staged

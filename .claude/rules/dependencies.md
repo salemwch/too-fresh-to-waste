@@ -151,4 +151,12 @@ severity label.
 - Bumping a major to silence an auditor without testing the consumers.
 - Resolving a `pnpm-lock.yaml` merge conflict by taking either side. Regenerate
   it from the merged manifests — a stale branch's lockfile will quietly revert
-  security bumps that landed on master.
+  security bumps that landed on master. Then run `pnpm check:lockfile`: a
+  resolution that matches neither manifest fails `--frozen-lockfile` on CI and
+  Vercel while passing every local type-check and test, because those read
+  `node_modules`, never the lockfile.
+- Editing any `package.json` without regenerating the lockfile in the same
+  commit (`pnpm fix:lockfile && git add pnpm-lock.yaml`). See "A manifest edit
+  is not done until the lockfile is regenerated" in CLAUDE.md.
+- Passing `--no-frozen-lockfile` to make a failing deploy install. It ships a
+  tree that differs from the committed lockfile.
