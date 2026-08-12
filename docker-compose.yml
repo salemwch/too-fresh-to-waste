@@ -16,8 +16,6 @@
 #   Clean:   docker-compose down -v
 # ============================================
 
-version: "3.9"
-
 services:
   # ============================================
   # MongoDB Database
@@ -44,7 +42,78 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-    command: mongod --auth
+    # Mongo runs as a SINGLE-NODE REPLICA SET, not a standalone.
+    #
+    # This is not about redundancy — one node gives none. The application uses
+    # `session.withTransaction()` in order creation, the payment webhook and
+    # several other paths, and MongoDB only offers multi-document transactions
+    # on a replica set or a mongos. Against a standalone every one of those
+    # paths fails with `IllegalOperation: Transaction numbers are only allowed
+    # on a replica set member or mongos`, so checkout could not work locally or
+    # in CI at all.
+    #
+    # Replication plus `--auth` requires internal member authentication, hence
+    # the keyfile. It is generated on first boot into the `mongodb_config`
+    # volume and reused thereafter, so this stays deterministic across restarts
+    # and needs no file committed to the repo (a keyfile is a credential) and
+    # no host-side permissions, which do not survive a Windows bind mount.
+    command: >
+      bash -c "
+        if [ ! -f /data/configdb/replica.key ]; then
+          openssl rand -base64 756 > /data/configdb/replica.key;
+          chmod 400 /data/configdb/replica.key;
+          chown mongodb:mongodb /data/configdb/replica.key;
+        fi;
+        exec docker-entrypoint.sh mongod --auth --replSet rs0 --keyFile /data/configdb/replica.key --bind_ip_all
+      "
+
+  # ============================================
+  # MongoDB replica-set initiation (one-shot)
+  # ============================================
+  # Separate from the healthcheck on purpose: a healthcheck that mutates
+  # cluster state is a side effect hiding in a probe, and it cannot express
+  # "wait until a PRIMARY has actually been elected". This runs once, is safe
+  # to re-run, and exits 0 only when the node is genuinely writable — which is
+  # what `service_completed_successfully` then gives the backend.
+  mongo-init:
+    image: mongo:7.0
+    container_name: foodwaste-mongo-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - foodwaste-network
+    entrypoint:
+      - bash
+      - -c
+      - |
+        set -e
+        URI="mongodb://admin:password123@mongodb:27017/admin?directConnection=true"
+
+        # rs.status() throws NotYetInitialized (code 94) until initiated, so the
+        # error code is the idempotency check — re-running never re-initiates.
+        mongosh "$$URI" --quiet --eval '
+          try {
+            rs.status();
+            print("replica set rs0 already initialised");
+          } catch (e) {
+            if (e.code === 94) {
+              rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "mongodb:27017" }] });
+              print("replica set rs0 initiated");
+            } else {
+              throw e;
+            }
+          }
+        '
+
+        # Election takes a moment. Without this wait the backend can connect
+        # before a PRIMARY exists and fail its first write.
+        echo "waiting for PRIMARY..."
+        until mongosh "$$URI" --quiet --eval 'db.hello().isWritablePrimary' | grep -q true; do
+          sleep 1
+        done
+        echo "MongoDB is PRIMARY and accepting writes"
 
   # ============================================
   # Redis Cache & Queue
@@ -109,13 +178,62 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    # The image CMD is `pm2-runtime ... --env production`, and PM2 applies the
+    # ecosystem file's env_production block to the child process — which
+    # overrides the container's NODE_ENV. That made the `NODE_ENV: development`
+    # below decorative and the backend unstartable here: every production-only
+    # config guard (CORS_ORIGINS, Resend, Firebase, Supabase, Twilio, cookie and
+    # encryption secrets) fired at boot and PM2 crash-looped all four workers.
+    #
+    # This stack is for local development and CI, so it selects the matching PM2
+    # environment. The production image is unchanged — only the command compose
+    # uses to start it.
+    command:
+      - dumb-init
+      - pm2-runtime
+      - start
+      - ecosystem.config.js
+      - --only
+      - food-waste-api
+      - --env
+      - development
     environment:
       # Application
       NODE_ENV: development
       PORT: 3000
 
+      # Load-test switches. Both default to production-safe values, so a plain
+      # `docker compose up` behaves exactly as before; the load-test workflows
+      # export them into this process and compose substitutes them here.
+      #
+      # These MUST be substituted rather than hardcoded: exporting a variable
+      # for `docker compose up` has no effect on the container unless the
+      # compose file references it, so without these lines the CI steps that
+      # set PAYMENT_PROVIDER=stub would silently run against real Konnect.
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-konnect}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-100}
+      THROTTLE_TTL: ${THROTTLE_TTL:-60000}
+
+      # Required by config validation in every environment, not just production.
+      # Placeholders: no mail is delivered from this stack and nothing here is a
+      # real credential. Override via the shell to exercise real delivery.
+      RESEND_API_KEY: ${RESEND_API_KEY:-re_local_dev_placeholder}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-noreply@example.com}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
+      # Read with getOrThrow, so its absence is a boot failure rather than a
+      # degraded feature. Geolocation autocomplete will not work against this
+      # placeholder; nothing in the load or concurrency suites depends on it.
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-local-dev-placeholder}
+      GEOAPIFY_API_KEY: ${GEOAPIFY_API_KEY:-local-dev-placeholder}
+
       # Database
-      DATABASE_URL: mongodb://admin:password123@mongodb:27017/foodwaste?authSource=admin
+      # `replicaSet=rs0` makes the driver discover topology and enables sessions
+      # (and therefore transactions). `directConnection=true` is required
+      # alongside it for a single-node set reached by container hostname:
+      # without it the driver uses the replica-set member name from the config,
+      # which is only resolvable inside the compose network.
+      DATABASE_URL: mongodb://admin:password123@mongodb:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
 
       # Redis
       REDIS_HOST: redis
@@ -140,8 +258,10 @@ services:
       # Logging
       LOG_LEVEL: debug
     depends_on:
-      mongodb:
-        condition: service_healthy
+      # Not `mongodb: service_healthy` — healthy only means the process answers
+      # a ping. Transactions need an elected PRIMARY, which mongo-init waits for.
+      mongo-init:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
       rabbitmq:

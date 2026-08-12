@@ -106,12 +106,32 @@ RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 # @mongodb-js/zstd without their compiled .node files, and the container dies
 # on the first password hash rather than at build time.
 #
-# npm rebuild (not pnpm rebuild) targets individual packages without validating
-# pnpm's .modules.yaml — see header comment #2.
 # Build tools are temporary, for @mongodb-js/zstd's node-gyp fallback on musl.
+#
+# `pnpm -r rebuild`, and every part of that matters.
+#
+# `npm rebuild` cannot navigate pnpm's store layout: the packages live under
+# node_modules/.pnpm/<name>@<version>/node_modules/<name>, npm looks at the top
+# level, finds nothing, and exits 0. Plain `pnpm rebuild` exits 0 too — without
+# -r it only considers the root project's own dependencies, and these are
+# transitive dependencies of the backend *workspace* project. Only the recursive
+# form walks all workspace projects, finds them, and runs their install scripts.
+#
+# Both silent forms are the whole problem: the step looked like it worked for as
+# long as it has existed, while producing no binaries at all.
+#
+# argon2 survived anyway because it ships prebuilt binaries for every platform.
+# @mongodb-js/zstd ships none, so the image had no zstd addon — and since the
+# Mongoose config negotiates `compressors: ['zstd', ...]`, the driver selected
+# zstd and then threw MongoMissingDependencyError on every single command. The
+# container could not run one query.
+#
+# The build must also be verified rather than assumed: a rebuild that fails to
+# emit a .node file has to fail the image build, or this exact class of silent
+# no-op comes straight back.
 RUN apk add --no-cache --virtual .build-deps python3 make g++ \
-    && npm rebuild argon2 \
-    && npm rebuild @mongodb-js/zstd \
+    && pnpm -r rebuild argon2 @mongodb-js/zstd \
+    && find node_modules/.pnpm -path '*zstd*' -name '*.node' -print -quit | grep -q . \
     && apk del .build-deps
 
 # ============================================
