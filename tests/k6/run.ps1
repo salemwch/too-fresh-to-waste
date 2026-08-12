@@ -1,54 +1,49 @@
-# k6 Test Runner for Too Fresh To Waste
-# Usage:
-#   .\tests\k6\run.ps1 smoke                           # smoke test against localhost
-#   .\tests\k6\run.ps1 load -Env staging               # load test against staging
-#   .\tests\k6\run.ps1 stress -Env staging              # stress test
-#   .\tests\k6\run.ps1 spike -Env staging               # spike test
-#   .\tests\k6\run.ps1 module auth                      # single module test
-#   .\tests\k6\run.ps1 module offers -Env local         # single module against local
+# k6 runner for Too Fresh To Waste
+#
+#   .\tests\k6\run.ps1 gate                     # CI regression gate (docker)
+#   .\tests\k6\run.ps1 capacity -Env staging    # breakpoint
+#   .\tests\k6\run.ps1 soak -Env staging        # 2h steady
+#   .\tests\k6\run.ps1 spike -Env staging
+#   .\tests\k6\run.ps1 concurrency              # correctness; run the verifier after
+#   .\tests\k6\run.ps1 rate-limit               # asserts the limiter still fires
+#   .\tests\k6\run.ps1 smoke                    # functional post-deploy check
+#
+# Every suite except smoke and rate-limit needs seeded fixtures:
+#   pnpm --filter @foodwaste/backend seed:loadtest
 
 param(
     [Parameter(Position = 0, Mandatory = $true)]
-    [ValidateSet('smoke', 'load', 'stress', 'spike', 'module')]
-    [string]$Type,
+    [ValidateSet('gate', 'capacity', 'soak', 'spike', 'concurrency', 'rate-limit', 'smoke')]
+    [string]$Suite,
 
-    [Parameter(Position = 1)]
-    [string]$Module,
-
+    [ValidateSet('local', 'docker', 'staging')]
     [string]$Env = 'local',
 
-    [string]$ConsumerEmail,
-    [string]$ConsumerPassword,
-    [string]$MerchantEmail,
-    [string]$MerchantPassword,
-    [string]$AdminEmail,
-    [string]$AdminPassword
+    [string]$SeedPassword
 )
 
-$k6Root = "$PSScriptRoot"
-$envArgs = @("--env", "ENV=$Env")
+$root = $PSScriptRoot
+$file = if ($Suite -eq 'smoke') { "$root/smoke/all-modules.js" } else { "$root/suites/$Suite.js" }
 
-if ($ConsumerEmail)    { $envArgs += @("--env", "CONSUMER_EMAIL=$ConsumerEmail") }
-if ($ConsumerPassword) { $envArgs += @("--env", "CONSUMER_PASSWORD=$ConsumerPassword") }
-if ($MerchantEmail)    { $envArgs += @("--env", "MERCHANT_EMAIL=$MerchantEmail") }
-if ($MerchantPassword) { $envArgs += @("--env", "MERCHANT_PASSWORD=$MerchantPassword") }
-if ($AdminEmail)       { $envArgs += @("--env", "ADMIN_EMAIL=$AdminEmail") }
-if ($AdminPassword)    { $envArgs += @("--env", "ADMIN_PASSWORD=$AdminPassword") }
-
-if ($Type -eq 'module') {
-    if (-not $Module) {
-        Write-Error "Module name required. Available: health, auth, offers, orders, establishments, favorites, reviews, notifications, user"
-        exit 1
-    }
-    $testFile = "$k6Root/tests/$Module.test.js"
-    if (-not (Test-Path $testFile)) {
-        Write-Error "Test file not found: $testFile"
-        exit 1
-    }
-    Write-Host "Running $Module tests against $Env..." -ForegroundColor Cyan
-    & k6 run @envArgs $testFile
-} else {
-    $scenarioFile = "$k6Root/scenarios/$Type.test.js"
-    Write-Host "Running $Type scenario against $Env..." -ForegroundColor Cyan
-    & k6 run @envArgs $scenarioFile
+if (-not (Test-Path $file)) {
+    Write-Error "Suite not found: $file"
+    exit 1
 }
+
+$k6Args = @('run', $file, '--env', "ENV=$Env")
+if ($SeedPassword) { $k6Args += @('--env', "SEED_PASSWORD=$SeedPassword") }
+
+New-Item -ItemType Directory -Force -Path "$root/../../results" | Out-Null
+
+Write-Host "Running $Suite against $Env..." -ForegroundColor Cyan
+& k6 @k6Args
+$exit = $LASTEXITCODE
+
+if ($Suite -eq 'concurrency' -and $exit -eq 0) {
+    Write-Host "`nHTTP invariants held. Checking database invariants..." -ForegroundColor Cyan
+    # k6 only sees responses; double-crediting returns 200 like everything else.
+    pnpm --filter '@foodwaste/backend' verify:loadtest-invariants
+    $exit = $LASTEXITCODE
+}
+
+exit $exit

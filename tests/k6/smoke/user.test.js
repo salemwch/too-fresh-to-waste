@@ -5,8 +5,8 @@ import {
   TEST_CONSUMER_EMAIL,
   TEST_CONSUMER_PASSWORD,
 } from '../config.js';
-import { login, authHeaders } from '../helpers/auth.js';
-import { checkResponse } from '../helpers/checks.js';
+import { login, authHeaders } from './helpers/auth.js';
+import { checkResponse } from './helpers/checks.js';
 
 export default function () {
   const consumer = login(TEST_CONSUMER_EMAIL, TEST_CONSUMER_PASSWORD);

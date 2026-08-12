@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { check } from 'k6';
-import { BASE_URL } from '../config.js';
+import { BASE_URL } from '../../config.js';
 
 // Authenticates and returns { accessToken, refreshToken, cookies }
 export function login(email, password) {

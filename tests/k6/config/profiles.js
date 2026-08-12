@@ -1,0 +1,164 @@
+// Load shapes, kept separate from the journeys so the same journey can be run
+// as a gate, a breakpoint or a soak without editing it.
+//
+// Closed vs open model matters more than the numbers. `ramping-vus` is closed:
+// a VU waits for its response before issuing the next request, which is what a
+// person tapping an app does — as the server slows, offered load falls with it.
+// `constant-arrival-rate` is open: it issues N iterations per unit time no
+// matter how slow the server is, which is what a polling client does. Using a
+// closed model everywhere is the most common load-testing mistake, because it
+// silently throttles the load exactly when the system starts to struggle, and
+// the cliff never appears.
+
+/** ~4 min. Runs on every PR against docker compose. */
+export const GATE_PROFILE = {
+  consumer_cold_start: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 10 },
+      { duration: '2m', target: 10 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'consumerColdStart',
+    tags: { journey: 'cold_start' },
+  },
+  consumer_browse: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 20 },
+      { duration: '2m', target: 20 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'consumerBrowse',
+    tags: { journey: 'browse' },
+  },
+  // ~5% of traffic: the real conversion shape, and every iteration permanently
+  // consumes seeded stock.
+  consumer_checkout: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 2 },
+      { duration: '2m', target: 2 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'consumerCheckout',
+    tags: { journey: 'checkout' },
+  },
+  merchant_dashboard: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 3 },
+      { duration: '2m', target: 3 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'merchantDashboard',
+    tags: { journey: 'merchant' },
+  },
+  driver_poll: {
+    executor: 'constant-arrival-rate',
+    rate: 12,
+    timeUnit: '1m',
+    duration: '3m10s',
+    preAllocatedVUs: 5,
+    maxVUs: 10,
+    exec: 'driverPoll',
+    tags: { journey: 'driver' },
+  },
+};
+
+/**
+ * Breakpoint. Ramps until something gives, then keeps going so the shape of
+ * the degradation is visible rather than just its onset.
+ */
+export const CAPACITY_PROFILE = {
+  consumer_browse: {
+    executor: 'ramping-vus',
+    startVUs: 5,
+    stages: [
+      { duration: '2m', target: 25 },
+      { duration: '2m', target: 50 },
+      { duration: '2m', target: 100 },
+      { duration: '2m', target: 200 },
+      { duration: '2m', target: 400 },
+      { duration: '1m', target: 0 },
+    ],
+    exec: 'consumerBrowse',
+    tags: { journey: 'browse' },
+  },
+  consumer_cold_start: {
+    executor: 'ramping-vus',
+    startVUs: 2,
+    stages: [
+      { duration: '4m', target: 40 },
+      { duration: '4m', target: 120 },
+      { duration: '2m', target: 200 },
+      { duration: '1m', target: 0 },
+    ],
+    exec: 'consumerColdStart',
+    tags: { journey: 'cold_start' },
+  },
+  merchant_dashboard: {
+    executor: 'ramping-vus',
+    startVUs: 1,
+    stages: [
+      { duration: '5m', target: 10 },
+      { duration: '5m', target: 25 },
+      { duration: '1m', target: 0 },
+    ],
+    exec: 'merchantDashboard',
+    tags: { journey: 'merchant' },
+  },
+};
+
+/** 2 hours steady. Finds leaks and pool exhaustion, which no short run can. */
+export const SOAK_PROFILE = {
+  consumer_browse: {
+    executor: 'constant-vus',
+    vus: 20,
+    duration: '2h',
+    exec: 'consumerBrowse',
+    tags: { journey: 'browse' },
+  },
+  consumer_checkout: {
+    executor: 'constant-arrival-rate',
+    rate: 30,
+    timeUnit: '1m',
+    duration: '2h',
+    preAllocatedVUs: 10,
+    maxVUs: 30,
+    exec: 'consumerCheckout',
+    tags: { journey: 'checkout' },
+  },
+  driver_poll: {
+    executor: 'constant-arrival-rate',
+    rate: 20,
+    timeUnit: '1m',
+    duration: '2h',
+    preAllocatedVUs: 5,
+    maxVUs: 15,
+    exec: 'driverPoll',
+    tags: { journey: 'driver' },
+  },
+};
+
+/** Burst and recovery. The recovery leg is the part worth watching. */
+export const SPIKE_PROFILE = {
+  spike: {
+    executor: 'ramping-vus',
+    startVUs: 5,
+    stages: [
+      { duration: '1m', target: 5 }, // baseline
+      { duration: '10s', target: 150 }, // burst
+      { duration: '2m', target: 150 }, // sustained
+      { duration: '10s', target: 5 }, // drop
+      { duration: '3m', target: 5 }, // does it actually recover?
+      { duration: '30s', target: 0 },
+    ],
+    exec: 'consumerColdStart',
+    tags: { journey: 'cold_start' },
+  },
+};

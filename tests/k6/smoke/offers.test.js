@@ -7,12 +7,12 @@ import {
   TEST_MERCHANT_EMAIL,
   TEST_MERCHANT_PASSWORD,
 } from '../config.js';
-import { login, authHeaders } from '../helpers/auth.js';
+import { login, authHeaders } from './helpers/auth.js';
 import {
   checkResponse,
   checkPaginatedResponse,
   extractData,
-} from '../helpers/checks.js';
+} from './helpers/checks.js';
 
 export default function () {
   // --- Consumer browsing offers ---

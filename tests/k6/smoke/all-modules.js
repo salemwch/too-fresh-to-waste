@@ -3,17 +3,16 @@
 // Run: k6 run tests/k6/scenarios/smoke.test.js --env ENV=local
 
 import { group, sleep } from 'k6';
-import { THRESHOLDS } from '../config.js';
 
-import healthTests from '../tests/health.test.js';
-import authTests from '../tests/auth.test.js';
-import offersTests from '../tests/offers.test.js';
-import ordersTests from '../tests/orders.test.js';
-import establishmentsTests from '../tests/establishments.test.js';
-import favoritesTests from '../tests/favorites.test.js';
-import reviewsTests from '../tests/reviews.test.js';
-import notificationsTests from '../tests/notifications.test.js';
-import userTests from '../tests/user.test.js';
+import healthTests from './health.test.js';
+import authTests from './auth.test.js';
+import offersTests from './offers.test.js';
+import ordersTests from './orders.test.js';
+import establishmentsTests from './establishments.test.js';
+import favoritesTests from './favorites.test.js';
+import reviewsTests from './reviews.test.js';
+import notificationsTests from './notifications.test.js';
+import userTests from './user.test.js';
 
 export const options = {
   vus: 1,
