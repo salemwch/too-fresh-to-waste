@@ -112,6 +112,19 @@ export const GATE_PROFILE = {
     exec: 'notificationBurst',
     tags: { journey: 'notification' },
   },
+  // WebSocket compatibility check — connect + authenticate over the real
+  // Engine.IO/Socket.IO framing. Full WS load (room join, heartbeat,
+  // disconnect/reconnect, unauthenticated timeout) runs via the standalone
+  // suites/websocket-load.js, not the PR gate.
+  websocket_connect: {
+    executor: 'per-vu-iterations',
+    vus: 10,
+    iterations: 1,
+    exec: 'websocketConnect',
+    startTime: '0s',
+    maxDuration: '60s',
+    tags: { journey: 'websocket' },
+  },
 };
 
 /**

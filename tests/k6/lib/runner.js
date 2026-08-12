@@ -7,6 +7,7 @@ import { warmCacheBrowse } from '../journeys/consumer-search.js';
 import { driverPoll } from '../journeys/driver-poll.js';
 import { merchantDashboard } from '../journeys/merchant-dashboard.js';
 import { orderBurst } from '../journeys/notification-storm.js';
+import { connectionStorm } from '../journeys/websocket-load.js';
 import { mintTokenPool } from './auth.js';
 
 // Shared wiring so every suite mints its pools the same way and the exec names
@@ -52,5 +53,6 @@ export function makeExecs() {
     merchantDashboard: data => merchantDashboard(pick(data.merchants)),
     driverPoll: data => driverPoll(pick(data.drivers)),
     notificationBurst: data => orderBurst(pick(data.consumers)),
+    websocketConnect: data => connectionStorm(pick(data.consumers)),
   };
 }
