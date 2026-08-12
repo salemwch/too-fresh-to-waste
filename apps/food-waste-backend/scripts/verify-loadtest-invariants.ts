@@ -18,6 +18,7 @@ import type { Model } from 'mongoose';
 import { AppModule } from '../src/app.module';
 import { DonationPool, DonationPoolStatus } from '../src/donations/schemas/donation-pool.schema';
 import { UserDonation } from '../src/donations/schemas/user-donation.schema';
+import { Establishment } from '../src/establishments/schemas/establishment.schema';
 import { LoyaltyAccount } from '../src/loyalty/schemas/loyalty-account.schema';
 import { Notification } from '../src/notifications/schemas/notification.schema';
 import { NotificationStatus } from '../src/notifications/types/notification.types';
@@ -57,6 +58,7 @@ async function bootstrap(): Promise<void> {
   const poolModel = app.get<Model<DonationPool>>(getModelToken(DonationPool.name));
   const donationModel = app.get<Model<UserDonation>>(getModelToken(UserDonation.name));
   const notificationModel = app.get<Model<Notification>>(getModelToken(Notification.name));
+  const establishmentModel = app.get<Model<Establishment>>(getModelToken(Establishment.name));
 
   try {
     // ---------------------------------------------------------------------
@@ -505,6 +507,59 @@ async function bootstrap(): Promise<void> {
         'no delivered notifications found — SLA measurement skipped',
       );
     }
+
+    // ---------------------------------------------------------------------
+    // 8. Subscription state-machine validity.
+    // ---------------------------------------------------------------------
+    // Every paid establishment must have a valid state combination. This is
+    // exactly what the subscription-race k6 suite's double-initiate and
+    // wrong-tier-proof scenarios can break: initiatePayment writes
+    // pendingTier/pendingCycle and lastPaymentRef as two separate updates,
+    // so a second initiate racing the first can leave the webhook settling
+    // with a tier/cycle pair that was never fully written together.
+    const invalidSubStates = await establishmentModel
+      .find({
+        subscriptionStatus: 'paid',
+        $or: [
+          { subscriptionTier: null },
+          { subscriptionTier: { $exists: false } },
+          { subscriptionCycle: null },
+          { subscriptionCycle: { $exists: false } },
+        ],
+      })
+      .select('_id subscriptionStatus subscriptionTier subscriptionCycle')
+      .lean();
+
+    assert(
+      'no paid establishment has null tier or cycle',
+      invalidSubStates.length === 0,
+      invalidSubStates.length === 0
+        ? 'all paid establishments have valid state'
+        : `${invalidSubStates.length} establishments with invalid subscription state`,
+    );
+
+    // A "paid" establishment whose subscriptionExpiresAt has already passed
+    // is what the duplicate-webhook race would produce if handleWebhook's
+    // TOCTOU guard (subscriptionStatus === 'paid' && daysRemaining > 7) loses
+    // a race — the seed fixtures never set subscription fields at all
+    // (every establishment starts 'trial' with no subscriptionExpiresAt), so
+    // any match here was written during this run, not inherited from seed
+    // data.
+    const expiredButPaid = await establishmentModel
+      .find({
+        subscriptionStatus: 'paid',
+        subscriptionExpiresAt: { $exists: true, $lt: new Date() },
+      })
+      .select('_id subscriptionExpiresAt')
+      .lean();
+
+    assert(
+      'no paid establishment has an already-expired subscriptionExpiresAt',
+      expiredButPaid.length === 0,
+      expiredButPaid.length === 0
+        ? 'all paid establishments have a future expiry'
+        : `${expiredButPaid.length} paid establishments already past subscriptionExpiresAt`,
+    );
   } finally {
     await app.close();
   }
