@@ -53,6 +53,22 @@ const ENDPOINT_GATES = {
   urgent: 500,
   detail: 300,
   suggestions: 200,
+
+  // Auth security (these run at production throttle, separate suite).
+  auth_login: 800,
+
+  // Mobile session.
+  auth_refresh: 300,
+  auth_logout: 200,
+
+  // Notification.
+  notifications_list: 300,
+  mark_read: 200,
+  mark_all_read: 300,
+
+  // Subscription.
+  subscription_initiate: 1500,
+  subscription_webhook: 800,
 };
 
 function durationThresholds(gates, extra = {}) {
@@ -133,5 +149,6 @@ export const CONCURRENCY = {
 };
 
 export { GEO_SEARCH_THRESHOLDS as GEO_SEARCH } from '../lib/contracts/geo-search.js';
+export { SUBSCRIPTION_RACE_THRESHOLDS as SUBSCRIPTION_RACE } from '../lib/contracts/subscription-race.js';
 
 export { ENDPOINT_GATES };
