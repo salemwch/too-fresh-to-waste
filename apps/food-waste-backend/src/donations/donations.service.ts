@@ -9,6 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CronLockName, CronLockTtl } from '../common/constants/cron-lock.constant';
 import { CronLockService } from '../common/services/cron-lock.service';
+import { isDuplicateKeyError } from '../common/utils/mongo.utils';
 import { Queue } from 'bull';
 import { Model, Types } from 'mongoose';
 
@@ -64,8 +65,21 @@ export class DonationsService {
   }
 
   /**
-   * Initialize the default active donation pool if none exists
-   * Runs on service startup to ensure there's always an active pool
+   * Initialize the default active donation pool if none exists.
+   *
+   * Runs in every process at startup, and the backend runs PM2 in **cluster
+   * mode** — so this executes once per worker, simultaneously. A read-then-
+   * create here produced one ACTIVE pool per worker: four workers, four pools,
+   * all created inside 600 ms. That breaks the domain's central invariant
+   * (exactly one ACTIVE pool), makes `getActivePool()` return an arbitrary one,
+   * and silently splits contributions and goal progress across them.
+   *
+   * The upsert below is only half the guard. A plain upsert is not atomic
+   * across documents: with no unique index, concurrent upserts matching zero
+   * documents will each insert. The other half is the unique partial index on
+   * DonationPoolSchema, which is what actually makes the second insert fail —
+   * and the E11000 caught here is the losing worker's normal path, not an
+   * error worth surfacing.
    */
   private async initializeDefaultPool(): Promise<void> {
     try {
@@ -97,8 +111,18 @@ export class DonationsService {
           isArchived: false,
         });
 
-        await defaultPool.save();
-        this.logger.log('Default donation pool created successfully');
+        try {
+          await defaultPool.save();
+          this.logger.log('Default donation pool created successfully');
+        } catch (error) {
+          // A concurrent worker won the race. The unique partial index rejected
+          // this insert, which is the mechanism working — not a failure.
+          if (isDuplicateKeyError(error)) {
+            this.logger.log('Default donation pool already created by another worker');
+          } else {
+            throw error;
+          }
+        }
       }
 
       await this.seedCategorySnapshots();
@@ -247,16 +271,12 @@ export class DonationsService {
         { $inc: { totalAmount: input.amount, totalItems: estimatedMeals } },
       );
 
-      // Target reached — advance to next goal with overflow
-      if (
-        updatedPool &&
-        updatedPool.currentAmount >= updatedPool.targetAmount &&
-        updatedPool.status === DonationPoolStatus.ACTIVE
-      ) {
-        const overflow = parseFloat(
-          Math.max(0, updatedPool.currentAmount - updatedPool.targetAmount).toFixed(3),
-        );
-        await this.advanceToNextGoal(updatedPool, overflow);
+      // Target reached — hand off to the rotation claim. This check is only a
+      // fast path: two concurrent donations each get their own post-image from
+      // $inc and neither has written FUNDED yet, so both can arrive here for the
+      // same pool. rotateIfFunded is what actually serialises them.
+      if (updatedPool && updatedPool.currentAmount >= updatedPool.targetAmount) {
+        await this.rotateIfFunded(updatedPool);
       }
 
       // Off the critical path: contributor count + badge assignment.
@@ -278,32 +298,73 @@ export class DonationsService {
   }
 
   /**
-   * Advance from a completed goal to the next one in the sequence.
-   * The funded pool is capped at its target; overflow seeds the new pool.
+   * Claim and perform the rotation away from a funded goal.
+   *
+   * The ACTIVE -> FUNDED/SEASON_COMPLETE transition is an atomic
+   * compare-and-set, and it is the only thing preventing a double rotation.
+   * The previous read-then-act form let two concurrent donations both decide to
+   * advance: each `$inc` returns its own post-image, and neither had written
+   * FUNDED by the time the other read it. That produced two ACTIVE pools for
+   * one category (making `getActivePool` ambiguous), pushed `completedGoals`
+   * twice, and seeded each new pool with its own caller's view of the overflow
+   * — crediting the charity ledger with money nobody donated.
+   *
+   * Overflow is therefore derived from the claim's pre-image, which holds the
+   * true post-increment total, never from an individual caller's view.
    */
-  private async advanceToNextGoal(
-    fundedPool: DonationPoolDocument,
-    overflow: number,
-  ): Promise<void> {
-    const nextCategory = getNextGoal(fundedPool.activeGoalCategory);
+  private async rotateIfFunded(pool: DonationPoolDocument): Promise<void> {
+    const category = pool.activeGoalCategory;
+    const nextCategory = getNextGoal(category);
+    const terminalStatus = nextCategory
+      ? DonationPoolStatus.FUNDED
+      : DonationPoolStatus.SEASON_COMPLETE;
 
-    if (!nextCategory) {
-      await this.completeSeason(fundedPool);
+    const claimed = await this.donationPoolModel.findOneAndUpdate(
+      {
+        _id: pool._id,
+        status: DonationPoolStatus.ACTIVE,
+        $expr: { $gte: ['$currentAmount', '$targetAmount'] },
+      },
+      {
+        $set: { status: terminalStatus, currentAmount: pool.targetAmount },
+        $push: { completedGoals: category },
+      },
+      { new: false },
+    );
+
+    // Lost the race, or the pool is no longer fundable. The winner owns the
+    // rotation; doing anything further here is what creates the second pool.
+    if (!claimed) {
       return;
     }
 
+    if (!nextCategory) {
+      this.logger.log(
+        `Season ${claimed.season} complete! All 5 goals funded. Awaiting admin approval for new season.`,
+      );
+      return;
+    }
+
+    const overflow = parseFloat(
+      Math.max(0, claimed.currentAmount - claimed.targetAmount).toFixed(3),
+    );
+
+    await this.createNextPool(claimed, nextCategory, overflow);
+  }
+
+  /**
+   * Create the successor pool for an already-claimed rotation.
+   * `fundedPool` is the claim's pre-image, so its `completedGoals` and
+   * `goalIndex` are the values from before the claim wrote them.
+   */
+  private async createNextPool(
+    fundedPool: DonationPoolDocument,
+    nextCategory: DonationGoalCategory,
+    overflow: number,
+  ): Promise<void> {
     const nextIndex = fundedPool.goalIndex + 1;
     const defaults = DEFAULT_CATEGORY_PRICES[nextCategory];
     const nextTarget = defaults.itemPrice * defaults.targetCount;
-
-    // Cap the funded pool at its target and record the completed goal
-    await this.donationPoolModel.findByIdAndUpdate(fundedPool._id, {
-      $set: {
-        status: DonationPoolStatus.FUNDED,
-        currentAmount: fundedPool.targetAmount,
-      },
-      $push: { completedGoals: fundedPool.activeGoalCategory },
-    });
 
     // Create the next goal's pool
     const newPool = new this.donationPoolModel({
@@ -338,35 +399,15 @@ export class DonationsService {
       `Goal auto-rotated: ${fundedPool.activeGoalCategory} → ${nextCategory} (overflow: ${overflow} TND, season ${fundedPool.season})`,
     );
 
-    // If overflow already fills the next goal, recurse
+    // Overflow can fill the next goal outright. Recurse on the document just
+    // created rather than re-querying for "the ACTIVE pool" — that lookup is
+    // ambiguous by construction the moment more than one ACTIVE pool exists,
+    // which is precisely the state a double rotation produces. rotateIfFunded
+    // re-reads the claim condition, so a pool that is not actually over target
+    // is a no-op rather than a spurious advance.
     if (overflow >= nextTarget) {
-      const nextPoolDoc = await this.donationPoolModel.findOne({
-        status: DonationPoolStatus.ACTIVE,
-        isArchived: false,
-      });
-      if (nextPoolDoc) {
-        const nextOverflow = parseFloat((overflow - nextTarget).toFixed(3));
-        await this.advanceToNextGoal(nextPoolDoc, nextOverflow);
-      }
+      await this.rotateIfFunded(newPool);
     }
-  }
-
-  /**
-   * All 5 goals completed — mark the pool as SEASON_COMPLETE.
-   * A new season requires admin approval via the start-season endpoint.
-   */
-  private async completeSeason(lastPool: DonationPoolDocument): Promise<void> {
-    await this.donationPoolModel.findByIdAndUpdate(lastPool._id, {
-      $set: {
-        status: DonationPoolStatus.SEASON_COMPLETE,
-        currentAmount: lastPool.targetAmount,
-      },
-      $push: { completedGoals: lastPool.activeGoalCategory },
-    });
-
-    this.logger.log(
-      `Season ${lastPool.season} complete! All 5 goals funded. Awaiting admin approval for new season.`,
-    );
   }
 
   /**

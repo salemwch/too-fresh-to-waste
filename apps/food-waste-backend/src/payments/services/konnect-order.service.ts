@@ -467,7 +467,11 @@ export class KonnectOrderService implements OnModuleInit {
           reference: `REFUND-DONATION-${order.orderNumber}`,
         },
       ],
-      { session },
+      // `ordered: true` is mandatory, not a preference: Mongoose refuses
+      // `create()` with a session and more than one document without it, and
+      // the throw aborts the whole refund transaction. See the settlement path
+      // below for the full explanation.
+      { session, ordered: true },
     );
 
     await this.refundRequestModel.create(
@@ -556,7 +560,18 @@ export class KonnectOrderService implements OnModuleInit {
           notes: `5% of platform commission (${platformFee} TND)`,
         },
       ],
-      { session },
+      // `ordered: true` is mandatory here. Mongoose throws
+      // "Cannot call `create()` with a session and multiple documents unless
+      // `ordered: true` is set" — and this call sits inside the payment
+      // settlement transaction, so the throw aborted it every single time. The
+      // attempt was reset to `pending`, the order never reached PAID, and the
+      // reconciliation cron retried into the same error every five minutes.
+      //
+      // Nothing caught it earlier because it can only happen inside a
+      // transaction, and transactions require a replica set: against the old
+      // standalone MongoDB this path failed with IllegalOperation long before
+      // reaching here.
+      { session, ordered: true },
     );
   }
 }

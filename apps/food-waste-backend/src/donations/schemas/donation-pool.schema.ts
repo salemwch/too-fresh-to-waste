@@ -123,6 +123,33 @@ export const DonationPoolSchema = SchemaFactory.createForClass(DonationPool);
 
 // Indexes for performance optimization
 DonationPoolSchema.index({ status: 1, isArchived: 1 });
+
+/**
+ * At most one ACTIVE, non-archived pool may exist. This is the domain's central
+ * invariant — `getActivePool()` is a `findOne`, so a second ACTIVE pool makes
+ * every read arbitrary and silently splits contributions and goal progress.
+ *
+ * It has to be enforced by the database, not by application code. The service
+ * creates the default pool at startup and the backend runs PM2 in cluster mode,
+ * so that constructor executes once per worker, concurrently. A read-then-
+ * create there produced one pool per worker — four workers, four ACTIVE pools,
+ * all within 600 ms. Only a unique index can serialise inserts across
+ * processes; a plain upsert matching zero documents still inserts in each.
+ *
+ * partialFilterExpression, never `sparse` — MongoDB rejects an index declaring
+ * both, and it then silently never builds.
+ *
+ * Adding this to a database that already holds duplicates will fail to build.
+ * Run scripts/migrations/dedupe-active-donation-pools.ts first.
+ */
+DonationPoolSchema.index(
+  { status: 1 },
+  {
+    name: 'uniq_single_active_pool',
+    unique: true,
+    partialFilterExpression: { status: DonationPoolStatus.ACTIVE, isArchived: false },
+  },
+);
 DonationPoolSchema.index({ startDate: -1 });
 DonationPoolSchema.index({ createdAt: -1 });
 DonationPoolSchema.index({ season: 1, status: 1 });
