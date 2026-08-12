@@ -47,6 +47,12 @@ const ENDPOINT_GATES = {
   // Driver.
   driver_available: 700,
   driver_location: 200,
+
+  // Discovery pipeline — geo-search journey.
+  discovery: 500,
+  urgent: 500,
+  detail: 300,
+  suggestions: 200,
 };
 
 function durationThresholds(gates, extra = {}) {
@@ -125,5 +131,7 @@ export const CONCURRENCY = {
   // real outcome unknown.
   unexpected_server_errors: ['count==0'],
 };
+
+export { GEO_SEARCH_THRESHOLDS as GEO_SEARCH } from '../lib/contracts/geo-search.js';
 
 export { ENDPOINT_GATES };
