@@ -637,13 +637,16 @@ jobs:
             echo "✓ Rollback complete"
 
   # ============================================
-  # Performance Testing (Optional)
+  # Performance regression gate (PR-blocking)
   # ============================================
-  performance-test:
-    name: Performance Test
+  # Runs against docker compose rather than staging on purpose: a gate has to be
+  # comparable between commits, and shared-network jitter on staging makes p95
+  # noisy enough that a threshold either flaps or is set so loose it catches
+  # nothing. Capacity questions go to perf-capacity below, which does use real
+  # infrastructure.
+  perf-gate:
+    name: Performance Gate
     runs-on: ubuntu-latest
-    needs: deploy-staging
-    if: github.ref == 'refs/heads/develop'
     timeout-minutes: 20
 
     steps:
@@ -651,28 +654,213 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install k6
-        run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install k6
+        uses: grafana/setup-k6-action@v1
 
-      - name: Run load test
+      - name: Start stack
+        env:
+          # The throttler is per-IP and a load generator is one IP, so at the
+          # production limit of 100/min the run collects 429s within seconds and
+          # measures nothing. Raised here only; suites/rate-limit.js asserts the
+          # limiter still works at real values.
+          THROTTLE_LIMIT: "1000000"
+          THROTTLE_TTL: "60000"
+          PAYMENT_PROVIDER: stub
+          # db:create-indexes runs on the host, not in a container, so it needs
+          # its own connection string.
+          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
         run: |
-          echo "Running k6 load tests..."
-          # k6 run tests/load/basic-load-test.js
+          # Indexes MUST exist before the backend starts. autoIndex is off, so
+          # nothing creates them at boot — and the backend seeds default rows
+          # in every PM2 worker simultaneously. Without the unique indexes in
+          # place first, those races insert duplicates (4 ACTIVE donation
+          # pools, 4 copies of every dashboard template), and the very indexes
+          # meant to prevent it can then never build.
+          docker compose up -d mongodb mongo-init redis
+          pnpm --filter @foodwaste/backend db:create-indexes
+          docker compose up -d backend
+          # mongo-init exits 0 only once a PRIMARY is elected, so transactions
+          # (order creation, the payment webhook) are usable from this point.
+          timeout 180 bash -c 'until curl -sf http://localhost:3000/health; do sleep 3; done'
 
-      - name: Upload performance results
+      - name: Seed fixtures
+        env:
+          ALLOW_LOADTEST_SEED: "true"
+          # The seed drives the payment webhook to build settled-order fixtures;
+          # against the real client those calls no-op and the fixtures come out
+          # unusable, so the script refuses to run without the stub.
+          PAYMENT_PROVIDER: stub
+          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
+        run: pnpm --filter @foodwaste/backend seed:loadtest
+
+      - name: Run gate suite
+        run: k6 run tests/k6/suites/gate.js --env ENV=docker
+
+      - name: Dump backend logs on failure
+        if: failure()
+        run: docker compose logs --tail=200 backend
+
+      - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: performance-results
-          path: performance-results/
+          name: perf-gate-results
+          path: results/
           # Without this the repo default (90 days) applies. Artifacts count
           # against the account's Actions storage quota, and on the Free plan
           # exceeding that quota blocks Actions entirely - it is not a monthly
           # allowance that resets.
+          retention-days: 7
+
+  # ============================================
+  # Concurrency correctness (PR-blocking)
+  # ============================================
+  # These are correctness tests, not performance tests. They belong on every PR
+  # that touches a path with a race in it, and they fail the build — a broken
+  # idempotency guard should never reach staging to be found overnight.
+  perf-concurrency:
+    name: Concurrency Invariants
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for changes in race-prone modules
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            racy:
+              - 'apps/food-waste-backend/src/orders/**'
+              - 'apps/food-waste-backend/src/payments/**'
+              - 'apps/food-waste-backend/src/loyalty/**'
+              - 'apps/food-waste-backend/src/donations/**'
+              - 'apps/food-waste-backend/src/offers/**'
+              - 'tests/k6/suites/concurrency.js'
+
+      - name: Install k6
+        if: steps.changes.outputs.racy == 'true'
+        uses: grafana/setup-k6-action@v1
+
+      - name: Start stack
+        if: steps.changes.outputs.racy == 'true'
+        env:
+          THROTTLE_LIMIT: "1000000"
+          PAYMENT_PROVIDER: stub
+          # db:create-indexes runs on the host, not in a container, so it needs
+          # its own connection string.
+          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
+        run: |
+          # Indexes MUST exist before the backend starts. autoIndex is off, so
+          # nothing creates them at boot — and the backend seeds default rows
+          # in every PM2 worker simultaneously. Without the unique indexes in
+          # place first, those races insert duplicates (4 ACTIVE donation
+          # pools, 4 copies of every dashboard template), and the very indexes
+          # meant to prevent it can then never build.
+          docker compose up -d mongodb mongo-init redis
+          pnpm --filter @foodwaste/backend db:create-indexes
+          docker compose up -d backend
+          timeout 180 bash -c 'until curl -sf http://localhost:3000/health; do sleep 3; done'
+
+      - name: Seed fixtures
+        if: steps.changes.outputs.racy == 'true'
+        env:
+          ALLOW_LOADTEST_SEED: "true"
+          # The seed drives the payment webhook to build settled-order fixtures;
+          # against the real client those calls no-op and the fixtures come out
+          # unusable, so the script refuses to run without the stub.
+          PAYMENT_PROVIDER: stub
+          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
+        run: pnpm --filter @foodwaste/backend seed:loadtest
+
+      - name: Run concurrency suite
+        if: steps.changes.outputs.racy == 'true'
+        run: k6 run tests/k6/suites/concurrency.js --env ENV=docker
+
+      - name: Verify database invariants
+        if: steps.changes.outputs.racy == 'true'
+        env:
+          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
+        # k6 sees HTTP responses; double-crediting is invisible from there
+        # because every response is a 200. This is the half that can see it.
+        run: pnpm --filter @foodwaste/backend verify:loadtest-invariants
+
+      - name: Upload results
+        if: always() && steps.changes.outputs.racy == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: concurrency-results
+          path: results/
+          retention-days: 7
+
+  # ============================================
+  # Capacity / soak / spike (informational)
+  # ============================================
+  # Never fails the build. A capacity test that blocks merges gets disabled
+  # within a fortnight; one that posts a trend gets read. Read the numbers from
+  # the artifact, not the exit code.
+  perf-capacity:
+    name: Capacity (staging)
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 180
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Seed staging fixtures
+        env:
+          ALLOW_LOADTEST_SEED: "true"
+          # The seed drives the payment webhook to build settled-order fixtures;
+          # against the real client those calls no-op and the fixtures come out
+          # unusable, so the script refuses to run without the stub.
+          PAYMENT_PROVIDER: stub
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: pnpm --filter @foodwaste/backend seed:loadtest
+
+      - name: Capacity (breakpoint)
+        run: k6 run tests/k6/suites/capacity.js --env ENV=staging
+
+      - name: Spike
+        run: k6 run tests/k6/suites/spike.js --env ENV=staging
+
+      - name: Concurrency against real Atlas
+        run: |
+          k6 run tests/k6/suites/concurrency.js --env ENV=staging
+          pnpm --filter @foodwaste/backend verify:loadtest-invariants
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+      - name: Soak (nightly only)
+        if: github.event_name == 'schedule'
+        run: k6 run tests/k6/suites/soak.js --env ENV=staging
+
+      - name: Tear down staging fixtures
+        # always(): a failed capacity run must not leave 200 synthetic users
+        # and 500 offers sitting in staging for the next one to trip over.
+        if: always()
+        env:
+          ALLOW_LOADTEST_SEED: "true"
+          # The seed drives the payment webhook to build settled-order fixtures;
+          # against the real client those calls no-op and the fixtures come out
+          # unusable, so the script refuses to run without the stub.
+          PAYMENT_PROVIDER: stub
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: pnpm --filter @foodwaste/backend seed:loadtest -- --teardown
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capacity-results
+          path: results/
           retention-days: 7
 
   # ============================================

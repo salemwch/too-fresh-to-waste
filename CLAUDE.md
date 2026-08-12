@@ -321,8 +321,25 @@ adapter.
 **Response envelope** (all endpoints):
 
 ```typescript
-{ status: 'success' | 'error', message: string, data: T, meta?: { page, total, limit } }
+{
+  status: number;        // the HTTP status, e.g. 200 — NOT the string 'success'
+  message: string;
+  data: T;
+  meta?: { page, limit, total, totalPages, hasNext, hasPrev };
+  timestamp: string;
+}
 ```
+
+`status` is a **number**. This was documented as `'success' | 'error'` and that
+was wrong — verified against `/auth/login` and `/offers`, both of which return
+`status: 200`. Anything asserting the string form silently never matches, which
+is exactly what `tests/k6/smoke/helpers/checks.js` had been doing.
+
+**Login nests its tokens.** `POST /auth/login` returns
+`data: { success, user, tokens: { accessToken, refreshToken } }` — tokens are
+under `data.tokens`, not `data`, and the id field is `user.userId`, not
+`user._id`. Reading the wrong path fails in the worst possible way: the request
+is a 200, so nothing reports an error and the caller just gets undefined.
 
 Mobile uses `unwrapBackendResponse()`. Web accesses `response.data.data`
 directly.
@@ -472,6 +489,116 @@ TSHIRTS → PANTS → SHOES → CHILDREN_STUDIES → MEDICINE
 - Mobile: `useQueryWithFocus` for screen-level queries (refetch on focus)
 - Web: TanStack Query with centralized `dashboardKeys` factory + WebSocket cache
   patching
+
+### Local MongoDB is a single-node replica set, and has to be
+
+`docker-compose.yml` runs `mongod --replSet rs0` with a keyfile, not a
+standalone. This is **not** about redundancy — one node gives none. Order
+creation, the payment webhook and several other paths call
+`session.withTransaction()`, and MongoDB only offers multi-document transactions
+on a replica set or a mongos. Against a standalone every one of those paths
+fails with
+`IllegalOperation: Transaction numbers are only allowed on a replica set member or mongos`,
+which is why checkout could not run locally or in CI at all until this changed.
+
+- **The keyfile is generated on first boot** into the `mongodb_config` volume.
+  Replication plus `--auth` requires internal member authentication; generating
+  it in-container avoids committing a credential and avoids host-side file
+  permissions, which do not survive a Windows bind mount.
+- **`mongo-init` is a separate one-shot service, not a healthcheck.** It
+  initiates the set (idempotently — `rs.status()` throws code 94 until
+  initiated) and exits only once a PRIMARY is elected. The backend depends on
+  `service_completed_successfully`, because `service_healthy` only means the
+  process answered a ping, which is true well before any write can succeed.
+- **`DATABASE_URL` needs `replicaSet=rs0&directConnection=true`.** Without
+  `directConnection` the driver resolves the member name from the replica-set
+  config, which is only reachable inside the compose network.
+- **If you wipe the `mongodb_config` volume, the keyfile and the set config go
+  with it.** `docker compose up` regenerates both; there is no manual step.
+
+### Startup code runs once per worker — PM2 cluster mode makes every constructor concurrent
+
+The backend runs **PM2 in cluster mode**, so anything in a service constructor,
+`onModuleInit`, or a bootstrap hook executes simultaneously in every worker.
+Read-then-create there is a race with itself.
+
+`DonationsService.initializeDefaultPool()` was exactly that, and it produced
+**four ACTIVE donation pools on a single boot** — one per worker, all created
+within 600 ms. `getActivePool()` is a `findOne`, so every subsequent read
+returned an arbitrary one and contributions silently split across them.
+
+- **Only the database can serialise across processes.** A guard in application
+  code cannot, and neither can a plain upsert: an upsert matching zero documents
+  still inserts once per caller. Use a unique index and treat E11000 as the
+  losing worker's normal path — see `uniq_single_active_pool` on
+  `DonationPoolSchema`.
+- **Adding such an index to a live collection fails while duplicates exist.** It
+  needs a dedupe migration first —
+  `scripts/migrations/dedupe-active-donation-pools.ts` is the worked example.
+  Archive the losers rather than deleting: other collections hold their ids.
+- **`db:create-indexes` will not save you here**, because `autoIndex` is off in
+  production. The index exists only after that script runs.
+- This applies to every singleton-ish startup write: default rows, seeded
+  config, "ensure exists" helpers. Ask whether four copies running at once would
+  be safe, because that is what happens.
+
+### Native addons in the Docker image — the rebuild must be recursive, and verified
+
+The runner image prunes with `pnpm install --prod --ignore-scripts`, which
+discards binaries and skips install scripts, so native addons are rebuilt
+afterwards. **Two obvious ways to write that step both exit 0 without building
+anything:**
+
+- `npm rebuild <pkg>` cannot navigate pnpm's store. Packages live at
+  `node_modules/.pnpm/<name>@<ver>/node_modules/<name>`; npm looks at the top
+  level, finds nothing, and succeeds.
+- `pnpm rebuild <pkg>` without `-r` only considers the **root** project's
+  dependencies. `argon2` and `@mongodb-js/zstd` are transitive dependencies of
+  the backend _workspace_ project, so it also matches nothing.
+
+Only `pnpm -r rebuild` walks all workspace projects. This shipped broken:
+`@mongodb-js/zstd` had no compiled addon at all, and since `app.module.ts`
+negotiates `compressors: ['zstd', …]`, the driver selected zstd and threw
+`MongoMissingDependencyError` on **every** MongoDB command — the container could
+not run one query. `argon2` hid the problem for as long as it existed, because
+it ships prebuilt binaries for every platform and worked despite the same no-op.
+
+- **Always assert the artefact, never the exit code.** The Dockerfile now fails
+  the build if no `.node` file exists after the rebuild. A step that cannot
+  report failure is not a step.
+- **`pnpm.onlyBuiltDependencies` in the root `package.json` is separate** and
+  also required — pnpm 10 refuses to run install scripts for packages absent
+  from that allowlist.
+
+### Load and concurrency testing
+
+`tests/k6/` holds two separate things: `journeys/` (load — think-time, few
+assertions) and `smoke/` (functional — assertions, no think-time). Never merge
+them; assertions add latency to a load test, and a functional test that reports
+p95 gets mistaken for a measurement.
+
+```bash
+ALLOW_LOADTEST_SEED=true PAYMENT_PROVIDER=stub \
+  pnpm --filter @foodwaste/backend seed:loadtest      # fixtures
+k6 run tests/k6/suites/gate.js --env ENV=docker        # regression gate
+k6 run tests/k6/suites/concurrency.js --env ENV=docker # correctness
+pnpm --filter @foodwaste/backend verify:loadtest-invariants
+```
+
+- **The concurrency suite is only half the assertion.** k6 sees HTTP responses;
+  double-crediting returns 200 like everything else.
+  `verify:loadtest-invariants` is the half that can see it, and both must pass.
+- **`PAYMENT_PROVIDER=stub` is required** for anything touching checkout, or the
+  webhook's verification call goes to the real Konnect API, fails, and returns
+  early without settling — the test passes while testing nothing. The provider
+  factory throws at bootstrap if the stub is set with `NODE_ENV=production`.
+- **`THROTTLE_LIMIT` is raised in load-test environments only.** A generator is
+  one IP and would otherwise collect 429s within about three seconds. That is
+  defensible only because `suites/rate-limit.js` runs at production values and
+  asserts the limiter fires — do not delete it.
+- **Thresholds in `config/thresholds.js` are estimates until baselined.** Run
+  the gate three times against staging, then
+  `node tests/k6/tools/baseline.js results/baseline-*.json`.
 
 ### Database Indexes — schemas are the only source of truth
 

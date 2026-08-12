@@ -5,9 +5,9 @@ import {
   TEST_CONSUMER_EMAIL,
   TEST_CONSUMER_PASSWORD,
 } from '../config.js';
-import { login, refreshToken, authHeaders } from '../helpers/auth.js';
-import { checkResponse, checkRequiresAuth } from '../helpers/checks.js';
-import { newConsumerPayload } from '../helpers/data.js';
+import { login, refreshToken, authHeaders } from './helpers/auth.js';
+import { checkResponse, checkRequiresAuth } from './helpers/checks.js';
+import { newConsumerPayload } from './helpers/data.js';
 
 export default function () {
   let auth = null;

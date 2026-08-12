@@ -208,3 +208,6 @@ generate_bp.js
 !apps/web/public/images/**
 !apps/web/public/favicon.svg
 
+
+# k6 run artifacts (summaries, raw metrics)
+results/

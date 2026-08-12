@@ -10,6 +10,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
+import { isDuplicateKeyError } from '../../common/utils/mongo.utils';
 import { CreateDashboardDto, CreateWidgetDto } from '../dto/analytics.dto';
 import {
   DashboardConfig as IDashboardConfig,
@@ -663,27 +664,42 @@ export class DashboardService {
   // ==================== Dashboard Templates ====================
 
   /**
-   * Create default dashboard templates
+   * Create default dashboard templates.
+   *
+   * Runs at startup, and the backend runs PM2 in **cluster mode**, so this
+   * executes once per worker simultaneously. The previous read-then-create form
+   * therefore produced one copy of every default per worker — a fresh boot left
+   * 19 dashboard configs where there should be 5, and the duplicates then
+   * blocked the `name_1_userId_1` unique index from building at all.
+   *
+   * `$setOnInsert` with `upsert` makes the check and the write one operation.
+   * The unique index is what actually decides the race between processes, so
+   * E11000 here is the losing worker's expected outcome rather than a fault.
    */
   async createDefaultTemplates(): Promise<void> {
-    try {
-      const templates = this.getDefaultTemplates();
+    const templates = this.getDefaultTemplates();
 
-      for (const template of templates) {
-        const existing = await this.dashboardModel.findOne({
-          name: template.name,
-          userId: { $exists: false },
-        });
+    for (const template of templates) {
+      try {
+        const dashboardConfig = this.templateToDashboardConfig(template);
 
-        if (!existing) {
-          // Create actual dashboard configuration from template
-          const dashboardConfig = this.templateToDashboardConfig(template);
-          await this.dashboardModel.create(dashboardConfig);
+        const result = await this.dashboardModel.updateOne(
+          { name: template.name, userId: { $exists: false } },
+          { $setOnInsert: dashboardConfig },
+          { upsert: true },
+        );
+
+        if (result.upsertedCount > 0) {
           this.logger.log(`Created default template: ${template.name}`);
         }
+      } catch (error) {
+        if (isDuplicateKeyError(error)) {
+          // Another worker inserted it first. Nothing to do.
+          continue;
+        }
+        // Keep going: one bad template must not stop the rest being created.
+        this.logger.error(`Failed to create default template ${template.name}:`, error);
       }
-    } catch (error) {
-      this.logger.error('Failed to create default templates:', error);
     }
   }
 

@@ -61,7 +61,10 @@
     "deps:report": "depcruise src --config .dependency-cruiser.js --output-type err-long",
     "deps:graph": "depcruise src --config .dependency-cruiser.js --output-type dot | dot -T svg > dependency-graph.svg",
     "migration:backfill-subscription-expiry": "ts-node -r tsconfig-paths/register scripts/migrations/backfill-subscription-expiry.ts",
-    "migration:backfill-subscription-expiry:execute": "ts-node -r tsconfig-paths/register scripts/migrations/backfill-subscription-expiry.ts --execute"
+    "migration:backfill-subscription-expiry:execute": "ts-node -r tsconfig-paths/register scripts/migrations/backfill-subscription-expiry.ts --execute",
+    "seed:loadtest": "ts-node -r tsconfig-paths/register scripts/seed-loadtest.ts",
+    "verify:loadtest-invariants": "ts-node -r tsconfig-paths/register scripts/verify-loadtest-invariants.ts",
+    "migrate:dedupe-donation-pools": "ts-node -r tsconfig-paths/register scripts/migrations/dedupe-active-donation-pools.ts"
   },
   "keywords": [],
   "author": "Salem wachwacha",

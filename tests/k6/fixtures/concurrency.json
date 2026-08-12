@@ -1,0 +1,57 @@
+{
+  "generatedAt": "2026-08-12T05:36:33.408Z",
+  "scarceOffer": {
+    "id": "6a7c064789880cb1faee44d2",
+    "establishmentId": "6a7c064782b33b9036c621b8",
+    "slotStart": "17:00",
+    "slotEnd": "19:00"
+  },
+  "buyerEmail": "k6-consumer-0@loadtest.local",
+  "paymentRef": "stub-7000-d1648df6cc89",
+  "pickupOrder": {
+    "id": "6a7c064789880cb1faee454d",
+    "pickupCode": "270307"
+  },
+  "completionOrders": [
+    {
+      "id": "6a7c064889880cb1faee4610",
+      "pickupCode": "605630"
+    },
+    {
+      "id": "6a7c064b89880cb1faee4634",
+      "pickupCode": "333448"
+    },
+    {
+      "id": "6a7c064e89880cb1faee468e",
+      "pickupCode": "451756"
+    },
+    {
+      "id": "6a7c065189880cb1faee46d5",
+      "pickupCode": "957157"
+    },
+    {
+      "id": "6a7c065389880cb1faee4707",
+      "pickupCode": "853382"
+    },
+    {
+      "id": "6a7c065689880cb1faee4731",
+      "pickupCode": "129641"
+    },
+    {
+      "id": "6a7c065889880cb1faee474f",
+      "pickupCode": "720992"
+    },
+    {
+      "id": "6a7c065b89880cb1faee476d",
+      "pickupCode": "747242"
+    },
+    {
+      "id": "6a7c065c89880cb1faee478a",
+      "pickupCode": "473884"
+    },
+    {
+      "id": "6a7c065e89880cb1faee47c7",
+      "pickupCode": "521473"
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import { perfLog, perfStart } from '../../common/utils/perf-log.util';
 
 const KONNECT_TIMEOUT_MS = 8_000;
 
-interface KonnectInitPaymentParams {
+export interface KonnectInitPaymentParams {
   amount: number;
   firstName: string;
   lastName: string;
@@ -22,12 +22,12 @@ export interface KonnectPaymentOverrides {
   addPaymentFeesToAmount?: boolean;
 }
 
-interface KonnectPaymentResponse {
+export interface KonnectPaymentResponse {
   payUrl: string;
   paymentRef: string;
 }
 
-interface KonnectPaymentDetails {
+export interface KonnectPaymentDetails {
   payment: {
     id: string;
     amount: number;
@@ -64,7 +64,7 @@ export class KonnectService implements OnModuleInit {
   private readonly successUrl: string;
   private readonly failUrl: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(protected readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('KONNECT_API_KEY', '');
     this.walletId = this.configService.get<string>('KONNECT_WALLET_ID', '');
     this.apiUrl = this.configService.get<string>(

@@ -273,42 +273,52 @@ export class GamificationService {
    * Register a new friend referral when friend signs up with referral code
    */
   async registerFriendReferral(referrerUserId: string, friendUserId: string): Promise<void> {
-    const referrerAccount = await this.loyaltyModel.findOne({
-      userId: new Types.ObjectId(referrerUserId),
-    });
-
-    if (!referrerAccount) {
-      throw new NotFoundException('Referrer loyalty account not found');
-    }
-
-    // Check if this friend is already referred
-    const existingReferral = referrerAccount.friendReferrals?.find(
-      r => r.friendUserId.toString() === friendUserId,
-    );
-
-    if (existingReferral) {
-      this.logger.warn(`Friend ${friendUserId} already referred by ${referrerUserId}`);
-      return;
-    }
+    const referrerObjectId = new Types.ObjectId(referrerUserId);
+    const friendObjectId = new Types.ObjectId(friendUserId);
 
     const now = new Date();
     const expiresAt = new Date(
       now.getTime() + GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
     );
 
-    await this.loyaltyModel.findByIdAndUpdate(referrerAccount._id, {
-      $push: {
-        friendReferrals: {
-          friendUserId: new Types.ObjectId(friendUserId),
-          referredAt: now,
-          expiresAt,
-          friendBagCount: 0,
-          status: FriendReferralStatus.PENDING,
-          pointsAwarded: 0,
-        },
+    // Atomic idempotency, matching the pattern in LoyaltyService.addPoints: the
+    // filter rejects the push when this friend is already present, so two
+    // concurrent registrations race on a single findOneAndUpdate and only one
+    // can win. Reading the array and then pushing let both callers through,
+    // which duplicated the referral and double-incremented referralCount —
+    // and updateFriendBagCount only ever locates the first copy, so the
+    // duplicate stayed invisible until someone read the counter.
+    const updated = await this.loyaltyModel.findOneAndUpdate(
+      {
+        userId: referrerObjectId,
+        'friendReferrals.friendUserId': { $ne: friendObjectId },
       },
-      $inc: { referralCount: 1 },
-    });
+      {
+        $push: {
+          friendReferrals: {
+            friendUserId: friendObjectId,
+            referredAt: now,
+            expiresAt,
+            friendBagCount: 0,
+            status: FriendReferralStatus.PENDING,
+            pointsAwarded: 0,
+          },
+        },
+        $inc: { referralCount: 1 },
+      },
+      { new: true },
+    );
+
+    if (!updated) {
+      // No match means either the account does not exist or the friend was
+      // already referred. Distinguish them so a missing account still raises.
+      const accountExists = await this.loyaltyModel.exists({ userId: referrerObjectId });
+      if (!accountExists) {
+        throw new NotFoundException('Referrer loyalty account not found');
+      }
+      this.logger.warn(`Friend ${friendUserId} already referred by ${referrerUserId}`);
+      return;
+    }
 
     this.logger.log(`Registered friend referral: ${friendUserId} referred by ${referrerUserId}`);
   }
@@ -318,56 +328,88 @@ export class GamificationService {
    * Called from OrderService when pickup is confirmed
    */
   async updateFriendBagCount(friendUserId: string, bagsCount: number): Promise<void> {
-    // Find all referrers who have this friend in their pending referrals
+    const friendObjectId = new Types.ObjectId(friendUserId);
+
+    // Find all referrers who have this friend in a *pending* referral. $elemMatch
+    // is required: the two dotted paths above matched a document where any entry
+    // had the friend and any entry was pending, which are not necessarily the
+    // same entry.
     const referrers = await this.loyaltyModel.find({
-      'friendReferrals.friendUserId': new Types.ObjectId(friendUserId),
-      'friendReferrals.status': FriendReferralStatus.PENDING,
+      friendReferrals: {
+        $elemMatch: { friendUserId: friendObjectId, status: FriendReferralStatus.PENDING },
+      },
     });
 
+    const pendingMatch = {
+      $elemMatch: { friendUserId: friendObjectId, status: FriendReferralStatus.PENDING },
+    };
+
     for (const referrer of referrers) {
-      const referralIndex = referrer.friendReferrals.findIndex(
+      // Add the bags atomically and read back the post-image. The previous form
+      // computed `referral.friendBagCount + bagsCount` from a document read
+      // outside any guard and then wrote the sum back with `.save()`, so two
+      // pickups confirmed together both derived the same total from the same
+      // stale value and one of the two increments was lost.
+      const incremented = await this.loyaltyModel.findOneAndUpdate(
+        { _id: referrer._id, friendReferrals: pendingMatch },
+        { $inc: { 'friendReferrals.$.friendBagCount': bagsCount } },
+        { new: true },
+      );
+
+      if (!incremented) {
+        continue;
+      }
+
+      const referral = incremented.friendReferrals.find(
         r =>
           r.friendUserId.toString() === friendUserId && r.status === FriendReferralStatus.PENDING,
       );
 
-      if (referralIndex === -1) {
+      if (
+        !referral ||
+        referral.friendBagCount < GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_BAGS_REQUIRED
+      ) {
         continue;
       }
 
-      const referral = referrer.friendReferrals[referralIndex];
-      if (!referral) {
+      // Claim the completion before awarding. Only one caller can flip
+      // PENDING -> COMPLETED, and only the winner pays out.
+      //
+      // This transition is the *sole* protection against paying the referral
+      // bonus twice: addPoints is only idempotent when given an `orderId`, and
+      // a referral award has none, so its `pointsHistory.orderId` filter does
+      // not apply here.
+      //
+      // Claiming first means a failed addPoints under-awards rather than
+      // double-awards. That is the correct way round — an unpaid bonus is
+      // visible (status COMPLETED with no matching points transaction) and an
+      // admin can grant it, whereas a double payout is silent.
+      const claimed = await this.loyaltyModel.findOneAndUpdate(
+        { _id: referrer._id, friendReferrals: pendingMatch },
+        {
+          $set: {
+            'friendReferrals.$.status': FriendReferralStatus.COMPLETED,
+            'friendReferrals.$.completedAt': new Date(),
+            'friendReferrals.$.pointsAwarded': GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS,
+          },
+          $inc: { friendReferralsCompleted: 1 },
+        },
+        { new: true },
+      );
+
+      if (!claimed) {
         continue;
       }
-      const newBagCount = referral.friendBagCount + bagsCount;
 
-      // Check if threshold reached
-      if (newBagCount >= GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_BAGS_REQUIRED) {
-        // Award points!
-        await this.loyaltyService.addPoints(referrer.userId.toString(), {
-          amount: GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS,
-          reason: `Friend referral completed: Friend bought ${newBagCount} bags`,
-          bypassMultiplier: true,
-        });
+      await this.loyaltyService.addPoints(referrer.userId.toString(), {
+        amount: GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS,
+        reason: `Friend referral completed: Friend bought ${referral.friendBagCount} bags`,
+        bypassMultiplier: true,
+      });
 
-        // Update referral status
-        referral.friendBagCount = newBagCount;
-        referral.status = FriendReferralStatus.COMPLETED;
-        referral.completedAt = new Date();
-        referral.pointsAwarded = GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS;
-        referrer.friendReferralsCompleted = (referrer.friendReferralsCompleted || 0) + 1;
-
-        await referrer.save();
-
-        this.logger.log(
-          `Friend referral completed! Awarded ${GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS} points to ${referrer.userId}`,
-        );
-      } else {
-        // Just update bag count
-        await this.loyaltyModel.updateOne(
-          { _id: referrer._id, 'friendReferrals.friendUserId': new Types.ObjectId(friendUserId) },
-          { $set: { 'friendReferrals.$.friendBagCount': newBagCount } },
-        );
-      }
+      this.logger.log(
+        `Friend referral completed! Awarded ${GAMIFICATION_CONSTANTS.FRIEND_REFERRAL_POINTS} points to ${referrer.userId}`,
+      );
     }
   }
 

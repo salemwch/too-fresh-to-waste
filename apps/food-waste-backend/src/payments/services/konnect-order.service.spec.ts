@@ -302,6 +302,51 @@ describe('KonnectOrderService', () => {
         expect(orderUpdateCall[1].status).toBe(OrderStatus.RESERVED);
       });
 
+      it('passes ordered:true on every multi-document create inside the transaction', async () => {
+        // Mongoose throws "Cannot call `create()` with a session and multiple
+        // documents unless `ordered: true` is set". That throw aborts the
+        // settlement transaction, resets the attempt to `pending`, and leaves
+        // the order unpaid — and the reconciliation cron then retries into the
+        // same error every five minutes, forever.
+        //
+        // This asserts the call shape rather than the outcome, because the
+        // model is a mock here: `create` resolves happily no matter what it is
+        // given, which is precisely why the existing settlement tests passed
+        // while the real path could never once succeed. The shape is the only
+        // thing a mocked model can still tell the truth about.
+        attemptModel.findOne.mockResolvedValue(makeAttempt());
+        konnectService.getPaymentDetails.mockResolvedValue(completedPaymentDetails);
+        orderModel.findById.mockResolvedValue(makeOrder());
+        attemptModel.findOneAndUpdate.mockResolvedValue(makeAttempt({ status: 'processing' }));
+        attemptModel.findByIdAndUpdate.mockResolvedValue({});
+        orderModel.findByIdAndUpdate.mockResolvedValue({});
+        establishmentModel.findById.mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue({ _id: ESTABLISHMENT_ID, ownerId: MERCHANT_ID }),
+          }),
+        });
+        walletTxModel.create.mockResolvedValue({});
+        walletModel.findOneAndUpdate.mockResolvedValue({});
+        platformTxModel.create.mockResolvedValue({});
+
+        await service.handleOrderWebhook(PAYMENT_REF);
+
+        const multiDocCreates = [
+          ...platformTxModel.create.mock.calls,
+          ...walletTxModel.create.mock.calls,
+        ].filter(([docs]: [unknown]) => Array.isArray(docs) && docs.length > 1);
+
+        // The settlement writes NET_COMMISSION and DONATION together, so there
+        // is at least one. If that ever stops being true the assertion below
+        // would pass vacuously.
+        expect(multiDocCreates.length).toBeGreaterThan(0);
+
+        for (const [, options] of multiDocCreates) {
+          expect(options).toMatchObject({ ordered: true });
+          expect(options.session).toBeDefined();
+        }
+      });
+
       it('should confirm order as CONFIRMED for delivery', async () => {
         attemptModel.findOne.mockResolvedValue(makeAttempt());
         konnectService.getPaymentDetails.mockResolvedValue(completedPaymentDetails);

@@ -7,6 +7,7 @@ import { Establishment, EstablishmentSchema } from '../establishments/schemas/es
 import { User, UserSchema } from '../users/schemas/user.schema';
 
 import { KonnectService } from './services/konnect.service';
+import { paymentProviderProvider } from './services/payment-provider.factory';
 import { SubscriptionService } from './services/subscription.service';
 import { SubscriptionController } from './subscription.controller';
 
@@ -20,7 +21,11 @@ import { SubscriptionController } from './subscription.controller';
     ]),
   ],
   controllers: [SubscriptionController],
-  providers: [SubscriptionService, KonnectService],
+  // KonnectService is provided through the factory, not directly: the token
+  // stays the same for every consumer while the implementation behind it is
+  // chosen by PAYMENT_PROVIDER. Listing KonnectService here as well would
+  // shadow the factory and quietly restore the real client.
+  providers: [SubscriptionService, paymentProviderProvider],
   exports: [SubscriptionService, KonnectService],
 })
 export class SubscriptionModule {}
