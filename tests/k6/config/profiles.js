@@ -82,6 +82,21 @@ export const GATE_PROFILE = {
     exec: 'consumerSearch',
     tags: { journey: 'search' },
   },
+  // Mobile session lifecycle — normal lifecycle only (login, rehydrate,
+  // refresh, logout). Expired-token, reuse-detection and concurrent-refresh
+  // scenarios are correctness checks, not gate load, and live in the
+  // standalone suites/mobile-session.js instead.
+  consumer_session: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 5 },
+      { duration: '2m', target: 5 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'consumerSession',
+    tags: { journey: 'session' },
+  },
 };
 
 /**

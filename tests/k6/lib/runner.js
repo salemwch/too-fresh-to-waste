@@ -2,6 +2,7 @@ import { SEED } from '../config/environments.js';
 import { consumerBrowse } from '../journeys/consumer-browse.js';
 import { consumerCheckout } from '../journeys/consumer-checkout.js';
 import { consumerColdStart } from '../journeys/consumer-cold-start.js';
+import { normalLifecycle } from '../journeys/consumer-mobile-session.js';
 import { warmCacheBrowse } from '../journeys/consumer-search.js';
 import { driverPoll } from '../journeys/driver-poll.js';
 import { merchantDashboard } from '../journeys/merchant-dashboard.js';
@@ -43,6 +44,10 @@ export function makeExecs() {
     consumerBrowse: data => consumerBrowse(pick(data.consumers)),
     consumerCheckout: data => consumerCheckout(pick(data.consumers)),
     consumerSearch: data => warmCacheBrowse(pick(data.consumers)),
+    consumerSession: data => {
+      const cred = pick(data.consumers);
+      normalLifecycle({ email: cred.email, password: SEED.password });
+    },
     merchantDashboard: data => merchantDashboard(pick(data.merchants)),
     driverPoll: data => driverPoll(pick(data.drivers)),
   };
