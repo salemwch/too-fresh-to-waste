@@ -97,6 +97,21 @@ export const GATE_PROFILE = {
     exec: 'consumerSession',
     tags: { journey: 'session' },
   },
+  // Order-creation burst, the k6-visible half of the notification-storm
+  // check. Kept small at gate scale — the full storm (order burst + read
+  // flood + mark-all-read at 30/20/10 VUs) runs via the standalone
+  // suites/notification-storm.js, not the PR gate.
+  notification_burst: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 5 },
+      { duration: '2m', target: 5 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'notificationBurst',
+    tags: { journey: 'notification' },
+  },
 };
 
 /**
