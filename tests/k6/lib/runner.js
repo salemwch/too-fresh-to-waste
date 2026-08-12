@@ -2,6 +2,7 @@ import { SEED } from '../config/environments.js';
 import { consumerBrowse } from '../journeys/consumer-browse.js';
 import { consumerCheckout } from '../journeys/consumer-checkout.js';
 import { consumerColdStart } from '../journeys/consumer-cold-start.js';
+import { warmCacheBrowse } from '../journeys/consumer-search.js';
 import { driverPoll } from '../journeys/driver-poll.js';
 import { merchantDashboard } from '../journeys/merchant-dashboard.js';
 import { mintTokenPool } from './auth.js';
@@ -41,6 +42,7 @@ export function makeExecs() {
     consumerColdStart: data => consumerColdStart(pick(data.consumers)),
     consumerBrowse: data => consumerBrowse(pick(data.consumers)),
     consumerCheckout: data => consumerCheckout(pick(data.consumers)),
+    consumerSearch: data => warmCacheBrowse(pick(data.consumers)),
     merchantDashboard: data => merchantDashboard(pick(data.merchants)),
     driverPoll: data => driverPoll(pick(data.drivers)),
   };

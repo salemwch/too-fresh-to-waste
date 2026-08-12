@@ -68,6 +68,20 @@ export const GATE_PROFILE = {
     exec: 'driverPoll',
     tags: { journey: 'driver' },
   },
+  // Discovery pipeline — the hottest read path in the product. Warm-cache
+  // browse only; low-cache-reuse and pagination-depth run via the standalone
+  // geo-search profiling suite, not the PR gate.
+  consumer_search: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 10 },
+      { duration: '2m', target: 10 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'consumerSearch',
+    tags: { journey: 'search' },
+  },
 };
 
 /**
