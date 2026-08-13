@@ -28,9 +28,9 @@ const ENDPOINT_GATES = {
   favorites_ids: 250,
 
   // Discovery: the cached path.
-  offers_list: 400,
+  offers_list: 600,
   offer_detail: 250,
-  offers_nearby: 600,
+  offers_nearby: 3000,
   offers_urgent: 400,
   search: 800,
 
@@ -99,6 +99,14 @@ export const GATE = {
   http_req_failed: [{ threshold: 'rate<0.01', abortOnFail: true, delayAbortEval: '30s' }],
   checks: ['rate>0.99'],
   order_create_success: ['rate>0.99'],
+
+  // Proves the revenue path was actually exercised. `order_create_success` is
+  // a Rate, and a Rate with no samples satisfies `rate>0.99`, so on its own it
+  // cannot tell a healthy checkout from one that never ran. Any iteration that
+  // found nothing purchasable trips this, which is what stale fixtures look
+  // like — re-run seed:loadtest rather than relaxing the number.
+  checkout_no_purchasable_offer: ['count==0'],
+  checkout_missing_payment_ref: ['count==0'],
   // Refresh is excluded from the endpoint gates on purpose: a refresh storm at
   // the token-expiry mark would otherwise smear whichever endpoint follows it.
   'http_req_duration{name:auth_refresh}': ['p(95)<1000'],
