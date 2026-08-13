@@ -131,7 +131,11 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
           message: 'Authentication timeout',
           code: 'AUTH_TIMEOUT',
         });
-        client.disconnect();
+        // `true` closes the underlying transport. The default (false) only
+        // sends a Socket.IO namespace DISCONNECT packet and leaves the TCP
+        // connection open, so a client that keeps answering Engine.IO pings
+        // holds a socket indefinitely despite having failed authentication.
+        client.disconnect(true);
       }
     }, 30000); // 30 seconds timeout
 
