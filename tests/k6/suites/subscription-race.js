@@ -12,7 +12,7 @@ import { SEED, seedEmail } from '../config/environments.js';
 import { SUBSCRIPTION_RACE_THRESHOLDS } from '../lib/contracts/subscription-race.js';
 import { login, authParams } from '../lib/auth.js';
 import { post, get } from '../lib/http.js';
-import { parse } from '../lib/envelope.js';
+import { docId, parse } from '../lib/envelope.js';
 import { summaryHandler } from '../lib/summary.js';
 
 export const initiateSuccess = new Counter('initiate_success');
@@ -65,13 +65,13 @@ export const options = {
  * endpoint that resolves "this merchant's establishment id" is
  * `GET /establishments/my-establishment`, which returns
  * `{ data: [...establishments] }` for the merchant's own establishments.
- * Seeded merchants own exactly one establishment, so `data[0]._id` is it.
+ * Seeded merchants own exactly one establishment, so `data[0]` is it.
  */
 function resolveEstablishmentId(session) {
   const res = get('/establishments/my-establishment', 'my_establishment', authParams(session));
   const body = parse(res);
   if (body && Array.isArray(body.data) && body.data.length > 0) {
-    return body.data[0]._id;
+    return docId(body.data[0]);
   }
   return null;
 }

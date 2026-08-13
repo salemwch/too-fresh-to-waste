@@ -11,7 +11,7 @@ import { Trend } from 'k6/metrics';
 import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 import { withAuth } from '../lib/auth.js';
-import { checkOk, checkList, data, sample } from '../lib/envelope.js';
+import { checkOk, data, docId, sample } from '../lib/envelope.js';
 import { get } from '../lib/http.js';
 import { TUNISIA_LOCATIONS, DEGRADATION_WARN_RATIO } from '../lib/contracts/geo-search.js';
 
@@ -30,15 +30,15 @@ export function warmCacheBrowse(session) {
   const loc = TUNISIA_LOCATIONS[0]; // Tunis center
 
   const list = withAuth(session, params =>
-    get(`/offers?lat=${loc.latitude}&lng=${loc.longitude}&radius=5000&page=1&limit=20`, 'discovery', params),
+    get(`/offers/nearby?latitude=${loc.latitude}&longitude=${loc.longitude}&maxDistance=5000`, 'offers_nearby', params),
   );
-  checkList(list, 'warm browse offers');
+  checkOk(list, 'warm browse offers');
   pageDurations[1].add(list.timings.duration);
 
   sleep(randomIntBetween(2, 4));
 
   const urgent = withAuth(session, params =>
-    get(`/offers/urgent?lat=${loc.latitude}&lng=${loc.longitude}&limit=5`, 'urgent', params),
+    get(`/offers/urgent?limit=5`, 'urgent', params),
   );
   checkOk(urgent, 'warm browse urgent');
 
@@ -46,9 +46,10 @@ export function warmCacheBrowse(session) {
 
   const offers = data(list);
   const chosen = sample(offers);
-  if (chosen && chosen._id) {
+  const chosenId = docId(chosen);
+  if (chosenId) {
     const detail = withAuth(session, params =>
-      get(`/offers/${chosen._id}`, 'detail', params),
+      get(`/offers/${chosenId}`, 'detail', params),
     );
     checkOk(detail, 'warm browse detail');
     sleep(randomIntBetween(2, 5));
@@ -77,9 +78,9 @@ export function lowCacheReuseBrowse(session) {
   const page = randomIntBetween(1, 3);
 
   const list = withAuth(session, params =>
-    get(`/offers?lat=${lat}&lng=${lng}&radius=${radius}&page=${page}&limit=20`, 'discovery', params),
+    get(`/offers/nearby?latitude=${lat}&longitude=${lng}&maxDistance=${radius}`, 'offers_nearby', params),
   );
-  checkList(list, 'low-reuse browse offers');
+  checkOk(list, 'low-reuse browse offers');
   if (pageDurations[page]) {
     pageDurations[page].add(list.timings.duration);
   }
@@ -87,7 +88,7 @@ export function lowCacheReuseBrowse(session) {
   sleep(randomIntBetween(2, 4));
 
   const urgent = withAuth(session, params =>
-    get(`/offers/urgent?lat=${lat}&lng=${lng}&limit=5`, 'urgent', params),
+    get(`/offers/urgent?limit=5`, 'urgent', params),
   );
   checkOk(urgent, 'low-reuse urgent');
 
@@ -95,8 +96,9 @@ export function lowCacheReuseBrowse(session) {
 
   const offers = data(list);
   const chosen = sample(offers);
-  if (chosen && chosen._id) {
-    withAuth(session, params => get(`/offers/${chosen._id}`, 'detail', params));
+  const chosenId = docId(chosen);
+  if (chosenId) {
+    withAuth(session, params => get(`/offers/${chosenId}`, 'detail', params));
     sleep(randomIntBetween(2, 5));
   }
 
@@ -119,7 +121,7 @@ export function paginationDepth(session) {
 
   for (let page = 1; page <= 4; page++) {
     const res = withAuth(session, params =>
-      get(`/offers?lat=${loc.latitude}&lng=${loc.longitude}&radius=5000&page=${page}&limit=20`, 'discovery', params),
+      get(`/offers/nearby?latitude=${loc.latitude}&longitude=${loc.longitude}&maxDistance=5000`, 'offers_nearby', params),
     );
     if (pageDurations[page]) {
       pageDurations[page].add(res.timings.duration);

@@ -12,6 +12,7 @@ import {
   checkResponse,
   checkPaginatedResponse,
   extractData,
+  docId,
 } from './helpers/checks.js';
 
 export default function () {
@@ -54,7 +55,7 @@ export default function () {
     checkResponse(pickupTomorrow, 'offers pickup-tomorrow');
 
     const nearby = http.get(
-      `${BASE_URL}/offers/nearby?latitude=36.8065&longitude=10.1815&radius=5000&limit=10`,
+      `${BASE_URL}/offers/nearby?latitude=36.8065&longitude=10.1815&maxDistance=5000&limit=10`,
       {
         headers: authHeaders(consumer.accessToken),
         tags: { name: 'offers_nearby' },
@@ -78,7 +79,7 @@ export default function () {
     });
     const offers = extractData(list);
     if (offers && offers.length > 0) {
-      const offerId = offers[0]._id;
+      const offerId = docId(offers[0]);
       const detail = http.get(`${BASE_URL}/offers/${offerId}`, {
         headers: authHeaders(consumer.accessToken),
         tags: { name: 'offer_detail' },

@@ -12,6 +12,7 @@ import {
   checkResponse,
   checkPaginatedResponse,
   extractData,
+  docId,
 } from './helpers/checks.js';
 
 export default function () {
@@ -48,7 +49,7 @@ export default function () {
     );
     const establishments = extractData(proxRes);
     if (establishments && establishments.length > 0) {
-      const estId = establishments[0]._id;
+      const estId = docId(establishments[0]);
 
       const estReviews = http.get(
         `${BASE_URL}/reviews/establishment/${estId}?page=1&limit=10`,

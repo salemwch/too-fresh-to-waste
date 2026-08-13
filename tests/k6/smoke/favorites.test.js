@@ -6,7 +6,7 @@ import {
   TEST_CONSUMER_PASSWORD,
 } from '../config.js';
 import { login, authHeaders } from './helpers/auth.js';
-import { checkResponse, extractData } from './helpers/checks.js';
+import { checkResponse, extractData, docId } from './helpers/checks.js';
 
 export default function () {
   const consumer = login(TEST_CONSUMER_EMAIL, TEST_CONSUMER_PASSWORD);
@@ -46,7 +46,7 @@ export default function () {
     });
     const establishments = extractData(estList);
     if (establishments && establishments.length > 0) {
-      const estId = establishments[0]._id;
+      const estId = docId(establishments[0]);
 
       // Check if already favorited
       const checkFav = http.get(

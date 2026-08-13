@@ -9,7 +9,7 @@ import { Counter, Rate } from 'k6/metrics';
 
 import { withAuth } from '../lib/auth.js';
 import { get, post, patch } from '../lib/http.js';
-import { parse, data, checkOk, sample } from '../lib/envelope.js';
+import { parse, data, checkOk, docId, sample } from '../lib/envelope.js';
 
 export const notificationDeliveryRate = new Rate('notification_delivery_rate');
 export const notificationLogicalDuplicate = new Counter('notification_logical_duplicate_rate');
@@ -28,10 +28,11 @@ export function orderBurst(session) {
   );
   const offers = data(list);
   const offer = sample(offers);
-  if (!offer || !offer._id) return null;
+  const offerId = docId(offer);
+  if (!offerId) return null;
 
   const detail = withAuth(session, params =>
-    get(`/offers/${offer._id}`, 'offer_detail', params),
+    get(`/offers/${offerId}`, 'offer_detail', params),
   );
   const full = data(detail);
   if (!full) return null;
@@ -39,13 +40,13 @@ export function orderBurst(session) {
   if (!slot) return null;
 
   const establishmentId =
-    typeof full.establishmentId === 'object' ? full.establishmentId._id : full.establishmentId;
+    typeof full.establishmentId === 'object' ? docId(full.establishmentId) : full.establishmentId;
 
   const created = withAuth(session, params =>
     post(
       '/orders',
       {
-        items: [{ offerId: full._id, quantity: 1 }],
+        items: [{ offerId: docId(full), quantity: 1 }],
         establishmentId,
         pickupTimeSlot: { startTime: slot.startTime, endTime: slot.endTime },
         pickupDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
@@ -59,7 +60,7 @@ export function orderBurst(session) {
   const createdBody = parse(created);
   if (created.status !== 200 && created.status !== 201) return null;
 
-  const orderId = createdBody && createdBody.data ? createdBody.data._id : null;
+  const orderId = createdBody && createdBody.data ? docId(createdBody.data) : null;
   return orderId;
 }
 
@@ -83,9 +84,10 @@ export function notificationReadFlood(session) {
   if (Array.isArray(notifications) && notifications.length > 0) {
     // Read one specific notification
     const notif = notifications[0];
-    if (notif && notif._id) {
+    const notifId = docId(notif);
+    if (notifId) {
       withAuth(session, params =>
-        patch(`/notifications/${notif._id}/read`, null, 'mark_read', params),
+        patch(`/notifications/${notifId}/read`, null, 'mark_read', params),
       );
     }
   }

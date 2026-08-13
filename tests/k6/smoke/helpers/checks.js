@@ -83,3 +83,21 @@ export function extractMeta(res) {
     return null;
   }
 }
+
+/**
+ * The document id under whichever name this endpoint uses.
+ *
+ * List endpoints serve trimmed DTOs (`OfferCardDto` has `id` and no `_id`)
+ * while detail endpoints serve the document (both). Reading `_id` off a list
+ * row therefore yields undefined, and since every caller here is shaped
+ * `if (items.length > 0) { const id = items[0]._id; ... }`, the detail request
+ * is skipped without a single failing check. Mirrors `docId` in
+ * `tests/k6/lib/envelope.js` — the two helper modules are deliberately
+ * separate (smoke vs. load), so this exists in both.
+ */
+export function docId(doc) {
+  if (doc === null || doc === undefined) {
+    return null;
+  }
+  return doc.id ?? doc._id ?? null;
+}
