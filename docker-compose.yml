@@ -176,6 +176,14 @@ services:
       target: runner
     container_name: foodwaste-backend
     restart: unless-stopped
+    # PM2 sizes itself from the container's cgroup limit. Without one the
+    # detector cannot read a value and falls back to max_memory_restart=512M,
+    # which sits barely above the app's ~370 MB baseline — so under load every
+    # worker crossed it and PM2 recycled the whole cluster repeatedly. Seven
+    # restarts per worker during one gate run, and a payment webhook landed on
+    # a worker mid-recycle and failed. An explicit limit makes the detector
+    # size PM2 the way it does on Render, where a limit always exists.
+    mem_limit: 3g
     ports:
       - "3000:3000"
     # The image CMD is `pm2-runtime ... --env production`, and PM2 applies the
@@ -213,6 +221,7 @@ services:
       PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-konnect}
       THROTTLE_LIMIT: ${THROTTLE_LIMIT:-100}
       THROTTLE_TTL: ${THROTTLE_TTL:-60000}
+      AUTH_RATE_LIMIT_THRESHOLD: ${AUTH_RATE_LIMIT_THRESHOLD:-25}
 
       # Required by config validation in every environment, not just production.
       # Placeholders: no mail is delivered from this stack and nothing here is a

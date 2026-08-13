@@ -1,0 +1,38 @@
+# Load-test overrides for the local stack.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.loadtest.yml up -d
+#
+# These two settings used to be passed as shell exports at `up` time. That works
+# exactly once: every later `docker compose up`, `--build` or service recreate
+# runs in a shell that no longer has them, and the base file's defaults win
+# silently. Both failure modes are bad and neither announces itself:
+#
+#   PAYMENT_PROVIDER falling back to `konnect` sends the fixture webhook to the
+#   real Konnect API, which cannot verify a stub reference and returns early
+#   without settling. The suite goes green having tested nothing.
+#
+#   THROTTLE_LIMIT falling back to 100 makes the generator — one IP — collect
+#   429s within about three seconds. That one is at least loud: it took down a
+#   whole gate run at setup(), with 60 login failures and no scenario reached.
+#
+# Keeping them in a file makes the load-test configuration reproducible rather
+# than dependent on the shell that happened to create the container.
+services:
+  backend:
+    environment:
+      # Fixture creation and every checkout journey drive the payment webhook.
+      PAYMENT_PROVIDER: stub
+
+      # A load generator is a single IP and would otherwise be rate-limited
+      # almost immediately. Defensible only because suites/rate-limit.js runs at
+      # production values and asserts the limiter fires — do not delete it.
+      THROTTLE_LIMIT: 1000000
+
+      # A second, independent per-IP limiter lives in AuthSecurityService and is
+      # NOT governed by THROTTLE_LIMIT. At its default of 25 logins per minute
+      # it blocks the offending IP for five minutes, so a suite whose setup()
+      # mints 60 sessions gets 25 tokens and 35 ForbiddenExceptions, then dies
+      # with "Could not authenticate any seeded user" — which reads as a missing
+      # seed rather than as rate limiting. Raised here for the same reason as
+      # THROTTLE_LIMIT, and covered at production values by the same suite.
+      AUTH_RATE_LIMIT_THRESHOLD: 1000000
