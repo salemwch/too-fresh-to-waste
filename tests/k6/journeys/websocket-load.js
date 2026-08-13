@@ -87,15 +87,18 @@ export function connectionStorm(session) {
       if (packet.engineType === ENGINE.MESSAGE && packet.sioType === SIO.CONNECT) {
         namespaceOk = true;
         wsNamespaceConnected.add(1);
+        if (authOk) socket.close();
       }
 
       // Authenticated event — emitted by the gateway's connect middleware
       // (websocket.gateway.ts afterInit) once the JWT verifies.
+      // The middleware emits this BEFORE calling next(), so it can arrive
+      // before the CONNECT ack. Close only when both have been received.
       if (isEvent(packet, 'authenticated')) {
         authOk = true;
         wsAuthenticated.add(1);
         wsConnectionTime.add(Date.now() - connectStart);
-        socket.close();
+        if (namespaceOk) socket.close();
       }
     });
 

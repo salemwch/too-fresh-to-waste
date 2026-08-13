@@ -1,57 +1,57 @@
 {
-  "generatedAt": "2026-08-12T05:36:33.408Z",
+  "generatedAt": "2026-08-13T14:29:14.927Z",
   "scarceOffer": {
-    "id": "6a7c064789880cb1faee44d2",
-    "establishmentId": "6a7c064782b33b9036c621b8",
+    "id": "6a7dd4a0a0e004d897e8436b",
+    "establishmentId": "6a7cc83c82b33b9036c86473",
     "slotStart": "17:00",
     "slotEnd": "19:00"
   },
   "buyerEmail": "k6-consumer-0@loadtest.local",
-  "paymentRef": "stub-7000-d1648df6cc89",
+  "paymentRef": "stub-7000-95fe64434106",
   "pickupOrder": {
-    "id": "6a7c064789880cb1faee454d",
-    "pickupCode": "270307"
+    "id": "6a7dd4a0a0e004d897e846b8",
+    "pickupCode": "808369"
   },
   "completionOrders": [
     {
-      "id": "6a7c064889880cb1faee4610",
-      "pickupCode": "605630"
+      "id": "6a7dd4a0a0e004d897e84725",
+      "pickupCode": "108724"
     },
     {
-      "id": "6a7c064b89880cb1faee4634",
-      "pickupCode": "333448"
+      "id": "6a7dd4a3a0e004d897e8491d",
+      "pickupCode": "734144"
     },
     {
-      "id": "6a7c064e89880cb1faee468e",
-      "pickupCode": "451756"
+      "id": "6a7dd4a6a0e004d897e84960",
+      "pickupCode": "533320"
     },
     {
-      "id": "6a7c065189880cb1faee46d5",
-      "pickupCode": "957157"
+      "id": "6a7dd4a8a0e004d897e849fb",
+      "pickupCode": "658036"
     },
     {
-      "id": "6a7c065389880cb1faee4707",
-      "pickupCode": "853382"
+      "id": "6a7dd4aba0e004d897e84a3e",
+      "pickupCode": "559755"
     },
     {
-      "id": "6a7c065689880cb1faee4731",
-      "pickupCode": "129641"
+      "id": "6a7dd4ada0e004d897e84b09",
+      "pickupCode": "233258"
     },
     {
-      "id": "6a7c065889880cb1faee474f",
-      "pickupCode": "720992"
+      "id": "6a7dd4b0a0e004d897e84bd1",
+      "pickupCode": "922815"
     },
     {
-      "id": "6a7c065b89880cb1faee476d",
-      "pickupCode": "747242"
+      "id": "6a7dd4b3a0e004d897e84c6b",
+      "pickupCode": "381606"
     },
     {
-      "id": "6a7c065c89880cb1faee478a",
-      "pickupCode": "473884"
+      "id": "6a7dd4b5a0e004d897e84cae",
+      "pickupCode": "999306"
     },
     {
-      "id": "6a7c065e89880cb1faee47c7",
-      "pickupCode": "521473"
+      "id": "6a7dd4b8a0e004d897e84cf1",
+      "pickupCode": "276695"
     }
   ]
 }

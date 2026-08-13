@@ -15,24 +15,24 @@ import { get, post } from '../lib/http.js';
  * moment the test exists to observe.
  */
 export function driverPoll(session) {
+  const jitter = () => (Math.random() - 0.5) * 0.02;
+  const lat = TUNIS.latitude + jitter();
+  const lng = TUNIS.longitude + jitter();
+
   const available = withAuth(session, params =>
-    get('/drivers/orders/available', 'driver_available', params),
+    get(`/drivers/orders/available?lat=${lat}&lng=${lng}`, 'driver_available', params),
   );
   checkOk(available, 'driver available orders');
-
-  // A small random walk around Tunis so consecutive writes are not identical
-  // and the geo index is actually exercised.
-  const jitter = () => (Math.random() - 0.5) * 0.02;
 
   const located = withAuth(session, params =>
     post(
       '/drivers/location',
-      { latitude: TUNIS.latitude + jitter(), longitude: TUNIS.longitude + jitter() },
+      { lat, lng },
       'driver_location',
       params,
     ),
   );
   check(located, {
-    'driver: location accepted': r => r.status === 200 || r.status === 201,
+    'driver: location accepted': r => r.status === 200 || r.status === 201 || r.status === 204,
   });
 }

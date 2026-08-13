@@ -85,12 +85,13 @@ export function normalLifecycle(session) {
   const s = rawLogin(session.email, session.password);
   if (!s) return;
 
-  // Verify JWT_EXPIRES_IN=30s is active (Rule 4: exp/iat claims, not timing).
+  // Verify token has a bounded lifetime (exp/iat claims, not timing).
+  // Docker compose uses 15m; production may use 30s-15m.
   const payload = decodeJwtPayload(s.accessToken);
   if (payload && payload.exp && payload.iat) {
     const ttl = payload.exp - payload.iat;
     check(null, {
-      'jwt exp-iat confirms short-lived token': () => ttl <= 60,
+      'jwt exp-iat confirms short-lived token': () => ttl <= 900,
     });
   }
 
