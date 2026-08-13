@@ -25,6 +25,7 @@ import type { Model, Types } from 'mongoose';
 
 import { AppModule } from '../src/app.module';
 import { DonationPool, DonationPoolStatus } from '../src/donations/schemas/donation-pool.schema';
+import { DriverProfile } from '../src/drivers/schemas/driver-profile.schema';
 import { Establishment } from '../src/establishments/schemas/establishment.schema';
 import { Offer } from '../src/offers/schemas/offer.schema';
 import { OrdersService } from '../src/orders/order.service';
@@ -58,6 +59,9 @@ const BULK_OFFER_QUANTITY = 1000;
  */
 const ALLOWED_HOST_PATTERNS = [/^localhost$/, /^127\.0\.0\.1$/, /^mongodb$/, /staging/i];
 
+/** Where the fixture payment webhook is posted when BACKEND_URL is unset. */
+const DEFAULT_BACKEND_URL = 'http://localhost:3000';
+
 function assertSafeTarget(uri: string): void {
   if (process.env['ALLOW_LOADTEST_SEED'] !== 'true') {
     throw new Error(
@@ -79,6 +83,37 @@ function assertSafeTarget(uri: string): void {
     throw new Error(
       `Refusing to seed: host "${host}" is not in the load-test allowlist. ` +
         'Add it to ALLOWED_HOST_PATTERNS only if it is genuinely disposable.',
+    );
+  }
+
+  assertSafeBackendUrl();
+}
+
+/**
+ * The database is not the only thing this script writes to. Settling a fixture
+ * order POSTs the Konnect callback to BACKEND_URL, and that variable is set in
+ * `.env` to the production API — so a run that passed the database check above
+ * still fired payment webhooks at production, which answered 404 and made
+ * local seeding fail in a way that pointed nowhere near the real cause.
+ *
+ * The DB guard already establishes the principle; this closes the other half.
+ * Same allowlist, fails closed the same way.
+ */
+function assertSafeBackendUrl(): void {
+  const raw = process.env['BACKEND_URL'] ?? DEFAULT_BACKEND_URL;
+
+  let host: string;
+  try {
+    host = new URL(raw).hostname;
+  } catch {
+    throw new Error(`Refusing to seed: BACKEND_URL "${raw}" is not a valid URL.`);
+  }
+
+  if (!ALLOWED_HOST_PATTERNS.some(pattern => pattern.test(host))) {
+    throw new Error(
+      `Refusing to seed: BACKEND_URL host "${host}" is not in the load-test allowlist. ` +
+        'Seeding drives the payment webhook, so this must point at a disposable backend — ' +
+        `set BACKEND_URL=${DEFAULT_BACKEND_URL} for a local stack.`,
     );
   }
 }
@@ -169,6 +204,7 @@ interface SeedContext {
   offerModel: Model<Offer>;
   orderModel: Model<Order>;
   poolModel: Model<DonationPool>;
+  driverProfileModel: Model<DriverProfile>;
   usersService: UsersService;
   orderService: OrdersService;
   konnectOrdersService: KonnectOrderService;
@@ -217,6 +253,35 @@ async function seedActors(ctx: SeedContext): Promise<{
   }
 
   return { consumers, merchants, drivers };
+}
+
+async function seedDriverProfiles(
+  ctx: SeedContext,
+  driverIds: Types.ObjectId[],
+): Promise<void> {
+  for (const [index, userId] of driverIds.entries()) {
+    const { latitude, longitude } = jitteredLocation(index);
+    await ctx.driverProfileModel.collection.updateOne(
+      { userId },
+      {
+        $setOnInsert: {
+          userId,
+          idCardNumber: `K6-DRV-${String(index).padStart(4, '0')}`,
+          address: `${index} Load Test Street, Tunis`,
+          createdAt: new Date(),
+        },
+        $set: {
+          isOnline: true,
+          lastKnownLocation: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+          updatedAt: new Date(),
+        },
+      },
+      { upsert: true },
+    );
+  }
 }
 
 async function seedEstablishments(
@@ -456,7 +521,8 @@ async function settleOrFail(
   orderId: Types.ObjectId,
   label: string,
 ): Promise<void> {
-  const backendUrl = process.env['BACKEND_URL'] ?? 'http://localhost:3000';
+  // Allowlisted by assertSafeBackendUrl() during preflight.
+  const backendUrl = process.env['BACKEND_URL'] ?? DEFAULT_BACKEND_URL;
 
   // Back off between attempts. The PaymentAttempt is written by *this* process
   // and read by the *backend* process, and the backend reported "no
@@ -623,6 +689,7 @@ async function bootstrap(): Promise<void> {
     offerModel: app.get<Model<Offer>>(getModelToken(Offer.name)),
     orderModel: app.get<Model<Order>>(getModelToken(Order.name)),
     poolModel: app.get<Model<DonationPool>>(getModelToken(DonationPool.name)),
+    driverProfileModel: app.get<Model<DriverProfile>>(getModelToken(DriverProfile.name)),
     usersService: app.get(UsersService),
     orderService: app.get(OrdersService),
     konnectOrdersService: app.get(KonnectOrderService),
@@ -672,6 +739,9 @@ async function bootstrap(): Promise<void> {
 
     process.stdout.write('Seeding load-test actors...\n');
     const actors = await seedActors(ctx);
+
+    process.stdout.write('Seeding driver profiles...\n');
+    await seedDriverProfiles(ctx, actors.drivers);
 
     process.stdout.write('Seeding establishments...\n');
     const establishments = await seedEstablishments(ctx, actors.merchants);
