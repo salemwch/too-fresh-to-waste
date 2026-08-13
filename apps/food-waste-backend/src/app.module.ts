@@ -71,13 +71,19 @@ import { VotingModule } from './voting/voting.module';
       useFactory: (configService: ConfigService) => {
         const redisConfig = getRedisConnectionConfig(configService);
 
+        const globalLimit = Number.parseInt(configService.get('THROTTLE_LIMIT', '100'));
+
         return {
           throttlers: [
             {
               ttl: Number.parseInt(configService.get('THROTTLE_TTL', '60000')),
-              limit: Number.parseInt(configService.get('THROTTLE_LIMIT', '100')),
+              limit: globalLimit,
             },
           ],
+          // When THROTTLE_LIMIT is set very high, skip all throttling —
+          // including per-endpoint @Throttle() overrides that would otherwise
+          // still fire at their hardcoded limits.
+          ...(globalLimit > 100_000 ? { skipIf: () => true } : {}),
           storage: new ThrottlerStorageRedisService(
             buildRedisUrl(redisConfig),
             buildThrottlerRedisOptions(redisConfig),
