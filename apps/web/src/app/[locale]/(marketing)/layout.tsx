@@ -27,6 +27,7 @@ const MARKETING_NAMESPACES = [
   'features',
   'howItWorks',
   'comingSoon',
+  'appLaunchModal',
   'download',
   'cta',
   'testimonials',

@@ -286,6 +286,12 @@
     "workingHard": "We're working hard to bring you something amazing!",
     "stayTuned": "Stay tuned for updates. Subscribe to our newsletter below to be the first to know."
   },
+  "appLaunchModal": {
+    "title": "App coming soon",
+    "heading": "The app will be available soon",
+    "description": "We're putting the finishing touches on the mobile app. It will be available on the App Store and Google Play very soon.",
+    "platforms": "Available on iOS & Android · Free to download"
+  },
   "businessSignup": {
     "title": "Coming Soon",
     "description": "We're building something amazing for businesses to join our platform and help reduce food waste.",
