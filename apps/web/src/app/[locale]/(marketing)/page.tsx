@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { Header } from '@/components/layout';
@@ -14,7 +14,7 @@ import { HashScrollHandler } from '@/components/HashScrollHandler';
 import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
 import type { Locale } from '@/i18n/config';
 import { locales, getLocaleConfig } from '@/i18n/config';
-import { OrganizationSchema, WebSiteSchema } from '@/components/seo/schemas';
+import { OrganizationSchema, WebSiteSchema, FAQSchema } from '@/components/seo/schemas';
 import { getCanonicalUrl, getLocaleSeoMetadata } from '@/config/seo.config';
 
 interface HomePageProps {
@@ -52,10 +52,23 @@ export default async function HomePage({ params }: HomePageProps) {
   // Enable static rendering
   setRequestLocale(locale);
 
+  // FAQPage schema for the questions Section5 renders below. Read from the same
+  // translation keys the component uses, so the markup can never describe
+  // questions that are not actually on the page — which is what earns the
+  // rich result and what gets it revoked if it drifts.
+  const tFaq = await getTranslations({ locale, namespace: 'section5' });
+  const faqItems = (['faq1', 'faq2', 'faq3', 'faq4'] as const).map(key => ({
+    question: tFaq(`faqs.${key}.question`),
+    answer: tFaq(`faqs.${key}.answer`)
+      .replace(/\s*\n\s*/g, ' ')
+      .trim(),
+  }));
+
   return (
     <>
       <OrganizationSchema locale={locale as Locale} />
       <WebSiteSchema locale={locale as Locale} />
+      <FAQSchema items={faqItems} />
       <HashScrollHandler />
       <Header />
 

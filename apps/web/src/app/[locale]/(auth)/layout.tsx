@@ -4,6 +4,10 @@ import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { pickMessages } from '@/lib/pick-messages';
+import { NOINDEX_METADATA } from '@/lib/seo-metadata';
+
+// Authenticated / transactional area — must never enter the search index.
+export const metadata = NOINDEX_METADATA;
 
 // Only the namespaces used by auth client components (login, register,
 // forgot-password, reset-password, verify-email).

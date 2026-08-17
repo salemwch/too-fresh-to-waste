@@ -2,6 +2,10 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { pickMessages } from '@/lib/pick-messages';
 import { MerchantLayoutShell } from './merchant-layout-shell';
+import { NOINDEX_METADATA } from '@/lib/seo-metadata';
+
+// Authenticated / transactional area — must never enter the search index.
+export const metadata = NOINDEX_METADATA;
 
 // Only the namespaces used by merchant dashboard client components.
 // Saves ~41 % of the serialised translation payload vs. sending all messages.
