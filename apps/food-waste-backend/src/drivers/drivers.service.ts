@@ -108,12 +108,16 @@ export class DriversService {
    * match the 2dsphere index. Fed by the app only while the driver is online.
    */
   async updateLocation(driverId: string, lat: number, lng: number): Promise<void> {
-    const result = await this.driverProfileModel.updateOne(
+    // Bypass Mongoose — its schema defaults on the nested `lastKnownLocation`
+    // subdocument strip `coordinates` and leave `{ type: "Point" }`, which the
+    // 2dsphere index rejects with "Point must be an array or object".
+    const result = await this.driverProfileModel.collection.updateOne(
       { userId: new Types.ObjectId(driverId) },
       {
         $set: {
           lastKnownLocation: { type: 'Point', coordinates: [lng, lat] },
           lastLocationAt: new Date(),
+          updatedAt: new Date(),
         },
       },
     );

@@ -68,6 +68,63 @@ export const GATE_PROFILE = {
     exec: 'driverPoll',
     tags: { journey: 'driver' },
   },
+  // Discovery pipeline — the hottest read path in the product. Warm-cache
+  // browse only; low-cache-reuse and pagination-depth run via the standalone
+  // geo-search profiling suite, not the PR gate.
+  consumer_search: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 10 },
+      { duration: '2m', target: 10 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'consumerSearch',
+    tags: { journey: 'search' },
+  },
+  // Mobile session lifecycle — normal lifecycle only (login, rehydrate,
+  // refresh, logout). Expired-token, reuse-detection and concurrent-refresh
+  // scenarios are correctness checks, not gate load, and live in the
+  // standalone suites/mobile-session.js instead.
+  consumer_session: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 5 },
+      { duration: '2m', target: 5 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'consumerSession',
+    tags: { journey: 'session' },
+  },
+  // Order-creation burst, the k6-visible half of the notification-storm
+  // check. Kept small at gate scale — the full storm (order burst + read
+  // flood + mark-all-read at 30/20/10 VUs) runs via the standalone
+  // suites/notification-storm.js, not the PR gate.
+  notification_burst: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '30s', target: 5 },
+      { duration: '2m', target: 5 },
+      { duration: '20s', target: 0 },
+    ],
+    exec: 'notificationBurst',
+    tags: { journey: 'notification' },
+  },
+  // WebSocket compatibility check — connect + authenticate over the real
+  // Engine.IO/Socket.IO framing. Full WS load (room join, heartbeat,
+  // disconnect/reconnect, unauthenticated timeout) runs via the standalone
+  // suites/websocket-load.js, not the PR gate.
+  websocket_connect: {
+    executor: 'per-vu-iterations',
+    vus: 10,
+    iterations: 1,
+    exec: 'websocketConnect',
+    startTime: '0s',
+    maxDuration: '60s',
+    tags: { journey: 'websocket' },
+  },
 };
 
 /**

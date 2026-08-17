@@ -20,7 +20,11 @@ export const options = {
 };
 
 export function setup() {
-  return setupPools({ consumers: 35, merchants: 5, drivers: 5 });
+  // Peak concurrent consumer VUs across scenarios: cold_start(10) +
+  // browse(20) + checkout(2) + search(10) + session(5) + notification(5) +
+  // websocket_connect(10) = 62. Sized above that so no two VUs share a
+  // session at the same moment (see lib/runner.js `pick`).
+  return setupPools({ consumers: 65, merchants: 5, drivers: 5 });
 }
 
 const execs = makeExecs();
@@ -28,7 +32,11 @@ const execs = makeExecs();
 export const consumerColdStart = execs.consumerColdStart;
 export const consumerBrowse = execs.consumerBrowse;
 export const consumerCheckout = execs.consumerCheckout;
+export const consumerSearch = execs.consumerSearch;
+export const consumerSession = execs.consumerSession;
 export const merchantDashboard = execs.merchantDashboard;
 export const driverPoll = execs.driverPoll;
+export const notificationBurst = execs.notificationBurst;
+export const websocketConnect = execs.websocketConnect;
 
 export const handleSummary = summaryHandler('gate');

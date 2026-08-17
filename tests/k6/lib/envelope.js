@@ -63,6 +63,26 @@ export function checkList(res, name) {
   });
 }
 
+/**
+ * The document id, whichever name this endpoint uses for it.
+ *
+ * List endpoints serve trimmed DTOs and detail endpoints serve the Mongoose
+ * document, and the two do not agree: `GET /offers` returns `OfferCardDto`
+ * with `id` and no `_id`, while `GET /offers/:id` returns both. Reading `_id`
+ * off a card therefore yields undefined, and because every journey guards with
+ * `if (!offer._id) return;` the iteration ends in silence and the suite still
+ * reports green.
+ *
+ * That is not hypothetical: the checkout journey had never created a single
+ * order, and no run said so — `order_create` simply had zero samples.
+ */
+export function docId(doc) {
+  if (doc === null || doc === undefined) {
+    return null;
+  }
+  return doc.id ?? doc._id ?? null;
+}
+
 /** Picks a random element, or null for an empty/absent list. */
 export function sample(list) {
   if (!Array.isArray(list) || list.length === 0) {

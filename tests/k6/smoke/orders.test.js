@@ -12,6 +12,7 @@ import {
   checkResponse,
   checkPaginatedResponse,
   extractData,
+  docId,
 } from './helpers/checks.js';
 
 export default function () {
@@ -41,7 +42,7 @@ export default function () {
     );
     const orders = extractData(list);
     if (orders && orders.length > 0) {
-      const orderId = orders[0]._id;
+      const orderId = docId(orders[0]);
 
       const detail = http.get(`${BASE_URL}/orders/${orderId}`, {
         headers: authHeaders(consumer.accessToken),

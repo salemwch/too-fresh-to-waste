@@ -17,7 +17,10 @@ export default function () {
     auth = login(TEST_CONSUMER_EMAIL, TEST_CONSUMER_PASSWORD);
     check(auth, {
       'login — got access token': (a) => a && a.accessToken,
-      'login — got user object': (a) => a && a.user && a.user._id,
+      // The login payload identifies the user as `userId`, not `_id` — see the
+      // response-envelope note in CLAUDE.md. Asserting `_id` here passed on
+      // undefined and proved nothing.
+      'login — got user object': (a) => a && a.user && a.user.userId,
     });
 
     // Invalid credentials

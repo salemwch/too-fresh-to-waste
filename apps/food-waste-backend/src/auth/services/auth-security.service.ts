@@ -62,7 +62,8 @@ export class AuthSecurityService {
   private readonly CAPTCHA_REQUIRED_AFTER_ATTEMPTS = 7; // Require CAPTCHA after 7 failed attempts (70% of max)
 
   // Rate limiting configuration (PRODUCTION-READY IMPROVEMENT: Reduced from 50 to 25)
-  private readonly RATE_LIMIT_THRESHOLD = 25; // requests per minute (down from 50)
+  // Env-configurable so load-test environments can raise it without code changes.
+  private readonly RATE_LIMIT_THRESHOLD: number;
   private readonly RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
 
   // Fallback in-memory storage for development/offline mode
@@ -85,7 +86,7 @@ export class AuthSecurityService {
     private readonly redisService: RedisService,
     private readonly eventBus: EventBusService,
   ) {
-    void this._configService;
+    this.RATE_LIMIT_THRESHOLD = this._configService.get<number>('AUTH_RATE_LIMIT_THRESHOLD') ?? 25;
     this.logger.log(
       '✅ AuthSecurityService initialized with shared RedisService and EventBusService',
     );

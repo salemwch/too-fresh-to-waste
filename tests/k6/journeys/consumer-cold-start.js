@@ -19,7 +19,7 @@ export function consumerColdStart(session) {
   const [me, nearby, unread, favouriteIds] = batch([
     { path: '/auth/me', name: 'auth_me', params },
     {
-      path: `/offers/nearby?latitude=${TUNIS.latitude}&longitude=${TUNIS.longitude}&radius=5000&limit=10`,
+      path: `/offers/nearby?latitude=${TUNIS.latitude}&longitude=${TUNIS.longitude}&maxDistance=5000&limit=10`,
       name: 'offers_nearby',
       params,
     },

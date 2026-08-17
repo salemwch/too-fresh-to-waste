@@ -2,8 +2,8 @@ import { sleep } from 'k6';
 import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 import { withAuth } from '../lib/auth.js';
-import { checkList, checkOk, data, sample } from '../lib/envelope.js';
-import { get, post } from '../lib/http.js';
+import { checkList, checkOk, data, docId, sample } from '../lib/envelope.js';
+import { get } from '../lib/http.js';
 
 const SEARCH_TERMS = ['pizza', 'pain', 'salade', 'couscous', 'patisserie', 'sandwich'];
 
@@ -33,9 +33,10 @@ export function consumerBrowse(session) {
 
   const offers = data(list);
   const chosen = sample(offers);
-  if (chosen && chosen._id) {
+  const chosenId = docId(chosen);
+  if (chosenId) {
     const detail = withAuth(session, params =>
-      get(`/offers/${chosen._id}`, 'offer_detail', params),
+      get(`/offers/${chosenId}`, 'offer_detail', params),
     );
     checkOk(detail, 'offer detail');
     sleep(randomIntBetween(2, 6));
@@ -43,7 +44,7 @@ export function consumerBrowse(session) {
 
   const term = SEARCH_TERMS[randomIntBetween(0, SEARCH_TERMS.length - 1)];
   const results = withAuth(session, params =>
-    post('/search', { query: term, page: 1, limit: 10 }, 'search', params),
+    get(`/search/suggestions?query=${encodeURIComponent(term)}`, 'search', params),
   );
   checkOk(results, 'search');
 

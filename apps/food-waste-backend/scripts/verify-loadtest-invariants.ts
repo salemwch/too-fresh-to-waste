@@ -18,7 +18,10 @@ import type { Model } from 'mongoose';
 import { AppModule } from '../src/app.module';
 import { DonationPool, DonationPoolStatus } from '../src/donations/schemas/donation-pool.schema';
 import { UserDonation } from '../src/donations/schemas/user-donation.schema';
+import { Establishment } from '../src/establishments/schemas/establishment.schema';
 import { LoyaltyAccount } from '../src/loyalty/schemas/loyalty-account.schema';
+import { Notification } from '../src/notifications/schemas/notification.schema';
+import { NotificationStatus } from '../src/notifications/types/notification.types';
 import { Offer } from '../src/offers/schemas/offer.schema';
 import { Order } from '../src/orders/schemas/order.schema';
 import { PaymentAttempt } from '../src/payments/schemas/payment-attempt.schema';
@@ -54,6 +57,8 @@ async function bootstrap(): Promise<void> {
   const loyaltyModel = app.get<Model<LoyaltyAccount>>(getModelToken(LoyaltyAccount.name));
   const poolModel = app.get<Model<DonationPool>>(getModelToken(DonationPool.name));
   const donationModel = app.get<Model<UserDonation>>(getModelToken(UserDonation.name));
+  const notificationModel = app.get<Model<Notification>>(getModelToken(Notification.name));
+  const establishmentModel = app.get<Model<Establishment>>(getModelToken(Establishment.name));
 
   try {
     // ---------------------------------------------------------------------
@@ -355,6 +360,205 @@ async function bootstrap(): Promise<void> {
       indexDrift.length === 0
         ? 'goal index consistent'
         : `${indexDrift.length} pools advanced further than their completed list`,
+    );
+
+    // ---------------------------------------------------------------------
+    // 7. Notification delivery.
+    // ---------------------------------------------------------------------
+    // No logical duplicates: (orderId, trigger, userId) should be unique.
+    const notifDuplicates = await notificationModel.aggregate<{ _id: unknown; count: number }>([
+      { $match: { orderId: { $exists: true, $ne: null } } },
+      {
+        $group: {
+          _id: { orderId: '$orderId', trigger: '$trigger', userId: '$userId' },
+          count: { $sum: 1 },
+        },
+      },
+      { $match: { count: { $gt: 1 } } },
+    ]);
+
+    assert(
+      'no logical notification duplicates (orderId + trigger + userId)',
+      notifDuplicates.length === 0,
+      notifDuplicates.length === 0
+        ? 'all notification tuples unique'
+        : `${notifDuplicates.length} duplicated notification tuples`,
+    );
+
+    // No notification stuck in a non-terminal state. Schema values are
+    // lower-case ('pending', 'sent', ...) — NotificationStatus is the single
+    // source of truth rather than re-typing the strings here.
+    const stuckNotifications = await notificationModel
+      .countDocuments({
+        status: { $in: [NotificationStatus.PENDING, NotificationStatus.SENT] },
+        createdAt: { $lt: new Date(Date.now() - 120_000) },
+      })
+      .exec();
+
+    assert(
+      'no notification stuck in PENDING or SENT after 2 minutes',
+      stuckNotifications === 0,
+      `${stuckNotifications} notifications still in non-terminal state`,
+    );
+
+    // Failed notifications < 1%.
+    const totalNotifs = await notificationModel.countDocuments().exec();
+    const failedNotifs = await notificationModel
+      .countDocuments({ status: NotificationStatus.FAILED })
+      .exec();
+    const failRate = totalNotifs > 0 ? failedNotifs / totalNotifs : 0;
+
+    assert(
+      'failed notifications < 1% of total',
+      failRate < 0.01,
+      `${failedNotifs}/${totalNotifs} failed (${(failRate * 100).toFixed(2)}%)`,
+    );
+
+    // Cross-user contamination: no user received another user's notification.
+    // A notification tied to an order is legitimately addressed to either the
+    // customer (Order.customerId) or the establishment's owner
+    // (Establishment.ownerId) — merchants get order notifications too. Order
+    // has no `userId` field (it is `customerId`); comparing against a
+    // non-existent field would make every notification with an orderId look
+    // like contamination.
+    const crossUser = await notificationModel.aggregate<{ _id: unknown }>([
+      { $match: { orderId: { $exists: true, $ne: null } } },
+      {
+        $lookup: {
+          from: 'orders',
+          localField: 'orderId',
+          foreignField: '_id',
+          as: 'order',
+        },
+      },
+      { $unwind: '$order' },
+      {
+        $lookup: {
+          from: 'establishments',
+          localField: 'order.establishmentId',
+          foreignField: '_id',
+          as: 'establishment',
+        },
+      },
+      { $unwind: { path: '$establishment', preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $ne: ['$userId', '$order.customerId'] },
+              { $ne: ['$userId', '$establishment.ownerId'] },
+            ],
+          },
+        },
+      },
+    ]);
+
+    assert(
+      'no cross-user notification contamination',
+      crossUser.length === 0,
+      crossUser.length === 0
+        ? 'all notifications delivered to correct users'
+        : `${crossUser.length} notifications sent to wrong user`,
+    );
+
+    // Delivery latency stats (Rule 6: deliveredAt - createdAt).
+    const latencyStats = await notificationModel.aggregate<{
+      p50: number;
+      p95: number;
+      p99: number;
+      max: number;
+      count: number;
+    }>([
+      { $match: { deliveredAt: { $exists: true, $ne: null }, createdAt: { $exists: true } } },
+      {
+        $project: {
+          latencyMs: { $subtract: ['$deliveredAt', '$createdAt'] },
+        },
+      },
+      { $sort: { latencyMs: 1 } },
+      {
+        $group: {
+          _id: null,
+          latencies: { $push: '$latencyMs' },
+          count: { $sum: 1 },
+          max: { $max: '$latencyMs' },
+        },
+      },
+      {
+        $project: {
+          count: 1,
+          max: 1,
+          p50: { $arrayElemAt: ['$latencies', { $floor: { $multiply: [0.5, '$count'] } }] },
+          p95: { $arrayElemAt: ['$latencies', { $floor: { $multiply: [0.95, '$count'] } }] },
+          p99: { $arrayElemAt: ['$latencies', { $floor: { $multiply: [0.99, '$count'] } }] },
+        },
+      },
+    ]);
+
+    const [stats] = latencyStats;
+    if (stats) {
+      reportOnly(
+        'notification delivery latency (deliveredAt - createdAt)',
+        `p50=${stats.p50}ms p95=${stats.p95}ms p99=${stats.p99}ms max=${stats.max}ms (n=${stats.count})`,
+      );
+    } else {
+      reportOnly(
+        'notification delivery latency',
+        'no delivered notifications found — SLA measurement skipped',
+      );
+    }
+
+    // ---------------------------------------------------------------------
+    // 8. Subscription state-machine validity.
+    // ---------------------------------------------------------------------
+    // Every paid establishment must have a valid state combination. This is
+    // exactly what the subscription-race k6 suite's double-initiate and
+    // wrong-tier-proof scenarios can break: initiatePayment writes
+    // pendingTier/pendingCycle and lastPaymentRef as two separate updates,
+    // so a second initiate racing the first can leave the webhook settling
+    // with a tier/cycle pair that was never fully written together.
+    const invalidSubStates = await establishmentModel
+      .find({
+        subscriptionStatus: 'paid',
+        $or: [
+          { subscriptionTier: null },
+          { subscriptionTier: { $exists: false } },
+          { subscriptionCycle: null },
+          { subscriptionCycle: { $exists: false } },
+        ],
+      })
+      .select('_id subscriptionStatus subscriptionTier subscriptionCycle')
+      .lean();
+
+    assert(
+      'no paid establishment has null tier or cycle',
+      invalidSubStates.length === 0,
+      invalidSubStates.length === 0
+        ? 'all paid establishments have valid state'
+        : `${invalidSubStates.length} establishments with invalid subscription state`,
+    );
+
+    // A "paid" establishment whose subscriptionExpiresAt has already passed
+    // is what the duplicate-webhook race would produce if handleWebhook's
+    // TOCTOU guard (subscriptionStatus === 'paid' && daysRemaining > 7) loses
+    // a race — the seed fixtures never set subscription fields at all
+    // (every establishment starts 'trial' with no subscriptionExpiresAt), so
+    // any match here was written during this run, not inherited from seed
+    // data.
+    const expiredButPaid = await establishmentModel
+      .find({
+        subscriptionStatus: 'paid',
+        subscriptionExpiresAt: { $exists: true, $lt: new Date() },
+      })
+      .select('_id subscriptionExpiresAt')
+      .lean();
+
+    assert(
+      'no paid establishment has an already-expired subscriptionExpiresAt',
+      expiredButPaid.length === 0,
+      expiredButPaid.length === 0
+        ? 'all paid establishments have a future expiry'
+        : `${expiredButPaid.length} paid establishments already past subscriptionExpiresAt`,
     );
   } finally {
     await app.close();

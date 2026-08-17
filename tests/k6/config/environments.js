@@ -57,3 +57,12 @@ export function seedEmail(pattern, index) {
 
 // Tunis, for the geo-bound endpoints.
 export const TUNIS = { latitude: 36.8065, longitude: 10.1815 };
+
+// Tunisia locations for geo-search testing
+export const TUNISIA_LOCATIONS = [
+  { name: 'tunis',   latitude: 36.8065, longitude: 10.1815 },
+  { name: 'lamarsa', latitude: 36.8785, longitude: 10.3225 },
+  { name: 'sousse',  latitude: 35.8256, longitude: 10.6369 },
+  { name: 'sfax',    latitude: 34.7406, longitude: 10.7603 },
+  { name: 'nabeul',  latitude: 36.4513, longitude: 10.7357 },
+];

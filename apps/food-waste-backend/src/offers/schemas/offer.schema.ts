@@ -433,6 +433,12 @@ OfferSchema.index(
   { name: 'idx_offers_active_availability' },
 );
 
+/** Correlated $lookup inside the nearby-offers $geoNear pipeline. */
+OfferSchema.index(
+  { establishmentId: 1, status: 1, isActive: 1, availableUntil: 1, availableFrom: 1 },
+  { name: 'idx_offers_establishment_active_window' },
+);
+
 /** Expiring-offers sweep and cron jobs. */
 OfferSchema.index({ availableUntil: 1, status: 1 }, { name: 'idx_offers_availableUntil_status' });
 

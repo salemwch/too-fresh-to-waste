@@ -286,6 +286,12 @@
     "workingHard": "Nous travaillons dur pour vous apporter quelque chose d'incroyable !",
     "stayTuned": "Restez à l'écoute pour les mises à jour. Abonnez-vous à notre newsletter ci-dessous pour être le premier informé."
   },
+  "appLaunchModal": {
+    "title": "Application bientôt disponible",
+    "heading": "L'application sera bientôt disponible",
+    "description": "Nous mettons la touche finale à l'application mobile. Elle sera disponible sur l'App Store et Google Play très bientôt.",
+    "platforms": "Disponible sur iOS et Android · Téléchargement gratuit"
+  },
   "businessSignup": {
     "title": "Bientôt disponible",
     "description": "Nous construisons quelque chose d'incroyable pour les entreprises qui souhaitent rejoindre notre plateforme et aider à réduire le gaspillage alimentaire.",
