@@ -243,6 +243,10 @@
         "privacy": "Privacy Policy",
         "cookies": "Cookie Policy",
         "security": "Security"
+      },
+      "cities": {
+        "title": "Cities",
+        "all": "All locations"
       }
     },
     "social": {

@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { getCanonicalUrl } from '@/config/seo.config';
 import { locales, getLocaleConfig } from '@/i18n/config';
 import { getAllPosts } from '@/lib/blog';
+import { citySlugs } from '@/content/locations';
 
 import type { Locale } from '@/i18n/config';
 
@@ -37,9 +38,9 @@ const marketingPages: Array<{
   { path: '/mission-driven', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/partners', changeFrequency: 'monthly', priority: PRIORITY.support },
   { path: '/blog', changeFrequency: 'weekly', priority: PRIORITY.blog },
+  // Hub page for the city cluster — links to every /locations/{city} child.
+  { path: '/locations', changeFrequency: 'monthly', priority: PRIORITY.pillar },
 ];
-
-const tunisiaCities = ['tunis', 'sousse', 'sfax', 'monastir', 'hammamet', 'bizerte', 'nabeul'];
 
 function buildAlternates(path: string): Record<string, string> {
   const alternates: Record<string, string> = {
@@ -87,7 +88,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
-  tunisiaCities.forEach(city => {
+  // Driven by the same `cities` array the /locations/[city] route renders from,
+  // so the sitemap can no longer advertise a city page that does not exist.
+  citySlugs.forEach(city => {
     locales.forEach((locale: Locale) => {
       entries.push(buildEntry(`/locations/${city}`, 'weekly', PRIORITY.city, locale, now));
     });

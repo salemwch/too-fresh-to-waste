@@ -1,9 +1,12 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { seoConfig } from '@/config/seo.config';
 import { useAppLaunchModal } from '@/lib/app-launch-modal.store';
+import { cityNav } from '@/content/city-nav';
+
+import type { Locale } from '@/i18n/config';
 
 // Footer link type
 interface FooterLink {
@@ -19,6 +22,7 @@ interface FooterSection {
 
 export default function Footer() {
   const t = useTranslations('footer');
+  const locale = useLocale() as Locale;
   const currentYear = new Date().getFullYear();
   const { open: openLaunchModal } = useAppLaunchModal();
 
@@ -255,6 +259,40 @@ export default function Footer() {
 
       {/* Divider */}
       <hr className='mt-6 mb-4 border-white/20' />
+
+      {/* City links — a sitemap entry alone leaves the /locations cluster
+          orphaned. Site-wide internal links are what actually pass authority
+          to it and let crawlers reach every city page from any page. */}
+      <nav aria-labelledby='footer-cities-heading' className='mb-4'>
+        <h3
+          id='footer-cities-heading'
+          className='text-white font-semibold text-sm sm:text-base mb-2'
+        >
+          {t('sections.cities.title')}
+        </h3>
+        <ul className='flex flex-wrap gap-x-4 gap-y-1'>
+          {cityNav.map(city => (
+            <li key={city.slug}>
+              <Link
+                href={`/locations/${city.slug}`}
+                className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors'
+              >
+                {city.label[locale] ?? city.label.en}
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link
+              href='/locations'
+              className='hover:text-white text-white/70 text-xs sm:text-sm font-medium underline transition-colors'
+            >
+              {t('sections.cities.all')}
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
+      <hr className='mb-4 border-white/20' />
 
       {/* Copyright */}
       <div className='flex items-center justify-center sm:justify-end'>
