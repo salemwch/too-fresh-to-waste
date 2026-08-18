@@ -1,6 +1,7 @@
 import sitemap from '@/app/sitemap';
 import { seoConfig } from '@/config/seo.config';
 import { locales } from '@/i18n/config';
+import { citySlugs } from '@/content/locations';
 import {
   getAllPosts,
   getAllSlugs,
@@ -106,6 +107,90 @@ describe('prerendering', () => {
     const untranslated = getAllSlugs('en').filter(s => !getAllSlugs('fr').includes(s));
     untranslated.forEach(slug => {
       expect(params).not.toContainEqual({ locale: 'fr', slug });
+    });
+  });
+});
+
+describe('translation coverage', () => {
+  it('every English post has a French translation', () => {
+    // French is the primary commercial language for Tunisian search volume, so
+    // an English-only article is a gap, not a choice. This fails when a new
+    // English post lands without its French counterpart.
+    const missing = getAllPosts('en')
+      .filter(post => getTranslationSlugs(post.translationKey).fr === undefined)
+      .map(post => post.slug);
+
+    expect(missing).toEqual([]);
+  });
+
+  it('French slugs are distinct from their English counterparts', () => {
+    // A French post sitting at the English slug wastes the keyword in the URL.
+    getAllPosts('fr').forEach(post => {
+      const map = getTranslationSlugs(post.translationKey);
+      if (map.en) expect(map.fr).not.toBe(map.en);
+    });
+  });
+});
+
+describe('internal links inside posts resolve', () => {
+  // The lookbehind sits before the opening bracket, because in an image embed
+  // `![alt](/images/x.webp)` the `!` precedes `[`, not `]`. Images are asset
+  // paths, not routes, and asserting them against the router would fail for the
+  // wrong reason.
+  const INTERNAL_LINK = /(?<!!)\[[^\]]*\]\((\/[^)\s]*)\)/g;
+
+  const linksIn = (locale: Locale) =>
+    getAllSlugs(locale).flatMap(slug => {
+      const post = getPostBySlug(slug, locale);
+      const content = post?.content ?? '';
+      return [...content.matchAll(INTERNAL_LINK)].map(m => ({
+        from: slug,
+        href: m[1] as string,
+      }));
+    });
+
+  it('every /blog/ link points at a post that exists in the same locale', () => {
+    locales.forEach(locale => {
+      linksIn(locale)
+        .filter(l => l.href.startsWith('/blog/'))
+        .forEach(({ from, href }) => {
+          const target = href.replace('/blog/', '');
+          expect({ from, href, exists: getPostBySlug(target, locale) !== null }).toEqual({
+            from,
+            href,
+            exists: true,
+          });
+        });
+    });
+  });
+
+  it('every /locations/ link points at a real city', () => {
+    locales.forEach(locale => {
+      linksIn(locale)
+        .filter(l => l.href.startsWith('/locations/'))
+        .forEach(({ from, href }) => {
+          const slug = href.replace('/locations/', '');
+          expect({ from, href, exists: citySlugs.includes(slug) }).toEqual({
+            from,
+            href,
+            exists: true,
+          });
+        });
+    });
+  });
+
+  it('other internal links point at routes that exist', () => {
+    const KNOWN_ROUTES = ['/business-signup', '/partners', '/blog', '/contact', '/companies'];
+    locales.forEach(locale => {
+      linksIn(locale)
+        .filter(l => !l.href.startsWith('/blog/') && !l.href.startsWith('/locations/'))
+        .forEach(({ from, href }) => {
+          expect({ from, href, known: KNOWN_ROUTES.includes(href) }).toEqual({
+            from,
+            href,
+            known: true,
+          });
+        });
     });
   });
 });
