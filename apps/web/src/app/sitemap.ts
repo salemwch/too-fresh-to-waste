@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { getCanonicalUrl } from '@/config/seo.config';
 import { locales, getLocaleConfig } from '@/i18n/config';
-import { getAllPosts } from '@/lib/blog';
+import { getAllPosts, getTranslationSlugs } from '@/lib/blog';
 import { citySlugs } from '@/content/locations';
 
 import type { Locale } from '@/i18n/config';
@@ -78,13 +78,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
-  // Blog posts (from master) — rebuilt on the branch's buildEntry helper so
-  // they pick up the same hreflang alternates as every other entry.
-  getAllPosts().forEach(post => {
-    locales.forEach((locale: Locale) => {
-      entries.push(
-        buildEntry(`/blog/${post.slug}`, 'monthly', PRIORITY.blog, locale, new Date(post.date)),
-      );
+  // Blog posts cannot use buildEntry: slugs differ per locale (a French post
+  // lives at its own French slug), so alternates must be resolved through the
+  // shared translationKey rather than by reusing one path across locales.
+  //
+  // Only locales that have a real MDX file are emitted. Previously every post
+  // was advertised in all three locales while only the English text existed,
+  // so the sitemap declared French and Arabic versions that were actually
+  // English pages — an hreflang claim contradicted by the page itself.
+  locales.forEach((locale: Locale) => {
+    getAllPosts(locale).forEach(post => {
+      const translations = getTranslationSlugs(post.translationKey);
+      const languages: Record<string, string> = {};
+
+      (Object.entries(translations) as Array<[Locale, string]>).forEach(([l, s]) => {
+        languages[getLocaleConfig(l).hreflang] = getCanonicalUrl(`/blog/${s}`, l);
+      });
+      const defaultSlug = translations['en'];
+      if (defaultSlug) {
+        languages['x-default'] = getCanonicalUrl(`/blog/${defaultSlug}`, 'en');
+      }
+
+      entries.push({
+        url: getCanonicalUrl(`/blog/${post.slug}`, locale),
+        lastModified: new Date(post.date),
+        changeFrequency: 'monthly',
+        priority: PRIORITY.blog,
+        alternates: { languages },
+      });
     });
   });
 

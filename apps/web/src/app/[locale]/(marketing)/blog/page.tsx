@@ -4,35 +4,108 @@ import { setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import { getAllPosts, formatDate, type PostMeta } from '@/lib/blog';
+import { buildLocalizedPageMetadata, type LocalizedMeta } from '@/lib/seo-metadata';
+
+import type { Locale } from '@/i18n/config';
+
+const PATH = '/blog';
 
 interface BlogPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: 'Blog — Too Fresh To Waste',
+const META: LocalizedMeta = {
+  en: {
+    title: 'Blog — Food Waste Insights from Tunisia',
     description:
-      'Food waste insights, tips, and stories from Too Fresh To Waste — reducing food waste across Tunisia, one Surprise Bag at a time.',
-    alternates: { canonical: '/blog' },
-    openGraph: {
-      title: 'Blog — Too Fresh To Waste',
-      description: 'Food waste insights, tips, and stories from Too Fresh To Waste.',
-      type: 'website',
-    },
-  };
-}
-
-const TAG_LABELS: Record<string, string> = {
-  'food-waste': 'Food Waste',
-  sustainability: 'Sustainability',
-  restaurants: 'Restaurants',
-  bakeries: 'Bakeries',
-  tips: 'Tips',
-  tunisia: 'Tunisia',
+      'Food waste insights, tips and stories from Too Fresh To Waste — reducing food waste across Tunisia, one surprise bag at a time.',
+  },
+  fr: {
+    title: 'Blog — Comprendre le Gaspillage Alimentaire en Tunisie',
+    description:
+      'Analyses, conseils et chiffres sur le gaspillage alimentaire en Tunisie — et ce que commerçants et consommateurs peuvent y faire concrètement.',
+  },
+  ar: {
+    title: 'المدونة — رؤى حول هدر الطعام في تونس',
+    description:
+      'تحليلات ونصائح وأرقام حول هدر الطعام في تونس، وما يمكن للتجار والمستهلكين فعله حياله.',
+  },
 };
 
-function PostCard({ post }: { post: PostMeta }) {
+// The index previously emitted a bare relative '/blog' canonical for all three
+// locales, collapsing them into one indexable page. buildLocalizedPageMetadata
+// gives each locale its own absolute canonical plus reciprocal hreflang.
+export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedPageMetadata(PATH, locale as Locale, META);
+}
+
+const TAG_LABELS: Record<Locale, Record<string, string>> = {
+  en: {
+    'food-waste': 'Food Waste',
+    sustainability: 'Sustainability',
+    restaurants: 'Restaurants',
+    bakeries: 'Bakeries',
+    tips: 'Tips',
+    tunisia: 'Tunisia',
+  },
+  fr: {
+    'food-waste': 'Gaspillage Alimentaire',
+    sustainability: 'Durabilité',
+    restaurants: 'Restaurants',
+    bakeries: 'Boulangeries',
+    tips: 'Conseils',
+    tunisia: 'Tunisie',
+  },
+  ar: {
+    'food-waste': 'هدر الطعام',
+    sustainability: 'الاستدامة',
+    restaurants: 'مطاعم',
+    bakeries: 'مخابز',
+    tips: 'نصائح',
+    tunisia: 'تونس',
+  },
+};
+
+const UI = {
+  en: {
+    eyebrow: 'Journal',
+    headingA: 'Stories about',
+    headingEm: 'food',
+    lede: 'Insights, tips, and the numbers behind food waste in Tunisia — and what we can do about it.',
+    latest: 'Latest Post',
+    readArticle: 'Read article',
+    allPosts: 'All Posts',
+    minRead: 'min read',
+    empty: 'No posts yet. Check back soon.',
+  },
+  fr: {
+    eyebrow: 'Journal',
+    headingA: 'Histoires de',
+    headingEm: 'nourriture',
+    lede: 'Analyses, conseils et chiffres sur le gaspillage alimentaire en Tunisie — et ce que nous pouvons y faire.',
+    latest: 'Dernier article',
+    readArticle: 'Lire l’article',
+    allPosts: 'Tous les articles',
+    minRead: 'min de lecture',
+    empty: 'Pas encore d’articles. Revenez bientôt.',
+  },
+  ar: {
+    eyebrow: 'المدونة',
+    headingA: 'قصص عن',
+    headingEm: 'الطعام',
+    lede: 'تحليلات ونصائح وأرقام حول هدر الطعام في تونس، وما يمكننا فعله حياله.',
+    latest: 'أحدث مقال',
+    readArticle: 'اقرأ المقال',
+    allPosts: 'كل المقالات',
+    minRead: 'دقائق قراءة',
+    empty: 'لا توجد مقالات بعد. عد قريبًا.',
+  },
+} as const;
+
+function PostCard({ post, loc }: { post: PostMeta; loc: Locale }) {
+  const tags = TAG_LABELS[loc] ?? TAG_LABELS.en;
+  const ui = UI[loc] ?? UI.en;
   return (
     <Link href={`/blog/${post.slug}`} className='group block'>
       <article className='h-full bg-white/60 border border-brand-deep/10 rounded-sm overflow-hidden hover:border-brand-coral/40 transition-colors'>
@@ -55,7 +128,7 @@ function PostCard({ post }: { post: PostMeta }) {
                 key={tag}
                 className='text-[10px] uppercase tracking-wider text-brand-coral bg-brand-coral/10 px-2 py-0.5 rounded-full'
               >
-                {TAG_LABELS[tag] ?? tag}
+                {tags[tag] ?? tag}
               </span>
             ))}
           </div>
@@ -66,8 +139,10 @@ function PostCard({ post }: { post: PostMeta }) {
             {post.description}
           </p>
           <div className='mt-5 flex items-center justify-between text-[11px] text-brand-deep/45 uppercase tracking-wider'>
-            <span>{formatDate(post.date)}</span>
-            <span>{post.readTime} min read</span>
+            <span>{formatDate(post.date, loc)}</span>
+            <span>
+              {post.readTime} {ui.minRead}
+            </span>
           </div>
         </div>
       </article>
@@ -77,9 +152,15 @@ function PostCard({ post }: { post: PostMeta }) {
 
 export default async function BlogPage({ params }: BlogPageProps) {
   const { locale } = await params;
+  const loc = locale as Locale;
   setRequestLocale(locale);
 
-  const posts = getAllPosts();
+  const tags = TAG_LABELS[loc] ?? TAG_LABELS.en;
+  const ui = UI[loc] ?? UI.en;
+
+  // Only posts written in this locale. A locale with no translations shows the
+  // empty state rather than silently listing English articles under /fr.
+  const posts = getAllPosts(loc);
   const [featured, ...rest] = posts;
 
   return (
@@ -90,15 +171,14 @@ export default async function BlogPage({ params }: BlogPageProps) {
         {/* ── HEADER ────────────────────────────────────────────────── */}
         <section className='mx-auto w-full max-w-[1400px] px-8 pt-14 pb-10 md:pt-20'>
           <p className='flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/60 mb-6'>
-            <span className='h-px w-10 bg-brand-coral' /> Journal
+            <span className='h-px w-10 bg-brand-coral' /> {ui.eyebrow}
           </p>
           <div className='grid gap-8 md:grid-cols-12'>
             <h1 className='md:col-span-6 font-display text-6xl font-light leading-[0.92] md:text-7xl'>
-              Stories about <em className='italic text-brand-coral'>food</em>.
+              {ui.headingA} <em className='italic text-brand-coral'>{ui.headingEm}</em>.
             </h1>
             <p className='md:col-span-5 md:col-start-8 self-end text-lg leading-relaxed text-brand-deep/65'>
-              Insights, tips, and the numbers behind food waste in Tunisia — and what we can do
-              about it.
+              {ui.lede}
             </p>
           </div>
         </section>
@@ -123,7 +203,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
                 )}
                 <div className='bg-white/60 p-8 md:p-12 flex flex-col justify-center'>
                   <p className='text-[10px] uppercase tracking-wider text-brand-coral mb-4'>
-                    Latest Post
+                    {ui.latest}
                   </p>
                   <div className='flex flex-wrap gap-1.5 mb-5'>
                     {featured.tags.slice(0, 3).map(tag => (
@@ -131,7 +211,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
                         key={tag}
                         className='text-[10px] uppercase tracking-wider text-brand-coral bg-brand-coral/10 px-2 py-0.5 rounded-full'
                       >
-                        {TAG_LABELS[tag] ?? tag}
+                        {tags[tag] ?? tag}
                       </span>
                     ))}
                   </div>
@@ -142,12 +222,14 @@ export default async function BlogPage({ params }: BlogPageProps) {
                     {featured.description}
                   </p>
                   <div className='mt-8 flex items-center gap-6 text-[11px] text-brand-deep/45 uppercase tracking-wider'>
-                    <span>{formatDate(featured.date)}</span>
+                    <span>{formatDate(featured.date, loc)}</span>
                     <span>·</span>
-                    <span>{featured.readTime} min read</span>
+                    <span>
+                      {featured.readTime} {ui.minRead}
+                    </span>
                   </div>
                   <span className='mt-6 inline-flex items-center gap-2 text-sm text-brand-deep group-hover:text-brand-coral transition-colors'>
-                    Read article{' '}
+                    {ui.readArticle}{' '}
                     <span className='transition-transform group-hover:translate-x-1'>→</span>
                   </span>
                 </div>
@@ -161,12 +243,14 @@ export default async function BlogPage({ params }: BlogPageProps) {
           <section className='mx-auto w-full max-w-[1400px] px-8 pb-20'>
             <div className='flex items-center gap-4 mb-8'>
               <div className='h-px flex-1 bg-brand-deep/10' />
-              <p className='text-[11px] uppercase tracking-[0.2em] text-brand-deep/40'>All Posts</p>
+              <p className='text-[11px] uppercase tracking-[0.2em] text-brand-deep/40'>
+                {ui.allPosts}
+              </p>
               <div className='h-px flex-1 bg-brand-deep/10' />
             </div>
             <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
               {rest.map(post => (
-                <PostCard key={post.slug} post={post} />
+                <PostCard key={post.slug} post={post} loc={loc} />
               ))}
             </div>
           </section>
@@ -174,7 +258,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
         {posts.length === 0 && (
           <div className='mx-auto max-w-[1400px] px-8 pb-20 text-center py-20'>
-            <p className='text-brand-deep/40'>No posts yet. Check back soon.</p>
+            <p className='text-brand-deep/40'>{ui.empty}</p>
           </div>
         )}
       </div>
