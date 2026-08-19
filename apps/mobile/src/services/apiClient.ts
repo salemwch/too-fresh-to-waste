@@ -20,7 +20,7 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
 
 import { environment } from '@/config/environment';
 import { getCurrentLanguage } from '@/i18n';
-import { refreshTokenSafe } from '@/services/authRefresh';
+import { getInFlightRefresh, refreshTokenSafe } from '@/services/authRefresh';
 import {
   createTrackedAbortController,
   releaseTrackedAbortController,
@@ -201,7 +201,36 @@ const createApiClient = (): AxiosInstance => {
 
       // Read access token from Keychain — authoritative source.
       // Never read tokens from Redux state (tokens must not live in Redux).
-      const accessToken = await SecureStorage.getAccessToken();
+      let accessToken = await SecureStorage.getAccessToken();
+
+      /*
+       * No token, but a refresh is already running: wait for it rather than
+       * sending an unauthenticated request.
+       *
+       * On a cold start or a resume, recovery is mid-flight and the Keychain
+       * has not been written yet. Firing regardless guarantees a 401 on every
+       * protected endpoint, and each of those 401s drives another pass through
+       * the response interceptor's refresh-and-retry path. This is the same
+       * approach the major auth SDKs take — the token getter awaits an
+       * in-flight refresh instead of handing back nothing.
+       *
+       * Deliberately does not *start* a refresh. A request is not evidence
+       * that the session needs renewing, and starting one here would fire on
+       * every anonymous call to a public endpoint. Public endpoints are also
+       * why this cannot simply reject: with no refresh running there is no
+       * wait, and the request proceeds unauthenticated exactly as before.
+       */
+      if (accessToken == null) {
+        const inFlightRefresh = getInFlightRefresh();
+
+        if (inFlightRefresh !== null) {
+          Logger.debug('[API-CLIENT] No token yet — awaiting in-flight refresh', {
+            url: config.url,
+          });
+          await inFlightRefresh;
+          accessToken = await SecureStorage.getAccessToken();
+        }
+      }
 
       if (accessToken != null) {
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -324,17 +353,35 @@ const createApiClient = (): AxiosInstance => {
           return client(originalRequest);
         }
 
-        if (refreshResult.isNetworkError === true) {
-          // Connectivity issue — keep the session, surface the error to the
-          // caller. Middleware's AppState / retry loop will try again when
-          // the network comes back.
-          Logger.warn('[API-CLIENT] Shared refresh failed (network), preserving session', {
+        /*
+         * Only a token the server positively rejected may cost the user their
+         * session.
+         *
+         * This used to read "not a network error ⇒ fatal", which made every
+         * other way a refresh can fail destructive: a 5xx, a timeout, an
+         * unexpected throw, or `No refresh token available` from the
+         * cold-start Keychain race. That last one signed out users whose
+         * sessions were perfectly valid — REACT-NATIVE-13/12/14 in Sentry.
+         *
+         * Preserving a session that is genuinely dead costs one more 401 on
+         * the next request, which this same path handles. Clearing one that
+         * was alive costs the user their login. The asymmetry decides the
+         * default.
+         */
+        if (refreshResult.isTokenRejected !== true) {
+          Logger.warn('[API-CLIENT] Shared refresh failed, session preserved', {
+            isNetworkError: refreshResult.isNetworkError,
             error: refreshResult.error,
           });
           return Promise.reject(error);
         }
 
-        // Fatal auth failure — refresh token is genuinely invalid/revoked.
+        // The refresh token was rejected by the server. This is the one case
+        // where the session is genuinely gone and clearing it is correct.
+        //
+        // Network failures no longer need their own branch: they carry
+        // isTokenRejected false and are preserved by the guard above, which
+        // is what the removed branch did.
         Logger.error(
           '[API-CLIENT] Shared refresh failed (fatal), clearing local session',
           { error: refreshResult.error },

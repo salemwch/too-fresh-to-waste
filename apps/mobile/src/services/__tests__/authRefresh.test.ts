@@ -13,7 +13,7 @@
  */
 
 import { refreshTokenAsync } from '@/features/auth/store/authSlice';
-import { refreshTokenSafe } from '../authRefresh';
+import { getInFlightRefresh, refreshTokenSafe } from '../authRefresh';
 
 import type { AppDispatch } from '@/store';
 
@@ -127,22 +127,61 @@ describe('refreshTokenSafe', () => {
       await expect(refreshTokenSafe(dispatch)).resolves.toEqual({
         success: false,
         isNetworkError: true,
+        isTokenRejected: false,
         error: 'Network request failed',
       });
     });
 
-    it('treats a missing isNetworkError as fatal, not transient', async () => {
+    // Replaces an earlier test that asserted the opposite — "treats a missing
+    // isNetworkError as fatal". That inference is what made the cold-start race
+    // destructive: `No refresh token available` is neither a network error nor
+    // a rejection, so it was read as proof the session was dead and the
+    // interceptor cleared the Keychain. Fatality is now a positive finding.
+    it('does not infer a rejected token from the absence of isNetworkError', async () => {
       const dispatch = jest
         .fn()
         .mockResolvedValue(
-          rejectedWith({ message: 'Invalid refresh token' }),
+          rejectedWith({ message: 'No refresh token available' }),
         ) as unknown as AppDispatch;
 
       await expect(refreshTokenSafe(dispatch)).resolves.toEqual({
         success: false,
         isNetworkError: false,
+        isTokenRejected: false,
+        error: 'No refresh token available',
+      });
+    });
+
+    // The one failure that may cost the user their session.
+    it('propagates isTokenRejected when the server rejected the token', async () => {
+      const dispatch = jest
+        .fn()
+        .mockResolvedValue(
+          rejectedWith({ message: 'Invalid refresh token', isTokenRejected: true }),
+        ) as unknown as AppDispatch;
+
+      await expect(refreshTokenSafe(dispatch)).resolves.toEqual({
+        success: false,
+        isNetworkError: false,
+        isTokenRejected: true,
         error: 'Invalid refresh token',
       });
+    });
+
+    it('never reports both a network failure and a rejected token', async () => {
+      // A request that never reached the server cannot have been rejected by
+      // it. If both ever arrive the caller must not clear the session.
+      const dispatch = jest.fn().mockResolvedValue(
+        rejectedWith({
+          message: 'Network request failed',
+          isNetworkError: true,
+        }),
+      ) as unknown as AppDispatch;
+
+      const result = await refreshTokenSafe(dispatch);
+
+      expect(result.isNetworkError).toBe(true);
+      expect(result.isTokenRejected).toBe(false);
     });
 
     it('falls back to a default message when the payload has none', async () => {
@@ -153,6 +192,7 @@ describe('refreshTokenSafe', () => {
       await expect(refreshTokenSafe(dispatch)).resolves.toEqual({
         success: false,
         isNetworkError: false,
+        isTokenRejected: false,
         error: 'Token refresh rejected',
       });
     });
@@ -165,18 +205,22 @@ describe('refreshTokenSafe', () => {
       await expect(refreshTokenSafe(dispatch)).resolves.toEqual({
         success: false,
         isNetworkError: false,
+        isTokenRejected: false,
         error: 'Token refresh rejected',
       });
     });
 
-    // An unexpected throw is classified as fatal on purpose: we have no
-    // evidence the session is still good, so callers get to decide.
-    it('classifies an unexpected throw as a fatal failure', async () => {
+    // Inverted from an earlier test that called this "a fatal failure". Having
+    // no evidence the session is good is not evidence that it is dead, and the
+    // two outcomes are not symmetric: preserving a dead session costs one more
+    // 401, clearing a live one costs the user their login.
+    it('preserves the session when the thunk throws unexpectedly', async () => {
       const dispatch = jest.fn().mockRejectedValue(new Error('boom')) as unknown as AppDispatch;
 
       await expect(refreshTokenSafe(dispatch)).resolves.toEqual({
         success: false,
         isNetworkError: false,
+        isTokenRejected: false,
         error: 'boom',
       });
     });
@@ -187,6 +231,7 @@ describe('refreshTokenSafe', () => {
       await expect(refreshTokenSafe(dispatch)).resolves.toEqual({
         success: false,
         isNetworkError: false,
+        isTokenRejected: false,
         error: 'plain string',
       });
     });
@@ -194,6 +239,62 @@ describe('refreshTokenSafe', () => {
     it('never rejects, so callers can await it without a try/catch', async () => {
       const dispatch = jest.fn().mockRejectedValue(new Error('boom')) as unknown as AppDispatch;
       await expect(refreshTokenSafe(dispatch)).resolves.toBeDefined();
+    });
+  });
+  /**
+   * The request interceptor uses this to decide whether an absent access token
+   * means "none exists" or "one is seconds away". Getting it wrong sends an
+   * unauthenticated request to a guarded endpoint, which is the 401 storm this
+   * whole area exists to stop.
+   */
+  describe('getInFlightRefresh', () => {
+    it('reports nothing in flight when idle', () => {
+      expect(getInFlightRefresh()).toBeNull();
+    });
+
+    it('exposes the running refresh, identical to the promise the caller got', async () => {
+      const { dispatch, release } = deferredDispatch();
+
+      const started = refreshTokenSafe(dispatch);
+      expect(getInFlightRefresh()).toBe(started);
+
+      release(fulfilled);
+      await started;
+    });
+
+    it('observing does not start a refresh', () => {
+      const dispatch = jest.fn().mockResolvedValue(fulfilled) as unknown as AppDispatch;
+
+      getInFlightRefresh();
+      getInFlightRefresh();
+
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(getInFlightRefresh()).toBeNull();
+    });
+
+    it.each([
+      ['success', () => jest.fn().mockResolvedValue(fulfilled)],
+      ['rejection', () => jest.fn().mockResolvedValue(rejectedWith({ message: 'nope' }))],
+      ['an unexpected throw', () => jest.fn().mockRejectedValue(new Error('boom'))],
+    ])('clears once the refresh settles — %s', async (_label, makeDispatch) => {
+      // A lock left set would make every later caller await a promise that has
+      // already settled, and the interceptor would wait on nothing forever.
+      const dispatch = makeDispatch() as unknown as AppDispatch;
+
+      await refreshTokenSafe(dispatch);
+
+      expect(getInFlightRefresh()).toBeNull();
+    });
+
+    it('hands a waiter the same result the refresh produced', async () => {
+      const { dispatch, release } = deferredDispatch();
+
+      const started = refreshTokenSafe(dispatch);
+      const observed = getInFlightRefresh();
+
+      release(rejectedWith({ message: 'Invalid refresh token', isTokenRejected: true }));
+
+      await expect(observed).resolves.toEqual(await started);
     });
   });
 });
