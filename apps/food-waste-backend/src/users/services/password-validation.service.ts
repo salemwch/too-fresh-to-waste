@@ -1,3 +1,5 @@
+import * as crypto from 'crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
@@ -539,17 +541,52 @@ export class PasswordValidationService {
     return { ...this.defaultPolicy };
   }
 
+  /**
+   * Generates a cryptographically secure password suggestion.
+   *
+   * @rationale The previous implementation drew from `Math.random()` over an
+   * 8x8x900x7 keyspace — 403,200 combinations (~2^18.6), and `Math.random()`
+   * is not a CSPRNG, so its output is correlated and predictable from prior
+   * draws. A suggestion a user actually adopts becomes their real password, so
+   * it must carry real entropy.
+   *
+   * This draws every character from `crypto.randomInt`, which is a CSPRNG and
+   * is rejection-sampled — unlike `randomBytes(1) % n`, which is modulo-biased
+   * toward the low end of the alphabet.
+   *
+   * Entropy: 20 characters over a 76-character alphabet ≈ 124 bits.
+   *
+   * Ambiguous glyphs (0/O, 1/l/I) are excluded so the value survives being
+   * read aloud or copied by hand. The result is guaranteed to satisfy every
+   * class requirement in {@link defaultPolicy} (upper, lower, digit, special)
+   * regardless of how the draw lands.
+   */
   generatePasswordSuggestion(): string {
-    const adjectives = ['Quick', 'Bright', 'Silent', 'Swift', 'Brave', 'Calm', 'Bold', 'Safe'];
-    const nouns = ['River', 'Mountain', 'Ocean', 'Forest', 'Garden', 'Bridge', 'Castle', 'Tower'];
-    const numbers = Math.floor(Math.random() * 999) + 100;
-    const symbols = ['!', '@', '#', '$', '%', '&', '*'];
+    const LENGTH = 20;
+    const UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I, O
+    const LOWER = 'abcdefghijkmnopqrstuvwxyz'; // no l
+    const DIGITS = '23456789'; // no 0, 1
+    const SPECIAL = '!@#$%&*?-_+=';
+    const ALL = UPPER + LOWER + DIGITS + SPECIAL;
 
-    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const noun = nouns[Math.floor(Math.random() * nouns.length)];
-    const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+    const pick = (alphabet: string): string =>
+      alphabet.charAt(crypto.randomInt(0, alphabet.length));
 
-    return `${adjective}${noun}${numbers}${symbol}`;
+    // Seed one character per required class so the policy cannot be missed,
+    // then fill the remainder from the full alphabet.
+    const chars: string[] = [pick(UPPER), pick(LOWER), pick(DIGITS), pick(SPECIAL)];
+    while (chars.length < LENGTH) {
+      chars.push(pick(ALL));
+    }
+
+    // Fisher-Yates with a CSPRNG — without this the first four positions would
+    // always hold the same character classes in the same order.
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = crypto.randomInt(0, i + 1);
+      [chars[i], chars[j]] = [chars[j] as string, chars[i] as string];
+    }
+
+    return chars.join('');
   }
 
   async getPasswordSecurityReport(userId: string): Promise<{

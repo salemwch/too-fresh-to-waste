@@ -42,6 +42,7 @@ import { CookieSecurityUtil } from '../common/utils/cookie-security.util';
 import { AuthService, RegisterResponse, LoginResponse } from './auth.service';
 import { ForgotPasswordDto } from './DTO/forget-password.dto';
 import { ForcePasswordChangeDto } from './DTO/force-password-change.dto';
+import { GeneratePasswordDto } from './DTO/generate-password.dto';
 import { LoginDto } from './DTO/login.dto';
 import { RegisterDto } from './DTO/register.dto';
 import { ResetPasswordDto } from './DTO/reset-password.dto';
@@ -604,8 +605,24 @@ export class AuthController {
   }
 
   /**
-   * Extract user ID from Authorization header without verification.
-   * Uses decode() not verify() - safe for expired/invalid tokens.
+   * Extract the user id from the Authorization header, accepting an expired
+   * token but never an unsigned one.
+   *
+   * @security This previously used `decode()`, which parses a JWT without
+   * checking its signature. `POST /auth/logout` is `@Public()`, and when no
+   * refresh cookie is presented `authService.logout` takes the all-devices
+   * branch and calls `revokeAllUserTokens(userId)`. Together that was an
+   * unauthenticated, targeted session-kill: forge `{"sub": "<victim>"}` with
+   * any signature, send it with no cookies, and the victim is logged out of
+   * every device. Repeatable, so the account can be held signed-out.
+   *
+   * `verify` with `ignoreExpiration: true` keeps the property the original
+   * comment was reaching for — logout must still work once the access token
+   * has expired, or a mobile client loops 401 → refresh → logout → 401 — while
+   * requiring the signature to be ours. A forged or tampered token now yields
+   * `undefined`, which `invalidateTokensSafely` treats as "nothing to
+   * invalidate", and logout still returns 200 because it is idempotent by
+   * design.
    */
   private extractUserIdFromAuthHeader(authHeader: string | undefined): string | undefined {
     if (authHeader?.startsWith('Bearer ') !== true) {
@@ -614,18 +631,17 @@ export class AuthController {
 
     try {
       const token = authHeader.substring(7);
-      const decoded = this.jwtService.decode<unknown>(token);
-      if (
-        typeof decoded === 'object' &&
-        decoded !== null &&
-        'sub' in decoded &&
-        typeof decoded.sub === 'string'
-      ) {
-        return decoded.sub;
-      }
-      return undefined;
+      const payload = this.jwtService.verify<{ sub?: unknown }>(token, {
+        ignoreExpiration: true,
+        algorithms: ['HS256'],
+      });
+
+      return typeof payload.sub === 'string' ? payload.sub : undefined;
     } catch (error) {
-      this.logger.debug('Could not decode token during logout', {
+      // Unsigned, tampered, or malformed. Deliberately returns undefined
+      // rather than the claimed subject: an unverifiable token identifies
+      // nobody.
+      this.logger.debug('Could not verify token during logout', {
         error: this.getErrorMessage(error),
       });
       return undefined;
@@ -846,9 +862,14 @@ export class AuthController {
     const { token, expiresAt } = this.csrfService.generateToken();
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
+    // Double-submit CSRF: the client must be able to read this value and echo
+    // it back in a header, so httpOnly is deliberately off. It carries no
+    // authority on its own — the session lives in a separate HttpOnly cookie.
+    // The suppression must sit on the res.cookie() call, which is the line the
+    // rule matches; on the httpOnly property it silently did nothing.
+    // nosemgrep: tftw-cookie-missing-httponly
     res.cookie(COOKIE_NAMES.CSRF_TOKEN, token, {
-      // nosemgrep: tftw-cookie-missing-httponly
-      httpOnly: false, // Frontend needs to read this
+      httpOnly: false,
       secure: isProduction,
       sameSite: isProduction ? 'strict' : 'lax',
       maxAge: 60 * 60 * 1000, // 1 hour
@@ -906,8 +927,11 @@ export class AuthController {
 
   @Post('generate-password')
   @Public()
+  // Anonymous, and every call runs a CSPRNG draw plus a zxcvbn analysis. Without
+  // a limit it is a free CPU sink for any caller on the internet.
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 per minute
   @HttpCode(HttpStatus.OK)
-  generateSecurePassword(@Body() body: { length?: number }) {
+  generateSecurePassword(@Body() body: GeneratePasswordDto) {
     const length = body.length ?? 16;
     const password = this.passwordPolicyService.generateSecurePassword(length);
 

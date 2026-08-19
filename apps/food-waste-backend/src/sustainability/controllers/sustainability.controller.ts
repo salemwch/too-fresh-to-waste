@@ -11,7 +11,6 @@ import {
   Request,
   Res,
   UseGuards,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
@@ -33,6 +32,7 @@ import type {
 import { PdfReportService } from '../services/pdf-report.service';
 import { StreakService } from '../services/streak.service';
 import { SustainabilityService } from '../services/sustainability.service';
+import { strictValidation } from '../../common/pipes/validation-pipes';
 
 @ApiTags('Sustainability')
 @ApiBearerAuth()
@@ -93,7 +93,7 @@ export class SustainabilityController {
   @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
   async updateMonthlyGoal(
     @Request() req: AuthenticatedRequest,
-    @Body(new ValidationPipe({ whitelist: true, transform: true })) dto: UpdateMonthlyGoalDto,
+    @Body(strictValidation()) dto: UpdateMonthlyGoalDto,
     @Query('establishmentId') establishmentId?: string,
   ): Promise<{ message: string; data: MonthlyGoalResponse }> {
     const effectiveEstablishmentId =

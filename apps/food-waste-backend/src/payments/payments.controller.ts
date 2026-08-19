@@ -10,7 +10,6 @@ import {
   Request,
   HttpCode,
   HttpStatus,
-  ValidationPipe,
   Logger,
   Res,
 } from '@nestjs/common';
@@ -34,6 +33,7 @@ import { PaymentService } from './payments.service';
 import { KonnectOrderService } from './services/konnect-order.service';
 
 import type { Response } from 'express';
+import { strictValidation } from '../common/pipes/validation-pipes';
 
 @ApiTags('Payments')
 @ApiBearerAuth('JWT-auth')
@@ -65,7 +65,7 @@ export class PaymentController {
   @Roles(UserRole.ADMIN)
   async findAllCursor(
     @Request() req: AuthenticatedRequest,
-    @Query(new ValidationPipe({ transform: true, whitelist: true })) filters: PaymentQueryDto,
+    @Query(strictValidation()) filters: PaymentQueryDto,
   ) {
     const limit = Math.min(filters.limit ?? 10, 10);
     const after = filters.after;
@@ -106,7 +106,7 @@ export class PaymentController {
   @Roles(UserRole.MERCHANT)
   async getMyPayments(
     @Request() req: AuthenticatedRequest,
-    @Query(new ValidationPipe({ transform: true, whitelist: true })) filters: PaymentQueryDto,
+    @Query(strictValidation()) filters: PaymentQueryDto,
   ) {
     const result = await this.paymentService.findMerchantPaymentsFromOrders(
       req.user.userId,
@@ -141,7 +141,7 @@ export class PaymentController {
   @Roles(UserRole.CONSUMER)
   async getMyConsumerPayments(
     @Request() req: AuthenticatedRequest,
-    @Query(new ValidationPipe({ transform: true, whitelist: true })) filters: PaymentQueryDto,
+    @Query(strictValidation()) filters: PaymentQueryDto,
   ) {
     const limit = Math.min(filters.limit ?? 10, 10);
     const after = filters.after;

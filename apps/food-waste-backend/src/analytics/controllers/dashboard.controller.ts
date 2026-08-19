@@ -13,7 +13,6 @@ import {
   HttpStatus,
   ParseBoolPipe,
   DefaultValuePipe,
-  ValidationPipe,
   UsePipes,
   BadRequestException,
 } from '@nestjs/common';
@@ -33,12 +32,13 @@ import { ProSubscriptionGuard } from '../../common/guards/pro-subscription.guard
 import { CreateDashboardDto, CreateWidgetDto } from '../dto/analytics.dto';
 import { DashboardConfig, DashboardTemplate } from '../interfaces/analytics.interface';
 import { DashboardService } from '../services/dashboard.service';
+import { strictValidation } from '../../common/pipes/validation-pipes';
 
 @ApiTags('Analytics Dashboards')
 @Controller('analytics/dashboards')
 @UseGuards(JwtAuthGuard, ProSubscriptionGuard)
 @ApiBearerAuth()
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(strictValidation())
 export class DashboardController {
   private readonly logger = new Logger(DashboardController.name);
 

@@ -10,7 +10,6 @@ import {
   Request,
   HttpCode,
   HttpStatus,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -25,6 +24,7 @@ import {
   AdminRefundOrderDto,
 } from '../dto/admin-order-query.dto';
 import { OrderManagementService } from '../services/order-management.service';
+import { strictValidation } from '../../common/pipes/validation-pipes';
 
 @ApiTags('Admin — Order Management')
 @Controller('admin/orders')
@@ -43,7 +43,7 @@ export class OrderManagementController {
       'Admin order listing with filters: status, payment status, payment provider, customer/merchant/establishment, date range, search by order number.',
   })
   @ApiResponse({ status: 200, description: 'Orders retrieved' })
-  async listOrders(@Query(new ValidationPipe({ transform: true })) query: AdminOrderQueryDto) {
+  async listOrders(@Query(strictValidation()) query: AdminOrderQueryDto) {
     const result = await this.orderManagementService.listOrders(query);
     return {
       message: 'Orders retrieved successfully',

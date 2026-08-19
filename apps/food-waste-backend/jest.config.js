@@ -4,7 +4,10 @@ const nestBase = require('@foodwaste/jest-config/nestjs');
 module.exports = {
   ...nestBase,
   displayName: 'backend',
-  roots: ['<rootDir>/src'],
+  // `test/` holds cross-cutting suites that belong to no single module (the
+  // authorization matrix). It is excluded from tsconfig.build.json, so nothing
+  // there ships. E2E runs from its own config and is unaffected.
+  roots: ['<rootDir>/src', '<rootDir>/test'],
   moduleNameMapper: {
     ...nestBase.moduleNameMapper,
     // csv-writer has no types — shim provided by the backend

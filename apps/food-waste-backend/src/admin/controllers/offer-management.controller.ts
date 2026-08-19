@@ -11,7 +11,6 @@ import {
   HttpCode,
   HttpStatus,
   Res,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -30,6 +29,7 @@ import {
   ExportOffersQueryDto,
 } from '../dto/admin-offer-query.dto';
 import { OfferManagementService } from '../services/offer-management.service';
+import { strictValidation } from '../../common/pipes/validation-pipes';
 
 @ApiTags('Admin — Offer Management')
 @Controller('admin/offers')
@@ -47,7 +47,7 @@ export class OfferManagementController {
       'Platform-wide offer listing with full filters: status, establishment, merchant, category, discount range, date range, featured flag.',
   })
   @ApiResponse({ status: 200, description: 'Offers retrieved' })
-  async listOffers(@Query(new ValidationPipe({ transform: true })) query: AdminOfferQueryDto) {
+  async listOffers(@Query(strictValidation()) query: AdminOfferQueryDto) {
     const result = await this.offerManagementService.listOffers(query);
     return {
       message: 'Offers retrieved successfully',
@@ -82,9 +82,7 @@ export class OfferManagementController {
       'Returns expired/sold_out offers where soldQuantity/totalQuantity is below the threshold (default 20%). Sorted worst first.',
   })
   @ApiResponse({ status: 200, description: 'Low-performance offers retrieved' })
-  async getLowPickupRate(
-    @Query(new ValidationPipe({ transform: true })) query: LowPickupRateQueryDto,
-  ) {
+  async getLowPickupRate(@Query(strictValidation()) query: LowPickupRateQueryDto) {
     const result = await this.offerManagementService.getLowPickupRate(query);
     return {
       message: 'Low pickup rate offers retrieved successfully',
@@ -102,9 +100,7 @@ export class OfferManagementController {
       'Returns active/draft offers whose discount percentage is below the platform minimum (default 30%). Sorted by lowest discount first.',
   })
   @ApiResponse({ status: 200, description: 'Price violation offers retrieved' })
-  async getPriceViolations(
-    @Query(new ValidationPipe({ transform: true })) query: PriceViolationQueryDto,
-  ) {
+  async getPriceViolations(@Query(strictValidation()) query: PriceViolationQueryDto) {
     const result = await this.offerManagementService.getPriceViolations(query);
     return {
       message: 'Price violation offers retrieved successfully',
@@ -122,9 +118,7 @@ export class OfferManagementController {
       'View all offers that were soft-deleted. Can be filtered by deletion date range or who deleted them. Enables recovery.',
   })
   @ApiResponse({ status: 200, description: 'Deleted offers retrieved' })
-  async getDeletedOffers(
-    @Query(new ValidationPipe({ transform: true })) query: AdminOfferDeletedQueryDto,
-  ) {
+  async getDeletedOffers(@Query(strictValidation()) query: AdminOfferDeletedQueryDto) {
     const result = await this.offerManagementService.getDeletedOffers(query);
     return {
       message: 'Deleted offers retrieved successfully',
@@ -214,7 +208,7 @@ export class OfferManagementController {
   })
   @ApiResponse({ status: 200, description: 'File download' })
   async exportOffers(
-    @Query(new ValidationPipe({ transform: true })) query: ExportOffersQueryDto,
+    @Query(strictValidation()) query: ExportOffersQueryDto,
     @Request() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
