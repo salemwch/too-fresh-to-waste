@@ -109,9 +109,12 @@ rules:
       # Match only identifiers/expressions — not string literals.
       # String literals containing "password" in log messages are safe (they are the message,
       # not the secret). We only care when an actual variable named after a secret is logged.
+      # See the note on tftw-no-sensitive-logger below: `pattern-not` must sit
+      # under `patterns:`, and the string-literal pattern must be quoted.
       - metavariable-pattern:
           metavariable: $VAR
-          pattern-not: "..."
+          patterns:
+            - pattern-not: '"..."'
       - metavariable-regex:
           metavariable: $VAR
           regex: "^(token|password|secret|jwt|credential|apiKey|api_key|accessToken|refreshToken|authToken|bearerToken)$"
@@ -127,10 +130,17 @@ rules:
       - metavariable-regex:
           metavariable: $LEVEL
           regex: "^(log|debug|verbose|warn|error)$"
-      # Same guard: only match variable names, not string literals containing those words.
+      # Same guard: only match variable names, not string literals containing
+      # those words. `pattern-not` must sit under `patterns:` here — Semgrep's
+      # schema rejects it directly beneath `metavariable-pattern`, which made
+      # this whole config invalid and silently disabled all 17 rules. The
+      # pattern itself must be quoted as '"..."' so YAML yields the Semgrep
+      # string-literal pattern rather than a bare ellipsis, which would have
+      # excluded everything.
       - metavariable-pattern:
           metavariable: $VAR
-          pattern-not: "..."
+          patterns:
+            - pattern-not: '"..."'
       - metavariable-regex:
           metavariable: $VAR
           regex: "^(password|secret|jwt|credential|apiKey|api_key|accessToken|refreshToken|authToken|bearerToken)$"
