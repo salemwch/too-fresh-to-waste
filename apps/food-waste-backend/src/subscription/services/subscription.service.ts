@@ -171,6 +171,27 @@ export class SubscriptionService {
       | 'pro';
     const cycle = toSubscriptionCycle(establishment.get('pendingCycle'));
 
+    // Confirm the amount actually captured matches what this tier and cycle
+    // cost. `status === 'completed'` says a payment succeeded, not that it
+    // succeeded for the right price — without this, a completed payment for
+    // one month grants whatever `pendingTier`/`pendingCycle` currently say,
+    // including a yearly Pro subscription.
+    //
+    // Mirrors the equivalent guard in konnect-order.service.ts; the order flow
+    // has always had it and this one did not. Do not grant on a mismatch: the
+    // pending fields are left in place so the discrepancy stays visible for
+    // reconciliation rather than being silently consumed.
+    const expectedMillimes = PRICES_MILLIMES[tier][cycle];
+    const paidMillimes = details.payment?.amount;
+
+    if (paidMillimes !== expectedMillimes) {
+      this.logger.error(
+        `Konnect webhook: amount mismatch for ref=${paymentRef}, establishment=${establishment._id.toString()}. ` +
+          `Expected ${expectedMillimes} millimes for ${tier}/${cycle}, got ${String(paidMillimes)}. Subscription NOT activated.`,
+      );
+      return;
+    }
+
     // Only a still-running paid subscription carries days worth keeping; a
     // lapsed or trial one restarts from now.
     const currentExpiry =

@@ -42,6 +42,7 @@ import { CookieSecurityUtil } from '../common/utils/cookie-security.util';
 import { AuthService, RegisterResponse, LoginResponse } from './auth.service';
 import { ForgotPasswordDto } from './DTO/forget-password.dto';
 import { ForcePasswordChangeDto } from './DTO/force-password-change.dto';
+import { GeneratePasswordDto } from './DTO/generate-password.dto';
 import { LoginDto } from './DTO/login.dto';
 import { RegisterDto } from './DTO/register.dto';
 import { ResetPasswordDto } from './DTO/reset-password.dto';
@@ -906,8 +907,11 @@ export class AuthController {
 
   @Post('generate-password')
   @Public()
+  // Anonymous, and every call runs a CSPRNG draw plus a zxcvbn analysis. Without
+  // a limit it is a free CPU sink for any caller on the internet.
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 per minute
   @HttpCode(HttpStatus.OK)
-  generateSecurePassword(@Body() body: { length?: number }) {
+  generateSecurePassword(@Body() body: GeneratePasswordDto) {
     const length = body.length ?? 16;
     const password = this.passwordPolicyService.generateSecurePassword(length);
 
