@@ -8,7 +8,6 @@ import {
   Logger,
   HttpCode,
   HttpStatus,
-  ValidationPipe,
   UsePipes,
   BadRequestException,
 } from '@nestjs/common';
@@ -37,12 +36,13 @@ import {
   CacheStatistics,
 } from '../interfaces/analytics.interface';
 import { AnalyticsService } from '../services/analytics.service';
+import { strictValidation } from '../../common/pipes/validation-pipes';
 
 @ApiTags('Analytics')
 @Controller('analytics')
 @UseGuards(JwtAuthGuard, ProSubscriptionGuard)
 @ApiBearerAuth()
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(strictValidation())
 export class AnalyticsController {
   private readonly logger = new Logger(AnalyticsController.name);
 

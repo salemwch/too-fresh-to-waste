@@ -7,7 +7,7 @@ on:
     branches: [main, master, develop]
   schedule:
     # Full scan every Sunday at 02:00 UTC — catches new CVEs even without code changes
-    - cron: '0 2 * * 0'
+    - cron: "0 2 * * 0"
 
 permissions:
   actions: read
@@ -36,12 +36,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24.11.1'
+          node-version: "24.11.1"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: '10.17.0'
+          version: "10.17.0"
 
       # Build the project so CodeQL can trace compiled output —
       # improves accuracy of data-flow queries (injection, auth bypass, etc.)
@@ -98,7 +98,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Semgrep
+      # The custom rules encode confirmed findings from the backend security
+      # audit, each with a fixture proving what it does and does not match.
+      # Verify the rules themselves before trusting their verdict on the code.
+      - name: Verify custom rules against their fixtures
+        run: semgrep --test --config .semgrep/wfa-security.yml .semgrep/tests/
+
+      # BLOCKING. These are our own curated rules — every hit is a real
+      # regression of something already fixed, so there is nothing to triage.
+      - name: Run WFA custom security rules
+        run: |
+          semgrep scan \
+            --config .semgrep/wfa-security.yml \
+            --error \
+            --metrics=off \
+            --exclude node_modules \
+            --exclude dist \
+            --exclude coverage \
+            --exclude .semgrep/tests
+
+      # ADVISORY. Broad third-party rulesets — valuable but noisy, so they
+      # report to the Security tab rather than blocking the PR.
+      - name: Run Semgrep community rulesets
         run: |
           semgrep ci \
             --config p/typescript \
@@ -117,7 +138,7 @@ jobs:
         env:
           # Optional: set SEMGREP_APP_TOKEN secret for Semgrep Cloud dashboard
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-        continue-on-error: true # Don't block PRs on Semgrep findings — report only
+        continue-on-error: true # Advisory only — see the blocking step above
 
       - name: Upload Semgrep results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3

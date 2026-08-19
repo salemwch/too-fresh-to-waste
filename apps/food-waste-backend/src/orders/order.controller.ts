@@ -14,7 +14,6 @@ import {
   HttpStatus,
   ParseIntPipe,
   DefaultValuePipe,
-  ValidationPipe,
   BadRequestException,
   NotFoundException,
   UseFilters,
@@ -67,6 +66,7 @@ import {
 } from './order.service';
 
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { strictValidation } from '../common/pipes/validation-pipes';
 
 /** Allowed granularity values — validated at the controller boundary. */
 const VALID_GRANULARITIES = new Set<ChartGranularity>(['day', 'week', 'month']);
@@ -242,7 +242,7 @@ export class OrdersController {
   @UseGuards(QueryComplexityGuard)
   @QueryComplexity({ maxNestingDepth: 2, maxOrConditions: 5, maxRegexConditions: 2 })
   async findAll(
-    @Query(new ValidationPipe({ transform: true })) filters: OrderQueryDto,
+    @Query(strictValidation()) filters: OrderQueryDto,
     @Request() req: AuthenticatedRequest,
   ) {
     this.logger.log(`Controller - User: ${JSON.stringify(req.user)}`, 'OrderController');

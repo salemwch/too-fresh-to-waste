@@ -15,7 +15,6 @@ import {
   ParseIntPipe,
   ParseFloatPipe,
   DefaultValuePipe,
-  ValidationPipe,
   Put,
   UseInterceptors,
   UploadedFiles,
@@ -38,6 +37,7 @@ import { SearchOffersDto } from './DTO/search-offers.dto';
 import { UpdateOfferDto } from './DTO/update-offer.dto';
 import { OffersService } from './offers.service';
 import { OfferStatus } from './schemas/offer.schema';
+import { strictValidation } from '../common/pipes/validation-pipes';
 
 @ApiTags('Offers Management')
 @Controller('offers')
@@ -137,7 +137,7 @@ export class OffersController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(12), ParseIntPipe) limit: number,
-    @Query(new ValidationPipe({ transform: true })) filters: SearchOffersDto,
+    @Query(strictValidation()) filters: SearchOffersDto,
     @GetUser() user: SafeUserResponse,
   ) {
     // latitude/longitude are handled by SearchOffersDto (class-transformer)
@@ -601,7 +601,7 @@ export class OffersController {
   @ApiResponse({ status: 404, description: 'Offer not found' })
   async reactivateOffer(
     @Param('id') id: string,
-    @Body(new ValidationPipe({ transform: true })) dto: ReactivateOfferDto,
+    @Body(strictValidation()) dto: ReactivateOfferDto,
     @Request() req: AuthenticatedRequest,
   ) {
     const offer = await this.offersService.reactivateOffer(

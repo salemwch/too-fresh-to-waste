@@ -14,7 +14,6 @@ import {
   HttpStatus,
   ParseIntPipe,
   DefaultValuePipe,
-  ValidationPipe,
   BadRequestException,
   ForbiddenException,
   Logger,
@@ -44,6 +43,7 @@ import { DocumentType, VerifyDocumentDto } from './DTO/upload-documents.dto';
 import { EstablishmentsService } from './establishments.service';
 import { ParseFloatPipe } from './float/parse-float.pipe';
 import { EstablishmentStatus } from './schemas/establishment.schema';
+import { strictValidation } from '../common/pipes/validation-pipes';
 
 @ApiTags('🏪 Establishments Management')
 @Controller('establishments')
@@ -197,7 +197,7 @@ export class EstablishmentsController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query(new ValidationPipe({ transform: true })) filters: SearchEstablishmentsDto,
+    @Query(strictValidation()) filters: SearchEstablishmentsDto,
   ) {
     const result = await this.establishmentsService.findAll(page, limit, filters);
 

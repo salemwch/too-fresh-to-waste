@@ -1,0 +1,144 @@
+# WFA custom security rules
+#
+# These encode findings from the 2026-08-19 backend audit so they cannot
+# regress. Each rule names the finding it guards.
+#
+# Run locally:  docker run --rm -v "${PWD}:/src" semgrep/semgrep semgrep --config .semgrep/wfa-security.yml
+# Verify rules:  ... semgrep --test --config .semgrep/wfa-security.yml .semgrep/tests/
+# Run in CI:     the `semgrep` job in .github/workflows/codeql-analysis.yml
+
+rules:
+  # ---------------------------------------------------------------- F1 ------
+  - id: wfa-validation-pipe-must-use-shared-factory
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      A ValidationPipe passed to @Body()/@Query()/@Param() REPLACES the global
+      pipe from main.ts for that parameter — it does not merge with it. Inlining
+      one here silently drops `whitelist` and `forbidNonWhitelisted`, reopening
+      the mass-assignment surface on this route while still reading as if
+      validation were in place. Use strictValidation() or lenientValidation()
+      from common/pipes/validation-pipes.ts instead.
+    pattern: new ValidationPipe(...)
+    paths:
+      include:
+        - "apps/food-waste-backend/src/**/*.ts"
+      exclude:
+        - "apps/food-waste-backend/src/main.ts"
+        - "apps/food-waste-backend/src/common/pipes/validation-pipes.ts"
+        - "**/*.spec.ts"
+
+  - id: wfa-validation-pipe-missing-whitelist
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      This ValidationPipe does not set `whitelist: true`, so properties absent
+      from the DTO are passed through to the service untouched. That is the
+      mass-assignment primitive — an attacker adds `role`, `status`, or a
+      pricing field to the request body and it survives validation.
+    patterns:
+      - pattern: "new ValidationPipe({...})"
+      - pattern-not: "new ValidationPipe({..., whitelist: true})"
+    paths:
+      include:
+        - "apps/food-waste-backend/src/**/*.ts"
+      exclude:
+        - "**/*.spec.ts"
+
+  # ---------------------------------------------------------------- F2 ------
+  - id: wfa-math-random-for-security-value
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      Math.random() is not a CSPRNG — its output is predictable from prior
+      draws, and it is modulo-biased when scaled. A value used as a password,
+      token, code, key, or nonce must come from crypto.randomInt() or
+      crypto.randomBytes(). See users/services/password-validation.service.ts
+      for the reference implementation.
+    patterns:
+      - pattern: Math.random()
+      - pattern-inside: |
+          $FUNC(...) {
+            ...
+          }
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: (?i).*(password|passphrase|token|secret|nonce|salt|otp|pin|apikey|api_key|credential|cipher|signature|verif).*
+    paths:
+      include:
+        - "apps/**/src/**/*.ts"
+      exclude:
+        - "**/*.spec.ts"
+        - "**/seeds/**"
+
+  # ---------------------------------------------------------------- F4 ------
+  - id: wfa-authz-guard-skipped-when-identity-absent
+    languages: [typescript]
+    severity: WARNING
+    message: >-
+      This authorization check is opt-in: when the identity argument is absent
+      the guard is skipped entirely and the object is returned unchecked. Make
+      the identity parameter required, or throw when it is missing. A guard
+      that fails open is the BOLA/IDOR primitive — see OWASP API Security #1.
+    patterns:
+      - pattern-either:
+          - pattern: |
+              if ($ID && ...) {
+                ...
+                throw new ForbiddenException(...);
+                ...
+              }
+          - pattern: |
+              if ($ID && ...) {
+                ...
+                throw new UnauthorizedException(...);
+                ...
+              }
+      - metavariable-regex:
+          metavariable: $ID
+          regex: (?i)^(userid|user_id|currentuserid|requesterid|ownerid|actorid)$
+    paths:
+      include:
+        - "apps/food-waste-backend/src/**/*.ts"
+      exclude:
+        - "**/*.spec.ts"
+
+  # ------------------------------------------------------- general JWT ------
+  - id: wfa-jwt-decode-without-verification
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      jwt.decode() parses a token WITHOUT checking its signature — any attacker
+      can mint the payload. Use jwt.verify() with an explicit `algorithms`
+      allowlist. Decoding unverified is acceptable only for reading a token you
+      just issued; if that is the case, rename the variable to say so and add a
+      nosemgrep comment with the reason.
+    pattern-either:
+      - pattern: $JWT.decode(...)
+      - pattern: $THIS.jwtService.decode(...)
+    paths:
+      include:
+        - "apps/food-waste-backend/src/**/*.ts"
+      exclude:
+        - "**/*.spec.ts"
+
+  # ---------------------------------------------- mass assignment sink ------
+  - id: wfa-mongoose-update-from-raw-request
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      A raw request body is being written straight to Mongoose. Even with the
+      global ValidationPipe this is fragile — it depends on a DTO being bound
+      on that route and on `whitelist` still being set. Pass an explicitly
+      constructed object with only the fields this endpoint may change.
+    pattern-either:
+      - pattern: $M.findByIdAndUpdate($ID, $REQ.body, ...)
+      - pattern: $M.findOneAndUpdate($F, $REQ.body, ...)
+      - pattern: $M.updateOne($F, $REQ.body, ...)
+      - pattern: Object.assign($DOC, $REQ.body)
+      - pattern: new $M($REQ.body)
+    paths:
+      include:
+        - "apps/food-waste-backend/src/**/*.ts"
+      exclude:
+        - "**/*.spec.ts"

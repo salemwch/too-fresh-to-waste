@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Post, Query, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../common/decorators/get-user.decorator';
@@ -6,6 +6,7 @@ import type { AuthUser } from '../common/decorators/get-user.decorator';
 
 import { SuggestionDto } from './dto/search.dto';
 import { SearchSuggestionService } from './services/search-suggestion.service';
+import { lenientValidation } from '../common/pipes/validation-pipes';
 
 /**
  * Search endpoints are intentionally public — suggestions should work
@@ -26,7 +27,7 @@ export class SearchController {
   })
   @ApiResponse({ status: 200, description: 'Suggestions retrieved successfully' })
   async getSuggestions(
-    @Query(new ValidationPipe({ transform: true, forbidNonWhitelisted: false }))
+    @Query(lenientValidation())
     dto: SuggestionDto,
     @GetUser() user: AuthUser | null,
   ) {
