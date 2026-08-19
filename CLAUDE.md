@@ -409,6 +409,13 @@ rebase/merge, regenerate and verify.
 
 `check:ts` covers `scripts/` as well as `src/` and `test/`.
 
+The gate is necessary, not sufficient. After it passes, run the review lenses in
+`.claude/rules/adversarial-review.md` — a green type-check proves nothing about
+unhandled branches or coverage that only looks like coverage.
+
+Multi-session or cross-app work carries a spec file with an explicit `status`;
+see `.claude/rules/work-state.md`.
+
 ---
 
 ## Scenario Coverage — Required Before Completing Any Task
@@ -438,7 +445,10 @@ rebase/merge, regenerate and verify.
    Query invalidation.
 7. **DRY at the right level** — extract only at 3+ repetitions or shared
    bug-prone logic.
-8. **Self-review** — re-read every modified file before reporting done.
+8. **Adversarial review, not self-review** — re-reading your own diff confirms
+   the intent you already had. Run the four lenses in
+   `.claude/rules/adversarial-review.md` (edge cases, deletions, claims,
+   verification gaps) as a separate pass before reporting done.
 
 ---
 
