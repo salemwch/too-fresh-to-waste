@@ -21,7 +21,9 @@ import {
   usePickupTomorrowOffers,
 } from '@/features/offers/hooks/useOffers';
 import { OfferStatus as Status } from '@/features/offers/types/offer.types';
+import { useAppSelector } from '@/hooks/redux';
 import { Logger } from '@/utils/logger';
+import { isAuthReadyForApiCalls } from '@/utils/tokenValidator';
 
 import { HOME_API_CONFIG, HOME_UI_CONFIG } from '../constants/homeConstants';
 
@@ -160,6 +162,33 @@ export function useHomeOffers(
    */
   const [loadSecondaryData, setLoadSecondaryData] = useState(false);
 
+  /**
+   * Every query below hits `/offers/*`, which is behind `JwtAuthGuard`. None of
+   * them may fire until auth is settled.
+   *
+   * @rationale Without this the PRIORITY 1 query ran on mount with
+   * `enabled: true`, and the PRIORITY 2-4 queries ran on a bare 500 ms timer.
+   * On a cold start or an app resume, session recovery is still in flight at
+   * that point, so the request interceptor reads no access token from the
+   * Keychain, sends the request unauthenticated, and the backend answers 401
+   * "Invalid or expired token".
+   *
+   * That 401 is not harmless. The response interceptor treats any non-network
+   * refresh failure as fatal, and a refresh that loses the race with recovery
+   * looks exactly like one — so it ran `forceLocalLogout()` and
+   * `SecureStorage.clearAll()`, signing out a user whose session was in fact
+   * valid. It accounted for REACT-NATIVE-13/12/14 in Sentry: 95 events across
+   * the same 6 users, still firing in production on build 80.
+   *
+   * `isAuthReadyForApiCalls` is the existing predicate for this and its own
+   * docstring names the failure — "a burst of 401s that the interceptor then
+   * has to unpick". It was simply never wired into this hook.
+   *
+   * Selected as a primitive rather than via `state.auth`, so the screen
+   * re-renders when readiness actually flips rather than on every auth change.
+   */
+  const isAuthReady = useAppSelector(state => isAuthReadyForApiCalls(state.auth).isReady);
+
   // ============================================================================
   // Effects - Lazy Loading Implementation
   // ============================================================================
@@ -200,7 +229,7 @@ export function useHomeOffers(
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     filterParams, // ✅ Include filters to ensure proper caching and refetching
     {
-      enabled: true,
+      enabled: isAuthReady,
     },
   );
 
@@ -223,7 +252,7 @@ export function useHomeOffers(
     },
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     {
-      enabled: loadSecondaryData,
+      enabled: isAuthReady && loadSecondaryData,
     },
   );
 
@@ -264,7 +293,7 @@ export function useHomeOffers(
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     filterParams,
     {
-      enabled: loadSecondaryData,
+      enabled: isAuthReady && loadSecondaryData,
     },
   );
 
@@ -282,7 +311,7 @@ export function useHomeOffers(
     coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : undefined,
     filterParams,
     {
-      enabled: loadSecondaryData,
+      enabled: isAuthReady && loadSecondaryData,
     },
   );
 
