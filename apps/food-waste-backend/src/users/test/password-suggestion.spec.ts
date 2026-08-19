@@ -75,7 +75,14 @@ describe('PasswordValidationService.generatePasswordSuggestion', () => {
     // validator rather than re-encoding the policy in the test. Asserting the
     // individual requirement flags as well means a failure names the clause
     // that broke instead of just "not acceptable".
-    for (const password of sample.slice(0, 20)) {
+    //
+    // Only a handful of samples here: validatePassword runs zxcvbn, which is
+    // ~130ms per call and CPU-bound. The statistical properties are covered by
+    // the full 500-draw sample in the cheap assertions above; this one is
+    // checking a per-password invariant, which does not need volume. The
+    // explicit timeout keeps it from flaking when jest workers compete for CPU
+    // during a full-suite run — it passed alone and timed out in the suite.
+    for (const password of sample.slice(0, 5)) {
       const result = await service.validatePassword(password);
 
       expect(result.requirements.minLength).toBe(true);
@@ -87,7 +94,7 @@ describe('PasswordValidationService.generatePasswordSuggestion', () => {
       expect(result.isAcceptable).toBe(true);
       expect(result.score).toBeGreaterThanOrEqual(3); // defaultPolicy.minScore
     }
-  });
+  }, 30_000);
 
   it('does not pin character classes to fixed positions', () => {
     // Remove the Fisher-Yates shuffle and this fails: position 0 becomes
