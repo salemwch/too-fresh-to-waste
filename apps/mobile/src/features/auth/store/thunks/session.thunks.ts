@@ -16,6 +16,8 @@ import { Logger } from '@/utils/logger';
 import { authService } from '../../services/authService';
 import { logoutLock } from '../logoutLock';
 
+import { classifyRefreshFailure, NO_REFRESH_TOKEN } from './refreshFailure';
+
 import type { User, AuthState } from '../../types';
 
 export const refreshTokenAsync = createAsyncThunk(
@@ -26,7 +28,11 @@ export const refreshTokenAsync = createAsyncThunk(
       const refreshToken = await SecureStorage.getRefreshToken();
 
       if (refreshToken == null || refreshToken === '') {
-        throw new Error('No refresh token available');
+        // Shared with the classifier, which must recognise this as "never
+        // attempted" rather than "rejected". A literal on both sides would
+        // drift, and the drift would silently make cold-start races
+        // destructive again.
+        throw new Error(NO_REFRESH_TOKEN);
       }
 
       Logger.debug('Token refresh attempt started');
@@ -68,56 +74,12 @@ export const refreshTokenAsync = createAsyncThunk(
       });
       void ErrorHandler.handle(error as Error, { operation: 'refreshToken' });
 
-      // Extract message from AppError or Error
-      let errorMessage = 'Token refresh failed';
-      if (error !== null && error !== undefined && typeof error === 'object') {
-        const errObj = error as Record<string, unknown>;
-        if (typeof errObj['message'] === 'string') {
-          errorMessage = errObj['message'];
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
+      // Classification lives in refreshFailure.ts so every branch can be tested
+      // directly. One of its outputs clears the Keychain — see the note there on
+      // why fatality must be a positive finding rather than a default.
+      const failure = classifyRefreshFailure(error);
 
-      // Extract HTTP status code from the error
-      let statusCode: number | undefined;
-      let errorCode: string | undefined;
-      if (error !== null && typeof error === 'object') {
-        const errObj = error as Record<string, unknown>;
-        if (typeof errObj['code'] === 'number') {
-          statusCode = errObj['code'];
-        }
-        if (typeof errObj['errorCode'] === 'string') {
-          errorCode = errObj['errorCode'];
-        }
-      }
-
-      // Determine if this is a network/server error vs a fatal auth error.
-      // Network errors + 5xx = keep session alive (server problem, not user problem).
-      // Only 401 = session truly dead. 403 with ACCOUNT_SUSPENDED = special case.
-      const isNetworkError =
-        errorMessage === 'Network request failed' ||
-        errorMessage.toLowerCase().includes('network') ||
-        errorMessage.toLowerCase().includes('timeout') ||
-        errorMessage.toLowerCase().includes('econnrefused') ||
-        errorMessage.toLowerCase().includes('econnaborted') ||
-        (statusCode !== undefined && statusCode >= 500 && statusCode < 600) ||
-        (error !== null &&
-          typeof error === 'object' &&
-          'type' in error &&
-          ((error as { type: string }).type === 'NETWORK' ||
-            (error as { type: string }).type === 'SERVER_ERROR'));
-
-      const isAccountSuspended =
-        statusCode === 403 ||
-        errorCode === 'ACCOUNT_SUSPENDED' ||
-        errorMessage.toLowerCase().includes('no longer active');
-
-      return rejectWithValue({
-        message: errorMessage,
-        isNetworkError,
-        isAccountSuspended,
-      });
+      return rejectWithValue(failure);
     }
   },
 );
@@ -311,4 +273,3 @@ export const loadStoredAuthAsync = createAsyncThunk('auth/loadStoredAuth', async
     return null;
   }
 });
-
