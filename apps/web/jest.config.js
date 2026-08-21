@@ -36,4 +36,21 @@ const customConfig = {
   },
 };
 
-module.exports = createJestConfig(customConfig);
+/*
+ * next-intl 4.x is ESM-only (`"type": "module"`, no CJS build), so importing it
+ * in a test throws `SyntaxError: Unexpected token 'export'` under Jest's CJS
+ * runtime. next/jest only ever *appends* to transformIgnorePatterns — a config
+ * can add ignores but cannot lift one — so the resolved config is patched here
+ * instead. Everything outside next-intl / use-intl stays untransformed exactly
+ * as before.
+ */
+module.exports = async () => {
+  const config = await createJestConfig(customConfig)();
+
+  config.transformIgnorePatterns = [
+    '/node_modules/(?!(next-intl|use-intl|intl-messageformat|@formatjs)/)',
+    '^.+\\.module\\.(css|sass|scss)$',
+  ];
+
+  return config;
+};

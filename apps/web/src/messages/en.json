@@ -988,12 +988,119 @@
       "orderLabel": "Orders"
     },
     "merchantPricing": {
-      "title": "Smart Pricing Insights",
-      "subtitle": "Data-driven suggestions to optimize your bag pricing and sales",
-      "avgPrice": "Your Avg Price",
-      "fillRate": "Fill Rate",
-      "zoneAvg": "Zone Avg Price",
-      "suggestedRange": "Suggested Range (TND)"
+      "title": "Your pricing guide",
+      "subtitle": "What your bags sell for, and what similar shops near you charge",
+      "sampleNote": "Based on your last {offers, plural, one {# bag listing} other {# bag listings}} from the past {days} days",
+      "empty": {
+        "title": "Your pricing guide starts here",
+        "body": "Publish a few bags and this card will show what your customers pay, how much of each batch actually sells, and what similar shops near you charge."
+      },
+      "tiles": {
+        "avgPrice": "Your average price",
+        "avgPriceHelp": "The average price a customer pays for one of your bags.",
+        "fillRate": "Bags sold",
+        "fillRateHelp": "Out of every 100 bags you listed, how many were bought before the pickup window closed. Bags still on sale are not counted yet.",
+        "peers": "Similar shops near you",
+        "peersHelp": "Average bag price at {count, plural, one {# other shop} other {# other shops}} of your type in your city.",
+        "peersHelpCity": "There are not enough shops of your type in your city yet, so this is the average across {count, plural, one {# other shop} other {# other shops}} of every type.",
+        "suggested": "Suggested price",
+        "suggestedHelpOwn": "Based on your own bags that sold out — the clearest signal of what your customers will pay.",
+        "suggestedHelpZone": "Based on what similar shops near you charge. Once a few of your own bags sell out, this switches to your own results."
+      },
+      "insights": {
+        "price_above_zone": "Your bags average {yourPrice} TND, about {diffPercent}% more than similar shops near you ({zonePrice} TND). A slightly lower price usually sells out faster.",
+        "price_below_zone": "Your bags average {yourPrice} TND, about {diffPercent}% less than similar shops near you ({zonePrice} TND). You could likely ask a little more.",
+        "low_fill_rate": "Only {fillRate}% of the bags you listed were bought. Try putting fewer bags in each batch, or lowering the price a little.",
+        "low_discount": "Your average discount is {discountPercent}%. A bigger discount makes the trip feel worth it for the customer.",
+        "best_day": "{day} is when your bags sell best. Consider listing more on that day.",
+        "best_hour": "Bags you publish around {hour}:00 sell best."
+      },
+      "days": {
+        "sun": "Sunday",
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday"
+      },
+      "hint": {
+        "own": "Your sold-out bags averaged {min}–{max} TND",
+        "zone": "Similar shops near you charge {min}–{max} TND",
+        "inRange": "Inside the suggested range",
+        "below": "Below the suggested range, you may be undercharging",
+        "above": "Above the suggested range, this may sell more slowly"
+      }
+    },
+    "surpriseBag": {
+      "title": "Publish today's surplus",
+      "subtitle": "Live on the app the moment you hit publish",
+      "close": "Close panel",
+      "itemName": "Item name",
+      "itemNamePlaceholder": "e.g. Delicious Surprise Bag",
+      "defaultTitle": "Delicious Surprise Bag",
+      "description": "Description",
+      "resetSuggestion": "Reset to suggestion",
+      "descriptionHelp": "This is what customers read on your offer. {count}/500",
+      "quantity": "Quantity",
+      "quantityMax": "max {value}",
+      "decreaseQuantity": "Decrease quantity",
+      "increaseQuantity": "Increase quantity",
+      "offerType": "Offer type",
+      "types": {
+        "surprise_bag": "Surprise Bag",
+        "specific_items": "Specific Item",
+        "meal_deal": "Meal Deal"
+      },
+      "pricing": "Pricing",
+      "originalValue": "Original value",
+      "priceMax": "max {value} TND",
+      "discount": "Discount (min. {min}%)",
+      "customerPays": "Customer pays",
+      "customerSaves": "Customer saves {amount} TND ({percent}% off)",
+      "pickupWindow": "Pickup window",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "presets": {
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "allDay": "All day"
+      },
+      "customRange": "Custom range",
+      "from": "From",
+      "until": "Until",
+      "fromLabel": "Pickup start time",
+      "untilLabel": "Pickup end time",
+      "rightNow": "Right now",
+      "midnight": "00:00 (midnight)",
+      "summary": "{day}, {from} – {until}",
+      "startPassedWarning": "Start time has passed — choose a later time or switch to tomorrow.",
+      "offerImage": "Offer image",
+      "imageFormats": "Optional · JPEG / PNG / WebP",
+      "uploadCta": "Click to upload",
+      "imagePreviewAlt": "Offer preview",
+      "removeImage": "Remove image",
+      "loadingEstablishment": "Loading your establishment…",
+      "noEstablishment": "No establishment found. Please complete your onboarding first.",
+      "publish": "Create offer",
+      "publishing": "Creating…",
+      "publishSuccess": "{count, plural, one {# bag} other {# bags}} published successfully!",
+      "errors": {
+        "establishmentMissing": "Your establishment could not be found. Please refresh and try again.",
+        "pickupWindowMissing": "Please select a pickup time window.",
+        "priceInvalid": "Please enter a valid original price.",
+        "discountTooLow": "The minimum allowed discount is {min}%.",
+        "titleTooShort": "The item name must be at least {min} characters.",
+        "descriptionTooShort": "The description must be at least {min} characters.",
+        "endBeforeStart": "The pickup end time must be after the start time.",
+        "startPassed": "The pickup start time has already passed. Please choose a later time or switch to tomorrow.",
+        "publishFailed": "Publishing failed. Please try again."
+      },
+      "autoDescription": {
+        "surprise_bag": "We would love to tell you exactly what is inside — but honestly, we do not know yet! What is left at the end of the day is never the same twice, and that is the best part. Whatever lands in your {title}, it was made fresh today and it is far too good to waste. {qty, plural, one {# bag} other {# bags}} waiting for someone curious.",
+        "specific_items": "{title} — exactly what you see, made fresh today and every bit as good as it was this morning. The only thing that changed is the price. {qty, plural, one {# portion} other {# portions}} rescued before the day ends. Come and enjoy.",
+        "meal_deal": "A proper meal, ready when you are — {title}. Everything you need for a full plate, prepared fresh today and saved from the bin at the last minute. {qty, plural, one {# meal} other {# meals}} available while they last."
+      }
     },
     "merchantProfile": {
       "title": "My Profile",

@@ -987,12 +987,119 @@
       "orderLabel": "Commandes"
     },
     "merchantPricing": {
-      "title": "Tarification intelligente",
-      "subtitle": "Suggestions basées sur les données pour optimiser vos prix et ventes",
-      "avgPrice": "Prix moyen",
-      "fillRate": "Taux de remplissage",
-      "zoneAvg": "Moy. de la zone",
-      "suggestedRange": "Fourchette suggérée (TND)"
+      "title": "Votre guide de prix",
+      "subtitle": "Ce que vos paniers rapportent, et ce que demandent les commerces similaires près de chez vous",
+      "sampleNote": "Calculé sur vos {offers, plural, one {# dernier panier publié} other {# derniers paniers publiés}} des {days} derniers jours",
+      "empty": {
+        "title": "Votre guide de prix commence ici",
+        "body": "Publiez quelques paniers et cette carte vous montrera ce que paient vos clients, quelle part de chaque lot part vraiment, et ce que demandent les commerces similaires près de chez vous."
+      },
+      "tiles": {
+        "avgPrice": "Votre prix moyen",
+        "avgPriceHelp": "Le prix moyen payé par un client pour un de vos paniers.",
+        "fillRate": "Paniers vendus",
+        "fillRateHelp": "Sur 100 paniers mis en ligne, combien ont été achetés avant la fin du créneau de retrait. Les paniers encore en vente ne sont pas comptés.",
+        "peers": "Commerces similaires près de vous",
+        "peersHelp": "Prix moyen du panier chez {count, plural, one {# autre commerce} other {# autres commerces}} de votre type dans votre ville.",
+        "peersHelpCity": "Il y a encore trop peu de commerces de votre type dans votre ville : voici donc la moyenne sur {count, plural, one {# autre commerce} other {# autres commerces}}, tous types confondus.",
+        "suggested": "Prix conseillé",
+        "suggestedHelpOwn": "Basé sur vos propres paniers épuisés, le signal le plus fiable de ce que vos clients acceptent de payer.",
+        "suggestedHelpZone": "Basé sur les prix des commerces similaires près de vous. Dès que quelques-uns de vos paniers seront épuisés, ce calcul passera sur vos propres résultats."
+      },
+      "insights": {
+        "price_above_zone": "Vos paniers sont à {yourPrice} TND en moyenne, environ {diffPercent}% de plus que les commerces similaires près de vous ({zonePrice} TND). Un prix un peu plus bas part généralement plus vite.",
+        "price_below_zone": "Vos paniers sont à {yourPrice} TND en moyenne, environ {diffPercent}% de moins que les commerces similaires près de vous ({zonePrice} TND). Vous pourriez sans doute demander un peu plus.",
+        "low_fill_rate": "Seuls {fillRate}% des paniers que vous avez publiés ont été achetés. Essayez de mettre moins de paniers par lot, ou de baisser légèrement le prix.",
+        "low_discount": "Votre remise moyenne est de {discountPercent}%. Une remise plus forte donne au client le sentiment que le déplacement en vaut la peine.",
+        "best_day": "{day} est le jour où vos paniers partent le mieux. Pensez à en publier davantage ce jour-là.",
+        "best_hour": "Les paniers publiés vers {hour}:00 se vendent le mieux."
+      },
+      "days": {
+        "sun": "Dimanche",
+        "mon": "Lundi",
+        "tue": "Mardi",
+        "wed": "Mercredi",
+        "thu": "Jeudi",
+        "fri": "Vendredi",
+        "sat": "Samedi"
+      },
+      "hint": {
+        "own": "Vos paniers épuisés étaient en moyenne à {min}–{max} TND",
+        "zone": "Les commerces similaires près de vous demandent {min}–{max} TND",
+        "inRange": "Dans la fourchette conseillée",
+        "below": "Sous la fourchette conseillée, vous vendez peut-être trop bas",
+        "above": "Au-dessus de la fourchette conseillée, la vente risque d’être plus lente"
+      }
+    },
+    "surpriseBag": {
+      "title": "Publier les invendus du jour",
+      "subtitle": "En ligne dans l'application dès que vous publiez",
+      "close": "Fermer le panneau",
+      "itemName": "Nom de l'article",
+      "itemNamePlaceholder": "ex. Panier surprise gourmand",
+      "defaultTitle": "Panier surprise gourmand",
+      "description": "Description",
+      "resetSuggestion": "Revenir à la suggestion",
+      "descriptionHelp": "C'est ce que vos clients lisent sur votre offre. {count}/500",
+      "quantity": "Quantité",
+      "quantityMax": "max {value}",
+      "decreaseQuantity": "Diminuer la quantité",
+      "increaseQuantity": "Augmenter la quantité",
+      "offerType": "Type d'offre",
+      "types": {
+        "surprise_bag": "Panier surprise",
+        "specific_items": "Article précis",
+        "meal_deal": "Formule repas"
+      },
+      "pricing": "Prix",
+      "originalValue": "Valeur initiale",
+      "priceMax": "max {value} TND",
+      "discount": "Remise (min. {min}%)",
+      "customerPays": "Le client paie",
+      "customerSaves": "Le client économise {amount} TND ({percent}% de remise)",
+      "pickupWindow": "Créneau de retrait",
+      "today": "Aujourd'hui",
+      "tomorrow": "Demain",
+      "presets": {
+        "lunch": "Déjeuner",
+        "dinner": "Dîner",
+        "allDay": "Toute la journée"
+      },
+      "customRange": "Créneau personnalisé",
+      "from": "De",
+      "until": "Jusqu'à",
+      "fromLabel": "Heure de début du retrait",
+      "untilLabel": "Heure de fin du retrait",
+      "rightNow": "Tout de suite",
+      "midnight": "00:00 (minuit)",
+      "summary": "{day}, {from} – {until}",
+      "startPassedWarning": "L'heure de début est déjà passée — choisissez une heure plus tardive ou passez à demain.",
+      "offerImage": "Photo de l'offre",
+      "imageFormats": "Facultatif · JPEG / PNG / WebP",
+      "uploadCta": "Cliquez pour importer",
+      "imagePreviewAlt": "Aperçu de l'offre",
+      "removeImage": "Supprimer la photo",
+      "loadingEstablishment": "Chargement de votre établissement…",
+      "noEstablishment": "Aucun établissement trouvé. Veuillez d'abord terminer votre inscription.",
+      "publish": "Créer l'offre",
+      "publishing": "Création…",
+      "publishSuccess": "{count, plural, one {# panier publié} other {# paniers publiés}} avec succès !",
+      "errors": {
+        "establishmentMissing": "Votre établissement est introuvable. Actualisez la page et réessayez.",
+        "pickupWindowMissing": "Veuillez choisir un créneau de retrait.",
+        "priceInvalid": "Veuillez saisir une valeur initiale valide.",
+        "discountTooLow": "La remise minimale autorisée est de {min}%.",
+        "titleTooShort": "Le nom de l'article doit contenir au moins {min} caractères.",
+        "descriptionTooShort": "La description doit contenir au moins {min} caractères.",
+        "endBeforeStart": "L'heure de fin doit être postérieure à l'heure de début.",
+        "startPassed": "L'heure de début est déjà passée. Choisissez une heure plus tardive ou passez à demain.",
+        "publishFailed": "La publication a échoué. Veuillez réessayer."
+      },
+      "autoDescription": {
+        "surprise_bag": "On aimerait vous dire exactement ce qu'il y a dedans — mais honnêtement, on ne le sait pas encore ! Ce qu'il reste en fin de journée n'est jamais deux fois pareil, et c'est tout le charme. Quoi qu'il arrive dans votre {title}, tout a été préparé aujourd'hui et c'est bien trop bon pour finir à la poubelle. {qty, plural, one {# panier vous attend} other {# paniers vous attendent}}.",
+        "specific_items": "{title} — exactement ce que vous voyez, préparé aujourd'hui et tout aussi bon que ce matin. Seul le prix a changé. {qty, plural, one {# portion sauvée} other {# portions sauvées}} avant la fin de la journée. Venez en profiter.",
+        "meal_deal": "Un vrai repas, prêt quand vous l'êtes — {title}. Tout ce qu'il faut pour une assiette complète, préparé aujourd'hui et sauvé de la poubelle au dernier moment. {qty, plural, one {# repas disponible} other {# repas disponibles}}, jusqu'à épuisement."
+      }
     },
     "merchantProfile": {
       "title": "Mon Profil",

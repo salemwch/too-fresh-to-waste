@@ -601,10 +601,42 @@ export type AnalyticsPeriod = 'today' | '7d' | '30d' | '90d' | 'custom';
 
 // ─── Smart Pricing Suggestions ──────────────────────────────────────────────
 
+/**
+ * Advice keys emitted by the backend pricing engine. No prose crosses the API
+ * boundary — the wording for each key lives in `messages/*.json`, so insights
+ * render in the merchant's own locale instead of always in English.
+ */
+export type PricingInsightType =
+  | 'price_above_zone'
+  | 'price_below_zone'
+  | 'low_fill_rate'
+  | 'best_day'
+  | 'best_hour'
+  | 'low_discount';
+
 export interface PricingInsight {
-  type: string;
-  message: string;
+  type: PricingInsightType;
   impact: 'high' | 'medium' | 'low';
+  /** Numeric values interpolated into the translated message. */
+  params: Record<string, number>;
+}
+
+/**
+ * Which population the merchant is being compared against.
+ * `category_city` — same business type, same city (like-for-like peers)
+ * `city`          — same city, all business types (too few like-for-like peers)
+ * `none`          — no peers; the comparison is suppressed rather than faked
+ */
+type PricingZoneScope = 'category_city' | 'city' | 'none';
+
+/** Where the suggested range came from, so the UI can explain itself. */
+type PricingRangeBasis = 'own_history' | 'zone';
+
+interface SuggestedPriceRange {
+  min: number;
+  max: number;
+  currency: string;
+  basis: PricingRangeBasis;
 }
 
 export interface PricingSuggestions {
@@ -622,11 +654,16 @@ export interface PricingSuggestions {
     avgDiscountedPrice: number;
     avgFillRate: number;
     totalMerchants: number;
+    scope: PricingZoneScope;
   };
   insights: PricingInsight[];
-  suggestedPriceRange: {
-    min: number;
-    max: number;
-    currency: string;
+  /** `null` when there is neither own history nor a peer set to reason from. */
+  suggestedPriceRange: SuggestedPriceRange | null;
+  /** Lets the UI state how much evidence sits behind the numbers. */
+  sample: {
+    windowDays: number;
+    merchantOffers: number;
+    merchantSoldOutOffers: number;
+    peerMerchants: number;
   };
 }

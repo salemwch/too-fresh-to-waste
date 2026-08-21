@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import {
   X,
   Minus,
@@ -15,25 +16,30 @@ import {
 import { cn } from '@foodwaste/ui';
 import { useMyEstablishment, useCreateSurpriseBag } from '@/hooks/use-merchant-dashboard';
 import type { CreateSurpriseBagPayload, OfferBagType } from '@/types/dashboard';
+import { PriceGuidance } from './price-guidance';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const MIN_DISCOUNT_PCT = 40;
 /** Matches @MinLength(20) on the backend CreateOfferDto. */
 const MIN_DESCRIPTION_CHARS = 20;
+/** Matches @MinLength(5) on the backend CreateOfferDto title. */
+const MIN_TITLE_CHARS = 5;
 const MAX_QUANTITY = 100;
 const MAX_PRICE = 100;
 const DISCOUNT_OPTIONS = [40, 50, 60, 70, 80, 90] as const;
-const DEFAULT_TITLE = 'Delicious Surprise Bag';
 const DEFAULT_PRICE = 10;
 const DEFAULT_DISCOUNT = 50;
 const TIMEZONE = 'Africa/Tunis';
 
-const BAG_TYPE_OPTIONS: { value: OfferBagType; label: string }[] = [
-  { value: 'surprise_bag', label: 'Surprise Bag' },
-  { value: 'specific_items', label: 'Specific Item' },
-  { value: 'meal_deal', label: 'Meal Deal' },
-];
+/**
+ * Every label in this panel is resolved through next-intl. The messages carry
+ * no compile-time key type in this app, so the translator is passed to the pure
+ * helpers below under a narrow alias rather than a full next-intl generic.
+ */
+type Translate = (key: string, values?: Record<string, string | number>) => string;
+
+const BAG_TYPE_OPTIONS: OfferBagType[] = ['surprise_bag', 'specific_items', 'meal_deal'];
 
 /** 30-minute intervals: 00:00 … 23:30 */
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
@@ -46,9 +52,9 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 const UNTIL_OPTIONS = [...TIME_OPTIONS.slice(1), '00:00'];
 
 const PICKUP_PRESETS = [
-  { label: 'Lunch', from: '12:00', until: '14:00' },
-  { label: 'Dinner', from: '18:00', until: '21:00' },
-  { label: 'All Day', from: '08:00', until: '22:00' },
+  { key: 'lunch', from: '12:00', until: '14:00' },
+  { key: 'dinner', from: '18:00', until: '21:00' },
+  { key: 'allDay', from: '08:00', until: '22:00' },
 ] as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -126,45 +132,16 @@ function toISO(day: 'today' | 'tomorrow', hour: number, minute = 0, overflow = f
  * Pre-filled, not imposed — the merchant edits it in the form below. Backend
  * requires 20 characters minimum; all three clear that comfortably.
  */
-function autoDescription(type: OfferBagType, title: string, qty: number): string {
-  const bags = qty === 1 ? 'bag' : 'bags';
-  const portions = qty === 1 ? 'portion' : 'portions';
-  const meals = qty === 1 ? 'meal' : 'meals';
-
-  switch (type) {
-    case 'surprise_bag':
-      return (
-        `We'd love to tell you exactly what's inside — but honestly, we don't know yet! ` +
-        `What's left at the end of the day is never the same twice, and that's the best part. ` +
-        `Whatever lands in your ${title.toLowerCase()}, it was made fresh today and it's far too ` +
-        `good to waste. ${qty} ${bags} waiting for someone curious.`
-      );
-
-    case 'specific_items':
-      return (
-        `${title} — exactly what you see, made fresh today and every bit as good as it was ` +
-        `this morning. The only thing that changed is the price. ` +
-        `${qty} ${portions} rescued before the day ends. Come and enjoy.`
-      );
-
-    case 'meal_deal':
-      return (
-        `A proper meal, ready when you are — ${title}. Everything you need for a full plate, ` +
-        `prepared fresh today and saved from the bin at the last minute. ` +
-        `${qty} ${meals} available while they last.`
-      );
-
-    default:
-      return (
-        `${title} — made fresh today and saved from going to waste. ` +
-        `${qty} available at a price that makes it easy to say yes.`
-      );
-  }
+function autoDescription(t: Translate, type: OfferBagType, title: string, qty: number): string {
+  // `autoDescription.*` carries one key per member of the `OfferBagType` union;
+  // the i18n suite asserts all three exist in all three locales.
+  return t(`autoDescription.${type}`, { title, qty });
 }
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
 function validatePublishForm({
+  t,
   establishment,
   pickupFrom,
   pickupUntil,
@@ -173,6 +150,7 @@ function validatePublishForm({
   title,
   description,
 }: {
+  t: Translate;
   establishment: { _id?: string } | null | undefined;
   pickupFrom: string;
   pickupUntil: string;
@@ -181,16 +159,16 @@ function validatePublishForm({
   title: string;
   description: string;
 }): string | null {
-  if (!establishment?._id)
-    return 'Your establishment could not be found. Please refresh and try again.';
-  if (!pickupFrom || !pickupUntil) return 'Please select a pickup time window.';
-  if (parsedPrice <= 0) return 'Please enter a valid original price.';
-  if (discount < MIN_DISCOUNT_PCT) return `Minimum allowed discount is ${MIN_DISCOUNT_PCT}%.`;
-  if (title.trim().length < 5) return 'Item name must be at least 5 characters.';
+  if (!establishment?._id) return t('errors.establishmentMissing');
+  if (!pickupFrom || !pickupUntil) return t('errors.pickupWindowMissing');
+  if (parsedPrice <= 0) return t('errors.priceInvalid');
+  if (discount < MIN_DISCOUNT_PCT) return t('errors.discountTooLow', { min: MIN_DISCOUNT_PCT });
+  if (title.trim().length < MIN_TITLE_CHARS)
+    return t('errors.titleTooShort', { min: MIN_TITLE_CHARS });
   // Backend requires 20; catching it here means a cleared box gets a sentence
   // rather than a 400.
   if (description.trim().length < MIN_DESCRIPTION_CHARS)
-    return `Description must be at least ${MIN_DESCRIPTION_CHARS} characters.`;
+    return t('errors.descriptionTooShort', { min: MIN_DESCRIPTION_CHARS });
   return null;
 }
 
@@ -202,12 +180,15 @@ interface SurpriseBagPanelProps {
 }
 
 export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
+  const t = useTranslations('dashboard.surpriseBag') as Translate;
+  const defaultTitle = t('defaultTitle');
+
   // ── Form state ──────────────────────────────────────────────────────────
-  const [title, setTitle] = useState(DEFAULT_TITLE);
+  const [title, setTitle] = useState(defaultTitle);
   const [quantity, setQuantity] = useState(1);
   const [bagType, setBagType] = useState<OfferBagType>('surprise_bag');
   const [description, setDescription] = useState(() =>
-    autoDescription('surprise_bag', DEFAULT_TITLE, 1),
+    autoDescription(t, 'surprise_bag', defaultTitle, 1),
   );
   // Once the merchant edits the text we stop regenerating it. Without this,
   // switching type or renaming would silently discard what they wrote.
@@ -232,8 +213,6 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   const discountedPrice = parsedPrice > 0 ? parsedPrice * (1 - discount / 100) : 0;
   const saving = parsedPrice - discountedPrice;
 
-  const publishLabel = 'Create Offer';
-
   const canPublish =
     !mutation.isPending &&
     !!establishment &&
@@ -241,7 +220,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     !!pickupUntil &&
     parsedPrice > 0 &&
     discount >= MIN_DISCOUNT_PCT &&
-    title.trim().length >= 5;
+    title.trim().length >= MIN_TITLE_CHARS;
 
   // ── Body scroll lock ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -311,16 +290,16 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   // merchant writes their own, at which point it is theirs and we leave it be.
   useEffect(() => {
     if (descriptionTouched) return;
-    setDescription(autoDescription(bagType, title.trim() || DEFAULT_TITLE, quantity));
-  }, [bagType, title, quantity, descriptionTouched]);
+    setDescription(autoDescription(t, bagType, title.trim() || defaultTitle, quantity));
+  }, [t, defaultTitle, bagType, title, quantity, descriptionTouched]);
 
   // ── Reset on open ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) return;
-    setTitle(DEFAULT_TITLE);
+    setTitle(defaultTitle);
     setQuantity(1);
     setBagType('surprise_bag');
-    setDescription(autoDescription('surprise_bag', DEFAULT_TITLE, 1));
+    setDescription(autoDescription(t, 'surprise_bag', defaultTitle, 1));
     setDescriptionTouched(false);
     setRawPrice(DEFAULT_PRICE.toFixed(3));
     setDiscount(DEFAULT_DISCOUNT);
@@ -332,6 +311,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     setImagePreview('');
     setErrorMsg('');
     setSuccessMsg('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
@@ -393,6 +373,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     setSuccessMsg('');
 
     const validationError = validatePublishForm({
+      t,
       establishment,
       pickupFrom,
       pickupUntil,
@@ -423,15 +404,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
     const untilMins = untilH === 0 && untilM === 0 ? 24 * 60 : untilH * 60 + untilM;
 
     if (untilMins <= fromMins) {
-      setErrorMsg('Pickup end time must be after the start time.');
+      setErrorMsg(t('errors.endBeforeStart'));
       return;
     }
     // Skip past-time check for 'now' — current time is always valid
     const currentMins = nowSnapshot.getHours() * 60 + nowSnapshot.getMinutes();
     if (pickupDay === 'today' && pickupFrom !== 'now' && fromMins <= currentMins) {
-      setErrorMsg(
-        'Pickup start time has already passed. Please choose a future time or switch to Tomorrow.',
-      );
+      setErrorMsg(t('errors.startPassed'));
       return;
     }
 
@@ -458,12 +437,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
     try {
       await mutation.mutateAsync({ payload, imageFile });
-      setSuccessMsg(`${quantity} ${quantity === 1 ? 'bag' : 'bags'} published successfully!`);
+      setSuccessMsg(t('publishSuccess', { count: quantity }));
       setTimeout(onClose, 1200);
     } catch {
-      setErrorMsg('Failed to publish. Please try again.');
+      setErrorMsg(t('errors.publishFailed'));
     }
   }, [
+    t,
     establishment,
     pickupFrom,
     pickupUntil,
@@ -501,7 +481,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
       <div
         role='dialog'
         aria-modal='true'
-        aria-label="Publish Today's Surplus"
+        aria-label={t(`title`)}
         className={cn(
           'fixed right-0 top-0 z-[101] h-full w-full max-w-[440px]',
           'bg-white shadow-2xl flex flex-col',
@@ -513,16 +493,14 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         <div className='flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0'>
           <div>
             <h2 className='font-display text-[15px] font-bold tracking-tight text-slate-900'>
-              Publish Today&apos;s Surplus
+              {t(`title`)}
             </h2>
-            <p className='text-[11px] text-slate-400 mt-0.5 leading-none'>
-              Live on the app the moment you hit publish
-            </p>
+            <p className='text-[11px] text-slate-400 mt-0.5 leading-none'>{t(`subtitle`)}</p>
           </div>
           <button
             type='button'
             onClick={onClose}
-            aria-label='Close panel'
+            aria-label={t(`close`)}
             className='rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors'
           >
             <X className='h-5 w-5' />
@@ -534,7 +512,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           {/* Item Name */}
           <div className='space-y-1'>
             <label htmlFor='offer-title' className='block text-xs font-semibold text-slate-700'>
-              Item Name
+              {t(`itemName`)}
             </label>
             <input
               id='offer-title'
@@ -543,7 +521,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
               onChange={e => setTitle(e.target.value)}
               maxLength={100}
               className='w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
-              placeholder='e.g. Delicious Surprise Bag'
+              placeholder={t(`itemNamePlaceholder`)}
             />
           </div>
 
@@ -554,7 +532,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                 htmlFor='offer-description'
                 className='block text-xs font-semibold text-slate-700'
               >
-                Description
+                {t(`description`)}
               </label>
               {descriptionTouched && (
                 <button
@@ -562,7 +540,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   onClick={() => setDescriptionTouched(false)}
                   className='text-[11px] font-medium text-primary hover:underline'
                 >
-                  Reset to suggestion
+                  {t(`resetSuggestion`)}
                 </button>
               )}
             </div>
@@ -578,7 +556,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
               className='w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
             />
             <p className='text-[11px] text-slate-400'>
-              This is what customers read on your offer. {description.trim().length}/500
+              {t(`descriptionHelp`, { count: description.trim().length })}
             </p>
           </div>
 
@@ -587,15 +565,17 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {/* Quantity */}
             <div className='space-y-1'>
               <label className='flex items-center gap-1.5 text-xs font-semibold text-slate-700'>
-                {'Quantity'}
-                <span className='text-[11px] font-normal text-slate-400'>max {MAX_QUANTITY}</span>
+                {t(`quantity`)}
+                <span className='text-[11px] font-normal text-slate-400'>
+                  {t(`quantityMax`, { value: MAX_QUANTITY })}
+                </span>
               </label>
               <div className='flex items-center gap-1.5'>
                 <button
                   type='button'
                   onClick={decrement}
                   disabled={quantity <= 1}
-                  aria-label='Decrease quantity'
+                  aria-label={t(`decreaseQuantity`)}
                   className='flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
                 >
                   <Minus className='h-3 w-3' />
@@ -606,7 +586,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   min={1}
                   max={MAX_QUANTITY}
                   value={quantity}
-                  aria-label='Quantity'
+                  aria-label={t(`quantity`)}
                   onChange={e => {
                     const v = Number.parseInt(e.target.value, 10);
                     if (!Number.isNaN(v)) setQuantity(Math.min(MAX_QUANTITY, Math.max(1, v)));
@@ -618,7 +598,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   type='button'
                   onClick={increment}
                   disabled={quantity >= MAX_QUANTITY}
-                  aria-label='Increase quantity'
+                  aria-label={t(`increaseQuantity`)}
                   className='flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
                 >
                   <Plus className='h-3 w-3' />
@@ -629,7 +609,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {/* Offer Type */}
             <div className='flex-1 space-y-1'>
               <label htmlFor='offer-type' className='block text-xs font-semibold text-slate-700'>
-                Offer Type
+                {t(`offerType`)}
               </label>
               <select
                 id='offer-type'
@@ -637,9 +617,9 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                 onChange={e => setBagType(e.target.value as OfferBagType)}
                 className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
               >
-                {BAG_TYPE_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
+                {BAG_TYPE_OPTIONS.map(value => (
+                  <option key={value} value={value}>
+                    {t(`types.${value}`)}
                   </option>
                 ))}
               </select>
@@ -651,13 +631,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
           {/* Pricing */}
           <div className='space-y-3'>
-            <p className='text-xs font-semibold text-slate-700'>Pricing</p>
+            <p className='text-xs font-semibold text-slate-700'>{t(`pricing`)}</p>
 
             {/* Original value */}
             <div className='space-y-1'>
               <div className='flex items-center justify-between'>
-                <p className='text-[11px] text-slate-400'>Original value</p>
-                <p className='text-[10px] text-slate-400'>max {MAX_PRICE} TND</p>
+                <p className='text-[11px] text-slate-400'>{t(`originalValue`)}</p>
+                <p className='text-[10px] text-slate-400'>{t(`priceMax`, { value: MAX_PRICE })}</p>
               </div>
               <div className='flex gap-1'>
                 <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
@@ -676,7 +656,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
             {/* Discount pills */}
             <div className='space-y-1'>
-              <p className='text-xs text-slate-400'>Discount (min. {MIN_DISCOUNT_PCT}%)</p>
+              <p className='text-xs text-slate-400'>{t(`discount`, { min: MIN_DISCOUNT_PCT })}</p>
               <div className='grid grid-cols-7 gap-1'>
                 {DISCOUNT_OPTIONS.map(pct => (
                   <button
@@ -701,7 +681,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
             {/* Customer pays */}
             <div className='space-y-1'>
-              <p className='text-[11px] text-slate-400'>Customer pays</p>
+              <p className='text-[11px] text-slate-400'>{t(`customerPays`)}</p>
               <div className='flex gap-1'>
                 <div
                   className={cn(
@@ -726,10 +706,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
               </div>
               {parsedPrice > 0 && discountedPrice > 0 && (
                 <p className='text-[11px] font-medium text-emerald-600'>
-                  Customer saves {saving.toFixed(3)} TND ({discount}% off)
+                  {t(`customerSaves`, { amount: saving.toFixed(3), percent: discount })}
                 </p>
               )}
             </div>
+
+            {/* What comparable bags go for — shown while the price can still change */}
+            {open && <PriceGuidance discountedPrice={discountedPrice} />}
           </div>
 
           {/* Divider */}
@@ -737,7 +720,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
           {/* Pickup window */}
           <div className='space-y-2.5'>
-            <p className='text-xs font-semibold text-slate-700'>Pickup Window</p>
+            <p className='text-xs font-semibold text-slate-700'>{t(`pickupWindow`)}</p>
 
             {/* Day toggle */}
             <div className='flex gap-2'>
@@ -753,7 +736,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
                   )}
                 >
-                  {d === 'today' ? 'Today' : 'Tomorrow'}
+                  {t(d)}
                 </button>
               ))}
             </div>
@@ -764,7 +747,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                 const active = !customOpen && pickupFrom === p.from && pickupUntil === p.until;
                 return (
                   <button
-                    key={p.label}
+                    key={p.key}
                     type='button'
                     onClick={() => {
                       setPickupFrom(p.from);
@@ -778,7 +761,9 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                         : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:bg-primary/5',
                     )}
                   >
-                    <span className='text-[11px] font-semibold leading-none'>{p.label}</span>
+                    <span className='text-[11px] font-semibold leading-none'>
+                      {t(`presets.${p.key}`)}
+                    </span>
                     <span
                       className={cn(
                         'text-[10px] mt-0.5 tabular-nums',
@@ -804,7 +789,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300',
               )}
             >
-              <span>Custom range</span>
+              <span>{t(`customRange`)}</span>
               <ChevronDown
                 className={cn(
                   'h-3 w-3 shrink-0 transition-transform duration-200',
@@ -817,32 +802,32 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {customOpen && (
               <div className='flex gap-2 animate-in slide-in-from-top-1 duration-150'>
                 <div className='flex-1 space-y-1'>
-                  <p className='text-[10px] font-medium text-slate-500'>From</p>
+                  <p className='text-[10px] font-medium text-slate-500'>{t(`from`)}</p>
                   <select
                     value={pickupFrom}
-                    aria-label='Pickup from time'
+                    aria-label={t(`fromLabel`)}
                     onChange={e => setPickupFrom(e.target.value)}
                     className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
-                    {pickupDay === 'today' && <option value='now'>⚡ Right Now</option>}
-                    {getAvailableFromTimes(pickupDay).map(t => (
-                      <option key={t} value={t}>
-                        {t}
+                    {pickupDay === 'today' && <option value='now'>⚡ {t(`rightNow`)}</option>}
+                    {getAvailableFromTimes(pickupDay).map(slot => (
+                      <option key={slot} value={slot}>
+                        {slot}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className='flex-1 space-y-1'>
-                  <p className='text-[10px] font-medium text-slate-500'>Until</p>
+                  <p className='text-[10px] font-medium text-slate-500'>{t(`until`)}</p>
                   <select
                     value={pickupUntil}
-                    aria-label='Pickup until time'
+                    aria-label={t(`untilLabel`)}
                     onChange={e => setPickupUntil(e.target.value)}
                     className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
-                    {getAvailableUntilTimes(pickupFrom).map(t => (
-                      <option key={t} value={t}>
-                        {t === '00:00' ? '00:00 (midnight)' : t}
+                    {getAvailableUntilTimes(pickupFrom).map(slot => (
+                      <option key={slot} value={slot}>
+                        {slot === '00:00' ? t('midnight') : slot}
                       </option>
                     ))}
                   </select>
@@ -853,9 +838,11 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {/* Live summary */}
             {pickupFrom && pickupUntil && (
               <p className='text-[11px] font-medium text-slate-600 tabular-nums'>
-                {pickupDay === 'today' ? 'Today' : 'Tomorrow'},{' '}
-                {pickupFrom === 'now' ? `⚡ ${formatHHMM(new Date())}` : pickupFrom} –{' '}
-                {pickupUntil === '00:00' ? '00:00 (midnight)' : pickupUntil}
+                {t('summary', {
+                  day: t(pickupDay),
+                  from: pickupFrom === 'now' ? `⚡ ${formatHHMM(new Date())}` : pickupFrom,
+                  until: pickupUntil === '00:00' ? t('midnight') : pickupUntil,
+                })}
               </p>
             )}
 
@@ -869,7 +856,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
               })() && (
                 <p className='flex items-center gap-1.5 text-[11px] text-amber-600'>
                   <AlertCircle className='h-3.5 w-3.5 shrink-0' />
-                  Start time has passed — choose a later time or switch to Tomorrow.
+                  {t(`startPassedWarning`)}
                 </p>
               )}
           </div>
@@ -880,18 +867,22 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           {/* Offer Image */}
           <div className='space-y-1'>
             <div className='flex items-center justify-between'>
-              <p className='text-xs font-semibold text-slate-700'>Offer Image</p>
-              <span className='text-[11px] text-slate-400'>Optional · JPEG / PNG / WebP</span>
+              <p className='text-xs font-semibold text-slate-700'>{t(`offerImage`)}</p>
+              <span className='text-[11px] text-slate-400'>{t(`imageFormats`)}</span>
             </div>
 
             {imagePreview ? (
               <div className='relative rounded-lg overflow-hidden border border-slate-200'>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imagePreview} alt='Offer preview' className='w-full h-28 object-cover' />
+                <img
+                  src={imagePreview}
+                  alt={t(`imagePreviewAlt`)}
+                  className='w-full h-28 object-cover'
+                />
                 <button
                   type='button'
                   onClick={removeImage}
-                  aria-label='Remove image'
+                  aria-label={t(`removeImage`)}
                   className='absolute top-1.5 right-1.5 rounded-full bg-black/50 p-1 text-white hover:bg-black/70 transition-colors'
                 >
                   <X className='h-3 w-3' />
@@ -903,7 +894,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             ) : (
               <label className='flex flex-col items-center justify-center gap-1.5 h-20 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors'>
                 <ImagePlus className='h-5 w-5 text-slate-400' />
-                <span className='text-xs text-slate-400'>Click to upload</span>
+                <span className='text-xs text-slate-400'>{t(`uploadCta`)}</span>
                 <input
                   type='file'
                   accept='image/jpeg,image/png,image/webp'
@@ -916,14 +907,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
           {/* Establishment warnings */}
           {estLoading && (
-            <p className='text-xs text-slate-400 animate-pulse'>Loading your establishment…</p>
+            <p className='text-xs text-slate-400 animate-pulse'>{t(`loadingEstablishment`)}</p>
           )}
           {!estLoading && !establishment && (
             <div className='flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2'>
               <AlertCircle className='h-4 w-4 text-amber-500 shrink-0' />
-              <p className='text-xs text-amber-700'>
-                No establishment found. Please complete your onboarding first.
-              </p>
+              <p className='text-xs text-amber-700'>{t(`noEstablishment`)}</p>
             </div>
           )}
 
@@ -959,10 +948,10 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             {mutation.isPending ? (
               <span className='flex items-center justify-center gap-2'>
                 <Flame className='h-4 w-4 animate-spin' />
-                Creating…
+                {t(`publishing`)}
               </span>
             ) : (
-              publishLabel
+              t(`publish`)
             )}
           </button>
         </div>

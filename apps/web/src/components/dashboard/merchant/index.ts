@@ -9,3 +9,4 @@ export { TrendChart, TrendChartSkeleton } from './trend-chart';
 export { CampaignSidePanel } from './campaign-side-panel';
 export { ReportingBar } from './reporting-bar';
 export { StreakWidget } from './streak-widget';
+export { SmartPricingPanel } from './smart-pricing-panel';

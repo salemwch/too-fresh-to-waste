@@ -19,6 +19,7 @@ import { StreakService } from '../sustainability/services/streak.service';
 import {
   EstablishmentDocument,
   EstablishmentStatus,
+  EstablishmentType,
 } from '../establishments/schemas/establishment.schema';
 
 import {
@@ -39,11 +40,36 @@ import { Offer, OfferDocument, OfferStatus, OfferType, Currency } from './schema
 
 // OFFER_LIST_FIELDS no longer needed — aggregation pipelines select fields via $project
 
+/**
+ * Advice keys emitted by the pricing engine. The backend never sends prose —
+ * each insight is a key plus numeric parameters, and the client owns the
+ * wording so it can be rendered in the merchant's locale (en / fr / ar).
+ */
+export type PricingInsightType =
+  | 'price_above_zone'
+  | 'price_below_zone'
+  | 'low_fill_rate'
+  | 'best_day'
+  | 'best_hour'
+  | 'low_discount';
+
 export interface PricingInsight {
-  type: string;
-  message: string;
+  type: PricingInsightType;
   impact: 'high' | 'medium' | 'low';
+  /** Numbers only — formatting and pluralisation belong to the locale layer. */
+  params: Record<string, number>;
 }
+
+/**
+ * Which population the merchant is being compared against.
+ * `category_city` — same establishment type, same city (a like-for-like peer set)
+ * `city`          — same city, all establishment types (fallback: too few peers)
+ * `none`          — no peers at all; the comparison is suppressed rather than faked
+ */
+export type PricingZoneScope = 'category_city' | 'city' | 'none';
+
+/** Where the suggested range came from, so the UI can explain itself. */
+export type PricingRangeBasis = 'own_history' | 'zone';
 
 export interface PricingSuggestions {
   merchantStats: {
@@ -60,15 +86,49 @@ export interface PricingSuggestions {
     avgDiscountedPrice: number;
     avgFillRate: number;
     totalMerchants: number;
+    scope: PricingZoneScope;
   };
   insights: PricingInsight[];
+  /** `null` when there is neither own history nor a peer set to reason from. */
   suggestedPriceRange: {
     min: number;
     max: number;
     currency: string;
+    basis: PricingRangeBasis;
+  } | null;
+  /** Lets the UI state how much evidence is behind the numbers. */
+  sample: {
+    windowDays: number;
+    merchantOffers: number;
+    merchantSoldOutOffers: number;
+    peerMerchants: number;
   };
 }
 
+/** Internal shape returned by the merchant-side pricing aggregation. */
+interface MerchantPricingStats {
+  avgDiscountedPrice: number;
+  avgOriginalPrice: number;
+  avgDiscountPercent: number;
+  /** Average price of offers that actually sold through. */
+  avgSoldOutPrice: number;
+  fillRate: number;
+  totalOffers: number;
+  totalSold: number;
+  /** Offers that finished running (sold out or expired). */
+  concludedOffers: number;
+  soldOutOffers: number;
+  bestDayOfWeek: number | null;
+  bestHour: number | null;
+}
+
+/** Internal shape returned by the peer-comparison aggregation. */
+interface ZonePricingStats {
+  avgDiscountedPrice: number;
+  avgFillRate: number;
+  totalMerchants: number;
+  scope: PricingZoneScope;
+}
 /**
  * Base offer properties required by presenter (minimum interface)
  * Ensures type safety while allowing flexibility for different query types
@@ -2995,6 +3055,40 @@ export class OffersService {
 
   // ── Smart Pricing Suggestions ─────────────────────────────────────────────
 
+  /** Rolling window every pricing statistic is computed over. */
+  private static readonly PRICING_WINDOW_DAYS = 60;
+
+  /**
+   * Minimum number of concluded offers before behavioural advice (fill rate,
+   * discount depth, best day, best hour) is worth showing. Below this, one
+   * lucky Tuesday reads as a pattern.
+   */
+  private static readonly PRICING_MIN_SAMPLE = 3;
+
+  /**
+   * Minimum distinct peer merchants before an average describes anyone other
+   * than the merchant looking at it. Below this we widen the peer set, and if
+   * it is still empty we suppress the comparison instead of faking one.
+   */
+  private static readonly PRICING_MIN_PEERS = 3;
+
+  /** Aggregation timezone — day/hour buckets must be local, not UTC. */
+  private static readonly PRICING_TIMEZONE = 'Africa/Tunis';
+
+  /** Offers that were published and are no longer collecting orders. */
+  private static readonly PRICING_CONCLUDED_STATUSES = [OfferStatus.SOLD_OUT, OfferStatus.EXPIRED];
+
+  /** Every published offer, whether or not it has finished running. */
+  private static readonly PRICING_PUBLISHED_STATUSES = [
+    OfferStatus.ACTIVE,
+    OfferStatus.SOLD_OUT,
+    OfferStatus.EXPIRED,
+  ];
+
+  private static roundToTenth(value: number): number {
+    return Math.round(value * 10) / 10;
+  }
+
   async getPricingSuggestions(merchantId: string): Promise<PricingSuggestions> {
     const merchantOid = new Types.ObjectId(merchantId);
 
@@ -3003,72 +3097,12 @@ export class OffersService {
       this.getZonePricingStats(merchantOid),
     ]);
 
-    const insights: PricingInsight[] = [];
-
-    if (merchantStats.avgDiscountedPrice > 0 && zoneStats.avgDiscountedPrice > 0) {
-      const priceDiff = merchantStats.avgDiscountedPrice - zoneStats.avgDiscountedPrice;
-      const priceDiffPercent = Math.round((priceDiff / zoneStats.avgDiscountedPrice) * 100);
-
-      if (priceDiffPercent > 15) {
-        insights.push({
-          type: 'price_above_zone',
-          message: `Your average bag price (${merchantStats.avgDiscountedPrice.toFixed(1)} TND) is ${priceDiffPercent}% above your zone average (${zoneStats.avgDiscountedPrice.toFixed(1)} TND). Consider lowering prices for faster sales.`,
-          impact: 'high',
-        });
-      } else if (priceDiffPercent < -20) {
-        insights.push({
-          type: 'price_below_zone',
-          message: `Your average bag price (${merchantStats.avgDiscountedPrice.toFixed(1)} TND) is ${Math.abs(priceDiffPercent)}% below zone average (${zoneStats.avgDiscountedPrice.toFixed(1)} TND). You may be leaving revenue on the table.`,
-          impact: 'medium',
-        });
-      }
-    }
-
-    if (merchantStats.fillRate < 50 && merchantStats.totalOffers >= 3) {
-      insights.push({
-        type: 'low_fill_rate',
-        message: `Your fill rate is ${Math.round(merchantStats.fillRate)}%. Bags priced 10-15% lower tend to sell 2x faster. Try a lower price on your next offer.`,
-        impact: 'high',
-      });
-    }
-
-    if (merchantStats.bestDayOfWeek !== null) {
-      const dayNames = [
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-      ];
-      insights.push({
-        type: 'best_day',
-        message: `Your best-selling day is ${dayNames[merchantStats.bestDayOfWeek]}. Consider listing more bags on this day.`,
-        impact: 'medium',
-      });
-    }
-
-    if (merchantStats.bestHour !== null) {
-      insights.push({
-        type: 'best_hour',
-        message: `Offers listed around ${merchantStats.bestHour}:00 perform best for you. Time your listings accordingly.`,
-        impact: 'medium',
-      });
-    }
-
-    if (merchantStats.avgDiscountPercent < 45 && merchantStats.totalOffers >= 3) {
-      insights.push({
-        type: 'low_discount',
-        message: `Your average discount is ${Math.round(merchantStats.avgDiscountPercent)}%. Offers with 50%+ discounts see 40% higher fill rates on this platform.`,
-        impact: 'medium',
-      });
-    }
+    const insights = this.buildPricingInsights(merchantStats, zoneStats);
 
     return {
       merchantStats: {
-        avgDiscountedPrice: Math.round(merchantStats.avgDiscountedPrice * 10) / 10,
-        avgOriginalPrice: Math.round(merchantStats.avgOriginalPrice * 10) / 10,
+        avgDiscountedPrice: OffersService.roundToTenth(merchantStats.avgDiscountedPrice),
+        avgOriginalPrice: OffersService.roundToTenth(merchantStats.avgOriginalPrice),
         avgDiscountPercent: Math.round(merchantStats.avgDiscountPercent),
         fillRate: Math.round(merchantStats.fillRate),
         totalOffers: merchantStats.totalOffers,
@@ -3077,148 +3111,359 @@ export class OffersService {
         bestHour: merchantStats.bestHour,
       },
       zoneStats: {
-        avgDiscountedPrice: Math.round(zoneStats.avgDiscountedPrice * 10) / 10,
+        avgDiscountedPrice: OffersService.roundToTenth(zoneStats.avgDiscountedPrice),
         avgFillRate: Math.round(zoneStats.avgFillRate),
         totalMerchants: zoneStats.totalMerchants,
+        scope: zoneStats.scope,
       },
       insights,
-      suggestedPriceRange: {
-        min: Math.round(Math.max(1, zoneStats.avgDiscountedPrice * 0.85) * 10) / 10,
-        max: Math.round(zoneStats.avgDiscountedPrice * 1.1 * 10) / 10,
-        currency: 'TND',
+      suggestedPriceRange: this.buildSuggestedRange(merchantStats, zoneStats),
+      sample: {
+        windowDays: OffersService.PRICING_WINDOW_DAYS,
+        merchantOffers: merchantStats.totalOffers,
+        merchantSoldOutOffers: merchantStats.soldOutOffers,
+        peerMerchants: zoneStats.totalMerchants,
       },
     };
   }
 
-  private async getMerchantPricingStats(merchantOid: Types.ObjectId) {
-    const last60d = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+  /**
+   * Turns the two stat sets into advice keys. Emits no prose: each insight is
+   * a key plus numeric params, rendered by the client in the merchant's locale.
+   *
+   * Every rule is gated on having enough evidence to support it — advice drawn
+   * from a single offer is noise dressed up as insight.
+   */
+  private buildPricingInsights(
+    merchantStats: MerchantPricingStats,
+    zoneStats: ZonePricingStats,
+  ): PricingInsight[] {
+    const insights: PricingInsight[] = [];
 
+    const hasPeers = zoneStats.scope !== 'none' && zoneStats.avgDiscountedPrice > 0;
+    const hasConcludedSample = merchantStats.concludedOffers >= OffersService.PRICING_MIN_SAMPLE;
+    const hasSoldOutSample = merchantStats.soldOutOffers >= OffersService.PRICING_MIN_SAMPLE;
+
+    if (hasPeers && merchantStats.avgDiscountedPrice > 0) {
+      const diffPercent = Math.round(
+        ((merchantStats.avgDiscountedPrice - zoneStats.avgDiscountedPrice) /
+          zoneStats.avgDiscountedPrice) *
+          100,
+      );
+
+      const priceParams = {
+        yourPrice: OffersService.roundToTenth(merchantStats.avgDiscountedPrice),
+        zonePrice: OffersService.roundToTenth(zoneStats.avgDiscountedPrice),
+      };
+
+      if (diffPercent > 15) {
+        insights.push({
+          type: 'price_above_zone',
+          impact: 'high',
+          params: { ...priceParams, diffPercent },
+        });
+      } else if (diffPercent < -20) {
+        insights.push({
+          type: 'price_below_zone',
+          impact: 'medium',
+          params: { ...priceParams, diffPercent: Math.abs(diffPercent) },
+        });
+      }
+    }
+
+    if (hasConcludedSample && merchantStats.fillRate < 50) {
+      insights.push({
+        type: 'low_fill_rate',
+        impact: 'high',
+        params: { fillRate: Math.round(merchantStats.fillRate) },
+      });
+    }
+
+    if (hasConcludedSample && merchantStats.avgDiscountPercent < 45) {
+      insights.push({
+        type: 'low_discount',
+        impact: 'medium',
+        params: { discountPercent: Math.round(merchantStats.avgDiscountPercent) },
+      });
+    }
+
+    if (hasSoldOutSample && merchantStats.bestDayOfWeek !== null) {
+      insights.push({
+        type: 'best_day',
+        impact: 'medium',
+        params: { day: merchantStats.bestDayOfWeek },
+      });
+    }
+
+    if (hasSoldOutSample && merchantStats.bestHour !== null) {
+      insights.push({
+        type: 'best_hour',
+        impact: 'medium',
+        params: { hour: merchantStats.bestHour },
+      });
+    }
+
+    return insights;
+  }
+
+  /**
+   * A merchant's own sold-out prices are direct evidence of what their own
+   * customers will pay. The peer average is only a proxy, used until that
+   * evidence exists — and skipped entirely when there are no peers either,
+   * rather than inventing a range out of nothing.
+   */
+  private buildSuggestedRange(
+    merchantStats: MerchantPricingStats,
+    zoneStats: ZonePricingStats,
+  ): PricingSuggestions['suggestedPriceRange'] {
+    const build = (anchor: number, lowerBound: number, basis: PricingRangeBasis) => {
+      const min = OffersService.roundToTenth(Math.max(1, anchor * lowerBound));
+      const max = OffersService.roundToTenth(anchor * 1.1);
+      // The floor can overtake the ceiling on very cheap anchors: a 0.5 TND
+      // average floors to 1 while the ceiling lands at 0.6.
+      return { min, max: Math.max(min, max), currency: Currency.TND, basis };
+    };
+
+    if (
+      merchantStats.soldOutOffers >= OffersService.PRICING_MIN_SAMPLE &&
+      merchantStats.avgSoldOutPrice > 0
+    ) {
+      return build(merchantStats.avgSoldOutPrice, 0.9, 'own_history');
+    }
+
+    if (zoneStats.scope !== 'none' && zoneStats.avgDiscountedPrice > 0) {
+      return build(zoneStats.avgDiscountedPrice, 0.85, 'zone');
+    }
+
+    return null;
+  }
+
+  private static pricingWindowStart(): Date {
+    return new Date(Date.now() - OffersService.PRICING_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  }
+
+  private async getMerchantPricingStats(
+    merchantOid: Types.ObjectId,
+  ): Promise<MerchantPricingStats> {
+    const since = OffersService.pricingWindowStart();
+
+    // One round-trip: $facet runs every branch over the same matched set.
     const pipeline: PipelineStage[] = [
       {
         $match: {
           merchantId: merchantOid,
-          createdAt: { $gte: last60d },
-          status: { $in: ['active', 'sold_out', 'expired', 'completed'] },
+          createdAt: { $gte: since },
+          status: { $in: OffersService.PRICING_PUBLISHED_STATUSES },
         },
       },
       {
-        $group: {
-          _id: null,
-          avgDiscountedPrice: { $avg: '$pricing.discountedPrice' },
-          avgOriginalPrice: { $avg: '$pricing.originalPrice' },
-          avgDiscountPercent: { $avg: '$pricing.discountPercentage' },
-          totalQuantity: { $sum: '$totalQuantity' },
-          totalSold: { $sum: '$soldQuantity' },
-          totalOffers: { $sum: 1 },
+        $facet: {
+          // Price stats span every published offer — price is fixed at creation.
+          pricing: [
+            {
+              $group: {
+                _id: null,
+                avgDiscountedPrice: { $avg: '$pricing.discountedPrice' },
+                avgOriginalPrice: { $avg: '$pricing.originalPrice' },
+                avgDiscountPercent: { $avg: '$pricing.discountPercentage' },
+                totalOffers: { $sum: 1 },
+                totalSold: { $sum: '$soldQuantity' },
+              },
+            },
+          ],
+          // Fill rate spans concluded offers only. An offer that is still
+          // running has not had its chance yet, and counting it drags the rate
+          // down for a reason the merchant cannot act on.
+          fill: [
+            { $match: { status: { $in: OffersService.PRICING_CONCLUDED_STATUSES } } },
+            {
+              $group: {
+                _id: null,
+                totalQuantity: { $sum: '$totalQuantity' },
+                soldQuantity: { $sum: '$soldQuantity' },
+                offers: { $sum: 1 },
+              },
+            },
+          ],
+          soldOut: [
+            { $match: { status: OfferStatus.SOLD_OUT } },
+            {
+              $group: {
+                _id: null,
+                avgSoldOutPrice: { $avg: '$pricing.discountedPrice' },
+                offers: { $sum: 1 },
+              },
+            },
+          ],
+          byDay: [
+            { $match: { status: OfferStatus.SOLD_OUT } },
+            {
+              $group: {
+                _id: {
+                  $dayOfWeek: {
+                    date: '$createdAt',
+                    timezone: OffersService.PRICING_TIMEZONE,
+                  },
+                },
+                sold: { $sum: '$soldQuantity' },
+              },
+            },
+            { $match: { sold: { $gt: 0 } } },
+            { $sort: { sold: -1, _id: 1 } },
+            { $limit: 1 },
+          ],
+          byHour: [
+            { $match: { status: OfferStatus.SOLD_OUT } },
+            {
+              $group: {
+                _id: {
+                  $hour: {
+                    // publishedAt is optional on the schema; older offers carry
+                    // only createdAt, and dropping them would bias the result.
+                    date: { $ifNull: ['$publishedAt', '$createdAt'] },
+                    timezone: OffersService.PRICING_TIMEZONE,
+                  },
+                },
+                sold: { $sum: '$soldQuantity' },
+              },
+            },
+            { $match: { sold: { $gt: 0 } } },
+            { $sort: { sold: -1, _id: 1 } },
+            { $limit: 1 },
+          ],
         },
       },
     ];
 
-    const results = await this.offerModel.aggregate(pipeline).exec();
-    const stats = results[0] as
-      | {
-          avgDiscountedPrice: number;
-          avgOriginalPrice: number;
-          avgDiscountPercent: number;
-          totalQuantity: number;
-          totalSold: number;
-          totalOffers: number;
-        }
-      | undefined;
+    const [facet] = (await this.offerModel.aggregate(pipeline).exec()) as Array<{
+      pricing: Array<{
+        avgDiscountedPrice: number | null;
+        avgOriginalPrice: number | null;
+        avgDiscountPercent: number | null;
+        totalOffers: number;
+        totalSold: number;
+      }>;
+      fill: Array<{ totalQuantity: number; soldQuantity: number; offers: number }>;
+      soldOut: Array<{ avgSoldOutPrice: number | null; offers: number }>;
+      byDay: Array<{ _id: number; sold: number }>;
+      byHour: Array<{ _id: number; sold: number }>;
+    }>;
 
-    const dayPipeline: PipelineStage[] = [
-      {
-        $match: {
-          merchantId: merchantOid,
-          status: { $in: ['sold_out', 'completed'] },
-          createdAt: { $gte: last60d },
-        },
-      },
-      {
-        $group: {
-          _id: { $dayOfWeek: '$createdAt' },
-          sold: { $sum: '$soldQuantity' },
-        },
-      },
-      { $sort: { sold: -1 } },
-      { $limit: 1 },
-    ];
-
-    const hourPipeline: PipelineStage[] = [
-      {
-        $match: {
-          merchantId: merchantOid,
-          status: { $in: ['sold_out', 'completed'] },
-          createdAt: { $gte: last60d },
-        },
-      },
-      {
-        $group: {
-          _id: { $hour: '$publishedAt' },
-          sold: { $sum: '$soldQuantity' },
-        },
-      },
-      { $sort: { sold: -1 } },
-      { $limit: 1 },
-    ];
-
-    const [dayResults, hourResults] = await Promise.all([
-      this.offerModel.aggregate(dayPipeline).exec(),
-      this.offerModel.aggregate(hourPipeline).exec(),
-    ]);
-
-    const bestDay = (dayResults as Array<{ _id: number; sold: number }>)[0];
-    const bestHour = (hourResults as Array<{ _id: number; sold: number }>)[0];
+    const pricing = facet?.pricing[0];
+    const fill = facet?.fill[0];
+    const soldOut = facet?.soldOut[0];
+    const bestDay = facet?.byDay[0];
+    const bestHour = facet?.byHour[0];
 
     return {
-      avgDiscountedPrice: stats?.avgDiscountedPrice ?? 0,
-      avgOriginalPrice: stats?.avgOriginalPrice ?? 0,
-      avgDiscountPercent: stats?.avgDiscountPercent ?? 0,
-      fillRate:
-        stats && stats.totalQuantity > 0 ? (stats.totalSold / stats.totalQuantity) * 100 : 0,
-      totalOffers: stats?.totalOffers ?? 0,
-      totalSold: stats?.totalSold ?? 0,
-      bestDayOfWeek: bestDay ? bestDay._id - 1 : null, // MongoDB $dayOfWeek: 1=Sun → 0-indexed
+      avgDiscountedPrice: pricing?.avgDiscountedPrice ?? 0,
+      avgOriginalPrice: pricing?.avgOriginalPrice ?? 0,
+      avgDiscountPercent: pricing?.avgDiscountPercent ?? 0,
+      avgSoldOutPrice: soldOut?.avgSoldOutPrice ?? 0,
+      fillRate: fill && fill.totalQuantity > 0 ? (fill.soldQuantity / fill.totalQuantity) * 100 : 0,
+      totalOffers: pricing?.totalOffers ?? 0,
+      totalSold: pricing?.totalSold ?? 0,
+      concludedOffers: fill?.offers ?? 0,
+      soldOutOffers: soldOut?.offers ?? 0,
+      // MongoDB $dayOfWeek is 1=Sunday; the client's day table is 0-indexed.
+      bestDayOfWeek: bestDay ? bestDay._id - 1 : null,
       bestHour: bestHour?._id ?? null,
     };
   }
 
-  private async getZonePricingStats(merchantOid: Types.ObjectId) {
+  /**
+   * Builds the peer population the merchant is compared against.
+   *
+   * Two things the previous version got wrong and this one does not: the
+   * merchant's own offers sat inside their own "zone average" (so a merchant
+   * alone in their city was compared against themselves), and a pastry shop was
+   * averaged together with restaurants and supermarkets. We narrow to the same
+   * establishment type first, widen to the whole city only when that peer set
+   * is too thin to mean anything, and report which of the two happened so the
+   * UI can say so instead of presenting a number with no provenance.
+   */
+  private async getZonePricingStats(merchantOid: Types.ObjectId): Promise<ZonePricingStats> {
     const estResult = await this.establishmentsService.findByOwnerId(merchantOid.toString());
-    const city = estResult?.establishments?.[0]?.address?.city;
+    const establishment = estResult?.establishments?.[0];
+    const city = establishment?.address?.city;
+    const type = establishment?.type;
 
-    const last60d = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    // Without a city there is no local population to compare against, and a
+    // platform-wide average across every city is not something the merchant can
+    // act on.
+    if (!city) {
+      return { avgDiscountedPrice: 0, avgFillRate: 0, totalMerchants: 0, scope: 'none' };
+    }
 
-    const cityMatch: Record<string, unknown> = {
-      createdAt: { $gte: last60d },
-      status: { $in: ['active', 'sold_out', 'expired', 'completed'] },
-    };
+    const categoryScoped = type
+      ? await this.aggregateZoneStats(merchantOid, city, type)
+      : { avgDiscountedPrice: 0, avgFillRate: 0, totalMerchants: 0 };
+
+    if (categoryScoped.totalMerchants >= OffersService.PRICING_MIN_PEERS) {
+      return { ...categoryScoped, scope: 'category_city' };
+    }
+
+    const cityScoped = await this.aggregateZoneStats(merchantOid, city, null);
+
+    if (cityScoped.totalMerchants > 0) {
+      return { ...cityScoped, scope: 'city' };
+    }
+
+    return { avgDiscountedPrice: 0, avgFillRate: 0, totalMerchants: 0, scope: 'none' };
+  }
+
+  private async aggregateZoneStats(
+    merchantOid: Types.ObjectId,
+    city: string,
+    type: EstablishmentType | null,
+  ): Promise<Omit<ZonePricingStats, 'scope'>> {
+    const since = OffersService.pricingWindowStart();
+
+    const establishmentMatch: Record<string, unknown> = { 'est.address.city': city };
+    if (type) {
+      establishmentMatch['est.type'] = type;
+    }
 
     const pipeline: PipelineStage[] = [
-      ...(city
-        ? [
-            {
-              $lookup: {
-                from: 'establishments',
-                localField: 'establishmentId',
-                foreignField: '_id',
-                as: 'est',
-                pipeline: [{ $project: { 'address.city': 1 } }],
-              },
-            } as PipelineStage,
-            { $unwind: { path: '$est', preserveNullAndEmptyArrays: false } } as PipelineStage,
-            { $match: { ...cityMatch, 'est.address.city': city } } as PipelineStage,
-          ]
-        : [{ $match: cityMatch } as PipelineStage]),
+      {
+        $match: {
+          // Excluding the merchant's own offers is what makes this a comparison
+          // rather than a mirror.
+          merchantId: { $ne: merchantOid },
+          createdAt: { $gte: since },
+          status: { $in: OffersService.PRICING_PUBLISHED_STATUSES },
+        },
+      },
+      {
+        $lookup: {
+          from: 'establishments',
+          localField: 'establishmentId',
+          foreignField: '_id',
+          as: 'est',
+          pipeline: [{ $project: { 'address.city': 1, type: 1 } }],
+        },
+      },
+      { $unwind: { path: '$est', preserveNullAndEmptyArrays: false } },
+      { $match: establishmentMatch },
       {
         $group: {
           _id: null,
           avgDiscountedPrice: { $avg: '$pricing.discountedPrice' },
-          avgFillRate: {
-            $avg: {
+          // Mirrors the merchant-side definition: concluded offers only.
+          concludedQuantity: {
+            $sum: {
               $cond: [
-                { $gt: ['$totalQuantity', 0] },
-                { $multiply: [{ $divide: ['$soldQuantity', '$totalQuantity'] }, 100] },
+                { $in: ['$status', OffersService.PRICING_CONCLUDED_STATUSES] },
+                '$totalQuantity',
+                0,
+              ],
+            },
+          },
+          concludedSold: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', OffersService.PRICING_CONCLUDED_STATUSES] },
+                '$soldQuantity',
                 0,
               ],
             },
@@ -3226,18 +3471,26 @@ export class OffersService {
           merchants: { $addToSet: '$merchantId' },
         },
       },
-      { $addFields: { totalMerchants: { $size: '$merchants' } } },
-      { $project: { merchants: 0 } },
+      {
+        $project: {
+          avgDiscountedPrice: 1,
+          avgFillRate: {
+            $cond: [
+              { $gt: ['$concludedQuantity', 0] },
+              { $multiply: [{ $divide: ['$concludedSold', '$concludedQuantity'] }, 100] },
+              0,
+            ],
+          },
+          totalMerchants: { $size: '$merchants' },
+        },
+      },
     ];
 
-    const results = await this.offerModel.aggregate(pipeline).exec();
-    const zone = results[0] as
-      | {
-          avgDiscountedPrice: number;
-          avgFillRate: number;
-          totalMerchants: number;
-        }
-      | undefined;
+    const [zone] = (await this.offerModel.aggregate(pipeline).exec()) as Array<{
+      avgDiscountedPrice: number | null;
+      avgFillRate: number;
+      totalMerchants: number;
+    }>;
 
     return {
       avgDiscountedPrice: zone?.avgDiscountedPrice ?? 0,
