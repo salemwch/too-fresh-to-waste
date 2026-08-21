@@ -130,13 +130,21 @@
     "subtitle": "Connectez-vous aux restaurants et commerces locaux pour récupérer des repas de qualité à prix réduit.",
     "cta": {
       "download": "TÉLÉCHARGER L'APPLICATION",
-      "business": "SOLUTION ENTREPRISE"
+      "business": "SOLUTION ENTREPRISE",
+      "merchant": "VENDRE MES INVENDUS"
     },
     "stats": {
       "meals": "Repas sauvés",
       "users": "Utilisateurs actifs",
       "partners": "Partenaires",
       "co2": "kg CO2 économisés"
+    },
+    "headline": "Probablement la dernière fois que vous jetez le bénéfice du jour.",
+    "subheadline": "Mettez en ligne ce qui n'a pas été vendu avant de fermer. Des clients tout près réservent et récupèrent le jour même : ce qui partait à la poubelle devient du chiffre d'affaires.",
+    "trust": {
+      "join": "Inscription gratuite",
+      "share": "Vous gardez 81% de chaque panier",
+      "control": "Vous fixez le prix et la quantité"
     }
   },
   "features": {

@@ -130,13 +130,21 @@
     "subtitle": "Connect with local restaurants and stores to get quality meals at reduced prices.",
     "cta": {
       "download": "DOWNLOAD THE APP",
-      "business": "BUSINESS SOLUTION"
+      "business": "BUSINESS SOLUTION",
+      "merchant": "SELL MY SURPLUS"
     },
     "stats": {
       "meals": "Meals saved",
       "users": "Active users",
       "partners": "Partners",
       "co2": "kg CO2 saved"
+    },
+    "headline": "Probably the last time you throw away today's profit.",
+    "subheadline": "List what did not sell before you close. Customers nearby reserve it and collect it the same day, so food that was heading for the bin becomes revenue instead.",
+    "trust": {
+      "join": "Free to join",
+      "share": "You keep 81% of every bag",
+      "control": "You set the price and the quantity"
     }
   },
   "features": {

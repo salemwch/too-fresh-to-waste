@@ -12,6 +12,7 @@ import {
 } from '@/components/sections';
 import { HashScrollHandler } from '@/components/HashScrollHandler';
 import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
+import { Link } from '@/i18n/routing';
 import type { Locale } from '@/i18n/config';
 import { locales, getLocaleConfig } from '@/i18n/config';
 import { OrganizationSchema, WebSiteSchema, FAQSchema } from '@/components/seo/schemas';
@@ -96,176 +97,149 @@ export default async function HomePage({ params }: HomePageProps) {
 }
 
 // Client component for translations
+/**
+ * Phone screens in the 3D fan, back to front. The centre one is the LCP
+ * candidate on most viewports, so only it gets `fetchPriority`.
+ */
+const HERO_PHONES = [
+  {
+    src: '/images/profile.webp',
+    alt: 'Profile Screen',
+    className: 'w-28 md:w-36 lg:w-44 h-auto opacity-90',
+    sizes: '(max-width: 768px) 112px, (max-width: 1024px) 144px, 176px',
+    transform:
+      'perspective(1500px) rotateY(-20deg) translateX(-40px) translateZ(-100px) scale(0.85)',
+    zIndex: 10,
+    shadow: { bottom: '-15px', width: '80%', height: '12px', blur: '8px', alpha: 0.7 },
+    lead: false,
+  },
+  {
+    src: '/images/getstarted.webp',
+    alt: 'Get Started Screen',
+    className: 'w-36 md:w-44 lg:w-52 h-auto',
+    sizes: '(max-width: 768px) 144px, (max-width: 1024px) 176px, 208px',
+    transform: 'perspective(1500px) rotateY(0deg) translateZ(80px) scale(1)',
+    zIndex: 20,
+    shadow: { bottom: '-18px', width: '85%', height: '16px', blur: '10px', alpha: 0.8 },
+    lead: true,
+  },
+  {
+    src: '/images/login.webp',
+    alt: 'Login Screen',
+    className: 'w-28 md:w-36 lg:w-44 h-auto opacity-90',
+    sizes: '(max-width: 768px) 112px, (max-width: 1024px) 144px, 176px',
+    transform: 'perspective(1500px) rotateY(20deg) translateX(40px) translateZ(-100px) scale(0.85)',
+    zIndex: 10,
+    shadow: { bottom: '-15px', width: '80%', height: '12px', blur: '8px', alpha: 0.7 },
+    lead: false,
+  },
+] as const;
+
 function HeroSection({ locale }: { locale: Locale }) {
   const t = useTranslations('hero');
   const isRTL = locale === 'ar';
 
+  // Korolev carries no Arabic glyphs, so Arabic stays on the Noto Sans Arabic
+  // stack the root layout selects rather than falling back mid-headline.
+  const headingFont = isRTL ? 'font-sans' : 'font-heading';
+
   return (
     <section
       id='hero'
-      className='bg-primary-500 flex flex-col items-center justify-center px-4 py-12 md:py-16 relative overflow-hidden'
+      className='bg-primary-500 relative overflow-hidden px-4 py-12 md:py-16 lg:py-24'
       aria-labelledby='hero-heading'
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* 3D Phone Mockup Stack - Positioned Above Title */}
-      <div
-        className='flex items-start justify-center gap-0'
-        style={{
-          perspective: '1500px',
-          perspectiveOrigin: 'center center',
-        }}
-      >
-        {/* Left Phone - Profile (Back Layer) */}
-        <div
-          className='relative transition-all duration-700 ease-out hover:scale-105'
-          style={{
-            transform:
-              'perspective(1500px) rotateY(-20deg) translateX(-40px) translateZ(-100px) scale(0.85)',
-            transformStyle: 'preserve-3d',
-            zIndex: 10,
-          }}
-        >
-          <div className='relative'>
-            <Image
-              src='/images/profile.webp'
-              alt='Profile Screen'
-              width={390}
-              height={844}
-              sizes='(max-width: 768px) 128px, (max-width: 1024px) 176px, 208px'
-              className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
-              priority
-            />
-            <div
-              className='absolute left-1/2 -translate-x-1/2'
-              style={{
-                bottom: '-15px',
-                width: '80%',
-                height: '12px',
-                background:
-                  'radial-gradient(ellipse, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 80%)',
-                filter: 'blur(8px)',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Center Phone - Get Started (Front Layer - Hero) */}
-        <div
-          className='relative transition-all duration-700 ease-out hover:scale-110 hover:translateZ-[100px]'
-          style={{
-            transform: 'perspective(1500px) rotateY(0deg) translateZ(80px) scale(1)',
-            transformStyle: 'preserve-3d',
-            zIndex: 20,
-          }}
-        >
-          <div className='relative'>
-            <Image
-              src='/images/getstarted.webp'
-              alt='Get Started Screen'
-              width={390}
-              height={844}
-              sizes='(max-width: 768px) 160px, 192px'
-              className='w-40 md:w-48 lg:w-48 h-auto'
-              priority
-              fetchPriority='high'
-            />
-            <div
-              className='absolute left-1/2 -translate-x-1/2'
-              style={{
-                bottom: '-18px',
-                width: '85%',
-                height: '16px',
-                background:
-                  'radial-gradient(ellipse, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 80%)',
-                filter: 'blur(10px)',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Right Phone - Login (Back Layer) */}
-        <div
-          className='relative transition-all duration-700 ease-out hover:scale-105'
-          style={{
-            transform:
-              'perspective(1500px) rotateY(20deg) translateX(40px) translateZ(-100px) scale(0.85)',
-            transformStyle: 'preserve-3d',
-            zIndex: 10,
-          }}
-        >
-          <div className='relative'>
-            <Image
-              src='/images/login.webp'
-              alt='Login Screen'
-              width={390}
-              height={844}
-              sizes='(max-width: 768px) 128px, (max-width: 1024px) 176px, 208px'
-              className='w-32 md:w-44 lg:w-52 h-auto opacity-90'
-              priority
-            />
-            <div
-              className='absolute left-1/2 -translate-x-1/2'
-              style={{
-                bottom: '-15px',
-                width: '80%',
-                height: '12px',
-                background:
-                  'radial-gradient(ellipse, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 80%)',
-                filter: 'blur(8px)',
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Foreground: Text content */}
-      <div className='max-w-5xl w-full text-center font-sans'>
-        <div className='space-y-5'>
+      <div className='mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14'>
+        {/* ── Copy column ── */}
+        <div className='text-center font-sans lg:text-start'>
           <h1
             id='hero-heading'
-            className='text-white/90 drop-shadow-md pt-[15px] md:pt-0'
+            className={`${headingFont} text-white drop-shadow-md`}
             style={{
-              fontSize: 'clamp(1.5rem, 3vw, 1.875rem)',
-              lineHeight: 'calc(1em + 2px)',
-              minHeight: '2.4375rem',
+              fontSize: 'clamp(2rem, 5.2vw, 3.5rem)',
+              lineHeight: 1.08,
+              letterSpacing: '-0.02em',
             }}
           >
-            {(() => {
-              const tagline = t('tagline');
-              const lastPeriodIndex = tagline.lastIndexOf('.');
-              const secondLastPeriodIndex = tagline.lastIndexOf('.', lastPeriodIndex - 1);
-
-              if (secondLastPeriodIndex > 0) {
-                const firstParts = tagline.substring(0, secondLastPeriodIndex + 1);
-                const lastPart = tagline.substring(secondLastPeriodIndex + 1);
-                return (
-                  <>
-                    {firstParts}
-                    <span className='text-secondary'>{lastPart}</span>
-                  </>
-                );
-              }
-
-              return tagline;
-            })()}
+            {t('headline')}
           </h1>
 
-          {/* CTA Buttons */}
-          <div className='flex flex-col sm:flex-row gap-4 justify-center items-stretch w-full max-w-2xl mx-auto px-4 sm:px-0'>
+          {/* The slogan, moved down from its old role as the page heading. */}
+          <p className='mt-4 text-secondary text-lg font-semibold md:text-xl'>{t('tagline')}</p>
+
+          <p className='mt-4 max-w-xl text-white/80 text-sm leading-relaxed md:text-base lg:mx-0 mx-auto'>
+            {t('subheadline')}
+          </p>
+
+          {/* Objection handling, in three claims that are all verifiable in
+              product: signup is free, the split is 81/19, and the merchant
+              chooses price and quantity in the create-offer panel. */}
+          <ul className='mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 lg:justify-start'>
+            {(['join', 'share', 'control'] as const).map(key => (
+              <li key={key} className='flex items-center gap-2 text-white/75 text-xs md:text-sm'>
+                <span aria-hidden='true' className='bg-secondary size-1.5 shrink-0 rounded-full' />
+                {t(`trust.${key}`)}
+              </li>
+            ))}
+          </ul>
+
+          <div className='mt-8 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center lg:justify-start'>
+            <Link
+              href='/business-signup'
+              className='bg-secondary text-primary-500 hover:bg-white rounded-full px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap outline-none transition-all duration-300 hover:scale-105 sm:text-base'
+              aria-label={t('cta.merchant')}
+            >
+              {t('cta.merchant')}
+            </Link>
             <AppDownloadButton
-              className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-[0.5px] border-white text-white rounded-full font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
+              className='hover:text-primary-500 rounded-full border-[0.5px] border-white px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap text-white outline-none transition-all duration-300 hover:scale-105 hover:bg-white sm:text-base'
               aria-label={t('cta.download')}
             >
               {t('cta.download')}
             </AppDownloadButton>
-            <a
-              href='#faq'
-              className='w-full sm:w-auto sm:flex-1 px-6 py-3.5 border-[0.5px] border-white text-white rounded-full font-bold text-sm sm:text-base tracking-wide transition-all duration-300 hover:bg-white hover:text-primary-500 transform hover:scale-105 outline-none text-center whitespace-nowrap'
-              aria-label={t('cta.business')}
-            >
-              {t('cta.business')}
-            </a>
           </div>
+        </div>
+
+        {/* ── Phone column ── */}
+        <div
+          className='flex items-start justify-center'
+          style={{ perspective: '1500px', perspectiveOrigin: 'center center' }}
+        >
+          {HERO_PHONES.map(phone => (
+            <div
+              key={phone.src}
+              className='relative transition-all duration-700 ease-out hover:scale-105'
+              style={{
+                transform: phone.transform,
+                transformStyle: 'preserve-3d',
+                zIndex: phone.zIndex,
+              }}
+            >
+              <div className='relative'>
+                <Image
+                  src={phone.src}
+                  alt={phone.alt}
+                  width={390}
+                  height={844}
+                  sizes={phone.sizes}
+                  className={phone.className}
+                  priority
+                  {...(phone.lead ? { fetchPriority: 'high' as const } : {})}
+                />
+                <div
+                  className='absolute left-1/2 -translate-x-1/2'
+                  style={{
+                    bottom: phone.shadow.bottom,
+                    width: phone.shadow.width,
+                    height: phone.shadow.height,
+                    background: `radial-gradient(ellipse, rgba(0, 0, 0, ${phone.shadow.alpha}) 0%, rgba(0, 0, 0, ${phone.shadow.alpha / 2}) 50%, transparent 80%)`,
+                    filter: `blur(${phone.shadow.blur})`,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
