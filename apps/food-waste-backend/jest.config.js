@@ -14,6 +14,11 @@ module.exports = {
     'csv-writer': '<rootDir>/src/common/types/csv-writer.shim.ts',
   },
   setupFilesAfterEnv: [],
+
+  // Integration suites need a live MongoDB replica set and run from
+  // jest-integration.config.js (`pnpm test:db`). Excluding them here keeps
+  // `pnpm test` runnable without Docker instead of failing on connection.
+  testPathIgnorePatterns: ['/node_modules/', '\\.integration\\.spec\\.ts$'],
   testTimeout: 10_000,
 
   /*

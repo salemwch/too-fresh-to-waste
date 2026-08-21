@@ -107,12 +107,21 @@ the reason it cannot be closed from here.
   `en.json`, so a key renamed on one side only fails here instead of shipping as
   a dotted path. They cover the range boundaries, the scope and basis variants,
   day index 0, an out-of-range day index, and the deploy-skew payload.
-- **Still open: no test executes the aggregation pipelines against MongoDB.**
-  The specs assert pipeline _shape_ against a mocked model. Closing it needs a
-  live replica set (`docker compose up`); Docker is not running on this machine
-  and the only reachable URI is a shared Atlas cluster, which must not be used
-  as a test fixture. Unchanged from before this work — it is not a regression,
-  but it is not covered either.
+- **Closed: the aggregations now execute against a real MongoDB.**
+  `pricing-suggestions.integration.spec.ts` runs the real pipelines against the
+  local `rs0` replica set — `$facet` with five sub-pipelines, `$lookup` carrying
+  both `localField`/`foreignField` and a `pipeline`, `$in` as an aggregation
+  expression inside `$cond`, and `$dayOfWeek`/`$hour` with an explicit timezone.
+  It runs from its own config (`pnpm --filter @foodwaste/backend test:db`) and
+  `jest.config.js` excludes `*.integration.spec.ts` so `pnpm test` still runs
+  without Docker. There is deliberately **no skip path**: a missing database
+  fails the suite rather than reporting green.
+
+  Writing it paid for itself immediately — the first run failed the best-hour
+  assertion because three fixture offers shared an hour and outvoted the one
+  under test. The production code was right; the fixture was proving nothing.
+  The bag that crosses midnight in Tunis now carries the most sold units, so it
+  wins on volume rather than on a tie-break.
 
 ## Second verification run
 

@@ -64,7 +64,8 @@
     "migration:backfill-subscription-expiry:execute": "ts-node -r tsconfig-paths/register scripts/migrations/backfill-subscription-expiry.ts --execute",
     "seed:loadtest": "ts-node -r tsconfig-paths/register scripts/seed-loadtest.ts",
     "verify:loadtest-invariants": "ts-node -r tsconfig-paths/register scripts/verify-loadtest-invariants.ts",
-    "migrate:dedupe-donation-pools": "ts-node -r tsconfig-paths/register scripts/migrations/dedupe-active-donation-pools.ts"
+    "migrate:dedupe-donation-pools": "ts-node -r tsconfig-paths/register scripts/migrations/dedupe-active-donation-pools.ts",
+    "test:db": "jest --config jest-integration.config.js --runInBand"
   },
   "keywords": [],
   "author": "Salem wachwacha",
