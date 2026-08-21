@@ -62,6 +62,24 @@ export class Geozone {
 
   @Prop({ type: Number, default: 0 })
   activeOfferCount!: number;
+
+  /**
+   * How many founding businesses have to sign before this zone opens.
+   *
+   * The public rollout map turns this into the unlock counter: a city launches
+   * on a number the reader can move, not on a date we would have to keep. `0`
+   * means the zone is not running an unlock campaign and shows no meter.
+   */
+  @Prop({ type: Number, default: 0, min: 0 })
+  foundingTarget!: number;
+
+  /** Businesses that signed while this zone was still unlocking. */
+  @Prop({ type: Number, default: 0, min: 0 })
+  foundingSignedCount!: number;
+
+  /** When the zone flipped to `ACTIVE`, for the "live since" line. */
+  @Prop({ type: Date })
+  launchedAt?: Date | undefined;
 }
 
 export const GeozoneSchema = SchemaFactory.createForClass(Geozone);

@@ -1,0 +1,282 @@
+/**
+ * The public endpoints against a real MongoDB replica set.
+ *
+ * These figures go on the marketing homepage, so "roughly right" is not a
+ * standard they can be held to — a rounded-up rescue count on a food-waste site
+ * is the one number the audience will check. Every total here is asserted
+ * against a fixture whose answer is known by construction.
+ *
+ *   docker compose up -d mongodb
+ *   pnpm --filter @foodwaste/backend test:db
+ */
+
+import { EstablishmentStatus, OrderStatus, UserRole } from '@foodwaste/shared';
+import mongoose, { Connection, Types } from 'mongoose';
+
+import { GeozoneSchema, GeozoneStatus } from '../../admin/schemas/geozone.schema';
+import { BAG_IMPACT } from '../../analytics/constants/sustainability.constants';
+import { PublicService } from '../public.service';
+import { WaitlistAudience, CityWaitlistEntrySchema } from '../schemas/city-waitlist-entry.schema';
+
+const MONGO_URI =
+  process.env['MONGO_TEST_URI'] ??
+  'mongodb://admin:password123@localhost:27017/admin?replicaSet=rs0&directConnection=true';
+
+/** Cache-aside that actually stores, so a stale read would be caught. */
+const makeCache = () => {
+  const store = new Map<string, unknown>();
+  return {
+    store,
+    getOrSet: jest.fn(async (key: string, factory: () => Promise<unknown>) => {
+      if (store.has(key)) {
+        return store.get(key);
+      }
+      const value = await factory();
+      store.set(key, value);
+      return value;
+    }),
+    del: jest.fn(async (key: string) => {
+      await Promise.resolve(store.delete(key));
+    }),
+  };
+};
+
+const oid = () => new Types.ObjectId();
+
+/**
+ * A real closed ring. The geozone schema carries a 2dsphere index on
+ * `boundary`, so MongoDB rejects a degenerate polygon at insert time — a
+ * constraint no mocked model would ever have surfaced.
+ */
+const square = (lng: number, lat: number) => ({
+  type: 'Polygon' as const,
+  coordinates: [
+    [
+      [lng, lat],
+      [lng + 0.2, lat],
+      [lng + 0.2, lat + 0.2],
+      [lng, lat + 0.2],
+      [lng, lat],
+    ],
+  ],
+});
+
+describe('PublicService — against a real MongoDB', () => {
+  let connection: Connection;
+  let service: PublicService;
+  let cache: ReturnType<typeof makeCache>;
+
+  const sousseEst = oid();
+  const monastirEst = oid();
+
+  beforeAll(async () => {
+    connection = mongoose.createConnection(MONGO_URI, {
+      dbName: `public_integration_${Date.now()}`,
+      serverSelectionTimeoutMS: 8000,
+    });
+    await connection.asPromise();
+
+    const geozoneModel = connection.model('Geozone', GeozoneSchema);
+    const waitlistModel = connection.model('CityWaitlistEntry', CityWaitlistEntrySchema);
+    await waitlistModel.syncIndexes();
+
+    const orders = connection.collection('orders');
+    const establishments = connection.collection('establishments');
+    const users = connection.collection('users');
+
+    await establishments.insertMany([
+      { _id: sousseEst, status: EstablishmentStatus.ACTIVE, address: { city: 'Sousse' } },
+      { _id: monastirEst, status: EstablishmentStatus.ACTIVE, address: { city: 'Monastir' } },
+      // Not approved: must not be counted as a partner.
+      { _id: oid(), status: EstablishmentStatus.PENDING, address: { city: 'Sousse' } },
+    ]);
+
+    await users.insertMany([
+      { _id: oid(), role: UserRole.CONSUMER },
+      { _id: oid(), role: UserRole.CONSUMER },
+      { _id: oid(), role: UserRole.CONSUMER },
+      // Merchants and admins are not "people eating better for less".
+      { _id: oid(), role: UserRole.MERCHANT },
+      { _id: oid(), role: UserRole.ADMIN },
+    ]);
+
+    const order = (establishmentId: Types.ObjectId, status: OrderStatus, quantity: number) => ({
+      _id: oid(),
+      establishmentId,
+      status,
+      items: [{ offerId: oid(), quantity }],
+    });
+
+    await orders.insertMany([
+      // Sousse: 5 + 3 bags actually collected.
+      order(sousseEst, OrderStatus.PICKED_UP, 5),
+      order(sousseEst, OrderStatus.COMPLETED, 3),
+      // Monastir: 2 delivered.
+      order(monastirEst, OrderStatus.DELIVERED, 2),
+      // None of these reached anyone, so none of them is a rescued bag.
+      order(sousseEst, OrderStatus.CANCELLED, 100),
+      order(sousseEst, OrderStatus.EXPIRED, 100),
+      order(sousseEst, OrderStatus.PENDING, 100),
+      order(sousseEst, OrderStatus.CONFIRMED, 100),
+    ]);
+
+    await geozoneModel.insertMany([
+      {
+        name: 'Sousse',
+        displayName: 'Sousse',
+        status: GeozoneStatus.ACTIVE,
+        establishmentCount: 41,
+        boundary: square(10.5, 35.7),
+        center: { latitude: 35.8, longitude: 10.6 },
+        launchedAt: new Date('2026-03-01T00:00:00Z'),
+      },
+      {
+        name: 'Monastir',
+        displayName: 'Monastir',
+        status: GeozoneStatus.COMING_SOON,
+        foundingTarget: 50,
+        foundingSignedCount: 34,
+        boundary: square(10.7, 35.6),
+        center: { latitude: 35.7, longitude: 10.8 },
+      },
+      {
+        name: 'Mahdia',
+        displayName: 'Mahdia',
+        status: GeozoneStatus.INACTIVE,
+        boundary: square(10.9, 35.4),
+        center: { latitude: 35.5, longitude: 11.0 },
+      },
+    ]);
+
+    cache = makeCache();
+    service = Object.create(PublicService.prototype) as PublicService;
+    Object.assign(service, {
+      orderModel: connection.model(
+        'Order',
+        new mongoose.Schema({}, { strict: false, collection: 'orders' }),
+      ),
+      establishmentModel: connection.model(
+        'Establishment',
+        new mongoose.Schema({}, { strict: false, collection: 'establishments' }),
+      ),
+      userModel: connection.model(
+        'User',
+        new mongoose.Schema({}, { strict: false, collection: 'users' }),
+      ),
+      geozoneModel,
+      waitlistModel,
+      cacheService: cache,
+    });
+  });
+
+  afterAll(async () => {
+    await connection?.dropDatabase();
+    await connection?.close();
+  });
+
+  afterEach(() => cache.store.clear());
+
+  describe('impact totals', () => {
+    it('counts only bags that actually reached a person', async () => {
+      const impact = await service.getImpact();
+      // 5 picked up + 3 completed + 2 delivered. The four unfulfilled orders
+      // carry 100 bags each precisely so their inclusion would be unmissable.
+      expect(impact.bagsRescued).toBe(10);
+    });
+
+    it('counts only approved establishments as partners', async () => {
+      expect((await service.getImpact()).partners).toBe(2);
+    });
+
+    it('counts consumers, not every account', async () => {
+      expect((await service.getImpact()).people).toBe(3);
+    });
+
+    it('derives CO₂ and meals from the shared ADEME coefficients', async () => {
+      const impact = await service.getImpact();
+      const foodKg = 10 * BAG_IMPACT.avgKgPerBag;
+
+      expect(impact.carbonAvoidedKg).toBe(Math.round(foodKg * BAG_IMPACT.carbonPerKg));
+      expect(impact.mealsRescued).toBe(Math.round(foodKg * BAG_IMPACT.mealsPerKg));
+    });
+
+    it('reports how many cities are live', async () => {
+      expect((await service.getImpact()).citiesLive).toBe(1);
+    });
+
+    it('serves every visitor the same cached entry', async () => {
+      await service.getImpact();
+      await service.getImpact();
+
+      expect(cache.getOrSet).toHaveBeenCalled();
+      // One key, no viewer in it — the caching rule this codebase already
+      // learned the hard way on offer pages.
+      expect([...cache.store.keys()]).toEqual(['public:impact:v1']);
+    });
+  });
+
+  describe('the rollout map', () => {
+    it('hides queued zones that admin has not published', async () => {
+      const zones = await service.getZones();
+      expect(zones.map(z => z.name)).not.toContain('Mahdia');
+    });
+
+    it('puts the live city first and the unlocking one second', async () => {
+      const zones = await service.getZones();
+      expect(zones.map(z => z.name)).toEqual(['Sousse', 'Monastir']);
+    });
+
+    it('carries the unlock counter for the city opening next', async () => {
+      const monastir = (await service.getZones()).find(z => z.name === 'Monastir');
+      expect(monastir?.foundingTarget).toBe(50);
+      expect(monastir?.foundingSigned).toBe(34);
+    });
+
+    it('attributes rescued bags to the right city', async () => {
+      const zones = await service.getZones();
+      expect(zones.find(z => z.name === 'Sousse')?.bagsRescued).toBe(8);
+      expect(zones.find(z => z.name === 'Monastir')?.bagsRescued).toBe(2);
+    });
+
+    it('reports the launch date of a live city and null for one not yet open', async () => {
+      const zones = await service.getZones();
+      expect(zones.find(z => z.name === 'Sousse')?.launchedAt).toBe('2026-03-01T00:00:00.000Z');
+      expect(zones.find(z => z.name === 'Monastir')?.launchedAt).toBeNull();
+    });
+  });
+
+  describe('the waiting list', () => {
+    it('records a sign-up and counts it against the city', async () => {
+      await service.joinWaitlist('amine@example.tn', 'Monastir', WaitlistAudience.CONSUMER);
+
+      const monastir = (await service.getZones()).find(z => z.name === 'Monastir');
+      expect(monastir?.peopleWaiting).toBe(1);
+    });
+
+    it('treats a repeat sign-up as success without double-counting', async () => {
+      await service.joinWaitlist('repeat@example.tn', 'Monastir', WaitlistAudience.CONSUMER);
+      await expect(
+        service.joinWaitlist('repeat@example.tn', 'Monastir', WaitlistAudience.CONSUMER),
+      ).resolves.toBeUndefined();
+
+      const monastir = (await service.getZones()).find(z => z.name === 'Monastir');
+      expect(monastir?.peopleWaiting).toBe(2); // amine + repeat, counted once each
+    });
+
+    it('normalises case and whitespace so one person is one row', async () => {
+      await service.joinWaitlist('  MiXeD@Example.TN ', 'Monastir', WaitlistAudience.MERCHANT);
+      await service.joinWaitlist('mixed@example.tn', 'Monastir', WaitlistAudience.CONSUMER);
+
+      const monastir = (await service.getZones()).find(z => z.name === 'Monastir');
+      expect(monastir?.peopleWaiting).toBe(3);
+    });
+
+    it('drops the cached map so the next visitor sees the new ranking', async () => {
+      await service.getZones();
+      expect(cache.store.has('public:zones:v1')).toBe(true);
+
+      await service.joinWaitlist('fresh@example.tn', 'Monastir', WaitlistAudience.CONSUMER);
+      expect(cache.store.has('public:zones:v1')).toBe(false);
+    });
+  });
+});

@@ -144,9 +144,15 @@ function HeroSection({ locale }: { locale: Locale }) {
   const headingFont = isRTL ? 'font-sans' : 'font-heading';
 
   return (
+    /*
+     * The section fills the first screen so nothing from the block below
+     * shows through on load. `svh` rather than `vh`: mobile browsers measure
+     * `vh` against the viewport with the address bar hidden, which leaves a
+     * strip of the next section visible until the user scrolls.
+     */
     <section
       id='hero'
-      className='bg-primary-500 relative overflow-hidden px-4 py-12 md:py-16 lg:py-24'
+      className='bg-primary-500 relative flex min-h-[100svh] items-center overflow-hidden px-4 py-12 md:py-16 lg:py-24'
       aria-labelledby='hero-heading'
       dir={isRTL ? 'rtl' : 'ltr'}
     >

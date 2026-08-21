@@ -74,6 +74,12 @@ const UNAUTHENTICATED_ROUTES: Readonly<Record<string, string>> = {
   'GET /config/app-version': 'Force-update check on cold start, before sign-in.',
   'POST /waitlist/subscribe': 'Pre-launch capture form.',
   'POST /enterprise/inquiry': 'Public contact form.',
+  'GET /public/impact':
+    'Marketing homepage totals. Aggregates only — counts, never rows. Cached as one shared entry, so it identifies nobody.',
+  'GET /public/geozones':
+    'The public rollout map. Per-city counts and launch status; no establishment or person is named.',
+  'POST /public/waitlist':
+    'City waiting-list capture on the rollout map. Anonymous by necessity — the visitor has no account in a city we have not opened. Throttled to 5/min, writes one row keyed by (email, city), and returns the same message whether or not the address was already present.',
 
   // — Geolocation utilities ————————————————————————————————
   // Stateless computation, no persistence, no user data. See the abuse note
@@ -94,7 +100,8 @@ const UNAUTHENTICATED_ROUTES: Readonly<Record<string, string>> = {
   // Konnect's silentWebhook sends no signature. Both handlers therefore treat
   // the payload as untrusted and re-fetch authoritative state from Konnect's
   // API before crediting anything. See konnect-order.service.ts.
-  'POST /subscriptions/webhook/konnect': 'Konnect callback; payload not trusted, status re-fetched.',
+  'POST /subscriptions/webhook/konnect':
+    'Konnect callback; payload not trusted, status re-fetched.',
 };
 
 /** Guards that enforce a role or an ownership relation, beyond authentication. */

@@ -25,6 +25,7 @@ import { EstablishmentsModule } from './establishments/establishments.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { GeolocationModule } from './geolocation/geolocation.module';
 import { HealthModule } from './health/health.module';
+import { PublicModule } from './public/public.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { LoyaltyModule } from './loyalty/loyalty.module';
 import { ModerationModule } from './moderation/moderation.module';
@@ -173,6 +174,7 @@ import { VotingModule } from './voting/voting.module';
     //SocialModule,
     ArchiveModule,
     HealthModule,
+    PublicModule,
     WaitlistModule,
     EnterpriseModule,
     AppConfigModule,
