@@ -182,9 +182,9 @@
       "bagsRescued": "Bags rescued"
     },
     "status": {
-      "active": "Live now",
-      "coming_soon": "Unlocking next",
-      "inactive": "Queued"
+      "live": "Live now",
+      "next": "Unlocking next",
+      "queued": "Queued"
     },
     "liveSummary": "{partners} partners · {bags} bags rescued",
     "waiting": "{count, plural, =0 {Nobody waiting yet} one {# person waiting} other {# people waiting}}",

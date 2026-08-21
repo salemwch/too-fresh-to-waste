@@ -163,7 +163,22 @@ describe('RolloutMap', () => {
     expect(container.textContent).toContain('—');
   });
 
-  it('keeps the panel to the single city that is unlocking next', () => {
+  it('gives the unlocking-next treatment to one city only', () => {
+    // Two announced cities: the first takes the panel and the pill, the second
+    // reads as queued. Before this was derived from an explicit role, both
+    // claimed the same status and the section had two calls to action.
+    const { container: two } = renderMap({
+      zones: [
+        zone({ name: 'Sousse', status: 'coming_soon', foundingTarget: 20, foundingSigned: 5 }),
+        zone({ name: 'Monastir', status: 'coming_soon', foundingTarget: 50, foundingSigned: 34 }),
+      ],
+    });
+
+    expect(two.querySelectorAll('[role="progressbar"]')).toHaveLength(1);
+    expect(two.textContent).toContain(en.rollout.status.queued);
+  });
+
+  it('keeps a single call to action on the section', () => {
     const { container } = renderMap({
       zones: [
         zone({ name: 'Sousse', status: 'coming_soon', foundingTarget: 20, foundingSigned: 5 }),

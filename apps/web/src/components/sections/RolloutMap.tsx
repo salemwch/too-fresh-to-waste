@@ -40,13 +40,15 @@ function StatChip({
   );
 }
 
-function StatusPill({ status }: { status: PublicZone['status'] }) {
+type StopRole = 'live' | 'next' | 'queued';
+
+function StatusPill({ role }: { role: StopRole }) {
   const t = useTranslations('rollout');
 
   const tone =
-    status === 'active'
+    role === 'live'
       ? 'text-secondary border-secondary'
-      : status === 'coming_soon'
+      : role === 'next'
         ? 'text-accent-500 border-accent-500'
         : 'text-white/40 border-white/25';
 
@@ -57,7 +59,7 @@ function StatusPill({ status }: { status: PublicZone['status'] }) {
         tone,
       )}
     >
-      {t(`status.${status}`)}
+      {t(`status.${role}`)}
     </span>
   );
 }
@@ -99,11 +101,21 @@ function UnlockMeter({ zone }: { zone: PublicZone }) {
   );
 }
 
-function Stop({ zone, index, isLast }: { zone: PublicZone; index: number; isLast: boolean }) {
+function Stop({
+  zone,
+  role,
+  index,
+  isLast,
+}: {
+  zone: PublicZone;
+  role: StopRole;
+  index: number;
+  isLast: boolean;
+}) {
   const t = useTranslations('rollout');
 
-  const isLive = zone.status === 'active';
-  const isNext = zone.status === 'coming_soon';
+  const isLive = role === 'live';
+  const isNext = role === 'next';
 
   return (
     <li className='relative grid grid-cols-[2.6rem_minmax(0,1fr)] gap-4 pb-6 last:pb-0'>
@@ -145,7 +157,7 @@ function Stop({ zone, index, isLast }: { zone: PublicZone; index: number; isLast
           >
             {zone.displayName}
           </h3>
-          <StatusPill status={zone.status} />
+          <StatusPill role={role} />
         </div>
 
         {isNext ? (
@@ -274,7 +286,24 @@ export default function RolloutMap({ showStoryLink = false }: { showStoryLink?: 
   const { data: zones, isLoading, isError } = usePublicZones();
   const { data: impact } = usePublicImpact();
 
+  // Exactly one city can be "unlocking next". The API may publish several as
+  // `coming_soon` — a queue of announced cities — so the first in the server's
+  // order takes the panel and the rest read as queued. Without this every
+  // announced city claimed the same status and the section had no single
+  // call to action.
   const nextZone = useMemo(() => zones?.find(z => z.status === 'coming_soon'), [zones]);
+
+  const roles = useMemo<StopRole[]>(() => {
+    let nextTaken = false;
+    return (zones ?? []).map(zone => {
+      if (zone.status === 'active') return 'live';
+      if (zone.status === 'coming_soon' && !nextTaken) {
+        nextTaken = true;
+        return 'next';
+      }
+      return 'queued';
+    });
+  }, [zones]);
 
   // No invented placeholder map: with nothing to show, the section stays out of
   // the page rather than advertising cities we cannot confirm.
@@ -327,6 +356,7 @@ export default function RolloutMap({ showStoryLink = false }: { showStoryLink?: 
                 <Stop
                   key={zone.name}
                   zone={zone}
+                  role={roles[i] ?? 'queued'}
                   index={i}
                   isLast={i === (zones ?? []).length - 1}
                 />

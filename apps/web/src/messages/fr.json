@@ -182,9 +182,9 @@
       "bagsRescued": "Paniers sauvés"
     },
     "status": {
-      "active": "Ouverte",
-      "coming_soon": "Bientôt",
-      "inactive": "En attente"
+      "live": "Ouverte",
+      "next": "Bientôt",
+      "queued": "En attente"
     },
     "liveSummary": "{partners} commerces · {bags} paniers sauvés",
     "waiting": "{count, plural, =0 {Personne pour le moment} one {# personne en attente} other {# personnes en attente}}",

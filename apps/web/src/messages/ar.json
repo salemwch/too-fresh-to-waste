@@ -182,9 +182,9 @@
       "bagsRescued": "أكياس أُنقذت"
     },
     "status": {
-      "active": "مفتوحة الآن",
-      "coming_soon": "التالية",
-      "inactive": "في الانتظار"
+      "live": "مفتوحة الآن",
+      "next": "التالية",
+      "queued": "في الانتظار"
     },
     "liveSummary": "{partners} محلًا · {bags} كيسًا أُنقذ",
     "waiting": "{count} شخصًا في الانتظار",
