@@ -14,6 +14,8 @@ export const revalidate = 86400;
 // Saves ~67 % of the serialised translation payload vs. sending all messages.
 const MARKETING_NAMESPACES = [
   'hero',
+  'rollout',
+  'dream',
   'header',
   'footer',
   'section2',

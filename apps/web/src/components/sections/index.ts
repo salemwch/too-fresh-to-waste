@@ -4,3 +4,4 @@ export { default as Section4 } from './Section4';
 export { default as Section5 } from './Section5';
 export { default as Newsletter } from './Newsletter';
 export { default as InfiniteMarquee } from './InfiniteMarquee';
+export { default as RolloutMap } from './RolloutMap';

@@ -124,6 +124,123 @@
       "helpPlanet": "AIDEZ LA PLANÈTE EN RÉDUISANT LE GASPILLAGE ALIMENTAIRE"
     }
   },
+  "dream": {
+    "eyebrow": "Le rêve",
+    "headlineLead": "Un monde où la bonne nourriture",
+    "headlineAccent": "ne finit jamais à la poubelle.",
+    "standfirst": "Toutes les villes du monde jettent de la nourriture à l’heure de la fermeture. Non par choix, mais parce qu’il n’existait aucun moyen de la vendre dans l’heure qui restait. Nous avons construit ce moyen. Nous avons commencé par une ville, et ce sont les habitants qui décident de la suivante.",
+    "cta": {
+      "primary": "Vendre mes invendus",
+      "secondary": "Voir où nous sommes"
+    },
+    "problem": {
+      "eyebrow": "Le problème",
+      "title": "La nourriture ne se perd pas. On la laisse derrière.",
+      "body1": "Une boulangerie qui ferme à dix-neuf heures a du pain qu’elle ne peut plus vendre à vingt. Un primeur a des fruits parfaits aujourd’hui et invendables demain. Rien n’est abîmé et rien n’est voulu, parce que le seul acheteur qui reste est la poubelle.",
+      "body2": "Ce n’est pas une faute morale, c’est un problème de timing — et un problème de timing se résout. Ce qui manquait, c’était un moyen d’atteindre les gens à côté dans la dernière heure, à un prix qui vaille le déplacement des deux côtés.",
+      "pullquote": "Personne ne se lève le matin en espérant jeter ce qu’il vient de préparer."
+    },
+    "wins": {
+      "eyebrow": "Qui y gagne",
+      "title": "Chaque partie doit y gagner, sinon rien ne tient.",
+      "merchant": {
+        "who": "Le commerce",
+        "what": "Les invendus deviennent du chiffre d’affaires au lieu d’un coût de mise au rebut. Vous fixez le prix, vous fixez la quantité, et vous gardez 81% de chaque panier."
+      },
+      "customer": {
+        "who": "Le client",
+        "what": "De vrais produits d’un vrai commerce à côté, à une fraction du prix, récupérés le jour même. Ni charité ni restes : la même nourriture, plus tard dans la journée."
+      },
+      "planet": {
+        "who": "La planète",
+        "what": "La nourriture jetée a déjà coûté l’eau, la terre et le carburant qui l’ont produite. Sauver un panier sauve tout cela, pas seulement le repas."
+      },
+      "neighbour": {
+        "who": "Le quartier",
+        "what": "Une part de la marge de la plateforme finance un objectif de don qui tourne, pour que le même surplus qui paie un commerçant remette aussi quelque chose dans le placard d’une famille."
+      }
+    },
+    "proof": {
+      "bags": "paniers sauvés à ce jour",
+      "meals": "repas arrivés jusqu’à quelqu’un",
+      "carbon": "CO₂ jamais émis",
+      "note": "Totaux en direct de la plateforme. Quand il n’y a rien à annoncer, un tiret s’affiche plutôt qu’un zéro."
+    },
+    "close": {
+      "title": "La Tunisie d’abord. Puis partout où l’on ferme avec des rayons encore pleins.",
+      "body": "Algérie, Maroc, Golfe — le problème y est identique, et la solution aussi. Mais elle ne voyagera que si elle fonctionne ici d’abord, et cela commence par un commerce de plus dans une ville de plus.",
+      "cta": "Rejoindre depuis votre ville"
+    }
+  },
+  "rollout": {
+    "eyebrow": "Carte de déploiement",
+    "headlineLead": "Une ville à la fois,",
+    "headlineAccent": "ouverte par ceux qui y vivent.",
+    "chips": {
+      "citiesLive": "Villes ouvertes",
+      "waiting": "Sur liste d’attente",
+      "bagsRescued": "Paniers sauvés"
+    },
+    "status": {
+      "active": "Ouverte",
+      "coming_soon": "Bientôt",
+      "inactive": "En attente"
+    },
+    "liveSummary": "{partners} commerces · {bags} paniers sauvés",
+    "waiting": "{count, plural, =0 {Personne pour le moment} one {# personne en attente} other {# personnes en attente}}",
+    "meterLabel": "Commerces fondateurs inscrits à {city}",
+    "foundingProgress": "{signed} commerces fondateurs sur {target} — encore {left} pour ouvrir {city}",
+    "panel": {
+      "eyebrow": "Prochaine ouverture",
+      "body": "Ouvre le jour où {target} commerces fondateurs se seront inscrits à {city}. Les fondateurs gardent leur badge et apparaissent en premier sur la page de la ville.",
+      "bodyNoTarget": "Nous ouvrons {city} prochainement. Laissez votre email et vous serez prévenu le jour même.",
+      "signed": "Inscrits",
+      "waiting": "En attente",
+      "remaining": "Encore nécessaires",
+      "remainingValue": "{count, plural, =0 {Objectif atteint} one {# commerce} other {# commerces}}",
+      "fine": "La file ci-dessous est en direct : les villes sont classées par nombre de personnes en attente, donc une seule inscription peut changer la prochaine ouverture."
+    },
+    "form": {
+      "emailLabel": "Votre adresse email",
+      "emailPlaceholder": "vous@exemple.com",
+      "submit": "Prévenez-moi à l’ouverture",
+      "submitting": "Inscription…",
+      "success": "Vous êtes sur la liste. Nous vous écrirons le jour où {city} ouvrira.",
+      "error": "Cela n’a pas fonctionné. Vérifiez l’adresse et réessayez."
+    },
+    "board": {
+      "title": "Après la Tunisie",
+      "destination": "Destination",
+      "market": "Marché",
+      "status": "Statut",
+      "boarding": "En cours",
+      "scheduled": "Prévu",
+      "countries": {
+        "tunisia": {
+          "name": "Tunisie",
+          "market": "Pays d’origine"
+        },
+        "algeria": {
+          "name": "Algérie",
+          "market": "Maghreb"
+        },
+        "morocco": {
+          "name": "Maroc",
+          "market": "Maghreb"
+        },
+        "uae": {
+          "name": "Émirats arabes unis",
+          "market": "Golfe"
+        },
+        "saudi": {
+          "name": "Arabie saoudite",
+          "market": "Golfe"
+        }
+      },
+      "storyLink": "Lire toute l’histoire",
+      "closing": "On jette de la nourriture dans toutes les villes du monde. Nous avons commencé par la nôtre."
+    }
+  },
   "hero": {
     "tagline": "Sauvez la nourriture. Sauvez des vies. Sauvez la planète.",
     "title": "Réduisez le gaspillage alimentaire en Tunisie",

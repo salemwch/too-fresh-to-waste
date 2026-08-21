@@ -124,6 +124,123 @@
       "helpPlanet": "HELP THE PLANET BY REDUCING FOOD WASTE"
     }
   },
+  "dream": {
+    "eyebrow": "The dream",
+    "headlineLead": "A world where good food",
+    "headlineAccent": "never reaches the bin.",
+    "standfirst": "Every city on earth throws food away at closing time. Not because anyone wants to — because there was no way to sell it in the hour that was left. We built that way. We started with one city, and the people in each city decide which one comes next.",
+    "cta": {
+      "primary": "Sell your surplus",
+      "secondary": "See where we are"
+    },
+    "problem": {
+      "eyebrow": "The problem",
+      "title": "Food does not go to waste. It gets left behind.",
+      "body1": "A bakery closing at seven has bread it cannot sell at eight. A grocer has fruit that is perfect today and unsellable tomorrow. None of it is spoiled and none of it is wanted, because the only buyer left is the bin.",
+      "body2": "That is not a moral failure. It is a timing problem — and timing problems are solvable. What was missing was a way to reach the people nearby in the last hour, at a price that makes the trip worth it for both sides.",
+      "pullquote": "Nobody wakes up wanting to throw away what they made that morning."
+    },
+    "wins": {
+      "eyebrow": "Who wins",
+      "title": "Every side of this has to win, or none of it lasts.",
+      "merchant": {
+        "who": "The business",
+        "what": "Surplus becomes revenue instead of a disposal cost. You set the price, you set the quantity, and you keep 81% of every bag."
+      },
+      "customer": {
+        "who": "The customer",
+        "what": "Real food from a real shop nearby, at a fraction of the price, collected the same day. Not charity, not leftovers — the same food, later in the day."
+      },
+      "planet": {
+        "who": "The planet",
+        "what": "Food thrown away has already cost the water, land and fuel that produced it. Rescuing a bag saves all of it, not just the meal."
+      },
+      "neighbour": {
+        "who": "The neighbourhood",
+        "what": "Part of the platform margin funds a rotating donation goal, so the same surplus that pays a merchant also puts something back on a local family shelf."
+      }
+    },
+    "proof": {
+      "bags": "bags rescued so far",
+      "meals": "meals that reached someone",
+      "carbon": "CO₂ never emitted",
+      "note": "Live totals from the platform. When there is nothing to report yet, this shows a dash rather than a zero."
+    },
+    "close": {
+      "title": "Tunisia first. Then everywhere that closes with food still on the shelf.",
+      "body": "Algeria, Morocco, the Gulf — the problem is identical in all of them, and so is the fix. But it only travels if it works here first, and that starts with one more business in one more city.",
+      "cta": "Join from your city"
+    }
+  },
+  "rollout": {
+    "eyebrow": "Rollout map",
+    "headlineLead": "One city at a time,",
+    "headlineAccent": "unlocked by the people in it.",
+    "chips": {
+      "citiesLive": "Cities live",
+      "waiting": "On waiting lists",
+      "bagsRescued": "Bags rescued"
+    },
+    "status": {
+      "active": "Live now",
+      "coming_soon": "Unlocking next",
+      "inactive": "Queued"
+    },
+    "liveSummary": "{partners} partners · {bags} bags rescued",
+    "waiting": "{count, plural, =0 {Nobody waiting yet} one {# person waiting} other {# people waiting}}",
+    "meterLabel": "Founding businesses signed in {city}",
+    "foundingProgress": "{signed} of {target} founding businesses signed — {left} left to open {city}",
+    "panel": {
+      "eyebrow": "Unlocking next",
+      "body": "Opens the day {target} founding businesses sign up in {city}. Founding partners keep their badge for good and appear first on the city page.",
+      "bodyNoTarget": "We are opening {city} next. Leave your email and you will hear the day it goes live.",
+      "signed": "Signed up",
+      "waiting": "People waiting",
+      "remaining": "Still needed",
+      "remainingValue": "{count, plural, =0 {Target reached} one {# business} other {# businesses}}",
+      "fine": "The queue below is live: cities are ranked by how many people are waiting, so a single sign-up can change what we open next."
+    },
+    "form": {
+      "emailLabel": "Your email address",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Tell me when it opens",
+      "submitting": "Adding you…",
+      "success": "You are on the list. We will email you the day {city} opens.",
+      "error": "That did not go through. Please check the address and try again."
+    },
+    "board": {
+      "title": "After Tunisia",
+      "destination": "Destination",
+      "market": "Market",
+      "status": "Status",
+      "boarding": "Boarding",
+      "scheduled": "Scheduled",
+      "countries": {
+        "tunisia": {
+          "name": "Tunisia",
+          "market": "Home"
+        },
+        "algeria": {
+          "name": "Algeria",
+          "market": "Maghreb"
+        },
+        "morocco": {
+          "name": "Morocco",
+          "market": "Maghreb"
+        },
+        "uae": {
+          "name": "United Arab Emirates",
+          "market": "Gulf"
+        },
+        "saudi": {
+          "name": "Saudi Arabia",
+          "market": "Gulf"
+        }
+      },
+      "storyLink": "Read the whole story",
+      "closing": "Food is thrown away in every city on earth. We started with ours."
+    }
+  },
   "hero": {
     "tagline": "Save Food. Save Lives. Save the Planet.",
     "title": "Reduce Food Waste in Tunisia",

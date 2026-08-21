@@ -27,6 +27,7 @@ const marketingPages: Array<{
   { path: '/consumer', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/marketplace-surprise-bag', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/humanity-mission', changeFrequency: 'monthly', priority: PRIORITY.marketing },
+  { path: '/dream', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/esg', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/food-waste-facts', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/contact', changeFrequency: 'monthly', priority: PRIORITY.support },

@@ -9,6 +9,7 @@ import {
   Section4,
   Section5,
   InfiniteMarquee,
+  RolloutMap,
 } from '@/components/sections';
 import { HashScrollHandler } from '@/components/HashScrollHandler';
 import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
@@ -76,6 +77,9 @@ export default async function HomePage({ params }: HomePageProps) {
       <main role='main'>
         {/* Hero Section with 3D Phone Mockups */}
         <HeroSection locale={locale as Locale} />
+
+        {/* Where we are open, and which city opens next */}
+        <RolloutMap showStoryLink />
 
         {/* Section 2: App Introduction with Download Buttons */}
         <Section2 />
