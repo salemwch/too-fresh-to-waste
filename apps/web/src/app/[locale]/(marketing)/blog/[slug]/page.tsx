@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   }
 
   return {
-    title: `${post.title} — Too Fresh To Waste`,
+    title: `${post.title} - Too Fresh To Waste`,
     description: post.description,
     alternates: { canonical, languages },
     openGraph: {
@@ -115,7 +115,7 @@ const UI = {
     ctaEyebrow: 'Too Fresh To Waste',
     ctaHeadline: 'Stop throwing away margin.',
     ctaBody:
-      'Join the platform turning Tunisia’s daily food surplus into revenue — for businesses and savings for consumers.',
+      'Join the platform turning Tunisia’s daily food surplus into revenue - for businesses and savings for consumers.',
     ctaPartner: 'Become a partner',
     backToBlog: '← Back to Blog',
   },

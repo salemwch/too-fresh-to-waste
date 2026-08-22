@@ -11,17 +11,17 @@ const PATH = '/careers';
 
 const COPY: LocalizedMeta = {
   en: {
-    title: 'Careers — Build the Anti-Waste Economy in Tunisia',
+    title: 'Careers - Build the Anti-Waste Economy in Tunisia',
     description:
       'Join Too Fresh To Waste and help Tunisian businesses turn surplus food into revenue instead of landfill. See open roles in engineering, operations and partnerships.',
   },
   fr: {
-    title: "Carrières — Construisez l'Économie Anti-Gaspi en Tunisie",
+    title: "Carrières - Construisez l'Économie Anti-Gaspi en Tunisie",
     description:
       "Rejoignez Too Fresh To Waste et aidez les commerces tunisiens à transformer leurs invendus en chiffre d'affaires plutôt qu'en déchets. Découvrez nos postes ouverts.",
   },
   ar: {
-    title: 'الوظائف — ابنِ اقتصاد مكافحة الهدر في تونس',
+    title: 'الوظائف - ابنِ اقتصاد مكافحة الهدر في تونس',
     description:
       'انضم إلى Too Fresh To Waste وساعد الشركات التونسية على تحويل الطعام الفائض إلى إيرادات بدلاً من النفايات. اطلع على الوظائف المتاحة.',
   },

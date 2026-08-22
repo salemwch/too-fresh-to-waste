@@ -28,7 +28,7 @@ export async function generateMetadata({
     alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
   });
   return {
-    title: 'Save Food, Save Money, Win Prizes — Too Fresh To Waste',
+    title: 'Save Food, Save Money, Win Prizes - Too Fresh To Waste',
     description:
       'Rescue unsold food from local restaurants and bakeries at up to 70% off. Earn points, help the planet, and compete for smartphones in the community Drop.',
     alternates: {
@@ -189,7 +189,7 @@ const quickWins = [
     iconColor: 'text-secondary-dark',
     stat: 'Earn points, win prizes',
     label: 'The more you save, the more you gain',
-    body: 'Every bag earns you points. Hit the community goal together and the Drop unlocks — phones for the top 3, a discount for everyone else.',
+    body: 'Every bag earns you points. Hit the community goal together and the Drop unlocks - phones for the top 3, a discount for everyone else.',
   },
 ];
 
@@ -199,7 +199,7 @@ const howItWorksSteps = [
     icon: '/icons/browsing.png',
     iconAlt: 'Browse nearby bags',
     title: 'Browse surprise bags near you',
-    body: "Open the app, find restaurants and bakeries listing today's unsold food — fresh, real, discounted. Filter by distance, type, or pickup time.",
+    body: "Open the app, find restaurants and bakeries listing today's unsold food - fresh, real, discounted. Filter by distance, type, or pickup time.",
     colorClass: 'bg-primary-500',
   },
   {
@@ -207,7 +207,7 @@ const howItWorksSteps = [
     icon: '/icons/booking.png',
     iconAlt: 'Reserve your bag',
     title: 'Reserve yours in seconds',
-    body: 'Tap to claim your bag. Pay securely in-app. Get your pickup window. Your slot is locked — no one else can grab it.',
+    body: 'Tap to claim your bag. Pay securely in-app. Get your pickup window. Your slot is locked - no one else can grab it.',
     colorClass: 'bg-brand-coral',
   },
   {
@@ -262,14 +262,9 @@ export default async function ConsumerPage({ params }: PageProps) {
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-12 pb-0 lg:pt-16'>
             <div className='grid lg:grid-cols-2 gap-10 lg:gap-16 items-center'>
-              {/* Left — copy */}
+              {/* Left - copy */}
               <div className='pb-10 lg:pb-16'>
                 {/* Eyebrow */}
-                <div className='inline-flex items-center gap-2 bg-brand-coral/20 border border-brand-coral/40 text-brand-coral text-xs font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6'>
-                  <span className='h-px w-6 bg-brand-coral' aria-hidden='true' />
-                  Pick Up Today
-                </div>
-
                 <h1 className='font-playfair text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
                   Great Food. <span className='text-brand-coral italic'>Lower Price.</span> Better
                   World.
@@ -277,7 +272,7 @@ export default async function ConsumerPage({ params }: PageProps) {
 
                 <p className='text-white/70 text-base lg:text-lg leading-relaxed mb-8 max-w-lg'>
                   Every day, restaurants and bakeries in Tunisia have delicious unsold food. You
-                  grab it for 50% off and more — and together we stop it from going to waste.
+                  grab it for 50% off and more - and together we stop it from going to waste.
                 </p>
 
                 {/* Download CTAs */}
@@ -316,7 +311,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Right — PickUpToday illustration */}
+              {/* Right - PickUpToday illustration */}
               <div className='flex justify-center lg:justify-end items-end relative'>
                 <div
                   className='absolute inset-0 pointer-events-none'
@@ -328,7 +323,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 />
                 <Image
                   src='/images/PickUpToday.svg'
-                  alt='Pick up today — fresh food bags available near you'
+                  alt='Pick up today - fresh food bags available near you'
                   width={520}
                   height={480}
                   className='w-full max-w-[260px] lg:max-w-[360px] h-auto object-contain drop-shadow-2xl'
@@ -506,7 +501,7 @@ export default async function ConsumerPage({ params }: PageProps) {
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-10'>
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
-              {/* Left — copy */}
+              {/* Left - copy */}
               <div>
                 <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-4'>
                   Save More
@@ -515,15 +510,15 @@ export default async function ConsumerPage({ params }: PageProps) {
                   Why pay full price for unsold food that&apos;s still delicious?
                 </h2>
                 <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-7'>
-                  Surprise Bags are packed with the day&apos;s best unsold food — worth 2–3× more
+                  Surprise Bags are packed with the day&apos;s best unsold food - worth 2–3× more
                   than what you pay. Bakeries, restaurants, cafés. All near you. All today.
                 </p>
 
                 <ul className='space-y-3 mb-8'>
                   {[
-                    'Fresh food, every day — baked goods, hot meals, produce',
+                    'Fresh food, every day - baked goods, hot meals, produce',
                     'Bags typically worth 2–3× the price you pay',
-                    'Pickup takes under 5 minutes — no waiting, no waste',
+                    'Pickup takes under 5 minutes - no waiting, no waste',
                     'New bags listed daily from places in your neighbourhood',
                   ].map((item, i) => (
                     <li key={i} className='flex items-center gap-3 text-sm text-white/75'>
@@ -539,7 +534,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                   className='inline-flex items-center gap-2 bg-brand-coral text-white font-bold px-7 py-3.5 rounded-full hover:opacity-90 transition-opacity shadow-lg text-sm'
                   aria-label='Download the app'
                 >
-                  Get the app — it&apos;s free
+                  Get the app - it&apos;s free
                   <svg
                     className='w-4 h-4'
                     fill='none'
@@ -557,7 +552,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </AppDownloadButton>
               </div>
 
-              {/* Right — price comparison card */}
+              {/* Right - price comparison card */}
               <div className='flex justify-center lg:justify-end'>
                 <div className='relative w-full max-w-[320px]'>
                   {/* Main card */}
@@ -621,7 +616,7 @@ export default async function ConsumerPage({ params }: PageProps) {
         <section className='bg-cream py-16 lg:py-24 relative overflow-hidden'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
-              {/* Left — impact numbers */}
+              {/* Left - impact numbers */}
               <div className='space-y-6'>
                 {/* Big stat */}
                 <div className='bg-white rounded-3xl p-8 border border-primary-500/8 shadow-teal-sm'>
@@ -664,7 +659,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Right — copy */}
+              {/* Right - copy */}
               <div>
                 <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-4'>
                   Your Impact
@@ -680,7 +675,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </p>
                 <p className='text-primary-500/65 text-base leading-relaxed mb-8'>
                   Every bag you save in Tunisia is one small act with a very real ripple. And when
-                  thousands of us do it together — it becomes something much bigger.
+                  thousands of us do it together - it becomes something much bigger.
                 </p>
 
                 <Link
@@ -724,7 +719,7 @@ export default async function ConsumerPage({ params }: PageProps) {
         <section className='bg-white py-16 lg:py-20'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
-              {/* Left — copy */}
+              {/* Left - copy */}
               <div>
                 <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-4'>
                   Referral Program
@@ -734,7 +729,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </h2>
                 <p className='text-primary-500/65 text-base lg:text-lg leading-relaxed mb-6'>
                   Invite a friend with your personal referral link. When they save their first bag,
-                  you both earn bonus points — pushing you closer to the top of the Drop.
+                  you both earn bonus points - pushing you closer to the top of the Drop.
                 </p>
 
                 <div className='space-y-1.5 mb-8'>
@@ -742,7 +737,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                     { Icon: ShareIcon, text: 'Share your unique link with anyone' },
                     {
                       Icon: TrophyIcon,
-                      text: 'They rescue their first bag — you both earn bonus points',
+                      text: 'They rescue their first bag - you both earn bonus points',
                     },
                     {
                       Icon: WalletIcon,
@@ -766,7 +761,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </AppDownloadButton>
               </div>
 
-              {/* Right — referral card mockup */}
+              {/* Right - referral card mockup */}
               <div className='flex justify-center lg:justify-end'>
                 <div className='w-full max-w-[320px]'>
                   {/* Card */}
@@ -859,7 +854,7 @@ export default async function ConsumerPage({ params }: PageProps) {
             </h2>
             <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-10 max-w-xl mx-auto'>
               Download Too Fresh To Waste. Find surprise bags near you. Earn points with every
-              rescue. Climb the leaderboard — and when the community hits 30,000 bags, the Drop
+              rescue. Climb the leaderboard - and when the community hits 30,000 bags, the Drop
               begins.
             </p>
 

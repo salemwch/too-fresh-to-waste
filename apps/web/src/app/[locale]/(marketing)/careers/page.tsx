@@ -174,7 +174,7 @@ const expansionStages = [
     flag: '🇹🇳',
     region: 'Tunisia',
     subtitle: 'Where it all begins',
-    desc: 'We are launching in the heart of North Africa — connecting local restaurants and bakeries with consumers who care about their wallet and their planet.',
+    desc: 'We are launching in the heart of North Africa - connecting local restaurants and bakeries with consumers who care about their wallet and their planet.',
     color: 'bg-primary-500',
     textColor: 'text-primary-500',
     borderColor: 'border-primary-500',
@@ -184,7 +184,7 @@ const expansionStages = [
     flag: '🌍',
     region: 'Gulf Cooperation Council',
     subtitle: 'Saudi Arabia · UAE · Qatar · Kuwait · Oman · Bahrain',
-    desc: 'Six nations with booming food scenes and a growing appetite for sustainability. The GCC is our second home — high impact, massive scale.',
+    desc: 'Six nations with booming food scenes and a growing appetite for sustainability. The GCC is our second home - high impact, massive scale.',
     color: 'bg-secondary-dark',
     textColor: 'text-secondary-dark',
     borderColor: 'border-secondary-dark',
@@ -194,7 +194,7 @@ const expansionStages = [
     flag: '🌍',
     region: 'Africa',
     subtitle: 'The continent of the future',
-    desc: 'From Morocco to Egypt, Senegal to Kenya — a billion people, thousands of local food businesses, and enormous potential to change how a continent eats.',
+    desc: 'From Morocco to Egypt, Senegal to Kenya - a billion people, thousands of local food businesses, and enormous potential to change how a continent eats.',
     color: 'bg-brand-coral',
     textColor: 'text-brand-coral',
     borderColor: 'border-brand-coral',
@@ -204,7 +204,7 @@ const expansionStages = [
     flag: '🌏',
     region: 'Asia',
     subtitle: "The world's largest opportunity",
-    desc: 'Home to more than half of humanity. Cities that never sleep, food cultures that run deep — and a food waste crisis that demands bold solutions.',
+    desc: 'Home to more than half of humanity. Cities that never sleep, food cultures that run deep - and a food waste crisis that demands bold solutions.',
     color: 'bg-primary-500/80',
     textColor: 'text-primary-500',
     borderColor: 'border-primary-500/60',
@@ -230,7 +230,7 @@ const positions = [
       'Authentication & Security',
     ],
     description:
-      'You will build the backbone of a platform that feeds families and fights waste at scale. Every endpoint you write powers a real meal rescued from the bin. We run NestJS, MongoDB, Redis, and Bull queues — and we move fast.',
+      'You will build the backbone of a platform that feeds families and fights waste at scale. Every endpoint you write powers a real meal rescued from the bin. We run NestJS, MongoDB, Redis, and Bull queues - and we move fast.',
     dream:
       'You dream in APIs and wake up thinking about performance. Bugs make you curious, not scared.',
   },
@@ -251,7 +251,7 @@ const positions = [
       'Data & Analytics',
     ],
     description:
-      'You will craft the story of Too Fresh To Waste — the campaigns, the content, the message that makes people stop scrolling and start caring. You measure everything and optimize relentlessly.',
+      'You will craft the story of Too Fresh To Waste - the campaigns, the content, the message that makes people stop scrolling and start caring. You measure everything and optimize relentlessly.',
     dream:
       'You believe that a great message can change behavior. You want your work to mean something beyond a KPI.',
   },
@@ -272,14 +272,14 @@ const positions = [
       'User Research',
     ],
     description:
-      'You will be the soul of our brand — building trust with consumers, nurturing our community, and ensuring every touchpoint feels warm, real, and human. You turn users into ambassadors.',
+      'You will be the soul of our brand - building trust with consumers, nurturing our community, and ensuring every touchpoint feels warm, real, and human. You turn users into ambassadors.',
     dream:
       'You find meaning in connection. You believe brands should stand for something, not just sell something.',
   },
   {
     id: 'frontend-dev',
     gender: 'Female',
-    role: 'Frontend Developer — Mobile & Web',
+    role: 'Frontend Developer - Mobile & Web',
     tagline: 'The designer of the world people actually see.',
     Icon: LayoutIcon,
     accentBg: 'bg-primary-500/10',
@@ -293,9 +293,9 @@ const positions = [
       'Performance & Animations',
     ],
     description:
-      'You will build the app that people open every day to rescue food, earn points, and make an impact. The UI is your canvas — beautiful, fast, accessible, and alive. You own the experience from pixel to production.',
+      'You will build the app that people open every day to rescue food, earn points, and make an impact. The UI is your canvas - beautiful, fast, accessible, and alive. You own the experience from pixel to production.',
     dream:
-      'You obsess over details others miss. You believe that great software makes people feel something — not just click somewhere.',
+      'You obsess over details others miss. You believe that great software makes people feel something - not just click somewhere.',
   },
 ];
 
@@ -338,7 +338,7 @@ function ApplicationForm() {
           Thank you for believing in our mission. We read every single application personally. If
           your vision aligns with ours, we will be in touch soon.
         </p>
-        <p className='text-brand-coral font-bold text-sm'>— The Too Fresh To Waste Team</p>
+        <p className='text-brand-coral font-bold text-sm'>- The Too Fresh To Waste Team</p>
       </div>
     );
   }
@@ -430,7 +430,7 @@ function ApplicationForm() {
             <option value='backend-dev'>Backend Developer (Male)</option>
             <option value='marketing-male'>Growth & Marketing (Male)</option>
             <option value='marketing-female'>Brand & Community (Female)</option>
-            <option value='frontend-dev'>Frontend Developer — Mobile & Web (Female)</option>
+            <option value='frontend-dev'>Frontend Developer - Mobile & Web (Female)</option>
           </select>
         </div>
       </div>
@@ -441,7 +441,7 @@ function ApplicationForm() {
           htmlFor='letter'
           className='text-xs font-bold uppercase tracking-widest text-primary-500/60'
         >
-          Your Story — How Will You Help Us Change the World?{' '}
+          Your Story - How Will You Help Us Change the World?{' '}
           <span className='text-brand-coral'>*</span>
         </label>
         <textarea
@@ -451,11 +451,11 @@ function ApplicationForm() {
           rows={7}
           value={formData.letter}
           onChange={handleChange}
-          placeholder='Tell us who you are, what drives you, and what you would bring to Too Fresh To Waste. This is not a cover letter — it is your chance to speak to us as a human being. What change do you want to see? Why does this mission matter to you personally? What will you add that no one else can?'
+          placeholder='Tell us who you are, what drives you, and what you would bring to Too Fresh To Waste. This is not a cover letter - it is your chance to speak to us as a human being. What change do you want to see? Why does this mission matter to you personally? What will you add that no one else can?'
           className='w-full bg-cream border border-primary-500/15 rounded-xl px-4 py-3 text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all resize-none leading-relaxed'
         />
         <p className='text-xs text-primary-500/40'>
-          Minimum 100 words. Be authentic — we value honesty over polish.
+          Minimum 100 words. Be authentic - we value honesty over polish.
         </p>
       </div>
 
@@ -551,7 +551,7 @@ export default function CareersPage() {
             </h1>
 
             <p className='text-white/70 text-base lg:text-xl leading-relaxed max-w-3xl mx-auto mb-10'>
-              Every night, tons of food that could feed entire families is thrown away — not because
+              Every night, tons of food that could feed entire families is thrown away - not because
               there is no hunger, but because there is no bridge. We are building that bridge. And
               we need the ones who refuse to watch the world waste its potential.
             </p>
@@ -601,7 +601,7 @@ export default function CareersPage() {
             </blockquote>
             <p className='text-primary-500/60 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto'>
               This is not a pitch deck quote. This is the reason we wake up. And if this sentence
-              stirs something in you — something between urgency and hope — then you might already
+              stirs something in you - something between urgency and hope - then you might already
               belong here.
             </p>
           </div>
@@ -679,7 +679,7 @@ export default function CareersPage() {
             {/* GCC country flags detail */}
             <div className='mt-10 bg-white rounded-3xl p-6 lg:p-8 border border-primary-500/8'>
               <p className='text-xs font-bold uppercase tracking-widest text-primary-500/50 mb-5 text-center'>
-                Gulf Cooperation Council — 6 nations, one vision
+                Gulf Cooperation Council - 6 nations, one vision
               </p>
               <div className='flex flex-wrap justify-center gap-4 lg:gap-8'>
                 {[
@@ -826,7 +826,7 @@ export default function CareersPage() {
           <div className='relative mx-auto max-w-5xl px-6 lg:px-8 pt-8 text-center'>
             <GlobeIcon className='w-10 h-10 text-brand-coral mx-auto mb-6' />
             <h2 className='font-playfair text-3xl lg:text-5xl font-bold text-white mb-5 leading-tight'>
-              If you believe we can make a change —<br />
+              If you believe we can make a change -<br />
               <span className='text-brand-coral italic'>be part of the change.</span>
             </h2>
             <p className='text-white/65 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto'>

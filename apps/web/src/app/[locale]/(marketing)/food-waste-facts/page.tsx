@@ -27,7 +27,7 @@ export async function generateMetadata({
     alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
   });
   return {
-    title: 'Food Waste Facts — The Scale of What We Throw Away',
+    title: 'Food Waste Facts - The Scale of What We Throw Away',
     description:
       'Each year, 2.5 billion tonnes of food never make it to a plate. Explore the data, the journey, and the usual suspects behind global food waste.',
     alternates: {
@@ -64,7 +64,7 @@ const chapters = [
   {
     n: '01',
     title: 'On the Farm',
-    text: '1.2 billion tonnes of food never even leave the field — lost to cosmetic standards, market gluts, and labor shortages.',
+    text: '1.2 billion tonnes of food never even leave the field - lost to cosmetic standards, market gluts, and labor shortages.',
     imgSrc: '/images/food-waste/tomato.jpg',
   },
   {
@@ -76,7 +76,7 @@ const chapters = [
   {
     n: '03',
     title: 'On Our Plates',
-    text: 'Households are the single largest source of consumer waste — half a meal scraped off, every day, multiplied by billions.',
+    text: 'Households are the single largest source of consumer waste - half a meal scraped off, every day, multiplied by billions.',
     imgSrc: '/images/food-waste/hero-waste.jpg',
   },
 ];
@@ -85,7 +85,7 @@ const foodWasteFactsFaqs = [
   {
     question: 'How much food is wasted globally each year?',
     answer:
-      'According to the WWF, approximately 2.5 billion tonnes of food is lost or wasted annually worldwide — roughly 40% of all food produced.',
+      'According to the WWF, approximately 2.5 billion tonnes of food is lost or wasted annually worldwide - roughly 40% of all food produced.',
   },
   {
     question: 'What percentage of greenhouse gas emissions come from food waste?',
@@ -120,7 +120,7 @@ const wastedItems = [
   {
     sector: 'Supermarkets',
     item: 'Fresh fruit & vegetables',
-    note: 'Highest in-store loss category — bruising and cosmetic culling.',
+    note: 'Highest in-store loss category - bruising and cosmetic culling.',
   },
   {
     sector: 'Grocery stores',
@@ -165,12 +165,12 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
               </p>
               <h1 className='font-display text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
                 We grow enough food
-                <span className='italic text-brand-coral'> to feed the world </span>— and then we
+                <span className='italic text-brand-coral'> to feed the world </span>- and then we
                 throw it out.
               </h1>
               <p className='mt-8 max-w-xl text-lg leading-relaxed text-brand-deep/75'>
                 Each year, 2.5 billion tonnes of food never make it to a plate. Behind every wasted
-                meal lies wasted water, soil, fuel — and a planet running short on all three.
+                meal lies wasted water, soil, fuel - and a planet running short on all three.
               </p>
               <div className='mt-10 flex flex-wrap gap-4'>
                 <Link
@@ -242,7 +242,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
             </div>
             <p className='md:col-span-7 md:col-start-6 text-lg leading-relaxed text-brand-deep/75'>
               Numbers from the World Wildlife Fund&apos;s <em>Driven to Waste</em> report make it
-              plain: this is not a kitchen problem. It is a planetary one — and it touches every
+              plain: this is not a kitchen problem. It is a planetary one - and it touches every
               link of the food chain.
             </p>
           </div>
@@ -321,12 +321,12 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
               of greenhouse gases on Earth."
             </p>
             <footer className='mt-8 text-xs uppercase tracking-[0.25em] text-brand-deep/60'>
-              — World Wildlife Fund
+              - World Wildlife Fund
             </footer>
           </blockquote>
         </section>
 
-        {/* ── CHAPTER III — WHAT GETS WASTED ────────────────────────── */}
+        {/* ── CHAPTER III - WHAT GETS WASTED ────────────────────────── */}
         <section
           id='act'
           className='mx-auto w-full max-w-[1400px] px-8 pt-10 md:pt-14 pb-4 md:pb-6'
@@ -376,7 +376,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
           </div>
 
           <p className='mt-8 text-xs uppercase tracking-[0.2em] text-brand-deep/50'>
-            Source: ScienceDirect — Filimonau et al.; Eriksson et al.; Papargyropoulou et al.
+            Source: ScienceDirect - Filimonau et al.; Eriksson et al.; Papargyropoulou et al.
           </p>
         </section>
       </div>

@@ -204,7 +204,7 @@ export default function Header() {
             role='navigation'
             aria-label='Main navigation'
           >
-            {/* LEFT — Nav links (desktop) / Language switcher (mobile) */}
+            {/* LEFT - Nav links (desktop) / Language switcher (mobile) */}
             <div className='flex items-center justify-start'>
               {/* Mobile: Language Switcher (compact icon-only) */}
               <div className='lg:hidden'>
@@ -254,7 +254,7 @@ export default function Header() {
               </div>
             </div>
 
-            {/* CENTER — Logo */}
+            {/* CENTER - Logo */}
             <div className='flex items-center justify-center'>
               <Link href='/' aria-label='Too Fresh To Waste Home'>
                 <div className='relative w-12 lg:w-24 xl:w-32 h-8 lg:h-12 xl:h-16'>
@@ -282,7 +282,7 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* RIGHT — CTA buttons (desktop) / Hamburger (mobile) */}
+            {/* RIGHT - CTA buttons (desktop) / Hamburger (mobile) */}
             <div className='flex items-center justify-end gap-2'>
               {/* Desktop: CTA Buttons */}
               <div className='hidden lg:flex items-center gap-2 xl:gap-3'>
@@ -359,7 +359,7 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* ── Mega Menu — full-width, drops from bottom of header ── */}
+        {/* ── Mega Menu - full-width, drops from bottom of header ── */}
         {activeMegaMenu && (
           <div
             className={`hidden lg:block absolute top-full left-0 right-0 shadow-2xl z-[60] backdrop-blur-md ${

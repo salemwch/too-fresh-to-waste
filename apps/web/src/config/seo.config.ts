@@ -79,8 +79,7 @@ export const seoConfig = {
       process.env['NEXT_PUBLIC_SOCIAL_FACEBOOK'] ||
       'https://www.facebook.com/profile.php?id=61585767061906',
     instagram:
-      process.env['NEXT_PUBLIC_SOCIAL_INSTAGRAM'] ||
-      'https://www.instagram.com/toofreshtowaste/',
+      process.env['NEXT_PUBLIC_SOCIAL_INSTAGRAM'] || 'https://www.instagram.com/toofreshtowaste/',
     x: process.env['NEXT_PUBLIC_SOCIAL_X'] || 'https://x.com/TooFresh2Waste',
     linkedin:
       process.env['NEXT_PUBLIC_SOCIAL_LINKEDIN'] ||

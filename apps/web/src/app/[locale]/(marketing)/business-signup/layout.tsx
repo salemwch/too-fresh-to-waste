@@ -7,17 +7,17 @@ const PATH = '/business-signup';
 
 const COPY: LocalizedMeta = {
   en: {
-    title: 'Sell Your Surplus Food — Partner With Too Fresh To Waste',
+    title: 'Sell Your Surplus Food - Partner With Too Fresh To Waste',
     description:
       'Bakeries, restaurants, hotels and grocers in Tunisia: turn unsold food into revenue instead of waste. Free to join, no fixed fees, new customers through the door.',
   },
   fr: {
-    title: 'Vendez Vos Invendus — Devenez Partenaire Too Fresh To Waste',
+    title: 'Vendez Vos Invendus - Devenez Partenaire Too Fresh To Waste',
     description:
       "Boulangeries, restaurants, hôtels et épiceries en Tunisie : transformez vos invendus en chiffre d'affaires plutôt qu'en déchets. Inscription gratuite, sans frais fixes.",
   },
   ar: {
-    title: 'بِع طعامك الفائض — كن شريكًا مع Too Fresh To Waste',
+    title: 'بِع طعامك الفائض - كن شريكًا مع Too Fresh To Waste',
     description:
       'المخابز والمطاعم والفنادق والبقالات في تونس: حوّل الطعام غير المباع إلى إيرادات بدلاً من النفايات. الانضمام مجاني ودون رسوم ثابتة.',
   },

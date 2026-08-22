@@ -89,7 +89,7 @@ export default async function CityPage({ params }: CityPageProps) {
       <Header />
 
       <main role='main'>
-        {/* Hero — the H1 and the answer-first paragraph a snippet can lift */}
+        {/* Hero - the H1 and the answer-first paragraph a snippet can lift */}
         <section className='bg-primary-500 px-4 py-16 md:py-24' aria-labelledby='city-heading'>
           <div className='mx-auto max-w-3xl text-center'>
             <p className='text-sm font-medium uppercase tracking-widest text-white/70'>
@@ -104,7 +104,7 @@ export default async function CityPage({ params }: CityPageProps) {
           </div>
         </section>
 
-        {/* Local context — the unique-value block that keeps this off the
+        {/* Local context - the unique-value block that keeps this off the
             doorway-page pile */}
         <section className='px-4 py-12 md:py-16' aria-labelledby='context-heading'>
           <div className='mx-auto max-w-3xl'>
@@ -122,7 +122,7 @@ export default async function CityPage({ params }: CityPageProps) {
           </div>
         </section>
 
-        {/* Neighbourhoods — long-tail surface for "anti gaspi [quartier]" */}
+        {/* Neighbourhoods - long-tail surface for "anti gaspi [quartier]" */}
         <section className='bg-muted px-4 py-12 md:py-16' aria-labelledby='areas-heading'>
           <div className='mx-auto max-w-3xl'>
             <h2 id='areas-heading' className='text-2xl font-semibold md:text-3xl'>
@@ -141,7 +141,7 @@ export default async function CityPage({ params }: CityPageProps) {
           </div>
         </section>
 
-        {/* FAQ — rendered visibly so the FAQPage schema describes real content */}
+        {/* FAQ - rendered visibly so the FAQPage schema describes real content */}
         {faqItems.length > 0 && (
           <section className='px-4 py-12 md:py-16' aria-labelledby='faq-heading'>
             <div className='mx-auto max-w-3xl'>
@@ -162,7 +162,7 @@ export default async function CityPage({ params }: CityPageProps) {
           </section>
         )}
 
-        {/* Internal linking — distributes authority across the city cluster
+        {/* Internal linking - distributes authority across the city cluster
             instead of letting each page sit orphaned */}
         {nearbyCities.length > 0 && (
           <section className='bg-muted px-4 py-12 md:py-16' aria-labelledby='nearby-heading'>

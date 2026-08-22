@@ -86,7 +86,7 @@ export default function RevenueCalculator() {
 
   return (
     <div className='grid lg:grid-cols-2 gap-6 lg:gap-12 items-start'>
-      {/* ── LEFT — Sliders ── */}
+      {/* ── LEFT - Sliders ── */}
       <div className='bg-white/5 border border-white/10 rounded-3xl p-4 lg:p-5 space-y-3'>
         <div>
           <p className='text-white/70 text-[10px] font-bold uppercase tracking-[0.2em] mb-1'>
@@ -138,7 +138,7 @@ export default function RevenueCalculator() {
         />
       </div>
 
-      {/* ── RIGHT — Results ── */}
+      {/* ── RIGHT - Results ── */}
       <div className='space-y-4'>
         {/* Monthly + annual */}
         <div className='bg-white/8 border border-white/10 rounded-3xl p-7 relative overflow-hidden'>

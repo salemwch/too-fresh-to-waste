@@ -207,7 +207,7 @@ export default function Footer() {
             </div>
           ))}
 
-          {/* Be With Us — download buttons */}
+          {/* Be With Us - download buttons */}
           <div className='min-w-0'>
             <h3 className='text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3'>
               {t('beWithUs.title')}
@@ -260,7 +260,7 @@ export default function Footer() {
       {/* Divider */}
       <hr className='mt-6 mb-4 border-white/20' />
 
-      {/* City links — a sitemap entry alone leaves the /locations cluster
+      {/* City links - a sitemap entry alone leaves the /locations cluster
           orphaned. Site-wide internal links are what actually pass authority
           to it and let crawlers reach every city page from any page. */}
       <nav aria-labelledby='footer-cities-heading' className='mb-4'>

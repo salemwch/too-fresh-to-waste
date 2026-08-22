@@ -27,7 +27,7 @@ export async function generateMetadata({
     alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
   });
   return {
-    title: 'Marketplace Surprise Bag — Turn Surplus Food Into Revenue',
+    title: 'Marketplace Surprise Bag - Turn Surplus Food Into Revenue',
     description:
       'List your unsold food as a Surprise Bag. Earn revenue you would have thrown away and reach thousands of eco-conscious customers on Too Fresh To Waste.',
     alternates: {
@@ -41,7 +41,7 @@ const surpriseBagFaqs = [
   {
     question: 'What is a surprise bag?',
     answer:
-      'A surprise bag is a discounted package of surplus food sold by local restaurants and shops at 35–90% off the original price. The contents are a surprise — you save money while preventing food waste.',
+      'A surprise bag is a discounted package of surplus food sold by local restaurants and shops at 35–90% off the original price. The contents are a surprise - you save money while preventing food waste.',
   },
   {
     question: 'How do I pick up my surprise bag?',
@@ -64,7 +64,7 @@ const steps = [
   {
     n: '01',
     title: 'Create Your Bag',
-    body: "At the end of your service, pack whatever didn't sell — pastries, meals, produce — and list it as a Surprise Bag. Set your price. Takes under 3 minutes.",
+    body: "At the end of your service, pack whatever didn't sell - pastries, meals, produce - and list it as a Surprise Bag. Set your price. Takes under 3 minutes.",
     colorClass: 'bg-primary-500',
   },
   {
@@ -202,7 +202,7 @@ const categories = [
 const benefits = [
   {
     title: 'Turn Waste Into Revenue',
-    body: "Every bag sold is money you'd have thrown away. Zero extra cost — pure recovered profit.",
+    body: "Every bag sold is money you'd have thrown away. Zero extra cost - pure recovered profit.",
     icon: (
       <svg
         viewBox='0 0 24 24'
@@ -221,7 +221,7 @@ const benefits = [
   },
   {
     title: 'Free Marketing Built-In',
-    body: 'Your business gets listed, promoted, and seen by thousands of deal-hunters — no advertising spend required.',
+    body: 'Your business gets listed, promoted, and seen by thousands of deal-hunters - no advertising spend required.',
     icon: (
       <svg
         viewBox='0 0 24 24'
@@ -259,7 +259,7 @@ const benefits = [
   },
   {
     title: 'Real-Time Dashboard',
-    body: 'Track bags sold, revenue earned, and CO₂ saved. Numbers that make you proud — and help you plan smarter.',
+    body: 'Track bags sold, revenue earned, and CO₂ saved. Numbers that make you proud - and help you plan smarter.',
     icon: (
       <svg
         viewBox='0 0 24 24'
@@ -285,7 +285,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
   return (
     <>
       <SoftwareAppSchema
-        name='Too Fresh To Waste — Surprise Bag Marketplace'
+        name='Too Fresh To Waste - Surprise Bag Marketplace'
         description='Buy surplus food surprise bags from local restaurants and shops at up to 90% off. Available in Tunisia.'
         locale={locale as Locale}
       />
@@ -320,7 +320,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28'>
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
-              {/* Left — copy */}
+              {/* Left - copy */}
               <div>
                 <p className='inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-6'>
                   <span className='h-px w-8 bg-brand-coral' aria-hidden='true' />
@@ -340,7 +340,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
 
                 <p className='text-white/70 text-base lg:text-lg leading-relaxed mb-8 max-w-lg'>
                   List your unsold food as a mystery Surprise Bag. Customers pay a discounted price,
-                  you recover revenue you would have lost — and we handle all the marketing.
+                  you recover revenue you would have lost - and we handle all the marketing.
                 </p>
 
                 <div className='flex flex-wrap gap-4'>
@@ -373,7 +373,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                 </div>
               </div>
 
-              {/* Right — Surprise Bag card mockup */}
+              {/* Right - Surprise Bag card mockup */}
               <div className='flex justify-center lg:justify-end'>
                 <div className='relative w-full max-w-[340px]'>
                   {/* Main card */}
@@ -548,7 +548,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         <section className='bg-cream py-16 lg:py-20'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-start'>
-              {/* Left — explanation */}
+              {/* Left - explanation */}
               <div>
                 <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                   What is it?
@@ -559,16 +559,16 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                 </h2>
                 <p className='text-primary-500/70 text-base leading-relaxed mb-6'>
                   A Surprise Bag is a mystery box of unsold food from your establishment, sold at a
-                  fraction of its original price. Customers love the thrill — and you love the
+                  fraction of its original price. Customers love the thrill - and you love the
                   revenue you&apos;d otherwise bin at the end of the day.
                 </p>
 
                 <ul className='space-y-4 mb-8'>
                   {[
-                    'You decide what goes inside — anything unsold and still delicious',
-                    "You set the price — typically 40% or more of the food's original value",
-                    'Customers come to you — no delivery, no logistics, pure simplicity',
-                    'We handle visibility — your bag appears to thousands of nearby buyers',
+                    'You decide what goes inside - anything unsold and still delicious',
+                    "You set the price - typically 40% or more of the food's original value",
+                    'Customers come to you - no delivery, no logistics, pure simplicity',
+                    'We handle visibility - your bag appears to thousands of nearby buyers',
                   ].map((item, i) => (
                     <li key={i} className='flex items-center gap-3 text-sm text-primary-500/80'>
                       <span className='w-5 h-5 rounded-full bg-brand-coral/15 text-brand-coral flex items-center justify-center shrink-0'>
@@ -598,7 +598,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                 </Link>
               </div>
 
-              {/* Right — what can go inside grid */}
+              {/* Right - what can go inside grid */}
               <div>
                 <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500/40 mb-4'>
                   Works for every type of food business
@@ -717,7 +717,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                 </div>
                 <div>
                   <p className='font-bold text-primary-500 text-base'>
-                    First 100 businesses get featured placement — free.
+                    First 100 businesses get featured placement - free.
                   </p>
                   <p className='text-sm text-primary-500/55'>
                     Early adopters set their own bag price and keep full visibility in the app

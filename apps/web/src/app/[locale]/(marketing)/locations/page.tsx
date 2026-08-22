@@ -21,7 +21,7 @@ export function generateStaticParams() {
 
 const COPY = {
   en: {
-    title: 'Where We Operate in Tunisia — Anti-Waste Food by City',
+    title: 'Where We Operate in Tunisia - Anti-Waste Food by City',
     description:
       'Too Fresh To Waste rescues surplus food in Tunis, Sousse, Sfax, Monastir, Hammamet, Bizerte and Nabeul. Find surprise bags near you and save up to 70%.',
     heading: 'Cities we serve across Tunisia',
@@ -31,7 +31,7 @@ const COPY = {
     listHeading: 'All cities',
   },
   fr: {
-    title: 'Où Nous Opérons en Tunisie — Anti-Gaspi par Ville',
+    title: 'Où Nous Opérons en Tunisie - Anti-Gaspi par Ville',
     description:
       "Too Fresh To Waste sauve les invendus à Tunis, Sousse, Sfax, Monastir, Hammamet, Bizerte et Nabeul. Trouvez des paniers surprise près de chez vous jusqu'à -70%.",
     heading: 'Les villes que nous couvrons en Tunisie',
@@ -41,7 +41,7 @@ const COPY = {
     listHeading: 'Toutes les villes',
   },
   ar: {
-    title: 'أين نعمل في تونس — مكافحة هدر الطعام حسب المدينة',
+    title: 'أين نعمل في تونس - مكافحة هدر الطعام حسب المدينة',
     description:
       'ينقذ Too Fresh To Waste الطعام الفائض في تونس وسوسة وصفاقس والمنستير والحمامات وبنزرت ونابل. اعثر على سلال مفاجأة بالقرب منك.',
     heading: 'المدن التي نخدمها في تونس',

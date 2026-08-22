@@ -189,7 +189,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             </div>
           </div>
 
-          {/* Wave into cream — fill covers from wave DOWN so no gap band */}
+          {/* Wave into cream - fill covers from wave DOWN so no gap band */}
           <div className='absolute bottom-0 left-0 right-0' aria-hidden='true'>
             <svg
               viewBox='0 0 1440 72'
@@ -290,7 +290,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             ♥
           </span>
 
-          {/* Wave from white pillars section — fill covers from TOP down to wave */}
+          {/* Wave from white pillars section - fill covers from TOP down to wave */}
           <div className='absolute top-0 left-0 right-0' aria-hidden='true'>
             <svg
               viewBox='0 0 1440 72'

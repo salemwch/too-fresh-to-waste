@@ -16,17 +16,17 @@ interface BlogPageProps {
 
 const META: LocalizedMeta = {
   en: {
-    title: 'Blog — Food Waste Insights from Tunisia',
+    title: 'Blog - Food Waste Insights from Tunisia',
     description:
-      'Food waste insights, tips and stories from Too Fresh To Waste — reducing food waste across Tunisia, one surprise bag at a time.',
+      'Food waste insights, tips and stories from Too Fresh To Waste - reducing food waste across Tunisia, one surprise bag at a time.',
   },
   fr: {
-    title: 'Blog — Comprendre le Gaspillage Alimentaire en Tunisie',
+    title: 'Blog - Comprendre le Gaspillage Alimentaire en Tunisie',
     description:
-      'Analyses, conseils et chiffres sur le gaspillage alimentaire en Tunisie — et ce que commerçants et consommateurs peuvent y faire concrètement.',
+      'Analyses, conseils et chiffres sur le gaspillage alimentaire en Tunisie - et ce que commerçants et consommateurs peuvent y faire concrètement.',
   },
   ar: {
-    title: 'المدونة — رؤى حول هدر الطعام في تونس',
+    title: 'المدونة - رؤى حول هدر الطعام في تونس',
     description:
       'تحليلات ونصائح وأرقام حول هدر الطعام في تونس، وما يمكن للتجار والمستهلكين فعله حياله.',
   },
@@ -72,7 +72,7 @@ const UI = {
     eyebrow: 'Journal',
     headingA: 'Stories about',
     headingEm: 'food',
-    lede: 'Insights, tips, and the numbers behind food waste in Tunisia — and what we can do about it.',
+    lede: 'Insights, tips, and the numbers behind food waste in Tunisia - and what we can do about it.',
     latest: 'Latest Post',
     readArticle: 'Read article',
     allPosts: 'All Posts',
@@ -83,7 +83,7 @@ const UI = {
     eyebrow: 'Journal',
     headingA: 'Histoires de',
     headingEm: 'nourriture',
-    lede: 'Analyses, conseils et chiffres sur le gaspillage alimentaire en Tunisie — et ce que nous pouvons y faire.',
+    lede: 'Analyses, conseils et chiffres sur le gaspillage alimentaire en Tunisie - et ce que nous pouvons y faire.',
     latest: 'Dernier article',
     readArticle: 'Lire l’article',
     allPosts: 'Tous les articles',

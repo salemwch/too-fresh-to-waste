@@ -103,7 +103,7 @@
   "section2": {
     "title": "L'application qui transforme les surplus alimentaires en économies et récompenses",
     "subtitle": "Too Fresh To Waste est une entreprise à impact social dont la mission est d'inspirer et de donner à chacun les moyens de lutter ensemble contre le gaspillage alimentaire",
-    "description": "Notre application est une marketplace intelligente pour les surplus alimentaires en Tunisie. Elle connecte les entreprises alimentaires avec les utilisateurs pour sauver les repas invendus du gaspillage—aidant les entreprises à récupérer des revenus tout en permettant aux utilisateurs de profiter de délicieuse nourriture à prix réduits.",
+    "description": "Notre application est une marketplace intelligente pour les surplus alimentaires en Tunisie. Elle connecte les entreprises alimentaires avec les utilisateurs pour sauver les repas invendus du gaspillage-aidant les entreprises à récupérer des revenus tout en permettant aux utilisateurs de profiter de délicieuse nourriture à prix réduits.",
     "downloadButtons": {
       "appStore": {
         "prefix": "Télécharger sur",
@@ -138,7 +138,7 @@
       "eyebrow": "Le problème",
       "title": "La nourriture ne se perd pas. On la laisse derrière.",
       "body1": "Une boulangerie qui ferme à dix-neuf heures a du pain qu’elle ne peut plus vendre à vingt. Un primeur a des fruits parfaits aujourd’hui et invendables demain. Rien n’est abîmé et rien n’est voulu, parce que le seul acheteur qui reste est la poubelle.",
-      "body2": "Ce n’est pas une faute morale, c’est un problème de timing — et un problème de timing se résout. Ce qui manquait, c’était un moyen d’atteindre les gens à côté dans la dernière heure, à un prix qui vaille le déplacement des deux côtés.",
+      "body2": "Ce n’est pas une faute morale, c’est un problème de timing - et un problème de timing se résout. Ce qui manquait, c’était un moyen d’atteindre les gens à côté dans la dernière heure, à un prix qui vaille le déplacement des deux côtés.",
       "pullquote": "Personne ne se lève le matin en espérant jeter ce qu’il vient de préparer."
     },
     "wins": {
@@ -169,7 +169,7 @@
     },
     "close": {
       "title": "La Tunisie d’abord. Puis partout où l’on ferme avec des rayons encore pleins.",
-      "body": "Algérie, Maroc, Golfe — le problème y est identique, et la solution aussi. Mais elle ne voyagera que si elle fonctionne ici d’abord, et cela commence par un commerce de plus dans une ville de plus.",
+      "body": "Algérie, Maroc, Golfe - le problème y est identique, et la solution aussi. Mais elle ne voyagera que si elle fonctionne ici d’abord, et cela commence par un commerce de plus dans une ville de plus.",
       "cta": "Rejoindre depuis votre ville"
     }
   },
@@ -190,7 +190,7 @@
     "liveSummary": "{partners} commerces · {bags} paniers sauvés",
     "waiting": "{count, plural, =0 {Personne pour le moment} one {# personne en attente} other {# personnes en attente}}",
     "meterLabel": "Commerces fondateurs inscrits à {city}",
-    "foundingProgress": "{signed} commerces fondateurs sur {target} — encore {left} pour ouvrir {city}",
+    "foundingProgress": "{signed} commerces fondateurs sur {target} - encore {left} pour ouvrir {city}",
     "panel": {
       "eyebrow": "Prochaine ouverture",
       "body": "Ouvre le jour où {target} commerces fondateurs se seront inscrits à {city}. Les fondateurs gardent leur badge et apparaissent en premier sur la page de la ville.",
@@ -1198,7 +1198,7 @@
       "rightNow": "Tout de suite",
       "midnight": "00:00 (minuit)",
       "summary": "{day}, {from} – {until}",
-      "startPassedWarning": "L'heure de début est déjà passée — choisissez une heure plus tardive ou passez à demain.",
+      "startPassedWarning": "L'heure de début est déjà passée - choisissez une heure plus tardive ou passez à demain.",
       "offerImage": "Photo de l'offre",
       "imageFormats": "Facultatif · JPEG / PNG / WebP",
       "uploadCta": "Cliquez pour importer",
@@ -1221,9 +1221,9 @@
         "publishFailed": "La publication a échoué. Veuillez réessayer."
       },
       "autoDescription": {
-        "surprise_bag": "On aimerait vous dire exactement ce qu'il y a dedans — mais honnêtement, on ne le sait pas encore ! Ce qu'il reste en fin de journée n'est jamais deux fois pareil, et c'est tout le charme. Quoi qu'il arrive dans votre {title}, tout a été préparé aujourd'hui et c'est bien trop bon pour finir à la poubelle. {qty, plural, one {# panier vous attend} other {# paniers vous attendent}}.",
-        "specific_items": "{title} — exactement ce que vous voyez, préparé aujourd'hui et tout aussi bon que ce matin. Seul le prix a changé. {qty, plural, one {# portion sauvée} other {# portions sauvées}} avant la fin de la journée. Venez en profiter.",
-        "meal_deal": "Un vrai repas, prêt quand vous l'êtes — {title}. Tout ce qu'il faut pour une assiette complète, préparé aujourd'hui et sauvé de la poubelle au dernier moment. {qty, plural, one {# repas disponible} other {# repas disponibles}}, jusqu'à épuisement."
+        "surprise_bag": "On aimerait vous dire exactement ce qu'il y a dedans - mais honnêtement, on ne le sait pas encore ! Ce qu'il reste en fin de journée n'est jamais deux fois pareil, et c'est tout le charme. Quoi qu'il arrive dans votre {title}, tout a été préparé aujourd'hui et c'est bien trop bon pour finir à la poubelle. {qty, plural, one {# panier vous attend} other {# paniers vous attendent}}.",
+        "specific_items": "{title} - exactement ce que vous voyez, préparé aujourd'hui et tout aussi bon que ce matin. Seul le prix a changé. {qty, plural, one {# portion sauvée} other {# portions sauvées}} avant la fin de la journée. Venez en profiter.",
+        "meal_deal": "Un vrai repas, prêt quand vous l'êtes - {title}. Tout ce qu'il faut pour une assiette complète, préparé aujourd'hui et sauvé de la poubelle au dernier moment. {qty, plural, one {# repas disponible} other {# repas disponibles}}, jusqu'à épuisement."
       }
     },
     "merchantProfile": {
@@ -1304,7 +1304,7 @@
       "anomalies": {
         "title": "Détection d'anomalies",
         "subtitle": "Comportements inhabituels détectés sur la plateforme",
-        "noAlerts": "Aucune anomalie détectée — la plateforme est en bonne santé"
+        "noAlerts": "Aucune anomalie détectée - la plateforme est en bonne santé"
       },
       "users": {
         "title": "Gestion des utilisateurs",
@@ -1775,7 +1775,7 @@
         "rewardPoints": "Points de Récompense",
         "rewardPointsHint": "Points bonus de fidélité attribués à chaque participant lorsque l'objectif est atteint",
         "endDate": "Date Limite du Tirage",
-        "endDateHint": "Date limite optionnelle — affichée comme compte à rebours sur l'application mobile",
+        "endDateHint": "Date limite optionnelle - affichée comme compte à rebours sur l'application mobile",
         "clearDate": "Effacer la date",
         "save": "Enregistrer",
         "saving": "Enregistrement...",
@@ -2008,7 +2008,7 @@
       "pickupDay": "Jour de retrait",
       "today": "Aujourd'hui",
       "tomorrow": "Demain",
-      "noSlotsToday": "Aucun créneau disponible aujourd'hui — passez à Demain.",
+      "noSlotsToday": "Aucun créneau disponible aujourd'hui - passez à Demain.",
       "untilInPast": "Cette heure est déjà passée. Choisissez une heure future ou passez à Demain.",
       "quickPresets": "Raccourcis",
       "presetLunch": "Déjeuner",
@@ -2191,7 +2191,7 @@
     "statStores": "Magasins inscrits",
     "statGrowth": "Croissance stratégique",
     "testimonialQuote": "Nous avons réduit le gaspillage de 60 % et gagné des centaines de nouveaux clients en seulement 3 mois.",
-    "testimonialAuthor": "— Sarah K., Green Grocers Amsterdam",
+    "testimonialAuthor": "- Sarah K., Green Grocers Amsterdam",
     "searchPlaceholder": "Recherchez votre magasin...",
     "termsPrefix": "En continuant, vous acceptez la",
     "privacyPolicy": "Politique de confidentialité",
@@ -2269,7 +2269,7 @@
     "hero": {
       "eyebrow": "PROGRAMME ENTREPRISE",
       "headline": "Votre Scope 3 commence à la table du déjeuner.",
-      "sub": "Les entreprises partenaires de Too Fresh To Waste réduisent les dépenses alimentaires de leurs employés, diminuent leurs émissions indirectes Scope 3 et font avancer leurs KPIs ESG — en un seul geste.",
+      "sub": "Les entreprises partenaires de Too Fresh To Waste réduisent les dépenses alimentaires de leurs employés, diminuent leurs émissions indirectes Scope 3 et font avancer leurs KPIs ESG - en un seul geste.",
       "cta": "Demander un Partenariat",
       "stats": [
         {
@@ -2289,7 +2289,7 @@
     "urgency": {
       "eyebrow": "POURQUOI C'EST IMPORTANT",
       "title": "L'horloge réglementaire tourne.",
-      "body": "CBAM, la directive CSRD de l'UE, et l'alignement émergent de la Tunisie sur l'ISO 26000 signifient que l'inaction est désormais une responsabilité financière — pas seulement éthique."
+      "body": "CBAM, la directive CSRD de l'UE, et l'alignement émergent de la Tunisie sur l'ISO 26000 signifient que l'inaction est désormais une responsabilité financière - pas seulement éthique."
     },
     "frameworks": {
       "eyebrow": "CONFORMITÉ & NORMES",
@@ -2303,7 +2303,7 @@
         {
           "code": "S3",
           "title": "Émissions Scope 3",
-          "body": "La consommation des employés est une émission indirecte que vous pouvez réellement influencer — et déclarer."
+          "body": "La consommation des employés est une émission indirecte que vous pouvez réellement influencer - et déclarer."
         },
         {
           "code": "RSE",
@@ -2318,7 +2318,7 @@
         {
           "code": "26000",
           "title": "ISO 26000",
-          "body": "La norme mondiale de responsabilité sociale — bien-être des employés et environnement en un cadre."
+          "body": "La norme mondiale de responsabilité sociale - bien-être des employés et environnement en un cadre."
         },
         {
           "code": "14001",
@@ -2328,12 +2328,12 @@
         {
           "code": "ODD",
           "title": "ODD / SDGs",
-          "body": "Alignez votre marque sur les Objectifs de Développement Durable de l'ONU — SDG 2, 12 et 13."
+          "body": "Alignez votre marque sur les Objectifs de Développement Durable de l'ONU - SDG 2, 12 et 13."
         },
         {
           "code": "BC",
           "title": "Bilan Carbone",
-          "body": "La méthodologie Bilan Carbone® — cartographiez, mesurez et réduisez votre empreinte carbone."
+          "body": "La méthodologie Bilan Carbone® - cartographiez, mesurez et réduisez votre empreinte carbone."
         }
       ]
     },
@@ -2343,7 +2343,7 @@
       "points": [
         {
           "title": "Réduire les dépenses alimentaires jusqu'à 70%",
-          "body": "Les employés économisent réellement sur des repas de qualité — chaque jour."
+          "body": "Les employés économisent réellement sur des repas de qualité - chaque jour."
         },
         {
           "title": "Booster le moral et le bien-être",
@@ -2417,7 +2417,7 @@
   "humanityMission": {
     "meta": {
       "title": "Mission Humanitaire | Too Fresh To Waste",
-      "description": "5% de chaque bénéfice est consacré à ceux qui en ont le plus besoin — nourriture, médicaments, éducation et chaleur pour les plus vulnérables de Tunisie."
+      "description": "5% de chaque bénéfice est consacré à ceux qui en ont le plus besoin - nourriture, médicaments, éducation et chaleur pour les plus vulnérables de Tunisie."
     },
     "hero": {
       "eyebrow": "NOTRE MISSION HUMANITAIRE",
@@ -2428,7 +2428,7 @@
       "eyebrow": "L'ENGAGEMENT",
       "percent": "5%",
       "headline": "Notre Engagement des 5%.",
-      "body": "Le vrai changement ne vous demande pas de payer plus. Nous consacrons automatiquement 5% de nos bénéfices nets de chaque sac vendu sur notre marketplace. Que vous achetiez un repas ou en vendiez un, vous financez activement la dignité humaine — sans dépenser un seul dinar supplémentaire."
+      "body": "Le vrai changement ne vous demande pas de payer plus. Nous consacrons automatiquement 5% de nos bénéfices nets de chaque sac vendu sur notre marketplace. Que vous achetiez un repas ou en vendiez un, vous financez activement la dignité humaine - sans dépenser un seul dinar supplémentaire."
     },
     "pillars": {
       "eyebrow": "QUATRE PILIERS D'IMPACT",
@@ -2468,7 +2468,7 @@
         "line2Em": "seconde",
         "line3Em": "chance."
       },
-      "subtitle": "Le Parcless Bag transforme vos invendus et surplus de production en revenus réels — tout en réduisant votre empreinte environnementale et en nourrissant des familles tunisiennes.",
+      "subtitle": "Le Parcless Bag transforme vos invendus et surplus de production en revenus réels - tout en réduisant votre empreinte environnementale et en nourrissant des familles tunisiennes.",
       "ctaPartner": "Devenir partenaire",
       "ctaLearnMore": "En savoir plus",
       "scrollHint": "Découvrir"
@@ -2488,7 +2488,7 @@
       "headlineBefore": "Un sac de",
       "headlineEm": "surprises",
       "headlineAfter": "qui fait la différence.",
-      "body1": "Le Parcless Bag est une solution anti-gaspi pensée pour les fabricants tunisiens. Vous conditionnez vos invendus, surplus ou produits proches de la date limite dans un sac mystère à prix réduit. Les consommateurs l'achètent via notre application — et tout le monde gagne.",
+      "body1": "Le Parcless Bag est une solution anti-gaspi pensée pour les fabricants tunisiens. Vous conditionnez vos invendus, surplus ou produits proches de la date limite dans un sac mystère à prix réduit. Les consommateurs l'achètent via notre application - et tout le monde gagne.",
       "body2": "Inspiré du succès mondial de Too Good To Go, le Parcless Bag est adapté aux réalités du marché tunisien : logistique locale, habitudes de consommation et impact social fort.",
       "tags": [
         "Fabricants alimentaires",
@@ -2528,7 +2528,7 @@
           "n": "01",
           "icon": "📦",
           "title": "Vous préparez le sac",
-          "body": "Chaque soir — ou selon votre fréquence — vos équipes conditionnent les surplus du jour dans un Parcless Bag standardisé. Valeur réelle : 2 à 3× le prix de vente sur l'application."
+          "body": "Chaque soir - ou selon votre fréquence - vos équipes conditionnent les surplus du jour dans un Parcless Bag standardisé. Valeur réelle : 2 à 3× le prix de vente sur l'application."
         },
         {
           "n": "02",
@@ -2540,7 +2540,7 @@
           "n": "03",
           "icon": "💳",
           "title": "Vous êtes payé",
-          "body": "Le paiement est versé directement. Accédez à vos données en temps réel : sacs vendus, revenus générés, CO₂ évité — un dashboard RSE complet inclus."
+          "body": "Le paiement est versé directement. Accédez à vos données en temps réel : sacs vendus, revenus générés, CO₂ évité - un dashboard RSE complet inclus."
         }
       ]
     },
@@ -2553,7 +2553,7 @@
       "items": [
         {
           "title": "Revenus sur l'invendable",
-          "body": "Transformez chaque unité non vendue en cash. Les invendus que vous jetiez représentent une perte sèche — le Parcless Bag les convertit en source de revenus complémentaire, sans effort commercial supplémentaire.",
+          "body": "Transformez chaque unité non vendue en cash. Les invendus que vous jetiez représentent une perte sèche - le Parcless Bag les convertit en source de revenus complémentaire, sans effort commercial supplémentaire.",
           "big": "+42%"
         },
         {
@@ -2562,7 +2562,7 @@
         },
         {
           "title": "Dashboard temps réel",
-          "body": "Visualisez vos performances anti-gaspi, vos revenus par période, et votre bilan carbone économisé — mois par mois."
+          "body": "Visualisez vos performances anti-gaspi, vos revenus par période, et votre bilan carbone économisé - mois par mois."
         },
         {
           "title": "Intégration en 48 h",
@@ -2574,7 +2574,7 @@
         },
         {
           "title": "Visibilité locale",
-          "body": "Soyez visible auprès de milliers de consommateurs engagés — une audience premium, sensible à la qualité et à la durabilité."
+          "body": "Soyez visible auprès de milliers de consommateurs engagés - une audience premium, sensible à la qualité et à la durabilité."
         }
       ]
     },
@@ -2589,12 +2589,12 @@
       "body": "Laissez votre email professionnel. Notre équipe vous contacte sous 24 h pour un appel de découverte gratuit et sans engagement. Nous évaluerons ensemble le potentiel de vos surplus.",
       "placeholder": "votre@entreprise.tn",
       "submit": "Démarrer",
-      "submitted": "✓ Reçu — à bientôt !",
+      "submitted": "✓ Reçu - à bientôt !",
       "note": "Aucun engagement. Réponse sous 24 h. 100 % gratuit."
     }
   },
   "cookieConsent": {
-    "message": "Nous utilisons des cookies pour garder les choses fraîches — votre expérience, pas vos données.",
+    "message": "Nous utilisons des cookies pour garder les choses fraîches - votre expérience, pas vos données.",
     "accept": "Accepter",
     "decline": "Refuser",
     "learnMore": "Politique de cookies"
@@ -2908,7 +2908,7 @@
     "users": "utilisateurs",
     "userDetails": "Détails du classement de l'utilisateur",
     "activityBreakdown": "Répartition de l'activité",
-    "topMerchants": "Top Commerçants — Jours de sponsoring",
+    "topMerchants": "Top Commerçants - Jours de sponsoring",
     "topMerchantsDesc": "Les 3 meilleurs commerçants par sacs sauvés gagnent 2 jours de sponsoring par cycle",
     "bags": "sacs",
     "sponsorDays": "jours sponsor",

@@ -68,7 +68,7 @@ export default async function MarketingLayout({ children, params }: MarketingLay
       {/* Footer */}
       <Footer />
 
-      {/* App launch modal — triggered by all download buttons */}
+      {/* App launch modal - triggered by all download buttons */}
       <AppLaunchModal />
     </NextIntlClientProvider>
   );

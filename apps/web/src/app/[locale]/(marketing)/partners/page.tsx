@@ -9,9 +9,9 @@ interface PartnersPageProps {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Partner With Us — Too Fresh To Waste',
+    title: 'Partner With Us - Too Fresh To Waste',
     description:
-      'Turn unsold inventory into revenue. Join the Too Fresh To Waste partner network and recover value from surplus food — same day, zero waste.',
+      'Turn unsold inventory into revenue. Join the Too Fresh To Waste partner network and recover value from surplus food - same day, zero waste.',
   };
 }
 
@@ -46,7 +46,7 @@ const howItWorks = [
   {
     n: '01',
     title: 'List your surplus',
-    body: 'Create a Surprise Bag in under 2 minutes — set a photo, a price, and a pickup window. We handle the rest.',
+    body: 'Create a Surprise Bag in under 2 minutes - set a photo, a price, and a pickup window. We handle the rest.',
   },
   {
     n: '02',
@@ -56,7 +56,7 @@ const howItWorks = [
   {
     n: '03',
     title: 'They pick up, you scan',
-    body: 'Customers arrive during the pickup window. Scan their code, hand the bag over — done. Zero admin, zero chasing.',
+    body: 'Customers arrive during the pickup window. Scan their code, hand the bag over - done. Zero admin, zero chasing.',
   },
 ];
 
@@ -89,14 +89,14 @@ const benefits = [
   {
     icon: '📰',
     title: 'Positive PR',
-    body: 'Your brand is featured as a sustainability partner — in-app, on social, and in press coverage.',
+    body: 'Your brand is featured as a sustainability partner - in-app, on social, and in press coverage.',
   },
 ];
 
 const whyNow = [
   {
     stat: '172 kg',
-    label: 'per capita wasted in Tunisia per year — highest in the Maghreb (UNEP 2024)',
+    label: 'per capita wasted in Tunisia per year - highest in the Maghreb (UNEP 2024)',
     source: 'UNEP Food Waste Index 2024',
     href: 'https://www.unep.org/resources/publication/food-waste-index-report-2024',
   },
@@ -114,8 +114,8 @@ const whyNow = [
   },
   {
     stat: '80×',
-    label: 'more potent than CO₂ — the warming power of methane from decomposing food in landfill',
-    source: 'US EPA — Importance of Methane',
+    label: 'more potent than CO₂ - the warming power of methane from decomposing food in landfill',
+    source: 'US EPA - Importance of Methane',
     href: 'https://www.epa.gov/gmi/importance-methane',
   },
 ];
@@ -149,7 +149,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               </h1>
               <p className='mt-8 max-w-xl text-lg leading-relaxed text-brand-deep/75'>
                 Too Fresh To Waste connects your unsold daily inventory with thousands of conscious
-                consumers — same day, same city. You keep real margin on what would otherwise be
+                consumers - same day, same city. You keep real margin on what would otherwise be
                 thrown away.
               </p>
               <div className='mt-10 flex flex-wrap gap-4'>
@@ -202,7 +202,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                   <span className='text-brand-coral'>●</span>
                   <span>172 kg per person per year in Tunisia</span>
                   <span className='text-brand-coral'>●</span>
-                  <span>Turn surplus into revenue — today</span>
+                  <span>Turn surplus into revenue - today</span>
                   <span className='text-brand-coral'>●</span>
                   <span>Join a growing partner network</span>
                   <span className='text-brand-coral'>●</span>
@@ -225,7 +225,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               <p className='text-lg'>
                 Bakeries, restaurants, hotels, and supermarkets across Tunisia discard between{' '}
                 <strong className='text-brand-deep'>10 and 20%</strong> of their daily production
-                every single evening. Not because the food is bad — because the shelf ran out of
+                every single evening. Not because the food is bad - because the shelf ran out of
                 time.{' '}
                 <a
                   href='https://wrap.org.uk/taking-action/food-drink/hospitality-food-service'
@@ -246,7 +246,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                 >
                   $1 trillion per year
                 </a>{' '}
-                (FAO, 2014) — a figure that excludes the environmental cost. When food decomposes in
+                (FAO, 2014) - a figure that excludes the environmental cost. When food decomposes in
                 landfill, it releases methane, a gas{' '}
                 <a
                   href='https://www.epa.gov/gmi/importance-methane'
@@ -268,7 +268,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                 >
                   172 kg of food waste per person per year
                 </a>{' '}
-                (UNEP, 2024) — the highest in the Maghreb, second in the Arab world. The food sector
+                (UNEP, 2024) - the highest in the Maghreb, second in the Arab world. The food sector
                 accounts for a significant share of that figure, and the opportunity to recover it
                 is entirely untapped.
               </p>
@@ -290,7 +290,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               </div>
               <p className='md:col-span-6 md:col-start-7 text-lg leading-relaxed text-brand-cream/70 self-end'>
                 The Too Fresh To Waste platform lets food businesses list surplus inventory as
-                discounted &ldquo;Surprise Bags&rdquo; — claimed by customers before closing time,
+                discounted &ldquo;Surprise Bags&rdquo; - claimed by customers before closing time,
                 every day.
               </p>
             </div>
@@ -392,7 +392,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               </h2>
               <p className='mt-6 text-lg leading-relaxed text-brand-deep/75'>
                 We are not adapting a European model to Tunisia. We built Too Fresh To Waste from
-                scratch for the Tunisian food market — its rhythms, its languages, its logistics.
+                scratch for the Tunisian food market - its rhythms, its languages, its logistics.
               </p>
               <div className='mt-8'>
                 <Link
@@ -486,7 +486,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
           </h2>
           <p className='mt-6 text-lg text-brand-deep/70 max-w-xl mx-auto leading-relaxed'>
             Every evening, unsold food sits on your shelves. Every morning, it is gone. We can
-            change that — starting this week.
+            change that - starting this week.
           </p>
           <div className='mt-10 flex flex-wrap justify-center gap-4'>
             <Link

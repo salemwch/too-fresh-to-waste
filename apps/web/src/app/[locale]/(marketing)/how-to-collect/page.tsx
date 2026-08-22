@@ -11,7 +11,7 @@ interface PageProps {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'How to Collect a Surprise Bag — Too Fresh To Waste',
+    title: 'How to Collect a Surprise Bag - Too Fresh To Waste',
     description:
       'Step-by-step guide to browsing, reserving, picking up, and earning points with a Too Fresh To Waste Surprise Bag.',
     alternates: { canonical: '/how-to-collect' },
@@ -26,10 +26,10 @@ const STEPS = [
     bullets: [
       'See offers sorted by distance from your location',
       'Each card shows the price, original value, and pickup window',
-      'Filter by food type — bakery, restaurant, café, or fast food',
-      'Listings refresh daily — new bags appear as businesses confirm their surplus',
+      'Filter by food type - bakery, restaurant, café, or fast food',
+      'Listings refresh daily - new bags appear as businesses confirm their surplus',
     ],
-    tip: 'Popular bakery listings sell out fast — check early afternoon for the best selection.',
+    tip: 'Popular bakery listings sell out fast - check early afternoon for the best selection.',
     image: '/images/buy-screen-onoarding/home-screen.webp',
     alt: 'Browse offers screen',
   },
@@ -38,10 +38,10 @@ const STEPS = [
     title: 'View the offer details',
     body: "Tapping a listing opens the full details screen. You'll see the food description, what's typically inside, the exact pickup window, and the address. When you're ready, tap the Reserve button.",
     bullets: [
-      'Read the bag description — the business tells you what type of food to expect',
+      'Read the bag description - the business tells you what type of food to expect',
       'Check the pickup window so you can plan your route',
       'See the original retail value vs. what you pay',
-      "Tap Reserve when you're ready — it only takes a few seconds",
+      "Tap Reserve when you're ready - it only takes a few seconds",
     ],
     tip: null,
     image: '/images/buy-screen-onoarding/offer-details.webp',
@@ -50,11 +50,11 @@ const STEPS = [
   {
     n: '03',
     title: 'Choose your quantity',
-    body: 'A reservation sheet slides up asking how many bags you want. Select your quantity and confirm. Payment is handled securely in-app — no cash needed at the counter.',
+    body: 'A reservation sheet slides up asking how many bags you want. Select your quantity and confirm. Payment is handled securely in-app - no cash needed at the counter.',
     bullets: [
       'Choose 1 or more bags depending on availability',
       'See the total price update in real time as you select',
-      'Your slot is locked the moment you confirm — no one else can take it',
+      'Your slot is locked the moment you confirm - no one else can take it',
     ],
     tip: null,
     image: '/images/buy-screen-onoarding/reserve.webp',
@@ -65,10 +65,10 @@ const STEPS = [
     title: 'Confirm your order at checkout',
     body: 'At checkout you can select Pickup (always available) or delivery where offered. Review your order and tap Confirm Order to lock in your reservation.',
     bullets: [
-      'Choose Pickup to collect in person — always available',
+      'Choose Pickup to collect in person - always available',
       'Delivery is available at select partners',
       'Review the business address and pickup window one more time',
-      'Tap Confirm Order — your reservation is immediately locked in',
+      'Tap Confirm Order - your reservation is immediately locked in',
     ],
     tip: null,
     image: '/images/buy-screen-onoarding/checkout.webp',
@@ -77,12 +77,12 @@ const STEPS = [
   {
     n: '05',
     title: 'Your order is confirmed',
-    body: "Your order summary shows what you ordered, the business name, and your exact pickup window. You'll also see a code field — this is where you enter the pickup code you receive at the business when you arrive.",
+    body: "Your order summary shows what you ordered, the business name, and your exact pickup window. You'll also see a code field - this is where you enter the pickup code you receive at the business when you arrive.",
     bullets: [
       'See the business name, address, and pickup time clearly at the top',
-      "The code field is ready — you'll fill it in when you arrive",
+      "The code field is ready - you'll fill it in when you arrive",
       "You'll receive a confirmation notification on your phone",
-      "Save the screen or keep the app open — you'll need it at pickup",
+      "Save the screen or keep the app open - you'll need it at pickup",
     ],
     tip: null,
     image: '/images/buy-screen-onoarding/order-summary.webp',
@@ -93,7 +93,7 @@ const STEPS = [
     title: 'Enter the pickup code',
     body: 'When you arrive, the staff gives you a code. Enter it into the code field in your order summary and tap Confirm Pickup. This verifies the handover on both sides and completes your order.',
     bullets: [
-      'Show up during your pickup window — the business is expecting you',
+      'Show up during your pickup window - the business is expecting you',
       'The staff will give you a short code when you present your order',
       'Type the code into the field and tap Confirm Pickup',
       'Both you and the business receive a confirmation that the handover is complete',
@@ -105,7 +105,7 @@ const STEPS = [
   {
     n: '07',
     title: 'Collect your points and climb the leaderboard',
-    body: 'Points land in your account automatically once pickup is confirmed. Every bag you rescue earns you points — and every user on the list wins something.',
+    body: 'Points land in your account automatically once pickup is confirmed. Every bag you rescue earns you points - and every user on the list wins something.',
     bullets: [
       'Points are added instantly after each confirmed pickup',
       'Check your rank on the community leaderboard anytime',
@@ -137,7 +137,7 @@ export default async function HowToCollectPage({ params }: PageProps) {
               How to Collect a <span className='text-brand-coral italic'>Surprise Bag</span>
             </h1>
             <p className='text-white/65 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto'>
-              From browsing to pickup to earning points — the full flow explained with real app
+              From browsing to pickup to earning points - the full flow explained with real app
               screens. The whole process takes under two minutes.
             </p>
           </div>
@@ -156,7 +156,7 @@ export default async function HowToCollectPage({ params }: PageProps) {
             <div className='space-y-16 lg:space-y-20'>
               {STEPS.map((step, i) => (
                 <div key={step.n} className='grid lg:grid-cols-2 gap-10 lg:gap-16 items-start'>
-                  {/* LEFT — text */}
+                  {/* LEFT - text */}
                   <div className='order-2 lg:order-1'>
                     <div className='flex items-center gap-3 mb-5'>
                       <span className='flex items-center justify-center w-10 h-10 rounded-full bg-primary-500 text-white font-black text-sm font-playfair shrink-0'>
@@ -201,7 +201,7 @@ export default async function HowToCollectPage({ params }: PageProps) {
                     )}
                   </div>
 
-                  {/* RIGHT — screen */}
+                  {/* RIGHT - screen */}
                   <div className='order-1 lg:order-2 flex justify-center lg:justify-end'>
                     <div
                       className='relative rounded-[2.5rem] p-6 flex items-center justify-center'

@@ -103,7 +103,7 @@
   "section2": {
     "title": "The app that turns surplus food into savings and rewards",
     "subtitle": "Too Fresh To Waste is a social impact company on a mission to inspire and empower everyone to fight food waste together",
-    "description": "Our app is a smart marketplace for surplus food in Tunisia. It connects food businesses with users to rescue unsold meals from going to waste—helping businesses recover revenue while allowing users to enjoy delicious food at lower prices.",
+    "description": "Our app is a smart marketplace for surplus food in Tunisia. It connects food businesses with users to rescue unsold meals from going to waste-helping businesses recover revenue while allowing users to enjoy delicious food at lower prices.",
     "downloadButtons": {
       "appStore": {
         "prefix": "Download on the",
@@ -129,7 +129,7 @@
     "eyebrow": "The dream",
     "headlineLead": "A world where good food",
     "headlineAccent": "never reaches the bin.",
-    "standfirst": "Every city on earth throws food away at closing time. Not because anyone wants to — because there was no way to sell it in the hour that was left. We built that way. We started with one city, and the people in each city decide which one comes next.",
+    "standfirst": "Every city on earth throws food away at closing time. Not because anyone wants to - because there was no way to sell it in the hour that was left. We built that way. We started with one city, and the people in each city decide which one comes next.",
     "cta": {
       "primary": "Sell your surplus",
       "secondary": "See where we are"
@@ -138,7 +138,7 @@
       "eyebrow": "The problem",
       "title": "Food does not go to waste. It gets left behind.",
       "body1": "A bakery closing at seven has bread it cannot sell at eight. A grocer has fruit that is perfect today and unsellable tomorrow. None of it is spoiled and none of it is wanted, because the only buyer left is the bin.",
-      "body2": "That is not a moral failure. It is a timing problem — and timing problems are solvable. What was missing was a way to reach the people nearby in the last hour, at a price that makes the trip worth it for both sides.",
+      "body2": "That is not a moral failure. It is a timing problem - and timing problems are solvable. What was missing was a way to reach the people nearby in the last hour, at a price that makes the trip worth it for both sides.",
       "pullquote": "Nobody wakes up wanting to throw away what they made that morning."
     },
     "wins": {
@@ -150,7 +150,7 @@
       },
       "customer": {
         "who": "The customer",
-        "what": "Real food from a real shop nearby, at a fraction of the price, collected the same day. Not charity, not leftovers — the same food, later in the day."
+        "what": "Real food from a real shop nearby, at a fraction of the price, collected the same day. Not charity, not leftovers - the same food, later in the day."
       },
       "planet": {
         "who": "The planet",
@@ -169,7 +169,7 @@
     },
     "close": {
       "title": "Tunisia first. Then everywhere that closes with food still on the shelf.",
-      "body": "Algeria, Morocco, the Gulf — the problem is identical in all of them, and so is the fix. But it only travels if it works here first, and that starts with one more business in one more city.",
+      "body": "Algeria, Morocco, the Gulf - the problem is identical in all of them, and so is the fix. But it only travels if it works here first, and that starts with one more business in one more city.",
       "cta": "Join from your city"
     }
   },
@@ -190,7 +190,7 @@
     "liveSummary": "{partners} partners · {bags} bags rescued",
     "waiting": "{count, plural, =0 {Nobody waiting yet} one {# person waiting} other {# people waiting}}",
     "meterLabel": "Founding businesses signed in {city}",
-    "foundingProgress": "{signed} of {target} founding businesses signed — {left} left to open {city}",
+    "foundingProgress": "{signed} of {target} founding businesses signed - {left} left to open {city}",
     "panel": {
       "eyebrow": "Unlocking next",
       "body": "Opens the day {target} founding businesses sign up in {city}. Founding partners keep their badge for good and appear first on the city page.",
@@ -1129,7 +1129,7 @@
         "peersHelp": "Average bag price at {count, plural, one {# other shop} other {# other shops}} of your type in your city.",
         "peersHelpCity": "There are not enough shops of your type in your city yet, so this is the average across {count, plural, one {# other shop} other {# other shops}} of every type.",
         "suggested": "Suggested price",
-        "suggestedHelpOwn": "Based on your own bags that sold out — the clearest signal of what your customers will pay.",
+        "suggestedHelpOwn": "Based on your own bags that sold out - the clearest signal of what your customers will pay.",
         "suggestedHelpZone": "Based on what similar shops near you charge. Once a few of your own bags sell out, this switches to your own results."
       },
       "insights": {
@@ -1199,7 +1199,7 @@
       "rightNow": "Right now",
       "midnight": "00:00 (midnight)",
       "summary": "{day}, {from} – {until}",
-      "startPassedWarning": "Start time has passed — choose a later time or switch to tomorrow.",
+      "startPassedWarning": "Start time has passed - choose a later time or switch to tomorrow.",
       "offerImage": "Offer image",
       "imageFormats": "Optional · JPEG / PNG / WebP",
       "uploadCta": "Click to upload",
@@ -1222,9 +1222,9 @@
         "publishFailed": "Publishing failed. Please try again."
       },
       "autoDescription": {
-        "surprise_bag": "We would love to tell you exactly what is inside — but honestly, we do not know yet! What is left at the end of the day is never the same twice, and that is the best part. Whatever lands in your {title}, it was made fresh today and it is far too good to waste. {qty, plural, one {# bag} other {# bags}} waiting for someone curious.",
-        "specific_items": "{title} — exactly what you see, made fresh today and every bit as good as it was this morning. The only thing that changed is the price. {qty, plural, one {# portion} other {# portions}} rescued before the day ends. Come and enjoy.",
-        "meal_deal": "A proper meal, ready when you are — {title}. Everything you need for a full plate, prepared fresh today and saved from the bin at the last minute. {qty, plural, one {# meal} other {# meals}} available while they last."
+        "surprise_bag": "We would love to tell you exactly what is inside - but honestly, we do not know yet! What is left at the end of the day is never the same twice, and that is the best part. Whatever lands in your {title}, it was made fresh today and it is far too good to waste. {qty, plural, one {# bag} other {# bags}} waiting for someone curious.",
+        "specific_items": "{title} - exactly what you see, made fresh today and every bit as good as it was this morning. The only thing that changed is the price. {qty, plural, one {# portion} other {# portions}} rescued before the day ends. Come and enjoy.",
+        "meal_deal": "A proper meal, ready when you are - {title}. Everything you need for a full plate, prepared fresh today and saved from the bin at the last minute. {qty, plural, one {# meal} other {# meals}} available while they last."
       }
     },
     "merchantProfile": {
@@ -1305,7 +1305,7 @@
       "anomalies": {
         "title": "Anomaly Detection",
         "subtitle": "Unusual patterns detected across the platform",
-        "noAlerts": "No anomalies detected — platform is healthy"
+        "noAlerts": "No anomalies detected - platform is healthy"
       },
       "users": {
         "title": "User Management",
@@ -1776,7 +1776,7 @@
         "rewardPoints": "Reward Points",
         "rewardPointsHint": "Bonus loyalty points awarded to every participant when the target is reached",
         "endDate": "Prize Drop Deadline",
-        "endDateHint": "Optional deadline — shown as a countdown on the mobile app",
+        "endDateHint": "Optional deadline - shown as a countdown on the mobile app",
         "clearDate": "Clear date",
         "save": "Save Changes",
         "saving": "Saving...",
@@ -2009,7 +2009,7 @@
       "pickupDay": "Pickup day",
       "today": "Today",
       "tomorrow": "Tomorrow",
-      "noSlotsToday": "No time slots available today — switch to Tomorrow.",
+      "noSlotsToday": "No time slots available today - switch to Tomorrow.",
       "untilInPast": "This time has already passed. Choose a future time or switch to Tomorrow.",
       "quickPresets": "Quick presets",
       "presetLunch": "Lunch",
@@ -2098,7 +2098,7 @@
     "streak": {
       "days": "day streak",
       "record": "Record",
-      "listedToday": "✓ Listed today — streak protected",
+      "listedToday": "✓ Listed today - streak protected",
       "startStreak": "List an offer to start your streak",
       "notListedYet": "List an offer to keep your streak",
       "freezes": "Freezes",
@@ -2192,7 +2192,7 @@
     "statStores": "Stores joined",
     "statGrowth": "Strategic growth",
     "testimonialQuote": "Businesses that optimize surplus stock see an average of 30% margin recovery within the first 90 days.",
-    "testimonialAuthor": "— Industry Standard",
+    "testimonialAuthor": "- Industry Standard",
     "searchPlaceholder": "Search for your store...",
     "termsPrefix": "By continuing, you agree to Too Fresh To Waste's",
     "privacyPolicy": "Privacy Policy",
@@ -2265,12 +2265,12 @@
   "companies": {
     "meta": {
       "title": "Enterprise Solutions | Too Fresh To Waste",
-      "description": "Join global leaders acting on ESG, Scope 3, CBAM, and ISO 14001 — while reducing employee food expenses."
+      "description": "Join global leaders acting on ESG, Scope 3, CBAM, and ISO 14001 - while reducing employee food expenses."
     },
     "hero": {
       "eyebrow": "ENTERPRISE PROGRAM",
       "headline": "Your Scope 3 starts at the lunch table.",
-      "sub": "Companies that partner with Too Fresh To Waste reduce their employees' food costs, cut Scope 3 indirect emissions, and advance ESG KPIs — in a single move.",
+      "sub": "Companies that partner with Too Fresh To Waste reduce their employees' food costs, cut Scope 3 indirect emissions, and advance ESG KPIs - in a single move.",
       "cta": "Request a Partnership",
       "stats": [
         {
@@ -2290,7 +2290,7 @@
     "urgency": {
       "eyebrow": "WHY IT MATTERS",
       "title": "The regulatory clock is ticking.",
-      "body": "CBAM, the EU Corporate Sustainability Reporting Directive, and Tunisia's emerging ESG alignment with ISO 26000 mean inaction is now a financial liability — not just an ethical choice."
+      "body": "CBAM, the EU Corporate Sustainability Reporting Directive, and Tunisia's emerging ESG alignment with ISO 26000 mean inaction is now a financial liability - not just an ethical choice."
     },
     "frameworks": {
       "eyebrow": "COMPLIANCE & STANDARDS",
@@ -2304,7 +2304,7 @@
         {
           "code": "S3",
           "title": "Scope 3 Emissions",
-          "body": "Employee commuting and consumption are indirect emissions you can actually influence — and report."
+          "body": "Employee commuting and consumption are indirect emissions you can actually influence - and report."
         },
         {
           "code": "RSE",
@@ -2319,7 +2319,7 @@
         {
           "code": "26000",
           "title": "ISO 26000",
-          "body": "The global standard for social responsibility — employee welfare and environmental stewardship in one framework."
+          "body": "The global standard for social responsibility - employee welfare and environmental stewardship in one framework."
         },
         {
           "code": "14001",
@@ -2329,12 +2329,12 @@
         {
           "code": "ODD",
           "title": "ODD / SDGs",
-          "body": "Align your brand with the UN Sustainable Development Goals — particularly SDG 2, 12, and 13."
+          "body": "Align your brand with the UN Sustainable Development Goals - particularly SDG 2, 12, and 13."
         },
         {
           "code": "BC",
           "title": "Bilan Carbone",
-          "body": "The French Bilan Carbone® methodology — map, measure, and reduce your organisational carbon footprint."
+          "body": "The French Bilan Carbone® methodology - map, measure, and reduce your organisational carbon footprint."
         }
       ]
     },
@@ -2344,7 +2344,7 @@
       "points": [
         {
           "title": "Cut daily food expenses by up to 70%",
-          "body": "Employees save real money on quality meals — every single day."
+          "body": "Employees save real money on quality meals - every single day."
         },
         {
           "title": "Boost team morale & wellness",
@@ -2418,7 +2418,7 @@
   "humanityMission": {
     "meta": {
       "title": "Humanity Mission | Too Fresh To Waste",
-      "description": "5% of every profit goes to those who need it most — food, medicine, education, and warmth for Tunisia's most vulnerable."
+      "description": "5% of every profit goes to those who need it most - food, medicine, education, and warmth for Tunisia's most vulnerable."
     },
     "hero": {
       "eyebrow": "OUR HUMANITY MISSION",
@@ -2429,7 +2429,7 @@
       "eyebrow": "THE COMMITMENT",
       "percent": "5%",
       "headline": "Our 5% Profit Pledge.",
-      "body": "True change doesn't ask you to pay extra. We automatically dedicate 5% of our net profits from every surplus bag sold on our marketplace. Whether you are buying a meal or selling one, you are actively funding human dignity — without spending a single extra dinar."
+      "body": "True change doesn't ask you to pay extra. We automatically dedicate 5% of our net profits from every surplus bag sold on our marketplace. Whether you are buying a meal or selling one, you are actively funding human dignity - without spending a single extra dinar."
     },
     "pillars": {
       "eyebrow": "FOUR PILLARS OF IMPACT",
@@ -2469,7 +2469,7 @@
         "line2Em": "second",
         "line3Em": "chance."
       },
-      "subtitle": "The Parcless Bag transforms your unsold stock and production surplus into real revenue — while reducing your environmental footprint and feeding Tunisian families.",
+      "subtitle": "The Parcless Bag transforms your unsold stock and production surplus into real revenue - while reducing your environmental footprint and feeding Tunisian families.",
       "ctaPartner": "Become a partner",
       "ctaLearnMore": "Learn more",
       "scrollHint": "Discover"
@@ -2489,7 +2489,7 @@
       "headlineBefore": "A bag of",
       "headlineEm": "surprises",
       "headlineAfter": "that makes a difference.",
-      "body1": "The Parcless Bag is an anti-waste solution designed for Tunisian manufacturers. You package your unsold items, surplus or products near their expiry date in a discounted mystery bag. Consumers buy it through our app — and everyone wins.",
+      "body1": "The Parcless Bag is an anti-waste solution designed for Tunisian manufacturers. You package your unsold items, surplus or products near their expiry date in a discounted mystery bag. Consumers buy it through our app - and everyone wins.",
       "body2": "Inspired by the global success of Too Good To Go, the Parcless Bag is adapted to Tunisian market realities: local logistics, consumption habits and strong social impact.",
       "tags": ["Food manufacturers", "Industrial bakeries", "Dairy producers", "Canneries"],
       "badge": "New in Tunisia",
@@ -2524,7 +2524,7 @@
           "n": "01",
           "icon": "📦",
           "title": "You prepare the bag",
-          "body": "Each evening — or at your chosen frequency — your teams package the day's surplus in a standardised Parcless Bag. Real value: 2 to 3× the selling price on the app."
+          "body": "Each evening - or at your chosen frequency - your teams package the day's surplus in a standardised Parcless Bag. Real value: 2 to 3× the selling price on the app."
         },
         {
           "n": "02",
@@ -2536,7 +2536,7 @@
           "n": "03",
           "icon": "💳",
           "title": "You get paid",
-          "body": "Payment is sent directly. Access your real-time data: bags sold, revenue generated, CO₂ avoided — a full ESG dashboard included."
+          "body": "Payment is sent directly. Access your real-time data: bags sold, revenue generated, CO₂ avoided - a full ESG dashboard included."
         }
       ]
     },
@@ -2549,7 +2549,7 @@
       "items": [
         {
           "title": "Revenue from the unsellable",
-          "body": "Turn every unsold unit into cash. The items you used to throw away represent a dead loss — the Parcless Bag converts them into an additional revenue stream with no extra sales effort.",
+          "body": "Turn every unsold unit into cash. The items you used to throw away represent a dead loss - the Parcless Bag converts them into an additional revenue stream with no extra sales effort.",
           "big": "+42%"
         },
         {
@@ -2558,7 +2558,7 @@
         },
         {
           "title": "Real-time dashboard",
-          "body": "Visualise your anti-waste performance, your revenue by period, and your saved carbon footprint — month by month."
+          "body": "Visualise your anti-waste performance, your revenue by period, and your saved carbon footprint - month by month."
         },
         {
           "title": "48h integration",
@@ -2570,7 +2570,7 @@
         },
         {
           "title": "Local visibility",
-          "body": "Be visible to thousands of engaged consumers — a premium audience sensitive to quality and sustainability."
+          "body": "Be visible to thousands of engaged consumers - a premium audience sensitive to quality and sustainability."
         }
       ]
     },
@@ -2585,12 +2585,12 @@
       "body": "Leave your professional email. Our team will contact you within 24 hours for a free, no-obligation discovery call. We will assess the potential of your surplus together.",
       "placeholder": "your@company.tn",
       "submit": "Get started",
-      "submitted": "✓ Received — talk soon!",
+      "submitted": "✓ Received - talk soon!",
       "note": "No commitment. Reply within 24 h. 100% free."
     }
   },
   "cookieConsent": {
-    "message": "We use cookies to keep things fresh — your experience, not your data.",
+    "message": "We use cookies to keep things fresh - your experience, not your data.",
     "accept": "Accept",
     "decline": "Decline",
     "learnMore": "Cookie Policy"
@@ -2904,7 +2904,7 @@
     "users": "users",
     "userDetails": "User Leaderboard Details",
     "activityBreakdown": "Activity Breakdown",
-    "topMerchants": "Top Merchants — Sponsor Day Rewards",
+    "topMerchants": "Top Merchants - Sponsor Day Rewards",
     "topMerchantsDesc": "Top 3 merchants by bags saved earn 2 sponsor days each cycle",
     "bags": "bags",
     "sponsorDays": "sponsor days",

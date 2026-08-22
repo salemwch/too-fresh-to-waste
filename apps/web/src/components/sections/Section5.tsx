@@ -116,7 +116,7 @@ export default function Section5() {
                       </button>
                     </h3>
 
-                    {/* Answer panel — sibling of button, not nested inside it */}
+                    {/* Answer panel - sibling of button, not nested inside it */}
                     <div
                       id={`faq-answer-${faq.id}`}
                       role='region'
@@ -209,7 +209,7 @@ export default function Section5() {
         </div>
       </div>
 
-      {/* FAQ typography — self-hosted Inter (no external font fetch) */}
+      {/* FAQ typography - self-hosted Inter (no external font fetch) */}
       <style jsx global>{`
         #faq * {
           font-family: var(--font-inter), system-ui, sans-serif;

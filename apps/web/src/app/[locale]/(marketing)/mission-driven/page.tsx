@@ -70,7 +70,7 @@ function TensionCard({ data }: { data: TensionData }) {
         <span className='text-[10px] font-black uppercase tracking-widest bg-primary-500/8 text-primary-500 px-2.5 py-1 rounded-full'>
           {data.lean === 'right' ? data.right : data.left}
         </span>
-        <span className='text-[10px] text-primary-500/30 italic'>— but we hold the tension</span>
+        <span className='text-[10px] text-primary-500/30 italic'>- but we hold the tension</span>
       </div>
     </div>
   );
@@ -149,14 +149,14 @@ const tensions: TensionData[] = [
     rightDesc:
       'Every new city we enter must have a real food waste problem we can measurably reduce. Not just a market we can monetise.',
     navigation:
-      'We expand only where food waste density and partner willingness are both high. Revenue follows rescued bags — not the reverse.',
+      'We expand only where food waste density and partner willingness are both high. Revenue follows rescued bags - not the reverse.',
     lean: 'right',
   },
   {
     left: 'Speed',
     right: 'Care',
     leftDesc:
-      'Moving fast means more restaurants onboarded, more bags listed, more families saving — sooner.',
+      'Moving fast means more restaurants onboarded, more bags listed, more families saving - sooner.',
     rightDesc:
       'A rushed partner makes bad bags. A bad bag kills trust. Lost trust cannot be recovered with a discount code.',
     navigation:
@@ -168,7 +168,7 @@ const tensions: TensionData[] = [
     right: 'Accessibility',
     leftDesc: 'Higher fees and premium pricing make the business sustainable and investor-ready.',
     rightDesc:
-      'Food savings must reach the families who need them most — not just consumers who can afford "conscious choices."',
+      'Food savings must reach the families who need them most - not just consumers who can afford "conscious choices."',
     navigation:
       'We cap platform take-rates. We do not let pricing drift to where rescue stops being real savings for real people.',
     lean: 'right',
@@ -228,7 +228,7 @@ export default function MissionDrivenPage() {
               </span>
             </div>
 
-            {/* Main headline — stacked for maximum typographic impact */}
+            {/* Main headline - stacked for maximum typographic impact */}
             <h1 className='font-playfair font-bold text-white leading-[0.95] mb-0'>
               <span className='block text-[clamp(42px,8vw,96px)]'>We did not</span>
               <span className='block text-[clamp(42px,8vw,96px)] text-brand-coral italic'>
@@ -274,7 +274,7 @@ export default function MissionDrivenPage() {
               </p>
 
               <p className='text-base lg:text-lg text-primary-500/65 leading-relaxed'>
-                That image did not leave us. Because it was not a coincidence — it was a system
+                That image did not leave us. Because it was not a coincidence - it was a system
                 failure happening thousands of times a day, in every Tunisian city, in every country
                 on earth. One third of all food produced globally is wasted. Not because the world
                 lacks hunger. Because it lacks infrastructure.
@@ -283,14 +283,14 @@ export default function MissionDrivenPage() {
               <p className='text-base lg:text-lg text-primary-500/65 leading-relaxed'>
                 We are that infrastructure. Built in Tunisia first, because that is where we are
                 from, where we know the streets, where we know the bakery owners by name. The
-                mission starts here — and it does not stop until the problem does.
+                mission starts here - and it does not stop until the problem does.
               </p>
             </div>
 
             {/* Pull quote */}
             <div className='mt-12 border-l-4 border-brand-coral pl-7'>
               <p className='font-playfair text-xl lg:text-2xl font-bold text-primary-500 italic leading-snug'>
-                &ldquo;We are not solving a business problem. We are solving a civilisational one —
+                &ldquo;We are not solving a business problem. We are solving a civilisational one -
                 one bag at a time.&rdquo;
               </p>
             </div>
@@ -312,7 +312,7 @@ export default function MissionDrivenPage() {
                 </h2>
                 <p className='text-primary-500/55 text-base mt-5 leading-relaxed'>
                   Every company says they have values. We decided to make ours mechanically visible
-                  — decisions you can point to, constraints we operate under, numbers we publish.
+                  - decisions you can point to, constraints we operate under, numbers we publish.
                 </p>
               </div>
 
@@ -321,12 +321,12 @@ export default function MissionDrivenPage() {
                   {
                     n: '01',
                     title: 'The 5% pledge is structural, not symbolic.',
-                    body: '5% of every transaction goes to food security programmes — meal funds for families, school meal initiatives, and community food banks. It is written into how the fee model works, not added as a donation layer on top. You cannot remove it without breaking the product.',
+                    body: '5% of every transaction goes to food security programmes - meal funds for families, school meal initiatives, and community food banks. It is written into how the fee model works, not added as a donation layer on top. You cannot remove it without breaking the product.',
                   },
                   {
                     n: '02',
                     title: 'We have walked away from revenue.',
-                    body: 'We have declined partnerships with establishments that wanted to use the platform to move low-quality stock at scale. The bags we list must be genuinely good food rescued — not a clearance channel. That decision cost us growth. We made it anyway.',
+                    body: 'We have declined partnerships with establishments that wanted to use the platform to move low-quality stock at scale. The bags we list must be genuinely good food rescued - not a clearance channel. That decision cost us growth. We made it anyway.',
                   },
                   {
                     n: '03',
@@ -400,7 +400,7 @@ export default function MissionDrivenPage() {
                   <path d='M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5' />
                 </svg>
                 <span className='text-xs text-primary-500/40 font-bold uppercase tracking-wider'>
-                  Interactive — tap a side
+                  Interactive - tap a side
                 </span>
               </div>
             </div>
@@ -487,7 +487,7 @@ export default function MissionDrivenPage() {
                 <div className='mt-8 pt-6 border-t border-primary-500/8'>
                   <p className='text-xs text-primary-500/35 italic leading-relaxed'>
                     This is not a rejection. It is honesty. We believe the most respectful thing a
-                    brand can do is tell you clearly who it is — so you can decide if you belong.
+                    brand can do is tell you clearly who it is - so you can decide if you belong.
                   </p>
                 </div>
               </div>
@@ -495,7 +495,7 @@ export default function MissionDrivenPage() {
           </div>
         </section>
 
-        {/* ── THE INVITATION — doors ────────────────────────────────────────── */}
+        {/* ── THE INVITATION - doors ────────────────────────────────────────── */}
         <section className='bg-white py-16 lg:py-20'>
           <div className='mx-auto max-w-5xl px-6 lg:px-8 mb-12 text-center'>
             <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-4'>
@@ -516,7 +516,7 @@ export default function MissionDrivenPage() {
             <Door
               href='/esg'
               label='Partner on ESG.'
-              tagline='Your company needs measurable impact. We have it — with the data to prove it.'
+              tagline='Your company needs measurable impact. We have it - with the data to prove it.'
               index={1}
             />
             <Door
@@ -534,7 +534,7 @@ export default function MissionDrivenPage() {
               deck. It needs ones that care about it in their spreadsheets.&rdquo;
             </p>
             <p className='text-brand-coral text-xs font-black uppercase tracking-widest mt-4'>
-              — Too Fresh To Waste
+              - Too Fresh To Waste
             </p>
           </div>
         </section>

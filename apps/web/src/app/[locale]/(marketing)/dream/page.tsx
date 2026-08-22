@@ -14,17 +14,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params;
   return buildLocalizedPageMetadata('/dream', locale as Locale, {
     en: {
-      title: 'The dream — one city at a time | Too Fresh To Waste',
+      title: 'The dream - one city at a time | Too Fresh To Waste',
       description:
         'Every city on earth throws food away. We started with ours. See where we are open, which city unlocks next, and how the people in it decide.',
     },
     fr: {
-      title: 'Le rêve — une ville à la fois | Too Fresh To Waste',
+      title: 'Le rêve - une ville à la fois | Too Fresh To Waste',
       description:
         'Toutes les villes du monde jettent de la nourriture. Nous avons commencé par la nôtre. Découvrez où nous sommes ouverts et quelle ville ouvre ensuite.',
     },
     ar: {
-      title: 'الحلم — مدينة تلو الأخرى | Too Fresh To Waste',
+      title: 'الحلم - مدينة تلو الأخرى | Too Fresh To Waste',
       description:
         'كل مدينة في العالم ترمي الطعام. بدأنا بمدينتنا. اكتشف أين نحن مفتوحون وأي مدينة تُفتح تاليًا ومن يقرّر ذلك.',
     },

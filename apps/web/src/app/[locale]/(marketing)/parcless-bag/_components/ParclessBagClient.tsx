@@ -167,7 +167,7 @@ function HeroSection() {
       className='h-screen min-h-[680px] bg-primary grid grid-cols-1 lg:grid-cols-2 relative overflow-hidden'
       style={{ backgroundImage: ZELLIGE_LIGHT }}
     >
-      {/* Left — headline */}
+      {/* Left - headline */}
       <div className='flex flex-col justify-end px-9 py-20 lg:px-16 lg:py-24 relative z-10'>
         <p
           className='text-secondary text-[0.68rem] font-semibold tracking-[0.22em] uppercase mb-7'
@@ -234,7 +234,7 @@ function HeroSection() {
         </div>
       </div>
 
-      {/* Right — bag (hidden on mobile) */}
+      {/* Right - bag (hidden on mobile) */}
       <div className='hidden lg:flex items-center justify-center relative z-10'>
         <BagSVG />
       </div>
@@ -338,7 +338,7 @@ function ConceptSection() {
         </div>
       </div>
 
-      {/* Right — stat card */}
+      {/* Right - stat card */}
       <div className='rv d2 relative'>
         <span
           className='absolute -top-[18px] right-8 z-10 bg-[#C05F4A] text-white rounded-full px-[22px] py-[10px] text-[0.72rem] font-semibold tracking-[0.08em] uppercase shadow-[0_8px_28px_rgba(192,95,74,0.45)]'

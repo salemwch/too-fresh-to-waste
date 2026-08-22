@@ -64,12 +64,7 @@ const ZONES: PublicZone[] = [
 ];
 
 const renderMap = (
-  {
-    zones = ZONES,
-    impact = IMPACT,
-    isLoading = false,
-    isError = false,
-  }: {
+  opts: {
     zones?: PublicZone[] | undefined;
     impact?: PublicImpact | undefined;
     isLoading?: boolean;
@@ -77,6 +72,13 @@ const renderMap = (
   } = {},
   locale: 'en' | 'fr' | 'ar' = 'en',
 ) => {
+  // `in` rather than a default parameter: a default only fires for `undefined`,
+  // which is precisely the value a test needs to be able to pass through.
+  const zones = 'zones' in opts ? opts.zones : ZONES;
+  const impact = 'impact' in opts ? opts.impact : IMPACT;
+  const isLoading = opts.isLoading ?? false;
+  const isError = opts.isError ?? false;
+
   zonesQuery.mockReturnValue({ data: zones, isLoading, isError });
   impactQuery.mockReturnValue({ data: impact });
 
@@ -158,9 +160,21 @@ describe('RolloutMap', () => {
   });
 
   it('leaves the stat chips blank until the totals arrive', () => {
-    const { container } = renderMap({ impact: undefined as unknown as PublicImpact });
-    // A dash, never a zero — "0 bags rescued" is a claim, and a wrong one.
-    expect(container.textContent).toContain('—');
+    const { container } = renderMap({ impact: undefined, zones: [] });
+
+    // A placeholder, never a zero: "0 bags rescued" is a claim, and a wrong one.
+    // Asserted on the chips alone, with the rail empty, so the dash cannot be
+    // picked up from body copy elsewhere in the section - which is how this
+    // test passed before while proving nothing.
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('shows a placeholder in the stat chips rather than a zero', () => {
+    const { container } = renderMap({ impact: undefined });
+
+    const chips = [...container.querySelectorAll('[dir="ltr"]')].map(n => n.textContent);
+    expect(chips.filter(v => v === '-')).toHaveLength(3);
+    expect(chips).not.toContain('0');
   });
 
   it('gives the unlocking-next treatment to one city only', () => {

@@ -26,7 +26,7 @@ export async function generateMetadata({
     alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
   });
   return {
-    title: 'ESG — Why It Matters for Your Business | Too Fresh To Waste',
+    title: 'ESG - Why It Matters for Your Business | Too Fresh To Waste',
     description:
       'Understand what ESG is, why EU regulations like CBAM and CSRD make it mandatory, and how Tunisian companies can use food waste reduction to build a credible ESG strategy.',
     alternates: {
@@ -240,7 +240,7 @@ const esgPillars = [
     border: 'border-primary-500/20',
     accent: 'bg-primary-500',
     headline: 'Your footprint on the planet.',
-    body: "Carbon emissions, energy consumption, water usage, waste management, biodiversity impact, and your supply chain's environmental trail. Investors and regulators are now demanding hard numbers — not promises.",
+    body: "Carbon emissions, energy consumption, water usage, waste management, biodiversity impact, and your supply chain's environmental trail. Investors and regulators are now demanding hard numbers - not promises.",
     metrics: [
       'CO₂ & GHG emissions',
       'Energy & water consumption',
@@ -257,7 +257,7 @@ const esgPillars = [
     border: 'border-brand-coral/20',
     accent: 'bg-brand-coral',
     headline: 'Your impact on people.',
-    body: 'Working conditions, fair wages, diversity and inclusion, community investment, human rights in the supply chain, and how your business treats every person it touches — from employee to end customer.',
+    body: 'Working conditions, fair wages, diversity and inclusion, community investment, human rights in the supply chain, and how your business treats every person it touches - from employee to end customer.',
     metrics: [
       'Employee wellbeing & diversity',
       'Community investment',
@@ -293,7 +293,7 @@ const euRegulations = [
     deadline: 'Full enforcement: 2026',
     flag: '🇪🇺',
     summary:
-      'The EU now charges a carbon price on imported goods — cement, steel, aluminium, fertilisers, electricity, and hydrogen. If your product enters Europe and you cannot prove a low carbon footprint, your buyer pays the carbon tax. The more carbon in your product, the higher the cost — making high-emission Tunisian exporters structurally less competitive overnight.',
+      'The EU now charges a carbon price on imported goods - cement, steel, aluminium, fertilisers, electricity, and hydrogen. If your product enters Europe and you cannot prove a low carbon footprint, your buyer pays the carbon tax. The more carbon in your product, the higher the cost - making high-emission Tunisian exporters structurally less competitive overnight.',
     impact:
       'Exporters to Europe who cannot document their emissions are losing contracts to greener competitors. CBAM is a permanent, escalating cost on carbon-heavy supply chains.',
     urgency: 'Immediate',
@@ -306,9 +306,9 @@ const euRegulations = [
     deadline: 'Large companies: 2025 reports',
     flag: '🇪🇺',
     summary:
-      'Over 50,000 EU companies — and their entire supply chains — must now publish detailed, audited sustainability reports. If you supply or partner with a European business, they will ask you for your ESG data. Without it, you lose the contract. The CSRD reaches deep into supplier relationships across MENA and Africa.',
+      'Over 50,000 EU companies - and their entire supply chains - must now publish detailed, audited sustainability reports. If you supply or partner with a European business, they will ask you for your ESG data. Without it, you lose the contract. The CSRD reaches deep into supplier relationships across MENA and Africa.',
     impact:
-      'If you supply to EU companies or seek European investment, your ESG data is now a contractual requirement — not a "nice to have."',
+      'If you supply to EU companies or seek European investment, your ESG data is now a contractual requirement - not a "nice to have."',
     urgency: 'High',
   },
   {
@@ -319,9 +319,9 @@ const euRegulations = [
     deadline: 'Ongoing classification',
     flag: '🇪🇺',
     summary:
-      'A classification system that defines which economic activities are "green" for investment purposes. European banks and funds can only channel capital marked as "sustainable" into activities that qualify under the Taxonomy. This reshapes where money flows — and which businesses get funded at what cost.',
+      'A classification system that defines which economic activities are "green" for investment purposes. European banks and funds can only channel capital marked as "sustainable" into activities that qualify under the Taxonomy. This reshapes where money flows - and which businesses get funded at what cost.',
     impact:
-      'If your business activity is not classifiable as sustainable under EU Taxonomy, access to green finance — increasingly the cheapest source of capital — is blocked.',
+      'If your business activity is not classifiable as sustainable under EU Taxonomy, access to green finance - increasingly the cheapest source of capital - is blocked.',
     urgency: 'Medium',
   },
   {
@@ -332,7 +332,7 @@ const euRegulations = [
     deadline: 'Transposition by 2026',
     flag: '🇪🇺',
     summary:
-      'Large EU companies are now legally liable for human rights and environmental violations anywhere in their supply chain — including in Tunisia, Morocco, Egypt, and across Africa. If your factory has poor labor conditions or high emissions, your EU client could face legal action for doing business with you.',
+      'Large EU companies are now legally liable for human rights and environmental violations anywhere in their supply chain - including in Tunisia, Morocco, Egypt, and across Africa. If your factory has poor labor conditions or high emissions, your EU client could face legal action for doing business with you.',
     impact:
       'Tunisian suppliers who cannot demonstrate compliant environmental and labor practices risk being cut from EU supply chains entirely.',
     urgency: 'High',
@@ -345,7 +345,7 @@ const euRegulations = [
     deadline: 'Ongoing',
     flag: '🇪🇺',
     summary:
-      'European institutional investors — pension funds, insurance firms, asset managers — must now disclose how their investments impact sustainability. This is pushing trillions of euros away from companies with no ESG credentials. If you are seeking European institutional investment or listing, ESG credentials are a prerequisite.',
+      'European institutional investors - pension funds, insurance firms, asset managers - must now disclose how their investments impact sustainability. This is pushing trillions of euros away from companies with no ESG credentials. If you are seeking European institutional investment or listing, ESG credentials are a prerequisite.',
     impact:
       'EU-sourced institutional capital is actively moving away from companies without verifiable ESG records.',
     urgency: 'Medium',
@@ -356,12 +356,12 @@ const tunisiaReasons = [
   {
     icon: GlobeIcon,
     title: '73% of Tunisian exports go to the EU',
-    body: "The EU is Tunisia's largest trading partner. CBAM and CSRD directly affect the viability of those trade relationships. Every Tunisian exporter is already inside Europe's ESG regulatory reach — whether they know it or not.",
+    body: "The EU is Tunisia's largest trading partner. CBAM and CSRD directly affect the viability of those trade relationships. Every Tunisian exporter is already inside Europe's ESG regulatory reach - whether they know it or not.",
   },
   {
     icon: BriefcaseIcon,
     title: 'European investors require ESG data',
-    body: 'Tunisia receives significant FDI from European companies. Post-CSRD, those investors now require ESG data from every entity in their portfolio. Tunisian subsidiaries and partners are being asked for sustainability reports — today.',
+    body: 'Tunisia receives significant FDI from European companies. Post-CSRD, those investors now require ESG data from every entity in their portfolio. Tunisian subsidiaries and partners are being asked for sustainability reports - today.',
   },
   {
     icon: ScaleIcon,
@@ -371,17 +371,17 @@ const tunisiaReasons = [
   {
     icon: TrendingUpIcon,
     title: 'Banks are pricing ESG into lending',
-    body: 'International financial institutions operating in Tunisia — EBRD, AFD, EIB, IFC — already apply ESG screens to lending decisions. Companies with documented sustainability practices access better terms. Those without them pay more — or are excluded.',
+    body: 'International financial institutions operating in Tunisia - EBRD, AFD, EIB, IFC - already apply ESG screens to lending decisions. Companies with documented sustainability practices access better terms. Those without them pay more - or are excluded.',
   },
   {
     icon: ZapIcon,
     title: 'Customers and talent are watching',
-    body: 'A new generation of Tunisian consumers and professionals chooses brands and employers based on values. Companies with strong ESG credentials attract better talent and build deeper customer loyalty — a concrete commercial advantage.',
+    body: 'A new generation of Tunisian consumers and professionals chooses brands and employers based on values. Companies with strong ESG credentials attract better talent and build deeper customer loyalty - a concrete commercial advantage.',
   },
   {
     icon: AlertTriangleIcon,
     title: 'The cost of doing nothing is compounding',
-    body: 'Every quarter without an ESG baseline is a quarter of missed data. When reporting becomes mandatory — and it will — companies without history will face audits, fines, and reputational damage that years of data could have prevented.',
+    body: 'Every quarter without an ESG baseline is a quarter of missed data. When reporting becomes mandatory - and it will - companies without history will face audits, fines, and reputational damage that years of data could have prevented.',
   },
 ];
 
@@ -390,7 +390,7 @@ const tftwesgContributions = [
     pillar: 'E',
     pillarColor: 'bg-primary-500',
     title: 'Direct carbon reduction, documented',
-    body: 'Every bag rescued through Too Fresh To Waste diverts food from landfill, preventing methane emissions. We provide per-bag CO₂ avoidance data — a verified, quantifiable contribution to your Scope 3 emissions reduction.',
+    body: 'Every bag rescued through Too Fresh To Waste diverts food from landfill, preventing methane emissions. We provide per-bag CO₂ avoidance data - a verified, quantifiable contribution to your Scope 3 emissions reduction.',
     metric: '~2.5 kg CO₂',
     metricLabel: 'avoided per bag',
   },
@@ -398,7 +398,7 @@ const tftwesgContributions = [
     pillar: 'S',
     pillarColor: 'bg-brand-coral',
     title: 'Community nourishment, traceable',
-    body: 'Surplus food that reaches families instead of landfills is a measurable social impact. Partnerships with Too Fresh To Waste allow companies to document their contribution to food security — a core Social pillar metric under CSRD reporting frameworks.',
+    body: 'Surplus food that reaches families instead of landfills is a measurable social impact. Partnerships with Too Fresh To Waste allow companies to document their contribution to food security - a core Social pillar metric under CSRD reporting frameworks.',
     metric: '1 in 3',
     metricLabel: 'people face food insecurity in MENA',
   },
@@ -406,7 +406,7 @@ const tftwesgContributions = [
     pillar: 'G',
     pillarColor: 'bg-secondary-dark',
     title: 'Transparent, audit-ready impact data',
-    body: 'Our platform generates structured impact reports — bags saved, CO₂ avoided, families reached — in formats compatible with GRI, SASB, and CSRD reporting templates. Give your auditors real numbers, not estimates.',
+    body: 'Our platform generates structured impact reports - bags saved, CO₂ avoided, families reached - in formats compatible with GRI, SASB, and CSRD reporting templates. Give your auditors real numbers, not estimates.',
     metric: 'GRI · SASB',
     metricLabel: 'reporting compatible',
   },
@@ -421,7 +421,7 @@ export default async function ESGPage({ params }: PageProps) {
   return (
     <>
       <ArticleSchema
-        title='ESG Compliance for Food Businesses — Too Fresh To Waste'
+        title='ESG Compliance for Food Businesses - Too Fresh To Waste'
         description='How restaurants and food businesses in MENA can meet ESG requirements including CBAM, CSRD, and UN SDGs by reducing food waste.'
         publishedAt='2024-01-01'
         updatedAt='2026-05-01'
@@ -465,7 +465,7 @@ export default async function ESGPage({ params }: PageProps) {
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-16 pb-0 lg:pt-24'>
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-20 items-center'>
-              {/* Left — copy */}
+              {/* Left - copy */}
               <div className='pb-16 lg:pb-24'>
                 <div className='inline-flex items-center gap-2 bg-brand-coral/20 border border-brand-coral/40 text-brand-coral text-xs font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-7'>
                   <ShieldIcon className='w-3.5 h-3.5' />
@@ -502,7 +502,7 @@ export default async function ESGPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Right — stat cards */}
+              {/* Right - stat cards */}
               <div className='hidden lg:flex flex-col gap-4 pb-16'>
                 {[
                   {
@@ -517,7 +517,7 @@ export default async function ESGPage({ params }: PageProps) {
                   },
                   {
                     n: '73%',
-                    label: "of Tunisia's exports go to the EU — already inside the scope",
+                    label: "of Tunisia's exports go to the EU - already inside the scope",
                     color: 'border-white/20',
                   },
                 ].map((s, i) => (
@@ -619,7 +619,7 @@ export default async function ESGPage({ params }: PageProps) {
               <p className='font-playfair text-xl lg:text-2xl font-bold text-white leading-snug'>
                 ESG is not a report you file once a year.{' '}
                 <span className='text-brand-coral italic'>
-                  It is how you run your company — measured, verified, and published.
+                  It is how you run your company - measured, verified, and published.
                 </span>
               </p>
             </div>
@@ -644,7 +644,7 @@ export default async function ESGPage({ params }: PageProps) {
                 {
                   icon: GlobeIcon,
                   title: 'Access to global markets',
-                  body: 'EU, UK, and US markets are raising the bar on supplier sustainability. Companies without ESG credentials are being removed from procurement lists — regardless of price.',
+                  body: 'EU, UK, and US markets are raising the bar on supplier sustainability. Companies without ESG credentials are being removed from procurement lists - regardless of price.',
                   badge: 'Market Access',
                   badgeColor: 'bg-primary-500/10 text-primary-500',
                 },
@@ -658,7 +658,7 @@ export default async function ESGPage({ params }: PageProps) {
                 {
                   icon: ShieldIcon,
                   title: 'Regulatory compliance',
-                  body: 'EU regulations like CBAM and CSRD are already in force. Being prepared is not optional — it is the difference between trading with Europe and being excluded from it.',
+                  body: 'EU regulations like CBAM and CSRD are already in force. Being prepared is not optional - it is the difference between trading with Europe and being excluded from it.',
                   badge: 'Compliance',
                   badgeColor: 'bg-brand-coral/10 text-brand-coral',
                 },
@@ -869,7 +869,7 @@ export default async function ESGPage({ params }: PageProps) {
                 <p className='text-white/55 text-sm lg:text-base leading-relaxed'>
                   The Association Agreement, the ALECA framework, and the EU&apos;s Green Deal
                   create a direct and growing ESG obligation for every Tunisian company with
-                  European commercial relationships. This is not speculation — it is the current
+                  European commercial relationships. This is not speculation - it is the current
                   state of trade policy.
                 </p>
               </div>
@@ -890,7 +890,7 @@ export default async function ESGPage({ params }: PageProps) {
               </h2>
               <p className='text-primary-500/55 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
                 Partnering with Too Fresh To Waste gives your company measurable, reportable
-                contributions across all three ESG pillars — with the data to back it up.
+                contributions across all three ESG pillars - with the data to back it up.
               </p>
             </div>
 
@@ -985,7 +985,7 @@ export default async function ESGPage({ params }: PageProps) {
                 </h2>
                 <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-10 max-w-xl mx-auto'>
                   Talk to us. We will show you exactly how a Too Fresh To Waste partnership
-                  contributes to your environmental and social metrics — with data your auditors can
+                  contributes to your environmental and social metrics - with data your auditors can
                   sign off on.
                 </p>
                 <div className='flex flex-col sm:flex-row gap-4 justify-center'>

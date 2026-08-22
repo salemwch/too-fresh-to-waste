@@ -33,7 +33,7 @@ function StatChip({
         className='font-heading text-xl leading-none tabular-nums text-white md:text-2xl'
         dir='ltr'
       >
-        {value === undefined ? '—' : value.toLocaleString()}
+        {value === undefined ? '-' : value.toLocaleString()}
       </span>
     </div>
   );
@@ -46,9 +46,9 @@ function StatusPill({ role }: { role: StopRole }) {
 
   const tone =
     role === 'live'
-      ? 'text-secondary border-secondary'
+      ? 'text-primary-500 border-secondary bg-secondary'
       : role === 'next'
-        ? 'text-accent-500 border-accent-500'
+        ? 'text-secondary border-secondary'
         : 'text-white/40 border-white/25';
 
   return (
@@ -83,10 +83,7 @@ function UnlockMeter({ zone }: { zone: PublicZone }) {
         aria-valuemax={zone.foundingTarget}
         aria-label={t('meterLabel', { city: zone.displayName })}
       >
-        <div
-          className='from-accent-500 to-secondary h-full rounded-full bg-gradient-to-r'
-          style={{ width: `${pct}%` }}
-        />
+        <div className='bg-secondary h-full rounded-full' style={{ width: `${pct}%` }} />
       </div>
       <p className='mt-2 text-[11px] text-white/70 tabular-nums'>
         {t('foundingProgress', {
@@ -117,34 +114,39 @@ function Stop({
   const isNext = role === 'next';
 
   return (
-    <li className='relative grid grid-cols-[2.6rem_minmax(0,1fr)] gap-4 pb-6 last:pb-0'>
-      {!isLast && (
+    /*
+     * Flex with a fixed-width marker column, and the connector as a flex child
+     * that stretches. The first version used a grid with an arbitrary column
+     * width and an absolutely positioned connector, which put the markers on top
+     * of the city names. Nothing here can overlap: the text column is a sibling
+     * that starts where the marker column ends.
+     */
+    <li className='flex gap-4 pb-6 last:pb-0'>
+      <div className='flex w-10 flex-none flex-col items-center'>
         <span
           aria-hidden='true'
           className={cn(
-            'absolute top-11 bottom-0 w-0.5 -translate-x-1/2 start-[1.3rem]',
-            isLive ? 'bg-secondary' : 'bg-white/15',
+            'flex h-10 w-10 flex-none items-center justify-center rounded-full border text-[11px] font-bold tabular-nums',
+            isLive && 'border-secondary bg-secondary text-primary-500',
+            isNext && 'border-secondary text-secondary bg-transparent',
+            !isLive && !isNext && 'border-white/20 text-white/40',
           )}
-        />
-      )}
+        >
+          {String(index + 1).padStart(2, '0')}
+        </span>
 
-      <span
-        aria-hidden='true'
-        className={cn(
-          'relative z-10 grid size-10 place-items-center rounded-full border text-[11px] font-bold tabular-nums',
-          isLive &&
-            'from-accent-500 to-secondary border-transparent bg-gradient-to-br text-primary-500',
-          isNext && 'border-accent-500 text-accent-500 bg-primary-500',
-          !isLive && !isNext && 'border-white/20 bg-primary-500 text-white/40',
+        {!isLast && (
+          <span
+            aria-hidden='true'
+            className={cn('mt-2 w-0.5 flex-1', isLive ? 'bg-secondary' : 'bg-white/15')}
+          />
         )}
-      >
-        {String(index + 1).padStart(2, '0')}
-      </span>
+      </div>
 
       <div
         className={cn(
-          'min-w-0',
-          isNext && 'rounded-lg border border-white/12 bg-white/[0.04] px-4 py-3.5',
+          'min-w-0 flex-1',
+          isNext && 'rounded-lg border border-white/15 bg-white/[0.04] px-4 py-3.5',
         )}
       >
         <div className='flex flex-wrap items-center gap-x-3 gap-y-2'>
@@ -181,7 +183,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
   const remaining = Math.max(0, zone.foundingTarget - zone.foundingSigned);
 
   return (
-    <aside className='rounded-xl border border-white/12 bg-white/[0.05] p-6'>
+    <aside className='rounded-xl border border-white/15 bg-white/[0.05] p-6'>
       <p className='text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase'>
         {t('panel.eyebrow')}
       </p>
@@ -194,7 +196,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
           : t('panel.bodyNoTarget', { city: zone.displayName })}
       </p>
 
-      <dl className='mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/12 bg-white/10'>
+      <dl className='mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/15 bg-white/10'>
         <div className='bg-primary-500 flex flex-col gap-1 p-3'>
           <dt className='text-[10px] tracking-[0.15em] text-white/50 uppercase'>
             {t('panel.signed')}
@@ -254,13 +256,13 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
           <button
             type='submit'
             disabled={mutation.isPending}
-            className='from-accent-500 to-secondary text-primary-500 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r px-5 py-3 text-sm font-bold transition-transform duration-200 hover:scale-[1.02] disabled:opacity-60'
+            className='bg-secondary text-primary-500 flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-transform duration-200 hover:scale-[1.02] disabled:opacity-60'
           >
             {mutation.isPending ? t('form.submitting') : t('form.submit')}
             <ArrowRight className='size-4 shrink-0 rtl:rotate-180' aria-hidden='true' />
           </button>
           {mutation.isError && (
-            <p role='alert' className='text-accent-500 text-xs'>
+            <p role='alert' className='text-secondary text-xs'>
               {t('form.error')}
             </p>
           )}
@@ -315,7 +317,7 @@ export default function RolloutMap() {
       className='bg-primary-500 border-t border-white/10 px-4 py-16 md:py-24'
     >
       <div className='mx-auto flex max-w-6xl flex-col gap-10'>
-        <div className='flex flex-wrap items-end justify-between gap-8 border-b border-white/12 pb-8'>
+        <div className='flex flex-wrap items-end justify-between gap-8 border-b border-white/15 pb-8'>
           <div>
             <p className='text-[10px] font-medium tracking-[0.22em] text-white/50 uppercase'>
               {t('eyebrow')}
@@ -324,10 +326,7 @@ export default function RolloutMap() {
               id='rollout-heading'
               className='font-heading mt-3 max-w-[16ch] text-3xl leading-[1.05] text-white md:text-5xl'
             >
-              {t('headlineLead')}{' '}
-              <span className='from-accent-500 to-secondary bg-gradient-to-r bg-clip-text text-transparent'>
-                {t('headlineAccent')}
-              </span>
+              {t('headlineLead')} <span className='text-secondary'>{t('headlineAccent')}</span>
             </h2>
           </div>
 
@@ -369,25 +368,25 @@ export default function RolloutMap() {
         {/* ── International intent, deliberately a board and not a road ── */}
         <div className='mt-4 flex flex-col gap-4'>
           <h3 className='font-heading text-xl text-white md:text-2xl'>{t('board.title')}</h3>
-          <div className='overflow-x-auto rounded-lg border border-white/12'>
+          <div className='overflow-x-auto rounded-lg border border-white/15'>
             <table className='w-full min-w-[30rem] border-collapse text-sm'>
               <thead>
                 <tr>
                   <th
                     scope='col'
-                    className='border-b border-white/12 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
                   >
                     {t('board.destination')}
                   </th>
                   <th
                     scope='col'
-                    className='border-b border-white/12 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
                   >
                     {t('board.market')}
                   </th>
                   <th
                     scope='col'
-                    className='border-b border-white/12 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
                   >
                     {t('board.status')}
                   </th>

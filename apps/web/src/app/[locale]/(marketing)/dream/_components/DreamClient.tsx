@@ -16,7 +16,7 @@ function ProofRow() {
   const { data } = usePublicImpact();
 
   const value = (key: (typeof PROOF)[number]): string => {
-    if (!data) return '—';
+    if (!data) return '-';
     if (key === 'bags') return data.bagsRescued.toLocaleString();
     if (key === 'meals') return data.mealsRescued.toLocaleString();
     return `${data.carbonAvoidedKg.toLocaleString()} kg`;
@@ -49,7 +49,7 @@ export default function DreamClient() {
         className='relative overflow-hidden px-4 py-20 md:py-28'
         aria-labelledby='dream-heading'
       >
-        {/* Two soft lights behind the type — the only decoration on the page,
+        {/* Two soft lights behind the type - the only decoration on the page,
             so the headline does the work rather than a gradient wash. */}
         <div
           aria-hidden='true'
@@ -57,7 +57,7 @@ export default function DreamClient() {
         />
         <div
           aria-hidden='true'
-          className='dream-glow bg-accent-500/15 pointer-events-none absolute -bottom-40 end-1/4 size-[30rem] rounded-full blur-[130px]'
+          className='dream-glow bg-secondary/10 pointer-events-none absolute -bottom-40 end-1/4 size-[30rem] rounded-full blur-[130px]'
         />
 
         <div className='relative mx-auto flex max-w-4xl flex-col items-center gap-7 text-center'>
@@ -75,10 +75,7 @@ export default function DreamClient() {
               textWrap: 'balance',
             }}
           >
-            {t('headlineLead')}{' '}
-            <span className='from-accent-500 to-secondary bg-gradient-to-r bg-clip-text text-transparent'>
-              {t('headlineAccent')}
-            </span>
+            {t('headlineLead')} <span className='text-secondary'>{t('headlineAccent')}</span>
           </h1>
 
           <p className='dream-rise d2 max-w-2xl text-base leading-relaxed text-white/75 md:text-lg'>
@@ -88,7 +85,7 @@ export default function DreamClient() {
           <div className='dream-rise d3 flex flex-col gap-3 sm:flex-row'>
             <Link
               href='/business-signup'
-              className='from-accent-500 to-secondary text-primary-500 rounded-full bg-gradient-to-r px-8 py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
+              className='bg-secondary text-primary-500 rounded-full px-8 py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
             >
               {t('cta.primary')}
             </Link>
@@ -174,7 +171,7 @@ export default function DreamClient() {
           <p className='max-w-xl text-base leading-relaxed text-white/70'>{t('close.body')}</p>
           <Link
             href='/business-signup'
-            className='from-accent-500 to-secondary text-primary-500 rounded-full bg-gradient-to-r px-8 py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
+            className='bg-secondary text-primary-500 rounded-full px-8 py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
           >
             {t('close.cta')}
           </Link>

@@ -18,7 +18,7 @@ interface PageProps {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Parcless Bag — Transformez vos surplus en revenus | Too Fresh To Waste',
+    title: 'Parcless Bag - Transformez vos surplus en revenus | Too Fresh To Waste',
     description:
       'Le Parcless Bag transforme vos invendus et surplus de production en revenus réels, tout en réduisant votre empreinte environnementale et en nourrissant des familles tunisiennes.',
   };
