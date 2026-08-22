@@ -177,6 +177,14 @@ describe('PublicService — against a real MongoDB', () => {
         center: { latitude: 35.7, longitude: 10.8 },
       },
       {
+        name: 'Gabes',
+        displayName: 'Gabès',
+        status: GeozoneStatus.COMING_SOON,
+        foundingTarget: 0,
+        boundary: square(10.0, 33.8),
+        center: { latitude: 33.88, longitude: 10.09 },
+      },
+      {
         name: 'Mahdia',
         displayName: 'Mahdia',
         status: GeozoneStatus.INACTIVE,
@@ -262,7 +270,22 @@ describe('PublicService — against a real MongoDB', () => {
 
     it('puts the live city first and the unlocking one second', async () => {
       const zones = await service.getZones();
-      expect(zones.map(z => z.name)).toEqual(['Sousse', 'Monastir']);
+
+      // Gabès is announced with no campaign and sorts before Monastir by name.
+      // The city carrying a founding target is the one opening next, so it has
+      // to come second regardless — this ordering shipped wrong once, with the
+      // panel claiming Gabès was next and showing no meter.
+      expect(zones.map(z => z.name)).toEqual(['Sousse', 'Monastir', 'Gabes']);
+    });
+
+    it('ranks announced cities without a campaign by demand', async () => {
+      await service.joinWaitlist('demand@example.tn', 'Gabes', WaitlistAudience.CONSUMER);
+
+      const zones = await service.getZones();
+      const gabes = zones.find(z => z.name === 'Gabes');
+      expect(gabes?.peopleWaiting).toBe(1);
+      // Still third: a waiting count never overtakes the city with the campaign.
+      expect(zones.map(z => z.name)).toEqual(['Sousse', 'Monastir', 'Gabes']);
     });
 
     it('carries the unlock counter for the city opening next', async () => {

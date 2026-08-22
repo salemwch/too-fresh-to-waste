@@ -156,9 +156,21 @@ export class PublicService {
       [GeozoneStatus.INACTIVE]: 2,
     };
 
+    /**
+     * A founding target is the unlock campaign, so the city carrying one is the
+     * city opening next and must sort above the merely announced ones.
+     *
+     * Without this the announced cities were separated only by their waiting
+     * counts, which are all zero on the day a rollout is published — so the
+     * name tiebreaker decided, and the city actually opening next appeared
+     * fourth while alphabetical luck took the panel.
+     */
+    const campaigning = (zone: PublicZone): number => (zone.foundingTarget > 0 ? 0 : 1);
+
     return mapped.sort(
       (a, b) =>
         rank[a.status] - rank[b.status] ||
+        campaigning(a) - campaigning(b) ||
         b.peopleWaiting - a.peopleWaiting ||
         a.displayName.localeCompare(b.displayName),
     );
