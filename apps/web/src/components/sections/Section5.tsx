@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { BedDouble, Bike, Dumbbell, Gift, Smartphone, Ticket } from 'lucide-react';
 import Image from 'next/image';
 
 interface FAQ {
@@ -134,54 +135,23 @@ export default function Section5() {
                         <div className='text-slate-700 text-sm md:text-base leading-relaxed space-y-3'>
                           {(() => {
                             const items = faq.answer.split('\n').filter(item => item.trim());
-                            const icons = [
-                              <svg
-                                key='bag'
-                                className='w-5 h-5 flex-shrink-0 mt-0.5 text-primary-500'
-                                fill='currentColor'
-                                viewBox='0 0 24 24'
-                              >
-                                <path d='M18 6H16C16 3.79 14.21 2 12 2C9.79 2 8 3.79 8 6H6C4.9 6 4 6.9 4 8V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8C20 6.9 19.1 6 18 6ZM12 4C13.1 4 14 4.9 14 6H10C10 4.9 10.9 4 12 4ZM18 20H6V8H8V10C8 10.55 8.45 11 9 11C9.55 11 10 10.55 10 10V8H14V10C14 10.55 14.45 11 15 11C15.55 11 16 10.55 16 10V8H18V20Z' />
-                              </svg>,
-                              <svg
-                                key='people'
-                                className='w-5 h-5 flex-shrink-0 mt-0.5 text-primary-500'
-                                fill='currentColor'
-                                viewBox='0 0 24 24'
-                              >
-                                <path d='M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11ZM8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11ZM8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13ZM16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z' />
-                              </svg>,
-                              <svg
-                                key='star'
-                                className='w-5 h-5 flex-shrink-0 mt-0.5 text-primary-500'
-                                fill='currentColor'
-                                viewBox='0 0 24 24'
-                              >
-                                <path d='M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z' />
-                              </svg>,
-                              <svg
-                                key='refresh'
-                                className='w-5 h-5 flex-shrink-0 mt-0.5 text-primary-500'
-                                fill='currentColor'
-                                viewBox='0 0 24 24'
-                              >
-                                <path d='M12 6V9L16 5L12 1V4C7.58 4 4 7.58 4 12C4 13.57 4.46 15.03 5.24 16.26L6.7 14.8C6.25 13.97 6 13 6 12C6 8.69 8.69 6 12 6ZM18.76 7.74L17.3 9.2C17.74 10.04 18 11 18 12C18 15.31 15.31 18 12 18V15L8 19L12 23V20C16.42 20 20 16.42 20 12C20 10.43 19.54 8.97 18.76 7.74Z' />
-                              </svg>,
-                              <svg
-                                key='calendar'
-                                className='w-5 h-5 flex-shrink-0 mt-0.5 text-primary-500'
-                                fill='currentColor'
-                                viewBox='0 0 24 24'
-                              >
-                                <path d='M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V10H19V20ZM19 8H5V6H19V8ZM12 13H17V18H12V13Z' />
-                              </svg>,
-                            ];
-                            return items.map((item, idx) => (
-                              <div key={idx} className='flex items-center gap-3'>
-                                {icons[idx]}
-                                <span className='flex-1'>{item}</span>
-                              </div>
-                            ));
+                            // One icon per prize, in the order the answer
+                            // lists them. Falling back to Gift means a prize
+                            // added to the copy without an icon still renders.
+                            const icons = [BedDouble, Bike, Dumbbell, Smartphone, Ticket];
+                            return items.map((item, idx) => {
+                              const Icon = icons[idx] ?? Gift;
+                              return (
+                                <div key={idx} className='flex items-center gap-3'>
+                                  <Icon
+                                    className='text-primary-500 mt-0.5 h-5 w-5 flex-shrink-0'
+                                    strokeWidth={1.75}
+                                    aria-hidden='true'
+                                  />
+                                  <span className='flex-1'>{item}</span>
+                                </div>
+                              );
+                            });
                           })()}
                         </div>
                       ) : (

@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { Trophy } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 /**
@@ -89,13 +90,13 @@ export default function Section3Animated() {
 
           {/* Row 2, Col 1: Get Rewards */}
           <div className='flex flex-col items-end text-right w-[320px]'>
-            <Image
-              src='/images/reward.png'
-              alt='Rewards'
-              width={60}
-              height={60}
-              className='mb-3'
-              loading='lazy'
+            {/* A trophy rather than a gift box: this benefit is about winning
+                the Big Prize, and a wrapped present read as a giveaway. Drawn
+                rather than a raster asset so it stays sharp at any density. */}
+            <Trophy
+              className='text-secondary mb-3 h-[60px] w-[60px]'
+              strokeWidth={1.5}
+              aria-hidden='true'
             />
             <p
               className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
@@ -166,13 +167,10 @@ export default function Section3Animated() {
 
             {/* 3. Get Rewards */}
             <div className='flex flex-col items-center text-center px-2'>
-              <Image
-                src='/images/reward.png'
-                alt='Rewards'
-                width={50}
-                height={50}
-                className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'
-                loading='lazy'
+              <Trophy
+                className='text-secondary mb-2 h-12 w-12'
+                strokeWidth={1.5}
+                aria-hidden='true'
               />
               <p
                 className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
