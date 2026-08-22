@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import { ArrowRight, Radio, TrendingUp, Users } from 'lucide-react';
 
 import { usePublicImpact, usePublicZones, useJoinWaitlist } from '@/hooks/use-public';
-import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import type { PublicZone } from '@/types/public';
 
@@ -281,7 +280,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
  * waiting for it. That ranking is the point — a single sign-up can move the
  * list — so the client must not impose an order of its own.
  */
-export default function RolloutMap({ showStoryLink = false }: { showStoryLink?: boolean } = {}) {
+export default function RolloutMap() {
   const t = useTranslations('rollout');
   const { data: zones, isLoading, isError } = usePublicZones();
   const { data: impact } = usePublicImpact();
@@ -421,15 +420,6 @@ export default function RolloutMap({ showStoryLink = false }: { showStoryLink?: 
             </table>
           </div>
           <p className='max-w-2xl text-sm text-white/55 italic'>{t('board.closing')}</p>
-          {showStoryLink && (
-            <Link
-              href='/dream'
-              className='text-secondary hover:text-secondary/80 inline-flex w-fit items-center gap-1.5 text-sm font-semibold underline underline-offset-4'
-            >
-              {t('board.storyLink')}
-              <ArrowRight className='size-4 shrink-0 rtl:rotate-180' aria-hidden='true' />
-            </Link>
-          )}
         </div>
       </div>
     </section>

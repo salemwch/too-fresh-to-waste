@@ -45,6 +45,7 @@
   "header": {
     "nav": {
       "theApp": "Consommateur",
+      "ourPath": "Notre chemin",
       "whyChooseUs": "À propos",
       "businessSolution": "Entreprise",
       "enterprise": "Sociétés",
@@ -237,7 +238,6 @@
           "market": "Golfe"
         }
       },
-      "storyLink": "Lire toute l’histoire",
       "closing": "On jette de la nourriture dans toutes les villes du monde. Nous avons commencé par la nôtre."
     }
   },

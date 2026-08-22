@@ -79,6 +79,10 @@ export default function Header() {
       href: '/consumer',
     },
     {
+      label: t('nav.ourPath'),
+      href: '/dream',
+    },
+    {
       label: t('nav.businessSolution'),
       href: isHomePage ? '#faq' : '/#faq',
       dropdown: [

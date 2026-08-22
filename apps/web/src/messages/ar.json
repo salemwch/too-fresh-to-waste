@@ -45,6 +45,7 @@
   "header": {
     "nav": {
       "theApp": "المستهلك",
+      "ourPath": "مسارنا",
       "whyChooseUs": "حول",
       "businessSolution": "أعمال",
       "enterprise": "شركات",
@@ -237,7 +238,6 @@
           "market": "الخليج"
         }
       },
-      "storyLink": "اقرأ القصة كاملة",
       "closing": "يُرمى الطعام في كل مدينة على وجه الأرض. بدأنا بمدينتنا."
     }
   },

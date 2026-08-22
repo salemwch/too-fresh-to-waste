@@ -45,6 +45,7 @@
   "header": {
     "nav": {
       "theApp": "Consumer",
+      "ourPath": "Our Path",
       "whyChooseUs": "About",
       "businessSolution": "Business",
       "enterprise": "Companies",
@@ -237,7 +238,6 @@
           "market": "Gulf"
         }
       },
-      "storyLink": "Read the whole story",
       "closing": "Food is thrown away in every city on earth. We started with ours."
     }
   },
