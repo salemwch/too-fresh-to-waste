@@ -38,7 +38,8 @@ text-4xl = 32px  |  text-5xl = 36px |  text-6xl = 42px   |  text-7xl = 48px
 ```
 
 - Body: `font-sans` (Inter)
-- Headings/brand: `font-heading` (Korolev) — use sparingly, marketing only
+- Headings/brand: `font-heading` (Playfair Display) - the only display face on
+  marketing. See "One accent, one display face" below.
 - Mono: `font-mono`
 
 ### Border Radius
@@ -85,6 +86,35 @@ table, command, popover.
 - `alt` on all `<img>` / `<Image>` tags
 
 ---
+
+### Banned decorations
+
+These read as templated and are not used anywhere on the site:
+
+- **A hairline rule beside a label.** The
+  `<span className="h-px w-10 …" /> EYEBROW` pattern appeared on eight marketing
+  pages in four spellings. A tracked-out, coloured label already reads as an
+  eyebrow; the rule adds nothing and made every page open the same way. Removed
+  2026-08-22. A hairline _under_ a card, or one joining two steps, is a
+  different device and is fine.
+- **Tinted radial glows behind content.** Absolutely positioned, aria-hidden
+  divs carrying a coloured `radial-gradient`. They gave the brand green a yellow
+  cast on one page and a coral cast on the next. Backgrounds stay flat
+  `primary-500`. Gradients that carry meaning are fine: a drop shadow, a slider
+  track fill.
+- **The em dash `—`.** Use `-`. See `feedback_no_em_dash` in project memory.
+
+### One accent, one display face
+
+Gold (`secondary`, #FFA000) is the only accent. Coral (`accent-500`) is reserved
+for destructive and error states, never decoration - two accents made the
+rollout map read as a different product from the rest of the site.
+
+`font-heading` resolves to Playfair Display and is the only display face on
+marketing. It previously named Korolev, which is licensed and was never loaded,
+so those headings silently rendered in Verdana. If a heading font is named it
+must be in the `next/font` imports or have an `@font-face`; check before adding
+one.
 
 ## i18n & RTL (Arabic)
 

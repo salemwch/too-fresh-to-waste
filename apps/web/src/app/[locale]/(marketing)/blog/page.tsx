@@ -171,7 +171,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
         {/* ── HEADER ────────────────────────────────────────────────── */}
         <section className='mx-auto w-full max-w-[1400px] px-8 pt-14 pb-10 md:pt-20'>
           <p className='flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/60 mb-6'>
-            <span className='h-px w-10 bg-brand-coral' /> {ui.eyebrow}
+            {ui.eyebrow}
           </p>
           <div className='grid gap-8 md:grid-cols-12'>
             <h1 className='md:col-span-6 font-heading text-6xl font-light leading-[0.92] md:text-7xl'>

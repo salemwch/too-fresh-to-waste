@@ -452,11 +452,6 @@ export default async function ESGPage({ params }: PageProps) {
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-20 items-center'>
               {/* Left - copy */}
               <div className='pb-16 lg:pb-24'>
-                <div className='inline-flex items-center gap-2 bg-brand-coral/20 border border-brand-coral/40 text-brand-coral text-xs font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-7'>
-                  <ShieldIcon className='w-3.5 h-3.5' />
-                  For business leaders
-                </div>
-
                 <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
                   ESG is no longer <span className='text-brand-coral italic'>a choice.</span>
                   <br />

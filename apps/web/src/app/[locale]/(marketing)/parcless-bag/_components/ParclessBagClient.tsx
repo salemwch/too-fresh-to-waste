@@ -244,12 +244,6 @@ function HeroSection() {
         className='absolute bottom-11 left-9 lg:left-16 flex items-center gap-3'
         style={{ opacity: 0, animation: 'fadeUp 1s ease forwards 1.4s' }}
       >
-        <div className='w-10 h-px bg-[rgba(127,168,150,0.4)] relative overflow-hidden'>
-          <span
-            className='absolute inset-y-0 left-0 w-full bg-secondary'
-            style={{ animation: 'slideLight 2.2s ease-in-out infinite' }}
-          />
-        </div>
         <span className='text-[0.62rem] tracking-[0.22em] uppercase text-[#7FA896]'>
           {t('scrollHint')}
         </span>

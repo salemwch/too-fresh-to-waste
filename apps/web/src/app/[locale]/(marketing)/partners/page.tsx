@@ -141,7 +141,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
           <div className='mx-auto w-full max-w-[1400px] px-8 py-14 md:py-20 grid gap-12 md:grid-cols-12 items-center'>
             <div className='md:col-span-7'>
               <p className='mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/60'>
-                <span className='h-px w-10 bg-brand-coral' /> Partner Programme
+                Partner Programme
               </p>
               <h1 className='font-heading text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
                 Turn surplus

@@ -213,8 +213,7 @@ export default function MissionDrivenPage() {
 
           <div className='relative mx-auto max-w-5xl px-6 lg:px-8 py-20 lg:py-32'>
             {/* Eyebrow */}
-            <div className='flex items-center gap-3 mb-10'>
-              <div className='h-px w-12 bg-brand-coral' aria-hidden='true' />
+            <div className='mb-10'>
               <span className='text-brand-coral text-xs font-black uppercase tracking-[0.35em]'>
                 Mission Driven
               </span>
@@ -240,8 +239,7 @@ export default function MissionDrivenPage() {
             </div>
 
             {/* Scroll cue */}
-            <div className='mt-14 flex items-center gap-3'>
-              <div className='h-px w-8 bg-white/20' aria-hidden='true' />
+            <div className='mt-14'>
               <p className='text-white/25 text-xs uppercase tracking-widest'>Read the manifesto</p>
             </div>
           </div>

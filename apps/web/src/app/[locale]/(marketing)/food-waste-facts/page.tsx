@@ -161,7 +161,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
             {/* Left copy */}
             <div className='md:col-span-7 animate-rise'>
               <p className='mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/60'>
-                <span className='h-px w-10 bg-brand-coral' /> A report on what we throw away
+                A report on what we throw away
               </p>
               <h1 className='font-heading text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
                 We grow enough food
