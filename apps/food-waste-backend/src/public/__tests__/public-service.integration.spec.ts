@@ -107,6 +107,8 @@ describe('PublicService — against a real MongoDB', () => {
   const monastirEst = oid();
   const unapprovedEst = oid();
   const outsideEst = oid();
+  /** Deliberately never inserted into `establishments`. */
+  const deletedEst = oid();
 
   beforeAll(async () => {
     connection = mongoose.createConnection(MONGO_URI, {
@@ -179,6 +181,10 @@ describe('PublicService — against a real MongoDB', () => {
       order(sousseEst, OrderStatus.COMPLETED, 3),
       // Monastir: 2 delivered.
       order(monastirEst, OrderStatus.DELIVERED, 2),
+      // Its establishment does not exist. On live data this class of row was 56%
+      // of the public bag total, left behind when merchant records were cleaned
+      // up, so it must count towards nothing at all.
+      order(deletedEst, OrderStatus.PICKED_UP, 500),
       // Inside Sousse but unapproved, and outside every zone: both count towards
       // the platform total and towards no city.
       order(unapprovedEst, OrderStatus.PICKED_UP, 7),
@@ -256,6 +262,12 @@ describe('PublicService — against a real MongoDB', () => {
   afterEach(() => cache.store.clear());
 
   describe('impact totals', () => {
+    it('ignores orders whose establishment has been deleted', async () => {
+      // The orphaned order carries 500 bags precisely so its inclusion could not
+      // be mistaken for anything else.
+      expect((await service.getImpact()).bagsRescued).toBe(21);
+    });
+
     it('counts only bags that actually reached a person', async () => {
       const impact = await service.getImpact();
       // 5 + 3 + 2 inside zones, plus 7 unapproved and 4 outside every zone. The

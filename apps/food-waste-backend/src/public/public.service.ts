@@ -73,8 +73,31 @@ export class PublicService {
   }
 
   private async computeImpact(): Promise<PublicImpact> {
+    /**
+     * Rescued bags, excluding orders whose establishment has been deleted.
+     *
+     * Without the join this counted every fulfilled order ever written, and on
+     * live data 47 of 141 orders pointed at establishments that no longer
+     * exist — 868 of 1550 bags, 56% of the headline figure, left behind by
+     * merchant records being cleaned up. A public number that is more than half
+     * orphaned rows is not a number worth publishing.
+     *
+     * Deliberately "still exists" rather than "is active": a merchant suspended
+     * this week did not un-rescue food they sold last month, and tying the
+     * figure to `status` would make it move every time an account is paused.
+     */
     const bagPipeline: PipelineStage[] = [
       { $match: { status: { $in: FULFILLED_STATUSES } } },
+      {
+        $lookup: {
+          from: 'establishments',
+          localField: 'establishmentId',
+          foreignField: '_id',
+          as: 'est',
+          pipeline: [{ $project: { _id: 1 } }],
+        },
+      },
+      { $match: { est: { $ne: [] } } },
       { $unwind: '$items' },
       { $group: { _id: null, bags: { $sum: '$items.quantity' } } },
     ];
