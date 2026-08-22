@@ -153,7 +153,7 @@ const mdxComponents = {
   // that from static analysis and reads as an empty heading.
   h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h2
-      className='font-display text-3xl font-light mt-12 mb-5 text-brand-deep leading-snug'
+      className='font-heading text-3xl font-light mt-12 mb-5 text-brand-deep leading-snug'
       {...props}
     >
       {children}
@@ -294,7 +294,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
           </div>
 
           {/* Title */}
-          <h1 className='font-display text-4xl font-light leading-[1.05] text-brand-deep md:text-5xl lg:text-6xl'>
+          <h1 className='font-heading text-4xl font-light leading-[1.05] text-brand-deep md:text-5xl lg:text-6xl'>
             {post.title}
           </h1>
 
@@ -347,7 +347,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
               <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 {ui.keepReading}
               </p>
-              <h2 className='font-display text-3xl font-light mb-8'>{ui.moreArticles}</h2>
+              <h2 className='font-heading text-3xl font-light mb-8'>{ui.moreArticles}</h2>
               <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
                 {related.map(p => (
                   <Link key={p.slug} href={`/blog/${p.slug}`} className='group block'>
@@ -362,7 +362,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
                           </span>
                         ))}
                       </div>
-                      <h3 className='font-display text-xl font-light leading-snug group-hover:text-brand-coral transition-colors'>
+                      <h3 className='font-heading text-xl font-light leading-snug group-hover:text-brand-coral transition-colors'>
                         {p.title}
                       </h3>
                       <p className='mt-2 text-sm text-brand-deep/55 line-clamp-2'>
@@ -385,7 +385,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
             <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-4'>
               {ui.ctaEyebrow}
             </p>
-            <h2 className='font-display text-3xl font-light md:text-4xl mb-5'>{ui.ctaHeadline}</h2>
+            <h2 className='font-heading text-3xl font-light md:text-4xl mb-5'>{ui.ctaHeadline}</h2>
             <p className='text-brand-cream/65 text-sm leading-relaxed mb-8 max-w-md mx-auto'>
               {ui.ctaBody}
             </p>

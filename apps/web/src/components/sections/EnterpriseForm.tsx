@@ -56,7 +56,7 @@ export function EnterpriseForm() {
         <p className='text-xs font-bold uppercase tracking-[0.2em] mb-2 text-accent-500'>
           {t('hero.eyebrow')}
         </p>
-        <h2 className='text-2xl md:text-3xl font-bold mb-2 font-playfair text-brand-dark'>
+        <h2 className='text-2xl md:text-3xl font-bold mb-2 font-heading text-brand-dark'>
           {t('form.title')}
         </h2>
         <p className='text-sm mb-8 text-brand-dark/55'>{t('form.sub')}</p>

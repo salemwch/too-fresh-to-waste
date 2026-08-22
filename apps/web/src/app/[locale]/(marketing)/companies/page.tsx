@@ -11,7 +11,7 @@ const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['700', '800', '900'],
   display: 'swap',
-  variable: '--font-playfair',
+  variable: '--font-heading',
 });
 
 // ─── Animated counter ────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ function FrameworkCard({ item, index }: { item: FrameworkItem; index: number }) 
         {item.code}
       </span>
 
-      <h3 className='font-bold text-base mb-2 text-brand-teal font-playfair'>{item.title}</h3>
+      <h3 className='font-bold text-base mb-2 text-brand-teal font-heading'>{item.title}</h3>
       <p className='text-sm leading-relaxed text-brand-dark/60'>{item.body}</p>
     </motion.div>
   );
@@ -161,7 +161,7 @@ export default function CompaniesPage() {
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className='text-5xl md:text-6xl xl:text-7xl font-black leading-[1.05] tracking-tight mb-8 font-playfair text-brand-dark'
+              className='text-5xl md:text-6xl xl:text-7xl font-black leading-[1.05] tracking-tight mb-8 font-heading text-brand-dark'
             >
               {t('hero.headline')}
             </motion.h1>
@@ -185,7 +185,7 @@ export default function CompaniesPage() {
                   transition={{ duration: 0.5, delay: 0.35 + i * 0.1 }}
                   className='rounded-2xl p-4 md:p-5 bg-white border border-brand-teal/15 shadow-teal-sm'
                 >
-                  <p className='text-3xl md:text-4xl font-black mb-1 leading-none text-brand-teal font-playfair'>
+                  <p className='text-3xl md:text-4xl font-black mb-1 leading-none text-brand-teal font-heading'>
                     <Counter target={stat.value} />
                   </p>
                   <p className='text-xs leading-snug text-brand-dark/50'>{stat.label}</p>
@@ -227,7 +227,7 @@ export default function CompaniesPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className='text-3xl md:text-4xl font-black mb-5 font-playfair text-cream'
+            className='text-3xl md:text-4xl font-black mb-5 font-heading text-cream'
           >
             {t('urgency.title')}
           </motion.h2>
@@ -256,7 +256,7 @@ export default function CompaniesPage() {
             <p className='text-xs font-black tracking-[0.2em] uppercase mb-3 text-accent-500'>
               {t('frameworks.eyebrow')}
             </p>
-            <h2 className='text-4xl md:text-5xl font-black font-playfair text-brand-dark'>
+            <h2 className='text-4xl md:text-5xl font-black font-heading text-brand-dark'>
               {t('frameworks.title')}
             </h2>
           </motion.div>
@@ -273,7 +273,7 @@ export default function CompaniesPage() {
       <section className='py-24 px-6 relative overflow-hidden bg-cream'>
         {/* Large watermark */}
         <p
-          className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10rem] md:text-[16rem] font-black pointer-events-none select-none whitespace-nowrap font-playfair leading-none text-brand-teal/[.04]'
+          className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10rem] md:text-[16rem] font-black pointer-events-none select-none whitespace-nowrap font-heading leading-none text-brand-teal/[.04]'
           aria-hidden='true'
         >
           IMPACT
@@ -290,7 +290,7 @@ export default function CompaniesPage() {
             <p className='text-xs font-black tracking-[0.2em] uppercase mb-3 text-brand-teal'>
               {t('employee.eyebrow')}
             </p>
-            <h2 className='text-4xl md:text-5xl font-black font-playfair text-brand-dark'>
+            <h2 className='text-4xl md:text-5xl font-black font-heading text-brand-dark'>
               {t('employee.title')}
             </h2>
           </motion.div>
@@ -309,7 +309,7 @@ export default function CompaniesPage() {
                   {employeeIcons[i]}
                 </div>
                 <div>
-                  <h3 className='font-bold text-lg mb-2 text-brand-dark font-playfair'>
+                  <h3 className='font-bold text-lg mb-2 text-brand-dark font-heading'>
                     {point.title}
                   </h3>
                   <p className='text-sm leading-relaxed text-brand-dark/60'>{point.body}</p>
@@ -339,7 +339,7 @@ export default function CompaniesPage() {
             <p className='text-xs font-black tracking-[0.2em] uppercase mb-4 text-cream/55'>
               {t('form.ctaEyebrow')}
             </p>
-            <h2 className='text-4xl md:text-5xl font-black leading-tight mb-6 font-playfair text-cream'>
+            <h2 className='text-4xl md:text-5xl font-black leading-tight mb-6 font-heading text-cream'>
               {t('form.title')}.
               <br />
               <span className='text-cream/65'>{t('form.ctaSubheadline')}</span>

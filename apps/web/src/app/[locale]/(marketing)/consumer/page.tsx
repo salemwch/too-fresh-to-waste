@@ -245,27 +245,13 @@ export default async function ConsumerPage({ params }: PageProps) {
         {/* ── HERO ─────────────────────────────────────────────────────────── */}
         <section className='bg-primary-500 relative overflow-hidden'>
           {/* Decorative radial glows */}
-          <div
-            className='absolute -top-24 -right-24 w-96 h-96 rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(255,121,115,0.18) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
-          <div
-            className='absolute -bottom-16 -left-16 w-64 h-64 rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(255,160,0,0.12) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-12 pb-0 lg:pt-16'>
             <div className='grid lg:grid-cols-2 gap-10 lg:gap-16 items-center'>
               {/* Left - copy */}
               <div className='pb-10 lg:pb-16'>
                 {/* Eyebrow */}
-                <h1 className='font-playfair text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
+                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
                   Great Food. <span className='text-brand-coral italic'>Lower Price.</span> Better
                   World.
                 </h1>
@@ -313,14 +299,6 @@ export default async function ConsumerPage({ params }: PageProps) {
 
               {/* Right - PickUpToday illustration */}
               <div className='flex justify-center lg:justify-end items-end relative'>
-                <div
-                  className='absolute inset-0 pointer-events-none'
-                  style={{
-                    background:
-                      'radial-gradient(ellipse at center bottom, rgba(255,121,115,0.15) 0%, transparent 65%)',
-                  }}
-                  aria-hidden='true'
-                />
                 <Image
                   src='/images/PickUpToday.svg'
                   alt='Pick up today - fresh food bags available near you'
@@ -384,7 +362,7 @@ export default async function ConsumerPage({ params }: PageProps) {
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-2'>
                 Why consumers love it
               </p>
-              <h2 className='font-playfair text-3xl lg:text-4xl font-bold text-primary-500'>
+              <h2 className='font-heading text-3xl lg:text-4xl font-bold text-primary-500'>
                 Three reasons to open the app right now.
               </h2>
             </div>
@@ -418,7 +396,7 @@ export default async function ConsumerPage({ params }: PageProps) {
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Simple as 1-2-3
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
                 From browse to bite <span className='text-brand-coral italic'>in minutes.</span>
               </h2>
             </div>
@@ -433,7 +411,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                   <div
                     className={`w-14 h-14 rounded-2xl ${step.colorClass} flex items-center justify-center mb-5 shadow-md`}
                   >
-                    <span className='text-white font-black text-xl font-playfair'>{step.n}</span>
+                    <span className='text-white font-black text-xl font-heading'>{step.n}</span>
                   </div>
 
                   {/* Icon */}
@@ -491,13 +469,6 @@ export default async function ConsumerPage({ params }: PageProps) {
           </div>
 
           {/* Glow */}
-          <div
-            className='absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(255,160,0,0.1) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-10'>
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
@@ -506,7 +477,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-4'>
                   Save More
                 </p>
-                <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-white leading-tight mb-5'>
+                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white leading-tight mb-5'>
                   Why pay full price for unsold food that&apos;s still delicious?
                 </h2>
                 <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-7'>
@@ -562,7 +533,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                       <p className='relative text-white/40 text-[10px] uppercase tracking-[0.3em] mb-1'>
                         Too Fresh To Waste
                       </p>
-                      <p className='relative font-playfair text-2xl font-bold text-white mb-1'>
+                      <p className='relative font-heading text-2xl font-bold text-white mb-1'>
                         Surprise Bag
                       </p>
                       <p className='relative text-white/55 text-sm'>Mystery selection inside</p>
@@ -586,9 +557,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                       <p className='text-secondary-dark text-[10px] uppercase tracking-widest font-bold mb-1'>
                         You save
                       </p>
-                      <p className='text-secondary-dark text-3xl font-black font-playfair'>
-                        20 TND
-                      </p>
+                      <p className='text-secondary-dark text-3xl font-black font-heading'>20 TND</p>
                       <p className='text-secondary-dark/60 text-xs mt-1'>on every bag</p>
                     </div>
                   </div>
@@ -623,7 +592,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                   <p className='text-xs font-bold uppercase tracking-widest text-primary-500/50 mb-2'>
                     Global food waste
                   </p>
-                  <p className='font-playfair text-7xl font-bold text-primary-500 leading-none mb-2'>
+                  <p className='font-heading text-7xl font-bold text-primary-500 leading-none mb-2'>
                     1/3
                   </p>
                   <p className='text-primary-500/60 text-base leading-relaxed'>
@@ -664,7 +633,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-4'>
                   Your Impact
                 </p>
-                <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-5'>
+                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-5'>
                   Your lunch break can{' '}
                   <span className='text-brand-coral italic'>change something real.</span>
                 </h2>
@@ -724,7 +693,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-4'>
                   Referral Program
                 </p>
-                <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-5'>
+                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-5'>
                   Share the link. <span className='text-brand-coral italic'>Both win.</span>
                 </h2>
                 <p className='text-primary-500/65 text-base lg:text-lg leading-relaxed mb-6'>
@@ -767,14 +736,6 @@ export default async function ConsumerPage({ params }: PageProps) {
                   {/* Card */}
                   <div className='bg-cream rounded-3xl p-6 border-2 border-dashed border-primary-500/20 relative overflow-hidden'>
                     {/* Glow top-right */}
-                    <div
-                      className='absolute -top-6 -right-6 w-32 h-32 rounded-full pointer-events-none'
-                      style={{
-                        background:
-                          'radial-gradient(circle, rgba(255,121,115,0.15) 0%, transparent 70%)',
-                      }}
-                      aria-hidden='true'
-                    />
 
                     {/* Share row */}
                     <div className='flex items-center gap-3 mb-5'>
@@ -832,24 +793,12 @@ export default async function ConsumerPage({ params }: PageProps) {
           </div>
 
           {/* Decorative glows */}
-          <div
-            className='absolute top-0 right-0 w-96 h-96 rounded-full opacity-10 pointer-events-none'
-            style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)' }}
-            aria-hidden='true'
-          />
-          <div
-            className='absolute bottom-0 left-0 w-64 h-64 rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(30,68,72,0.25) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
 
           <div className='relative mx-auto max-w-3xl px-6 text-center pt-10'>
             <p className='text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-4'>
               Your next great meal is waiting
             </p>
-            <h2 className='font-playfair text-4xl lg:text-6xl font-bold text-white leading-tight mb-5'>
+            <h2 className='font-heading text-4xl lg:text-6xl font-bold text-white leading-tight mb-5'>
               Eat well. Spend less. <span className='text-secondary'>Win something.</span>
             </h2>
             <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-10 max-w-xl mx-auto'>

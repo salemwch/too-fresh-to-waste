@@ -49,17 +49,6 @@ export default function DreamClient() {
         className='relative overflow-hidden px-4 py-20 md:py-28'
         aria-labelledby='dream-heading'
       >
-        {/* Two soft lights behind the type - the only decoration on the page,
-            so the headline does the work rather than a gradient wash. */}
-        <div
-          aria-hidden='true'
-          className='dream-glow bg-secondary/20 pointer-events-none absolute -top-32 start-1/4 size-[28rem] rounded-full blur-[120px]'
-        />
-        <div
-          aria-hidden='true'
-          className='dream-glow bg-secondary/10 pointer-events-none absolute -bottom-40 end-1/4 size-[30rem] rounded-full blur-[130px]'
-        />
-
         <div className='relative mx-auto flex max-w-4xl flex-col items-center gap-7 text-center'>
           <p className='dream-rise text-[11px] font-medium tracking-[0.28em] text-white/50 uppercase'>
             {t('eyebrow')}

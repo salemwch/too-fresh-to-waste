@@ -307,16 +307,6 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
           <div className='absolute inset-0 bg-grain opacity-30' aria-hidden='true' />
 
           {/* Decorative circles */}
-          <div
-            className='absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full opacity-10'
-            style={{ background: 'radial-gradient(circle, #ff7973 0%, transparent 70%)' }}
-            aria-hidden='true'
-          />
-          <div
-            className='absolute -bottom-20 -left-20 w-72 h-72 rounded-full opacity-10'
-            style={{ background: 'radial-gradient(circle, #FFA000 0%, transparent 70%)' }}
-            aria-hidden='true'
-          />
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28'>
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
@@ -327,7 +317,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                   For Food Businesses
                 </p>
 
-                <h1 className='font-playfair text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
+                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
                   Make Profit From Your Surplus Food &amp; Grow As a Business With Our{' '}
                   <span className='text-brand-coral italic'>Marketing Strategies</span>
                 </h1>
@@ -384,7 +374,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                       <p className='relative text-white/40 text-[10px] uppercase tracking-[0.3em] mb-1'>
                         Too Fresh To Waste
                       </p>
-                      <p className='relative font-playfair text-3xl font-bold text-white mb-1'>
+                      <p className='relative font-heading text-3xl font-bold text-white mb-1'>
                         Surprise Bag
                       </p>
                       <p className='relative text-white/55 text-sm'>🛍️ Mystery selection inside</p>
@@ -492,7 +482,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                       <p className='text-white/50 text-[10px] uppercase tracking-widest mb-1'>
                         You earn per bag
                       </p>
-                      <p className='text-white text-3xl font-black font-playfair'>12 TND</p>
+                      <p className='text-white text-3xl font-black font-heading'>12 TND</p>
                       <p className='text-white/35 text-xs mt-1'>vs. 0 TND thrown away</p>
                     </div>
                   </div>
@@ -553,7 +543,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                 <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                   What is it?
                 </p>
-                <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-6'>
+                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-6'>
                   Your unsold food,{' '}
                   <span className='text-brand-coral italic'>someone else&apos;s treasure.</span>
                 </h2>
@@ -629,7 +619,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Simple as 1-2-3
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
                 How it works
               </h2>
             </div>
@@ -643,7 +633,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                   <div
                     className={`w-14 h-14 rounded-2xl ${step.colorClass} flex items-center justify-center mb-5 shadow-md`}
                   >
-                    <span className='text-white font-black text-xl font-playfair'>{step.n}</span>
+                    <span className='text-white font-black text-xl font-heading'>{step.n}</span>
                   </div>
                   <h3 className='font-bold text-lg text-primary-500 mb-3'>{step.title}</h3>
                   <p className='text-sm text-primary-500/65 leading-relaxed'>{step.body}</p>
@@ -660,7 +650,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Your potential
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-white mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white mb-4'>
                 Calculate your revenue.
               </h2>
               <p className='text-white/50 text-base max-w-xl mx-auto leading-relaxed'>
@@ -680,7 +670,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Why businesses join
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
                 More than just <span className='text-brand-coral italic'>less waste</span>.
               </h2>
             </div>
@@ -737,24 +727,11 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
 
         {/* ── CLOSING CTA ───────────────────────────────────────────── */}
         <section className='bg-brand-coral relative overflow-hidden py-20 lg:py-28'>
-          <div
-            className='absolute top-0 right-0 w-96 h-96 rounded-full opacity-10 pointer-events-none'
-            style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)' }}
-            aria-hidden='true'
-          />
-          <div
-            className='absolute bottom-0 left-0 w-64 h-64 rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(30,68,72,0.25) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
-
           <div className='relative mx-auto max-w-3xl px-6 text-center'>
             <p className='text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-4'>
               Limited early access
             </p>
-            <h2 className='font-playfair text-4xl lg:text-6xl font-bold text-white leading-tight mb-6'>
+            <h2 className='font-heading text-4xl lg:text-6xl font-bold text-white leading-tight mb-6'>
               Ready to turn waste into revenue?
             </h2>
             <p className='text-white/80 text-base lg:text-lg leading-relaxed mb-8 max-w-xl mx-auto'>

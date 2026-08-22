@@ -104,13 +104,13 @@ function Door({
       >
         <div className='flex items-center gap-6 lg:gap-10 min-w-0'>
           <span
-            className={`font-playfair text-sm font-bold tabular-nums transition-colors duration-500 shrink-0 ${hovered ? 'text-white/30' : 'text-primary-500/20'}`}
+            className={`font-heading text-sm font-bold tabular-nums transition-colors duration-500 shrink-0 ${hovered ? 'text-white/30' : 'text-primary-500/20'}`}
           >
             {num}
           </span>
           <div className='min-w-0'>
             <p
-              className={`font-playfair text-2xl lg:text-4xl font-bold leading-none transition-colors duration-500 ${hovered ? 'text-white' : 'text-primary-500'}`}
+              className={`font-heading text-2xl lg:text-4xl font-bold leading-none transition-colors duration-500 ${hovered ? 'text-white' : 'text-primary-500'}`}
             >
               {label}
             </p>
@@ -203,14 +203,6 @@ export default function MissionDrivenPage() {
         {/* ── MANIFESTO HERO ───────────────────────────────────────────────── */}
         <section className='bg-primary-500 relative overflow-hidden min-h-[85vh] flex flex-col justify-center'>
           {/* Subtle noise texture via radial layers */}
-          <div
-            className='absolute inset-0 pointer-events-none'
-            aria-hidden='true'
-            style={{
-              background:
-                'radial-gradient(ellipse at 20% 50%, rgba(255,121,115,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(255,160,0,0.05) 0%, transparent 45%)',
-            }}
-          />
           {/* Ghost text */}
           <p
             className='absolute bottom-0 right-0 text-[clamp(80px,14vw,180px)] font-black text-white/[0.03] select-none pointer-events-none leading-none tracking-tight whitespace-nowrap'
@@ -229,7 +221,7 @@ export default function MissionDrivenPage() {
             </div>
 
             {/* Main headline - stacked for maximum typographic impact */}
-            <h1 className='font-playfair font-bold text-white leading-[0.95] mb-0'>
+            <h1 className='font-heading font-bold text-white leading-[0.95] mb-0'>
               <span className='block text-[clamp(42px,8vw,96px)]'>We did not</span>
               <span className='block text-[clamp(42px,8vw,96px)] text-brand-coral italic'>
                 start a business.
@@ -263,7 +255,7 @@ export default function MissionDrivenPage() {
             </p>
 
             <div className='space-y-6 text-primary-500'>
-              <p className='font-playfair text-2xl lg:text-3xl font-bold leading-snug'>
+              <p className='font-heading text-2xl lg:text-3xl font-bold leading-snug'>
                 It was 10:47 pm in Tunis. A bakery was closing. The owner loaded unsold bread into a
                 black bin bag and set it by the door.
               </p>
@@ -289,7 +281,7 @@ export default function MissionDrivenPage() {
 
             {/* Pull quote */}
             <div className='mt-12 border-l-4 border-brand-coral pl-7'>
-              <p className='font-playfair text-xl lg:text-2xl font-bold text-primary-500 italic leading-snug'>
+              <p className='font-heading text-xl lg:text-2xl font-bold text-primary-500 italic leading-snug'>
                 &ldquo;We are not solving a business problem. We are solving a civilisational one -
                 one bag at a time.&rdquo;
               </p>
@@ -305,7 +297,7 @@ export default function MissionDrivenPage() {
                 <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-5'>
                   What we actually mean
                 </p>
-                <h2 className='font-playfair text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-500 leading-tight'>
+                <h2 className='font-heading text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-500 leading-tight'>
                   &ldquo;Mission-driven&rdquo; is a claim.
                   <br />
                   <span className='text-brand-coral italic'>Here is the proof.</span>
@@ -349,7 +341,7 @@ export default function MissionDrivenPage() {
                     className='bg-white rounded-3xl p-7 border border-primary-500/8 hover:border-primary-500/20 hover:shadow-md transition-all duration-300'
                   >
                     <div className='flex items-start gap-5'>
-                      <span className='font-playfair text-2xl font-bold text-primary-500/15 shrink-0 leading-none mt-0.5'>
+                      <span className='font-heading text-2xl font-bold text-primary-500/15 shrink-0 leading-none mt-0.5'>
                         {item.n}
                       </span>
                       <div>
@@ -373,7 +365,7 @@ export default function MissionDrivenPage() {
               <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-4'>
                 Radical honesty
               </p>
-              <h2 className='font-playfair text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-4'>
+              <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-4'>
                 The tensions we live with.
                 <br />
                 <span className='text-brand-coral italic'>Every single day.</span>
@@ -420,7 +412,7 @@ export default function MissionDrivenPage() {
               <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-4'>
                 Clarity over mass appeal
               </p>
-              <h2 className='font-playfair text-3xl lg:text-5xl font-bold text-primary-500 leading-tight'>
+              <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight'>
                 We draw a line.
               </h2>
             </div>
@@ -501,7 +493,7 @@ export default function MissionDrivenPage() {
             <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-4'>
               If this page felt like your own thoughts
             </p>
-            <h2 className='font-playfair text-3xl lg:text-5xl font-bold text-primary-500 leading-tight'>
+            <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight'>
               There is a door here for you.
             </h2>
           </div>
@@ -529,7 +521,7 @@ export default function MissionDrivenPage() {
 
           {/* Final line */}
           <div className='mx-auto max-w-5xl px-6 lg:px-8 pt-14 text-center'>
-            <p className='font-playfair text-lg lg:text-2xl text-primary-500/30 italic'>
+            <p className='font-heading text-lg lg:text-2xl text-primary-500/30 italic'>
               &ldquo;The planet does not need more companies that care about waste in their brand
               deck. It needs ones that care about it in their spreadsheets.&rdquo;
             </p>

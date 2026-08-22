@@ -90,7 +90,20 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        heading: ['Korolev', 'Verdana', 'Arial Black', 'Arial', 'sans-serif'],
+        /*
+         * One display face for the whole marketing site.
+         *
+         * This used to name Korolev, which is licensed and was never actually
+         * loaded - no @font-face, no file in public/fonts, not among the
+         * next/font imports - so every heading using it silently rendered in
+         * Verdana while other pages used a real serif. That is what made the
+         * site look like several sites.
+         *
+         * Noto Sans Arabic sits in the stack rather than behind a conditional:
+         * Playfair carries no Arabic glyphs, so the browser falls through per
+         * character and Arabic headings resolve correctly on their own.
+         */
+        heading: ['var(--font-playfair)', 'var(--font-noto-arabic)', 'Georgia', 'serif'],
         playfair: ['var(--font-playfair)', 'Georgia', 'serif'],
         display: ['var(--font-fraunces)', 'Georgia', 'serif'],
         mono: ['monospace'],

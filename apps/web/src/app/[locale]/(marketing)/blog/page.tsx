@@ -132,7 +132,7 @@ function PostCard({ post, loc }: { post: PostMeta; loc: Locale }) {
               </span>
             ))}
           </div>
-          <h2 className='font-display text-xl font-light leading-snug text-brand-deep group-hover:text-brand-coral transition-colors'>
+          <h2 className='font-heading text-xl font-light leading-snug text-brand-deep group-hover:text-brand-coral transition-colors'>
             {post.title}
           </h2>
           <p className='mt-3 text-sm leading-relaxed text-brand-deep/65 line-clamp-3'>
@@ -174,7 +174,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
             <span className='h-px w-10 bg-brand-coral' /> {ui.eyebrow}
           </p>
           <div className='grid gap-8 md:grid-cols-12'>
-            <h1 className='md:col-span-6 font-display text-6xl font-light leading-[0.92] md:text-7xl'>
+            <h1 className='md:col-span-6 font-heading text-6xl font-light leading-[0.92] md:text-7xl'>
               {ui.headingA} <em className='italic text-brand-coral'>{ui.headingEm}</em>.
             </h1>
             <p className='md:col-span-5 md:col-start-8 self-end text-lg leading-relaxed text-brand-deep/65'>
@@ -215,7 +215,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
                       </span>
                     ))}
                   </div>
-                  <h2 className='font-display text-3xl font-light leading-snug md:text-4xl group-hover:text-brand-coral transition-colors'>
+                  <h2 className='font-heading text-3xl font-light leading-snug md:text-4xl group-hover:text-brand-coral transition-colors'>
                     {featured.title}
                   </h2>
                   <p className='mt-4 text-sm leading-relaxed text-brand-deep/65 max-w-md'>

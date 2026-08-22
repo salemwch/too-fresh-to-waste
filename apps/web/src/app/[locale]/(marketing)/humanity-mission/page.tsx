@@ -171,7 +171,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             </p>
 
             {/* Headline */}
-            <h1 className='text-4xl md:text-6xl font-bold text-white leading-tight mb-5 font-playfair'>
+            <h1 className='text-4xl md:text-6xl font-bold text-white leading-tight mb-5 font-heading'>
               {t('hero.headline')}
             </h1>
 
@@ -212,23 +212,16 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             {/* The card */}
             <div className='bg-white rounded-3xl shadow-teal-form border border-brand-coral/10 p-8 md:p-10 relative overflow-hidden'>
               {/* Soft coral glow top-right */}
-              <div
-                className='absolute -top-10 -right-10 w-40 h-40 rounded-full pointer-events-none'
-                style={{
-                  background: 'radial-gradient(circle, rgba(255,121,115,0.12) 0%, transparent 70%)',
-                }}
-                aria-hidden='true'
-              />
 
               {/* Big 5% */}
               <div className='relative'>
                 <p
-                  className='text-8xl md:text-9xl font-bold font-playfair leading-none mb-2'
+                  className='text-8xl md:text-9xl font-bold font-heading leading-none mb-2'
                   style={{ color: '#ff7973' }}
                 >
                   {t('pledge.percent')}
                 </p>
-                <h2 className='text-2xl md:text-3xl font-bold text-primary-500 mb-4 font-playfair'>
+                <h2 className='text-2xl md:text-3xl font-bold text-primary-500 mb-4 font-heading'>
                   {t('pledge.headline')}
                 </h2>
                 <p className='text-sm md:text-base text-primary-500/70 leading-relaxed max-w-lg mx-auto'>
@@ -247,7 +240,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
               <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500 mb-2'>
                 {t('pillars.eyebrow')}
               </p>
-              <h2 className='text-3xl md:text-4xl font-bold text-primary-500 font-playfair'>
+              <h2 className='text-3xl md:text-4xl font-bold text-primary-500 font-heading'>
                 {t('pillars.headline')}
               </h2>
             </div>
@@ -306,7 +299,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-300 mb-3'>
               {t('partner.eyebrow')}
             </p>
-            <h2 className='text-3xl md:text-4xl font-bold text-white font-playfair mb-5'>
+            <h2 className='text-3xl md:text-4xl font-bold text-white font-heading mb-5'>
               {t('partner.headline')}
             </h2>
             <p className='text-sm md:text-base text-white/70 leading-relaxed mb-8 max-w-xl mx-auto'>

@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { useTranslations } from 'next-intl';
 
 // ── Constants ────────────────────────────────────────────────
-const SERIF: CSSProperties = { fontFamily: 'var(--font-cormorant)' };
+const SERIF: CSSProperties = { fontFamily: 'var(--font-heading)' };
 
 const ZELLIGE_LIGHT =
   "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23C4A35A' fill-opacity='0.045'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")";
@@ -347,12 +347,6 @@ function ConceptSection() {
           {t('badge')}
         </span>
         <div className='bg-primary rounded-[22px] p-11 relative overflow-hidden'>
-          <div
-            className='absolute -top-12 -right-12 w-[220px] h-[220px] rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(196,163,90,0.25) 0%, transparent 70%)',
-            }}
-          />
           <p className='text-secondary text-[0.62rem] tracking-[0.2em] uppercase mb-[18px]'>
             {t('statLabel')}
           </p>
@@ -563,15 +557,6 @@ function CTASection() {
 
   return (
     <section id='cta' className='bg-primary px-9 py-24 lg:px-20 relative overflow-hidden'>
-      <div
-        className='absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full pointer-events-none'
-        style={{ background: 'radial-gradient(circle, rgba(196,163,90,0.1) 0%, transparent 68%)' }}
-      />
-      <div
-        className='absolute -bottom-20 -left-20 w-[380px] h-[380px] rounded-full pointer-events-none'
-        style={{ background: 'radial-gradient(circle, rgba(61,107,92,0.18) 0%, transparent 68%)' }}
-      />
-
       <div className='max-w-[680px] relative z-10'>
         <p className='rv text-secondary text-[0.62rem] tracking-[0.26em] uppercase mb-[18px]'>
           {t('label')}

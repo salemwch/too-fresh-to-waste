@@ -333,7 +333,7 @@ function ApplicationForm() {
         <div className='w-20 h-20 rounded-full bg-primary-500/10 flex items-center justify-center'>
           <CheckCircleIcon className='w-10 h-10 text-primary-500' />
         </div>
-        <h3 className='font-playfair text-3xl font-bold text-primary-500'>Application received.</h3>
+        <h3 className='font-heading text-3xl font-bold text-primary-500'>Application received.</h3>
         <p className='text-primary-500/60 text-base max-w-md leading-relaxed'>
           Thank you for believing in our mission. We read every single application personally. If
           your vision aligns with ours, we will be in touch soon.
@@ -508,20 +508,6 @@ export default function CareersPage() {
         {/* ── HERO ─────────────────────────────────────────────────────────── */}
         <section className='bg-primary-500 relative overflow-hidden'>
           {/* Decorative glows */}
-          <div
-            className='absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(255,121,115,0.15) 0%, transparent 65%)',
-            }}
-            aria-hidden='true'
-          />
-          <div
-            className='absolute -bottom-20 -left-20 w-80 h-80 rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(255,160,0,0.1) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
 
           {/* Floating decorative numbers */}
           <div
@@ -544,7 +530,7 @@ export default function CareersPage() {
               We are hiring
             </div>
 
-            <h1 className='font-playfair text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight mb-6'>
+            <h1 className='font-heading text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight mb-6'>
               We are not just building <span className='text-brand-coral italic'>a startup.</span>
               <br />
               We are building <span className='text-brand-coral italic'>a movement.</span>
@@ -565,7 +551,7 @@ export default function CareersPage() {
                 { stat: '∞', label: 'Impact if we win' },
               ].map((item, i) => (
                 <div key={i} className='text-center'>
-                  <p className='font-playfair text-3xl lg:text-4xl font-bold text-white'>
+                  <p className='font-heading text-3xl lg:text-4xl font-bold text-white'>
                     {item.stat}
                   </p>
                   <p className='text-white/45 text-xs uppercase tracking-widest mt-1'>
@@ -595,7 +581,7 @@ export default function CareersPage() {
             <p className='text-xs font-bold uppercase tracking-[0.3em] text-brand-coral mb-6'>
               Our reason for existing
             </p>
-            <blockquote className='font-playfair text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-8'>
+            <blockquote className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-8'>
               &ldquo;A planet where no family goes to sleep hungry. Where no child grows up without
               an education. Where food feeds people, not landfills.&rdquo;
             </blockquote>
@@ -609,21 +595,12 @@ export default function CareersPage() {
 
         {/* ── VISION & EXPANSION ───────────────────────────────────────────── */}
         <section className='bg-cream py-16 lg:py-24 relative overflow-hidden'>
-          <div
-            className='absolute top-0 left-0 right-0 bottom-0 pointer-events-none'
-            style={{
-              background:
-                'radial-gradient(ellipse at 80% 50%, rgba(0,82,80,0.04) 0%, transparent 60%)',
-            }}
-            aria-hidden='true'
-          />
-
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='text-center mb-14'>
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Where we are going
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
                 Tunisia is <span className='text-brand-coral italic'>chapter one.</span>
               </h2>
               <p className='text-primary-500/55 text-base lg:text-lg mt-4 max-w-2xl mx-auto leading-relaxed'>
@@ -709,7 +686,7 @@ export default function CareersPage() {
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Open positions
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
                 Four seats at the table.{' '}
                 <span className='text-brand-coral italic'>One mission.</span>
               </h2>
@@ -752,7 +729,7 @@ export default function CareersPage() {
                     </div>
                   </div>
 
-                  <h3 className='font-playfair text-xl lg:text-2xl font-bold text-primary-500 mb-1 leading-snug'>
+                  <h3 className='font-heading text-xl lg:text-2xl font-bold text-primary-500 mb-1 leading-snug'>
                     {pos.role}
                   </h3>
                   <p className={`text-sm font-bold italic ${pos.accentText} mb-4`}>{pos.tagline}</p>
@@ -825,7 +802,7 @@ export default function CareersPage() {
 
           <div className='relative mx-auto max-w-5xl px-6 lg:px-8 pt-8 text-center'>
             <GlobeIcon className='w-10 h-10 text-brand-coral mx-auto mb-6' />
-            <h2 className='font-playfair text-3xl lg:text-5xl font-bold text-white mb-5 leading-tight'>
+            <h2 className='font-heading text-3xl lg:text-5xl font-bold text-white mb-5 leading-tight'>
               If you believe we can make a change -<br />
               <span className='text-brand-coral italic'>be part of the change.</span>
             </h2>
@@ -844,7 +821,7 @@ export default function CareersPage() {
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Ready to join us?
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
                 Tell us your story.
               </h2>
               <p className='text-primary-500/60 text-base leading-relaxed max-w-xl mx-auto'>

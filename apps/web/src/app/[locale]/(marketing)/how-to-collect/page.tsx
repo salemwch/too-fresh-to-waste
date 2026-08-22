@@ -133,7 +133,7 @@ export default async function HowToCollectPage({ params }: PageProps) {
             <div className='inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/70 text-[10px] font-bold uppercase tracking-[0.25em] px-4 py-2 rounded-full mb-6'>
               Step-by-step guide
             </div>
-            <h1 className='font-playfair text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
+            <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
               How to Collect a <span className='text-brand-coral italic'>Surprise Bag</span>
             </h1>
             <p className='text-white/65 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto'>
@@ -159,13 +159,13 @@ export default async function HowToCollectPage({ params }: PageProps) {
                   {/* LEFT - text */}
                   <div className='order-2 lg:order-1'>
                     <div className='flex items-center gap-3 mb-5'>
-                      <span className='flex items-center justify-center w-10 h-10 rounded-full bg-primary-500 text-white font-black text-sm font-playfair shrink-0'>
+                      <span className='flex items-center justify-center w-10 h-10 rounded-full bg-primary-500 text-white font-black text-sm font-heading shrink-0'>
                         {step.n}
                       </span>
                       <div className='h-px flex-1 bg-primary-500/10' />
                     </div>
 
-                    <h2 className='font-playfair text-2xl lg:text-3xl font-bold text-primary-500 leading-snug mb-4'>
+                    <h2 className='font-heading text-2xl lg:text-3xl font-bold text-primary-500 leading-snug mb-4'>
                       {step.title}
                     </h2>
 
@@ -208,14 +208,6 @@ export default async function HowToCollectPage({ params }: PageProps) {
                       style={{ background: 'hsl(174,72%,17%)' }}
                     >
                       {/* Subtle inner glow */}
-                      <div
-                        className='absolute inset-0 rounded-[2.5rem] pointer-events-none'
-                        style={{
-                          background:
-                            'radial-gradient(ellipse at 30% 20%, rgba(245,84,73,0.15) 0%, transparent 60%)',
-                        }}
-                        aria-hidden='true'
-                      />
                       <Image
                         src={step.image}
                         alt={step.alt}
@@ -235,7 +227,7 @@ export default async function HowToCollectPage({ params }: PageProps) {
         {/* ── CTA ──────────────────────────────────────────────────────── */}
         <section className='bg-primary-500 py-16 lg:py-20'>
           <div className='mx-auto max-w-2xl px-6 text-center'>
-            <h2 className='font-playfair text-3xl lg:text-4xl font-bold text-white mb-4'>
+            <h2 className='font-heading text-3xl lg:text-4xl font-bold text-white mb-4'>
               Ready to rescue your first bag?
             </h2>
             <p className='text-white/65 text-base leading-relaxed mb-8'>

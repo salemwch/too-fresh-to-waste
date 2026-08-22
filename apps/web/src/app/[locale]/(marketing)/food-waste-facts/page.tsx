@@ -163,7 +163,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
               <p className='mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/60'>
                 <span className='h-px w-10 bg-brand-coral' /> A report on what we throw away
               </p>
-              <h1 className='font-display text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
+              <h1 className='font-heading text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
                 We grow enough food
                 <span className='italic text-brand-coral'> to feed the world </span>- and then we
                 throw it out.
@@ -201,13 +201,13 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
                 />
                 <div className='absolute inset-0 bg-gradient-to-t from-brand-deep/60 via-transparent to-transparent' />
                 <div className='absolute bottom-6 left-6 right-6 text-brand-cream'>
-                  <p className='font-display text-3xl italic leading-tight'>
+                  <p className='font-heading text-3xl italic leading-tight'>
                     "A third of dinner ends up in the bin."
                   </p>
                 </div>
               </div>
               <div className='absolute -bottom-6 -left-6 hidden md:block bg-brand-coral text-brand-deep px-6 py-4 rotate-[-4deg] shadow-soft'>
-                <p className='font-display text-2xl font-medium'>est. 2025</p>
+                <p className='font-heading text-2xl font-medium'>est. 2025</p>
               </div>
             </div>
           </div>
@@ -216,7 +216,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
           <div className='border-y border-brand-deep/15 bg-brand-deep py-2 text-brand-cream overflow-hidden'>
             <div className='flex w-max animate-marquee-fw gap-12 whitespace-nowrap'>
               {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className='flex items-center gap-12 font-display text-2xl italic'>
+                <div key={i} className='flex items-center gap-12 font-heading text-2xl italic'>
                   <span>40% of all food wasted</span>
                   <span className='text-brand-coral'>●</span>
                   <span>10% of global emissions</span>
@@ -236,7 +236,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
           <div className='mb-8 grid gap-8 md:grid-cols-12'>
             <div className='md:col-span-4'>
               <p className='text-xs uppercase tracking-[0.25em] text-brand-coral'>Chapter I</p>
-              <h2 className='mt-3 font-display text-5xl font-light md:text-6xl'>
+              <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
                 The scale of it.
               </h2>
             </div>
@@ -253,7 +253,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
                 key={i}
                 className='bg-brand-cream p-8 transition-colors hover:bg-brand-coral group'
               >
-                <p className='font-display text-6xl font-light leading-none md:text-7xl'>
+                <p className='font-heading text-6xl font-light leading-none md:text-7xl'>
                   {s.value}
                 </p>
                 <div className='mt-6 h-px w-12 bg-brand-deep/40 group-hover:bg-brand-deep' />
@@ -274,7 +274,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
                 Chapter II
               </p>
               <div className='grid gap-8 md:grid-cols-12'>
-                <h2 className='md:col-span-5 font-display text-5xl font-light md:text-6xl'>
+                <h2 className='md:col-span-5 font-heading text-5xl font-light md:text-6xl'>
                   The journey of <em className='text-brand-coral'>a wasted</em> meal.
                 </h2>
                 <p className='md:col-span-6 md:col-start-7 text-lg leading-relaxed text-brand-cream/70'>
@@ -290,11 +290,11 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
                   key={c.n}
                   className='grid gap-6 border-t border-brand-cream/15 py-4 md:grid-cols-12 md:py-5 group'
                 >
-                  <p className='md:col-span-2 font-display text-5xl font-light text-brand-coral'>
+                  <p className='md:col-span-2 font-heading text-5xl font-light text-brand-coral'>
                     {c.n}
                   </p>
                   <div className='md:col-span-5'>
-                    <h3 className='font-display text-3xl md:text-4xl'>{c.title}</h3>
+                    <h3 className='font-heading text-3xl md:text-4xl'>{c.title}</h3>
                     <p className='mt-4 text-brand-cream/70 leading-relaxed'>{c.text}</p>
                   </div>
                   <div className='md:col-span-5 overflow-hidden rounded-sm relative h-36'>
@@ -315,7 +315,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         {/* ── PULL QUOTE ────────────────────────────────────────────── */}
         <section className='mx-auto w-full max-w-[1400px] px-8 py-10 md:py-14'>
           <blockquote className='mx-auto max-w-4xl text-center'>
-            <p className='font-display text-4xl font-light italic leading-tight md:text-6xl text-balance'>
+            <p className='font-heading text-4xl font-light italic leading-tight md:text-6xl text-balance'>
               "If food waste were a country, it would be the
               <span className='text-brand-coral'> third-largest emitter </span>
               of greenhouse gases on Earth."
@@ -334,7 +334,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
           <div className='mb-8 grid gap-8 md:grid-cols-12'>
             <div className='md:col-span-5'>
               <p className='text-xs uppercase tracking-[0.25em] text-brand-coral'>Chapter III</p>
-              <h2 className='mt-3 font-display text-5xl font-light md:text-6xl'>
+              <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
                 The usual <em className='text-brand-coral'>suspects</em>.
               </h2>
             </div>
@@ -360,13 +360,13 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
                 key={i}
                 className='bg-brand-cream p-4 transition-colors hover:bg-brand-coral group'
               >
-                <p className='font-display text-5xl font-light text-brand-deep/30 group-hover:text-brand-deep/70'>
+                <p className='font-heading text-5xl font-light text-brand-deep/30 group-hover:text-brand-deep/70'>
                   0{i + 1}
                 </p>
                 <p className='mt-4 text-[11px] uppercase tracking-[0.2em] text-brand-coral group-hover:text-brand-deep'>
                   {w.sector}
                 </p>
-                <h3 className='mt-3 font-display text-3xl leading-tight'>{w.item}</h3>
+                <h3 className='mt-3 font-heading text-3xl leading-tight'>{w.item}</h3>
                 <div className='mt-5 h-px w-12 bg-brand-deep/40 group-hover:bg-brand-deep' />
                 <p className='mt-5 text-sm leading-relaxed text-brand-deep/75 group-hover:text-brand-deep'>
                   {w.note}

@@ -440,21 +440,6 @@ export default async function ESGPage({ params }: PageProps) {
       <main className='min-h-screen bg-white text-primary-500'>
         {/* ── HERO ─────────────────────────────────────────────────────────── */}
         <section className='bg-primary-500 relative overflow-hidden'>
-          <div
-            className='absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(255,121,115,0.12) 0%, transparent 65%)',
-            }}
-            aria-hidden='true'
-          />
-          <div
-            className='absolute bottom-0 left-[30%] w-96 h-64 pointer-events-none'
-            style={{
-              background: 'radial-gradient(ellipse, rgba(255,160,0,0.07) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
-
           {/* Decorative acronym ghost */}
           <div
             className='absolute bottom-4 right-4 text-[200px] font-black text-white/[0.025] select-none pointer-events-none leading-none tracking-tighter hidden lg:block'
@@ -472,7 +457,7 @@ export default async function ESGPage({ params }: PageProps) {
                   For business leaders
                 </div>
 
-                <h1 className='font-playfair text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
+                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
                   ESG is no longer <span className='text-brand-coral italic'>a choice.</span>
                   <br />
                   It is the price of <span className='text-brand-coral italic'>entry.</span>
@@ -522,7 +507,7 @@ export default async function ESGPage({ params }: PageProps) {
                   },
                 ].map((s, i) => (
                   <div key={i} className={`bg-white/8 border ${s.color} rounded-2xl px-6 py-5`}>
-                    <p className='font-playfair text-3xl font-bold text-white mb-1'>{s.n}</p>
+                    <p className='font-heading text-3xl font-bold text-white mb-1'>{s.n}</p>
                     <p className='text-white/55 text-sm leading-snug'>{s.label}</p>
                   </div>
                 ))}
@@ -550,7 +535,7 @@ export default async function ESGPage({ params }: PageProps) {
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 The fundamentals
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
                 What exactly is ESG?
               </h2>
               <p className='text-primary-500/55 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
@@ -593,7 +578,7 @@ export default async function ESGPage({ params }: PageProps) {
                     </p>
                   </div>
 
-                  <h3 className='font-playfair text-xl font-bold text-primary-500 mb-3 leading-snug'>
+                  <h3 className='font-heading text-xl font-bold text-primary-500 mb-3 leading-snug'>
                     {pillar.headline}
                   </h3>
                   <p className='text-sm text-primary-500/60 leading-relaxed mb-5'>{pillar.body}</p>
@@ -616,7 +601,7 @@ export default async function ESGPage({ params }: PageProps) {
 
             {/* One-liner callout */}
             <div className='mt-10 bg-primary-500 rounded-3xl px-8 py-7 text-center'>
-              <p className='font-playfair text-xl lg:text-2xl font-bold text-white leading-snug'>
+              <p className='font-heading text-xl lg:text-2xl font-bold text-white leading-snug'>
                 ESG is not a report you file once a year.{' '}
                 <span className='text-brand-coral italic'>
                   It is how you run your company - measured, verified, and published.
@@ -633,7 +618,7 @@ export default async function ESGPage({ params }: PageProps) {
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 The business case
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
                 Why every company needs an ESG strategy.{' '}
                 <span className='text-brand-coral italic'>Now.</span>
               </h2>
@@ -715,7 +700,7 @@ export default async function ESGPage({ params }: PageProps) {
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 The regulatory reality
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
                 The EU already passed the laws.
                 <br />
                 <span className='text-brand-coral italic'>They apply to you.</span>
@@ -823,20 +808,13 @@ export default async function ESGPage({ params }: PageProps) {
               <path d='M0,40 C360,72 1080,8 1440,40 L1440,72 L0,72 Z' fill='#f9f3f0' />
             </svg>
           </div>
-          <div
-            className='absolute top-20 right-0 w-96 h-96 pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(255,121,115,0.1) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
 
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-10 pb-8'>
             <div className='text-center mb-14'>
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Tunisia specifically
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-white mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white mb-4'>
                 Why Tunisian companies <span className='text-brand-coral italic'>cannot wait.</span>
               </h2>
               <p className='text-white/55 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
@@ -863,7 +841,7 @@ export default async function ESGPage({ params }: PageProps) {
             <div className='mt-10 bg-white/8 border border-white/12 rounded-3xl p-7 lg:p-8 flex flex-col lg:flex-row items-center gap-6 text-center lg:text-left'>
               <div className='text-6xl shrink-0'>🇹🇳</div>
               <div>
-                <p className='font-playfair text-xl lg:text-2xl font-bold text-white mb-2'>
+                <p className='font-heading text-xl lg:text-2xl font-bold text-white mb-2'>
                   Tunisia exports to Europe. Europe now has an ESG price of entry.
                 </p>
                 <p className='text-white/55 text-sm lg:text-base leading-relaxed'>
@@ -884,7 +862,7 @@ export default async function ESGPage({ params }: PageProps) {
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-3'>
                 Our contribution to your score
               </p>
-              <h2 className='font-playfair text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
                 How Too Fresh To Waste{' '}
                 <span className='text-brand-coral italic'>builds your ESG case.</span>
               </h2>
@@ -960,26 +938,12 @@ export default async function ESGPage({ params }: PageProps) {
           <div className='mx-auto max-w-4xl px-6 lg:px-8 text-center'>
             <div className='bg-primary-500 rounded-3xl px-8 lg:px-16 py-14 lg:py-16 relative overflow-hidden'>
               {/* Glow */}
-              <div
-                className='absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none'
-                style={{
-                  background: 'radial-gradient(circle, rgba(255,121,115,0.15) 0%, transparent 65%)',
-                }}
-                aria-hidden='true'
-              />
-              <div
-                className='absolute -bottom-16 -left-16 w-64 h-64 rounded-full pointer-events-none'
-                style={{
-                  background: 'radial-gradient(circle, rgba(255,160,0,0.1) 0%, transparent 70%)',
-                }}
-                aria-hidden='true'
-              />
 
               <div className='relative'>
                 <p className='text-white/50 text-xs font-bold uppercase tracking-[0.3em] mb-4'>
                   Start your ESG journey
                 </p>
-                <h2 className='font-playfair text-3xl lg:text-5xl font-bold text-white leading-tight mb-5'>
+                <h2 className='font-heading text-3xl lg:text-5xl font-bold text-white leading-tight mb-5'>
                   Your ESG baseline starts{' '}
                   <span className='text-brand-coral italic'>with one decision.</span>
                 </h2>

@@ -1,16 +1,7 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
-import { Cormorant_Garamond } from 'next/font/google';
 import { Header } from '@/components/layout';
 import ParclessBagClient from './_components/ParclessBagClient';
-
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['300', '400', '600', '700'],
-  style: ['normal', 'italic'],
-  variable: '--font-cormorant',
-  display: 'swap',
-});
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -42,9 +33,7 @@ export default async function ParclessBagPage({ params }: PageProps) {
         .rv.d1{transition-delay:.1s}.rv.d2{transition-delay:.2s}.rv.d3{transition-delay:.3s}.rv.d4{transition-delay:.4s}
       `}</style>
       <Header />
-      <div className={cormorant.variable}>
-        <ParclessBagClient />
-      </div>
+      <ParclessBagClient />
     </>
   );
 }

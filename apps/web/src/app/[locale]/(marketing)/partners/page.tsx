@@ -143,7 +143,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               <p className='mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/60'>
                 <span className='h-px w-10 bg-brand-coral' /> Partner Programme
               </p>
-              <h1 className='font-display text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
+              <h1 className='font-heading text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
                 Turn surplus
                 <span className='italic text-brand-coral'> into sales</span>.
               </h1>
@@ -175,7 +175,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                     key={i}
                     className='bg-white/60 border border-brand-deep/10 rounded-sm p-5 hover:bg-brand-coral/10 transition-colors'
                   >
-                    <p className='font-display text-4xl font-light text-brand-deep leading-none'>
+                    <p className='font-heading text-4xl font-light text-brand-deep leading-none'>
                       {s.value}
                     </p>
                     <p className='mt-3 text-xs leading-relaxed text-brand-deep/70'>{s.label}</p>
@@ -197,7 +197,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
           <div className='border-y border-brand-deep/15 bg-brand-deep py-2 text-brand-cream overflow-hidden'>
             <div className='flex w-max animate-marquee-fw gap-12 whitespace-nowrap'>
               {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className='flex items-center gap-12 font-display text-2xl italic'>
+                <div key={i} className='flex items-center gap-12 font-heading text-2xl italic'>
                   <span>40% of food produced is wasted</span>
                   <span className='text-brand-coral'>●</span>
                   <span>172 kg per person per year in Tunisia</span>
@@ -217,7 +217,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
           <div className='grid gap-8 md:grid-cols-12 mb-10'>
             <div className='md:col-span-4'>
               <p className='text-xs uppercase tracking-[0.25em] text-brand-coral'>The Problem</p>
-              <h2 className='mt-3 font-display text-5xl font-light md:text-6xl'>
+              <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
                 Every day, <em>good food disappears</em>.
               </h2>
             </div>
@@ -284,7 +284,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                 <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-3'>
                   The Solution
                 </p>
-                <h2 className='font-display text-5xl font-light md:text-6xl'>
+                <h2 className='font-heading text-5xl font-light md:text-6xl'>
                   Three steps. <em className='text-brand-coral'>Zero waste.</em>
                 </h2>
               </div>
@@ -301,11 +301,11 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                   key={step.n}
                   className='grid gap-6 border-t border-brand-cream/15 py-5 md:grid-cols-12 group'
                 >
-                  <p className='md:col-span-2 font-display text-5xl font-light text-brand-coral'>
+                  <p className='md:col-span-2 font-heading text-5xl font-light text-brand-coral'>
                     {step.n}
                   </p>
                   <div className='md:col-span-9'>
-                    <h3 className='font-display text-3xl md:text-4xl'>{step.title}</h3>
+                    <h3 className='font-heading text-3xl md:text-4xl'>{step.title}</h3>
                     <p className='mt-3 text-brand-cream/70 leading-relaxed max-w-2xl'>
                       {step.body}
                     </p>
@@ -320,7 +320,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
         <section className='mx-auto w-full max-w-[1400px] px-8 py-12 md:py-16'>
           <div className='mb-10'>
             <p className='text-xs uppercase tracking-[0.25em] text-brand-coral'>Partner Benefits</p>
-            <h2 className='mt-3 font-display text-5xl font-light md:text-6xl'>
+            <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
               What partners <em>actually get</em>.
             </h2>
           </div>
@@ -331,7 +331,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                 className='bg-brand-cream p-8 hover:bg-brand-coral/10 transition-colors group'
               >
                 <span className='text-3xl'>{b.icon}</span>
-                <h3 className='mt-5 font-display text-2xl'>{b.title}</h3>
+                <h3 className='mt-5 font-heading text-2xl'>{b.title}</h3>
                 <div className='mt-4 h-px w-10 bg-brand-deep/30 group-hover:bg-brand-deep transition-colors' />
                 <p className='mt-5 text-sm leading-relaxed text-brand-deep/70'>{b.body}</p>
               </div>
@@ -345,7 +345,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
             <div className='mb-10 grid gap-8 md:grid-cols-12'>
               <div className='md:col-span-4'>
                 <p className='text-xs uppercase tracking-[0.25em] text-brand-coral'>Why Now?</p>
-                <h2 className='mt-3 font-display text-5xl font-light md:text-6xl'>
+                <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
                   The window is opening.
                 </h2>
               </div>
@@ -361,7 +361,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                   key={i}
                   className='bg-brand-cream p-8 hover:bg-brand-coral/10 transition-colors'
                 >
-                  <p className='font-display text-5xl font-light text-brand-deep leading-none'>
+                  <p className='font-heading text-5xl font-light text-brand-deep leading-none'>
                     {w.stat}
                   </p>
                   <div className='mt-5 h-px w-12 bg-brand-deep/30' />
@@ -387,7 +387,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               <p className='text-xs uppercase tracking-[0.25em] text-brand-coral'>
                 Why Too Fresh To Waste
               </p>
-              <h2 className='mt-3 font-display text-5xl font-light md:text-6xl'>
+              <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
                 Built <em>here</em>, for here.
               </h2>
               <p className='mt-6 text-lg leading-relaxed text-brand-deep/75'>
@@ -450,7 +450,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
                 <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-3'>
                   Founding Partners
                 </p>
-                <h2 className='font-display text-5xl font-light md:text-6xl'>
+                <h2 className='font-heading text-5xl font-light md:text-6xl'>
                   They moved <em className='text-brand-coral'>first</em>.
                 </h2>
               </div>
@@ -464,11 +464,11 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               {partners.map((p, i) => (
                 <div key={i} className='p-8 hover:bg-brand-cream/10 transition-colors'>
                   <div className='size-12 rounded-full bg-brand-coral/20 flex items-center justify-center mb-6'>
-                    <span className='font-display text-xl text-brand-coral'>
+                    <span className='font-heading text-xl text-brand-coral'>
                       {p.name.charAt(0)}
                     </span>
                   </div>
-                  <h3 className='font-display text-3xl'>{p.name}</h3>
+                  <h3 className='font-heading text-3xl'>{p.name}</h3>
                   <p className='mt-2 text-sm text-brand-cream/60'>{p.category}</p>
                 </div>
               ))}
@@ -481,7 +481,7 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
           <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-5'>
             Ready to join?
           </p>
-          <h2 className='font-display text-5xl font-light md:text-7xl text-balance max-w-3xl mx-auto'>
+          <h2 className='font-heading text-5xl font-light md:text-7xl text-balance max-w-3xl mx-auto'>
             Stop throwing away <em>margin</em>.
           </h2>
           <p className='mt-6 text-lg text-brand-deep/70 max-w-xl mx-auto leading-relaxed'>

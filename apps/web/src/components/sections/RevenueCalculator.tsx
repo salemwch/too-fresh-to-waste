@@ -20,7 +20,7 @@ function SliderRow({ label, value, min, max, step, unit, onChange }: SliderRowPr
       <div className='flex items-baseline justify-between mb-2'>
         <p className='text-white/55 text-xs font-bold uppercase tracking-[0.15em]'>{label}</p>
         <div className='flex items-baseline gap-1'>
-          <span className='font-playfair text-3xl font-bold text-white tabular-nums leading-none'>
+          <span className='font-heading text-3xl font-bold text-white tabular-nums leading-none'>
             {value}
           </span>
           <span className='text-white/40 text-sm font-medium'>{unit}</span>
@@ -35,7 +35,7 @@ function SliderRow({ label, value, min, max, step, unit, onChange }: SliderRowPr
         onChange={e => onChange(Number(e.target.value))}
         className='revenue-slider w-full'
         style={{
-          background: `linear-gradient(to right, #ff7973 0%, #ff7973 ${pct}%, rgba(255,255,255,0.14) ${pct}%, rgba(255,255,255,0.14) 100%)`,
+          background: `linear-gradient(to right, #FFA000 0%, #FFA000 ${pct}%, rgba(255,255,255,0.14) ${pct}%, rgba(255,255,255,0.14) 100%)`,
         }}
         aria-label={label}
         aria-valuemin={min}
@@ -92,7 +92,7 @@ export default function RevenueCalculator() {
           <p className='text-white/70 text-[10px] font-bold uppercase tracking-[0.2em] mb-1'>
             Your business
           </p>
-          <p className='text-white font-playfair text-2xl font-bold leading-snug'>
+          <p className='text-white font-heading text-2xl font-bold leading-snug'>
             Adjust your scenario
           </p>
         </div>
@@ -143,19 +143,12 @@ export default function RevenueCalculator() {
         {/* Monthly + annual */}
         <div className='bg-white/8 border border-white/10 rounded-3xl p-7 relative overflow-hidden'>
           {/* coral glow */}
-          <div
-            className='absolute -top-16 -right-16 w-48 h-48 rounded-full pointer-events-none'
-            style={{
-              background: 'radial-gradient(circle, rgba(255,121,115,0.18) 0%, transparent 70%)',
-            }}
-            aria-hidden='true'
-          />
 
           <p className='text-white/60 text-[10px] font-bold uppercase tracking-widest mb-2'>
             Monthly revenue
           </p>
           <div className='flex items-baseline gap-2 mb-2'>
-            <span className='font-playfair text-5xl lg:text-6xl font-bold text-white tabular-nums leading-none'>
+            <span className='font-heading text-5xl lg:text-6xl font-bold text-white tabular-nums leading-none'>
               {fmt(revenuePerMonth)}
             </span>
             <span className='text-white/60 text-xl font-normal'>TND</span>
@@ -168,7 +161,7 @@ export default function RevenueCalculator() {
             <p className='text-white/60 text-[10px] font-bold uppercase tracking-widest shrink-0'>
               Per year
             </p>
-            <p className='font-playfair text-3xl font-bold text-brand-coral tabular-nums'>
+            <p className='font-heading text-3xl font-bold text-brand-coral tabular-nums'>
               {fmt(revenuePerYear)}{' '}
               <span className='text-brand-coral/80 text-lg font-normal'>TND</span>
             </p>
@@ -178,19 +171,19 @@ export default function RevenueCalculator() {
         {/* Impact metrics */}
         <div className='grid grid-cols-3 gap-3'>
           <div className='bg-white/5 border border-white/8 rounded-2xl p-4 text-center'>
-            <p className='font-playfair text-xl font-bold text-white tabular-nums'>
+            <p className='font-heading text-xl font-bold text-white tabular-nums'>
               {fmt(bagsPerYear)}
             </p>
             <p className='text-white/80 text-[10px] mt-1 leading-tight'>Bags saved / year</p>
           </div>
           <div className='bg-white/5 border border-white/8 rounded-2xl p-4 text-center'>
-            <p className='font-playfair text-xl font-bold text-emerald-400 tabular-nums'>
+            <p className='font-heading text-xl font-bold text-emerald-400 tabular-nums'>
               {formatCO2(co2Saved)}
             </p>
             <p className='text-white/80 text-[10px] mt-1 leading-tight'>CO₂ avoided / year</p>
           </div>
           <div className='bg-white/5 border border-white/8 rounded-2xl p-4 text-center'>
-            <p className='font-playfair text-xl font-bold text-sky-300 tabular-nums'>
+            <p className='font-heading text-xl font-bold text-sky-300 tabular-nums'>
               {formatWater(waterSaved)}
             </p>
             <p className='text-white/80 text-[10px] mt-1 leading-tight'>Water saved / year</p>
