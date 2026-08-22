@@ -28,7 +28,6 @@ const quicksand = Quicksand({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-quicksand',
-  weight: ['400', '500', '600', '700'],
   adjustFontFallback: true,
   preload: true,
   fallback: [
@@ -46,7 +45,6 @@ const comfortaa = Comfortaa({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-comfortaa',
-  weight: ['400', '500', '600', '700'],
   adjustFontFallback: true,
   preload: true,
   fallback: ['system-ui', 'Segoe UI', 'sans-serif'],
@@ -61,7 +59,6 @@ const notoSansArabic = Noto_Sans_Arabic({
   // preload: false - Arabic is only needed on the ar locale; preloading it on
   // every page (en/fr) causes "preloaded resource not used" console warnings.
   preload: false,
-  weight: ['400', '500', '600', '700'],
   fallback: ['Tahoma', 'Arial', 'sans-serif'],
 });
 
@@ -218,11 +215,21 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const currentLocaleConfig = getLocaleConfig(locale as Locale);
   const isRTL = currentLocaleConfig.direction === 'rtl';
 
-  // Select font based on locale
-  // Arabic font is only needed on ar locale; include it via isRTL conditional
-  const fontClass = isRTL
-    ? `${notoSansArabic.variable} ${quicksand.variable} ${comfortaa.variable}`
-    : `${quicksand.variable} ${comfortaa.variable}`;
+  /*
+   * Every locale gets every font variable, Arabic included.
+   *
+   * Both Tailwind stacks name var(--font-noto-arabic), and a var() pointing at
+   * an undefined custom property makes the whole font-family declaration
+   * invalid at computed-value time - the browser then falls back to its own
+   * default, which is Times New Roman. Defining it only on the ar locale meant
+   * English and French rendered every heading and every paragraph in a serif
+   * nobody chose.
+   *
+   * Declaring the variable costs nothing: a custom property does not fetch a
+   * font. Noto is only downloaded when a glyph actually needs it, which on
+   * en/fr never happens.
+   */
+  const fontClass = `${quicksand.variable} ${comfortaa.variable} ${notoSansArabic.variable}`;
 
   return (
     <html
@@ -241,14 +248,13 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         <link rel='dns-prefetch' href='https://www.google-analytics.com' />
         <link rel='dns-prefetch' href='https://www.googletagmanager.com' />
       </head>
-      <body
-        className={`font-sans antialiased ${isRTL ? 'text-right' : 'text-left'}`}
-        style={{
-          fontFamily: isRTL
-            ? 'var(--font-noto-arabic), var(--font-quicksand), sans-serif'
-            : 'var(--font-quicksand), var(--font-noto-arabic), sans-serif',
-        }}
-      >
+      {/*
+        `font-sans` is the single source of truth for the base face. An inline
+        style used to repeat the same stack here and silently win over the
+        class, so the file gave two answers to one question. The Arabic-first
+        ordering for RTL now lives in globals.css.
+      */}
+      <body className={`font-sans antialiased ${isRTL ? 'text-right' : 'text-left'}`}>
         {/* Google Analytics 4 */}
         {process.env['NEXT_PUBLIC_GA_MEASUREMENT_ID'] && (
           <GoogleAnalytics

@@ -41,7 +41,7 @@
   --radius: 0.75rem;
 
   --font-serif: var(--font-comfortaa), system-ui, sans-serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: var(--font-quicksand), system-ui, sans-serif;
 }
 
 /* Hide browser's built-in password reveal icon (Edge/Chrome) */

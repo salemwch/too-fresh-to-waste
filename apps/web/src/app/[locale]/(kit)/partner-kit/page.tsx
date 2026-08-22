@@ -17,13 +17,11 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
 
       <div className='kit-root font-sans text-[#1E4448] bg-white'>
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { background: white; }
 
           .kit-root {
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-quicksand), system-ui, sans-serif;
             color: #1E4448;
             background: white;
             /* Force background colors to print */

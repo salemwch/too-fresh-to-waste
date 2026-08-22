@@ -97,6 +97,14 @@ const config: Config = {
          * Noto Sans Arabic sits in both stacks rather than behind a locale
          * conditional: neither Latin face carries Arabic glyphs, so the browser
          * falls through per character and Arabic resolves on its own.
+         *
+         * Every variable here must be defined on <html> for every locale. A
+         * var() pointing at an undefined custom property makes the whole
+         * declaration invalid at computed-value time and the browser drops to
+         * Times New Roman - which is what happened on en/fr while the Arabic
+         * variable was applied only on the ar locale. Graceful degradation is
+         * next/font's job, through `fallback` and `adjustFontFallback`, which
+         * also size-matches the substitute to avoid layout shift.
          */
         sans: ['var(--font-quicksand)', 'var(--font-noto-arabic)', 'system-ui', 'sans-serif'],
         heading: ['var(--font-comfortaa)', 'var(--font-noto-arabic)', 'system-ui', 'sans-serif'],

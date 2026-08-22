@@ -229,3 +229,13 @@
     background: rgba(255, 255, 255, 0.3);
   }
 }
+
+/*
+ * Arabic pages put Noto first so shared glyphs - digits, punctuation, quotes -
+ * come from the Arabic face rather than the Latin one. Latin text still falls
+ * through to Quicksand per character, so no locale conditional is needed in any
+ * component.
+ */
+[dir='rtl'] body {
+  font-family: var(--font-noto-arabic), var(--font-quicksand), system-ui, sans-serif;
+}
