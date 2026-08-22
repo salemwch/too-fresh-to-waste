@@ -65,7 +65,9 @@
     "seed:loadtest": "ts-node -r tsconfig-paths/register scripts/seed-loadtest.ts",
     "verify:loadtest-invariants": "ts-node -r tsconfig-paths/register scripts/verify-loadtest-invariants.ts",
     "migrate:dedupe-donation-pools": "ts-node -r tsconfig-paths/register scripts/migrations/dedupe-active-donation-pools.ts",
-    "test:db": "jest --config jest-integration.config.js --runInBand"
+    "test:db": "jest --config jest-integration.config.js --runInBand",
+    "seed:geozones": "ts-node -r tsconfig-paths/register scripts/seed-geozones.ts",
+    "migrate:waitlist-zone": "ts-node -r tsconfig-paths/register scripts/migrations/waitlist-zone-index.ts"
   },
   "keywords": [],
   "author": "Salem wachwacha",

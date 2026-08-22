@@ -7,7 +7,11 @@ import * as React from 'react';
 
 import { EmailService } from '../email/email.service';
 
-import { WaitlistEntry, WaitlistEntryDocument } from './schemas/waitlist-entry.schema';
+import {
+  WaitlistAudience,
+  WaitlistEntry,
+  WaitlistEntryDocument,
+} from './schemas/waitlist-entry.schema';
 
 @Injectable()
 export class WaitlistService {
@@ -19,10 +23,16 @@ export class WaitlistService {
     private readonly emailService: EmailService,
   ) {}
 
+  /** The global launch list — no city attached. */
   async subscribe(email: string): Promise<void> {
     const normalised = email.toLowerCase().trim();
 
-    const existing = await this.waitlistModel.findOne({ email: normalised }).lean().exec();
+    // Scoped to rows with no zone: a city sign-up must not be mistaken for a
+    // global one, or the launch email would never be sent.
+    const existing = await this.waitlistModel
+      .findOne({ email: normalised, zone: { $exists: false } })
+      .lean()
+      .exec();
     if (existing) {
       this.logger.debug(`Waitlist: ${normalised} already registered — skipping`);
       return;
@@ -35,6 +45,47 @@ export class WaitlistService {
     this.sendConfirmation(normalised).catch(err =>
       this.logger.error(`Waitlist confirmation email failed for ${normalised}:`, err),
     );
+  }
+
+  /**
+   * Adds someone to one city list.
+   *
+   * Signing up twice is the ordinary case — a shared link gets clicked again —
+   * so the duplicate key is absorbed as success. Telling a visitor they are
+   * already on the list leaks that the address is registered and gives them
+   * nothing to act on.
+   */
+  async joinCity(email: string, zone: string, audience: WaitlistAudience): Promise<void> {
+    const normalised = email.toLowerCase().trim();
+
+    await this.waitlistModel
+      .updateOne(
+        { email: normalised, zone: zone.trim() },
+        { $setOnInsert: { audience, source: 'rollout_map' } },
+        { upsert: true },
+      )
+      .exec();
+  }
+
+  /** How many people are waiting, per city. Powers the public demand ranking. */
+  async countByZone(): Promise<Map<string, number>> {
+    const rows = await this.waitlistModel
+      .aggregate<{
+        _id: string;
+        count: number;
+      }>([
+        { $match: { zone: { $exists: true, $ne: null } } },
+        { $group: { _id: '$zone', count: { $sum: 1 } } },
+      ])
+      .exec();
+
+    return new Map(rows.map(row => [row._id, row.count]));
+  }
+
+  /** Total rows across every list, for the public impact figure. */
+  async totalWaiting(): Promise<number> {
+    const total = await this.waitlistModel.estimatedDocumentCount().exec();
+    return total;
   }
 
   private async sendConfirmation(email: string): Promise<void> {

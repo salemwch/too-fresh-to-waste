@@ -6,10 +6,10 @@ import { CommonModule } from '../common/common.module';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
+import { WaitlistModule } from '../waitlist/waitlist.module';
 
 import { PublicController } from './public.controller';
 import { PublicService } from './public.service';
-import { CityWaitlistEntry, CityWaitlistEntrySchema } from './schemas/city-waitlist-entry.schema';
 
 /**
  * Aggregate-only endpoints for the marketing site. Read models are registered
@@ -19,8 +19,8 @@ import { CityWaitlistEntry, CityWaitlistEntrySchema } from './schemas/city-waitl
 @Module({
   imports: [
     CommonModule,
+    WaitlistModule,
     MongooseModule.forFeature([
-      { name: CityWaitlistEntry.name, schema: CityWaitlistEntrySchema },
       { name: Order.name, schema: OrderSchema },
       { name: Establishment.name, schema: EstablishmentSchema },
       { name: User.name, schema: UserSchema },

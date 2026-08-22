@@ -6,7 +6,7 @@ import { Public } from '../common/decorators/public.decorator';
 
 import { JoinWaitlistDto } from './dto/join-waitlist.dto';
 import { PublicService } from './public.service';
-import { WaitlistAudience } from './schemas/city-waitlist-entry.schema';
+import { WaitlistAudience } from '../waitlist/schemas/waitlist-entry.schema';
 
 /**
  * Unauthenticated, aggregate-only endpoints for the marketing site.

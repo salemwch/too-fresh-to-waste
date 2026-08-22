@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 
-import { WaitlistAudience } from '../schemas/city-waitlist-entry.schema';
+import { WaitlistAudience } from '../../waitlist/schemas/waitlist-entry.schema';
 
 export class JoinWaitlistDto {
   @ApiProperty({ example: 'amine@example.tn', maxLength: 254 })

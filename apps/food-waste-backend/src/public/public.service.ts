@@ -13,11 +13,8 @@ import {
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 
-import {
-  WaitlistAudience,
-  CityWaitlistEntry,
-  CityWaitlistEntryDocument,
-} from './schemas/city-waitlist-entry.schema';
+import { WaitlistAudience } from '../waitlist/schemas/waitlist-entry.schema';
+import { WaitlistService } from '../waitlist/waitlist.service';
 
 /** Orders where the food actually reached a person. Nothing else is "rescued". */
 const FULFILLED_STATUSES = [OrderStatus.PICKED_UP, OrderStatus.DELIVERED, OrderStatus.COMPLETED];
@@ -62,9 +59,8 @@ export class PublicService {
     private readonly establishmentModel: Model<EstablishmentDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Geozone.name) private readonly geozoneModel: Model<GeozoneDocument>,
-    @InjectModel(CityWaitlistEntry.name)
-    private readonly waitlistModel: Model<CityWaitlistEntryDocument>,
     private readonly cacheService: CacheService,
+    private readonly waitlistService: WaitlistService,
   ) {}
 
   async getImpact(): Promise<PublicImpact> {
@@ -88,7 +84,7 @@ export class PublicService {
       this.establishmentModel.countDocuments({ status: EstablishmentStatus.ACTIVE }).exec(),
       this.userModel.countDocuments({ role: UserRole.CONSUMER }).exec(),
       this.geozoneModel.countDocuments({ status: GeozoneStatus.ACTIVE }).exec(),
-      this.waitlistModel.estimatedDocumentCount().exec(),
+      this.waitlistService.totalWaiting(),
     ]);
 
     const bagsRescued = (bagResult[0] as { bags: number } | undefined)?.bags ?? 0;
@@ -137,17 +133,10 @@ export class PublicService {
 
     // Two grouped reads rather than one per zone — the N+1 rule applies to a
     // list of six as much as to a list of six hundred.
-    const [waiting, rescued] = await Promise.all([
-      this.waitlistModel
-        .aggregate<{
-          _id: string;
-          count: number;
-        }>([{ $group: { _id: '$zone', count: { $sum: 1 } } }])
-        .exec(),
+    const [waitingByZone, rescued] = await Promise.all([
+      this.waitlistService.countByZone(),
       this.rescuedBagsByZone(zones.map(z => z.name)),
     ]);
-
-    const waitingByZone = new Map(waiting.map(w => [w._id, w.count]));
 
     const mapped: PublicZone[] = zones.map(zone => ({
       name: zone.name,
@@ -225,13 +214,7 @@ export class PublicService {
    * to act on.
    */
   async joinWaitlist(email: string, zone: string, audience: WaitlistAudience): Promise<void> {
-    await this.waitlistModel
-      .updateOne(
-        { email: email.trim().toLowerCase(), zone: zone.trim() },
-        { $setOnInsert: { audience } },
-        { upsert: true },
-      )
-      .exec();
+    await this.waitlistService.joinCity(email, zone, audience);
 
     // The queue is ranked by these counts, so a stale page would show the wrong
     // order to the next visitor.

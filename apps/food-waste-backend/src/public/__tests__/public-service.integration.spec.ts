@@ -11,12 +11,16 @@
  */
 
 import { EstablishmentStatus, OrderStatus, UserRole } from '@foodwaste/shared';
-import mongoose, { Connection, Types } from 'mongoose';
+import mongoose, { Connection, Model, Types } from 'mongoose';
 
 import { GeozoneSchema, GeozoneStatus } from '../../admin/schemas/geozone.schema';
 import { BAG_IMPACT } from '../../analytics/constants/sustainability.constants';
 import { PublicService } from '../public.service';
-import { WaitlistAudience, CityWaitlistEntrySchema } from '../schemas/city-waitlist-entry.schema';
+import {
+  WaitlistAudience,
+  WaitlistEntrySchema,
+  type WaitlistEntryDocument,
+} from '../../waitlist/schemas/waitlist-entry.schema';
 
 const MONGO_URI =
   process.env['MONGO_TEST_URI'] ??
@@ -42,6 +46,39 @@ const makeCache = () => {
 };
 
 const oid = () => new Types.ObjectId();
+
+/**
+ * The real `WaitlistService` pulls in the email module, which has no business
+ * in a data test. Only the three methods `PublicService` calls are stood up,
+ * and each runs the same query the real one does against the same collection.
+ */
+const makeWaitlistService = (model: Model<WaitlistEntryDocument>) => ({
+  joinCity: async (email: string, zone: string, audience: WaitlistAudience) => {
+    await model
+      .updateOne(
+        { email: email.toLowerCase().trim(), zone: zone.trim() },
+        { $setOnInsert: { audience, source: 'rollout_map' } },
+        { upsert: true },
+      )
+      .exec();
+  },
+  countByZone: async () => {
+    const rows = await model
+      .aggregate<{
+        _id: string;
+        count: number;
+      }>([
+        { $match: { zone: { $exists: true, $ne: null } } },
+        { $group: { _id: '$zone', count: { $sum: 1 } } },
+      ])
+      .exec();
+    return new Map(rows.map(r => [r._id, r.count]));
+  },
+  totalWaiting: async () => {
+    const total = await model.estimatedDocumentCount().exec();
+    return total;
+  },
+});
 
 /**
  * A real closed ring. The geozone schema carries a 2dsphere index on
@@ -77,7 +114,7 @@ describe('PublicService — against a real MongoDB', () => {
     await connection.asPromise();
 
     const geozoneModel = connection.model('Geozone', GeozoneSchema);
-    const waitlistModel = connection.model('CityWaitlistEntry', CityWaitlistEntrySchema);
+    const waitlistModel = connection.model('CityWaitlistEntry', WaitlistEntrySchema);
     await waitlistModel.syncIndexes();
 
     const orders = connection.collection('orders');
@@ -164,8 +201,10 @@ describe('PublicService — against a real MongoDB', () => {
         new mongoose.Schema({}, { strict: false, collection: 'users' }),
       ),
       geozoneModel,
-      waitlistModel,
       cacheService: cache,
+      waitlistService: makeWaitlistService(
+        waitlistModel as unknown as Model<WaitlistEntryDocument>,
+      ),
     });
   });
 
