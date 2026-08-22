@@ -312,21 +312,10 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
             <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
               {/* Left - copy */}
               <div>
-                <p className='inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-brand-coral mb-6'>
-                  <span className='h-px w-8 bg-brand-coral' aria-hidden='true' />
-                  For Food Businesses
-                </p>
-
                 <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
                   Make Profit From Your Surplus Food &amp; Grow As a Business With Our{' '}
                   <span className='text-brand-coral italic'>Marketing Strategies</span>
                 </h1>
-
-                <div className='mb-5'>
-                  <span className='inline-block bg-brand-coral/20 border border-brand-coral/40 text-brand-coral text-xs font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full'>
-                    ✦ The Surprise Bag
-                  </span>
-                </div>
 
                 <p className='text-white/70 text-base lg:text-lg leading-relaxed mb-8 max-w-lg'>
                   List your unsold food as a mystery Surprise Bag. Customers pay a discounted price,

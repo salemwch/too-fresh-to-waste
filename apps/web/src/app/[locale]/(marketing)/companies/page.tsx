@@ -151,9 +151,8 @@ export default function CompaniesPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
-              className='text-xs font-black tracking-[0.25em] uppercase mb-6 inline-flex items-center gap-2 text-accent-500'
+              className='text-xs font-black tracking-[0.25em] uppercase mb-6 text-accent-500'
             >
-              <span className='inline-block w-6 h-px bg-accent-500' aria-hidden='true' />
               {t('hero.eyebrow')}
             </motion.p>
 
