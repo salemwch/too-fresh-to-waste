@@ -105,6 +105,8 @@ describe('PublicService — against a real MongoDB', () => {
 
   const sousseEst = oid();
   const monastirEst = oid();
+  const unapprovedEst = oid();
+  const outsideEst = oid();
 
   beforeAll(async () => {
     connection = mongoose.createConnection(MONGO_URI, {
@@ -121,11 +123,38 @@ describe('PublicService — against a real MongoDB', () => {
     const establishments = connection.collection('establishments');
     const users = connection.collection('users');
 
+    // Placed by coordinate. The city strings are deliberately inconsistent —
+    // an accent, a suffix, an Arabic name — because attribution must not depend
+    // on them, and did until it was moved onto the geometry.
+    const at = (lng: number, lat: number) => ({
+      type: 'Point' as const,
+      coordinates: [lng, lat],
+    });
+
     await establishments.insertMany([
-      { _id: sousseEst, status: EstablishmentStatus.ACTIVE, address: { city: 'Sousse' } },
-      { _id: monastirEst, status: EstablishmentStatus.ACTIVE, address: { city: 'Monastir' } },
-      // Not approved: must not be counted as a partner.
-      { _id: oid(), status: EstablishmentStatus.PENDING, address: { city: 'Sousse' } },
+      {
+        _id: sousseEst,
+        status: EstablishmentStatus.ACTIVE,
+        address: { city: 'Sousse Ville', coordinates: at(10.6084, 35.8256) },
+      },
+      {
+        _id: monastirEst,
+        status: EstablishmentStatus.ACTIVE,
+        address: { city: 'المنستير', coordinates: at(10.8113, 35.7643) },
+      },
+      // Inside Sousse, but not approved: not a partner and its bags do not count.
+      {
+        _id: unapprovedEst,
+        status: EstablishmentStatus.PENDING,
+        address: { city: 'Sousse', coordinates: at(10.61, 35.82) },
+      },
+      // A real shop in a city we have not opened. Its bags belong to the platform
+      // total and to no zone.
+      {
+        _id: outsideEst,
+        status: EstablishmentStatus.ACTIVE,
+        address: { city: 'Bizerte', coordinates: at(9.8739, 37.2744) },
+      },
     ]);
 
     await users.insertMany([
@@ -150,6 +179,10 @@ describe('PublicService — against a real MongoDB', () => {
       order(sousseEst, OrderStatus.COMPLETED, 3),
       // Monastir: 2 delivered.
       order(monastirEst, OrderStatus.DELIVERED, 2),
+      // Inside Sousse but unapproved, and outside every zone: both count towards
+      // the platform total and towards no city.
+      order(unapprovedEst, OrderStatus.PICKED_UP, 7),
+      order(outsideEst, OrderStatus.PICKED_UP, 4),
       // None of these reached anyone, so none of them is a rescued bag.
       order(sousseEst, OrderStatus.CANCELLED, 100),
       order(sousseEst, OrderStatus.EXPIRED, 100),
@@ -162,7 +195,6 @@ describe('PublicService — against a real MongoDB', () => {
         name: 'Sousse',
         displayName: 'Sousse',
         status: GeozoneStatus.ACTIVE,
-        establishmentCount: 41,
         boundary: square(10.5, 35.7),
         center: { latitude: 35.8, longitude: 10.6 },
         launchedAt: new Date('2026-03-01T00:00:00Z'),
@@ -226,13 +258,16 @@ describe('PublicService — against a real MongoDB', () => {
   describe('impact totals', () => {
     it('counts only bags that actually reached a person', async () => {
       const impact = await service.getImpact();
-      // 5 picked up + 3 completed + 2 delivered. The four unfulfilled orders
-      // carry 100 bags each precisely so their inclusion would be unmissable.
-      expect(impact.bagsRescued).toBe(10);
+      // 5 + 3 + 2 inside zones, plus 7 unapproved and 4 outside every zone. The
+      // platform total counts food that reached a person, wherever it happened —
+      // only the per-zone breakdown cares about geography. The four unfulfilled
+      // orders carry 100 bags each so their inclusion would be unmissable.
+      expect(impact.bagsRescued).toBe(21);
     });
 
     it('counts only approved establishments as partners', async () => {
-      expect((await service.getImpact()).partners).toBe(2);
+      // Sousse, Monastir and Bizerte are active; the pending one is not.
+      expect((await service.getImpact()).partners).toBe(3);
     });
 
     it('counts consumers, not every account', async () => {
@@ -241,7 +276,7 @@ describe('PublicService — against a real MongoDB', () => {
 
     it('derives CO₂ and meals from the shared ADEME coefficients', async () => {
       const impact = await service.getImpact();
-      const foodKg = 10 * BAG_IMPACT.avgKgPerBag;
+      const foodKg = 21 * BAG_IMPACT.avgKgPerBag;
 
       expect(impact.carbonAvoidedKg).toBe(Math.round(foodKg * BAG_IMPACT.carbonPerKg));
       expect(impact.mealsRescued).toBe(Math.round(foodKg * BAG_IMPACT.mealsPerKg));
@@ -294,10 +329,34 @@ describe('PublicService — against a real MongoDB', () => {
       expect(monastir?.foundingSigned).toBe(34);
     });
 
-    it('attributes rescued bags to the right city', async () => {
+    it('attributes rescued bags by geography, not by city spelling', async () => {
       const zones = await service.getZones();
+
+      // The Sousse shop is filed as "Sousse Ville" and the Monastir one under its
+      // Arabic name. Neither string equals its zone name; both fall inside the
+      // polygon, which is the only thing that should matter.
       expect(zones.find(z => z.name === 'Sousse')?.bagsRescued).toBe(8);
       expect(zones.find(z => z.name === 'Monastir')?.bagsRescued).toBe(2);
+    });
+
+    it('attributes nothing to a zone for shops outside it', async () => {
+      const zones = await service.getZones();
+      const attributed = zones.reduce((sum, zone) => sum + zone.bagsRescued, 0);
+
+      // 21 rescued platform-wide, 10 of them inside a zone. The 7 unapproved and
+      // 4 out-of-zone bags belong to no city — we have not opened there, and
+      // saying otherwise would be the more flattering lie.
+      expect(attributed).toBe(10);
+    });
+
+    it('counts partners from the shops actually inside the zone', async () => {
+      const zones = await service.getZones();
+
+      // One approved shop each. The pending shop sits inside Sousse and is not a
+      // partner; the Bizerte shop is approved and belongs to no zone.
+      expect(zones.find(z => z.name === 'Sousse')?.partners).toBe(1);
+      expect(zones.find(z => z.name === 'Monastir')?.partners).toBe(1);
+      expect(zones.find(z => z.name === 'Gabes')?.partners).toBe(0);
     });
 
     it('reports the launch date of a live city and null for one not yet open', async () => {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { EstablishmentStatus, OrderStatus, UserRole } from '@foodwaste/shared';
-import { Model, PipelineStage } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 
 import { Geozone, GeozoneDocument, GeozoneStatus } from '../admin/schemas/geozone.schema';
 import { BAG_IMPACT } from '../analytics/constants/sustainability.constants';
@@ -125,24 +125,27 @@ export class PublicService {
   private async computeZones(): Promise<PublicZone[]> {
     const zones = await this.geozoneModel
       .find({ status: { $ne: GeozoneStatus.INACTIVE } })
-      .select(
-        'name displayName status establishmentCount foundingTarget foundingSignedCount launchedAt',
-      )
+      .select('name displayName status boundary foundingTarget foundingSignedCount launchedAt')
       .lean()
       .exec();
+
+    const membership = await this.establishmentsByZone(zones);
 
     // Two grouped reads rather than one per zone — the N+1 rule applies to a
     // list of six as much as to a list of six hundred.
     const [waitingByZone, rescued] = await Promise.all([
       this.waitlistService.countByZone(),
-      this.rescuedBagsByZone(zones.map(z => z.name)),
+      this.rescuedBagsByZone(membership),
     ]);
 
     const mapped: PublicZone[] = zones.map(zone => ({
       name: zone.name,
       displayName: zone.displayName,
       status: zone.status,
-      partners: zone.establishmentCount ?? 0,
+      // Counted from the establishments actually inside the zone, not from the
+      // `establishmentCount` field on the geozone — nothing maintains that
+      // counter, so it reads zero for every city that was not hand-edited.
+      partners: membership.get(zone.name)?.length ?? 0,
       bagsRescued: rescued.get(zone.name) ?? 0,
       peopleWaiting: waitingByZone.get(zone.name) ?? 0,
       foundingTarget: zone.foundingTarget ?? 0,
@@ -177,44 +180,94 @@ export class PublicService {
   }
 
   /**
-   * Bags rescued per zone, matched on the establishment's city.
+   * Which establishments sit inside each zone.
    *
-   * Orders carry no zone, so the join runs through the establishment. Returns
-   * an empty map rather than throwing when no zone has any fulfilled orders.
+   * Attribution used to compare `address.city` to the zone name as lowercased
+   * strings, which is wrong in every way a string can be: "Gabès" never matched
+   * the zone "Gabes", a shop filed under "Sousse Ville" matched nothing, and an
+   * Arabic or French spelling matched nothing either. On live data that stranded
+   * roughly three quarters of the rescued bags outside every zone.
+   *
+   * A zone is a polygon and an establishment is a point, so membership is a
+   * geometry question. MongoDB answers it with its own spherical geometry
+   * against the 2dsphere index on `address.coordinates`; reimplementing
+   * point-in-polygon here would be a second, subtly different answer to a
+   * question the database already answers correctly.
+   *
+   * One indexed query per zone. Zones are a handful and the result is cached
+   * for five minutes, so this is cheaper than the join it replaces.
    */
-  private async rescuedBagsByZone(zoneNames: string[]): Promise<Map<string, number>> {
-    if (zoneNames.length === 0) {
+  private async establishmentsByZone(
+    zones: Array<{ name: string; boundary?: { type: string; coordinates: number[][][] } }>,
+  ): Promise<Map<string, string[]>> {
+    const entries = await Promise.all(
+      zones.map(async zone => {
+        // A zone seeded without a polygon claims nobody rather than everybody.
+        if (!zone.boundary) {
+          return [zone.name, [] as string[]] as const;
+        }
+
+        const ids = await this.establishmentModel
+          .distinct('_id', {
+            status: EstablishmentStatus.ACTIVE,
+            'address.coordinates': { $geoWithin: { $geometry: zone.boundary } },
+          })
+          .exec();
+
+        return [zone.name, ids.map(id => String(id))] as const;
+      }),
+    );
+
+    return new Map(entries);
+  }
+
+  /**
+   * Bags rescued per zone.
+   *
+   * Orders carry no zone, so they are grouped by establishment and folded into
+   * zones through the membership map. An establishment that belongs to no zone
+   * contributes to none — which is why the per-zone figures can sum to less than
+   * the platform total, and is the honest answer: we have not opened there.
+   */
+  private async rescuedBagsByZone(membership: Map<string, string[]>): Promise<Map<string, number>> {
+    const zoneByEstablishment = new Map<string, string>();
+    for (const [zone, ids] of membership) {
+      for (const id of ids) {
+        zoneByEstablishment.set(id, zone);
+      }
+    }
+
+    if (zoneByEstablishment.size === 0) {
       return new Map();
     }
 
     const pipeline: PipelineStage[] = [
-      { $match: { status: { $in: FULFILLED_STATUSES } } },
       {
-        $lookup: {
-          from: 'establishments',
-          localField: 'establishmentId',
-          foreignField: '_id',
-          as: 'est',
-          pipeline: [{ $project: { 'address.city': 1 } }],
+        $match: {
+          status: { $in: FULFILLED_STATUSES },
+          establishmentId: {
+            $in: [...zoneByEstablishment.keys()].map(id => new Types.ObjectId(id)),
+          },
         },
       },
-      { $unwind: { path: '$est', preserveNullAndEmptyArrays: false } },
       { $unwind: '$items' },
-      {
-        $group: {
-          _id: { $toLower: '$est.address.city' },
-          bags: { $sum: '$items.quantity' },
-        },
-      },
+      { $group: { _id: '$establishmentId', bags: { $sum: '$items.quantity' } } },
     ];
 
     const rows = await this.orderModel
-      .aggregate<{ _id: string | null; bags: number }>(pipeline)
+      .aggregate<{ _id: Types.ObjectId; bags: number }>(pipeline)
       .exec();
 
-    const byCity = new Map(rows.filter(r => r._id).map(r => [r._id as string, r.bags]));
+    const byZone = new Map<string, number>();
+    for (const row of rows) {
+      const zone = zoneByEstablishment.get(String(row._id));
+      if (!zone) {
+        continue;
+      }
+      byZone.set(zone, (byZone.get(zone) ?? 0) + row.bags);
+    }
 
-    return new Map(zoneNames.map(name => [name, byCity.get(name.toLowerCase()) ?? 0] as const));
+    return byZone;
   }
 
   /**
