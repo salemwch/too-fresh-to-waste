@@ -89,23 +89,25 @@ const config: Config = {
         info: '#2196F3',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         /*
-         * One display face for the whole marketing site.
+         * Two faces for the whole product. Both are rounded geometric sans, so
+         * headings and body sit in the same family of shapes instead of pairing
+         * a serif against a sans and reading as two designs.
          *
-         * This used to name Korolev, which is licensed and was never actually
-         * loaded - no @font-face, no file in public/fonts, not among the
-         * next/font imports - so every heading using it silently rendered in
-         * Verdana while other pages used a real serif. That is what made the
-         * site look like several sites.
-         *
-         * Noto Sans Arabic sits in the stack rather than behind a conditional:
-         * Playfair carries no Arabic glyphs, so the browser falls through per
-         * character and Arabic headings resolve correctly on their own.
+         * Noto Sans Arabic sits in both stacks rather than behind a locale
+         * conditional: neither Latin face carries Arabic glyphs, so the browser
+         * falls through per character and Arabic resolves on its own.
          */
-        heading: ['var(--font-playfair)', 'var(--font-noto-arabic)', 'Georgia', 'serif'],
-        playfair: ['var(--font-playfair)', 'Georgia', 'serif'],
-        display: ['var(--font-fraunces)', 'Georgia', 'serif'],
+        sans: ['var(--font-quicksand)', 'var(--font-noto-arabic)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-comfortaa)', 'var(--font-noto-arabic)', 'system-ui', 'sans-serif'],
+
+        /*
+         * Kept as aliases so the 58 dashboard usages resolve, and deliberately
+         * pointed at the same heading face: the point of this change is that no
+         * screen gets a display font of its own.
+         */
+        playfair: ['var(--font-comfortaa)', 'var(--font-noto-arabic)', 'sans-serif'],
+        display: ['var(--font-comfortaa)', 'var(--font-noto-arabic)', 'sans-serif'],
         mono: ['monospace'],
       },
       fontSize: {

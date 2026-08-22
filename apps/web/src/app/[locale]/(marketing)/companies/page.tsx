@@ -3,16 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion, useInView } from 'framer-motion';
-import { Playfair_Display } from 'next/font/google';
 import { Header } from '@/components/layout';
 import { EnterpriseForm } from '@/components/sections/EnterpriseForm';
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['700', '800', '900'],
-  display: 'swap',
-  variable: '--font-heading',
-});
 
 // ─── Animated counter ────────────────────────────────────────────────────────
 function Counter({ target, suffix = '' }: { target: string; suffix?: string }) {
@@ -129,7 +121,7 @@ export default function CompaniesPage() {
   ];
 
   return (
-    <div className={`${playfair.variable} min-h-screen bg-cream text-brand-dark font-inter-arabic`}>
+    <div className={'min-h-screen bg-cream text-brand-dark font-sans'}>
       <Header />
 
       {/* ── HERO ──────────────────────────────────────────────────── */}

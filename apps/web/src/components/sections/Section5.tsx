@@ -212,7 +212,7 @@ export default function Section5() {
       {/* FAQ typography - self-hosted Inter (no external font fetch) */}
       <style jsx global>{`
         #faq * {
-          font-family: var(--font-inter), system-ui, sans-serif;
+          font-family: var(--font-quicksand), system-ui, sans-serif;
         }
 
         /* FAQ answer sizing */

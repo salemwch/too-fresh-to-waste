@@ -6,8 +6,8 @@
  * Values are taken directly from the approved signup.md design spec.
  */
 
-/* Playfair Display is self-hosted via next/font/google in the root layout
-   (--font-playfair CSS variable). No external fonts.googleapis.com request. */
+/* Comfortaa is self-hosted via next/font/google in the root layout
+   (--font-comfortaa CSS variable). No external fonts.googleapis.com request. */
 
 .merchant-signup-theme {
   --background: 0 0% 100%;
@@ -40,7 +40,7 @@
 
   --radius: 0.75rem;
 
-  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-serif: var(--font-comfortaa), system-ui, sans-serif;
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 

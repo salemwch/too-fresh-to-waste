@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Inter, Noto_Sans_Arabic, Playfair_Display } from 'next/font/google';
+import { Comfortaa, Noto_Sans_Arabic, Quicksand } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
@@ -13,11 +13,22 @@ import { ChunkErrorBoundary } from '@/components/providers/chunk-error-boundary'
 import { CookieConsentWrapper } from '@/components/CookieConsentWrapper';
 import '../globals.css';
 
-// Latin font (Inter) for French and English
-const inter = Inter({
+/*
+ * Two faces for the whole product, both rounded geometric sans: Comfortaa for
+ * headings, Quicksand for everything else. They replace Inter, Playfair and
+ * Fraunces, which between them made the site read as three different products.
+ *
+ * Neither carries Arabic glyphs, so Noto Sans Arabic stays in both Tailwind
+ * stacks. The browser falls through per character, which is why no locale
+ * conditional is needed anywhere in the components.
+ */
+
+// Body text.
+const quicksand = Quicksand({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-quicksand',
+  weight: ['400', '500', '600', '700'],
   adjustFontFallback: true,
   preload: true,
   fallback: [
@@ -30,37 +41,28 @@ const inter = Inter({
   ],
 });
 
+// Headings.
+const comfortaa = Comfortaa({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-comfortaa',
+  weight: ['400', '500', '600', '700'],
+  adjustFontFallback: true,
+  preload: true,
+  fallback: ['system-ui', 'Segoe UI', 'sans-serif'],
+});
+
 // Arabic font (Noto Sans Arabic) for Arabic locale
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ['arabic'],
   display: 'swap',
   variable: '--font-noto-arabic',
   adjustFontFallback: true,
-  // preload: false — Arabic is only needed on the ar locale; preloading it on
+  // preload: false - Arabic is only needed on the ar locale; preloading it on
   // every page (en/fr) causes "preloaded resource not used" console warnings.
   preload: false,
   weight: ['400', '500', '600', '700'],
   fallback: ['Tahoma', 'Arial', 'sans-serif'],
-});
-
-// Display serif for the food-waste-facts editorial page
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-fraunces',
-  weight: ['300', '400', '500', '700', '900'],
-  preload: false,
-  adjustFontFallback: false,
-});
-
-// Serif font for merchant-signup / auth screens (self-hosted via next/font/google
-// to avoid the external fonts.googleapis.com @import in merchant-signup.css)
-const playfairDisplay = Playfair_Display({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-playfair',
-  weight: ['400', '500', '600', '700'],
-  preload: false,
 });
 
 // Generate static params for all locales
@@ -219,8 +221,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   // Select font based on locale
   // Arabic font is only needed on ar locale; include it via isRTL conditional
   const fontClass = isRTL
-    ? `${notoSansArabic.variable} ${inter.variable} ${playfairDisplay.variable} ${fraunces.variable}`
-    : `${inter.variable} ${playfairDisplay.variable} ${fraunces.variable}`;
+    ? `${notoSansArabic.variable} ${quicksand.variable} ${comfortaa.variable}`
+    : `${quicksand.variable} ${comfortaa.variable}`;
 
   return (
     <html
@@ -243,8 +245,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         className={`font-sans antialiased ${isRTL ? 'text-right' : 'text-left'}`}
         style={{
           fontFamily: isRTL
-            ? 'var(--font-noto-arabic), var(--font-inter), sans-serif'
-            : 'var(--font-inter), var(--font-noto-arabic), sans-serif',
+            ? 'var(--font-noto-arabic), var(--font-quicksand), sans-serif'
+            : 'var(--font-quicksand), var(--font-noto-arabic), sans-serif',
         }}
       >
         {/* Google Analytics 4 */}
