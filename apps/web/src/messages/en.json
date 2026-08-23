@@ -4611,5 +4611,178 @@
       "ctaTeam": "Talk to our team",
       "ctaEnterprise": "Enterprise solutions"
     }
+  },
+  "partnerKit": {
+    "meta": {
+      "title": "Partner Kit - Everything You Need to Start Selling Surplus",
+      "description": "The print-ready guide for Too Fresh To Waste partners: how a surprise bag works, what to put in it, how pickup runs, and how you get paid."
+    },
+    "cover": {
+      "kitLabel": "Partner Kit · 2026",
+      "confidential": "Confidential - For Partner Use",
+      "titleStart": "Turn Surplus",
+      "titleEm": "Into Sales.",
+      "lede": "A partnership with Too Fresh To Waste recovers real margin from unsold daily inventory - same day, same city, zero effort."
+    },
+    "pages": {
+      "problemSolution": "The Problem - & The Solution",
+      "benefits": "Benefits, Market Timing & Why Us",
+      "partnersNextSteps": "Founding Partners & Next Steps"
+    },
+    "nextSteps": {
+      "label": "Next Steps",
+      "title": "Ready when you are.",
+      "items": [
+        {
+          "title": "Intro call (30 min)",
+          "body": "We walk through the platform, answer your questions, and agree on a pilot scope."
+        },
+        {
+          "title": "Onboarding (48 h)",
+          "body": "We set up your merchant profile, train your team, and make your first listing live."
+        },
+        {
+          "title": "First bag sold",
+          "body": "You recover your first sale from inventory you would have discarded. We iterate from there."
+        }
+      ],
+      "stepLabel": "STEP {n}"
+    },
+    "contact": {
+      "label": "Get in touch",
+      "title": "Let’s start with a conversation.",
+      "place": "Tunis · 2026"
+    },
+    "footer": {
+      "short": "Too Fresh To Waste - Partner Kit 2026",
+      "long": "Confidential - Too Fresh To Waste Partner Programme · 2026",
+      "endOfDocument": "End of Document"
+    },
+    "foundingBlurbs": [
+      "A benchmark for quality in the Tunis pastry market. Bonépi joined TFTW to put its commitment to craftsmanship into environmental action.",
+      "One of the most recognized café and fast-food brands in Tunisia. BigBen uses TFTW to reduce end-of-day surplus across multiple locations.",
+      "A long-standing name in Tunisian dining. L’Opéra works with TFTW to make sure a full service never ends with a full bin.",
+      "Kohn is known for premium quality and uncompromising standards. Partnering with TFTW lets Kohn recover value while staying true to a zero-waste commitment."
+    ],
+    "coverStats": [
+      {
+        "value": "40%",
+        "label": "of food produced globally is wasted",
+        "source": "WWF 2021"
+      },
+      {
+        "value": "172 kg",
+        "label": "wasted per person / year in Tunisia",
+        "source": "UNEP 2024"
+      },
+      {
+        "value": "49%",
+        "label": "pay more for sustainable brands",
+        "source": "IBM IBV 2022"
+      }
+    ],
+    "problemStats": [
+      {
+        "value": "10-20%",
+        "label": "bakery output discarded daily",
+        "source": "WRAP"
+      },
+      {
+        "value": "$1T",
+        "label": "annual cost of food waste",
+        "source": "FAO 2014"
+      },
+      {
+        "value": "172 kg",
+        "label": "wasted per Tunisian / year",
+        "source": "UNEP 2024"
+      },
+      {
+        "value": "80x",
+        "label": "methane vs CO₂ warming power",
+        "source": "US EPA"
+      }
+    ],
+    "whyNowStats": [
+      {
+        "value": "49%",
+        "label": "of consumers pay more for demonstrably sustainable brands",
+        "source": "IBM IBV Consumer Study 2022"
+      },
+      {
+        "value": "40%",
+        "label": "of all food produced globally is lost or wasted every year",
+        "source": "WWF Driven to Waste, 2021"
+      }
+    ],
+    "steps": [
+      {
+        "n": "01",
+        "title": "List your surplus",
+        "body": "Create a Surprise Bag in 2 minutes - price, photo, pickup window."
+      },
+      {
+        "n": "02",
+        "title": "Customers reserve & pay",
+        "body": "Users on the TFTW app book and pay in-app. You get notified instantly."
+      },
+      {
+        "n": "03",
+        "title": "They pick up, you scan",
+        "body": "Scan their code. Bag handed over. Done. No admin, no chasing."
+      }
+    ],
+    "benefits": [
+      {
+        "title": "Revenue from waste",
+        "body": "Recover margin on inventory you would have discarded. 50% of something beats 0% of nothing."
+      },
+      {
+        "title": "Zero marketing effort",
+        "body": "Your surplus is visible to thousands of TFTW users searching nearby - instantly."
+      },
+      {
+        "title": "New loyal customers",
+        "body": "Surprise Bag buyers become regulars. Many return at full price once they discover a brand they love."
+      },
+      {
+        "title": "ESG & CSR reporting",
+        "body": "Every bag saved is tracked. Export carbon and waste-diversion data for sustainability reports."
+      },
+      {
+        "title": "Lower disposal costs",
+        "body": "Less unsold stock going to landfill means smaller bins and fewer waste collection fees."
+      },
+      {
+        "title": "Positive PR",
+        "body": "Your brand is featured as a sustainability partner - in-app, on our social channels, and in press."
+      }
+    ],
+    "whyUs": [
+      {
+        "title": "Live in under 48 hours",
+        "body": "Onboarding is one call. Your first listing can go live the same week."
+      },
+      {
+        "title": "Full-language support",
+        "body": "Platform, support, and communications in Arabic, French, and English."
+      },
+      {
+        "title": "Real-time merchant dashboard",
+        "body": "Track bags sold, revenue recovered, CO₂ saved, and customer ratings."
+      },
+      {
+        "title": "No exclusivity, no lock-in",
+        "body": "You remain free to use any other channel. We earn when you earn."
+      },
+      {
+        "title": "Dedicated account support",
+        "body": "A real person, reachable directly. Not a ticket queue."
+      },
+      {
+        "title": "Built for Tunisia",
+        "body": "We built for the Tunisian food market from day one - not adapting a foreign model."
+      }
+    ]
   }
 }

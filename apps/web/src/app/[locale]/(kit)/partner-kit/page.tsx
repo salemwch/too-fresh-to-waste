@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { buildPageMetadata } from '@/lib/seo-metadata';
 
 import type { Locale } from '@/i18n/config';
@@ -13,12 +13,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'partnerKit' });
   return buildPageMetadata({
     path: '/partner-kit',
     locale: locale as Locale,
-    title: 'Partner Kit - Everything You Need to Start Selling Surplus',
-    description:
-      'The print-ready guide for Too Fresh To Waste partners: how a surprise bag works, what to put in it, how pickup runs, and how you get paid.',
+    title: t('meta.title'),
+    description: t('meta.description'),
   });
 }
 
@@ -26,9 +26,48 @@ interface PartnerKitPageProps {
   params: Promise<{ locale: string }>;
 }
 
+/** Paired by index with `benefits` in the messages. */
+const BENEFIT_EMOJI = ['💰', '📣', '🔁', '📊', '🗑️', '📰'] as const;
+
+/**
+ * Brand names and their categories, paired by index with  in
+ * the messages. Bonépi is Bonépi in every language; the blurb is ours.
+ */
+const FOUNDING_PARTNERS = [
+  { name: 'Bonépi', cat: 'Premium Patisserie & Bakery' },
+  { name: 'BigBen', cat: 'Fast Food & Café Chain' },
+  { name: "L'Opéra", cat: 'Established Restaurant' },
+  { name: 'Kohn', cat: 'Fine Dining & Bakery' },
+] as const;
+
+interface KitStat {
+  value: string;
+  label: string;
+  source: string;
+}
+interface KitStep {
+  n: string;
+  title: string;
+  body: string;
+}
+interface KitPoint {
+  title: string;
+  body: string;
+}
+
 export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'partnerKit' });
+
+  const coverStats = t.raw('coverStats') as KitStat[];
+  const problemStats = t.raw('problemStats') as KitStat[];
+  const whyNowStats = t.raw('whyNowStats') as KitStat[];
+  const steps = t.raw('steps') as KitStep[];
+  const benefits = t.raw('benefits') as KitPoint[];
+  const whyUs = t.raw('whyUs') as KitPoint[];
+  const nextSteps = t.raw('nextSteps.items') as KitPoint[];
+  const foundingBlurbs = t.raw('foundingBlurbs') as string[];
 
   return (
     <>
@@ -111,7 +150,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
               left: 8,
               right: 0,
               height: 3,
-              background: '#ff7973',
+              background: '#017C6E',
             }}
           />
 
@@ -147,7 +186,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                 opacity: 0.45,
               }}
             >
-              Partner Kit · 2026
+              {t('cover.kitLabel')}
             </span>
           </div>
 
@@ -163,14 +202,14 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
           >
             <p
               style={{
-                color: '#ff7973',
+                color: '#017C6E',
                 fontSize: 10,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 marginBottom: 32,
               }}
             >
-              Confidential — For Partner Use
+              {t('cover.confidential')}
             </p>
 
             <h1
@@ -182,12 +221,12 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                 letterSpacing: '-0.02em',
               }}
             >
-              Turn Surplus
+              {t('cover.titleStart')}
               <br />
-              <em style={{ color: '#ff7973', fontStyle: 'italic' }}>Into Sales.</em>
+              <em style={{ color: '#017C6E', fontStyle: 'italic' }}>{t('cover.titleEm')}</em>
             </h1>
 
-            <div style={{ width: 56, height: 2, background: '#ff7973', margin: '32px 0' }} />
+            <div style={{ width: 56, height: 2, background: '#017C6E', margin: '32px 0' }} />
 
             <p
               style={{
@@ -199,8 +238,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                 opacity: 0.72,
               }}
             >
-              A partnership with Too Fresh To Waste recovers real margin from unsold daily inventory
-              — same day, same city, zero effort.
+              {t('cover.lede')}
             </p>
 
             {/* Stats grid */}
@@ -212,11 +250,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                 marginTop: 52,
               }}
             >
-              {[
-                { v: '40%', l: 'of food produced globally is wasted', src: 'WWF 2021' },
-                { v: '172 kg', l: 'wasted per person / year in Tunisia', src: 'UNEP 2024' },
-                { v: '49%', l: 'pay more for sustainable brands', src: 'IBM IBV 2022' },
-              ].map((s, i) => (
+              {coverStats.map((s, i) => (
                 <div
                   key={i}
                   style={{
@@ -226,7 +260,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                   }}
                 >
                   <p style={{ color: '#1E4448', fontSize: 38, fontWeight: 300, lineHeight: 1 }}>
-                    {s.v}
+                    {s.value}
                   </p>
                   <p
                     style={{
@@ -237,18 +271,18 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                       opacity: 0.65,
                     }}
                   >
-                    {s.l}
+                    {s.label}
                   </p>
                   <p
                     style={{
-                      color: '#ff7973',
+                      color: '#017C6E',
                       fontSize: 9,
                       marginTop: 8,
                       letterSpacing: '0.1em',
                       textTransform: 'uppercase',
                     }}
                   >
-                    {s.src}
+                    {s.source}
                   </p>
                 </div>
               ))}
@@ -276,14 +310,14 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
             PAGE 2 — THE PROBLEM + THE SOLUTION
         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <div className='page'>
-          <KitPageHeader title='The Problem — & The Solution' page={2} />
+          <KitPageHeader title={t('pages.problemSolution')} page={2} brand={t('footer.short')} />
 
           <div style={{ padding: '0 48px 40px' }}>
             <div style={{ marginBottom: 36 }}>
               <SectionLabel label='The Problem' />
               <h2 style={{ fontSize: 34, fontWeight: 300, lineHeight: 1.1, marginBottom: 20 }}>
                 Every day,{' '}
-                <em style={{ fontStyle: 'italic', color: '#ff7973' }}>good food disappears</em>.
+                <em style={{ fontStyle: 'italic', color: '#017C6E' }}>good food disappears</em>.
               </h2>
 
               <p
@@ -347,15 +381,10 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                   gap: 10,
                 }}
               >
-                {[
-                  { v: '10–20%', l: 'bakery output discarded daily', src: 'WRAP' },
-                  { v: '$1T', l: 'annual cost of food waste', src: 'FAO 2014' },
-                  { v: '172 kg', l: 'wasted per Tunisian / year', src: 'UNEP 2024' },
-                  { v: '80×', l: 'methane vs CO₂ warming power', src: 'US EPA' },
-                ].map((s, i) => (
+                {problemStats.map((s, i) => (
                   <div key={i} style={{ borderTop: '2px solid #1E4448', paddingTop: 12 }}>
                     <p style={{ fontSize: 26, fontWeight: 300, color: '#1E4448', lineHeight: 1 }}>
-                      {s.v}
+                      {s.value}
                     </p>
                     <p
                       style={{
@@ -366,18 +395,18 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                         lineHeight: 1.4,
                       }}
                     >
-                      {s.l}
+                      {s.label}
                     </p>
                     <p
                       style={{
                         fontSize: 9,
-                        color: '#ff7973',
+                        color: '#017C6E',
                         marginTop: 5,
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
                       }}
                     >
-                      {s.src}
+                      {s.source}
                     </p>
                   </div>
                 ))}
@@ -388,7 +417,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
               <SectionLabel label='The Solution' />
               <h2 style={{ fontSize: 34, fontWeight: 300, lineHeight: 1.1, marginBottom: 16 }}>
                 A marketplace for{' '}
-                <em style={{ fontStyle: 'italic', color: '#ff7973' }}>last-minute surplus</em>.
+                <em style={{ fontStyle: 'italic', color: '#017C6E' }}>last-minute surplus</em>.
               </h2>
 
               <p
@@ -408,27 +437,11 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-                {[
-                  {
-                    n: '01',
-                    t: 'List your surplus',
-                    b: 'Create a Surprise Bag in 2 minutes — price, photo, pickup window.',
-                  },
-                  {
-                    n: '02',
-                    t: 'Customers reserve & pay',
-                    b: 'Users on the TFTW app book and pay in-app. You get notified instantly.',
-                  },
-                  {
-                    n: '03',
-                    t: 'They pick up, you scan',
-                    b: 'Scan their code. Bag handed over. Done. No admin, no chasing.',
-                  },
-                ].map(step => (
-                  <div key={step.n} style={{ borderLeft: '3px solid #ff7973', paddingLeft: 14 }}>
+                {steps.map(step => (
+                  <div key={step.n} style={{ borderLeft: '3px solid #017C6E', paddingLeft: 14 }}>
                     <p
                       style={{
-                        color: '#ff7973',
+                        color: '#017C6E',
                         fontSize: 10,
                         fontWeight: 700,
                         letterSpacing: '0.1em',
@@ -438,10 +451,10 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                       {step.n}
                     </p>
                     <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 5, color: '#1E4448' }}>
-                      {step.t}
+                      {step.title}
                     </p>
                     <p style={{ fontSize: 11, color: '#1E4448', opacity: 0.6, lineHeight: 1.55 }}>
-                      {step.b}
+                      {step.body}
                     </p>
                   </div>
                 ))}
@@ -449,51 +462,20 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
             </div>
           </div>
 
-          <KitPageFooter page={2} />
+          <KitPageFooter page={2} note={t('footer.long')} endLabel={t('footer.endOfDocument')} />
         </div>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             PAGE 3 — BENEFITS + WHY NOW + WHY TFTW
         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <div className='page'>
-          <KitPageHeader title='Benefits, Market Timing & Why Us' page={3} />
+          <KitPageHeader title={t('pages.benefits')} page={3} brand={t('footer.short')} />
 
           <div style={{ padding: '0 48px 40px' }}>
             <div style={{ marginBottom: 28 }}>
               <SectionLabel label='Partner Benefits' />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                {[
-                  {
-                    icon: '💰',
-                    t: 'Revenue from waste',
-                    b: 'Recover margin on inventory you would have discarded. 50% of something beats 0% of nothing.',
-                  },
-                  {
-                    icon: '📣',
-                    t: 'Zero marketing effort',
-                    b: 'Your surplus is visible to thousands of TFTW users searching nearby — instantly.',
-                  },
-                  {
-                    icon: '🤝',
-                    t: 'New loyal customers',
-                    b: 'Surprise Bag buyers become regulars. Many return at full price once they discover a brand they love.',
-                  },
-                  {
-                    icon: '🌿',
-                    t: 'ESG & CSR reporting',
-                    b: 'Every bag saved is tracked. Export carbon and waste-diversion data for sustainability reports.',
-                  },
-                  {
-                    icon: '🗑️',
-                    t: 'Lower disposal costs',
-                    b: 'Less unsold stock going to landfill means smaller bins and fewer waste collection fees.',
-                  },
-                  {
-                    icon: '📰',
-                    t: 'Positive PR',
-                    b: 'Your brand is featured as a sustainability partner — in-app, on our social channels, and in press.',
-                  },
-                ].map((b, i) => (
+                {benefits.map((b, i) => (
                   <div
                     key={i}
                     style={{
@@ -502,7 +484,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                       borderTop: '2px solid #1E4448',
                     }}
                   >
-                    <span style={{ fontSize: 18 }}>{b.icon}</span>
+                    <span style={{ fontSize: 18 }}>{BENEFIT_EMOJI[i] ?? BENEFIT_EMOJI[0]}</span>
                     <p
                       style={{
                         fontSize: 12,
@@ -512,10 +494,10 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                         color: '#1E4448',
                       }}
                     >
-                      {b.t}
+                      {b.title}
                     </p>
                     <p style={{ fontSize: 10, color: '#1E4448', opacity: 0.6, lineHeight: 1.5 }}>
-                      {b.b}
+                      {b.body}
                     </p>
                   </div>
                 ))}
@@ -538,21 +520,10 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                 into.
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
-                {[
-                  {
-                    v: '49%',
-                    l: 'of consumers pay more for demonstrably sustainable brands',
-                    src: 'IBM IBV Consumer Study 2022',
-                  },
-                  {
-                    v: '40%',
-                    l: 'of all food produced globally is lost or wasted every year',
-                    src: 'WWF Driven to Waste, 2021',
-                  },
-                ].map((w, i) => (
+                {whyNowStats.map((w, i) => (
                   <div key={i} style={{ borderTop: '2px solid #1E4448', paddingTop: 12 }}>
                     <p style={{ fontSize: 36, fontWeight: 300, lineHeight: 1, color: '#1E4448' }}>
-                      {w.v}
+                      {w.value}
                     </p>
                     <p
                       style={{
@@ -563,18 +534,18 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                         lineHeight: 1.5,
                       }}
                     >
-                      {w.l}
+                      {w.label}
                     </p>
                     <p
                       style={{
                         fontSize: 9,
-                        color: '#ff7973',
+                        color: '#017C6E',
                         marginTop: 6,
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
                       }}
                     >
-                      {w.src}
+                      {w.source}
                     </p>
                   </div>
                 ))}
@@ -584,32 +555,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
             <div>
               <SectionLabel label='Why Too Fresh To Waste?' />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                {[
-                  {
-                    t: 'Live in under 48 hours',
-                    b: 'Onboarding is one call. Your first listing can go live the same week.',
-                  },
-                  {
-                    t: 'Full-language support',
-                    b: 'Platform, support, and communications in Arabic, French, and English.',
-                  },
-                  {
-                    t: 'Real-time merchant dashboard',
-                    b: 'Track bags sold, revenue recovered, CO₂ saved, and customer ratings.',
-                  },
-                  {
-                    t: 'No exclusivity, no lock-in',
-                    b: 'You remain free to use any other channel. We earn when you earn.',
-                  },
-                  {
-                    t: 'Dedicated account support',
-                    b: 'A real person, reachable directly. Not a ticket queue.',
-                  },
-                  {
-                    t: 'Built for Tunisia',
-                    b: 'We built for the Tunisian food market from day one — not adapting a foreign model.',
-                  },
-                ].map((item, i) => (
+                {whyUs.map((item, i) => (
                   <div
                     key={i}
                     style={{
@@ -619,19 +565,19 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                       borderBottom: '1px solid #e5e7eb',
                     }}
                   >
-                    <span style={{ color: '#ff7973', marginTop: 2, fontSize: 8, flexShrink: 0 }}>
+                    <span style={{ color: '#017C6E', marginTop: 2, fontSize: 8, flexShrink: 0 }}>
                       ●
                     </span>
                     <div>
                       <p
                         style={{ fontSize: 12, fontWeight: 600, marginBottom: 2, color: '#1E4448' }}
                       >
-                        {item.t}
+                        {item.title}
                       </p>
                       <p
                         style={{ fontSize: 10, color: '#1E4448', opacity: 0.55, lineHeight: 1.45 }}
                       >
-                        {item.b}
+                        {item.body}
                       </p>
                     </div>
                   </div>
@@ -640,14 +586,14 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
             </div>
           </div>
 
-          <KitPageFooter page={3} />
+          <KitPageFooter page={3} note={t('footer.long')} endLabel={t('footer.endOfDocument')} />
         </div>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             PAGE 4 — FOUNDING PARTNERS + NEXT STEPS
         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <div className='page'>
-          <KitPageHeader title='Founding Partners & Next Steps' page={4} />
+          <KitPageHeader title={t('pages.partnersNextSteps')} page={4} brand={t('footer.short')} />
 
           <div style={{ padding: '0 48px 40px' }}>
             <div style={{ marginBottom: 36 }}>
@@ -676,32 +622,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                   marginBottom: 24,
                 }}
               >
-                {[
-                  {
-                    name: 'Bonépi',
-                    cat: 'Premium Patisserie & Bakery',
-                    detail:
-                      'A benchmark for quality in the Tunis pastry market. Bonépi joined TFTW to put its commitment to craftsmanship into environmental action.',
-                  },
-                  {
-                    name: 'BigBen',
-                    cat: 'Fast Food & Café Chain',
-                    detail:
-                      'One of the most recognized café and fast-food brands in Tunisia. BigBen uses TFTW to reduce end-of-day surplus across multiple locations.',
-                  },
-                  {
-                    name: "L'Opéra",
-                    cat: 'Established Restaurant',
-                    detail:
-                      "A Tunis dining institution. L'Opéra brings TFTW access to restaurant-quality meals at end-of-service prices — a new audience for a beloved brand.",
-                  },
-                  {
-                    name: 'Kohn',
-                    cat: 'Fine Dining & Bakery',
-                    detail:
-                      'Kohn is known for premium quality and uncompromising standards. Partnering with TFTW lets Kohn recover value while staying true to a zero-waste commitment.',
-                  },
-                ].map((p, i) => (
+                {FOUNDING_PARTNERS.map((p, i) => (
                   <div
                     key={i}
                     style={{
@@ -718,14 +639,14 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                           width: 32,
                           height: 32,
                           borderRadius: '50%',
-                          border: '1.5px solid #ff7973',
+                          border: '1.5px solid #017C6E',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,
                         }}
                       >
-                        <span style={{ color: '#ff7973', fontWeight: 700, fontSize: 13 }}>
+                        <span style={{ color: '#017C6E', fontWeight: 700, fontSize: 13 }}>
                           {p.name.charAt(0)}
                         </span>
                       </div>
@@ -735,7 +656,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                       </div>
                     </div>
                     <p style={{ fontSize: 11, color: '#1E4448', opacity: 0.65, lineHeight: 1.55 }}>
-                      {p.detail}
+                      {foundingBlurbs[i]}
                     </p>
                   </div>
                 ))}
@@ -743,9 +664,9 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
             </div>
 
             <div style={{ marginBottom: 32 }}>
-              <SectionLabel label='Next Steps' />
+              <SectionLabel label={t('nextSteps.label')} />
               <h2 style={{ fontSize: 28, fontWeight: 300, lineHeight: 1.1, marginBottom: 18 }}>
-                Ready when you are.
+                {t('nextSteps.title')}
               </h2>
               <div
                 style={{
@@ -755,40 +676,24 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                   marginBottom: 28,
                 }}
               >
-                {[
-                  {
-                    step: '1',
-                    t: 'Intro call (30 min)',
-                    b: 'We walk through the platform, answer your questions, and agree on a pilot scope.',
-                  },
-                  {
-                    step: '2',
-                    t: 'Onboarding (48 h)',
-                    b: 'We set up your merchant profile, train your team, and make your first listing live.',
-                  },
-                  {
-                    step: '3',
-                    t: 'First bag sold',
-                    b: 'You recover your first sale from inventory you would have discarded. We iterate from there.',
-                  },
-                ].map(s => (
-                  <div key={s.step} style={{ borderTop: '2px solid #ff7973', paddingTop: 12 }}>
+                {nextSteps.map((s, i) => (
+                  <div key={s.title} style={{ borderTop: '2px solid #017C6E', paddingTop: 12 }}>
                     <p
                       style={{
-                        color: '#ff7973',
+                        color: '#017C6E',
                         fontSize: 10,
                         fontWeight: 700,
                         letterSpacing: '0.1em',
                         marginBottom: 5,
                       }}
                     >
-                      STEP {s.step}
+                      {t('nextSteps.stepLabel', { n: i + 1 })}
                     </p>
                     <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 5, color: '#1E4448' }}>
-                      {s.t}
+                      {s.title}
                     </p>
                     <p style={{ fontSize: 11, color: '#1E4448', opacity: 0.6, lineHeight: 1.5 }}>
-                      {s.b}
+                      {s.body}
                     </p>
                   </div>
                 ))}
@@ -816,23 +721,23 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                   top: 0,
                   bottom: 0,
                   width: 5,
-                  background: '#ff7973',
+                  background: '#017C6E',
                 }}
               />
               <div style={{ paddingLeft: 12 }}>
                 <p
                   style={{
-                    color: '#ff7973',
+                    color: '#017C6E',
                     fontSize: 10,
                     letterSpacing: '0.18em',
                     textTransform: 'uppercase',
                     marginBottom: 8,
                   }}
                 >
-                  Get in touch
+                  {t('contact.label')}
                 </p>
                 <p style={{ color: '#1E4448', fontSize: 20, fontWeight: 300 }}>
-                  Let&rsquo;s start with a conversation.
+                  {t('contact.title')}
                 </p>
                 <p style={{ color: '#1E4448', fontSize: 12, marginTop: 6, opacity: 0.6 }}>
                   toofreshtowaste.com · contact@toofreshtowaste.com
@@ -851,13 +756,18 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
                   Tunisia
                 </p>
                 <p style={{ color: '#1E4448', fontSize: 11, marginTop: 4, opacity: 0.45 }}>
-                  Tunis · 2026
+                  {t('contact.place')}
                 </p>
               </div>
             </div>
           </div>
 
-          <KitPageFooter page={4} last />
+          <KitPageFooter
+            page={4}
+            last
+            note={t('footer.long')}
+            endLabel={t('footer.endOfDocument')}
+          />
         </div>
       </div>
     </>
@@ -866,7 +776,7 @@ export default async function PartnerKitPage({ params }: PartnerKitPageProps) {
 
 /* ── Helper components ────────────────────────────────────────── */
 
-function KitPageHeader({ title }: { title: string; page: number }) {
+function KitPageHeader({ title, brand }: { title: string; page: number; brand: string }) {
   return (
     <div
       style={{
@@ -886,7 +796,7 @@ function KitPageHeader({ title }: { title: string; page: number }) {
           style={{ objectFit: 'contain', flexShrink: 0 }}
         />
         <span style={{ fontSize: 10, color: '#1E4448', opacity: 0.55, letterSpacing: '0.05em' }}>
-          Too Fresh To Waste — Partner Kit 2026
+          {brand}
         </span>
       </div>
       <span style={{ fontSize: 10, color: '#1E4448', opacity: 0.45 }}>{title}</span>
@@ -894,7 +804,17 @@ function KitPageHeader({ title }: { title: string; page: number }) {
   );
 }
 
-function KitPageFooter({ page, last }: { page: number; last?: boolean }) {
+function KitPageFooter({
+  page,
+  last,
+  note,
+  endLabel,
+}: {
+  page: number;
+  last?: boolean;
+  note: string;
+  endLabel: string;
+}) {
   return (
     <div
       style={{
@@ -909,11 +829,9 @@ function KitPageFooter({ page, last }: { page: number; last?: boolean }) {
         alignItems: 'center',
       }}
     >
+      <span style={{ fontSize: 9, color: '#1E4448', opacity: 0.35 }}>{note}</span>
       <span style={{ fontSize: 9, color: '#1E4448', opacity: 0.35 }}>
-        Confidential — Too Fresh To Waste Partner Programme · 2026
-      </span>
-      <span style={{ fontSize: 9, color: '#1E4448', opacity: 0.35 }}>
-        {page} / 4{last ? ' — End of Document' : ''}
+        {page} / 4{last ? ` - ${endLabel}` : ''}
       </span>
     </div>
   );
@@ -923,7 +841,7 @@ function SectionLabel({ label }: { label: string }) {
   return (
     <p
       style={{
-        color: '#ff7973',
+        color: '#017C6E',
         fontSize: 9,
         letterSpacing: '0.22em',
         textTransform: 'uppercase',
@@ -941,7 +859,7 @@ function SourceRef({ href, label }: { href: string; label: string }) {
       href={href}
       target='_blank'
       rel='noopener noreferrer'
-      style={{ color: '#ff7973', fontSize: 10, textDecoration: 'none' }}
+      style={{ color: '#017C6E', fontSize: 10, textDecoration: 'none' }}
     >
       [{label}]
     </a>

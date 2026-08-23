@@ -4620,5 +4620,178 @@
       "ctaTeam": "Parler à notre équipe",
       "ctaEnterprise": "Solutions entreprises"
     }
+  },
+  "partnerKit": {
+    "meta": {
+      "title": "Kit partenaire - Tout pour commencer à vendre vos invendus",
+      "description": "Le guide imprimable des partenaires Too Fresh To Waste : comment fonctionne un panier surprise, quoi mettre dedans, comment se passe le retrait, et comment vous êtes payé."
+    },
+    "cover": {
+      "kitLabel": "Kit partenaire · 2026",
+      "confidential": "Confidentiel - Usage partenaire",
+      "titleStart": "Vos invendus,",
+      "titleEm": "en ventes.",
+      "lede": "Un partenariat avec Too Fresh To Waste récupère une vraie marge sur vos invendus du jour - le jour même, dans votre ville, sans effort."
+    },
+    "pages": {
+      "problemSolution": "Le problème - & la solution",
+      "benefits": "Avantages, contexte de marché & pourquoi nous",
+      "partnersNextSteps": "Partenaires fondateurs & prochaines étapes"
+    },
+    "nextSteps": {
+      "label": "Prochaines étapes",
+      "title": "Prêts quand vous l’êtes.",
+      "items": [
+        {
+          "title": "Appel de découverte (30 min)",
+          "body": "Nous parcourons la plateforme, répondons à vos questions et définissons le périmètre d’un pilote."
+        },
+        {
+          "title": "Mise en route (48 h)",
+          "body": "Nous créons votre profil commerçant, formons votre équipe et publions votre première annonce."
+        },
+        {
+          "title": "Premier panier vendu",
+          "body": "Vous récupérez votre première vente sur un stock que vous auriez jeté. Nous ajustons ensuite ensemble."
+        }
+      ],
+      "stepLabel": "ÉTAPE {n}"
+    },
+    "contact": {
+      "label": "Nous contacter",
+      "title": "Commençons par une conversation.",
+      "place": "Tunis · 2026"
+    },
+    "footer": {
+      "short": "Too Fresh To Waste - Kit partenaire 2026",
+      "long": "Confidentiel - Programme partenaire Too Fresh To Waste · 2026",
+      "endOfDocument": "Fin du document"
+    },
+    "foundingBlurbs": [
+      "Une référence de qualité sur le marché de la pâtisserie tunisoise. Bonépi a rejoint TFTW pour traduire son exigence artisanale en action environnementale.",
+      "L’une des enseignes de café et de restauration rapide les plus reconnues de Tunisie. BigBen utilise TFTW pour réduire ses invendus de fin de journée sur plusieurs points de vente.",
+      "Un nom installé dans la restauration tunisienne. L’Opéra travaille avec TFTW pour qu’un service complet ne finisse jamais par une poubelle pleine.",
+      "Kohn est reconnu pour sa qualité haut de gamme et ses standards intransigeants. Le partenariat avec TFTW lui permet de récupérer de la valeur tout en tenant son engagement zéro déchet."
+    ],
+    "coverStats": [
+      {
+        "value": "40%",
+        "label": "de la nourriture produite est gaspillée",
+        "source": "WWF 2021"
+      },
+      {
+        "value": "172 kg",
+        "label": "gaspillés par personne / an en Tunisie",
+        "source": "UNEP 2024"
+      },
+      {
+        "value": "49%",
+        "label": "paient plus pour une marque durable",
+        "source": "IBM IBV 2022"
+      }
+    ],
+    "problemStats": [
+      {
+        "value": "10-20%",
+        "label": "de la production des boulangeries jetée",
+        "source": "WRAP"
+      },
+      {
+        "value": "1 000 Md $",
+        "label": "coût annuel du gaspillage alimentaire",
+        "source": "FAO 2014"
+      },
+      {
+        "value": "172 kg",
+        "label": "gaspillés par Tunisien / an",
+        "source": "UNEP 2024"
+      },
+      {
+        "value": "80x",
+        "label": "pouvoir de réchauffement du méthane",
+        "source": "US EPA"
+      }
+    ],
+    "whyNowStats": [
+      {
+        "value": "49%",
+        "label": "des consommateurs paient plus pour une marque réellement durable",
+        "source": "IBM IBV Consumer Study 2022"
+      },
+      {
+        "value": "40%",
+        "label": "de la nourriture produite dans le monde est perdue ou gaspillée chaque année",
+        "source": "WWF Driven to Waste, 2021"
+      }
+    ],
+    "steps": [
+      {
+        "n": "01",
+        "title": "Publiez vos invendus",
+        "body": "Créez un panier surprise en 2 minutes - prix, photo, créneau de retrait."
+      },
+      {
+        "n": "02",
+        "title": "Le client réserve et paie",
+        "body": "Les utilisateurs de l’app TFTW réservent et paient en ligne. Vous êtes prévenu immédiatement."
+      },
+      {
+        "n": "03",
+        "title": "Il récupère, vous scannez",
+        "body": "Scannez son code. Panier remis. Terminé. Aucun administratif, aucune relance."
+      }
+    ],
+    "benefits": [
+      {
+        "title": "Du revenu sur le gaspillage",
+        "body": "Récupérez de la marge sur un stock que vous auriez jeté. 50% de quelque chose vaut mieux que 0% de rien."
+      },
+      {
+        "title": "Zéro effort marketing",
+        "body": "Vos invendus sont visibles par des milliers d’utilisateurs TFTW qui cherchent près de chez eux - immédiatement."
+      },
+      {
+        "title": "De nouveaux clients fidèles",
+        "body": "Les acheteurs de paniers surprise deviennent des habitués. Beaucoup reviennent au prix plein après avoir découvert une marque qu’ils aiment."
+      },
+      {
+        "title": "Reporting ESG et RSE",
+        "body": "Chaque panier sauvé est comptabilisé. Exportez vos données carbone et de détournement de déchets pour vos rapports."
+      },
+      {
+        "title": "Moins de coûts de traitement",
+        "body": "Moins d’invendus en décharge, ce sont des bacs plus petits et moins de frais de collecte."
+      },
+      {
+        "title": "Une image positive",
+        "body": "Votre marque est mise en avant comme partenaire engagé - dans l’app, sur nos réseaux et dans la presse."
+      }
+    ],
+    "whyUs": [
+      {
+        "title": "En ligne en moins de 48 heures",
+        "body": "Un seul appel suffit. Votre première annonce peut être publiée dans la semaine."
+      },
+      {
+        "title": "Support dans les trois langues",
+        "body": "Plateforme, support et communication en arabe, français et anglais."
+      },
+      {
+        "title": "Tableau de bord commerçant en temps réel",
+        "body": "Suivez les paniers vendus, les revenus récupérés, le CO₂ évité et les avis clients."
+      },
+      {
+        "title": "Ni exclusivité, ni engagement",
+        "body": "Vous restez libre d’utiliser tout autre canal. Nous gagnons quand vous gagnez."
+      },
+      {
+        "title": "Un interlocuteur dédié",
+        "body": "Une vraie personne, joignable directement. Pas une file de tickets."
+      },
+      {
+        "title": "Construit pour la Tunisie",
+        "body": "Nous avons construit pour le marché alimentaire tunisien dès le premier jour - pas adapté un modèle étranger."
+      }
+    ]
   }
 }

@@ -43,6 +43,7 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
   '/marketplace-surprise-bag',
   '/mission-driven',
   '/parcless-bag',
+  '/partner-kit',
   '/partners',
 ]);
 
@@ -66,7 +67,6 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
 export const ENGLISH_ONLY_ROUTES = new Set<string>([
   '/account-deletion',
   '/cookie-policy',
-  '/partner-kit',
   '/privacy-policy',
   '/security',
   '/terms-and-conditions',
