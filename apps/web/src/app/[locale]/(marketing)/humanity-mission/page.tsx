@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
@@ -13,10 +14,12 @@ interface HumanityMissionPageProps {
 export async function generateMetadata({ params }: HumanityMissionPageProps): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'humanityMission' });
-  return {
+  return buildPageMetadata({
+    path: '/humanity-mission',
+    locale: locale as Locale,
     title: t('meta.title'),
     description: t('meta.description'),
-  };
+  });
 }
 
 // SVG icons for the four pillars

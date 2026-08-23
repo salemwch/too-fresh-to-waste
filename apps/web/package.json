@@ -13,7 +13,10 @@
     "test:ci": "jest --ci --coverage --watchAll=false --passWithNoTests",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css,md}\"",
     "check:opacity": "node scripts/check-opacity-scale.mjs",
-    "fix:opacity": "node scripts/check-opacity-scale.mjs --fix"
+    "fix:opacity": "node scripts/check-opacity-scale.mjs --fix",
+    "check:canonical": "node scripts/check-canonical-tags.mjs",
+    "check:translations": "node scripts/check-translation-coverage.mjs",
+    "check:seo": "pnpm check:canonical && pnpm check:translations"
   },
   "dependencies": {
     "@foodwaste/shared": "workspace:*",

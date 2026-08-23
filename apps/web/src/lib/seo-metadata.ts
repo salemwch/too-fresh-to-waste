@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getCanonicalUrl, seoConfig } from '@/config/seo.config';
-import { locales, getLocaleConfig } from '@/i18n/config';
+import { getLocaleConfig } from '@/i18n/config';
+import { SOURCE_LOCALE, translatedLocalesFor } from '@/config/translated-routes';
 
 import type { Locale } from '@/i18n/config';
 
@@ -35,11 +36,18 @@ export interface PageMetadataInput {
 /**
  * Builds the canonical + hreflang + Open Graph block every indexable page needs.
  *
- * Emitting `alternates.languages` for all three locales on every page is what
- * stops Google treating the fr / ar / en versions as duplicates competing with
- * each other, and `x-default` tells it which to show when it cannot infer a
- * language preference. Getting this wrong on a multilingual site costs more
- * traffic than almost any other technical mistake, so it lives in one place.
+ * `alternates.languages` is what stops Google treating the fr / ar / en
+ * versions as duplicates competing with each other, and `x-default` tells it
+ * which to show when it cannot infer a language preference. Getting this wrong
+ * on a multilingual site costs more traffic than almost any other technical
+ * mistake, so it lives in one place.
+ *
+ * It only advertises locales the route actually serves. A page whose copy is
+ * still hardcoded English lists English alone, and its non-English URLs get
+ * `noindex` with the canonical pointing at the English one. Claiming a French
+ * alternate that returns English text is worse than claiming none, because it
+ * makes the whole cluster untrustworthy rather than merely incomplete. See
+ * `config/translated-routes.ts`.
  */
 export function buildPageMetadata({
   path,
@@ -49,14 +57,21 @@ export function buildPageMetadata({
   noIndex = false,
   ogImage = seoConfig.ogImage,
 }: PageMetadataInput): Metadata {
+  const available = translatedLocalesFor(path);
   const languages: Record<string, string> = {
-    'x-default': getCanonicalUrl(path, 'en'),
+    'x-default': getCanonicalUrl(path, SOURCE_LOCALE),
   };
-  locales.forEach(l => {
+  available.forEach(l => {
     languages[getLocaleConfig(l).hreflang] = getCanonicalUrl(path, l);
   });
 
-  const url = getCanonicalUrl(path, locale);
+  /**
+   * A locale variant we do not actually serve points its canonical home rather
+   * than at itself, so the duplicate consolidates instead of competing.
+   */
+  const servesThisLocale = available.includes(locale);
+  const url = getCanonicalUrl(path, servesThisLocale ? locale : SOURCE_LOCALE);
+  const hideFromIndex = noIndex || !servesThisLocale;
 
   return {
     title,
@@ -76,7 +91,7 @@ export function buildPageMetadata({
       description,
       images: [ogImage],
     },
-    ...(noIndex ? { robots: { index: false, follow: true } } : {}),
+    ...(hideFromIndex ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

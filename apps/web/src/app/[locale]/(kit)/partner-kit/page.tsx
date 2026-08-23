@@ -1,7 +1,26 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import { setRequestLocale } from 'next-intl/server';
+import { buildPageMetadata } from '@/lib/seo-metadata';
+
+import type { Locale } from '@/i18n/config';
 import { PrintTrigger } from './PrintTrigger';
 import { PrintButton } from './PrintButton';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/partner-kit',
+    locale: locale as Locale,
+    title: 'Partner Kit - Everything You Need to Start Selling Surplus',
+    description:
+      'The print-ready guide for Too Fresh To Waste partners: how a surprise bag works, what to put in it, how pickup runs, and how you get paid.',
+  });
+}
 
 interface PartnerKitPageProps {
   params: Promise<{ locale: string }>;

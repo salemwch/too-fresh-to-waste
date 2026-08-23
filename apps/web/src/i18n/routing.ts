@@ -21,5 +21,12 @@ export const routing = defineRouting({
   localeDetection: true,
 });
 
-// Navigation helpers with locale awareness
-export const { Link, usePathname, useRouter } = createNavigation(routing);
+/**
+ * Navigation helpers with locale awareness.
+ *
+ * `redirect` is exported alongside the rest because `next/navigation`'s version
+ * has no idea locales exist: `redirect('/')` from `/fr/coming-soon` sends the
+ * reader to the English home page. Every redirect in a locale-prefixed route
+ * has to come from here.
+ */
+export const { Link, redirect, usePathname, useRouter } = createNavigation(routing);

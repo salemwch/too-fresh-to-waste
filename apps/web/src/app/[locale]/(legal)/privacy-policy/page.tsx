@@ -1,11 +1,22 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy | Too Fresh To Waste',
-  description:
-    'Learn how Too Fresh To Waste collects, uses, and protects your personal data in accordance with Tunisian and international data protection standards.',
-  robots: { index: true, follow: true },
-};
+import type { Locale } from '@/i18n/config';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/privacy-policy',
+    locale: locale as Locale,
+    title: 'Privacy Policy | Too Fresh To Waste',
+    description:
+      'Learn how Too Fresh To Waste collects, uses, and protects your personal data in accordance with Tunisian and international data protection standards.',
+  });
+}
 
 const LAST_UPDATED = 'April 15, 2026';
 const EFFECTIVE_DATE = 'April 15, 2026';

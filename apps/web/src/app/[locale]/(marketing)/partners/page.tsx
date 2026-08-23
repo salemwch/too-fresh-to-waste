@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
+
+import type { Locale } from '@/i18n/config';
 import { setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
@@ -7,12 +10,15 @@ interface PartnersPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  return {
+export async function generateMetadata({ params }: PartnersPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/partners',
+    locale: locale as Locale,
     title: 'Partner With Us - Too Fresh To Waste',
     description:
       'Turn unsold inventory into revenue. Join the Too Fresh To Waste partner network and recover value from surplus food - same day, zero waste.',
-  };
+  });
 }
 
 const impactStats = [

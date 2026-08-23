@@ -1,11 +1,22 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
 
-export const metadata: Metadata = {
-  title: 'Delete Your Account | Too Fresh To Waste',
-  description:
-    'Learn how to request deletion of your Too Fresh To Waste account and associated data.',
-  robots: { index: true, follow: true },
-};
+import type { Locale } from '@/i18n/config';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/account-deletion',
+    locale: locale as Locale,
+    title: 'Delete Your Account | Too Fresh To Waste',
+    description:
+      'Learn how to request deletion of your Too Fresh To Waste account and associated data.',
+  });
+}
 
 const CONTACT_EMAIL = 'support@toofreshtowaste.com';
 const COMPANY_NAME = 'Too Fresh To Waste';

@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
+
+import type { Locale } from '@/i18n/config';
 import Image from 'next/image';
 import { setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
@@ -9,13 +12,15 @@ interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  return {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/how-to-collect',
+    locale: locale as Locale,
     title: 'How to Collect a Surprise Bag - Too Fresh To Waste',
     description:
       'Step-by-step guide to browsing, reserving, picking up, and earning points with a Too Fresh To Waste Surprise Bag.',
-    alternates: { canonical: '/how-to-collect' },
-  };
+  });
 }
 
 const STEPS = [

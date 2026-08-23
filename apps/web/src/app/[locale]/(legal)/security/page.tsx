@@ -1,11 +1,22 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
 
-export const metadata: Metadata = {
-  title: 'Security | Too Fresh To Waste',
-  description:
-    'Learn how Too Fresh To Waste protects your account and data with industry-standard security practices — and how to report a vulnerability.',
-  robots: { index: true, follow: true },
-};
+import type { Locale } from '@/i18n/config';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/security',
+    locale: locale as Locale,
+    title: 'Security | Too Fresh To Waste',
+    description:
+      'Learn how Too Fresh To Waste protects your account and data with industry-standard security practices — and how to report a vulnerability.',
+  });
+}
 
 const LAST_UPDATED = 'April 15, 2026';
 const SECURITY_EMAIL = 'support@toofreshtowaste.com';

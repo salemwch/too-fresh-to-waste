@@ -1,11 +1,22 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
 
-export const metadata: Metadata = {
-  title: 'Terms of Service | Too Fresh To Waste',
-  description:
-    'Read the Terms of Service for Too Fresh To Waste — the rules governing your use of our food-rescue marketplace platform.',
-  robots: { index: true, follow: true },
-};
+import type { Locale } from '@/i18n/config';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/terms-of-service',
+    locale: locale as Locale,
+    title: 'Terms of Service | Too Fresh To Waste',
+    description:
+      'Read the Terms of Service for Too Fresh To Waste — the rules governing your use of our food-rescue marketplace platform.',
+  });
+}
 
 const LAST_UPDATED = 'April 15, 2026';
 const EFFECTIVE_DATE = 'April 15, 2026';

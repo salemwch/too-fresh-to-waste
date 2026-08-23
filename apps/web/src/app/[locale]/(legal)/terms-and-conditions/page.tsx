@@ -1,14 +1,25 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
+
+import type { Locale } from '@/i18n/config';
 
 // From @/i18n/routing, not next/link — this one keeps the locale prefix.
 import { Link } from '@/i18n/routing';
 
-export const metadata: Metadata = {
-  title: 'Terms and Conditions | Too Fresh To Waste',
-  description:
-    'Read the Terms and Conditions governing your use of the Too Fresh To Waste food-rescue platform in Tunisia.',
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/terms-and-conditions',
+    locale: locale as Locale,
+    title: 'Terms and Conditions | Too Fresh To Waste',
+    description:
+      'Read the Terms and Conditions governing your use of the Too Fresh To Waste food-rescue platform in Tunisia.',
+  });
+}
 
 const LAST_UPDATED = 'April 15, 2026';
 const EFFECTIVE_DATE = 'April 15, 2026';

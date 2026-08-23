@@ -1,10 +1,22 @@
 import type { Metadata } from 'next';
+import { buildPageMetadata } from '@/lib/seo-metadata';
 
-export const metadata: Metadata = {
-  title: 'Cookie Policy | Too Fresh To Waste',
-  description: 'Learn how Too Fresh To Waste uses cookies and how you can manage your preferences.',
-  robots: { index: true, follow: true },
-};
+import type { Locale } from '@/i18n/config';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildPageMetadata({
+    path: '/cookie-policy',
+    locale: locale as Locale,
+    title: 'Cookie Policy | Too Fresh To Waste',
+    description:
+      'Learn how Too Fresh To Waste uses cookies and how you can manage your preferences.',
+  });
+}
 
 const LAST_UPDATED = 'April 15, 2026';
 const CONTACT_EMAIL = 'support@toofreshtowaste.com';

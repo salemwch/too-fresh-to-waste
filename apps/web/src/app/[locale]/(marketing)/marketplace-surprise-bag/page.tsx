@@ -4,8 +4,8 @@ import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import RevenueCalculator from '@/components/sections/RevenueCalculator';
 import { SoftwareAppSchema, FAQSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { buildPageMetadata } from '@/lib/seo-metadata';
 import { getCanonicalUrl } from '@/config/seo.config';
-import { locales, getLocaleConfig } from '@/i18n/config';
 import type { Locale } from '@/i18n/config';
 
 interface PageProps {
@@ -18,23 +18,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const loc = locale as Locale;
-  const PATH = '/marketplace-surprise-bag';
-  const alternateLanguages: Record<string, string> = {
-    'x-default': getCanonicalUrl(PATH, 'en'),
-  };
-  locales.forEach(l => {
-    alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
-  });
-  return {
+  return buildPageMetadata({
+    path: '/marketplace-surprise-bag',
+    locale: locale as Locale,
     title: 'Marketplace Surprise Bag - Turn Surplus Food Into Revenue',
     description:
       'List your unsold food as a Surprise Bag. Earn revenue you would have thrown away and reach thousands of eco-conscious customers on Too Fresh To Waste.',
-    alternates: {
-      canonical: getCanonicalUrl(PATH, loc),
-      languages: alternateLanguages,
-    },
-  };
+  });
 }
 
 const surpriseBagFaqs = [

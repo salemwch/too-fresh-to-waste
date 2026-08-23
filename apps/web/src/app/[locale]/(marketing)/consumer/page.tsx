@@ -5,8 +5,8 @@ import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
 import { SoftwareAppSchema, BreadcrumbSchema } from '@/components/seo/schemas';
+import { buildPageMetadata } from '@/lib/seo-metadata';
 import { getCanonicalUrl } from '@/config/seo.config';
-import { locales, getLocaleConfig } from '@/i18n/config';
 import type { Locale } from '@/i18n/config';
 
 interface PageProps {
@@ -19,23 +19,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const loc = locale as Locale;
-  const PATH = '/consumer';
-  const alternateLanguages: Record<string, string> = {
-    'x-default': getCanonicalUrl(PATH, 'en'),
-  };
-  locales.forEach(l => {
-    alternateLanguages[getLocaleConfig(l).hreflang] = getCanonicalUrl(PATH, l);
-  });
-  return {
+  return buildPageMetadata({
+    path: '/consumer',
+    locale: locale as Locale,
     title: 'Save Food, Save Money, Win Prizes - Too Fresh To Waste',
     description:
       'Rescue unsold food from local restaurants and bakeries at up to 70% off. Earn points, help the planet, and compete for smartphones in the community Drop.',
-    alternates: {
-      canonical: getCanonicalUrl(PATH, loc),
-      languages: alternateLanguages,
-    },
-  };
+  });
 }
 
 // ── Inline SVG icons ─────────────────────────────────────────────────────────
