@@ -284,6 +284,13 @@ export default function CompaniesPage() {
             <h2 className='text-4xl md:text-5xl font-black font-heading text-brand-dark'>
               {t('employee.title')}
             </h2>
+
+            {/* The turn from compliance to people, said out loud. Without it the
+                register changes with nothing telling a compliance reader why an
+                employee-perk section is addressed to them. */}
+            <p className='text-brand-dark/70 mt-5 max-w-2xl text-base leading-relaxed'>
+              {t('employee.bridge')}
+            </p>
           </motion.div>
 
           <div className='grid sm:grid-cols-2 gap-6'>

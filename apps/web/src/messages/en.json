@@ -2231,8 +2231,8 @@
       "cta": "Request a Partnership",
       "stats": [
         {
-          "value": "73%",
-          "label": "of employees worry about daily food costs"
+          "value": "5.25 kg",
+          "label": "of CO₂e avoided for every bag your team rescues"
         },
         {
           "value": "8%",
@@ -2315,7 +2315,8 @@
           "title": "Zero admin overhead",
           "body": "We handle everything. You report the impact."
         }
-      ]
+      ],
+      "bridge": "73% of employees worry about the cost of eating during the working day. That is what turns this from a line in a sustainability report into something your team asks you to keep."
     },
     "form": {
       "ctaEyebrow": "BECOME A PARTNER",

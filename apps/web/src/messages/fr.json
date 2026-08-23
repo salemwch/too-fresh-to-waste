@@ -2230,8 +2230,8 @@
       "cta": "Demander un Partenariat",
       "stats": [
         {
-          "value": "73%",
-          "label": "des employés s'inquiètent de leurs dépenses alimentaires quotidiennes"
+          "value": "5,25 kg",
+          "label": "de CO₂e évités pour chaque panier sauvé par vos équipes"
         },
         {
           "value": "8%",
@@ -2314,7 +2314,8 @@
           "title": "Zéro charge administrative",
           "body": "Nous gérons tout. Vous rapportez l'impact."
         }
-      ]
+      ],
+      "bridge": "73% des salariés s’inquiètent du coût de leurs repas pendant la journée de travail. C’est ce qui fait passer ce programme d’une ligne dans un rapport RSE à quelque chose que vos équipes vous demandent de garder."
     },
     "form": {
       "ctaEyebrow": "DEVENEZ PARTENAIRE",
