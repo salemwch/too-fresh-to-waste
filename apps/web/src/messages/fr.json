@@ -3372,5 +3372,400 @@
       "label": "Remporter",
       "body": "Trois jours à l’hôtel, une trottinette électrique, une année en salle de sport, un téléphone ou un bon pour des vêtements."
     }
+  },
+  "foodWasteFacts": {
+    "meta": {
+      "title": "Chiffres du gaspillage alimentaire - Ce que nous jetons vraiment",
+      "description": "Chaque année, 2,5 milliards de tonnes de nourriture n’arrivent jamais dans une assiette. Les données, le parcours et les principaux coupables du gaspillage alimentaire."
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "current": "Gaspillage alimentaire"
+    },
+    "hero": {
+      "eyebrow": "Un rapport sur ce que nous jetons",
+      "headlineStart": "Nous produisons assez",
+      "headlineEm": "pour nourrir le monde",
+      "headlineEnd": "- et nous le jetons.",
+      "lede": "Chaque année, 2,5 milliards de tonnes de nourriture n’arrivent jamais dans une assiette. Derrière chaque repas gaspillé : de l’eau, de la terre et du carburant gaspillés - sur une planète qui manque des trois.",
+      "ctaNumbers": "Voir les chiffres",
+      "ctaAct": "Ce que vous pouvez faire →",
+      "imageAlt": "Nature morte de produits jetés",
+      "caption": "Un tiers du dîner finit à la poubelle.",
+      "stamp": "depuis 2025"
+    },
+    "ticker": [
+      "40% de la nourriture gaspillée",
+      "10% des émissions mondiales",
+      "2,5 milliards de tonnes par an",
+      "1,2 milliard de tonnes perdues aux champs"
+    ],
+    "scale": {
+      "chapter": "Chapitre I",
+      "title": "L’ampleur du problème.",
+      "ledeBefore": "Les chiffres du rapport",
+      "ledeReport": "Driven to Waste",
+      "ledeAfter": "du WWF sont sans appel : ce n’est pas un problème de cuisine, c’est un problème planétaire - et il touche chaque maillon de la chaîne alimentaire.",
+      "stats": [
+        {
+          "value": "40%",
+          "label": "de la nourriture produite dans le monde est gaspillée chaque année",
+          "source": "WWF Driven to Waste, 2021"
+        },
+        {
+          "value": "2,5 Md",
+          "label": "de tonnes de nourriture perdues ou gaspillées chaque année",
+          "source": "Rapport WWF & Tesco"
+        },
+        {
+          "value": "10%",
+          "label": "des émissions mondiales de gaz à effet de serre viennent du gaspillage",
+          "source": "WWF"
+        },
+        {
+          "value": "1,7 Md $",
+          "label": "dépensés chaque année par les écoles américaines pour de la nourriture jetée",
+          "source": "Fiche WWF"
+        }
+      ]
+    },
+    "journey": {
+      "chapter": "Chapitre II",
+      "titleStart": "Le parcours d’un",
+      "titleEm": "repas",
+      "titleEnd": "gaspillé.",
+      "lede": "La nourriture est perdue bien avant de s’abîmer sur votre plan de travail. Suivez-la du champ à la poubelle.",
+      "chapters": [
+        {
+          "n": "01",
+          "title": "À la ferme",
+          "text": "1,2 milliard de tonnes ne quittent même pas le champ - perdues à cause des normes esthétiques, des surproductions et du manque de main-d’œuvre."
+        },
+        {
+          "n": "02",
+          "title": "Dans la chaîne logistique",
+          "text": "Ruptures de froid, surproduction et récoltes refusées transforment de la bonne nourriture en déchet avant même le rayon."
+        },
+        {
+          "n": "03",
+          "title": "Dans nos assiettes",
+          "text": "Les ménages sont la première source de gaspillage - un demi-repas raclé, chaque jour, multiplié par des milliards."
+        }
+      ]
+    },
+    "quote": {
+      "before": "Si le gaspillage alimentaire était un pays, il serait le",
+      "em": "troisième émetteur mondial",
+      "after": "de gaz à effet de serre.",
+      "attribution": "World Wildlife Fund"
+    },
+    "suspects": {
+      "chapter": "Chapitre III",
+      "titleStart": "Les",
+      "titleEm": "coupables habituels",
+      "ledeBefore": "Dans les hôtels, restaurants, supermarchés, épiceries et boulangeries, ce sont toujours les mêmes aliments qui remplissent la poubelle. Résultats issus d’études évaluées par les pairs et indexées sur",
+      "ledeLink": "ScienceDirect",
+      "footnote": "Source : ScienceDirect - Filimonau et al. ; Eriksson et al. ; Papargyropoulou et al.",
+      "items": [
+        {
+          "sector": "Hôtels & buffets",
+          "item": "Pain & viennoiseries",
+          "note": "Surpréparés aux petits-déjeuners ; environ 30% reviennent intacts."
+        },
+        {
+          "sector": "Restaurants",
+          "item": "Riz & pâtes cuits",
+          "note": "Cuisinés en trop grande quantité ; parmi les premiers restes d’assiette."
+        },
+        {
+          "sector": "Supermarchés",
+          "item": "Fruits & légumes frais",
+          "note": "Première catégorie de pertes en magasin - chocs et tri esthétique."
+        },
+        {
+          "sector": "Épiceries",
+          "item": "Produits laitiers (lait, yaourt)",
+          "note": "Retirés plusieurs jours avant la date limite par politique de fraîcheur."
+        },
+        {
+          "sector": "Boulangeries",
+          "item": "Pain & produits de four",
+          "note": "10 à 20% de la production quotidienne jetée pour garder les rayons pleins jusqu’à la fermeture."
+        },
+        {
+          "sector": "Cafés & restaurants",
+          "item": "Chutes de viande & poisson",
+          "note": "Le gaspillage au coût carbone le plus élevé par kilo en restauration."
+        }
+      ]
+    },
+    "faqs": [
+      {
+        "question": "Combien de nourriture est gaspillée dans le monde chaque année ?",
+        "answer": "Selon le WWF, environ 2,5 milliards de tonnes de nourriture sont perdues ou gaspillées chaque année dans le monde - soit près de 40% de la production totale."
+      },
+      {
+        "question": "Quelle part des émissions de gaz à effet de serre vient du gaspillage ?",
+        "answer": "Le gaspillage alimentaire représente environ 10% des émissions mondiales de gaz à effet de serre, selon les travaux du WWF."
+      },
+      {
+        "question": "Comment Too Fresh To Waste réduit-il le gaspillage en Tunisie ?",
+        "answer": "Too Fresh To Waste met en relation les consommateurs avec les restaurants et commerces qui ont des invendus, revendus de 35 à 90% moins cher au lieu d’être jetés."
+      },
+      {
+        "question": "Qu’est-ce qu’un panier surprise ?",
+        "answer": "Un panier surprise est un lot d’invendus d’un commerce local vendu à prix réduit. Vous payez une fraction du prix initial et le récupérez en fin de service."
+      }
+    ]
+  },
+  "howToCollect": {
+    "meta": {
+      "title": "Comment récupérer un panier surprise - Too Fresh To Waste",
+      "description": "Guide pas à pas pour parcourir, réserver, récupérer un panier surprise Too Fresh To Waste et gagner des points."
+    },
+    "hero": {
+      "eyebrow": "Guide pas à pas",
+      "titleStart": "Comment récupérer un",
+      "titleEm": "panier surprise",
+      "lede": "De la recherche au retrait, jusqu’aux points gagnés - tout le parcours expliqué avec de vraies captures de l’application. L’ensemble prend moins de deux minutes."
+    },
+    "tipLabel": "Astuce",
+    "nextStep": "Étape suivante",
+    "cta": {
+      "title": "Prêt à sauver votre premier panier ?",
+      "body": "Téléchargez Too Fresh To Waste, découvrez ce qui est disponible près de chez vous et commencez à gagner des points à chaque retrait.",
+      "appStore": "Télécharger sur l’App Store",
+      "googlePlay": "Disponible sur Google Play",
+      "article": "Lire plutôt l’article complet →"
+    },
+    "steps": [
+      {
+        "n": "01",
+        "title": "Parcourez les offres près de chez vous",
+        "body": "Ouvrez l’application : tous les paniers surprise disponibles autour de vous s’affichent. Chaque carte indique le commerce, le type de nourriture, le prix et le créneau de retrait. Faites défiler, filtrez par distance ou catégorie, et touchez celle qui vous intéresse.",
+        "bullets": [
+          "Les offres sont classées par distance depuis votre position",
+          "Chaque carte affiche le prix, la valeur initiale et le créneau de retrait",
+          "Filtrez par type - boulangerie, restaurant, café ou fast-food",
+          "Les annonces se renouvellent chaque jour, au fur et à mesure que les commerces confirment leurs invendus"
+        ],
+        "tip": "Les boulangeries partent vite - regardez en début d’après-midi pour le meilleur choix."
+      },
+      {
+        "n": "02",
+        "title": "Consultez le détail de l’offre",
+        "body": "Toucher une annonce ouvre la fiche complète : description de la nourriture, contenu habituel, créneau de retrait exact et adresse. Quand vous êtes prêt, touchez le bouton Reserve.",
+        "bullets": [
+          "Lisez la description - le commerce indique le type de nourriture à attendre",
+          "Vérifiez le créneau de retrait pour organiser votre trajet",
+          "Comparez la valeur initiale et ce que vous payez",
+          "Touchez Reserve quand vous êtes prêt - quelques secondes suffisent"
+        ],
+        "tip": null
+      },
+      {
+        "n": "03",
+        "title": "Choisissez la quantité",
+        "body": "Une fenêtre de réservation s’ouvre et vous demande combien de paniers vous voulez. Choisissez la quantité et confirmez. Le paiement se fait de façon sécurisée dans l’application - aucun espèces au comptoir.",
+        "bullets": [
+          "Choisissez 1 panier ou plus selon les disponibilités",
+          "Le total se met à jour en temps réel pendant votre sélection",
+          "Votre panier est bloqué dès la confirmation - personne d’autre ne peut le prendre"
+        ],
+        "tip": null
+      },
+      {
+        "n": "04",
+        "title": "Confirmez votre commande",
+        "body": "Au paiement, choisissez le retrait (toujours disponible) ou la livraison quand elle est proposée. Vérifiez votre commande et touchez Confirm Order pour bloquer votre réservation.",
+        "bullets": [
+          "Choisissez le retrait pour venir sur place - toujours disponible",
+          "La livraison est proposée chez certains partenaires",
+          "Vérifiez une dernière fois l’adresse et le créneau",
+          "Touchez Confirm Order - votre réservation est immédiatement bloquée"
+        ],
+        "tip": null
+      },
+      {
+        "n": "05",
+        "title": "Votre commande est confirmée",
+        "body": "Le récapitulatif affiche votre commande, le nom du commerce et votre créneau exact. Vous verrez aussi un champ de code : c’est là que vous saisirez le code de retrait que le commerce vous donne à votre arrivée.",
+        "bullets": [
+          "Le nom du commerce, l’adresse et l’heure sont affichés en haut",
+          "Le champ de code est prêt - vous le remplirez sur place",
+          "Vous recevez une notification de confirmation sur votre téléphone",
+          "Gardez l’écran ou l’application ouverte - vous en aurez besoin au retrait"
+        ],
+        "tip": null
+      },
+      {
+        "n": "06",
+        "title": "Saisissez le code de retrait",
+        "body": "À votre arrivée, l’équipe vous donne un code. Saisissez-le dans le champ prévu sur votre récapitulatif et touchez Confirm Pickup. Cela valide la remise des deux côtés et clôt votre commande.",
+        "bullets": [
+          "Présentez-vous pendant votre créneau - le commerce vous attend",
+          "L’équipe vous remet un code court quand vous présentez votre commande",
+          "Saisissez le code dans le champ et touchez Confirm Pickup",
+          "Vous et le commerce recevez tous deux la confirmation de la remise"
+        ],
+        "tip": null
+      },
+      {
+        "n": "07",
+        "title": "Gagnez vos points et montez au classement",
+        "body": "Les points arrivent automatiquement dès le retrait confirmé. Chaque panier sauvé vous rapporte des points - et tout le monde sur la liste gagne quelque chose.",
+        "bullets": [
+          "Les points sont ajoutés immédiatement après chaque retrait confirmé",
+          "Consultez votre rang dans le classement communautaire à tout moment",
+          "Les 3 premiers gagnent un smartphone quand la communauté atteint son objectif",
+          "Tous les autres reçoivent 10% de réduction chez un commerce de leur choix"
+        ],
+        "tip": "Plus vous sauvez de paniers, plus vous montez. Chaque retrait compte."
+      }
+    ]
+  },
+  "consumer": {
+    "meta": {
+      "title": "Économisez, sauvez des repas, gagnez des prix - Too Fresh To Waste",
+      "description": "Sauvez les invendus des restaurants et boulangeries près de chez vous jusqu’à -70%. Gagnez des points, aidez la planète et tentez de gagner un smartphone."
+    },
+    "schema": {
+      "appDescription": "Jusqu’à -90% sur les invendus des restaurants et commerces près de chez vous. Luttez contre le gaspillage et économisez chaque jour."
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "current": "Pour les consommateurs"
+    },
+    "hero": {
+      "titleStart": "Bonne cuisine.",
+      "titleEm": "Petit prix.",
+      "titleEnd": "Meilleur monde.",
+      "lede": "Chaque jour, les restaurants et boulangeries de Tunisie ont de délicieux invendus. Vous les récupérez à -50% et plus - et ensemble, nous les empêchons de finir à la poubelle.",
+      "imageAlt": "À récupérer aujourd’hui - paniers de nourriture fraîche près de chez vous"
+    },
+    "common": {
+      "appStore": "Télécharger sur l’App Store",
+      "googlePlay": "Disponible sur Google Play"
+    },
+    "ticker": [
+      "Jusqu’à -70%",
+      "Gagnez des points",
+      "Gagnez un smartphone",
+      "Aidez la planète",
+      "Montres connectées",
+      "Disponible en Tunisie",
+      "Aidez des familles",
+      "Grand prix",
+      "Tirage au sort"
+    ],
+    "quickWins": {
+      "eyebrow": "Pourquoi ils adorent",
+      "title": "Trois raisons d’ouvrir l’application maintenant.",
+      "items": [
+        {
+          "stat": "Jusqu’à -70%",
+          "label": "De la vraie nourriture, de vraies économies",
+          "body": "De la nourriture de restaurant et de boulangerie qui vaut 2 à 3 fois ce que vous payez. Chaque jour, partout en Tunisie."
+        },
+        {
+          "stat": "Chaque panier = moins de gaspillage",
+          "label": "Aidez la Tunisie à mieux consommer",
+          "body": "Chaque panier sauvé garde de la nourriture hors de la poubelle et évite de vraies émissions de CO₂."
+        },
+        {
+          "stat": "Des points, des prix",
+          "label": "Plus vous sauvez, plus vous gagnez",
+          "body": "Chaque panier vous rapporte des points. Atteignez l’objectif communautaire et le Drop se déclenche - des téléphones pour le top 3, une réduction pour tous les autres."
+        }
+      ]
+    },
+    "howItWorks": {
+      "eyebrow": "Simple comme 1-2-3",
+      "titleStart": "De la recherche à la première bouchée,",
+      "titleEm": "en quelques minutes.",
+      "steps": [
+        {
+          "n": "01",
+          "title": "Parcourez les paniers près de chez vous",
+          "body": "Ouvrez l’application et trouvez les restaurants et boulangeries qui publient leurs invendus du jour - frais, réels, à prix réduit. Filtrez par distance, type ou heure de retrait.",
+          "iconAlt": "Parcourir les paniers proches"
+        },
+        {
+          "n": "02",
+          "title": "Réservez en quelques secondes",
+          "body": "Touchez pour réserver votre panier. Payez en toute sécurité dans l’application. Recevez votre créneau. Votre panier est bloqué - personne d’autre ne peut le prendre.",
+          "iconAlt": "Réservez votre panier"
+        },
+        {
+          "n": "03",
+          "title": "Récupérez et savourez",
+          "body": "Rendez-vous sur place, montrez votre code, prenez votre panier. Zéro gaspillage. Ventre plein. Points ajoutés automatiquement à votre compte.",
+          "iconAlt": "Récupérez votre panier"
+        }
+      ]
+    },
+    "wallet": {
+      "eyebrow": "Économisez plus",
+      "title": "Pourquoi payer plein tarif pour des invendus encore délicieux ?",
+      "lede": "Les paniers surprise sont remplis des meilleurs invendus du jour - une valeur 2 à 3 fois supérieure à ce que vous payez. Boulangeries, restaurants, cafés. Tous près de chez vous. Tous aujourd’hui.",
+      "bullets": [
+        "De la nourriture fraîche chaque jour - pâtisseries, plats chauds, produits frais",
+        "Des paniers qui valent en général 2 à 3 fois le prix payé",
+        "Le retrait prend moins de 5 minutes - sans attente, sans gaspillage",
+        "De nouveaux paniers publiés chaque jour dans votre quartier"
+      ],
+      "cta": "Téléchargez l’application - c’est gratuit",
+      "card": {
+        "brand": "Too Fresh To Waste",
+        "name": "Panier surprise",
+        "subtitle": "Sélection mystère à l’intérieur",
+        "originalLabel": "Valeur initiale",
+        "originalValue": "30 TND",
+        "payLabel": "Vous payez",
+        "payValue": "10 TND",
+        "saveLabel": "Vous économisez",
+        "saveValue": "20 TND",
+        "savePer": "sur chaque panier",
+        "badgeLabel": "Éco.",
+        "badgeValue": "67%",
+        "disclaimer": "Les prix réels varient selon le commerce"
+      }
+    },
+    "planet": {
+      "globalLabel": "Gaspillage alimentaire mondial",
+      "globalValue": "1/3",
+      "globalBody": "de toute la nourriture produite dans le monde est gaspillée chaque année. Soit 1,3 milliard de tonnes.",
+      "co2Value": "5,25 kg CO₂e",
+      "co2Label": "évités par panier sauvé",
+      "waterValue": "2 250 L",
+      "waterLabel": "d’eau économisés par panier",
+      "eyebrow": "Votre impact",
+      "titleStart": "Votre pause déjeuner peut",
+      "titleEm": "changer quelque chose de réel.",
+      "body1": "Quand vous sauvez un panier, vous ne faites pas que bien manger. Vous réduisez les émissions de méthane, vous économisez de l’eau, et vous dites que la nourriture mérite mieux que la poubelle.",
+      "body2": "Chaque panier sauvé en Tunisie est un petit geste avec un vrai effet d’entraînement. Et quand nous sommes des milliers à le faire, cela devient bien plus grand.",
+      "link": "Lire les chiffres"
+    },
+    "referral": {
+      "eyebrow": "Programme de parrainage",
+      "titleStart": "Partagez le lien.",
+      "titleEm": "Vous gagnez tous les deux.",
+      "lede": "Invitez un ami avec votre lien de parrainage. Quand il sauve son premier panier, vous gagnez tous les deux des points bonus - et vous vous rapprochez du haut du classement.",
+      "steps": [
+        "Partagez votre lien unique avec qui vous voulez",
+        "Il sauve son premier panier - vous gagnez tous les deux des points bonus",
+        "Plus de points = meilleur rang = plus gros prix au Drop"
+      ],
+      "cta": "Télécharger et commencer →",
+      "cardPoints": "+50 pts pour vous",
+      "cardNote": "par ami qui sauve son premier panier",
+      "cardFooter": "Votre lien se trouve dans votre profil, dans l’application"
+    },
+    "finalCta": {
+      "eyebrow": "Votre prochain bon repas vous attend",
+      "titleStart": "Mangez bien. Dépensez moins.",
+      "titleEm": "Gagnez quelque chose.",
+      "body": "Téléchargez Too Fresh To Waste. Trouvez des paniers surprise près de chez vous. Gagnez des points à chaque sauvetage. Montez au classement - et quand la communauté atteint 30 000 paniers, le Drop commence."
+    }
   }
 }

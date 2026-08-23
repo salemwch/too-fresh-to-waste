@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import { FAQSchema, BreadcrumbSchema } from '@/components/seo/schemas';
@@ -18,128 +18,68 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'foodWasteFacts' });
   return buildPageMetadata({
     path: '/food-waste-facts',
     locale: locale as Locale,
-    title: 'Food Waste Facts - The Scale of What We Throw Away',
-    description:
-      'Each year, 2.5 billion tonnes of food never make it to a plate. Explore the data, the journey, and the usual suspects behind global food waste.',
+    title: t('meta.title'),
+    description: t('meta.description'),
   });
 }
 
-const stats = [
-  {
-    value: '40%',
-    label: 'of all food produced globally is wasted each year',
-    source: 'WWF Driven to Waste, 2021',
-  },
-  {
-    value: '2.5B',
-    label: 'tonnes of food lost or wasted annually worldwide',
-    source: 'WWF & Tesco Report',
-  },
-  {
-    value: '10%',
-    label: 'of all greenhouse gas emissions come from wasted food',
-    source: 'WWF',
-  },
-  {
-    value: '$1.7B',
-    label: 'spent yearly by U.S. schools on food that ends up in the trash',
-    source: 'WWF Fact Sheet',
-  },
+/**
+ * The images are the only part of these lists that is not copy, so they stay in
+ * the component. Pairing is by index against `journey.chapters`, which the
+ * locale test pins at three entries in every language - a fourth chapter added
+ * to the messages and not here would render without an image.
+ */
+const CHAPTER_IMAGES = [
+  '/images/food-waste/tomato.jpg',
+  '/images/food-waste/bread.jpg',
+  '/images/food-waste/hero-waste.jpg',
 ];
 
-const chapters = [
-  {
-    n: '01',
-    title: 'On the Farm',
-    text: '1.2 billion tonnes of food never even leave the field - lost to cosmetic standards, market gluts, and labor shortages.',
-    imgSrc: '/images/food-waste/tomato.jpg',
-  },
-  {
-    n: '02',
-    title: 'In the Supply Chain',
-    text: 'Refrigeration gaps, overproduction, and rejected harvests turn good food into landfill before it ever reaches a shelf.',
-    imgSrc: '/images/food-waste/bread.jpg',
-  },
-  {
-    n: '03',
-    title: 'On Our Plates',
-    text: 'Households are the single largest source of consumer waste - half a meal scraped off, every day, multiplied by billions.',
-    imgSrc: '/images/food-waste/hero-waste.jpg',
-  },
-];
-
-const foodWasteFactsFaqs = [
-  {
-    question: 'How much food is wasted globally each year?',
-    answer:
-      'According to the WWF, approximately 2.5 billion tonnes of food is lost or wasted annually worldwide - roughly 40% of all food produced.',
-  },
-  {
-    question: 'What percentage of greenhouse gas emissions come from food waste?',
-    answer:
-      'Food waste is responsible for about 10% of all global greenhouse gas emissions, according to WWF research.',
-  },
-  {
-    question: 'How does Too Fresh To Waste help reduce food waste in Tunisia?',
-    answer:
-      'Too Fresh To Waste connects consumers with local restaurants and shops that have surplus food, allowing it to be sold at 35-90% discount instead of being thrown away.',
-  },
-  {
-    question: 'What is a surprise bag?',
-    answer:
-      'A surprise bag is a discounted package of surplus food from a local restaurant or store. You pay a fraction of the original price and pick it up at the end of service.',
-  },
-];
-
-// Sources: ScienceDirect studies on food waste across the hospitality and retail sectors
-// (Filimonau et al., Journal of Cleaner Production; Eriksson et al., Resources, Conservation & Recycling)
-const wastedItems = [
-  {
-    sector: 'Hotels & Buffets',
-    item: 'Bread & pastries',
-    note: 'Over-prepared at breakfast buffets; ~30% returned uneaten.',
-  },
-  {
-    sector: 'Restaurants',
-    item: 'Cooked rice & pasta',
-    note: 'Batch-cooked in excess; among the top plate-waste items.',
-  },
-  {
-    sector: 'Supermarkets',
-    item: 'Fresh fruit & vegetables',
-    note: 'Highest in-store loss category - bruising and cosmetic culling.',
-  },
-  {
-    sector: 'Grocery stores',
-    item: 'Dairy (milk, yogurt)',
-    note: 'Pulled days before expiry due to short shelf-life policies.',
-  },
-  {
-    sector: 'Bakeries',
-    item: 'Bread & baked goods',
-    note: "10–20% of daily output discarded to keep shelves 'full till close'.",
-  },
-  {
-    sector: 'Cafés & Restaurants',
-    item: 'Meat & seafood trimmings',
-    note: 'Highest carbon-cost waste per kilogram in foodservice.',
-  },
-];
+interface Stat {
+  value: string;
+  label: string;
+  source: string;
+}
+interface Chapter {
+  n: string;
+  title: string;
+  text: string;
+}
+interface Suspect {
+  sector: string;
+  item: string;
+  note: string;
+}
+interface Faq {
+  question: string;
+  answer: string;
+}
 
 export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'foodWasteFacts' });
+
+  const ticker = t.raw('ticker') as string[];
+  const stats = t.raw('scale.stats') as Stat[];
+  const chapters = t.raw('journey.chapters') as Chapter[];
+  const suspects = t.raw('suspects.items') as Suspect[];
+  const faqs = t.raw('faqs') as Faq[];
 
   return (
     <>
-      <FAQSchema items={foodWasteFactsFaqs} />
+      <FAQSchema items={faqs} />
       <BreadcrumbSchema
         items={[
-          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
-          { name: 'Food Waste Facts', url: getCanonicalUrl('/food-waste-facts', locale as Locale) },
+          { name: t('breadcrumb.home'), url: getCanonicalUrl('/', locale as Locale) },
+          {
+            name: t('breadcrumb.current'),
+            url: getCanonicalUrl('/food-waste-facts', locale as Locale),
+          },
         ]}
       />
       <Header />
@@ -150,30 +90,29 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
           <div className='mx-auto w-full max-w-[1400px] px-8 grid gap-12 py-10 md:grid-cols-12 md:py-16'>
             {/* Left copy */}
             <div className='md:col-span-7 animate-rise'>
-              <p className='mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/60'>
-                A report on what we throw away
+              <p className='mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/75'>
+                {t('hero.eyebrow')}
               </p>
               <h1 className='font-heading text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
-                We grow enough food
-                <span className='italic text-brand-coral'> to feed the world </span>- and then we
-                throw it out.
+                {t('hero.headlineStart')}
+                <span className='italic text-brand-green'> {t('hero.headlineEm')} </span>
+                {t('hero.headlineEnd')}
               </h1>
               <p className='mt-8 max-w-xl text-lg leading-relaxed text-brand-deep/75'>
-                Each year, 2.5 billion tonnes of food never make it to a plate. Behind every wasted
-                meal lies wasted water, soil, fuel - and a planet running short on all three.
+                {t('hero.lede')}
               </p>
               <div className='mt-10 flex flex-wrap gap-4'>
                 <Link
                   href='#scale'
-                  className='rounded-full bg-brand-deep px-7 py-3.5 text-sm text-brand-cream hover:bg-brand-coral hover:text-brand-deep transition-all hover:shadow-coral'
+                  className='rounded-full bg-brand-deep px-7 py-3.5 text-sm text-brand-cream hover:bg-brand-green transition-all'
                 >
-                  See the numbers
+                  {t('hero.ctaNumbers')}
                 </Link>
                 <Link
                   href='#act'
-                  className='rounded-full border border-brand-deep/30 px-7 py-3.5 text-sm hover:border-brand-coral hover:text-brand-coral transition-colors'
+                  className='rounded-full border border-brand-deep/30 px-7 py-3.5 text-sm hover:border-brand-green hover:text-brand-green transition-colors'
                 >
-                  What you can do →
+                  {t('hero.ctaAct')}
                 </Link>
               </div>
             </div>
@@ -183,7 +122,7 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
               <div className='relative overflow-hidden rounded-sm shadow-soft h-full min-h-[420px]'>
                 <Image
                   src='/images/food-waste/hero-waste.jpg'
-                  alt='Wasted produce still life'
+                  alt={t('hero.imageAlt')}
                   fill
                   className='object-cover'
                   sizes='(max-width: 768px) 100vw, 42vw'
@@ -192,12 +131,12 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
                 <div className='absolute inset-0 bg-gradient-to-t from-brand-deep/60 via-transparent to-transparent' />
                 <div className='absolute bottom-6 left-6 right-6 text-brand-cream'>
                   <p className='font-heading text-3xl italic leading-tight'>
-                    "A third of dinner ends up in the bin."
+                    &ldquo;{t('hero.caption')}&rdquo;
                   </p>
                 </div>
               </div>
-              <div className='absolute -bottom-6 -left-6 hidden md:block bg-brand-coral text-brand-deep px-6 py-4 rotate-[-4deg] shadow-soft'>
-                <p className='font-heading text-2xl font-medium'>est. 2025</p>
+              <div className='absolute -bottom-6 -left-6 hidden md:block bg-brand-green text-white px-6 py-4 rotate-[-4deg] shadow-soft'>
+                <p className='font-heading text-2xl font-medium'>{t('hero.stamp')}</p>
               </div>
             </div>
           </div>
@@ -207,14 +146,12 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
             <div className='flex w-max animate-marquee-fw gap-12 whitespace-nowrap'>
               {Array.from({ length: 2 }).map((_, i) => (
                 <div key={i} className='flex items-center gap-12 font-heading text-2xl italic'>
-                  <span>40% of all food wasted</span>
-                  <span className='text-brand-coral'>●</span>
-                  <span>10% of global emissions</span>
-                  <span className='text-brand-coral'>●</span>
-                  <span>2.5 billion tonnes per year</span>
-                  <span className='text-brand-coral'>●</span>
-                  <span>1.2 billion tonnes lost on farms</span>
-                  <span className='text-brand-coral'>●</span>
+                  {ticker.map(line => (
+                    <span key={line} className='flex items-center gap-12'>
+                      {line}
+                      <span className='text-secondary-light'>●</span>
+                    </span>
+                  ))}
                 </div>
               ))}
             </div>
@@ -225,30 +162,27 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         <section id='scale' className='mx-auto w-full max-w-[1400px] px-8 py-10 md:py-14'>
           <div className='mb-8 grid gap-8 md:grid-cols-12'>
             <div className='md:col-span-4'>
-              <p className='text-xs uppercase tracking-[0.25em] text-brand-coral'>Chapter I</p>
+              <p className='text-xs uppercase tracking-[0.25em] text-brand-green'>
+                {t('scale.chapter')}
+              </p>
               <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
-                The scale of it.
+                {t('scale.title')}
               </h2>
             </div>
             <p className='md:col-span-7 md:col-start-6 text-lg leading-relaxed text-brand-deep/75'>
-              Numbers from the World Wildlife Fund&apos;s <em>Driven to Waste</em> report make it
-              plain: this is not a kitchen problem. It is a planetary one - and it touches every
-              link of the food chain.
+              {t('scale.ledeBefore')} <em>{t('scale.ledeReport')}</em> {t('scale.ledeAfter')}
             </p>
           </div>
 
           <div className='grid gap-px bg-brand-deep/15 md:grid-cols-2 lg:grid-cols-4 overflow-hidden rounded-sm'>
-            {stats.map((s, i) => (
-              <div
-                key={i}
-                className='bg-brand-cream p-8 transition-colors hover:bg-brand-coral group'
-              >
+            {stats.map(s => (
+              <div key={s.label} className='bg-brand-cream p-8 transition-colors group'>
                 <p className='font-heading text-6xl font-light leading-none md:text-7xl'>
                   {s.value}
                 </p>
-                <div className='mt-6 h-px w-12 bg-brand-deep/40 group-hover:bg-brand-deep' />
+                <div className='mt-6 h-px w-12 bg-brand-deep/40' />
                 <p className='mt-6 text-sm leading-relaxed'>{s.label}</p>
-                <p className='mt-4 text-[11px] uppercase tracking-wider text-brand-deep/50 group-hover:text-brand-deep/70'>
+                <p className='mt-4 text-[11px] uppercase tracking-wider text-brand-deep/75'>
                   {s.source}
                 </p>
               </div>
@@ -260,36 +194,37 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         <section id='journey' className='bg-brand-deep text-brand-cream py-10 md:py-14 bg-grain'>
           <div className='mx-auto w-full max-w-[1400px] px-8'>
             <div className='mb-10'>
-              <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-3'>
-                Chapter II
+              <p className='text-xs uppercase tracking-[0.25em] text-secondary-light mb-3'>
+                {t('journey.chapter')}
               </p>
               <div className='grid gap-8 md:grid-cols-12'>
                 <h2 className='md:col-span-5 font-heading text-5xl font-light md:text-6xl'>
-                  The journey of <em className='text-brand-coral'>a wasted</em> meal.
+                  {t('journey.titleStart')}{' '}
+                  <em className='text-secondary-light'>{t('journey.titleEm')}</em>{' '}
+                  {t('journey.titleEnd')}
                 </h2>
-                <p className='md:col-span-6 md:col-start-7 text-lg leading-relaxed text-brand-cream/70'>
-                  Food is lost long before it ever spoils on your counter. Follow it from soil to
-                  scrap.
+                <p className='md:col-span-6 md:col-start-7 text-lg leading-relaxed text-brand-cream/75'>
+                  {t('journey.lede')}
                 </p>
               </div>
             </div>
 
             <div className='space-y-px'>
-              {chapters.map(c => (
+              {chapters.map((c, i) => (
                 <article
                   key={c.n}
                   className='grid gap-6 border-t border-brand-cream/15 py-4 md:grid-cols-12 md:py-5 group'
                 >
-                  <p className='md:col-span-2 font-heading text-5xl font-light text-brand-coral'>
+                  <p className='md:col-span-2 font-heading text-5xl font-light text-secondary-light'>
                     {c.n}
                   </p>
                   <div className='md:col-span-5'>
                     <h3 className='font-heading text-3xl md:text-4xl'>{c.title}</h3>
-                    <p className='mt-4 text-brand-cream/70 leading-relaxed'>{c.text}</p>
+                    <p className='mt-4 text-brand-cream/75 leading-relaxed'>{c.text}</p>
                   </div>
                   <div className='md:col-span-5 overflow-hidden rounded-sm relative h-36'>
                     <Image
-                      src={c.imgSrc}
+                      src={CHAPTER_IMAGES[i] ?? CHAPTER_IMAGES[0] ?? ''}
                       alt={c.title}
                       fill
                       className='object-cover transition-transform duration-700 group-hover:scale-105'
@@ -306,12 +241,12 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         <section className='mx-auto w-full max-w-[1400px] px-8 py-10 md:py-14'>
           <blockquote className='mx-auto max-w-4xl text-center'>
             <p className='font-heading text-4xl font-light italic leading-tight md:text-6xl text-balance'>
-              "If food waste were a country, it would be the
-              <span className='text-brand-coral'> third-largest emitter </span>
-              of greenhouse gases on Earth."
+              &ldquo;{t('quote.before')}
+              <span className='text-brand-green'> {t('quote.em')} </span>
+              {t('quote.after')}&rdquo;
             </p>
-            <footer className='mt-8 text-xs uppercase tracking-[0.25em] text-brand-deep/60'>
-              - World Wildlife Fund
+            <footer className='mt-8 text-xs uppercase tracking-[0.25em] text-brand-deep/75'>
+              - {t('quote.attribution')}
             </footer>
           </blockquote>
         </section>
@@ -323,50 +258,44 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         >
           <div className='mb-8 grid gap-8 md:grid-cols-12'>
             <div className='md:col-span-5'>
-              <p className='text-xs uppercase tracking-[0.25em] text-brand-coral'>Chapter III</p>
+              <p className='text-xs uppercase tracking-[0.25em] text-brand-green'>
+                {t('suspects.chapter')}
+              </p>
               <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
-                The usual <em className='text-brand-coral'>suspects</em>.
+                {t('suspects.titleStart')}{' '}
+                <em className='text-brand-green'>{t('suspects.titleEm')}</em>.
               </h2>
             </div>
             <p className='md:col-span-6 md:col-start-7 text-lg leading-relaxed text-brand-deep/75'>
-              Across hotels, restaurants, supermarkets, grocery stores and bakeries, the same
-              handful of foods dominate the bin. Findings drawn from peer-reviewed studies indexed
-              on{' '}
+              {t('suspects.ledeBefore')}{' '}
               <a
                 href='https://www.sciencedirect.com/'
                 target='_blank'
                 rel='noopener noreferrer'
-                className='underline decoration-brand-coral underline-offset-4 hover:text-brand-coral'
+                className='underline decoration-brand-green underline-offset-4 hover:text-brand-green'
               >
-                ScienceDirect
+                {t('suspects.ledeLink')}
               </a>
               .
             </p>
           </div>
 
           <div className='grid gap-px bg-brand-deep/15 md:grid-cols-2 lg:grid-cols-3 overflow-hidden rounded-sm'>
-            {wastedItems.map((w, i) => (
-              <article
-                key={i}
-                className='bg-brand-cream p-4 transition-colors hover:bg-brand-coral group'
-              >
-                <p className='font-heading text-5xl font-light text-brand-deep/30 group-hover:text-brand-deep/70'>
-                  0{i + 1}
-                </p>
-                <p className='mt-4 text-[11px] uppercase tracking-[0.2em] text-brand-coral group-hover:text-brand-deep'>
+            {suspects.map((w, i) => (
+              <article key={w.item} className='bg-brand-cream p-4 transition-colors group'>
+                <p className='font-heading text-5xl font-light text-brand-deep/40'>0{i + 1}</p>
+                <p className='mt-4 text-[11px] uppercase tracking-[0.2em] text-brand-green'>
                   {w.sector}
                 </p>
                 <h3 className='mt-3 font-heading text-3xl leading-tight'>{w.item}</h3>
-                <div className='mt-5 h-px w-12 bg-brand-deep/40 group-hover:bg-brand-deep' />
-                <p className='mt-5 text-sm leading-relaxed text-brand-deep/75 group-hover:text-brand-deep'>
-                  {w.note}
-                </p>
+                <div className='mt-5 h-px w-12 bg-brand-deep/40' />
+                <p className='mt-5 text-sm leading-relaxed text-brand-deep/75'>{w.note}</p>
               </article>
             ))}
           </div>
 
-          <p className='mt-8 text-xs uppercase tracking-[0.2em] text-brand-deep/50'>
-            Source: ScienceDirect - Filimonau et al.; Eriksson et al.; Papargyropoulou et al.
+          <p className='mt-8 text-xs uppercase tracking-[0.2em] text-brand-deep/75'>
+            {t('suspects.footnote')}
           </p>
         </section>
       </div>

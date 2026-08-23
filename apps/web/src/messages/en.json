@@ -3368,5 +3368,400 @@
       "label": "Win",
       "body": "Three days in a hotel, an electric scooter, a year at the gym, a phone, or a voucher for clothes."
     }
+  },
+  "foodWasteFacts": {
+    "meta": {
+      "title": "Food Waste Facts - The Scale of What We Throw Away",
+      "description": "Each year, 2.5 billion tonnes of food never make it to a plate. Explore the data, the journey, and the usual suspects behind global food waste."
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "current": "Food Waste Facts"
+    },
+    "hero": {
+      "eyebrow": "A report on what we throw away",
+      "headlineStart": "We grow enough food",
+      "headlineEm": "to feed the world",
+      "headlineEnd": "- and then we throw it out.",
+      "lede": "Each year, 2.5 billion tonnes of food never make it to a plate. Behind every wasted meal lies wasted water, soil, fuel - and a planet running short on all three.",
+      "ctaNumbers": "See the numbers",
+      "ctaAct": "What you can do →",
+      "imageAlt": "Wasted produce still life",
+      "caption": "A third of dinner ends up in the bin.",
+      "stamp": "est. 2025"
+    },
+    "ticker": [
+      "40% of all food wasted",
+      "10% of global emissions",
+      "2.5 billion tonnes per year",
+      "1.2 billion tonnes lost on farms"
+    ],
+    "scale": {
+      "chapter": "Chapter I",
+      "title": "The scale of it.",
+      "ledeBefore": "Numbers from the World Wildlife Fund's",
+      "ledeReport": "Driven to Waste",
+      "ledeAfter": "report make it plain: this is not a kitchen problem. It is a planetary one - and it touches every link of the food chain.",
+      "stats": [
+        {
+          "value": "40%",
+          "label": "of all food produced globally is wasted each year",
+          "source": "WWF Driven to Waste, 2021"
+        },
+        {
+          "value": "2.5B",
+          "label": "tonnes of food lost or wasted annually worldwide",
+          "source": "WWF & Tesco Report"
+        },
+        {
+          "value": "10%",
+          "label": "of all greenhouse gas emissions come from wasted food",
+          "source": "WWF"
+        },
+        {
+          "value": "$1.7B",
+          "label": "spent yearly by U.S. schools on food that ends up in the trash",
+          "source": "WWF Fact Sheet"
+        }
+      ]
+    },
+    "journey": {
+      "chapter": "Chapter II",
+      "titleStart": "The journey of",
+      "titleEm": "a wasted",
+      "titleEnd": "meal.",
+      "lede": "Food is lost long before it ever spoils on your counter. Follow it from soil to scrap.",
+      "chapters": [
+        {
+          "n": "01",
+          "title": "On the Farm",
+          "text": "1.2 billion tonnes of food never even leave the field - lost to cosmetic standards, market gluts, and labor shortages."
+        },
+        {
+          "n": "02",
+          "title": "In the Supply Chain",
+          "text": "Refrigeration gaps, overproduction, and rejected harvests turn good food into landfill before it ever reaches a shelf."
+        },
+        {
+          "n": "03",
+          "title": "On Our Plates",
+          "text": "Households are the single largest source of consumer waste - half a meal scraped off, every day, multiplied by billions."
+        }
+      ]
+    },
+    "quote": {
+      "before": "If food waste were a country, it would be the",
+      "em": "third-largest emitter",
+      "after": "of greenhouse gases on Earth.",
+      "attribution": "World Wildlife Fund"
+    },
+    "suspects": {
+      "chapter": "Chapter III",
+      "titleStart": "The usual",
+      "titleEm": "suspects",
+      "ledeBefore": "Across hotels, restaurants, supermarkets, grocery stores and bakeries, the same handful of foods dominate the bin. Findings drawn from peer-reviewed studies indexed on",
+      "ledeLink": "ScienceDirect",
+      "footnote": "Source: ScienceDirect - Filimonau et al.; Eriksson et al.; Papargyropoulou et al.",
+      "items": [
+        {
+          "sector": "Hotels & Buffets",
+          "item": "Bread & pastries",
+          "note": "Over-prepared at breakfast buffets; ~30% returned uneaten."
+        },
+        {
+          "sector": "Restaurants",
+          "item": "Cooked rice & pasta",
+          "note": "Batch-cooked in excess; among the top plate-waste items."
+        },
+        {
+          "sector": "Supermarkets",
+          "item": "Fresh fruit & vegetables",
+          "note": "Highest in-store loss category - bruising and cosmetic culling."
+        },
+        {
+          "sector": "Grocery stores",
+          "item": "Dairy (milk, yogurt)",
+          "note": "Pulled days before expiry due to short shelf-life policies."
+        },
+        {
+          "sector": "Bakeries",
+          "item": "Bread & baked goods",
+          "note": "10-20% of daily output discarded to keep shelves 'full till close'."
+        },
+        {
+          "sector": "Cafés & Restaurants",
+          "item": "Meat & seafood trimmings",
+          "note": "Highest carbon-cost waste per kilogram in foodservice."
+        }
+      ]
+    },
+    "faqs": [
+      {
+        "question": "How much food is wasted globally each year?",
+        "answer": "According to the WWF, approximately 2.5 billion tonnes of food is lost or wasted annually worldwide - roughly 40% of all food produced."
+      },
+      {
+        "question": "What percentage of greenhouse gas emissions come from food waste?",
+        "answer": "Food waste is responsible for about 10% of all global greenhouse gas emissions, according to WWF research."
+      },
+      {
+        "question": "How does Too Fresh To Waste help reduce food waste in Tunisia?",
+        "answer": "Too Fresh To Waste connects consumers with local restaurants and shops that have surplus food, allowing it to be sold at 35-90% discount instead of being thrown away."
+      },
+      {
+        "question": "What is a surprise bag?",
+        "answer": "A surprise bag is a discounted package of surplus food from a local restaurant or store. You pay a fraction of the original price and pick it up at the end of service."
+      }
+    ]
+  },
+  "howToCollect": {
+    "meta": {
+      "title": "How to Collect a Surprise Bag - Too Fresh To Waste",
+      "description": "Step-by-step guide to browsing, reserving, picking up, and earning points with a Too Fresh To Waste Surprise Bag."
+    },
+    "hero": {
+      "eyebrow": "Step-by-step guide",
+      "titleStart": "How to Collect a",
+      "titleEm": "Surprise Bag",
+      "lede": "From browsing to pickup to earning points - the full flow explained with real app screens. The whole process takes under two minutes."
+    },
+    "tipLabel": "Tip",
+    "nextStep": "Next step",
+    "cta": {
+      "title": "Ready to rescue your first bag?",
+      "body": "Download Too Fresh To Waste, find what is available near you, and start earning points with every pickup.",
+      "appStore": "Download on App Store",
+      "googlePlay": "Get it on Google Play",
+      "article": "Read the full article instead →"
+    },
+    "steps": [
+      {
+        "n": "01",
+        "title": "Browse available offers near you",
+        "body": "Open the app and you will see all Surprise Bags available around you. Each card shows the business name, food type, price, and pickup window. Scroll, filter by distance or category, and tap the one you want.",
+        "bullets": [
+          "See offers sorted by distance from your location",
+          "Each card shows the price, original value, and pickup window",
+          "Filter by food type - bakery, restaurant, café, or fast food",
+          "Listings refresh daily - new bags appear as businesses confirm their surplus"
+        ],
+        "tip": "Popular bakery listings sell out fast - check early afternoon for the best selection."
+      },
+      {
+        "n": "02",
+        "title": "View the offer details",
+        "body": "Tapping a listing opens the full details screen. You will see the food description, what is typically inside, the exact pickup window, and the address. When you are ready, tap the Reserve button.",
+        "bullets": [
+          "Read the bag description - the business tells you what type of food to expect",
+          "Check the pickup window so you can plan your route",
+          "See the original retail value vs. what you pay",
+          "Tap Reserve when you are ready - it only takes a few seconds"
+        ],
+        "tip": null
+      },
+      {
+        "n": "03",
+        "title": "Choose your quantity",
+        "body": "A reservation sheet slides up asking how many bags you want. Select your quantity and confirm. Payment is handled securely in-app - no cash needed at the counter.",
+        "bullets": [
+          "Choose 1 or more bags depending on availability",
+          "See the total price update in real time as you select",
+          "Your slot is locked the moment you confirm - no one else can take it"
+        ],
+        "tip": null
+      },
+      {
+        "n": "04",
+        "title": "Confirm your order at checkout",
+        "body": "At checkout you can select Pickup (always available) or delivery where offered. Review your order and tap Confirm Order to lock in your reservation.",
+        "bullets": [
+          "Choose Pickup to collect in person - always available",
+          "Delivery is available at select partners",
+          "Review the business address and pickup window one more time",
+          "Tap Confirm Order - your reservation is immediately locked in"
+        ],
+        "tip": null
+      },
+      {
+        "n": "05",
+        "title": "Your order is confirmed",
+        "body": "Your order summary shows what you ordered, the business name, and your exact pickup window. You will also see a code field - this is where you enter the pickup code you receive at the business when you arrive.",
+        "bullets": [
+          "See the business name, address, and pickup time clearly at the top",
+          "The code field is ready - you will fill it in when you arrive",
+          "You will receive a confirmation notification on your phone",
+          "Save the screen or keep the app open - you will need it at pickup"
+        ],
+        "tip": null
+      },
+      {
+        "n": "06",
+        "title": "Enter the pickup code",
+        "body": "When you arrive, the staff gives you a code. Enter it into the code field in your order summary and tap Confirm Pickup. This verifies the handover on both sides and completes your order.",
+        "bullets": [
+          "Show up during your pickup window - the business is expecting you",
+          "The staff will give you a short code when you present your order",
+          "Type the code into the field and tap Confirm Pickup",
+          "Both you and the business receive a confirmation that the handover is complete"
+        ],
+        "tip": null
+      },
+      {
+        "n": "07",
+        "title": "Collect your points and climb the leaderboard",
+        "body": "Points land in your account automatically once pickup is confirmed. Every bag you rescue earns you points - and every user on the list wins something.",
+        "bullets": [
+          "Points are added instantly after each confirmed pickup",
+          "Check your rank on the community leaderboard anytime",
+          "Top 3 users win a smartphone when the community reaches its bag goal",
+          "Everyone else on the list receives a 10% discount at a business they choose"
+        ],
+        "tip": "The more bags you rescue, the higher you climb. Every pickup counts."
+      }
+    ]
+  },
+  "consumer": {
+    "meta": {
+      "title": "Save Food, Save Money, Win Prizes - Too Fresh To Waste",
+      "description": "Rescue unsold food from local restaurants and bakeries at up to 70% off. Earn points, help the planet, and compete for smartphones in the community Drop."
+    },
+    "schema": {
+      "appDescription": "Save up to 90% on surplus food from local restaurants and shops. Fight food waste and save money every day."
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "current": "For Consumers"
+    },
+    "hero": {
+      "titleStart": "Great Food.",
+      "titleEm": "Lower Price.",
+      "titleEnd": "Better World.",
+      "lede": "Every day, restaurants and bakeries in Tunisia have delicious unsold food. You grab it for 50% off and more - and together we stop it from going to waste.",
+      "imageAlt": "Pick up today - fresh food bags available near you"
+    },
+    "common": {
+      "appStore": "Download on App Store",
+      "googlePlay": "Get it on Google Play"
+    },
+    "ticker": [
+      "Up to 70% Off",
+      "Earn Points",
+      "Win a Smartphone",
+      "Help the Planet",
+      "Smart Watches",
+      "Available in Tunisia",
+      "Help Family",
+      "Grand Prize",
+      "Giveaway"
+    ],
+    "quickWins": {
+      "eyebrow": "Why consumers love it",
+      "title": "Three reasons to open the app right now.",
+      "items": [
+        {
+          "stat": "Up to 70% off",
+          "label": "Real food, real savings",
+          "body": "Restaurant and bakery food worth 2-3x more than what you pay. Every day, all across Tunisia."
+        },
+        {
+          "stat": "Every bag = less waste",
+          "label": "Help Tunisia eat smarter",
+          "body": "Each bag you rescue keeps food out of the bin and cuts real CO₂ emissions from landfills."
+        },
+        {
+          "stat": "Earn points, win prizes",
+          "label": "The more you save, the more you gain",
+          "body": "Every bag earns you points. Hit the community goal together and the Drop unlocks - phones for the top 3, a discount for everyone else."
+        }
+      ]
+    },
+    "howItWorks": {
+      "eyebrow": "Simple as 1-2-3",
+      "titleStart": "From browse to bite",
+      "titleEm": "in minutes.",
+      "steps": [
+        {
+          "n": "01",
+          "title": "Browse surprise bags near you",
+          "body": "Open the app, find restaurants and bakeries listing today’s unsold food - fresh, real, discounted. Filter by distance, type, or pickup time.",
+          "iconAlt": "Browse nearby bags"
+        },
+        {
+          "n": "02",
+          "title": "Reserve yours in seconds",
+          "body": "Tap to claim your bag. Pay securely in-app. Get your pickup window. Your slot is locked - no one else can grab it.",
+          "iconAlt": "Reserve your bag"
+        },
+        {
+          "n": "03",
+          "title": "Pick up & enjoy",
+          "body": "Head to the spot, show your code, grab your bag. Zero waste. Full stomach. Points automatically added to your account.",
+          "iconAlt": "Pick up your bag"
+        }
+      ]
+    },
+    "wallet": {
+      "eyebrow": "Save More",
+      "title": "Why pay full price for unsold food that is still delicious?",
+      "lede": "Surprise Bags are packed with the day’s best unsold food - worth 2-3x more than what you pay. Bakeries, restaurants, cafés. All near you. All today.",
+      "bullets": [
+        "Fresh food, every day - baked goods, hot meals, produce",
+        "Bags typically worth 2-3x the price you pay",
+        "Pickup takes under 5 minutes - no waiting, no waste",
+        "New bags listed daily from places in your neighbourhood"
+      ],
+      "cta": "Get the app - it is free",
+      "card": {
+        "brand": "Too Fresh To Waste",
+        "name": "Surprise Bag",
+        "subtitle": "Mystery selection inside",
+        "originalLabel": "Original value",
+        "originalValue": "30 TND",
+        "payLabel": "You pay",
+        "payValue": "10 TND",
+        "saveLabel": "You save",
+        "saveValue": "20 TND",
+        "savePer": "on every bag",
+        "badgeLabel": "Save",
+        "badgeValue": "67%",
+        "disclaimer": "Actual bag prices vary by establishment"
+      }
+    },
+    "planet": {
+      "globalLabel": "Global food waste",
+      "globalValue": "1/3",
+      "globalBody": "of all food produced globally is wasted every year. That is 1.3 billion tonnes.",
+      "co2Value": "5.25 kg CO₂e",
+      "co2Label": "avoided per bag rescued",
+      "waterValue": "2,250 L",
+      "waterLabel": "of water saved per bag",
+      "eyebrow": "Your Impact",
+      "titleStart": "Your lunch break can",
+      "titleEm": "change something real.",
+      "body1": "When you rescue a bag, you are not just eating well. You are cutting methane emissions, saving water, and sending a message that food deserves better than the bin.",
+      "body2": "Every bag you save in Tunisia is one small act with a very real ripple. And when thousands of us do it together - it becomes something much bigger.",
+      "link": "Read the facts"
+    },
+    "referral": {
+      "eyebrow": "Referral Program",
+      "titleStart": "Share the link.",
+      "titleEm": "Both win.",
+      "lede": "Invite a friend with your personal referral link. When they save their first bag, you both earn bonus points - pushing you closer to the top of the Drop.",
+      "steps": [
+        "Share your unique link with anyone",
+        "They rescue their first bag - you both earn bonus points",
+        "More points = higher rank = bigger prizes in the Drop"
+      ],
+      "cta": "Download & start collecting →",
+      "cardPoints": "+50 pts for you",
+      "cardNote": "per friend who saves their first bag",
+      "cardFooter": "Your link is available in your profile inside the app"
+    },
+    "finalCta": {
+      "eyebrow": "Your next great meal is waiting",
+      "titleStart": "Eat well. Spend less.",
+      "titleEm": "Win something.",
+      "body": "Download Too Fresh To Waste. Find surprise bags near you. Earn points with every rescue. Climb the leaderboard - and when the community hits 30,000 bags, the Drop begins."
+    }
   }
 }

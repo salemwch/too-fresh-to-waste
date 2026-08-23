@@ -3,7 +3,7 @@ import { buildPageMetadata } from '@/lib/seo-metadata';
 
 import type { Locale } from '@/i18n/config';
 import Image from 'next/image';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
@@ -14,118 +14,45 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'howToCollect' });
   return buildPageMetadata({
     path: '/how-to-collect',
     locale: locale as Locale,
-    title: 'How to Collect a Surprise Bag - Too Fresh To Waste',
-    description:
-      'Step-by-step guide to browsing, reserving, picking up, and earning points with a Too Fresh To Waste Surprise Bag.',
+    title: t('meta.title'),
+    description: t('meta.description'),
   });
 }
 
-const STEPS = [
-  {
-    n: '01',
-    title: 'Browse available offers near you',
-    body: "Open the app and you'll see all Surprise Bags available around you. Each card shows the business name, food type, price, and pickup window. Scroll, filter by distance or category, and tap the one you want.",
-    bullets: [
-      'See offers sorted by distance from your location',
-      'Each card shows the price, original value, and pickup window',
-      'Filter by food type - bakery, restaurant, café, or fast food',
-      'Listings refresh daily - new bags appear as businesses confirm their surplus',
-    ],
-    tip: 'Popular bakery listings sell out fast - check early afternoon for the best selection.',
-    image: '/images/buy-screen-onoarding/home-screen.webp',
-    alt: 'Browse offers screen',
-  },
-  {
-    n: '02',
-    title: 'View the offer details',
-    body: "Tapping a listing opens the full details screen. You'll see the food description, what's typically inside, the exact pickup window, and the address. When you're ready, tap the Reserve button.",
-    bullets: [
-      'Read the bag description - the business tells you what type of food to expect',
-      'Check the pickup window so you can plan your route',
-      'See the original retail value vs. what you pay',
-      "Tap Reserve when you're ready - it only takes a few seconds",
-    ],
-    tip: null,
-    image: '/images/buy-screen-onoarding/offer-details.webp',
-    alt: 'Offer details screen',
-  },
-  {
-    n: '03',
-    title: 'Choose your quantity',
-    body: 'A reservation sheet slides up asking how many bags you want. Select your quantity and confirm. Payment is handled securely in-app - no cash needed at the counter.',
-    bullets: [
-      'Choose 1 or more bags depending on availability',
-      'See the total price update in real time as you select',
-      'Your slot is locked the moment you confirm - no one else can take it',
-    ],
-    tip: null,
-    image: '/images/buy-screen-onoarding/reserve.webp',
-    alt: 'Reserve quantity screen',
-  },
-  {
-    n: '04',
-    title: 'Confirm your order at checkout',
-    body: 'At checkout you can select Pickup (always available) or delivery where offered. Review your order and tap Confirm Order to lock in your reservation.',
-    bullets: [
-      'Choose Pickup to collect in person - always available',
-      'Delivery is available at select partners',
-      'Review the business address and pickup window one more time',
-      'Tap Confirm Order - your reservation is immediately locked in',
-    ],
-    tip: null,
-    image: '/images/buy-screen-onoarding/checkout.webp',
-    alt: 'Checkout screen',
-  },
-  {
-    n: '05',
-    title: 'Your order is confirmed',
-    body: "Your order summary shows what you ordered, the business name, and your exact pickup window. You'll also see a code field - this is where you enter the pickup code you receive at the business when you arrive.",
-    bullets: [
-      'See the business name, address, and pickup time clearly at the top',
-      "The code field is ready - you'll fill it in when you arrive",
-      "You'll receive a confirmation notification on your phone",
-      "Save the screen or keep the app open - you'll need it at pickup",
-    ],
-    tip: null,
-    image: '/images/buy-screen-onoarding/order-summary.webp',
-    alt: 'Order summary screen',
-  },
-  {
-    n: '06',
-    title: 'Enter the pickup code',
-    body: 'When you arrive, the staff gives you a code. Enter it into the code field in your order summary and tap Confirm Pickup. This verifies the handover on both sides and completes your order.',
-    bullets: [
-      'Show up during your pickup window - the business is expecting you',
-      'The staff will give you a short code when you present your order',
-      'Type the code into the field and tap Confirm Pickup',
-      'Both you and the business receive a confirmation that the handover is complete',
-    ],
-    tip: null,
-    image: '/images/buy-screen-onoarding/code-order-summary.webp',
-    alt: 'Pickup code confirmation screen',
-  },
-  {
-    n: '07',
-    title: 'Collect your points and climb the leaderboard',
-    body: 'Points land in your account automatically once pickup is confirmed. Every bag you rescue earns you points - and every user on the list wins something.',
-    bullets: [
-      'Points are added instantly after each confirmed pickup',
-      'Check your rank on the community leaderboard anytime',
-      'Top 3 users win a smartphone when the community reaches its bag goal',
-      'Everyone else on the list receives a 10% discount at a business they choose',
-    ],
-    tip: 'The more bags you rescue, the higher you climb. Every pickup counts.',
-    image: '/images/buy-screen-onoarding/MY-Points.webp',
-    alt: 'My Points screen',
-  },
-];
+/**
+ * Screenshots pair with `steps` by index. They are not copy, so they stay here
+ * rather than going into the messages - but the pairing means a step added in
+ * one place and not the other renders without its screen, which the locale test
+ * catches by pinning the count at seven in all three languages.
+ */
+const STEP_SCREENS = [
+  { image: '/images/buy-screen-onoarding/home-screen.webp', altKey: 'browse' },
+  { image: '/images/buy-screen-onoarding/offer-details.webp', altKey: 'details' },
+  { image: '/images/buy-screen-onoarding/reserve.webp', altKey: 'reserve' },
+  { image: '/images/buy-screen-onoarding/checkout.webp', altKey: 'checkout' },
+  { image: '/images/buy-screen-onoarding/order-summary.webp', altKey: 'summary' },
+  { image: '/images/buy-screen-onoarding/code-order-summary.webp', altKey: 'code' },
+  { image: '/images/buy-screen-onoarding/MY-Points.webp', altKey: 'points' },
+] as const;
+
+interface Step {
+  n: string;
+  title: string;
+  body: string;
+  bullets: string[];
+  tip: string | null;
+}
 
 export default async function HowToCollectPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'howToCollect' });
+
+  const steps = t.raw('steps') as Step[];
 
   return (
     <>
@@ -135,15 +62,15 @@ export default async function HowToCollectPage({ params }: PageProps) {
         {/* ── HERO ─────────────────────────────────────────────────────── */}
         <section className='bg-primary-500 pt-20 pb-16'>
           <div className='mx-auto max-w-4xl px-6 text-center'>
-            <div className='inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/70 text-[10px] font-bold uppercase tracking-[0.25em] px-4 py-2 rounded-full mb-6'>
-              Step-by-step guide
+            <div className='inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/75 text-[10px] font-bold uppercase tracking-[0.25em] px-4 py-2 rounded-full mb-6'>
+              {t('hero.eyebrow')}
             </div>
             <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
-              How to Collect a <span className='text-brand-coral italic'>Surprise Bag</span>
+              {t('hero.titleStart')}{' '}
+              <span className='text-secondary-light italic'>{t('hero.titleEm')}</span>
             </h1>
-            <p className='text-white/65 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto'>
-              From browsing to pickup to earning points - the full flow explained with real app
-              screens. The whole process takes under two minutes.
+            <p className='text-white/75 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto'>
+              {t('hero.lede')}
             </p>
           </div>
         </section>
@@ -151,7 +78,7 @@ export default async function HowToCollectPage({ params }: PageProps) {
         {/* Wave */}
         <div className='bg-primary-500' aria-hidden='true'>
           <svg viewBox='0 0 1440 48' className='block w-full' preserveAspectRatio='none'>
-            <path d='M0,24 C360,48 1080,0 1440,24 L1440,48 L0,48 Z' fill='white' />
+            <path d='M0,24 C360,48 1080,0 1440,24 L1440,48 L0,48 Z' className='fill-white' />
           </svg>
         </div>
 
@@ -159,72 +86,76 @@ export default async function HowToCollectPage({ params }: PageProps) {
         <section className='py-16 lg:py-24'>
           <div className='mx-auto max-w-6xl px-6 lg:px-8'>
             <div className='space-y-16 lg:space-y-20'>
-              {STEPS.map((step, i) => (
-                <div key={step.n} className='grid lg:grid-cols-2 gap-10 lg:gap-16 items-start'>
-                  {/* LEFT - text */}
-                  <div className='order-2 lg:order-1'>
-                    <div className='flex items-center gap-3 mb-5'>
-                      <span className='flex items-center justify-center w-10 h-10 rounded-full bg-primary-500 text-white font-black text-sm font-heading shrink-0'>
-                        {step.n}
-                      </span>
-                      <div className='h-px flex-1 bg-primary-500/10' />
-                    </div>
-
-                    <h2 className='font-heading text-2xl lg:text-3xl font-bold text-primary-500 leading-snug mb-4'>
-                      {step.title}
-                    </h2>
-
-                    <p className='text-primary-500/70 text-base leading-relaxed mb-5'>
-                      {step.body}
-                    </p>
-
-                    <ul className='space-y-2.5 mb-5'>
-                      {step.bullets.map((bullet, bi) => (
-                        <li key={bi} className='flex items-start gap-3 text-sm text-primary-500/70'>
-                          <span className='mt-1.5 w-1.5 h-1.5 rounded-full bg-brand-coral shrink-0' />
-                          {bullet}
-                        </li>
-                      ))}
-                    </ul>
-
-                    {step.tip && (
-                      <div className='flex items-start gap-3 bg-primary-500/5 border border-primary-500/10 rounded-xl px-4 py-3'>
-                        <span className='text-brand-coral font-bold text-sm shrink-0 mt-0.5'>
-                          Tip
+              {steps.map((step, i) => {
+                const screen = STEP_SCREENS[i];
+                return (
+                  <div key={step.n} className='grid lg:grid-cols-2 gap-10 lg:gap-16 items-start'>
+                    {/* LEFT - text */}
+                    <div className='order-2 lg:order-1'>
+                      <div className='flex items-center gap-3 mb-5'>
+                        <span className='flex items-center justify-center w-10 h-10 rounded-full bg-primary-500 text-white font-black text-sm font-heading shrink-0'>
+                          {step.n}
                         </span>
-                        <p className='text-sm text-primary-500/65 leading-relaxed'>{step.tip}</p>
-                      </div>
-                    )}
-
-                    {/* Step connector on mobile */}
-                    {i < STEPS.length - 1 && (
-                      <div className='flex lg:hidden items-center gap-2 mt-8 text-primary-500/30'>
-                        <div className='h-px flex-1 bg-primary-500/10' />
-                        <span className='text-xs uppercase tracking-widest'>Next step</span>
                         <div className='h-px flex-1 bg-primary-500/10' />
                       </div>
-                    )}
-                  </div>
 
-                  {/* RIGHT - screen */}
-                  <div className='order-1 lg:order-2 flex justify-center lg:justify-end'>
-                    <div
-                      className='relative rounded-[2.5rem] p-6 flex items-center justify-center'
-                      style={{ background: 'hsl(174,72%,17%)' }}
-                    >
-                      {/* Subtle inner glow */}
-                      <Image
-                        src={step.image}
-                        alt={step.alt}
-                        width={280}
-                        height={560}
-                        className='relative w-[200px] lg:w-[240px] h-auto drop-shadow-2xl'
-                        sizes='280px'
-                      />
+                      <h2 className='font-heading text-2xl lg:text-3xl font-bold text-primary-500 leading-snug mb-4'>
+                        {step.title}
+                      </h2>
+
+                      <p className='text-primary-500/75 text-base leading-relaxed mb-5'>
+                        {step.body}
+                      </p>
+
+                      <ul className='space-y-2.5 mb-5'>
+                        {step.bullets.map(bullet => (
+                          <li
+                            key={bullet}
+                            className='flex items-start gap-3 text-sm text-primary-500/75'
+                          >
+                            <span className='mt-1.5 w-1.5 h-1.5 rounded-full bg-brand-green shrink-0' />
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+
+                      {step.tip !== null && step.tip !== '' && (
+                        <div className='flex items-start gap-3 bg-primary-500/5 border border-primary-500/10 rounded-xl px-4 py-3'>
+                          <span className='text-brand-green font-bold text-sm shrink-0 mt-0.5'>
+                            {t('tipLabel')}
+                          </span>
+                          <p className='text-sm text-primary-500/75 leading-relaxed'>{step.tip}</p>
+                        </div>
+                      )}
+
+                      {/* Step connector on mobile */}
+                      {i < steps.length - 1 && (
+                        <div className='flex lg:hidden items-center gap-2 mt-8 text-primary-500/75'>
+                          <div className='h-px flex-1 bg-primary-500/10' />
+                          <span className='text-xs uppercase tracking-widest'>{t('nextStep')}</span>
+                          <div className='h-px flex-1 bg-primary-500/10' />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* RIGHT - screen */}
+                    <div className='order-1 lg:order-2 flex justify-center lg:justify-end'>
+                      <div className='bg-brand-teal relative rounded-[2.5rem] p-6 flex items-center justify-center'>
+                        {screen && (
+                          <Image
+                            src={screen.image}
+                            alt={step.title}
+                            width={280}
+                            height={560}
+                            className='relative w-[200px] lg:w-[240px] h-auto drop-shadow-2xl'
+                            sizes='280px'
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -233,31 +164,28 @@ export default async function HowToCollectPage({ params }: PageProps) {
         <section className='bg-primary-500 py-16 lg:py-20'>
           <div className='mx-auto max-w-2xl px-6 text-center'>
             <h2 className='font-heading text-3xl lg:text-4xl font-bold text-white mb-4'>
-              Ready to rescue your first bag?
+              {t('cta.title')}
             </h2>
-            <p className='text-white/65 text-base leading-relaxed mb-8'>
-              Download Too Fresh To Waste, find what's available near you, and start earning points
-              with every pickup.
-            </p>
+            <p className='text-white/75 text-base leading-relaxed mb-8'>{t('cta.body')}</p>
             <div className='flex flex-col sm:flex-row gap-3 justify-center'>
               <AppDownloadButton
                 className='inline-flex items-center justify-center gap-3 bg-white text-primary-500 font-bold px-6 py-3.5 rounded-full hover:opacity-90 transition-opacity shadow-lg text-sm'
-                aria-label='Download on App Store'
+                aria-label={t('cta.appStore')}
               >
-                Download on App Store
+                {t('cta.appStore')}
               </AppDownloadButton>
               <AppDownloadButton
                 className='inline-flex items-center justify-center gap-3 border border-white/40 text-white font-bold px-6 py-3.5 rounded-full hover:border-white/70 hover:bg-white/5 transition-colors text-sm'
-                aria-label='Get it on Google Play'
+                aria-label={t('cta.googlePlay')}
               >
-                Get it on Google Play
+                {t('cta.googlePlay')}
               </AppDownloadButton>
             </div>
             <Link
               href='/blog/how-to-collect-surprise-bag'
-              className='inline-block mt-6 text-white/40 text-xs hover:text-white/70 transition-colors'
+              className='inline-block mt-6 text-white/75 text-xs hover:text-white transition-colors'
             >
-              Read the full article instead →
+              {t('cta.article')}
             </Link>
           </div>
         </section>
