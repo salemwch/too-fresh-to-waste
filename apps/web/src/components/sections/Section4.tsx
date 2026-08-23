@@ -9,13 +9,21 @@ interface StepCard {
   iconAlt: string;
 }
 
+/*
+ * Three steps, not six.
+ *
+ * Steps four to six used to be "enjoy your food", "earn points" and "get rewards".
+ * None of those is a step in collecting a bag - they are what happens afterwards -
+ * and listing them here made an easy process look like a long one. Points and
+ * rewards now have their own section.
+ *
+ * One entry per `slides.stepN` key in the locale files. A test pins the two
+ * together, because a card without copy renders an empty slide.
+ */
 const STEP_CARDS: StepCard[] = [
   { id: 1, icon: '/icons/browsing.png', iconAlt: 'Browse offers' },
-  { id: 2, icon: '/icons/booking.png', iconAlt: 'Reserve and confirm' },
-  { id: 3, icon: '/icons/mobile-payment.png', iconAlt: 'Payment and delivery' },
-  { id: 4, icon: '/icons/order.png', iconAlt: 'Enjoy food' },
-  { id: 5, icon: '/icons/earn-points.png', iconAlt: 'Earn points' },
-  { id: 6, icon: '/icons/reward.png', iconAlt: 'Get rewards' },
+  { id: 2, icon: '/icons/booking.png', iconAlt: 'Reserve a bag' },
+  { id: 3, icon: '/icons/order.png', iconAlt: 'Collect your food' },
 ];
 
 export default function Section4() {

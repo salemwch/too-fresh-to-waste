@@ -101,9 +101,8 @@
     }
   },
   "section2": {
-    "title": "L'application qui transforme les surplus alimentaires en économies et récompenses",
-    "subtitle": "Too Fresh To Waste est une entreprise à impact social dont la mission est d'inspirer et de donner à chacun les moyens de lutter ensemble contre le gaspillage alimentaire",
-    "description": "Notre application est une marketplace intelligente pour les surplus alimentaires en Tunisie. Elle connecte les entreprises alimentaires avec les utilisateurs pour sauver les repas invendus du gaspillage-aidant les entreprises à récupérer des revenus tout en permettant aux utilisateurs de profiter de délicieuse nourriture à prix réduits.",
+    "title": "Une application qui transforme les invendus en économies",
+    "description": "Un marché pour les aliments qui n’ont pas encore trouvé preneur. Les commerces publient ce qu’il leur reste avant de fermer, et les personnes à proximité viennent le chercher le jour même à une fraction du prix.",
     "downloadButtons": {
       "appStore": {
         "prefix": "Télécharger sur",
@@ -116,13 +115,13 @@
     }
   },
   "section3": {
-    "titleLine1": "POURQUOI UTILISER",
-    "titleLine2": "TOO FRESH TO WASTE",
+    "titleLine1": "CE QUE VOUS Y GAGNEZ",
+    "titleLine2": "À CHAQUE PANIER",
     "benefits": {
-      "saveMoney": "PROFITEZ DE BONNE NOURRITURE À MOITIÉ PRIX OU MOINS",
-      "earnPoints": "AIDEZ LES AUTRES À VIVRE",
-      "getRewards": "OBTENEZ DES RÉCOMPENSES EN ÉCHANGEANT VOS POINTS",
-      "helpPlanet": "AIDEZ LA PLANÈTE EN RÉDUISANT LE GASPILLAGE ALIMENTAIRE"
+      "saveMoney": "DE BONS PRODUITS À MOITIÉ PRIX OU MOINS",
+      "earnPoints": "DES ALIMENTS QUI AURAIENT ÉTÉ JETÉS",
+      "getRewards": "DES POINTS À CHAQUE COMMANDE",
+      "helpPlanet": "MOINS DE GASPILLAGE, MOINS DE CARBONE"
     }
   },
   "dream": {
@@ -448,32 +447,20 @@
     }
   },
   "section4": {
-    "title": "COMMENT UTILISER L'APPLICATION ET GAGNER DES POINTS",
+    "title": "TROIS ÉTAPES JUSQU’À VOTRE PREMIER PANIER",
     "mobileHint": "Glissez ou appuyez sur les diapositives pour naviguer",
     "slides": {
       "step1": {
-        "title": "Étape 1: Parcourez les offres délicieuses",
-        "description": "Découvrez d'incroyables offres de nourriture dans les restaurants, boulangeries et épiceries près de chez vous. Filtrez par distance, prix ou cuisine pour trouver votre repas parfait."
+        "title": "Parcourir",
+        "description": "Voyez ce qu’il reste aujourd’hui dans les restaurants, boulangeries et épiceries près de chez vous, avec le prix et le créneau de retrait sur chaque offre."
       },
       "step2": {
-        "title": "Étape 2: Commandez et confirmez",
-        "description": "Sélectionnez votre offre préférée et commandez-la en un seul clic. Confirmez les détails de votre commande et préparez-vous pour votre délicieux repas."
+        "title": "Réserver",
+        "description": "Prenez le panier qui vous plaît en un geste. Payez en ligne ou au retrait, comme vous préférez."
       },
       "step3": {
-        "title": "Étape 3: Choisissez paiement et livraison",
-        "description": "Payez en ligne pour plus de commodité ou payez à la récupération. Sélectionnez le paiement en ligne avec livraison pour recevoir votre nourriture chez vous, ou récupérez-la vous-même."
-      },
-      "step4": {
-        "title": "Étape 4: Savourez votre délicieuse nourriture",
-        "description": "Sauvez des repas de qualité à des prix incroyables tout en ayant un impact positif sur l'environnement. Chaque bouchée aide à réduire le gaspillage alimentaire!"
-      },
-      "step5": {
-        "title": "Étape 5: Gagnez des points",
-        "description": "Collectez des points à chaque commande et débloquez des récompenses exclusives. Plus vous sauvez de nourriture, plus vous gagnez!"
-      },
-      "step6": {
-        "title": "Étape 6: Obtenez des récompenses",
-        "description": "Échangez vos points en les donnant, ou continuez à les accumuler pour débloquer de plus grandes récompenses. Transformez vos efforts de sauvegarde de nourriture en avantages réels."
+        "title": "Récupérer",
+        "description": "Présentez votre code au comptoir pendant le créneau de retrait et repartez avec votre repas."
       }
     },
     "navigation": {
@@ -481,17 +468,12 @@
       "next": "Diapositive suivante",
       "goToSlide": "Aller à la diapositive {number}"
     },
-    "description": "Suivez ces étapes simples pour commencer à sauver de la nourriture et à gagner des récompenses dès aujourd'hui."
+    "description": "De l’ouverture de l’application à la récupération de votre repas."
   },
   "section5": {
-    "mainTitle": {
-      "businessSolution": "FAQ",
-      "separator": "&",
-      "bigPrize": "LES GRANDS PRIX"
-    },
     "sectionLabel": "FAQ's",
-    "title": "Vous cherchez des réponses ?",
-    "description": "Trouvez des réponses rapides aux questions courantes sur Too Fresh To Waste. Nous sommes là pour vous aider à sauver la nourriture et économiser facilement.",
+    "title": "Questions fréquentes",
+    "description": "Comment l’application fonctionne, ce que les commerces y gagnent, et comment se gagne le Grand Prix.",
     "imageAlt": "Illustration questions fréquemment posées",
     "ctaButton": "Vous avez encore des questions ? Contactez-nous",
     "faqs": {
@@ -3379,6 +3361,37 @@
         "auto": "Libérée par expiration",
         "noReason": "Aucun motif indiqué"
       }
+    }
+  },
+  "audienceSplit": {
+    "title": "De quel côté êtes-vous ?",
+    "description": "Les deux prennent environ deux minutes.",
+    "merchant": {
+      "label": "J’ai des invendus",
+      "body": "Mettez en ligne ce qui n’a pas été vendu et transformez-le en chiffre d’affaires plutôt qu’en déchet. Inscription gratuite, et vous gardez 81% de chaque panier.",
+      "cta": "Vendre mes invendus"
+    },
+    "consumer": {
+      "label": "Je veux manger moins cher",
+      "body": "Achetez de bons produits près de chez vous à moitié prix ou moins, à récupérer le jour même.",
+      "cta": "Télécharger l’application"
+    }
+  },
+  "rewards": {
+    "eyebrow": "Points et prix",
+    "title": "Chaque panier sauvé rapporte des points",
+    "description": "Les points s’accumulent à chaque commande et comptent pour le Grand Prix, attribué tous les six mois une fois que la communauté a sauvé 30 000 paniers ensemble. Vous pouvez aussi les donner.",
+    "points": {
+      "label": "Gagner",
+      "body": "Des points à chaque commande, et davantage en parrainant un ami ou en laissant un avis honnête."
+    },
+    "donate": {
+      "label": "Donner",
+      "body": "Transformez vos points en repas pour une famille proche plutôt que de les garder."
+    },
+    "prize": {
+      "label": "Remporter",
+      "body": "Un séjour à l’hôtel, une trottinette électrique, une année en salle de sport, un téléphone ou un bon pour des vêtements."
     }
   }
 }

@@ -39,10 +39,6 @@ export default function Section2() {
         </h2>
 
         {/* Secondary title line */}
-        <p className='text-primary-500 text-xl md:text-2xl lg:text-3xl font-semibold text-center mb-8 leading-relaxed'>
-          {t('subtitle')}
-        </p>
-
         {/* Subtitle */}
         <p className='text-[#5F6D6D] text-base md:text-lg lg:text-xl text-center mb-12 max-w-4xl mx-auto leading-relaxed'>
           {t.rich('description', {

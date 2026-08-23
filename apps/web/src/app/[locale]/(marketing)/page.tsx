@@ -9,6 +9,8 @@ import {
   Section4,
   Section5,
   InfiniteMarquee,
+  AudienceSplit,
+  Rewards,
 } from '@/components/sections';
 import { HashScrollHandler } from '@/components/HashScrollHandler';
 import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
@@ -77,6 +79,9 @@ export default async function HomePage({ params }: HomePageProps) {
         {/* Hero Section with 3D Phone Mockups */}
         <HeroSection locale={locale as Locale} />
 
+        {/* Two doorways, before the page starts addressing one audience only */}
+        <AudienceSplit />
+
         {/* Section 2: App Introduction with Download Buttons */}
         <Section2 />
 
@@ -85,6 +90,9 @@ export default async function HomePage({ params }: HomePageProps) {
 
         {/* Section 4: How to Use the App & Get Points - Card Carousel */}
         <Section4 />
+
+        {/* Points and prizes, which used to be steps 5 and 6 of the journey */}
+        <Rewards />
 
         {/* Section 5: FAQ - Frequently Asked Questions */}
         <Section5 />
@@ -170,9 +178,6 @@ function HeroSection({ locale }: { locale: Locale }) {
           >
             {t('headline')}
           </h1>
-
-          {/* The slogan, moved down from its old role as the page heading. */}
-          <p className='mt-4 text-secondary text-lg font-semibold md:text-xl'>{t('tagline')}</p>
 
           <p className='mt-4 max-w-xl text-white/80 text-sm leading-relaxed md:text-base lg:mx-0 mx-auto'>
             {t('subheadline')}

@@ -35,12 +35,6 @@ export default function Section5() {
     >
       <div className='max-w-6xl mx-auto w-full'>
         {/* Main Title */}
-        <h2 className='text-center text-2xl md:text-4xl font-bold mb-8 md:mb-12'>
-          <span className='text-primary-500'>{t('mainTitle.businessSolution')}</span>
-          <span className='text-primary-500'> {t('mainTitle.separator')} </span>
-          <span style={{ color: '#ff7973' }}>{t('mainTitle.bigPrize')}</span>
-        </h2>
-
         <div className='flex flex-col md:flex-row items-start justify-center '>
           {/* Left Side: Image */}
           <div className='w-full md:w-5/12 flex-shrink-0'>

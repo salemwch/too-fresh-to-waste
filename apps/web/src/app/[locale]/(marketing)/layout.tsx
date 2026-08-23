@@ -15,6 +15,8 @@ export const revalidate = 86400;
 const MARKETING_NAMESPACES = [
   'hero',
   'rollout',
+  'audienceSplit',
+  'rewards',
   'dream',
   'header',
   'footer',

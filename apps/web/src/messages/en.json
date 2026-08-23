@@ -101,9 +101,8 @@
     }
   },
   "section2": {
-    "title": "The app that turns surplus food into savings and rewards",
-    "subtitle": "Too Fresh To Waste is a social impact company on a mission to inspire and empower everyone to fight food waste together",
-    "description": "Our app is a smart marketplace for surplus food in Tunisia. It connects food businesses with users to rescue unsold meals from going to waste-helping businesses recover revenue while allowing users to enjoy delicious food at lower prices.",
+    "title": "The app that turns surplus food into savings",
+    "description": "A marketplace for food that has not sold yet. Shops list what is left before they close, and people nearby collect it the same day at a fraction of the price.",
     "downloadButtons": {
       "appStore": {
         "prefix": "Download on the",
@@ -116,13 +115,13 @@
     }
   },
   "section3": {
-    "titleLine1": "WHY USE",
-    "titleLine2": "TOO FRESH TO WASTE",
+    "titleLine1": "WHAT YOU GET",
+    "titleLine2": "WITH EVERY BAG",
     "benefits": {
-      "saveMoney": "ENJOY GOOD FOOD AT ½ PRICE OR LESS",
-      "earnPoints": "HELP OTHERS LIVE",
-      "getRewards": "GET REWARDS BY REDEEM YOUR POINT",
-      "helpPlanet": "HELP THE PLANET BY REDUCING FOOD WASTE"
+      "saveMoney": "GOOD FOOD AT HALF PRICE OR LESS",
+      "earnPoints": "FOOD THAT WOULD HAVE BEEN THROWN AWAY",
+      "getRewards": "POINTS ON EVERY ORDER",
+      "helpPlanet": "LESS WASTE, LESS CARBON"
     }
   },
   "dream": {
@@ -448,32 +447,20 @@
     }
   },
   "section4": {
-    "title": "HOW TO USE THE APP & GET POINTS",
+    "title": "THREE STEPS TO YOUR FIRST BAG",
     "mobileHint": "Swipe or tap slides to navigate",
     "slides": {
       "step1": {
-        "title": "Step 1: Browse Delicious Offers",
-        "description": "Discover amazing food deals from restaurants, bakeries, and grocery stores near you. Filter by distance, price, or cuisine to find your perfect meal."
+        "title": "Browse",
+        "description": "See what is left today at restaurants, bakeries and grocers near you, with the price and the pickup window on every offer."
       },
       "step2": {
-        "title": "Step 2: Order and Confirm",
-        "description": "Select your favorite offer and order it with one tap. Confirm your order details and get ready for your delicious meal."
+        "title": "Reserve",
+        "description": "Take the bag you want in one tap. Pay online or on pickup, whichever suits you."
       },
       "step3": {
-        "title": "Step 3: Choose Payment & Delivery",
-        "description": "Pay online for convenience or pay on pickup. Select online payment with delivery to get your food brought to you, or pick it up yourself."
-      },
-      "step4": {
-        "title": "Step 4: Enjoy Your Delicious Food",
-        "description": "Save quality meals at amazing prices while making a positive impact on the environment. Every bite helps reduce food waste!"
-      },
-      "step5": {
-        "title": "Step 5: Earn Points",
-        "description": "Collect points with every order and unlock exclusive rewards. The more you save food, the more you earn!"
-      },
-      "step6": {
-        "title": "Step 6: Get Rewards",
-        "description": "Redeem your points by donating them, or keep collecting to unlock bigger rewards. Turn your food-saving efforts into real benefits."
+        "title": "Collect",
+        "description": "Show your code at the counter during the pickup window and take your food home."
       }
     },
     "navigation": {
@@ -481,17 +468,12 @@
       "next": "Next slide",
       "goToSlide": "Go to slide {number}"
     },
-    "description": "Follow these simple steps to start saving food and earning rewards today."
+    "description": "From opening the app to picking up your food."
   },
   "section5": {
-    "mainTitle": {
-      "businessSolution": "FAQ",
-      "separator": "&",
-      "bigPrize": "THE BIG PRIZES"
-    },
     "sectionLabel": "FAQ's",
-    "title": "Looking for answers?",
-    "description": "Find quick answers to common questions about Too Fresh To Waste. We're here to help you save food and money with ease.",
+    "title": "Common questions",
+    "description": "How the app works, what businesses get out of it, and how the Big Prize is won.",
     "imageAlt": "Frequently asked questions illustration",
     "ctaButton": "Still Have Questions? Contact Us",
     "faqs": {
@@ -3375,6 +3357,37 @@
         "auto": "Released by timeout",
         "noReason": "No reason given"
       }
+    }
+  },
+  "audienceSplit": {
+    "title": "Which side are you on?",
+    "description": "Both take about two minutes.",
+    "merchant": {
+      "label": "I have surplus food",
+      "body": "List what did not sell and turn it into revenue instead of waste. Free to join, and you keep 81% of every bag.",
+      "cta": "Sell my surplus"
+    },
+    "consumer": {
+      "label": "I want cheaper food",
+      "body": "Buy good food from shops near you at half price or less, collected the same day.",
+      "cta": "Get the app"
+    }
+  },
+  "rewards": {
+    "eyebrow": "Points and prizes",
+    "title": "Every bag you rescue earns points",
+    "description": "Points build up with every order and count towards the Big Prize, which is awarded every six months once the community has rescued 30,000 bags together. You can also donate them.",
+    "points": {
+      "label": "Earn",
+      "body": "Points on every order, plus more for referring a friend or leaving an honest review."
+    },
+    "donate": {
+      "label": "Donate",
+      "body": "Turn your points into meals for a family nearby instead of keeping them."
+    },
+    "prize": {
+      "label": "Win",
+      "body": "A hotel stay, an electric scooter, a year at the gym, a phone, or a voucher for clothes."
     }
   }
 }
