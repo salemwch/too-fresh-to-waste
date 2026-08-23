@@ -154,15 +154,17 @@ export function EnterpriseForm() {
                 </div>
               </div>
 
-              {/* Phone */}
+              {/* Phone, deliberately optional. A required number blocks an
+                  enterprise buyer who is not ready to be called, and company,
+                  name and work email are already enough to make the contact the
+                  page promises. */}
               <div>
                 <label className='block text-xs font-semibold mb-1 text-brand-dark/70'>
-                  {t('form.fields.phone')} *
+                  {t('form.fields.phone')}
                 </label>
                 <input
                   type='tel'
                   name='phone'
-                  required
                   value={form.phone}
                   onChange={handleChange}
                   className='w-full rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-teal transition-all bg-cream border border-brand-teal/15 text-brand-dark'
