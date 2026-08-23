@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 scope: web
 gate:
   pnpm --filter @foodwaste/web type-check && pnpm --filter @foodwaste/web test
@@ -73,13 +73,24 @@ information when scanned.
 
 ## Tasks & Acceptance
 
-- [ ] Hero renders exactly four blocks: headline, supporting text, proof chips,
+- [x] Hero renders exactly four blocks: headline, supporting text, proof chips,
       CTA
-- [ ] `AudienceSplit` sits directly below the hero with two working
+- [x] `AudienceSplit` sits directly below the hero with two working
       locale-prefixed links
-- [ ] Section 2 renders title + one paragraph, no subtitle
-- [ ] No ungrammatical heading anywhere in `section3.benefits`
-- [ ] Section 4 renders three steps; `STEP_CARDS` and the copy cannot disagree
-- [ ] `Rewards` carries the points and rewards content
-- [ ] Exactly one `h2` per section, `h1` still unique
-- [ ] Every new key present in en, fr and ar
+- [x] Section 2 renders title + one paragraph, no subtitle
+- [x] No ungrammatical heading anywhere in `section3.benefits`
+- [x] Section 4 renders three steps; `STEP_CARDS` and the copy cannot disagree
+- [x] `Rewards` carries the points and rewards content
+- [x] Exactly one `h2` per section, `h1` still unique
+- [x] Every new key present in en, fr and ar
+
+## Verification
+
+- type-check clean; 531 tests pass (22 new in
+  `__tests__/i18n/homepage-structure.test.ts`); build prerenders 269 pages
+- Heading outline after the pass: one `h1` on the page, exactly one `h2` per
+  section, `h3` nested inside three of them. Section 5 went from two to one.
+- Section order: Hero, AudienceSplit, Section2, Section3, Section4, Rewards,
+  Section5, InfiniteMarquee.
+- Mutation-checked: adding a fourth step to fr alone, and reintroducing the "by
+  redeem" construction, fails three tests and nothing else.
