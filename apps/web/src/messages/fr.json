@@ -3767,5 +3767,344 @@
       "titleEm": "Gagnez quelque chose.",
       "body": "Téléchargez Too Fresh To Waste. Trouvez des paniers surprise près de chez vous. Gagnez des points à chaque sauvetage. Montez au classement - et quand la communauté atteint 30 000 paniers, le Drop commence."
     }
+  },
+  "marketplaceBag": {
+    "meta": {
+      "title": "Vendre ses invendus alimentaires - Panier surprise Too Fresh To Waste",
+      "description": "Transformez vos invendus en revenus. Publiez un panier surprise, touchez des milliers de clients près de chez vous et ne jetez plus rien."
+    },
+    "schema": {
+      "appName": "Too Fresh To Waste - Marketplace du panier surprise",
+      "appDescription": "Achetez des paniers surprise d’invendus dans les restaurants et commerces près de chez vous, jusqu’à -90%. Disponible en Tunisie."
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "current": "Panier surprise"
+    },
+    "hero": {
+      "titleStart": "Gagnez de l’argent avec vos invendus et développez votre commerce grâce à nos",
+      "titleEm": "stratégies marketing",
+      "lede": "Publiez vos invendus sous forme de panier surprise. Le client paie un prix réduit, vous récupérez un revenu qui était perdu - et nous nous occupons de toute la visibilité.",
+      "ctaPrimary": "Commencer à générer des revenus",
+      "ctaSecondary": "Voir comment ça marche ↓"
+    },
+    "card": {
+      "brand": "Too Fresh To Waste",
+      "name": "Panier surprise",
+      "subtitle": "🛍️ Sélection mystère à l’intérieur",
+      "originalLabel": "Valeur initiale",
+      "originalValue": "30 TND",
+      "priceLabel": "Prix du panier",
+      "priceValue": "12 TND",
+      "earnLabel": "Vous gagnez par panier",
+      "earnValue": "12 TND",
+      "earnNote": "contre 0 TND jeté",
+      "badgeLabel": "Éco.",
+      "badgeValue": "67%",
+      "floating": "🔥 En vente à Tunis"
+    },
+    "ticker": [
+      "Revenus supplémentaires",
+      "Marketing gratuit",
+      "Plus de clients",
+      "Inscription gratuite"
+    ],
+    "what": {
+      "titleStart": "Vos invendus,",
+      "titleEm": "le trésor d’un autre.",
+      "lede": "Un panier surprise est une boîte mystère composée de vos invendus, vendue à une fraction de sa valeur initiale. Les clients aiment la surprise - et vous récupérez un revenu qui finissait à la poubelle en fin de journée.",
+      "bullets": [
+        "Vous décidez du contenu - tout ce qui est invendu et encore bon",
+        "Vous fixez le prix, jusqu’à 60% de la valeur initiale - la plateforme impose au moins -40%",
+        "Les clients viennent à vous - pas de livraison, pas de logistique, tout simplement",
+        "Nous gérons la visibilité - votre panier apparaît à des milliers d’acheteurs proches"
+      ],
+      "cta": "Créer mon premier panier →",
+      "categoriesLabel": "Adapté à tous les métiers de bouche",
+      "categories": [
+        {
+          "type": "Boulangeries",
+          "items": "Pains, croissants, viennoiseries, tartes"
+        },
+        {
+          "type": "Restaurants",
+          "items": "Plats principaux, soupes, salades préparées"
+        },
+        {
+          "type": "Cafés",
+          "items": "Sandwichs, wraps, boissons chaudes, douceurs"
+        },
+        {
+          "type": "Épiceries",
+          "items": "Fruits, légumes, produits laitiers, traiteur"
+        },
+        {
+          "type": "Hôtels & buffets",
+          "items": "Plats de buffet, repas prêts, desserts"
+        },
+        {
+          "type": "Fast-food",
+          "items": "Parts de pizza, accompagnements, extras"
+        }
+      ],
+      "eyebrow": "C’est quoi ?"
+    },
+    "howItWorks": {
+      "eyebrow": "Simple comme 1-2-3",
+      "steps": [
+        {
+          "n": "01",
+          "title": "Créez votre panier",
+          "body": "En fin de service, rassemblez ce qui n’a pas été vendu - viennoiseries, plats, produits frais - et publiez-le en panier surprise. Fixez votre prix. Moins de 3 minutes."
+        },
+        {
+          "n": "02",
+          "title": "Nous trouvons votre client",
+          "body": "Notre application alerte des milliers de clients proches à la recherche de bonnes affaires. Ils regardent, ils achètent, ils viennent chez vous. Aucun effort marketing de votre côté."
+        },
+        {
+          "n": "03",
+          "title": "Vous gagnez, tout le monde y gagne",
+          "body": "Le revenu apparaît immédiatement sur votre tableau de bord. Le gaspillage tombe à zéro. Et votre commerce se fait connaître d’une communauté fidèle et engagée."
+        }
+      ]
+    },
+    "calculator": {
+      "eyebrow": "Votre potentiel",
+      "title": "Calculez vos revenus.",
+      "lede": "Déplacez les curseurs et voyez en temps réel ce que vos invendus pourraient vous rapporter chaque mois."
+    },
+    "benefits": {
+      "eyebrow": "Pourquoi ils nous rejoignent",
+      "titleStart": "Bien plus que",
+      "titleEm": "moins de gaspillage",
+      "items": [
+        {
+          "title": "Transformez le gaspillage en revenus",
+          "body": "Chaque panier vendu est de l’argent que vous auriez jeté. Aucun coût supplémentaire - du bénéfice récupéré."
+        },
+        {
+          "title": "Marketing gratuit inclus",
+          "body": "Votre commerce est référencé, mis en avant et vu par des milliers de chasseurs de bonnes affaires - sans budget publicitaire."
+        },
+        {
+          "title": "Créez une communauté fidèle",
+          "body": "Des clients engagés reviennent, vous notent et amènent leurs amis. Un panier aujourd’hui = un client fidèle demain."
+        },
+        {
+          "title": "Tableau de bord en temps réel",
+          "body": "Suivez les paniers vendus, les revenus générés et le CO₂ évité. Des chiffres dont vous serez fier - et qui vous aident à mieux planifier."
+        }
+      ]
+    },
+    "urgency": {
+      "title": "Les 100 premiers commerces sont mis en avant - gratuitement.",
+      "body": "Les premiers inscrits fixent leur propre prix et gardent une visibilité maximale au lancement.",
+      "cta": "Réserver ma place →"
+    },
+    "closing": {
+      "eyebrow": "Accès anticipé limité",
+      "title": "Prêt à transformer vos invendus en revenus ?",
+      "body": "Rejoignez les commerces qui utilisent déjà Too Fresh To Waste pour récupérer des revenus perdus, élargir leur clientèle et faire leur part pour la planète.",
+      "cta": "Commencer à générer des revenus"
+    },
+    "faqs": [
+      {
+        "question": "Qu’est-ce qu’un panier surprise ?",
+        "answer": "Un panier surprise est un lot d’invendus vendu par un commerce local avec 35 à 90% de réduction. Le contenu est une surprise - vous économisez tout en évitant le gaspillage."
+      },
+      {
+        "question": "Comment récupérer mon panier surprise ?",
+        "answer": "Après l’achat, vous recevez un code de retrait valable jusqu’à l’expiration de l’offre. Présentez ce code au commerce pendant le créneau de retrait."
+      },
+      {
+        "question": "Et si la nourriture ne correspond pas à mes attentes ?",
+        "answer": "Contactez notre support. Nous examinons chaque réclamation et prenons la qualité au sérieux. Les commerces qui posent problème de façon répétée sont retirés de la plateforme."
+      },
+      {
+        "question": "Combien puis-je économiser avec un panier surprise ?",
+        "answer": "Les paniers surprise sont vendus 35 à 90% moins cher que le prix initial. Un panier valant 20 TND peut être proposé à seulement 5 TND."
+      }
+    ]
+  },
+  "partners": {
+    "meta": {
+      "title": "Devenir partenaire - Vendre vos invendus | Too Fresh To Waste",
+      "description": "Transformez vos invendus en revenus. Rejoignez le réseau de partenaires Too Fresh To Waste et récupérez de la marge sur ce que vous jetiez - le jour même."
+    },
+    "hero": {
+      "eyebrow": "Programme partenaire",
+      "titleStart": "Transformez vos invendus",
+      "titleEm": "en ventes",
+      "lede": "Too Fresh To Waste met vos invendus du jour en relation avec des milliers de consommateurs engagés - le jour même, dans votre ville. Vous gardez une vraie marge sur ce qui partait à la poubelle.",
+      "ctaKit": "Télécharger le kit partenaire",
+      "ctaContact": "Parler à notre équipe →"
+    },
+    "ticker": [
+      "40% de la nourriture produite est gaspillée",
+      "172 kg par personne et par an en Tunisie",
+      "Transformez vos invendus en revenus - dès aujourd’hui",
+      "Rejoignez un réseau de partenaires en croissance"
+    ],
+    "stats": [
+      {
+        "value": "40%",
+        "label": "de la nourriture produite dans le monde est gaspillée chaque année",
+        "source": "WWF Driven to Waste"
+      },
+      {
+        "value": "172 kg",
+        "label": "de nourriture gaspillée par personne et par an en Tunisie",
+        "source": "UNEP Food Waste Index 2024"
+      },
+      {
+        "value": "10%",
+        "label": "des émissions mondiales de gaz à effet de serre viennent du gaspillage",
+        "source": "PNUE / WWF"
+      },
+      {
+        "value": "49%",
+        "label": "des consommateurs paient plus cher une marque réellement durable",
+        "source": "IBM IBV Consumer Study 2022"
+      }
+    ],
+    "problem": {
+      "eyebrow": "Le problème",
+      "titleStart": "Chaque jour,",
+      "titleEm": "de la bonne nourriture disparaît",
+      "p1": "Les boulangeries, restaurants, hôtels et supermarchés de Tunisie jettent entre <b>10 et 20%</b> de leur production quotidienne, chaque soir. Non parce que la nourriture est mauvaise - parce que le rayon a manqué de temps. <wrap>(WRAP)</wrap>",
+      "p2": "Le coût économique du gaspillage alimentaire mondial est estimé à <fao>1 000 milliards de dollars par an</fao> (FAO, 2014) - un chiffre qui exclut le coût environnemental. En se décomposant en décharge, la nourriture libère du méthane, un gaz <epa>80 fois plus puissant que le CO₂</epa> sur 20 ans (US EPA).",
+      "p3": "La Tunisie génère à elle seule <unep>172 kg de gaspillage alimentaire par personne et par an</unep> - le taux le plus élevé du Maghreb."
+    },
+    "solution": {
+      "eyebrow": "La solution",
+      "titleStart": "Trois étapes.",
+      "titleEm": "Zéro gaspillage.",
+      "lede": "La plateforme Too Fresh To Waste permet aux commerces de bouche de publier leurs invendus sous forme de « paniers surprise » à prix réduit - réservés par les clients avant la fermeture, chaque jour.",
+      "steps": [
+        {
+          "n": "01",
+          "title": "Publiez vos invendus",
+          "body": "Créez un panier surprise en moins de 2 minutes : une photo, un prix, un créneau de retrait. Nous nous occupons du reste."
+        },
+        {
+          "n": "02",
+          "title": "Les clients réservent et paient",
+          "body": "Les utilisateurs de l’application voient votre annonce en temps réel et paient en ligne. Vous êtes prévenu immédiatement."
+        },
+        {
+          "n": "03",
+          "title": "Ils récupèrent, vous scannez",
+          "body": "Les clients viennent pendant le créneau. Scannez leur code, remettez le panier - terminé. Zéro administratif, zéro relance."
+        }
+      ]
+    },
+    "benefits": {
+      "eyebrow": "Avantages partenaires",
+      "items": [
+        {
+          "title": "Du revenu sur le gaspillage",
+          "body": "Récupérez une vraie marge sur un stock que vous auriez jeté. Même à -50%, c’est 50% de plus que zéro."
+        },
+        {
+          "title": "Zéro effort marketing",
+          "body": "Vos invendus sont immédiatement visibles par des milliers d’utilisateurs à la recherche de bonnes affaires près de chez eux."
+        },
+        {
+          "title": "De nouveaux clients fidèles",
+          "body": "Les acheteurs de paniers surprise deviennent des habitués. Beaucoup reviennent au prix plein après avoir découvert une marque qu’ils aiment."
+        },
+        {
+          "title": "Reporting ESG et RSE",
+          "body": "Chaque panier sauvé est comptabilisé. Exportez vos données carbone et de détournement de déchets pour vos rapports."
+        },
+        {
+          "title": "Moins de coûts de traitement",
+          "body": "Moins d’invendus jetés, c’est des bacs plus petits, moins de collectes et des frais de traitement réduits."
+        },
+        {
+          "title": "Une image positive",
+          "body": "Votre marque est mise en avant comme partenaire engagé - dans l’application, sur les réseaux et dans la presse."
+        }
+      ]
+    },
+    "whyNow": {
+      "eyebrow": "Pourquoi maintenant ?",
+      "title": "La fenêtre s’ouvre.",
+      "lede": "La pression réglementaire, les attentes des consommateurs et la dynamique concurrentielle convergent. Les premiers partenaires obtiennent les avantages que les suivants devront acheter.",
+      "items": [
+        {
+          "stat": "172 kg",
+          "label": "gaspillés par habitant et par an en Tunisie - le taux le plus élevé du Maghreb (PNUE 2024)",
+          "source": "UNEP Food Waste Index 2024"
+        },
+        {
+          "stat": "1 000 Md $",
+          "label": "de coût économique annuel des pertes et gaspillages alimentaires dans le monde",
+          "source": "FAO Food Wastage Footprint 2014"
+        },
+        {
+          "stat": "10-20%",
+          "label": "de la production quotidienne des boulangeries est jetée pour garder les rayons pleins jusqu’à la fermeture",
+          "source": "WRAP Hospitality & Food Service"
+        },
+        {
+          "stat": "80x",
+          "label": "plus puissant que le CO₂ - le pouvoir de réchauffement du méthane issu de la nourriture en décharge",
+          "source": "US EPA - Importance of Methane"
+        }
+      ]
+    },
+    "whyUs": {
+      "eyebrow": "Pourquoi Too Fresh To Waste",
+      "titleStart": "Construit",
+      "titleEm": "ici",
+      "titleEnd": ", pour ici.",
+      "lede": "Nous n’adaptons pas un modèle européen à la Tunisie. Nous avons construit Too Fresh To Waste depuis zéro pour le marché alimentaire tunisien - ses rythmes, ses langues, sa logistique.",
+      "cta": "Télécharger notre kit partenaire →",
+      "points": [
+        {
+          "title": "En ligne en moins de 48 heures",
+          "body": "Un seul appel suffit. Votre première annonce peut être publiée dans la semaine."
+        },
+        {
+          "title": "Support dans les trois langues",
+          "body": "Plateforme, support et communication en arabe, français et anglais."
+        },
+        {
+          "title": "Tableau de bord commerçant en temps réel",
+          "body": "Suivez les paniers vendus, les revenus récupérés, le CO₂ évité et les avis clients."
+        },
+        {
+          "title": "Ni exclusivité, ni engagement",
+          "body": "Vous restez libre d’utiliser tout autre canal. Nous gagnons quand vous gagnez."
+        },
+        {
+          "title": "Un interlocuteur dédié",
+          "body": "Une vraie personne, joignable. Pas un système de tickets."
+        }
+      ]
+    },
+    "founding": {
+      "eyebrow": "Partenaires fondateurs",
+      "titleStart": "Ils ont bougé",
+      "titleEm": "les premiers",
+      "lede": "Ces marques ont cru au projet avant que nous ayons de l’échelle. Elles nous ont aidés à construire le produit, à prouver le modèle et à définir ce qu’est un partenaire TFTW.",
+      "categories": [
+        "Pâtisserie & boulangerie haut de gamme",
+        "Chaîne de restauration rapide & café",
+        "Restaurant établi",
+        "Gastronomie & boulangerie"
+      ]
+    },
+    "cta": {
+      "eyebrow": "Prêt à nous rejoindre ?",
+      "titleStart": "Arrêtez de jeter votre",
+      "titleEm": "marge",
+      "lede": "Chaque soir, des invendus restent sur vos étagères. Chaque matin, ils ont disparu. Nous pouvons changer cela - dès cette semaine.",
+      "ctaKit": "Télécharger le kit partenaire",
+      "ctaContact": "Parler à notre équipe",
+      "footnote": "L’intégration est gratuite. Vous êtes en ligne en moins de 48 heures."
+    }
   }
 }

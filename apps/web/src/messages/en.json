@@ -3763,5 +3763,339 @@
       "titleEm": "Win something.",
       "body": "Download Too Fresh To Waste. Find surprise bags near you. Earn points with every rescue. Climb the leaderboard - and when the community hits 30,000 bags, the Drop begins."
     }
+  },
+  "marketplaceBag": {
+    "meta": {
+      "title": "Marketplace Surprise Bag - Turn Surplus Food Into Revenue",
+      "description": "List your unsold food as a Surprise Bag. Earn revenue you would have thrown away and reach thousands of eco-conscious customers on Too Fresh To Waste."
+    },
+    "schema": {
+      "appName": "Too Fresh To Waste - Surprise Bag Marketplace",
+      "appDescription": "Buy surplus food surprise bags from local restaurants and shops at up to 90% off. Available in Tunisia."
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "current": "Surprise Bag"
+    },
+    "hero": {
+      "titleStart": "Make Profit From Your Surplus Food & Grow As a Business With Our",
+      "titleEm": "Marketing Strategies",
+      "lede": "List your unsold food as a mystery Surprise Bag. Customers pay a discounted price, you recover revenue you would have lost - and we handle all the marketing.",
+      "ctaPrimary": "Start Making Revenue",
+      "ctaSecondary": "See how it works ↓"
+    },
+    "card": {
+      "brand": "Too Fresh To Waste",
+      "name": "Surprise Bag",
+      "subtitle": "🛍️ Mystery selection inside",
+      "originalLabel": "Original value",
+      "originalValue": "30 TND",
+      "priceLabel": "Bag price",
+      "priceValue": "12 TND",
+      "earnLabel": "You earn per bag",
+      "earnValue": "12 TND",
+      "earnNote": "vs. 0 TND thrown away",
+      "badgeLabel": "Save",
+      "badgeValue": "67%",
+      "floating": "🔥 Selling now in Tunis"
+    },
+    "ticker": ["Extra Revenue", "Free Marketing", "More Customers", "Join For Free"],
+    "what": {
+      "titleStart": "Your unsold food,",
+      "titleEm": "someone else’s treasure.",
+      "lede": "A Surprise Bag is a mystery box of unsold food from your establishment, sold at a fraction of its original price. Customers love the thrill - and you love the revenue you would otherwise bin at the end of the day.",
+      "bullets": [
+        "You decide what goes inside - anything unsold and still delicious",
+        "You set the price, up to 60% of the food’s original value - the platform enforces at least 40% off",
+        "Customers come to you - no delivery, no logistics, pure simplicity",
+        "We handle visibility - your bag appears to thousands of nearby buyers"
+      ],
+      "cta": "Create my first bag →",
+      "categoriesLabel": "Works for every type of food business",
+      "categories": [
+        {
+          "type": "Bakeries",
+          "items": "Breads, croissants, pastries, tarts"
+        },
+        {
+          "type": "Restaurants",
+          "items": "Main courses, soups, prepared salads"
+        },
+        {
+          "type": "Cafés",
+          "items": "Sandwiches, wraps, hot drinks, sweet treats"
+        },
+        {
+          "type": "Grocery Stores",
+          "items": "Fruits, vegetables, dairy, deli items"
+        },
+        {
+          "type": "Hotels & Buffets",
+          "items": "Buffet items, ready-made meals, desserts"
+        },
+        {
+          "type": "Fast Food",
+          "items": "Pizza slices, sides, combo extras"
+        }
+      ],
+      "eyebrow": "What is it?"
+    },
+    "howItWorks": {
+      "eyebrow": "Simple as 1-2-3",
+      "steps": [
+        {
+          "n": "01",
+          "title": "Create Your Bag",
+          "body": "At the end of your service, pack whatever did not sell - pastries, meals, produce - and list it as a Surprise Bag. Set your price. Takes under 3 minutes."
+        },
+        {
+          "n": "02",
+          "title": "We Find Your Customer",
+          "body": "Our app notifies thousands of nearby customers looking for great deals. They browse, they buy, they come to you. Zero marketing effort on your end."
+        },
+        {
+          "n": "03",
+          "title": "You Earn, We All Win",
+          "body": "Revenue hits your dashboard instantly. Food waste drops to zero. And your business gets discovered by a growing community of loyal, eco-conscious buyers."
+        }
+      ]
+    },
+    "calculator": {
+      "eyebrow": "Your potential",
+      "title": "Calculate your revenue.",
+      "lede": "Move the sliders and see in real time how much your surplus food could earn you every month."
+    },
+    "benefits": {
+      "eyebrow": "Why businesses join",
+      "titleStart": "More than just",
+      "titleEm": "less waste",
+      "items": [
+        {
+          "title": "Turn Waste Into Revenue",
+          "body": "Every bag sold is money you would have thrown away. Zero extra cost - pure recovered profit."
+        },
+        {
+          "title": "Free Marketing Built-In",
+          "body": "Your business gets listed, promoted, and seen by thousands of deal-hunters - no advertising spend required."
+        },
+        {
+          "title": "Build a Loyal Community",
+          "body": "Eco-conscious customers come back, rate you, and bring friends. One bag today = one loyal customer for life."
+        },
+        {
+          "title": "Real-Time Dashboard",
+          "body": "Track bags sold, revenue earned, and CO₂ saved. Numbers that make you proud - and help you plan smarter."
+        }
+      ]
+    },
+    "urgency": {
+      "title": "First 100 businesses get featured placement - free.",
+      "body": "Early adopters set their own bag price and keep full visibility in the app launch.",
+      "cta": "Claim my spot →"
+    },
+    "closing": {
+      "eyebrow": "Limited early access",
+      "title": "Ready to turn waste into revenue?",
+      "body": "Join the businesses already using Too Fresh To Waste to recover lost revenue, grow their customer base, and do their part for the planet.",
+      "cta": "Start Making Revenue"
+    },
+    "faqs": [
+      {
+        "question": "What is a surprise bag?",
+        "answer": "A surprise bag is a discounted package of surplus food sold by local restaurants and shops at 35-90% off the original price. The contents are a surprise - you save money while preventing food waste."
+      },
+      {
+        "question": "How do I pick up my surprise bag?",
+        "answer": "After purchasing, you receive a pickup code valid until the offer expiry time. Present the code at the establishment during the pickup window to collect your bag."
+      },
+      {
+        "question": "What if the food does not meet my expectations?",
+        "answer": "Contact our support team. We review all complaints and take quality seriously. Merchants with consistent quality issues are removed from the platform."
+      },
+      {
+        "question": "How much can I save with a surprise bag?",
+        "answer": "Surprise bags are sold at 35-90% below the original price. A bag worth 20 TND in food may be available for as little as 5 TND."
+      }
+    ]
+  },
+  "partners": {
+    "meta": {
+      "title": "Partner With Us - Too Fresh To Waste",
+      "description": "Turn unsold inventory into revenue. Join the Too Fresh To Waste partner network and recover value from surplus food - same day, zero waste."
+    },
+    "hero": {
+      "eyebrow": "Partner Programme",
+      "titleStart": "Turn surplus",
+      "titleEm": "into sales",
+      "lede": "Too Fresh To Waste connects your unsold daily inventory with thousands of conscious consumers - same day, same city. You keep real margin on what would otherwise be thrown away.",
+      "ctaKit": "Download Partner Kit",
+      "ctaContact": "Talk to our team →"
+    },
+    "ticker": [
+      "40% of food produced is wasted",
+      "172 kg per person per year in Tunisia",
+      "Turn surplus into revenue - today",
+      "Join a growing partner network"
+    ],
+    "stats": [
+      {
+        "value": "40%",
+        "label": "of all food produced globally is wasted every year",
+        "source": "WWF Driven to Waste"
+      },
+      {
+        "value": "172 kg",
+        "label": "of food wasted per person per year in Tunisia",
+        "source": "UNEP Food Waste Index 2024"
+      },
+      {
+        "value": "10%",
+        "label": "of all global greenhouse gas emissions come from wasted food",
+        "source": "UNEP / WWF"
+      },
+      {
+        "value": "49%",
+        "label": "of consumers pay a premium for demonstrably sustainable brands",
+        "source": "IBM IBV Consumer Study 2022"
+      }
+    ],
+    "problem": {
+      "eyebrow": "The Problem",
+      "titleStart": "Every day,",
+      "titleEm": "good food disappears",
+      "p1": "Bakeries, restaurants, hotels, and supermarkets across Tunisia discard between <b>10 and 20%</b> of their daily production every single evening. Not because the food is bad - because the shelf ran out of time. <wrap>(WRAP)</wrap>",
+      "p2": "The economic cost of global food waste is estimated at <fao>$1 trillion per year</fao> (FAO, 2014) - a figure that excludes the environmental cost. When food decomposes in landfill, it releases methane, a gas <epa>80 times more potent than CO₂</epa> over a 20-year period (US EPA).",
+      "p3": "Tunisia alone generates <unep>172 kg of food waste per person per year</unep> - the highest rate in the Maghreb."
+    },
+    "solution": {
+      "eyebrow": "The Solution",
+      "titleStart": "Three steps.",
+      "titleEm": "Zero waste.",
+      "lede": "The Too Fresh To Waste platform lets food businesses list surplus inventory as discounted \"Surprise Bags\" - claimed by customers before closing time, every day.",
+      "steps": [
+        {
+          "n": "01",
+          "title": "List your surplus",
+          "body": "Create a Surprise Bag in under 2 minutes - set a photo, a price, and a pickup window. We handle the rest."
+        },
+        {
+          "n": "02",
+          "title": "Customers reserve & pay",
+          "body": "Shoppers on the TFTW app see your listing in real time and pay in-app. You get notified instantly."
+        },
+        {
+          "n": "03",
+          "title": "They pick up, you scan",
+          "body": "Customers arrive during the pickup window. Scan their code, hand the bag over - done. Zero admin, zero chasing."
+        }
+      ]
+    },
+    "benefits": {
+      "eyebrow": "Partner Benefits",
+      "items": [
+        {
+          "title": "Revenue from waste",
+          "body": "Recover real margin on inventory you would have binned. Even at 50% discount, that is 50% more than zero."
+        },
+        {
+          "title": "Zero marketing effort",
+          "body": "Your surplus is instantly visible to thousands of TFTW users searching for deals near them."
+        },
+        {
+          "title": "New loyal customers",
+          "body": "Surprise Bag buyers become regulars. Many return at full price once they discover a brand they love."
+        },
+        {
+          "title": "ESG & CSR reporting",
+          "body": "Every bag saved is tracked. Export carbon and waste diversion data for sustainability reports."
+        },
+        {
+          "title": "Lower disposal costs",
+          "body": "Less unsold stock going to waste means smaller bins, fewer collections, and lower disposal fees."
+        },
+        {
+          "title": "Positive PR",
+          "body": "Your brand is featured as a sustainability partner - in-app, on social, and in press coverage."
+        }
+      ]
+    },
+    "whyNow": {
+      "eyebrow": "Why Now?",
+      "title": "The window is opening.",
+      "lede": "Regulatory pressure, consumer expectations, and competitive dynamics are converging. Early partners gain the advantages that followers will have to buy.",
+      "items": [
+        {
+          "stat": "172 kg",
+          "label": "per capita wasted in Tunisia per year - highest in the Maghreb (UNEP 2024)",
+          "source": "UNEP Food Waste Index 2024"
+        },
+        {
+          "stat": "$1 trillion",
+          "label": "annual economic cost of food loss and waste globally",
+          "source": "FAO Food Wastage Footprint 2014"
+        },
+        {
+          "stat": "10-20%",
+          "label": "of bakery daily output is discarded to keep shelves full until close",
+          "source": "WRAP Hospitality & Food Service"
+        },
+        {
+          "stat": "80x",
+          "label": "more potent than CO₂ - the warming power of methane from decomposing food in landfill",
+          "source": "US EPA - Importance of Methane"
+        }
+      ]
+    },
+    "whyUs": {
+      "eyebrow": "Why Too Fresh To Waste",
+      "titleStart": "Built",
+      "titleEm": "here",
+      "titleEnd": ", for here.",
+      "lede": "We are not adapting a European model to Tunisia. We built Too Fresh To Waste from scratch for the Tunisian food market - its rhythms, its languages, its logistics.",
+      "cta": "Download our Partner Kit →",
+      "points": [
+        {
+          "title": "Live in under 48 hours",
+          "body": "Onboarding takes one call. Your first listing can go live the same week."
+        },
+        {
+          "title": "Full-language support",
+          "body": "Platform, support, and communications in Arabic, French, and English."
+        },
+        {
+          "title": "Real-time merchant dashboard",
+          "body": "Track bags sold, revenue recovered, CO₂ saved, and customer ratings."
+        },
+        {
+          "title": "No exclusivity, no lock-in",
+          "body": "You remain free to use any other channel. We earn when you earn."
+        },
+        {
+          "title": "Dedicated account support",
+          "body": "A real person, reachable. Not a ticket system."
+        }
+      ]
+    },
+    "founding": {
+      "eyebrow": "Founding Partners",
+      "titleStart": "They moved",
+      "titleEm": "first",
+      "lede": "These brands believed in the mission before we had scale. They helped us build the product, prove the model, and set the standard for what a TFTW partner looks like.",
+      "categories": [
+        "Premium Patisserie & Bakery",
+        "Fast Food & Café Chain",
+        "Established Restaurant",
+        "Fine Dining & Bakery"
+      ]
+    },
+    "cta": {
+      "eyebrow": "Ready to join?",
+      "titleStart": "Stop throwing away",
+      "titleEm": "margin",
+      "lede": "Every evening, unsold food sits on your shelves. Every morning, it is gone. We can change that - starting this week.",
+      "ctaKit": "Download Partner Kit",
+      "ctaContact": "Talk to our team",
+      "footnote": "Onboarding is free. You go live in under 48 hours."
+    }
   }
 }

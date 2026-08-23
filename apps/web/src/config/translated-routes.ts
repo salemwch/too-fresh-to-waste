@@ -38,7 +38,9 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
   '/how-to-collect',
   '/humanity-mission',
   '/locations',
+  '/marketplace-surprise-bag',
   '/parcless-bag',
+  '/partners',
 ]);
 
 /**
@@ -63,10 +65,8 @@ export const ENGLISH_ONLY_ROUTES = new Set<string>([
   '/careers',
   '/cookie-policy',
   '/esg',
-  '/marketplace-surprise-bag',
   '/mission-driven',
   '/partner-kit',
-  '/partners',
   '/privacy-policy',
   '/security',
   '/terms-and-conditions',
