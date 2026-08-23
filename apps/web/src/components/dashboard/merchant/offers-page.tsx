@@ -344,7 +344,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                     className={cn(
                       'flex-1 flex flex-col items-center rounded-lg border py-1 px-1 transition-all',
                       isActive
-                        ? 'border-primary bg-primary/8 text-primary'
+                        ? 'border-primary bg-primary/10 text-primary'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/30',
                     )}
                   >

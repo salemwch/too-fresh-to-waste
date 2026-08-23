@@ -586,9 +586,9 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                   {categories.map((cat, i) => (
                     <div
                       key={i}
-                      className='bg-white rounded-2xl p-4 border border-primary-500/8 hover:border-brand-coral/30 hover:shadow-md transition-all duration-300 group'
+                      className='bg-white rounded-2xl p-4 border border-primary-500/10 hover:border-brand-coral/30 hover:shadow-md transition-all duration-300 group'
                     >
-                      <div className='w-10 h-10 rounded-xl bg-primary-500/8 text-primary-500 flex items-center justify-center mb-3 group-hover:bg-brand-coral/10 group-hover:text-brand-coral transition-colors'>
+                      <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-3 group-hover:bg-brand-coral/10 group-hover:text-brand-coral transition-colors'>
                         {cat.icon}
                       </div>
                       <p className='font-bold text-sm text-primary-500 mb-1'>{cat.type}</p>
@@ -668,9 +668,9 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
               {benefits.map((b, i) => (
                 <div
                   key={i}
-                  className='bg-white rounded-3xl p-6 border border-primary-500/8 hover:border-brand-coral/25 hover:shadow-lg transition-all duration-300 group'
+                  className='bg-white rounded-3xl p-6 border border-primary-500/10 hover:border-brand-coral/25 hover:shadow-lg transition-all duration-300 group'
                 >
-                  <div className='w-12 h-12 rounded-2xl bg-primary-500/8 flex items-center justify-center mb-4 text-primary-500 group-hover:bg-brand-coral/10 group-hover:text-brand-coral transition-colors'>
+                  <div className='w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center mb-4 text-primary-500 group-hover:bg-brand-coral/10 group-hover:text-brand-coral transition-colors'>
                     {b.icon}
                   </div>
                   <h3 className='font-bold text-base text-primary-500 mb-2 leading-snug'>
@@ -684,7 +684,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         </section>
 
         {/* ── URGENCY STRIP ─────────────────────────────────────────── */}
-        <section className='bg-white py-10 border-y border-primary-500/8'>
+        <section className='bg-white py-10 border-y border-primary-500/10'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='flex flex-col md:flex-row items-center justify-between gap-6'>
               <div className='flex items-center gap-4'>

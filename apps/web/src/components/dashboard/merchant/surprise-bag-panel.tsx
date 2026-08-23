@@ -757,7 +757,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     className={cn(
                       'flex-1 flex flex-col items-center rounded-lg border py-1.5 px-1 transition-all',
                       active
-                        ? 'border-primary bg-primary/8 text-primary'
+                        ? 'border-primary bg-primary/10 text-primary'
                         : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:bg-primary/5',
                     )}
                   >

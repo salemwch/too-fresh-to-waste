@@ -141,7 +141,7 @@ export default function RevenueCalculator() {
       {/* ── RIGHT - Results ── */}
       <div className='space-y-4'>
         {/* Monthly + annual */}
-        <div className='bg-white/8 border border-white/10 rounded-3xl p-7 relative overflow-hidden'>
+        <div className='bg-white/10 border border-white/10 rounded-3xl p-7 relative overflow-hidden'>
           {/* coral glow */}
 
           <p className='text-white/60 text-[10px] font-bold uppercase tracking-widest mb-2'>
@@ -170,19 +170,19 @@ export default function RevenueCalculator() {
 
         {/* Impact metrics */}
         <div className='grid grid-cols-3 gap-3'>
-          <div className='bg-white/5 border border-white/8 rounded-2xl p-4 text-center'>
+          <div className='bg-white/5 border border-white/10 rounded-2xl p-4 text-center'>
             <p className='font-heading text-xl font-bold text-white tabular-nums'>
               {fmt(bagsPerYear)}
             </p>
             <p className='text-white/80 text-[10px] mt-1 leading-tight'>Bags saved / year</p>
           </div>
-          <div className='bg-white/5 border border-white/8 rounded-2xl p-4 text-center'>
+          <div className='bg-white/5 border border-white/10 rounded-2xl p-4 text-center'>
             <p className='font-heading text-xl font-bold text-emerald-400 tabular-nums'>
               {formatCO2(co2Saved)}
             </p>
             <p className='text-white/80 text-[10px] mt-1 leading-tight'>CO₂ avoided / year</p>
           </div>
-          <div className='bg-white/5 border border-white/8 rounded-2xl p-4 text-center'>
+          <div className='bg-white/5 border border-white/10 rounded-2xl p-4 text-center'>
             <p className='font-heading text-xl font-bold text-sky-300 tabular-nums'>
               {formatWater(waterSaved)}
             </p>

@@ -23,7 +23,7 @@ function ProofRow() {
   };
 
   return (
-    <dl className='grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-white/12 bg-white/10 sm:grid-cols-3'>
+    <dl className='grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-3'>
       {PROOF.map((key, i) => (
         <div key={key} className={`bg-primary-500 dream-rise d${i + 1} flex flex-col gap-2 p-6`}>
           <dd
@@ -134,7 +134,7 @@ export default function DreamClient() {
             </h2>
           </div>
 
-          <div className='grid gap-px overflow-hidden rounded-2xl border border-white/12 bg-white/10 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4'>
             {WINNERS.map(key => (
               <article key={key} className='bg-primary-500 flex flex-col gap-3 p-6'>
                 <h3 className='font-heading text-lg text-white'>{t(`wins.${key}.who`)}</h3>

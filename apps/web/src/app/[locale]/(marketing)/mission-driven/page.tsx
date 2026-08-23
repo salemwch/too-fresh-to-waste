@@ -19,7 +19,7 @@ function TensionCard({ data }: { data: TensionData }) {
   const [active, setActive] = useState<'left' | 'right'>(data.lean);
 
   return (
-    <div className='bg-white rounded-3xl overflow-hidden border-2 border-primary-500/8 hover:border-primary-500/15 transition-colors'>
+    <div className='bg-white rounded-3xl overflow-hidden border-2 border-primary-500/10 hover:border-primary-500/15 transition-colors'>
       {/* Toggle row */}
       <div className='grid grid-cols-2 relative'>
         {/* Sliding indicator */}
@@ -55,7 +55,7 @@ function TensionCard({ data }: { data: TensionData }) {
       </div>
 
       {/* Navigation */}
-      <div className='mx-6 mb-6 bg-cream rounded-2xl px-5 py-4 border border-primary-500/8'>
+      <div className='mx-6 mb-6 bg-cream rounded-2xl px-5 py-4 border border-primary-500/10'>
         <p className='text-[10px] font-black uppercase tracking-widest text-primary-500/40 mb-1.5'>
           How we navigate it
         </p>
@@ -67,7 +67,7 @@ function TensionCard({ data }: { data: TensionData }) {
         <span className='text-[10px] font-black uppercase tracking-widest text-primary-500/30'>
           We lean
         </span>
-        <span className='text-[10px] font-black uppercase tracking-widest bg-primary-500/8 text-primary-500 px-2.5 py-1 rounded-full'>
+        <span className='text-[10px] font-black uppercase tracking-widest bg-primary-500/10 text-primary-500 px-2.5 py-1 rounded-full'>
           {data.lean === 'right' ? data.right : data.left}
         </span>
         <span className='text-[10px] text-primary-500/30 italic'>- but we hold the tension</span>
@@ -336,7 +336,7 @@ export default function MissionDrivenPage() {
                 ].map(item => (
                   <div
                     key={item.n}
-                    className='bg-white rounded-3xl p-7 border border-primary-500/8 hover:border-primary-500/20 hover:shadow-md transition-all duration-300'
+                    className='bg-white rounded-3xl p-7 border border-primary-500/10 hover:border-primary-500/20 hover:shadow-md transition-all duration-300'
                   >
                     <div className='flex items-start gap-5'>
                       <span className='font-heading text-2xl font-bold text-primary-500/15 shrink-0 leading-none mt-0.5'>
@@ -446,7 +446,7 @@ export default function MissionDrivenPage() {
               </div>
 
               {/* Not for */}
-              <div className='bg-white rounded-3xl p-8 lg:p-10 border-2 border-primary-500/8'>
+              <div className='bg-white rounded-3xl p-8 lg:p-10 border-2 border-primary-500/10'>
                 <div className='flex items-center gap-3 mb-7'>
                   <div className='w-3 h-3 rounded-full bg-primary-500/20' aria-hidden='true' />
                   <p className='text-primary-500/40 text-xs font-black uppercase tracking-[0.3em]'>
@@ -474,7 +474,7 @@ export default function MissionDrivenPage() {
                   ))}
                 </ul>
 
-                <div className='mt-8 pt-6 border-t border-primary-500/8'>
+                <div className='mt-8 pt-6 border-t border-primary-500/10'>
                   <p className='text-xs text-primary-500/35 italic leading-relaxed'>
                     This is not a rejection. It is honesty. We believe the most respectful thing a
                     brand can do is tell you clearly who it is - so you can decide if you belong.

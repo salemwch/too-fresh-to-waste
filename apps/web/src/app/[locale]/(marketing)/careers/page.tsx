@@ -654,7 +654,7 @@ export default function CareersPage() {
             </div>
 
             {/* GCC country flags detail */}
-            <div className='mt-10 bg-white rounded-3xl p-6 lg:p-8 border border-primary-500/8'>
+            <div className='mt-10 bg-white rounded-3xl p-6 lg:p-8 border border-primary-500/10'>
               <p className='text-xs font-bold uppercase tracking-widest text-primary-500/50 mb-5 text-center'>
                 Gulf Cooperation Council - 6 nations, one vision
               </p>
@@ -830,7 +830,7 @@ export default function CareersPage() {
               </p>
             </div>
 
-            <div className='bg-white rounded-3xl p-8 lg:p-10 border border-primary-500/8 shadow-sm'>
+            <div className='bg-white rounded-3xl p-8 lg:p-10 border border-primary-500/10 shadow-sm'>
               <ApplicationForm />
             </div>
           </div>

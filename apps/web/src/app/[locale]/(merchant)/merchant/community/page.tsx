@@ -37,7 +37,7 @@ function StatCard({
       transition={{ duration: 0.5, delay }}
       className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden group'
     >
-      <div className='absolute -top-10 -right-10 h-32 w-32 rounded-full bg-brand-coral/8 blur-2xl group-hover:bg-brand-coral/15 transition-colors pointer-events-none' />
+      <div className='absolute -top-10 -right-10 h-32 w-32 rounded-full bg-brand-coral/10 blur-2xl group-hover:bg-brand-coral/15 transition-colors pointer-events-none' />
       <div className='h-10 w-10 rounded-xl bg-primary-500/[0.08] grid place-items-center text-primary-500 mb-4'>
         <Icon size={18} />
       </div>

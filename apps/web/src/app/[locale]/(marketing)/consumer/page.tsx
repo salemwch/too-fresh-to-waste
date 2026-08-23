@@ -371,7 +371,7 @@ export default async function ConsumerPage({ params }: PageProps) {
               {quickWins.map((w, i) => (
                 <div
                   key={i}
-                  className='bg-white rounded-3xl p-7 border border-primary-500/8 hover:border-brand-coral/25 hover:shadow-lg transition-all duration-300 group'
+                  className='bg-white rounded-3xl p-7 border border-primary-500/10 hover:border-brand-coral/25 hover:shadow-lg transition-all duration-300 group'
                 >
                   <div
                     className={`w-14 h-14 rounded-2xl ${w.iconBg} flex items-center justify-center mb-5 ${w.iconColor} group-hover:scale-110 transition-transform duration-300`}
@@ -588,7 +588,7 @@ export default async function ConsumerPage({ params }: PageProps) {
               {/* Left - impact numbers */}
               <div className='space-y-6'>
                 {/* Big stat */}
-                <div className='bg-white rounded-3xl p-8 border border-primary-500/8 shadow-teal-sm'>
+                <div className='bg-white rounded-3xl p-8 border border-primary-500/10 shadow-teal-sm'>
                   <p className='text-xs font-bold uppercase tracking-widest text-primary-500/50 mb-2'>
                     Global food waste
                   </p>
@@ -603,7 +603,7 @@ export default async function ConsumerPage({ params }: PageProps) {
 
                 {/* Two mini stats */}
                 <div className='grid grid-cols-2 gap-4'>
-                  <div className='bg-white rounded-2xl p-5 border border-primary-500/8'>
+                  <div className='bg-white rounded-2xl p-5 border border-primary-500/10'>
                     <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-3'>
                       <LeafIcon className='w-5 h-5' />
                     </div>
@@ -614,7 +614,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                       avoided per bag rescued
                     </p>
                   </div>
-                  <div className='bg-white rounded-2xl p-5 border border-primary-500/8'>
+                  <div className='bg-white rounded-2xl p-5 border border-primary-500/10'>
                     <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-3'>
                       <DropletIcon className='w-5 h-5' />
                     </div>
@@ -714,7 +714,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                     },
                   ].map((item, i) => (
                     <div key={i} className='flex items-center gap-2.5'>
-                      <div className='w-7 h-7 rounded-lg bg-primary-500/8 text-primary-500 flex items-center justify-center shrink-0'>
+                      <div className='w-7 h-7 rounded-lg bg-primary-500/10 text-primary-500 flex items-center justify-center shrink-0'>
                         <item.Icon className='w-4 h-4' />
                       </div>
                       <p className='text-sm text-primary-500/75'>{item.text}</p>
