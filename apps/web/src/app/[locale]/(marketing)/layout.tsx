@@ -18,6 +18,7 @@ const MARKETING_NAMESPACES = [
   'audienceSplit',
   'rewards',
   'dream',
+  'missionDriven',
   'header',
   'footer',
   'section2',

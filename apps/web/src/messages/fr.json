@@ -4106,5 +4106,132 @@
       "ctaContact": "Parler à notre équipe",
       "footnote": "L’intégration est gratuite. Vous êtes en ligne en moins de 48 heures."
     }
+  },
+  "missionDriven": {
+    "watermark": "TOO FRESH TO WASTE",
+    "hero": {
+      "eyebrow": "Notre mission",
+      "line1": "Nous n’avons pas",
+      "line2": "créé une entreprise.",
+      "line3": "Nous avons déclaré",
+      "line4": "la guerre au gaspillage.",
+      "lede": "Chaque nuit en Tunisie, de la nourriture valant des milliers de dinars est détruite. Non parce que personne n’a faim. Parce qu’aucun pont n’existe entre les deux. Nous avons construit ce pont.",
+      "scrollCue": "Lire le manifeste"
+    },
+    "origin": {
+      "eyebrow": "D’où cela vient",
+      "p1": "Il était 22h47 à Tunis. Une boulangerie fermait. Le patron a mis le pain invendu dans un sac poubelle noir et l’a posé près de la porte.",
+      "p2": "Deux rues plus loin, une famille calculait si elle pouvait se permettre le petit-déjeuner du lendemain. La même ville. La même nuit. Aucun lien entre les deux.",
+      "p3": "Cette image ne nous a pas quittés. Parce que ce n’était pas une coïncidence - c’était une défaillance systémique qui se répète des milliers de fois par jour, dans chaque ville tunisienne, dans chaque pays du monde. Un tiers de la nourriture produite dans le monde est gaspillée. Non par manque de faim. Par manque d’infrastructure.",
+      "p4": "Nous sommes cette infrastructure. Construite d’abord en Tunisie, parce que c’est d’ici que nous venons, que nous connaissons les rues, que nous connaissons les boulangers par leur nom. La mission commence ici - et elle ne s’arrête pas avant le problème.",
+      "quote": "Nous ne résolvons pas un problème d’entreprise. Nous résolvons un problème de civilisation - un panier à la fois."
+    },
+    "proof": {
+      "eyebrow": "Ce que cela veut dire",
+      "titleClaim": "« Engagé », c’est une affirmation.",
+      "titleEm": "Voici la preuve.",
+      "lede": "Toutes les entreprises disent avoir des valeurs. Nous avons décidé de rendre les nôtres mécaniquement visibles : des décisions que vous pouvez montrer du doigt, des contraintes que nous nous imposons, des chiffres que nous publions.",
+      "items": [
+        {
+          "n": "01",
+          "title": "L’engagement des 5% est structurel, pas symbolique.",
+          "body": "5% de chaque transaction vont à des programmes de sécurité alimentaire - fonds de repas pour les familles, cantines scolaires, banques alimentaires. C’est inscrit dans le modèle de commission, pas ajouté par-dessus comme une couche de dons. On ne peut pas le retirer sans casser le produit."
+        },
+        {
+          "n": "02",
+          "title": "Nous avons renoncé à du chiffre d’affaires.",
+          "body": "Nous avons refusé des partenariats avec des établissements qui voulaient utiliser la plateforme pour écouler du stock de mauvaise qualité à grande échelle. Les paniers que nous publions doivent être de la vraie nourriture sauvée - pas un canal de déstockage. Cette décision nous a coûté de la croissance. Nous l’avons prise quand même."
+        },
+        {
+          "n": "03",
+          "title": "Les objectifs d’impact conditionnent les objectifs d’expansion.",
+          "body": "Avant d’ouvrir une nouvelle ville, nous fixons un seuil minimum de paniers par semaine que les villes existantes doivent tenir. Nous ne grandissons pas en diluant ce qui fonctionne. Notre feuille de route est conditionnée par l’impact vérifié, pas par le calendrier des investisseurs."
+        },
+        {
+          "n": "04",
+          "title": "Nos prix sont indexés sur une économie réelle.",
+          "body": "Nous appliquons une règle interne : le consommateur doit économiser au minimum 50% par rapport au prix normal de la même nourriture. Si un partenaire augmente ses prix au point de casser cette règle, il est retiré de la plateforme. Ici, la logique de marché ne prime pas sur la mission."
+        },
+        {
+          "n": "05",
+          "title": "Nous publions ce que nous ne savons pas encore.",
+          "body": "Nos chiffres de CO₂ sont des estimations fondées sur des moyennes sectorielles. Nos chiffres d’impact familial sont des approximations. Nous le disons clairement. Nous croyons qu’une approximation honnête, annoncée comme telle, vaut mieux qu’une fiction qui sonne précise."
+        }
+      ]
+    },
+    "tensions": {
+      "eyebrow": "Honnêteté radicale",
+      "title": "Les tensions avec lesquelles nous vivons.",
+      "lede": "Cliquez sur un côté pour voir ce que signifie tirer dans cette direction. Puis découvrez comment nous arbitrons.",
+      "hint": "Interactif - touchez un côté",
+      "navigationLabel": "Comment nous arbitrons",
+      "leanLabel": "Nous penchons vers",
+      "items": [
+        {
+          "left": "Croissance",
+          "right": "Impact",
+          "leftDesc": "Grandir vite touche plus d’utilisateurs, finance la mission et construit une position de marché solide.",
+          "rightDesc": "Chaque nouvelle ville doit avoir un vrai problème de gaspillage que nous pouvons réduire de façon mesurable. Pas seulement un marché à monétiser.",
+          "navigation": "Nous nous étendons uniquement là où la densité de gaspillage et la volonté des partenaires sont fortes. Le revenu suit les paniers sauvés - pas l’inverse."
+        },
+        {
+          "left": "Vitesse",
+          "right": "Soin",
+          "leftDesc": "Aller vite, c’est plus de restaurants intégrés, plus de paniers publiés, plus de familles qui économisent - plus tôt.",
+          "rightDesc": "Un partenaire mal préparé fait de mauvais paniers. Un mauvais panier tue la confiance. Une confiance perdue ne se rattrape pas avec un code promo.",
+          "navigation": "Nous accompagnons chaque partenaire manuellement pendant les 30 premiers jours. Cela nous coûte du volume. Cela nous gagne de la durée."
+        },
+        {
+          "left": "Rentabilité",
+          "right": "Accessibilité",
+          "leftDesc": "Des commissions plus élevées et un positionnement premium rendent l’entreprise viable et attractive pour les investisseurs.",
+          "rightDesc": "Les économies alimentaires doivent atteindre les familles qui en ont le plus besoin - pas seulement ceux qui peuvent se permettre des « choix conscients ».",
+          "navigation": "Nous plafonnons notre commission. Nous ne laissons pas les prix dériver au point où sauver un panier cesse d’être une vraie économie pour de vraies personnes."
+        }
+      ],
+      "titleEm": "Chaque jour."
+    },
+    "audience": {
+      "eyebrow": "La clarté plutôt que le consensus",
+      "title": "Nous traçons une ligne.",
+      "forLabel": "Fait pour",
+      "notForLabel": "Pas pour",
+      "forUs": [
+        "La famille qui veut bien manger et qui se sent bien d’économiser en le faisant",
+        "Le boulanger qui déteste voir son travail partir à la poubelle à minuit",
+        "L’étudiant qui étire un budget serré sans renoncer à bien manger",
+        "Le responsable de restaurant qui veut qu’une journée zéro déchet soit vraiment possible",
+        "L’investisseur qui mesure le succès en vies changées, pas seulement en multiples",
+        "La ville qui veut réduire de moitié son gaspillage en cinq ans"
+      ],
+      "notForUs": [
+        "Les entreprises qui voient les invendus comme une opportunité de communication, pas comme un vrai problème",
+        "Les consommateurs qui veulent le moins cher sans se demander pourquoi c’est moins cher",
+        "Les partenaires qui veulent écouler du stock médiocre sous couvert de « durabilité »",
+        "Les investisseurs dont l’horizon de sortie est plus court que le temps qu’il faut pour changer une habitude",
+        "Les institutions qui veulent l’image de l’ESG sans l’engagement opérationnel"
+      ],
+      "footnote": "Ce n’est pas un rejet. C’est de l’honnêteté. Nous croyons que la chose la plus respectueuse qu’une marque puisse faire est de dire clairement qui elle est - pour que vous décidiez si vous vous y retrouvez."
+    },
+    "invitation": {
+      "eyebrow": "Si cette page ressemblait à vos propres pensées",
+      "title": "Il y a une porte ici pour vous.",
+      "doors": [
+        {
+          "label": "Rejoignez l’équipe.",
+          "tagline": "Quatre postes ouverts. Nous cherchons celles et ceux que cela empêche de dormir."
+        },
+        {
+          "label": "Devenez partenaire ESG.",
+          "tagline": "Votre entreprise a besoin d’un impact mesurable. Nous l’avons - avec les données pour le prouver."
+        },
+        {
+          "label": "Commencez à sauver des repas.",
+          "tagline": "Téléchargez l’application. Votre premier panier attend à deux rues d’ici."
+        }
+      ],
+      "finalQuote": "La planète n’a pas besoin de plus d’entreprises qui se soucient du gaspillage dans leur plaquette de marque. Elle a besoin de celles qui s’en soucient dans leurs tableurs.",
+      "finalAttribution": "Too Fresh To Waste"
+    }
   }
 }

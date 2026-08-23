@@ -39,6 +39,7 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
   '/humanity-mission',
   '/locations',
   '/marketplace-surprise-bag',
+  '/mission-driven',
   '/parcless-bag',
   '/partners',
 ]);
@@ -65,7 +66,6 @@ export const ENGLISH_ONLY_ROUTES = new Set<string>([
   '/careers',
   '/cookie-policy',
   '/esg',
-  '/mission-driven',
   '/partner-kit',
   '/privacy-policy',
   '/security',

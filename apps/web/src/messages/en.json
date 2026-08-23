@@ -4097,5 +4097,132 @@
       "ctaContact": "Talk to our team",
       "footnote": "Onboarding is free. You go live in under 48 hours."
     }
+  },
+  "missionDriven": {
+    "watermark": "TOO FRESH TO WASTE",
+    "hero": {
+      "eyebrow": "Mission Driven",
+      "line1": "We did not",
+      "line2": "start a business.",
+      "line3": "We declared",
+      "line4": "war on waste.",
+      "lede": "Every night across Tunisia, food worth thousands of dinars is destroyed. Not because no one is hungry. Because no bridge exists between the two. We built the bridge.",
+      "scrollCue": "Read the manifesto"
+    },
+    "origin": {
+      "eyebrow": "Where this started",
+      "p1": "It was 10:47 pm in Tunis. A bakery was closing. The owner loaded unsold bread into a black bin bag and set it by the door.",
+      "p2": "Two streets over, a family was calculating whether they could afford tomorrow’s breakfast. The same city. The same night. No connection between them.",
+      "p3": "That image did not leave us. Because it was not a coincidence - it was a system failure happening thousands of times a day, in every Tunisian city, in every country on earth. One third of all food produced globally is wasted. Not because the world lacks hunger. Because it lacks infrastructure.",
+      "p4": "We are that infrastructure. Built in Tunisia first, because that is where we are from, where we know the streets, where we know the bakery owners by name. The mission starts here - and it does not stop until the problem does.",
+      "quote": "We are not solving a business problem. We are solving a civilisational one - one bag at a time."
+    },
+    "proof": {
+      "eyebrow": "What we actually mean",
+      "titleClaim": "\"Mission-driven\" is a claim.",
+      "titleEm": "Here is the proof.",
+      "lede": "Every company says they have values. We decided to make ours mechanically visible - decisions you can point to, constraints we operate under, numbers we publish.",
+      "items": [
+        {
+          "n": "01",
+          "title": "The 5% pledge is structural, not symbolic.",
+          "body": "5% of every transaction goes to food security programmes - meal funds for families, school meal initiatives, and community food banks. It is written into how the fee model works, not added as a donation layer on top. You cannot remove it without breaking the product."
+        },
+        {
+          "n": "02",
+          "title": "We have walked away from revenue.",
+          "body": "We have declined partnerships with establishments that wanted to use the platform to move low-quality stock at scale. The bags we list must be genuinely good food rescued - not a clearance channel. That decision cost us growth. We made it anyway."
+        },
+        {
+          "n": "03",
+          "title": "Impact targets gate expansion targets.",
+          "body": "Before we open a new city, we set a minimum bags-per-week threshold the existing cities must maintain. We do not expand by diluting what works. Our roadmap is gated by verified impact, not by investor timelines."
+        },
+        {
+          "n": "04",
+          "title": "Our pricing is pegged to real savings.",
+          "body": "We run an internal rule: the consumer must save a minimum of 50% compared to buying the same food at standard price. If a partner raises prices in a way that breaks this rule, they are removed from the platform. Market forces do not override mission logic here."
+        },
+        {
+          "n": "05",
+          "title": "We publish what we do not know yet.",
+          "body": "Our CO₂ figures are estimates based on industry averages. Our family impact numbers are proxies. We say this clearly. We believe that honest approximations, labelled as such, are more valuable than precise-sounding fiction."
+        }
+      ]
+    },
+    "tensions": {
+      "eyebrow": "Radical honesty",
+      "title": "The tensions we live with.",
+      "lede": "Click either side to see what pulling that way looks like. Then see how we navigate it.",
+      "hint": "Interactive - tap a side",
+      "navigationLabel": "How we navigate it",
+      "leanLabel": "We lean",
+      "items": [
+        {
+          "left": "Growth",
+          "right": "Impact",
+          "leftDesc": "Scaling fast reaches more users, funds the mission, and builds an unassailable market position.",
+          "rightDesc": "Every new city we enter must have a real food waste problem we can measurably reduce. Not just a market we can monetise.",
+          "navigation": "We expand only where food waste density and partner willingness are both high. Revenue follows rescued bags - not the reverse."
+        },
+        {
+          "left": "Speed",
+          "right": "Care",
+          "leftDesc": "Moving fast means more restaurants onboarded, more bags listed, more families saving - sooner.",
+          "rightDesc": "A rushed partner makes bad bags. A bad bag kills trust. Lost trust cannot be recovered with a discount code.",
+          "navigation": "We onboard every partner manually for the first 30 days. It costs us throughput. It earns us permanence."
+        },
+        {
+          "left": "Profitability",
+          "right": "Accessibility",
+          "leftDesc": "Higher fees and premium pricing make the business sustainable and investor-ready.",
+          "rightDesc": "Food savings must reach the families who need them most - not just consumers who can afford \"conscious choices.\"",
+          "navigation": "We cap platform take-rates. We do not let pricing drift to where rescue stops being real savings for real people."
+        }
+      ],
+      "titleEm": "Every single day."
+    },
+    "audience": {
+      "eyebrow": "Clarity over mass appeal",
+      "title": "We draw a line.",
+      "forLabel": "Built for",
+      "notForLabel": "Not for",
+      "forUs": [
+        "The family who wants good food and feels good saving money doing it",
+        "The bakery owner who hates watching his craft go in the bin at midnight",
+        "The student who stretches a tight budget without compromising on eating well",
+        "The restaurant manager who wants a zero-waste day to actually be possible",
+        "The investor who measures success in lives changed, not just multiples",
+        "The city that wants to halve its food waste in five years"
+      ],
+      "notForUs": [
+        "Businesses that see surplus food as a PR opportunity, not a real problem to solve",
+        "Consumers who want the cheapest food with no curiosity about why it is cheap",
+        "Partners who want to dump low-quality stock under the cover of \"sustainability\"",
+        "Investors whose exit timeline is shorter than the time it takes to change a habit",
+        "Institutions that need the optics of ESG without the operational commitment"
+      ],
+      "footnote": "This is not a rejection. It is honesty. We believe the most respectful thing a brand can do is tell you clearly who it is - so you can decide if you belong."
+    },
+    "invitation": {
+      "eyebrow": "If this page felt like your own thoughts",
+      "title": "There is a door here for you.",
+      "doors": [
+        {
+          "label": "Join the team.",
+          "tagline": "Four seats open. We are looking for the ones who are restless about this."
+        },
+        {
+          "label": "Partner on ESG.",
+          "tagline": "Your company needs measurable impact. We have it - with the data to prove it."
+        },
+        {
+          "label": "Start rescuing food.",
+          "tagline": "Download the app. Your first bag is waiting two streets away."
+        }
+      ],
+      "finalQuote": "The planet does not need more companies that care about waste in their brand deck. It needs ones that care about it in their spreadsheets.",
+      "finalAttribution": "Too Fresh To Waste"
+    }
   }
 }

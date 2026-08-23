@@ -1,10 +1,19 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 
 // ── Tension card ─────────────────────────────────────────────────────────────
+
+/**
+ * Every tension leans right - toward impact, care and accessibility. That is
+ * the page's argument, not a per-item setting, so it is a constant rather than
+ * a field three translators could disagree about.
+ */
+const TENSION_LEAN = 'right' as const;
 
 interface TensionData {
   left: string;
@@ -12,11 +21,18 @@ interface TensionData {
   leftDesc: string;
   rightDesc: string;
   navigation: string;
-  lean: 'left' | 'right';
 }
 
-function TensionCard({ data }: { data: TensionData }) {
-  const [active, setActive] = useState<'left' | 'right'>(data.lean);
+function TensionCard({
+  data,
+  navigationLabel,
+  leanLabel,
+}: {
+  data: TensionData;
+  navigationLabel: string;
+  leanLabel: string;
+}) {
+  const [active, setActive] = useState<'left' | 'right'>(TENSION_LEAN);
 
   return (
     <div className='bg-white rounded-3xl overflow-hidden border-2 border-primary-500/10 hover:border-primary-500/15 transition-colors'>
@@ -57,7 +73,7 @@ function TensionCard({ data }: { data: TensionData }) {
       {/* Navigation */}
       <div className='mx-6 mb-6 bg-cream rounded-2xl px-5 py-4 border border-primary-500/10'>
         <p className='text-[10px] font-black uppercase tracking-widest text-primary-500/40 mb-1.5'>
-          How we navigate it
+          {navigationLabel}
         </p>
         <p className='text-sm font-medium text-primary-500 leading-relaxed'>{data.navigation}</p>
       </div>
@@ -65,10 +81,10 @@ function TensionCard({ data }: { data: TensionData }) {
       {/* Lean indicator */}
       <div className='px-6 pb-5 flex items-center gap-2'>
         <span className='text-[10px] font-black uppercase tracking-widest text-primary-500/30'>
-          We lean
+          {leanLabel}
         </span>
         <span className='text-[10px] font-black uppercase tracking-widest bg-primary-500/10 text-primary-500 px-2.5 py-1 rounded-full'>
-          {data.lean === 'right' ? data.right : data.left}
+          {data.right}
         </span>
         <span className='text-[10px] text-primary-500/30 italic'>- but we hold the tension</span>
       </div>
@@ -128,7 +144,7 @@ function Door({
           strokeWidth={1.5}
           strokeLinecap='round'
           strokeLinejoin='round'
-          className={`w-6 h-6 shrink-0 transition-all duration-500 ${hovered ? 'text-brand-coral translate-x-2' : 'text-primary-500/20 translate-x-0'}`}
+          className={`w-6 h-6 shrink-0 transition-all duration-500 ${hovered ? 'text-brand-green translate-x-2' : 'text-primary-500/40 translate-x-0'}`}
           aria-hidden='true'
         >
           <path d='M5 12h14M12 5l7 7-7 7' />
@@ -140,61 +156,31 @@ function Door({
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
-const tensions: TensionData[] = [
-  {
-    left: 'Growth',
-    right: 'Impact',
-    leftDesc:
-      'Scaling fast reaches more users, funds the mission, and builds an unassailable market position.',
-    rightDesc:
-      'Every new city we enter must have a real food waste problem we can measurably reduce. Not just a market we can monetise.',
-    navigation:
-      'We expand only where food waste density and partner willingness are both high. Revenue follows rescued bags - not the reverse.',
-    lean: 'right',
-  },
-  {
-    left: 'Speed',
-    right: 'Care',
-    leftDesc:
-      'Moving fast means more restaurants onboarded, more bags listed, more families saving - sooner.',
-    rightDesc:
-      'A rushed partner makes bad bags. A bad bag kills trust. Lost trust cannot be recovered with a discount code.',
-    navigation:
-      'We onboard every partner manually for the first 30 days. It costs us throughput. It earns us permanence.',
-    lean: 'right',
-  },
-  {
-    left: 'Profitability',
-    right: 'Accessibility',
-    leftDesc: 'Higher fees and premium pricing make the business sustainable and investor-ready.',
-    rightDesc:
-      'Food savings must reach the families who need them most - not just consumers who can afford "conscious choices."',
-    navigation:
-      'We cap platform take-rates. We do not let pricing drift to where rescue stops being real savings for real people.',
-    lean: 'right',
-  },
-];
-
-const forUs = [
-  'The family who wants good food and feels good saving money doing it',
-  'The bakery owner who hates watching his craft go in the bin at midnight',
-  'The student who stretches a tight budget without compromising on eating well',
-  'The restaurant manager who wants a zero-waste day to actually be possible',
-  'The investor who measures success in lives changed, not just multiples',
-  'The city that wants to halve its food waste in five years',
-];
-
-const notForUs = [
-  'Businesses that see surplus food as a PR opportunity, not a real problem to solve',
-  "Consumers who want the cheapest food with no curiosity about why it's cheap",
-  'Partners who want to dump low-quality stock under the cover of "sustainability"',
-  'Investors whose exit timeline is shorter than the time it takes to change a habit',
-  'Institutions that need the optics of ESG without the operational commitment',
-];
-
 // ── Page ─────────────────────────────────────────────────────────────────────
 
+interface ProofItem {
+  n: string;
+  title: string;
+  body: string;
+}
+
+interface Door {
+  label: string;
+  tagline: string;
+}
+
+/** Destinations for the three closing doors, paired by index with the copy. */
+const DOOR_HREFS = ['/careers', '/esg', '/consumer'] as const;
+
 export default function MissionDrivenPage() {
+  const t = useTranslations('missionDriven');
+
+  const proofItems = t.raw('proof.items') as ProofItem[];
+  const tensions = t.raw('tensions.items') as TensionData[];
+  const forUs = t.raw('audience.forUs') as string[];
+  const notForUs = t.raw('audience.notForUs') as string[];
+  const doors = t.raw('invitation.doors') as Door[];
+
   return (
     <>
       <Header />
@@ -208,39 +194,38 @@ export default function MissionDrivenPage() {
             className='absolute bottom-0 right-0 text-[clamp(80px,14vw,180px)] font-black text-white/[0.03] select-none pointer-events-none leading-none tracking-tight whitespace-nowrap'
             aria-hidden='true'
           >
-            TOO FRESH TO WASTE
+            {t('watermark')}
           </p>
 
           <div className='relative mx-auto max-w-5xl px-6 lg:px-8 py-20 lg:py-32'>
             {/* Eyebrow */}
             <div className='mb-10'>
-              <span className='text-brand-coral text-xs font-black uppercase tracking-[0.35em]'>
-                Mission Driven
+              <span className='text-secondary-light text-xs font-black uppercase tracking-[0.35em]'>
+                {t('hero.eyebrow')}
               </span>
             </div>
 
             {/* Main headline - stacked for maximum typographic impact */}
             <h1 className='font-heading font-bold text-white leading-[0.95] mb-0'>
-              <span className='block text-[clamp(42px,8vw,96px)]'>We did not</span>
-              <span className='block text-[clamp(42px,8vw,96px)] text-brand-coral italic'>
-                start a business.
+              <span className='block text-[clamp(42px,8vw,96px)]'>{t('hero.line1')}</span>
+              <span className='block text-[clamp(42px,8vw,96px)] text-secondary-light italic'>
+                {t('hero.line2')}
               </span>
-              <span className='block text-[clamp(42px,8vw,96px)] mt-2'>We declared</span>
-              <span className='block text-[clamp(42px,8vw,96px)] text-brand-coral italic'>
-                war on waste.
+              <span className='block text-[clamp(42px,8vw,96px)] mt-2'>{t('hero.line3')}</span>
+              <span className='block text-[clamp(42px,8vw,96px)] text-secondary-light italic'>
+                {t('hero.line4')}
               </span>
             </h1>
 
             <div className='mt-10 max-w-2xl'>
-              <p className='text-white/60 text-base lg:text-xl leading-relaxed'>
-                Every night across Tunisia, food worth thousands of dinars is destroyed. Not because
-                no one is hungry. Because no bridge exists between the two. We built the bridge.
-              </p>
+              <p className='text-white/75 text-base lg:text-xl leading-relaxed'>{t('hero.lede')}</p>
             </div>
 
             {/* Scroll cue */}
             <div className='mt-14'>
-              <p className='text-white/25 text-xs uppercase tracking-widest'>Read the manifesto</p>
+              <p className='text-white/75 text-xs uppercase tracking-widest'>
+                {t('hero.scrollCue')}
+              </p>
             </div>
           </div>
         </section>
@@ -248,40 +233,32 @@ export default function MissionDrivenPage() {
         {/* ── THE ORIGIN ───────────────────────────────────────────────────── */}
         <section className='bg-white py-20 lg:py-28'>
           <div className='mx-auto max-w-4xl px-6 lg:px-8'>
-            <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-8'>
-              Where this started
+            <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-8'>
+              {t('origin.eyebrow')}
             </p>
 
             <div className='space-y-6 text-primary-500'>
               <p className='font-heading text-2xl lg:text-3xl font-bold leading-snug'>
-                It was 10:47 pm in Tunis. A bakery was closing. The owner loaded unsold bread into a
-                black bin bag and set it by the door.
+                {t('origin.p1')}
               </p>
 
-              <p className='text-base lg:text-lg text-primary-500/65 leading-relaxed'>
-                Two streets over, a family was calculating whether they could afford tomorrow's
-                breakfast. The same city. The same night. No connection between them.
+              <p className='text-base lg:text-lg text-primary-500/75 leading-relaxed'>
+                {t('origin.p2')}
               </p>
 
-              <p className='text-base lg:text-lg text-primary-500/65 leading-relaxed'>
-                That image did not leave us. Because it was not a coincidence - it was a system
-                failure happening thousands of times a day, in every Tunisian city, in every country
-                on earth. One third of all food produced globally is wasted. Not because the world
-                lacks hunger. Because it lacks infrastructure.
+              <p className='text-base lg:text-lg text-primary-500/75 leading-relaxed'>
+                {t('origin.p3')}
               </p>
 
-              <p className='text-base lg:text-lg text-primary-500/65 leading-relaxed'>
-                We are that infrastructure. Built in Tunisia first, because that is where we are
-                from, where we know the streets, where we know the bakery owners by name. The
-                mission starts here - and it does not stop until the problem does.
+              <p className='text-base lg:text-lg text-primary-500/75 leading-relaxed'>
+                {t('origin.p4')}
               </p>
             </div>
 
             {/* Pull quote */}
-            <div className='mt-12 border-l-4 border-brand-coral pl-7'>
+            <div className='mt-12 border-l-4 border-brand-green pl-7'>
               <p className='font-heading text-xl lg:text-2xl font-bold text-primary-500 italic leading-snug'>
-                &ldquo;We are not solving a business problem. We are solving a civilisational one -
-                one bag at a time.&rdquo;
+                &ldquo;{t('origin.quote')}&rdquo;
               </p>
             </div>
           </div>
@@ -292,48 +269,21 @@ export default function MissionDrivenPage() {
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='grid lg:grid-cols-[1fr_1.6fr] gap-10 lg:gap-16 items-start'>
               <div className='lg:sticky lg:top-24'>
-                <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-5'>
-                  What we actually mean
+                <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-5'>
+                  {t('proof.eyebrow')}
                 </p>
                 <h2 className='font-heading text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-500 leading-tight'>
-                  &ldquo;Mission-driven&rdquo; is a claim.
+                  {t('proof.titleClaim')}
                   <br />
-                  <span className='text-brand-coral italic'>Here is the proof.</span>
+                  <span className='text-brand-green italic'>{t('proof.titleEm')}</span>
                 </h2>
-                <p className='text-primary-500/55 text-base mt-5 leading-relaxed'>
-                  Every company says they have values. We decided to make ours mechanically visible
-                  - decisions you can point to, constraints we operate under, numbers we publish.
+                <p className='text-primary-500/75 text-base mt-5 leading-relaxed'>
+                  {t('proof.lede')}
                 </p>
               </div>
 
               <div className='space-y-4'>
-                {[
-                  {
-                    n: '01',
-                    title: 'The 5% pledge is structural, not symbolic.',
-                    body: '5% of every transaction goes to food security programmes - meal funds for families, school meal initiatives, and community food banks. It is written into how the fee model works, not added as a donation layer on top. You cannot remove it without breaking the product.',
-                  },
-                  {
-                    n: '02',
-                    title: 'We have walked away from revenue.',
-                    body: 'We have declined partnerships with establishments that wanted to use the platform to move low-quality stock at scale. The bags we list must be genuinely good food rescued - not a clearance channel. That decision cost us growth. We made it anyway.',
-                  },
-                  {
-                    n: '03',
-                    title: 'Impact targets gate expansion targets.',
-                    body: 'Before we open a new city, we set a minimum bags-per-week threshold the existing cities must maintain. We do not expand by diluting what works. Our roadmap is gated by verified impact, not by investor timelines.',
-                  },
-                  {
-                    n: '04',
-                    title: 'Our pricing is pegged to real savings.',
-                    body: 'We run an internal rule: the consumer must save a minimum of 50% compared to buying the same food at standard price. If a partner raises prices in a way that breaks this rule, they are removed from the platform. Market forces do not override mission logic here.',
-                  },
-                  {
-                    n: '05',
-                    title: 'We publish what we do not know yet.',
-                    body: 'Our CO₂ figures are estimates based on industry averages. Our family impact numbers are proxies. We say this clearly. We believe that honest approximations, labelled as such, are more valuable than precise-sounding fiction.',
-                  },
-                ].map(item => (
+                {proofItems.map(item => (
                   <div
                     key={item.n}
                     className='bg-white rounded-3xl p-7 border border-primary-500/10 hover:border-primary-500/20 hover:shadow-md transition-all duration-300'
@@ -360,17 +310,16 @@ export default function MissionDrivenPage() {
         <section className='bg-white py-16 lg:py-24'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='text-center mb-5'>
-              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-4'>
-                Radical honesty
+              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-4'>
+                {t('tensions.eyebrow')}
               </p>
               <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-4'>
-                The tensions we live with.
+                {t('tensions.title')}
                 <br />
-                <span className='text-brand-coral italic'>Every single day.</span>
+                <span className='text-brand-green italic'>{t('tensions.titleEm')}</span>
               </h2>
-              <p className='text-primary-500/50 text-base max-w-xl mx-auto leading-relaxed'>
-                Click either side to see what pulling that way looks like. Then see how we navigate
-                the tension.
+              <p className='text-primary-500/75 text-base max-w-xl mx-auto leading-relaxed'>
+                {t('tensions.lede')}
               </p>
             </div>
 
@@ -390,14 +339,19 @@ export default function MissionDrivenPage() {
                   <path d='M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5' />
                 </svg>
                 <span className='text-xs text-primary-500/40 font-bold uppercase tracking-wider'>
-                  Interactive - tap a side
+                  {t('tensions.hint')}
                 </span>
               </div>
             </div>
 
             <div className='grid md:grid-cols-3 gap-5 lg:gap-6'>
-              {tensions.map((t, i) => (
-                <TensionCard key={i} data={t} />
+              {tensions.map(item => (
+                <TensionCard
+                  key={item.left}
+                  data={item}
+                  navigationLabel={t('tensions.navigationLabel')}
+                  leanLabel={t('tensions.leanLabel')}
+                />
               ))}
             </div>
           </div>
@@ -407,11 +361,11 @@ export default function MissionDrivenPage() {
         <section className='bg-cream py-16 lg:py-24 relative overflow-hidden'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-4'>
-                Clarity over mass appeal
+              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-4'>
+                {t('audience.eyebrow')}
               </p>
               <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight'>
-                We draw a line.
+                {t('audience.title')}
               </h2>
             </div>
 
@@ -419,18 +373,18 @@ export default function MissionDrivenPage() {
               {/* Built for */}
               <div className='bg-primary-500 rounded-3xl p-8 lg:p-10'>
                 <div className='flex items-center gap-3 mb-7'>
-                  <div className='w-3 h-3 rounded-full bg-brand-coral' aria-hidden='true' />
-                  <p className='text-brand-coral text-xs font-black uppercase tracking-[0.3em]'>
-                    Built for
+                  <div className='w-3 h-3 rounded-full bg-secondary-light' aria-hidden='true' />
+                  <p className='text-secondary-light text-xs font-black uppercase tracking-[0.3em]'>
+                    {t('audience.forLabel')}
                   </p>
                 </div>
                 <ul className='space-y-4'>
-                  {forUs.map((item, i) => (
-                    <li key={i} className='flex items-start gap-3'>
+                  {forUs.map(item => (
+                    <li key={item} className='flex items-start gap-3'>
                       <svg
                         viewBox='0 0 20 20'
                         fill='currentColor'
-                        className='w-4 h-4 text-brand-coral shrink-0 mt-0.5'
+                        className='w-4 h-4 text-secondary-light shrink-0 mt-0.5'
                         aria-hidden='true'
                       >
                         <path
@@ -449,13 +403,13 @@ export default function MissionDrivenPage() {
               <div className='bg-white rounded-3xl p-8 lg:p-10 border-2 border-primary-500/10'>
                 <div className='flex items-center gap-3 mb-7'>
                   <div className='w-3 h-3 rounded-full bg-primary-500/20' aria-hidden='true' />
-                  <p className='text-primary-500/40 text-xs font-black uppercase tracking-[0.3em]'>
-                    Not for
+                  <p className='text-primary-500/75 text-xs font-black uppercase tracking-[0.3em]'>
+                    {t('audience.notForLabel')}
                   </p>
                 </div>
                 <ul className='space-y-4'>
-                  {notForUs.map((item, i) => (
-                    <li key={i} className='flex items-start gap-3'>
+                  {notForUs.map(item => (
+                    <li key={item} className='flex items-start gap-3'>
                       <svg
                         viewBox='0 0 24 24'
                         fill='none'
@@ -469,15 +423,14 @@ export default function MissionDrivenPage() {
                         <line x1='18' y1='6' x2='6' y2='18' />
                         <line x1='6' y1='6' x2='18' y2='18' />
                       </svg>
-                      <p className='text-sm text-primary-500/50 leading-snug'>{item}</p>
+                      <p className='text-sm text-primary-500/75 leading-snug'>{item}</p>
                     </li>
                   ))}
                 </ul>
 
                 <div className='mt-8 pt-6 border-t border-primary-500/10'>
-                  <p className='text-xs text-primary-500/35 italic leading-relaxed'>
-                    This is not a rejection. It is honesty. We believe the most respectful thing a
-                    brand can do is tell you clearly who it is - so you can decide if you belong.
+                  <p className='text-xs text-primary-500/75 italic leading-relaxed'>
+                    {t('audience.footnote')}
                   </p>
                 </div>
               </div>
@@ -488,43 +441,33 @@ export default function MissionDrivenPage() {
         {/* ── THE INVITATION - doors ────────────────────────────────────────── */}
         <section className='bg-white py-16 lg:py-20'>
           <div className='mx-auto max-w-5xl px-6 lg:px-8 mb-12 text-center'>
-            <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-coral mb-4'>
-              If this page felt like your own thoughts
+            <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-4'>
+              {t('invitation.eyebrow')}
             </p>
             <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight'>
-              There is a door here for you.
+              {t('invitation.title')}
             </h2>
           </div>
 
           <div className='border-t border-primary-500/10'>
-            <Door
-              href='/careers'
-              label='Join the team.'
-              tagline='Four seats open. We are looking for the ones who are restless about this.'
-              index={0}
-            />
-            <Door
-              href='/esg'
-              label='Partner on ESG.'
-              tagline='Your company needs measurable impact. We have it - with the data to prove it.'
-              index={1}
-            />
-            <Door
-              href='/consumer'
-              label='Start rescuing food.'
-              tagline='Download the app. Your first bag is waiting two streets away.'
-              index={2}
-            />
+            {doors.map((door, i) => (
+              <Door
+                key={door.label}
+                href={DOOR_HREFS[i] ?? DOOR_HREFS[0]}
+                label={door.label}
+                tagline={door.tagline}
+                index={i}
+              />
+            ))}
           </div>
 
           {/* Final line */}
           <div className='mx-auto max-w-5xl px-6 lg:px-8 pt-14 text-center'>
-            <p className='font-heading text-lg lg:text-2xl text-primary-500/30 italic'>
-              &ldquo;The planet does not need more companies that care about waste in their brand
-              deck. It needs ones that care about it in their spreadsheets.&rdquo;
+            <p className='font-heading text-lg lg:text-2xl text-primary-500/75 italic'>
+              &ldquo;{t('invitation.finalQuote')}&rdquo;
             </p>
-            <p className='text-brand-coral text-xs font-black uppercase tracking-widest mt-4'>
-              - Too Fresh To Waste
+            <p className='text-brand-green text-xs font-black uppercase tracking-widest mt-4'>
+              - {t('invitation.finalAttribution')}
             </p>
           </div>
         </section>
