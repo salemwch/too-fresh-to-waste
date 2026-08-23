@@ -2221,32 +2221,35 @@
   "companies": {
     "meta": {
       "title": "Solutions Entreprise | Too Fresh To Waste",
-      "description": "Rejoignez les leaders mondiaux agissant sur ESG, Scope 3, CBAM et ISO 14001."
+      "description": "Rejoignez les leaders mondiaux agissant sur ESG, Scope 3, CSRD et ISO 14001."
     },
     "hero": {
       "eyebrow": "PROGRAMME ENTREPRISE",
       "headline": "Votre Scope 3 commence à la table du déjeuner.",
-      "sub": "Les entreprises partenaires de Too Fresh To Waste réduisent les dépenses alimentaires de leurs employés, diminuent leurs émissions indirectes Scope 3 et font avancer leurs KPIs ESG - en un seul geste.",
+      "sub": "Devenez partenaire de Too Fresh To Waste : chaque repas sauvé par vos équipes devient une réduction Scope 3 que vous pouvez mesurer, publier et assumer.",
       "cta": "Demander un Partenariat",
       "stats": [
         {
           "value": "5,25 kg",
-          "label": "de CO₂e évités pour chaque panier sauvé par vos équipes"
+          "label": "de CO₂e évités pour chaque panier sauvé par vos équipes",
+          "source": "1,5 kg par panier x 3,5 kg CO₂e par kg, nos propres chiffres"
         },
         {
           "value": "8%",
-          "label": "des émissions mondiales de GES liées au gaspillage alimentaire"
+          "label": "des émissions mondiales de GES liées au gaspillage alimentaire",
+          "source": "FAO et PNUE, via la CCNUCC"
         },
         {
-          "value": "50G€+",
-          "label": "de coût de conformité CBAM d’ici 2030, qui atteint les exportateurs tunisiens vendant dans l’UE"
+          "value": "70%",
+          "label": "des exportations tunisiennes partent vers l’UE, où les acheteurs réclament désormais ces données à leurs fournisseurs",
+          "source": "Commission européenne, DG Commerce"
         }
       ]
     },
     "urgency": {
       "eyebrow": "POURQUOI C'EST IMPORTANT",
       "title": "L'horloge réglementaire tourne.",
-      "body": "CBAM, la directive CSRD de l'UE, et l'alignement émergent de la Tunisie sur l'ISO 26000 signifient que l'inaction est désormais une responsabilité financière - pas seulement éthique."
+      "body": "La directive CSRD de l’UE, les exigences que les acheteurs européens imposent à leurs fournisseurs, et l’alignement émergent de la Tunisie sur l’ISO 26000 signifient que l’inaction est désormais une responsabilité financière - pas seulement éthique."
     },
     "frameworks": {
       "eyebrow": "CONFORMITÉ & NORMES",
@@ -2268,9 +2271,9 @@
           "body": "La Responsabilité Sociale des Entreprises n'est plus optionnelle. Montrez votre leadership."
         },
         {
-          "code": "CBAM",
-          "title": "CBAM",
-          "body": "Le Mécanisme d'Ajustement Carbone aux Frontières récompense les entreprises qui réduisent leurs émissions."
+          "code": "CSRD",
+          "title": "CSRD",
+          "body": "Vos clients européens y sont soumis, et ils répercutent les questions sur leurs fournisseurs. Une réduction du gaspillage mesurée, ce sont des données à leur transmettre."
         },
         {
           "code": "26000",
@@ -2315,7 +2318,7 @@
           "body": "Nous gérons tout. Vous rapportez l'impact."
         }
       ],
-      "bridge": "73% des salariés s’inquiètent du coût de leurs repas pendant la journée de travail. C’est ce qui fait passer ce programme d’une ligne dans un rapport RSE à quelque chose que vos équipes vous demandent de garder."
+      "bridge": "Se nourrir pendant la journée de travail coûte de l’argent à vos équipes, tous les jours. C’est ce qui fait passer ce programme d’une ligne dans un rapport RSE à quelque chose qu’elles vous demandent de garder."
     },
     "form": {
       "ctaEyebrow": "DEVENEZ PARTENAIRE",

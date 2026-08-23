@@ -74,7 +74,11 @@ function FrameworkCard({ item, index }: { item: FrameworkItem; index: number }) 
 export default function CompaniesPage() {
   const t = useTranslations('companies');
 
-  const stats = t.raw('hero.stats') as Array<{ value: string; label: string }>;
+  const stats = t.raw('hero.stats') as Array<{
+    value: string;
+    label: string;
+    source: string;
+  }>;
   const frameworks = t.raw('frameworks.items') as FrameworkItem[];
   const employeePoints = t.raw('employee.points') as Array<{ title: string; body: string }>;
   const trustPoints = t.raw('form.trust') as string[];
@@ -180,6 +184,7 @@ export default function CompaniesPage() {
                     <Counter target={stat.value} />
                   </p>
                   <p className='text-xs leading-snug text-brand-dark/50'>{stat.label}</p>
+                  <p className='text-brand-dark/35 mt-2 text-[10px] leading-snug'>{stat.source}</p>
                 </motion.div>
               ))}
             </div>

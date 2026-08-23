@@ -2222,32 +2222,35 @@
   "companies": {
     "meta": {
       "title": "Enterprise Solutions | Too Fresh To Waste",
-      "description": "Join global leaders acting on ESG, Scope 3, CBAM, and ISO 14001 - while reducing employee food expenses."
+      "description": "Join global leaders acting on ESG, Scope 3, CSRD, and ISO 14001 - while reducing employee food expenses."
     },
     "hero": {
       "eyebrow": "ENTERPRISE PROGRAM",
       "headline": "Your Scope 3 starts at the lunch table.",
-      "sub": "Companies that partner with Too Fresh To Waste reduce their employees' food costs, cut Scope 3 indirect emissions, and advance ESG KPIs - in a single move.",
+      "sub": "Partner with Too Fresh To Waste and every meal your team rescues becomes Scope 3 reduction you can measure, report, and put your name to.",
       "cta": "Request a Partnership",
       "stats": [
         {
           "value": "5.25 kg",
-          "label": "of CO₂e avoided for every bag your team rescues"
+          "label": "of CO₂e avoided for every bag your team rescues",
+          "source": "1.5 kg per bag x 3.5 kg CO₂e per kg, our own figures"
         },
         {
           "value": "8%",
-          "label": "of global GHG emissions from food waste"
+          "label": "of global GHG emissions from food waste",
+          "source": "FAO and UNEP, via the UNFCCC"
         },
         {
-          "value": "€50B+",
-          "label": "CBAM compliance cost by 2030, reaching Tunisian exporters selling into the EU"
+          "value": "70%",
+          "label": "of Tunisia's exports go to the EU, where buyers now ask suppliers for this data",
+          "source": "European Commission, DG Trade"
         }
       ]
     },
     "urgency": {
       "eyebrow": "WHY IT MATTERS",
       "title": "The regulatory clock is ticking.",
-      "body": "CBAM, the EU Corporate Sustainability Reporting Directive, and Tunisia's emerging ESG alignment with ISO 26000 mean inaction is now a financial liability - not just an ethical choice."
+      "body": "The EU Corporate Sustainability Reporting Directive, the requirements European buyers place on their suppliers, and Tunisia's emerging ESG alignment with ISO 26000 mean inaction is now a financial liability - not just an ethical choice."
     },
     "frameworks": {
       "eyebrow": "COMPLIANCE & STANDARDS",
@@ -2269,9 +2272,9 @@
           "body": "Corporate Social Responsibility is no longer optional. Show leadership in the communities where you operate."
         },
         {
-          "code": "CBAM",
-          "title": "CBAM",
-          "body": "The Carbon Border Adjustment Mechanism rewards companies that can prove reduced supply-chain emissions."
+          "code": "CSRD",
+          "title": "CSRD",
+          "body": "Your European customers report under it, and they pass the questions down. Measured waste reduction is data you can hand them."
         },
         {
           "code": "26000",
@@ -2316,7 +2319,7 @@
           "body": "We handle everything. You report the impact."
         }
       ],
-      "bridge": "73% of employees worry about the cost of eating during the working day. That is what turns this from a line in a sustainability report into something your team asks you to keep."
+      "bridge": "Eating during the working day costs your team real money, every day. That is what turns this from a line in a sustainability report into something they ask you to keep."
     },
     "form": {
       "ctaEyebrow": "BECOME A PARTNER",

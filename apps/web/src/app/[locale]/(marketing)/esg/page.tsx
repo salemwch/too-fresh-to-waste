@@ -301,12 +301,12 @@ const euRegulations = [
   {
     code: 'CSRD',
     full: 'Corporate Sustainability Reporting Directive',
-    status: 'Phase-in 2024–2028',
+    status: 'Narrowed by Omnibus I, 2026',
     statusColor: 'text-secondary-dark bg-secondary-dark/10 border-secondary-dark/20',
-    deadline: 'Large companies: 2025 reports',
+    deadline: 'Newly in scope: FY2027, published 2028',
     flag: '🇪🇺',
     summary:
-      'Over 50,000 EU companies - and their entire supply chains - must now publish detailed, audited sustainability reports. If you supply or partner with a European business, they will ask you for your ESG data. Without it, you lose the contract. The CSRD reaches deep into supplier relationships across MENA and Africa.',
+      'Large EU companies must publish detailed, audited sustainability reports. The 2026 Omnibus cut who counts as large - now above 1,000 employees and €450 million turnover - so far fewer companies report. The ones that still do are exactly the European buyers Tunisian exporters sell to, and they ask their suppliers for the numbers behind their own.',
     impact:
       'If you supply to EU companies or seek European investment, your ESG data is now a contractual requirement - not a "nice to have."',
     urgency: 'High',
@@ -355,8 +355,8 @@ const euRegulations = [
 const tunisiaReasons = [
   {
     icon: GlobeIcon,
-    title: '73% of Tunisian exports go to the EU',
-    body: "The EU is Tunisia's largest trading partner. CBAM and CSRD directly affect the viability of those trade relationships. Every Tunisian exporter is already inside Europe's ESG regulatory reach - whether they know it or not.",
+    title: '70% of Tunisian exports go to the EU',
+    body: "The EU is Tunisia's largest trading partner by a wide margin. Most Tunisian exporters sit outside CSRD and CBAM themselves, but their European customers do not, and those customers write supplier requirements into contracts. That is the route Europe's ESG rules take to reach you.",
   },
   {
     icon: BriefcaseIcon,
@@ -486,18 +486,20 @@ export default async function ESGPage({ params }: PageProps) {
               <div className='hidden lg:flex flex-col gap-4 pb-16'>
                 {[
                   {
-                    n: '50 000+',
-                    label: 'EU companies now legally required to report ESG',
+                    n: '70%',
+                    label: "of Tunisia's exports go to the EU - European Commission, DG Trade",
                     color: 'border-brand-coral/30',
                   },
                   {
-                    n: '€50B+',
-                    label: 'in carbon border taxes via CBAM by 2030',
+                    n: '€450M',
+                    label:
+                      'turnover above which your European customers must report - Directive (EU) 2026/470',
                     color: 'border-secondary-dark/30',
                   },
                   {
-                    n: '73%',
-                    label: "of Tunisia's exports go to the EU - already inside the scope",
+                    n: '6',
+                    label:
+                      'goods categories CBAM taxes at the EU border - cement, steel, aluminium, fertilisers, electricity, hydrogen. Not food.',
                     color: 'border-white/20',
                   },
                 ].map((s, i) => (
