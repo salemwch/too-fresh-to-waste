@@ -5054,6 +5054,498 @@
           ]
         }
       ]
+    },
+    "privacyPolicy": {
+      "meta": {
+        "title": "Politique de confidentialité | Too Fresh To Waste",
+        "description": "Comment Too Fresh To Waste collecte, utilise et protège vos données personnelles, conformément aux normes tunisiennes et internationales de protection des données."
+      },
+      "title": "Politique de confidentialité",
+      "intro": [
+        "Too Fresh To Waste (« <b>nous</b> ») exploite la place de marché anti-gaspillage Too Fresh To Waste (le « <b>Service</b> »). La présente politique explique quelles données personnelles nous collectons, comment nous les utilisons et quels droits vous avez au titre du droit applicable - notamment la <em>Loi organique n° 2004-63 relative à la protection des données à caractère personnel</em>, appliquée par l’<b>Instance Nationale de Protection des Données Personnelles (INPDP)</b>, ainsi que des standards alignés sur le Règlement général sur la protection des données (RGPD) pour les utilisateurs accédant à notre plateforme depuis l’Union européenne.",
+        "En utilisant le Service, vous acceptez la collecte et l’utilisation des données décrites dans cette politique. Si vous n’êtes pas d’accord, merci de ne pas utiliser le Service."
+      ],
+      "sections": [
+        {
+          "heading": "1. Données que nous collectons",
+          "subsections": [
+            {
+              "heading": "1.1 Informations de compte",
+              "items": [
+                "Nom complet et nom affiché",
+                "Adresse e-mail (utilisée pour l’authentification et les e-mails transactionnels)",
+                "Numéro de téléphone (pour la vérification par SMS le cas échéant)",
+                "Mot de passe (stocké sous forme de hachage bcrypt - jamais en clair)",
+                "Photo de profil (facultative)",
+                "Rôle du compte (consommateur, commerçant ou administrateur)"
+              ]
+            },
+            {
+              "heading": "1.2 Données de localisation",
+              "paragraphs": [
+                "Avec votre autorisation explicite, nous collectons les coordonnées GPS approximatives de votre appareil pour vous montrer les offres anti-gaspillage proches. Vous pouvez révoquer cette autorisation à tout moment dans les réglages de votre appareil ou de votre navigateur. La localisation précise sert uniquement à calculer la proximité et n’est pas conservée au-delà de votre session active."
+              ]
+            },
+            {
+              "heading": "1.3 Données de transaction",
+              "items": [
+                "Commandes passées, avec le détail de l’offre, le prix payé et les horodatages de retrait",
+                "Références de paiement (nous ne stockons pas les numéros de carte complets)",
+                "Solde de points de fidélité et historique des transactions"
+              ]
+            },
+            {
+              "heading": "1.4 Données techniques et d’appareil",
+              "items": [
+                "Adresse IP et région géographique approximative",
+                "Type et version du navigateur, système d’exploitation",
+                "Identifiants d’appareil (application mobile uniquement)",
+                "Pages consultées, durée de session et parcours de navigation (mesure d’audience)"
+              ]
+            },
+            {
+              "heading": "1.5 Informations commerçant / entreprise",
+              "items": [
+                "Raison sociale, adresse et catégorie",
+                "Numéro de registre de commerce",
+                "Coordonnées bancaires ou de versement (pour les reversements)",
+                "Photos et descriptions des annonces"
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "2. Comment nous utilisons vos données",
+          "paragraphs": [
+            "Chaque finalité ci-dessous est associée à la base légale sur laquelle nous nous appuyons pour traiter vos données."
+          ],
+          "items": [
+            "Créer et gérer votre compte - <b>exécution du contrat</b>",
+            "Traiter les commandes et les retraits - <b>exécution du contrat</b>",
+            "Envoyer la vérification par e-mail et les notifications transactionnelles - <b>exécution du contrat</b>",
+            "Afficher les offres proches à partir de votre localisation - <b>consentement (opt-in)</b>",
+            "Détection de la fraude et sécurité de la plateforme - <b>intérêt légitime</b>",
+            "Améliorer le Service par des statistiques agrégées - <b>intérêt légitime</b>",
+            "Envoyer des communications promotionnelles (avec désinscription) - <b>consentement</b>",
+            "Respecter nos obligations légales - <b>obligation légale</b>"
+          ]
+        },
+        {
+          "heading": "3. Stockage et sécurité des données",
+          "paragraphs": ["Vos données sont stockées dans une base <b>MongoDB Atlas</b> avec :"],
+          "items": [
+            "Chiffrement au repos (AES-256) et en transit (TLS 1.2+)",
+            "Write-concern majority avec journalisation activée en production",
+            "Contrôle d’accès par rôles - seuls les processus serveur autorisés peuvent lire ou écrire",
+            "Tout le trafic d’API servi exclusivement en HTTPS - les requêtes HTTP simples sont redirigées automatiquement",
+            "Mots de passe hachés avec <b>bcrypt</b> (facteur de coût 12) - nous ne stockons ni ne transmettons jamais de mot de passe en clair",
+            "Audits de sécurité réguliers et analyse des vulnérabilités des dépendances"
+          ]
+        },
+        {
+          "heading": "4. Services tiers",
+          "paragraphs": [
+            "Nous ne partageons des données qu’avec des sous-traitants de confiance, strictement nécessaires au fonctionnement du Service :"
+          ],
+          "items": [
+            "<b>Google Analytics 4</b> - mesure d’audience anonyme. Les adresses IP sont anonymisées. Vous pouvez vous y opposer via une extension de navigateur ou vos réglages de cookies.",
+            "<b>Prestataire d’envoi d’e-mails</b> - envoie les e-mails transactionnels (vérification, confirmations de commande). Les adresses ne sont partagées qu’aux fins de livraison.",
+            "<b>Prestataire de paiement</b> - gère l’autorisation des paiements. Nous ne stockons aucune donnée de carte brute ; le prestataire est conforme PCI-DSS.",
+            "<b>Fournisseurs d’infrastructure cloud</b> - hébergent nos serveurs et bases de données dans le cadre d’accords de sous-traitance."
+          ]
+        },
+        {
+          "heading": "5. Durées de conservation",
+          "items": [
+            "Données de compte actif : conservées tant que votre compte est ouvert",
+            "Comptes supprimés : données anonymisées ou effacées sous 30 jours après la demande, sauf obligation légale de conservation",
+            "Enregistrements de transaction : conservés 5 ans, conformément au droit commercial et fiscal tunisien",
+            "Données d’audience : agrégées et anonymisées après 14 mois"
+          ]
+        },
+        {
+          "heading": "6. Vos droits",
+          "paragraphs": [
+            "Au titre du droit tunisien de la protection des données (Instance Nationale de Protection des Données Personnelles (INPDP)) et, le cas échéant, du RGPD, vous disposez des droits suivants :"
+          ],
+          "items": [
+            "<b>Accès</b> - demander une copie des données personnelles que nous détenons sur vous",
+            "<b>Rectification</b> - corriger des données inexactes ou incomplètes",
+            "<b>Effacement</b> - demander la suppression de vos données (« droit à l’oubli »), sous réserve des obligations légales de conservation",
+            "<b>Portabilité</b> - recevoir vos données dans un format structuré et lisible par machine",
+            "<b>Opposition</b> - vous opposer à un traitement fondé sur l’intérêt légitime, y compris la prospection directe",
+            "<b>Retrait du consentement</b> - à tout moment, pour les traitements fondés sur le consentement (par exemple l’accès à la localisation, les e-mails marketing)"
+          ],
+          "subsections": [
+            {
+              "paragraphs": [
+                "Pour exercer un droit, écrivez à <link>support@toofreshtowaste.com</link> en précisant votre demande. Nous répondrons sous 30 jours. Si vous estimez que vos droits ont été méconnus, vous pouvez saisir l’<b>Instance Nationale de Protection des Données Personnelles (INPDP)</b>."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "7. Transferts internationaux de données",
+          "paragraphs": [
+            "Notre infrastructure principale est exploitée en Tunisie. Certains sous-traitants (par exemple la mesure d’audience) peuvent traiter des données hors de Tunisie. Dans ce cas, nous nous appuyons sur des clauses contractuelles types ou sur la certification d’adéquation du sous-traitant afin de garantir un niveau de protection équivalent."
+          ]
+        },
+        {
+          "heading": "8. Protection des mineurs",
+          "paragraphs": [
+            "Notre Service ne s’adresse pas aux enfants de moins de 16 ans. Nous ne collectons pas sciemment de données personnelles auprès de personnes de moins de 16 ans. Si vous constatez qu’un enfant nous a fourni des données personnelles, contactez-nous immédiatement et nous prendrons les mesures nécessaires pour les supprimer."
+          ]
+        },
+        {
+          "heading": "9. Modifications de cette politique",
+          "paragraphs": [
+            "Nous pouvons mettre à jour cette politique périodiquement. Les changements substantiels seront communiqués par e-mail ou par un avis visible sur la plateforme au moins 7 jours avant leur entrée en vigueur. La poursuite de l’utilisation du Service après cette date vaut acceptation de la politique révisée."
+          ]
+        },
+        {
+          "heading": "10. Nous contacter",
+          "paragraphs": [
+            "Pour toute question sur cette politique ou sur les données que nous détenons vous concernant : <link>support@toofreshtowaste.com</link>."
+          ]
+        }
+      ]
+    },
+    "termsOfService": {
+      "meta": {
+        "title": "Conditions d’utilisation | Too Fresh To Waste",
+        "description": "Les conditions régissant votre utilisation de la plateforme Too Fresh To Waste : éligibilité, obligations, paiements, responsabilité et résiliation."
+      },
+      "title": "Conditions d’utilisation",
+      "intro": [
+        "Les présentes conditions d’utilisation (les « <b>Conditions</b> ») régissent votre accès à la plateforme Too Fresh To Waste et son utilisation - y compris notre application mobile, notre site web et les services associés (ensemble, le « <b>Service</b> »). En utilisant le Service, vous acceptez d’être lié par ces Conditions. Si vous ne les acceptez pas, n’utilisez pas le Service.",
+        "Les présentes Conditions sont régies par le droit tunisien. Tout litige né des présentes relève de la compétence exclusive des tribunaux compétents de Tunisie."
+      ],
+      "sections": [
+        {
+          "heading": "1. Éligibilité",
+          "items": [
+            "Vous devez avoir au moins 16 ans pour créer un compte consommateur.",
+            "Les commerçants doivent être des entreprises légalement enregistrées en Tunisie, habilitées à conclure des engagements contraignants."
+          ],
+          "paragraphs": [
+            "En utilisant le Service, vous déclarez remplir ces conditions et que toutes les informations que vous fournissez sont exactes et à jour."
+          ]
+        },
+        {
+          "heading": "2. Responsabilités liées au compte",
+          "paragraphs": ["Vous êtes responsable :"],
+          "items": [
+            "De la confidentialité de vos identifiants. Vous ne devez pas partager votre mot de passe ni permettre à des tiers d’accéder à votre compte.",
+            "De toute activité effectuée depuis votre compte, que vous l’ayez autorisée ou non.",
+            "De nous prévenir sans délai à <link>support@toofreshtowaste.com</link> si vous suspectez un accès non autorisé.",
+            "De fournir des informations exactes, sincères et à jour dans votre profil et vos annonces."
+          ]
+        },
+        {
+          "heading": "3. Annonces et obligations des commerçants",
+          "paragraphs": [
+            "Les commerçants qui publient des denrées sur la plateforme acceptent ce qui suit :"
+          ],
+          "items": [
+            "<b>Exactitude :</b> décrire fidèlement les denrées, y compris les allergènes, le contenu et le créneau de retrait.",
+            "<b>Sécurité alimentaire :</b> respecter l’ensemble de la réglementation tunisienne applicable en matière de sécurité alimentaire, au moment de la publication et du retrait.",
+            "<b>Responsabilité :</b> les commerçants sont seuls responsables de la qualité, de la sécurité et de l’état des denrées qu’ils proposent. Too Fresh To Waste est un intermédiaire de place de marché. Nous ne préparons, ne manipulons, ne stockons ni n’inspectons aucune denrée. Les commerçants assument l’entière responsabilité légale des produits qu’ils publient et vendent, y compris toute réclamation liée à une intoxication alimentaire, une réaction allergique ou une description erronée.",
+            "<b>Disponibilité :</b> honorer toutes les commandes passées pendant la période active de l’annonce. Des annulations répétées ou un défaut d’exécution peuvent entraîner la suspension du compte.",
+            "<b>Prix :</b> les prix affichés doivent être réellement réduits par rapport au prix de vente initial des produits."
+          ]
+        },
+        {
+          "heading": "4. Obligations des consommateurs",
+          "items": [
+            "Récupérer votre commande pendant le créneau de retrait indiqué. Les commandes non récupérées peuvent être perdues sans remboursement.",
+            "Utiliser votre code de retrait de bonne foi - générer ou partager de faux codes est interdit.",
+            "Ne pas revendre à des fins commerciales les articles achetés via la plateforme.",
+            "Traiter les commerçants et leur personnel avec respect lors du retrait."
+          ]
+        },
+        {
+          "heading": "5. Comportements interdits",
+          "paragraphs": ["Les comportements suivants sont strictement interdits :"],
+          "items": [
+            "Créer de faux comptes, de fausses annonces ou de faux avis",
+            "Utiliser le Service à des fins de transactions frauduleuses ou de blanchiment",
+            "Tenter d’accéder sans autorisation à une partie quelconque de la plateforme",
+            "Extraire des données du Service par scraping, crawling ou outils automatisés sans accord écrit préalable",
+            "Contourner la plateforme pour réaliser des transactions hors plateforme avec des contacts obtenus via le Service",
+            "Publier des contenus diffamatoires, discriminatoires ou illicites",
+            "Harceler ou menacer d’autres utilisateurs ou des commerçants",
+            "Porter atteinte à l’intégrité ou aux performances du Service ou de son infrastructure"
+          ]
+        },
+        {
+          "heading": "6. Paiements et remboursements",
+          "paragraphs": [
+            "Tous les prix sont affichés en dinar tunisien (TND) et incluent les taxes applicables, sauf mention contraire.",
+            "Les paiements sont traités par notre prestataire de paiement tiers. En finalisant un achat, vous acceptez les conditions de ce prestataire.",
+            "En raison du caractère périssable et déjà remisé des produits anti-gaspillage, les remboursements ne sont accordés que si : (a) le commerçant annule la commande, (b) la denrée diffère substantiellement de la description de l’annonce, ou (c) un incident de sécurité alimentaire vérifiable survient. Toute contestation doit être soumise dans les 24 heures suivant l’heure de retrait prévue."
+          ]
+        },
+        {
+          "heading": "7. Propriété intellectuelle",
+          "paragraphs": [
+            "L’ensemble des contenus créés par Too Fresh To Waste - logos, design, code et textes - appartient à la Société ou à ses concédants et est protégé par le droit d’auteur et le droit des marques. Vous ne pouvez ni reproduire, ni distribuer, ni créer d’œuvres dérivées sans autorisation écrite préalable.",
+            "En publiant du contenu (photos, descriptions) sur la plateforme, vous nous accordez une licence non exclusive, mondiale et gratuite pour afficher et utiliser ce contenu aux seules fins d’exploitation et de promotion du Service."
+          ]
+        },
+        {
+          "heading": "8. Limitation de responsabilité",
+          "paragraphs": ["Dans toute la mesure permise par le droit tunisien :"],
+          "items": [
+            "Le Service est fourni « <b>as is</b> » (en l’état) et « <b>as available</b> » (selon disponibilité). Nous ne garantissons pas que le Service sera ininterrompu, exempt d’erreurs ou de composants nuisibles.",
+            "La Société n’est pas responsable des dommages indirects, accessoires, spéciaux ou consécutifs résultant de votre utilisation du Service, y compris la perte de données, le manque à gagner ou tout préjudice corporel résultant d’une denrée consommée.",
+            "Notre responsabilité totale, pour toute réclamation née des présentes Conditions, ne peut excéder le montant que vous nous avez versé au cours des 3 mois précédant la réclamation.",
+            "Nous ne sommes pas responsables du comportement, des annonces ou de la qualité des denrées d’un commerçant sur la plateforme."
+          ]
+        },
+        {
+          "heading": "9. Disponibilité du Service",
+          "paragraphs": [
+            "Nous ne garantissons pas un accès continu et ininterrompu au Service. Une maintenance planifiée, des incidents techniques ou des événements indépendants de notre volonté (force majeure) peuvent provoquer des interruptions. Nous nous efforcerons raisonnablement de prévenir à l’avance des maintenances planifiées."
+          ]
+        },
+        {
+          "heading": "10. Résiliation du compte",
+          "items": [
+            "<b>Par vous :</b> vous pouvez supprimer votre compte à tout moment depuis les paramètres. Les commandes en cours doivent être réglées avant la suppression.",
+            "<b>Par nous :</b> nous pouvons suspendre ou résilier définitivement votre compte sans préavis si nous estimons, à notre seule discrétion, que vous avez enfreint une disposition des présentes Conditions, mené une activité frauduleuse, abusive ou illicite, ou causé un préjudice à d’autres utilisateurs, à des commerçants ou à la Société."
+          ],
+          "paragraphs": ["Les sections 7, 8, 9, 10 et 11 survivent à la résiliation."]
+        },
+        {
+          "heading": "11. Garantie d’indemnisation",
+          "paragraphs": [
+            "Vous acceptez d’indemniser et de garantir Too Fresh To Waste ainsi que ses dirigeants, administrateurs, salariés et mandataires contre toute réclamation, dommage, perte, responsabilité et frais (y compris frais de justice) découlant de votre utilisation du Service, de votre violation des présentes Conditions ou de votre atteinte aux droits d’un tiers."
+          ]
+        },
+        {
+          "heading": "12. Modifications des présentes Conditions",
+          "paragraphs": [
+            "Nous pouvons réviser ces Conditions de temps à autre. Les changements substantiels seront communiqués par e-mail ou par notification dans l’application au moins 7 jours à l’avance. La poursuite de votre utilisation du Service après la date d’entrée en vigueur vaut acceptation des modifications."
+          ]
+        },
+        {
+          "heading": "13. Contact",
+          "paragraphs": [
+            "Too Fresh To Waste - service juridique. Pour toute question sur ces Conditions : <link>support@toofreshtowaste.com</link>."
+          ]
+        }
+      ]
+    },
+    "termsAndConditions": {
+      "meta": {
+        "title": "Conditions générales | Too Fresh To Waste",
+        "description": "L’accord entre vous, Too Fresh To Waste et les commerces chez qui vous achetez : réservations, retrait, livraison, remboursements et responsabilité."
+      },
+      "title": "Conditions générales",
+      "intro": [
+        "Nous rêvons d’une Tunisie sans gaspillage alimentaire. Too Fresh To Waste (« <b>TFTW</b> », « <b>nous</b> ») existe pour sauver les invendus qui finiraient à la poubelle. Notre plateforme met en relation des consommateurs comme vous avec des commerces de bouche locaux - restaurants, boulangeries, cafés, supermarchés et autres (chacun un « <b>Commerce</b> »).",
+        "Les commerces publient leurs invendus sous forme de <b>panier surprise</b> : ce qu’il leur reste de bon. Vous réservez un panier surprise dans l’application, payez un prix réduit et le récupérez sur place ou vous le faites livrer. Chaque panier sauvé est un repas récupéré.",
+        "<b>Important :</b> TFTW ne possède, ne prépare, ne stocke et ne manipule aucun panier surprise. Nous sommes uniquement un intermédiaire de place de marché. La vente de nourriture intervient exclusivement entre vous et le Commerce."
+      ],
+      "sections": [
+        {
+          "heading": "2. Ce que couvrent ces Conditions",
+          "paragraphs": [
+            "Les présentes conditions générales (les « <b>Conditions</b> ») constituent un accord juridiquement contraignant entre vous et Too Fresh To Waste, régissant votre utilisation de notre site, de notre application mobile et de tous les services associés (ensemble, la « <b>Plateforme</b> »). En utilisant une quelconque partie de la Plateforme, vous acceptez ces Conditions dans leur intégralité. Si vous ne les acceptez pas, n’utilisez pas la Plateforme.",
+            "Les présentes Conditions sont régies par le droit tunisien. En les acceptant, vous confirmez avoir également lu et accepté notre politique de confidentialité."
+          ]
+        },
+        {
+          "heading": "3. Utiliser Too Fresh To Waste",
+          "subsections": [
+            {
+              "heading": "3.1 Comment ça marche",
+              "paragraphs": ["Sauver un repas du gaspillage est simple :"],
+              "items": [
+                "Vous parcourez les paniers disponibles sur la Plateforme - près de chez vous ou partout en Tunisie. Les résultats géolocalisés nécessitent votre autorisation de partager votre position.",
+                "Vous réservez et payez un panier à prix réduit.",
+                "Vous récupérez votre panier pendant le créneau du Commerce, ou choisissez la livraison si le Commerce la propose."
+              ]
+            },
+            {
+              "heading": "3.2 Votre compte",
+              "paragraphs": [
+                "Vous devez créer un compte pour utiliser la Plateforme. Gardez vos informations exactes et à jour. Vous êtes responsable de toute activité effectuée depuis votre compte.",
+                "Vous ne devez pas :"
+              ],
+              "items": [
+                "Partager votre compte ou vos identifiants avec un tiers",
+                "Créer un compte au nom d’une autre personne sans son consentement",
+                "Utiliser un nom d’utilisateur offensant, trompeur ou usurpant l’identité d’autrui",
+                "Créer un nouveau compte après la suspension ou la résiliation d’un précédent"
+              ]
+            },
+            {
+              "heading": "3.3 Réservations",
+              "paragraphs": [
+                "Lorsque vous réservez un panier surprise, vous faites au Commerce une offre d’achat de ce panier. La réservation n’est pas un achat garanti - il arrive rarement qu’un Commerce n’ait pas les invendus prévus. La vente n’est conclue qu’au moment du retrait ou de la livraison confirmée."
+              ]
+            },
+            {
+              "heading": "3.4 Retrait",
+              "paragraphs": [
+                "Si vous choisissez le retrait, vous devez récupérer votre panier surprise au Commerce pendant le créneau indiqué dans l’application. Présentez votre confirmation de commande au Commerce et validez-la dans l’application pour finaliser la remise. Si vous ne récupérez pas votre panier dans le créneau indiqué, il peut ne plus être disponible et la réservation peut néanmoins vous être facturée."
+              ]
+            },
+            {
+              "heading": "3.5 Livraison",
+              "paragraphs": [
+                "Certains Commerces proposent la livraison dans une zone définie. Lorsqu’elle est disponible, elle apparaît comme option au paiement. Les délais et frais de livraison (le cas échéant) sont affichés avant la confirmation de la commande. TFTW n’est pas responsable des retards dus au trafic, à la météo ou à des circonstances indépendantes de sa volonté. En choisissant la livraison, vous confirmez que votre adresse est correcte et qu’une personne sera disponible pour réceptionner la commande."
+              ]
+            },
+            {
+              "heading": "3.6 Annulations",
+              "items": [
+                "<b>Par vous :</b> vous pouvez annuler une réservation dans l’application à tout moment avant la fin du créneau de retrait ou avant l’expédition de la livraison. Les annulations postérieures peuvent rester facturées.",
+                "<b>Par le Commerce :</b> un Commerce peut annuler jusqu’à une heure avant le créneau de retrait s’il n’a pas suffisamment d’invendus. Dans des circonstances exceptionnelles, des annulations plus tardives sont possibles. Vous en serez informé et intégralement remboursé.",
+                "<b>Par TFTW :</b> nous pouvons annuler une commande lorsque c’est nécessaire - par exemple en cas de risque de sécurité alimentaire, de litige ou de problème technique - et vous rembourserons en conséquence."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "4. Contenu des paniers surprise",
+          "paragraphs": [
+            "TFTW n’a aucune visibilité sur le contenu d’un panier surprise. Nous ne fabriquons, ne préparons, ne stockons, n’inspectons ni ne manipulons la nourriture. Le Commerce est seul responsable de la qualité, de la sécurité, des ingrédients, de l’information sur les allergènes et de l’étiquetage des denrées qu’il fournit.",
+            "Avant ou au moment du retrait, le Commerce doit vous informer des ingrédients et des allergènes. En cas de doute ou d’allergie, confirmez directement avec le Commerce avant de finaliser la remise. TFTW décline toute responsabilité en cas de réaction indésirable liée au contenu d’un panier surprise.",
+            "Toutes les denrées doivent respecter la réglementation tunisienne applicable en matière de sécurité alimentaire. Si vous avez une réclamation sur la nourriture reçue, contactez d’abord le Commerce. Vous pouvez également nous signaler le problème via la section Aide de l’application."
+          ]
+        },
+        {
+          "heading": "5. Prix, paiement et remboursements",
+          "subsections": [
+            {
+              "heading": "5.1 Prix",
+              "paragraphs": [
+                "Tous les prix sont affichés en dinar tunisien (TND) et incluent les taxes applicables, sauf mention contraire. Le prix affiché représente une remise réelle par rapport à la valeur de vente initiale de la nourriture."
+              ]
+            },
+            {
+              "heading": "5.2 Paiement",
+              "paragraphs": [
+                "Le paiement est encaissé par TFTW pour le compte du Commerce au moment de la réservation. Nous acceptons les moyens de paiement listés dans l’application. Vos données de carte sont traitées par notre prestataire de paiement conforme PCI-DSS - TFTW ne stocke aucune donnée de carte brute."
+              ]
+            },
+            {
+              "heading": "5.3 Remboursements",
+              "paragraphs": [
+                "Les remboursements sont accordés dans les cas suivants : le Commerce annule votre commande ; la nourriture reçue diffère substantiellement de l’annonce ; ou un problème de sécurité alimentaire est vérifié. Les demandes de remboursement doivent être soumises via l’application dans les 24 heures suivant l’heure de retrait prévue ou la livraison. Nous n’accordons pas de remboursement pour changement d’avis ni en cas de non-retrait dans le créneau."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "6. Réclamations",
+          "paragraphs": [
+            "En cas de problème, contactez-nous d’abord via la section Aide de l’application ou à <link>support@toofreshtowaste.com</link>. Nous enquêterons et répondrons rapidement. Les présentes Conditions ne limitent aucun droit dont vous disposez au titre du droit tunisien de la consommation."
+          ]
+        },
+        {
+          "heading": "7. Vos responsabilités",
+          "paragraphs": ["En utilisant la Plateforme, vous vous engagez à :"],
+          "items": [
+            "Respecter l’ensemble des lois et règlements tunisiens applicables lors de l’utilisation de la Plateforme",
+            "Ne pas utiliser la Plateforme à des fins de revente commerciale, de benchmarking ou de veille concurrentielle",
+            "Ne pas téléverser de virus, extraire des données, faire de l’ingénierie inverse ou perturber la Plateforme de quelque manière que ce soit",
+            "Ne pas diffuser de contenu trompeur, diffamatoire ou illicite via la Plateforme",
+            "Nous signaler immédiatement toute faille de sécurité ou utilisation non autorisée de votre compte"
+          ],
+          "subsections": [
+            {
+              "paragraphs": [
+                "Nous pouvons suspendre ou résilier votre compte sans préavis si nous estimons que vous avez enfreint l’un des points ci-dessus."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "8. Confidentialité",
+          "paragraphs": [
+            "Nous prenons votre vie privée au sérieux. Lorsque vous utilisez la Plateforme, nous collectons et traitons des données personnelles vous concernant conformément à notre politique de confidentialité, qui respecte le droit tunisien de la protection des données et les standards internationaux."
+          ]
+        },
+        {
+          "heading": "9. Limitation de responsabilité",
+          "paragraphs": ["Dans toute la mesure permise par le droit tunisien :"],
+          "items": [
+            "La Plateforme est fournie « as is » (en l’état) et « as available » (selon disponibilité). Nous ne garantissons pas qu’elle sera ininterrompue ou exempte d’erreurs.",
+            "TFTW n’est pas responsable des actes ou omissions d’un Commerce, y compris la qualité, la sécurité ou le contenu d’un panier surprise.",
+            "Nous ne sommes pas responsables des dommages indirects, accessoires ou consécutifs résultant de votre utilisation de la Plateforme.",
+            "Notre responsabilité totale pour toute réclamation ne peut excéder le montant total que vous nous avez versé au cours des trois mois précédant le fait générateur."
+          ],
+          "subsections": [
+            {
+              "paragraphs": [
+                "Vous acceptez d’indemniser et de garantir TFTW, ses dirigeants, salariés et partenaires contre toute réclamation ou dépense découlant de votre violation des présentes Conditions ou d’un usage abusif de la Plateforme."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "10. Propriété intellectuelle",
+          "paragraphs": [
+            "L’ensemble des contenus, du design, du code, des marques et des logos présents sur la Plateforme appartient à TFTW ou à ses concédants. Vous ne pouvez copier, reproduire, modifier ou distribuer aucune partie de la Plateforme sans notre accord écrit préalable.",
+            "En publiant du contenu (photos, descriptions, avis), vous nous accordez une licence non exclusive et gratuite d’utiliser ce contenu aux seules fins d’exploitation et de promotion de la Plateforme."
+          ]
+        },
+        {
+          "heading": "11. Suspension et résiliation",
+          "paragraphs": [
+            "Nous pouvons suspendre ou résilier définitivement votre accès à la Plateforme, à notre discrétion et sans préavis, si :"
+          ],
+          "items": [
+            "Vous enfreignez ces Conditions de manière substantielle ou répétée",
+            "La loi ou une décision de justice nous y oblige",
+            "Votre comportement cause un préjudice ou engage la responsabilité de TFTW, d’un Commerce ou d’un autre utilisateur",
+            "Vous êtes inactif sur la Plateforme pendant une période prolongée"
+          ],
+          "subsections": [
+            {
+              "paragraphs": [
+                "Vous pouvez supprimer votre compte à tout moment depuis les paramètres. Si vous estimez que votre compte a été suspendu par erreur, écrivez-nous à <link>support@toofreshtowaste.com</link>."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "12. Dispositions générales",
+          "subsections": [
+            {
+              "heading": "12.1 Modifications des Conditions",
+              "paragraphs": [
+                "Nous pouvons mettre à jour ces Conditions de temps à autre. Les changements substantiels seront notifiés par e-mail ou par notification dans l’application au moins 7 jours avant leur entrée en vigueur. La poursuite de votre utilisation de la Plateforme après cette date vaut acceptation des Conditions mises à jour. Si vous n’êtes pas d’accord, vous pouvez supprimer votre compte."
+              ]
+            },
+            {
+              "heading": "12.2 Liens vers des tiers",
+              "paragraphs": [
+                "La Plateforme peut contenir des liens vers des sites tiers. Nous ne sommes pas responsables du contenu ni des pratiques de ces sites et vous encourageons à lire leurs propres conditions et politiques de confidentialité."
+              ]
+            },
+            {
+              "heading": "12.3 Divisibilité",
+              "paragraphs": [
+                "Si une disposition des présentes Conditions était jugée inapplicable, elle serait modifiée pour refléter l’intention initiale dans toute la mesure permise par la loi. Toutes les autres dispositions demeurent pleinement en vigueur."
+              ]
+            },
+            {
+              "heading": "12.4 Droit applicable et litiges",
+              "paragraphs": [
+                "Les présentes Conditions sont régies par le droit tunisien. Tout litige né des présentes ou s’y rapportant relève de la compétence exclusive des tribunaux compétents de Tunisie. Nous vous encourageons à nous contacter d’abord - la plupart des problèmes se règlent rapidement et à l’amiable."
+              ]
+            },
+            {
+              "heading": "12.5 Nous contacter",
+              "paragraphs": ["Écrivez-nous à <link>support@toofreshtowaste.com</link>."]
+            }
+          ]
+        }
+      ]
     }
   }
 }

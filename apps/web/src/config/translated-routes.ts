@@ -45,6 +45,9 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
   '/marketplace-surprise-bag',
   '/mission-driven',
   '/parcless-bag',
+  '/privacy-policy',
+  '/terms-and-conditions',
+  '/terms-of-service',
   '/partner-kit',
   '/security',
   '/partners',
@@ -67,11 +70,7 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
  * translated through locale-keyed objects instead, and missed the six legal
  * pages entirely because I never thought to look at them.
  */
-export const ENGLISH_ONLY_ROUTES = new Set<string>([
-  '/privacy-policy',
-  '/terms-and-conditions',
-  '/terms-of-service',
-]);
+export const ENGLISH_ONLY_ROUTES = new Set<string>([]);
 
 /** The default locale, and the only one an untranslated route may advertise. */
 export const SOURCE_LOCALE: Locale = 'en';

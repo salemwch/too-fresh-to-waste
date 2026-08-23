@@ -62,8 +62,19 @@ describe('what each route may advertise', () => {
     expect([...translatedLocalesFor(route)].sort()).toEqual([...locales].sort());
   });
 
-  it.each([...ENGLISH_ONLY_ROUTES])('%s advertises English alone', route => {
-    expect(translatedLocalesFor(route)).toEqual([SOURCE_LOCALE]);
+  /**
+   * The set is empty as of the pass that translated the last six routes. It
+   * stays here because the next new page starts English-only, and because an
+   * empty it.each is a jest error rather than a skipped test.
+   */
+  it('advertises English alone for anything still English-only', () => {
+    for (const route of ENGLISH_ONLY_ROUTES) {
+      expect(translatedLocalesFor(route)).toEqual([SOURCE_LOCALE]);
+    }
+  });
+
+  it('has no route left waiting for translation', () => {
+    expect([...ENGLISH_ONLY_ROUTES]).toEqual([]);
   });
 
   it('lets a nested route inherit its section', () => {
@@ -87,7 +98,13 @@ describe('the metadata that actually ships', () => {
    * the moment that route is translated - which is what happened when /esg was
    * the example and then stopped being English-only.
    */
-  const englishOnly = [...ENGLISH_ONLY_ROUTES][0] as string;
+  /**
+   * Synthetic rather than a real route. Every route is translated now, so a
+   * real example would have to be invented anyway - and picking one from the
+   * list is what rotted this test the first time, when /esg stopped being
+   * English-only mid-pass.
+   */
+  const englishOnly = '/a-route-that-does-not-exist-yet';
   const translated = '/companies';
 
   const languagesOf = (path: string, locale: (typeof locales)[number]) =>
