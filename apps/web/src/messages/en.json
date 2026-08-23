@@ -4371,5 +4371,245 @@
       "successBody": "Thank you for believing in our mission. We read every single application personally. If your vision aligns with ours, we will be in touch soon.",
       "successSignature": "- The Too Fresh To Waste Team"
     }
+  },
+  "esg": {
+    "meta": {
+      "title": "ESG - Why It Matters for Your Business | Too Fresh To Waste",
+      "description": "Understand what ESG is, why EU regulations like CSRD make it mandatory, and how Tunisian companies can use food waste reduction to build a credible ESG strategy.",
+      "schemaTitle": "ESG Compliance for Food Businesses - Too Fresh To Waste",
+      "schemaDescription": "How restaurants and food businesses in MENA can meet ESG requirements including CSRD, CBAM and UN SDGs by reducing food waste."
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "current": "ESG"
+    },
+    "hero": {
+      "titleStart": "ESG is no longer",
+      "titleEm1": "a choice.",
+      "titleMid": "It is the price of",
+      "titleEm2": "entry.",
+      "lede": "European regulators, global investors, and your own customers are demanding it. Tunisian companies that build their ESG baseline now will lead their markets in five years. Those that wait will be locked out of them.",
+      "ctaUnderstand": "Understand ESG",
+      "ctaLaws": "See EU laws",
+      "stats": [
+        {
+          "value": "70%",
+          "label": "of Tunisia’s exports go to the EU - European Commission, DG Trade"
+        },
+        {
+          "value": "€450M",
+          "label": "turnover above which your European customers must report - Directive (EU) 2026/470"
+        },
+        {
+          "value": "6",
+          "label": "goods categories CBAM taxes at the EU border - cement, steel, aluminium, fertilisers, electricity, hydrogen. Not food."
+        }
+      ]
+    },
+    "fundamentals": {
+      "eyebrow": "The fundamentals",
+      "title": "What exactly is ESG?",
+      "lede": "Three letters. Three dimensions of how a company interacts with the world. Together they form the most important lens through which capital, regulators, and partners now evaluate your business.",
+      "calloutStart": "ESG is not a report you file once a year.",
+      "calloutEm": "It is how you run your company - measured, verified, and published.",
+      "pillars": [
+        {
+          "label": "Environmental",
+          "headline": "Your footprint on the planet.",
+          "body": "Carbon emissions, energy consumption, water usage, waste management, biodiversity impact, and your supply chain’s environmental trail. Investors and regulators are now demanding hard numbers - not promises.",
+          "metrics": [
+            "CO₂ & GHG emissions",
+            "Energy & water consumption",
+            "Waste diverted from landfill",
+            "Supply chain carbon footprint"
+          ]
+        },
+        {
+          "label": "Social",
+          "headline": "Your impact on people.",
+          "body": "Working conditions, fair wages, diversity and inclusion, community investment, human rights in the supply chain, and how your business treats every person it touches - from employee to end customer.",
+          "metrics": [
+            "Employee wellbeing & diversity",
+            "Community investment",
+            "Supply chain labor rights",
+            "Customer data protection"
+          ]
+        },
+        {
+          "label": "Governance",
+          "headline": "How you run the business.",
+          "body": "Board independence, executive pay transparency, anti-corruption policies, ethical supply chains, audit quality, and whether your company can be trusted with other people’s money and the planet’s resources.",
+          "metrics": [
+            "Board diversity & independence",
+            "Anti-bribery & corruption",
+            "Transparent financial reporting",
+            "Executive pay ratio disclosure"
+          ]
+        }
+      ]
+    },
+    "businessCase": {
+      "eyebrow": "The business case",
+      "titleStart": "Why every company needs an ESG strategy.",
+      "titleEm": "Now.",
+      "items": [
+        {
+          "title": "Access to global markets",
+          "body": "EU, UK, and US markets are raising the bar on supplier sustainability. Companies without ESG credentials are being removed from procurement lists - regardless of price.",
+          "badge": "Market Access"
+        },
+        {
+          "title": "Lower cost of capital",
+          "body": "Green bonds, sustainability-linked loans, and ESG-screened investment funds offer better rates to companies with documented practices. Your ESG score directly affects your borrowing cost.",
+          "badge": "Finance"
+        },
+        {
+          "title": "Regulatory compliance",
+          "body": "EU regulations like CBAM and CSRD are already in force. Being prepared is not optional - it is the difference between trading with Europe and being excluded from it.",
+          "badge": "Compliance"
+        },
+        {
+          "title": "Talent and retention",
+          "body": "The best graduates and senior professionals choose employers with clear values. Companies with strong ESG programs reduce turnover and attract talent their competitors cannot.",
+          "badge": "HR"
+        },
+        {
+          "title": "Investor due diligence",
+          "body": "ESG due diligence has become standard practice for institutional investors, PE funds and development finance institutions before capital is deployed. Without a baseline you assemble that answer under deadline instead of presenting it.",
+          "badge": "Investment"
+        },
+        {
+          "title": "Operational efficiency",
+          "body": "Measuring your energy, water and waste forces you to find the inefficiencies. Waste in particular is a cost you already carry and rarely count, which makes it the cheapest place to start and the easiest to put a number against.",
+          "badge": "Efficiency"
+        }
+      ]
+    },
+    "regulations": {
+      "eyebrow": "The regulatory reality",
+      "titleStart": "The EU already passed the laws.",
+      "titleEm": "They reach you through your customers.",
+      "lede": "These are enacted legislation, not draft proposals. Read the thresholds carefully though: the 2026 Omnibus narrowed CSRD and CSDDD sharply, and most Tunisian companies now sit outside both. What reaches you is your European customer, who is still inside them and passes the requirements down by contract.",
+      "impactLabel": "Impact on your business",
+      "urgencyLabel": "urgency",
+      "urgencyImmediate": "Immediate",
+      "urgencyHigh": "High",
+      "urgencyMedium": "Medium",
+      "footnote": "<b>This list is not exhaustive.</b> The EU regulatory agenda on sustainability expands every year. The direction of travel is clear and irreversible: by 2030, ESG disclosure will be as standard as financial auditing for any company operating in or trading with Europe.",
+      "items": [
+        {
+          "code": "CBAM",
+          "full": "Carbon Border Adjustment Mechanism",
+          "status": "In force",
+          "deadline": "Full enforcement: 2026",
+          "summary": "The EU charges a carbon price on six imported goods - cement, iron and steel, aluminium, fertilisers, electricity and hydrogen. Food and services are not covered. A 50-tonne annual de minimis exempts roughly 90% of importers while still capturing 99% of embedded emissions, so this reaches large industrial exporters and leaves most smaller ones out. If you are above the threshold and cannot document your carbon, your European buyer pays the difference.",
+          "impact": "If you export CBAM goods above 50 tonnes a year, your emissions data is now part of your price. If you export food, textiles or services, CBAM does not apply to you at all."
+        },
+        {
+          "code": "CSRD",
+          "full": "Corporate Sustainability Reporting Directive",
+          "status": "Narrowed by Omnibus I, 2026",
+          "deadline": "Newly in scope: FY2027, published 2028",
+          "summary": "Large EU companies must publish detailed, audited sustainability reports. The 2026 Omnibus cut who counts as large - now above 1,000 employees and €450 million turnover - so far fewer companies report. The ones that still do are exactly the European buyers Tunisian exporters sell to, and they ask their suppliers for the numbers behind their own.",
+          "impact": "If you supply to EU companies or seek European investment, your ESG data is now a contractual requirement - not a \"nice to have.\""
+        },
+        {
+          "code": "EU Taxonomy",
+          "full": "EU Sustainable Finance Taxonomy",
+          "status": "Active",
+          "deadline": "Ongoing classification",
+          "summary": "A classification system that defines which economic activities are \"green\" for investment purposes. European banks and funds can only channel capital marked as \"sustainable\" into activities that qualify under the Taxonomy. This reshapes where money flows - and which businesses get funded at what cost.",
+          "impact": "If your business activity is not classifiable as sustainable under EU Taxonomy, access to green finance - increasingly the cheapest source of capital - is blocked."
+        },
+        {
+          "code": "CSDDD",
+          "full": "Corporate Sustainability Due Diligence Directive",
+          "status": "Amended by Omnibus I, 2026",
+          "deadline": "Transposition 26 July 2028, applies 26 July 2029",
+          "summary": "The largest EU companies become legally liable for human rights and environmental harm in their supply chains - including in Tunisia, Morocco, Egypt and across Africa. Omnibus I raised the bar to above 5,000 employees and €1.5 billion turnover and pushed application to July 2029, cutting the directly in-scope population by around 70%. The companies still caught by it are the multinationals at the top of the chains Tunisian suppliers sell into.",
+          "impact": "You will not be liable under CSDDD. Your largest European client may be, and their due diligence lands on you as a contract clause well before 2029."
+        },
+        {
+          "code": "SFDR",
+          "full": "Sustainable Finance Disclosure Regulation",
+          "status": "In force",
+          "deadline": "Ongoing",
+          "summary": "European institutional investors - pension funds, insurance firms, asset managers - must disclose how their investments affect sustainability, and classify each fund accordingly. The regulation forbids no investment. What it does is make an undocumented holding expensive to explain, which is why ESG questions now arrive early in European due diligence rather than late.",
+          "impact": "If you are raising from European institutional capital, expect the ESG questionnaire before the term sheet."
+        }
+      ]
+    },
+    "tunisia": {
+      "eyebrow": "Tunisia specifically",
+      "titleStart": "Why Tunisian companies",
+      "titleEm": "cannot wait.",
+      "lede": "Tunisia is not isolated from the global ESG wave. It is directly in its path.",
+      "calloutTitle": "Tunisia exports to Europe. Europe now has an ESG price of entry.",
+      "calloutBody": "The Association Agreement, the ALECA framework, and the EU’s Green Deal create a direct and growing ESG obligation for every Tunisian company with European commercial relationships. This is not speculation - it is the current state of trade policy.",
+      "reasons": [
+        {
+          "title": "70% of Tunisian exports go to the EU",
+          "body": "The EU is Tunisia’s largest trading partner by a wide margin. Most Tunisian exporters sit outside CSRD and CBAM themselves, but their European customers do not, and those customers write supplier requirements into contracts. That is the route Europe’s ESG rules take to reach you."
+        },
+        {
+          "title": "European investors require ESG data",
+          "body": "Tunisia receives significant FDI from European companies. A European parent reporting under CSRD needs consolidated numbers, so its Tunisian subsidiaries and joint ventures are asked for them too. That request travels down the ownership chain regardless of your own size."
+        },
+        {
+          "title": "Tunisia’s own regulatory direction",
+          "body": "The Tunisian government is progressively aligning with international sustainability standards through ALECA negotiations and climate commitments under the Paris Agreement. ESG is becoming a local compliance issue, not just an export market consideration."
+        },
+        {
+          "title": "Banks are pricing ESG into lending",
+          "body": "International financial institutions operating in Tunisia - EBRD, AFD, EIB, IFC - already apply ESG screens to lending decisions. Companies with documented sustainability practices access better terms. Those without them pay more - or are excluded."
+        },
+        {
+          "title": "Customers and talent are watching",
+          "body": "A new generation of Tunisian consumers and professionals chooses brands and employers based on values. Companies with strong ESG credentials attract better talent and build deeper customer loyalty - a concrete commercial advantage."
+        },
+        {
+          "title": "The cost of doing nothing is compounding",
+          "body": "Every quarter without an ESG baseline is a quarter of missed data. When reporting becomes mandatory - and it will - companies without history will face audits, fines, and reputational damage that years of data could have prevented."
+        }
+      ]
+    },
+    "contribution": {
+      "eyebrow": "Our contribution to your score",
+      "titleStart": "How Too Fresh To Waste",
+      "titleEm": "builds your ESG case.",
+      "lede": "Partnering with Too Fresh To Waste gives your company measurable, reportable contributions across all three ESG pillars - with the data to back it up.",
+      "frameworksLabel": "Our impact data is compatible with major reporting frameworks",
+      "items": [
+        {
+          "pillar": "E",
+          "title": "Direct carbon reduction, documented",
+          "body": "Every bag rescued through Too Fresh To Waste diverts food from landfill, preventing methane emissions. We provide per-bag CO₂ avoidance data - a verified, quantifiable contribution to your Scope 3 emissions reduction.",
+          "metric": "5.25 kg CO₂e",
+          "metricLabel": "avoided per bag - 1.5 kg x 3.5 kg CO₂e/kg"
+        },
+        {
+          "pillar": "S",
+          "title": "Community nourishment, traceable",
+          "body": "Surplus food that reaches families instead of landfills is a measurable social impact. Partnerships with Too Fresh To Waste allow companies to document their contribution to food security - a core Social pillar metric under CSRD reporting frameworks.",
+          "metric": "1 in 3",
+          "metricLabel": "face food insecurity in the region - FAO, 36.6%"
+        },
+        {
+          "pillar": "G",
+          "title": "Transparent, audit-ready impact data",
+          "body": "Our platform generates structured impact reports - bags saved, CO₂ avoided, families reached - in formats compatible with GRI, SASB, and CSRD reporting templates. Give your auditors real numbers, not estimates.",
+          "metric": "GRI · SASB",
+          "metricLabel": "reporting compatible"
+        }
+      ]
+    },
+    "cta": {
+      "eyebrow": "Start your ESG journey",
+      "titleStart": "Your ESG baseline starts",
+      "titleEm": "with one decision.",
+      "body": "Talk to us. We will show you exactly how a Too Fresh To Waste partnership contributes to your environmental and social metrics - with data your auditors can sign off on.",
+      "ctaTeam": "Talk to our team",
+      "ctaEnterprise": "Enterprise solutions"
+    }
   }
 }

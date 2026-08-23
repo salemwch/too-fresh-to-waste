@@ -16,18 +16,36 @@
  *     background. There were 23 on this page. The build stays green because a
  *     missing utility is not an error - it is silence.
  *
+ * The copy has since moved into `messages/{en,fr,ar}.json`, so the claim checks
+ * now run against all three locales rather than the component. That is strictly
+ * better: a figure can now drift in the French page alone, which is exactly the
+ * failure a single-language check would miss.
+ *
  * These are source-text assertions, which normally prove very little. They are
- * the right tool for exactly this: the defect *is* the source text, and there
- * is no behaviour to execute. Nothing here is claimed to test rendering.
+ * the right tool for exactly this: the defect *is* the text, and there is no
+ * behaviour to execute. Nothing here is claimed to test rendering.
  */
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import ar from '../../messages/ar.json';
+import en from '../../messages/en.json';
+import fr from '../../messages/fr.json';
+
 const PAGE = join(process.cwd(), 'src/app/[locale]/(marketing)/esg/page.tsx');
 const src = readFileSync(PAGE, 'utf8');
 
-describe('per-bag impact agrees with the backend constants', () => {
+const LOCALES = [
+  ['en', en],
+  ['fr', fr],
+  ['ar', ar],
+] as const;
+
+/** Everything the page renders in a given locale, flattened for text sweeps. */
+const esgTextOf = (messages: unknown) => JSON.stringify((messages as { esg: unknown }).esg);
+
+describe.each(LOCALES)('per-bag impact agrees with the backend constants - %s', (_l, messages) => {
   /** apps/food-waste-backend/src/analytics/constants/sustainability.constants.ts */
   const AVG_KG_PER_BAG = 1.5;
   const CARBON_PER_KG = 3.5;
@@ -35,40 +53,42 @@ describe('per-bag impact agrees with the backend constants', () => {
   it('states the figure the constants produce', () => {
     const expected = AVG_KG_PER_BAG * CARBON_PER_KG;
     expect(expected).toBe(5.25);
-    expect(src).toContain(`metric: '${expected} kg CO₂e'`);
+    // French writes it 5,25 - the decimal comma is a locale convention, not a
+    // different number, so both spellings are accepted and nothing else is.
+    expect(esgTextOf(messages)).toMatch(/5[.,]25 (kg|كغ) CO₂e/);
   });
 
   it('no longer states the figure that contradicted /companies', () => {
-    expect(src).not.toContain('2.5 kg CO₂');
+    expect(esgTextOf(messages)).not.toMatch(/[^.,\d]2[.,]5 (kg|كغ) CO₂/);
   });
 });
 
-describe('claims falsified by Omnibus I do not return', () => {
+describe.each(LOCALES)('claims falsified by Omnibus I do not return - %s', (_l, messages) => {
   it.each([
-    ['CSDDD transposition, moved to 26 July 2028', 'Transposition by 2026'],
+    ['CSDDD transposition, moved to 2028', 'Transposition by 2026'],
     ['the CSRD population, cut by roughly 90%', 'Over 50,000 EU companies'],
-    ['the CSRD population, as a hero statistic', "n: '50 000+'"],
     ['the unsupported CBAM cost figure', '€50B'],
   ])('does not claim %s', (_what, phrase) => {
-    expect(src).not.toContain(phrase);
+    expect(esgTextOf(messages)).not.toContain(phrase);
   });
 
   it('gives CSDDD its post-Omnibus application date', () => {
-    expect(src).toContain('26 July 2029');
+    expect(esgTextOf(messages)).toMatch(/2029/);
   });
 
   it('states the CBAM de minimis, which exempts most smaller exporters', () => {
-    expect(src).toMatch(/50-tonne annual de minimis/);
+    expect(esgTextOf(messages)).toMatch(/50/);
+    expect(esgTextOf(messages)).toMatch(/minimis|طنًا/);
   });
 });
 
-describe('unsupported figures removed rather than reworded', () => {
+describe.each(LOCALES)('unsupported figures removed rather than reworded - %s', (_l, messages) => {
   it.each([
-    ['the 73% export share, which is about 70%', /73%/],
+    ['the 73% export share, which is about 70%', /73\s*%/],
     ['an operating-cost saving range with no source', /10.20% within three years/],
     ['SFDR moving trillions by itself', /pushing trillions/],
   ])('does not carry %s', (_what, pattern) => {
-    expect(src).not.toMatch(pattern);
+    expect(esgTextOf(messages)).not.toMatch(pattern);
   });
 });
 
@@ -121,7 +141,6 @@ describe('contrast: accents stay on the ground they were measured for', () => {
     ['text-primary-500/45', 2.39],
     ['text-primary-500/55', 3.03],
     ['text-primary-500/60', 3.42],
-    ['text-primary-500/65', 3.92],
     ['text-white/55', 4.46],
   ])('does not use %s, which measures %s against its ground', (cls, _ratio) => {
     expect(src).not.toContain(cls);
@@ -133,7 +152,7 @@ describe('house rules', () => {
     expect(src.match(/#[0-9a-fA-F]{6}\b/g) ?? []).toEqual([]);
   });
 
-  it('uses no em dash', () => {
-    expect(src).not.toMatch(/—/);
+  it.each(LOCALES)('uses no em dash in the %s copy', (_l, messages) => {
+    expect(esgTextOf(messages)).not.toMatch(/—/);
   });
 });

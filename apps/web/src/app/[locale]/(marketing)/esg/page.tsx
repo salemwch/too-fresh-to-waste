@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import { Link } from '@/i18n/routing';
 import { ArticleSchema, BreadcrumbSchema } from '@/components/seo/schemas';
@@ -17,12 +17,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'esg' });
   return buildPageMetadata({
     path: '/esg',
     locale: locale as Locale,
-    title: 'ESG - Why It Matters for Your Business | Too Fresh To Waste',
-    description:
-      'Understand what ESG is, why EU regulations like CBAM and CSRD make it mandatory, and how Tunisian companies can use food waste reduction to build a credible ESG strategy.',
+    title: t('meta.title'),
+    description: t('meta.description'),
   });
 }
 
@@ -220,199 +220,130 @@ function ZapIcon({ className }: { className?: string }) {
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
-const esgPillars = [
+/** Paired by index with `fundamentals.pillars`. Letters are not translated. */
+const PILLAR_ART = [
   {
     letter: 'E',
-    label: 'Environmental',
     icon: LeafIcon,
     color: 'text-primary-500',
     bg: 'bg-primary-500/10',
     border: 'border-primary-500/20',
     accent: 'bg-primary-500',
-    headline: 'Your footprint on the planet.',
-    body: "Carbon emissions, energy consumption, water usage, waste management, biodiversity impact, and your supply chain's environmental trail. Investors and regulators are now demanding hard numbers - not promises.",
-    metrics: [
-      'CO₂ & GHG emissions',
-      'Energy & water consumption',
-      'Waste diverted from landfill',
-      'Supply chain carbon footprint',
-    ],
   },
   {
     letter: 'S',
-    label: 'Social',
     icon: UsersIcon,
     color: 'text-brand-teal',
     bg: 'bg-brand-teal/10',
     border: 'border-brand-teal/20',
     accent: 'bg-brand-teal',
-    headline: 'Your impact on people.',
-    body: 'Working conditions, fair wages, diversity and inclusion, community investment, human rights in the supply chain, and how your business treats every person it touches - from employee to end customer.',
-    metrics: [
-      'Employee wellbeing & diversity',
-      'Community investment',
-      'Supply chain labor rights',
-      'Customer data protection',
-    ],
   },
   {
     letter: 'G',
-    label: 'Governance',
     icon: ShieldIcon,
     color: 'text-brand-green',
     bg: 'bg-brand-green/10',
     border: 'border-brand-green/20',
     accent: 'bg-brand-green',
-    headline: 'How you run the business.',
-    body: "Board independence, executive pay transparency, anti-corruption policies, ethical supply chains, audit quality, and whether your company can be trusted with other people's money and the planet's resources.",
-    metrics: [
-      'Board diversity & independence',
-      'Anti-bribery & corruption',
-      'Transparent financial reporting',
-      'Executive pay ratio disclosure',
-    ],
   },
+] as const;
+
+/** Paired by index with `hero.stats`. */
+const HERO_STAT_BORDERS = [
+  'border-secondary-light/30',
+  'border-secondary-light/25',
+  'border-white/20',
+] as const;
+
+interface Pillar {
+  label: string;
+  headline: string;
+  body: string;
+  metrics: string[];
+}
+
+/**
+ * Urgency ranks, paired by index with `regulations.items`. The rank is a
+ * judgement we make, not copy - three translators should not be able to
+ * disagree about whether CBAM is Immediate.
+ */
+type Urgency = 'immediate' | 'high' | 'medium';
+const REGULATION_URGENCY: readonly Urgency[] = [
+  'immediate',
+  'immediate',
+  'medium',
+  'medium',
+  'medium',
 ];
 
-const euRegulations = [
-  {
-    code: 'CBAM',
-    full: 'Carbon Border Adjustment Mechanism',
-    status: 'In force',
-    statusColor: 'text-white bg-brand-green border-brand-green',
-    deadline: 'Full enforcement: 2026',
-    flag: '🇪🇺',
-    summary:
-      'The EU charges a carbon price on six imported goods - cement, iron and steel, aluminium, fertilisers, electricity and hydrogen. Food and services are not covered. A 50-tonne annual de minimis exempts roughly 90% of importers while still capturing 99% of embedded emissions, so this reaches large industrial exporters and leaves most smaller ones out. If you are above the threshold and cannot document your carbon, your European buyer pays the difference.',
-    impact:
-      'If you export CBAM goods above 50 tonnes a year, your emissions data is now part of your price. If you export food, textiles or services, CBAM does not apply to you at all.',
-    urgency: 'Immediate',
-  },
-  {
-    code: 'CSRD',
-    full: 'Corporate Sustainability Reporting Directive',
-    status: 'Narrowed by Omnibus I, 2026',
-    statusColor: 'text-white bg-brand-green border-brand-green',
-    deadline: 'Newly in scope: FY2027, published 2028',
-    flag: '🇪🇺',
-    summary:
-      'Large EU companies must publish detailed, audited sustainability reports. The 2026 Omnibus cut who counts as large - now above 1,000 employees and €450 million turnover - so far fewer companies report. The ones that still do are exactly the European buyers Tunisian exporters sell to, and they ask their suppliers for the numbers behind their own.',
-    impact:
-      'If you supply to EU companies or seek European investment, your ESG data is now a contractual requirement - not a "nice to have."',
-    urgency: 'High',
-  },
-  {
-    code: 'EU Taxonomy',
-    full: 'EU Sustainable Finance Taxonomy',
-    status: 'Active',
-    statusColor: 'text-white bg-brand-green border-brand-green',
-    deadline: 'Ongoing classification',
-    flag: '🇪🇺',
-    summary:
-      'A classification system that defines which economic activities are "green" for investment purposes. European banks and funds can only channel capital marked as "sustainable" into activities that qualify under the Taxonomy. This reshapes where money flows - and which businesses get funded at what cost.',
-    impact:
-      'If your business activity is not classifiable as sustainable under EU Taxonomy, access to green finance - increasingly the cheapest source of capital - is blocked.',
-    urgency: 'Medium',
-  },
-  {
-    code: 'CSDDD',
-    full: 'Corporate Sustainability Due Diligence Directive',
-    status: 'Amended by Omnibus I, 2026',
-    statusColor: 'text-white bg-brand-green border-brand-green',
-    deadline: 'Transposition 26 July 2028, applies 26 July 2029',
-    flag: '🇪🇺',
-    summary:
-      'The largest EU companies become legally liable for human rights and environmental harm in their supply chains - including in Tunisia, Morocco, Egypt and across Africa. Omnibus I raised the bar to above 5,000 employees and €1.5 billion turnover and pushed application to July 2029, cutting the directly in-scope population by around 70%. The companies still caught by it are the multinationals at the top of the chains Tunisian suppliers sell into.',
-    impact:
-      'You will not be liable under CSDDD. Your largest European client may be, and their due diligence lands on you as a contract clause well before 2029.',
-    urgency: 'Medium',
-  },
-  {
-    code: 'SFDR',
-    full: 'Sustainable Finance Disclosure Regulation',
-    status: 'In force',
-    statusColor: 'text-white bg-brand-green border-brand-green',
-    deadline: 'Ongoing',
-    flag: '🇪🇺',
-    summary:
-      'European institutional investors - pension funds, insurance firms, asset managers - must disclose how their investments affect sustainability, and classify each fund accordingly. The regulation forbids no investment. What it does is make an undocumented holding expensive to explain, which is why ESG questions now arrive early in European due diligence rather than late.',
-    impact:
-      'If you are raising from European institutional capital, expect the ESG questionnaire before the term sheet.',
-    urgency: 'Medium',
-  },
-];
+/** Paired by index with `businessCase.items`. */
+const BUSINESS_ICONS = [
+  GlobeIcon,
+  TrendingUpIcon,
+  ShieldIcon,
+  UsersIcon,
+  BriefcaseIcon,
+  ZapIcon,
+] as const;
 
-const tunisiaReasons = [
-  {
-    icon: GlobeIcon,
-    title: '70% of Tunisian exports go to the EU',
-    body: "The EU is Tunisia's largest trading partner by a wide margin. Most Tunisian exporters sit outside CSRD and CBAM themselves, but their European customers do not, and those customers write supplier requirements into contracts. That is the route Europe's ESG rules take to reach you.",
-  },
-  {
-    icon: BriefcaseIcon,
-    title: 'European investors require ESG data',
-    body: 'Tunisia receives significant FDI from European companies. A European parent reporting under CSRD needs consolidated numbers, so its Tunisian subsidiaries and joint ventures are asked for them too. That request travels down the ownership chain regardless of your own size.',
-  },
-  {
-    icon: ScaleIcon,
-    title: "Tunisia's own regulatory direction",
-    body: 'The Tunisian government is progressively aligning with international sustainability standards through ALECA negotiations and climate commitments under the Paris Agreement. ESG is becoming a local compliance issue, not just an export market consideration.',
-  },
-  {
-    icon: TrendingUpIcon,
-    title: 'Banks are pricing ESG into lending',
-    body: 'International financial institutions operating in Tunisia - EBRD, AFD, EIB, IFC - already apply ESG screens to lending decisions. Companies with documented sustainability practices access better terms. Those without them pay more - or are excluded.',
-  },
-  {
-    icon: ZapIcon,
-    title: 'Customers and talent are watching',
-    body: 'A new generation of Tunisian consumers and professionals chooses brands and employers based on values. Companies with strong ESG credentials attract better talent and build deeper customer loyalty - a concrete commercial advantage.',
-  },
-  {
-    icon: AlertTriangleIcon,
-    title: 'The cost of doing nothing is compounding',
-    body: 'Every quarter without an ESG baseline is a quarter of missed data. When reporting becomes mandatory - and it will - companies without history will face audits, fines, and reputational damage that years of data could have prevented.',
-  },
-];
+interface Regulation {
+  code: string;
+  full: string;
+  status: string;
+  deadline: string;
+  summary: string;
+  impact: string;
+}
 
-const tftwesgContributions = [
-  {
-    pillar: 'E',
-    pillarColor: 'bg-primary-500',
-    title: 'Direct carbon reduction, documented',
-    body: 'Every bag rescued through Too Fresh To Waste diverts food from landfill, preventing methane emissions. We provide per-bag CO₂ avoidance data - a verified, quantifiable contribution to your Scope 3 emissions reduction.',
-    metric: '5.25 kg CO₂e',
-    metricLabel: 'avoided per bag - 1.5 kg x 3.5 kg CO₂e/kg',
-  },
-  {
-    pillar: 'S',
-    pillarColor: 'bg-brand-teal',
-    title: 'Community nourishment, traceable',
-    body: 'Surplus food that reaches families instead of landfills is a measurable social impact. Partnerships with Too Fresh To Waste allow companies to document their contribution to food security - a core Social pillar metric under CSRD reporting frameworks.',
-    metric: '1 in 3',
-    metricLabel: 'face food insecurity in the region - FAO, 36.6%',
-  },
-  {
-    pillar: 'G',
-    pillarColor: 'bg-brand-green',
-    title: 'Transparent, audit-ready impact data',
-    body: 'Our platform generates structured impact reports - bags saved, CO₂ avoided, families reached - in formats compatible with GRI, SASB, and CSRD reporting templates. Give your auditors real numbers, not estimates.',
-    metric: 'GRI · SASB',
-    metricLabel: 'reporting compatible',
-  },
-];
+/** Paired by index with `tunisia.reasons`. */
+const TUNISIA_ICONS = [
+  GlobeIcon,
+  BriefcaseIcon,
+  ScaleIcon,
+  TrendingUpIcon,
+  ZapIcon,
+  AlertTriangleIcon,
+] as const;
+
+interface TunisiaReason {
+  title: string;
+  body: string;
+}
+
+/** Paired by index with `contribution.items`. */
+const CONTRIBUTION_COLORS = ['bg-primary-500', 'bg-brand-teal', 'bg-brand-green'] as const;
+
+interface Contribution {
+  pillar: string;
+  title: string;
+  body: string;
+  metric: string;
+  metricLabel: string;
+}
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function ESGPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'esg' });
+
+  const heroStats = t.raw('hero.stats') as { value: string; label: string }[];
+  const pillars = t.raw('fundamentals.pillars') as Pillar[];
+  const businessCase = t.raw('businessCase.items') as {
+    title: string;
+    body: string;
+    badge: string;
+  }[];
+  const regulations = t.raw('regulations.items') as Regulation[];
+  const tunisiaReasons = t.raw('tunisia.reasons') as TunisiaReason[];
+  const contributions = t.raw('contribution.items') as Contribution[];
 
   return (
     <>
       <ArticleSchema
-        title='ESG Compliance for Food Businesses - Too Fresh To Waste'
-        description='How restaurants and food businesses in MENA can meet ESG requirements including CBAM, CSRD, and UN SDGs by reducing food waste.'
+        title={t('meta.schemaTitle')}
+        description={t('meta.schemaDescription')}
         publishedAt='2024-01-01'
         updatedAt='2026-08-23'
         url={getCanonicalUrl('/esg', locale as Locale)}
@@ -421,8 +352,8 @@ export default async function ESGPage({ params }: PageProps) {
       />
       <BreadcrumbSchema
         items={[
-          { name: 'Home', url: getCanonicalUrl('/', locale as Locale) },
-          { name: 'ESG', url: getCanonicalUrl('/esg', locale as Locale) },
+          { name: t('breadcrumb.home'), url: getCanonicalUrl('/', locale as Locale) },
+          { name: t('breadcrumb.current'), url: getCanonicalUrl('/esg', locale as Locale) },
         ]}
       />
       <Header />
@@ -443,15 +374,15 @@ export default async function ESGPage({ params }: PageProps) {
               {/* Left - copy */}
               <div className='pb-16 lg:pb-24'>
                 <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
-                  ESG is no longer <span className='text-secondary-light italic'>a choice.</span>
+                  {t('hero.titleStart')}{' '}
+                  <span className='text-secondary-light italic'>{t('hero.titleEm1')}</span>
                   <br />
-                  It is the price of <span className='text-secondary-light italic'>entry.</span>
+                  {t('hero.titleMid')}{' '}
+                  <span className='text-secondary-light italic'>{t('hero.titleEm2')}</span>
                 </h1>
 
                 <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-8 max-w-xl'>
-                  European regulators, global investors, and your own customers are demanding it.
-                  Tunisian companies that build their ESG baseline now will lead their markets in
-                  five years. Those that wait will be locked out of them.
+                  {t('hero.lede')}
                 </p>
 
                 <div className='flex flex-wrap gap-3'>
@@ -459,14 +390,14 @@ export default async function ESGPage({ params }: PageProps) {
                     href='#what-is-esg'
                     className='inline-flex items-center gap-2 bg-white text-primary-500 font-bold px-6 py-3.5 rounded-full hover:bg-cream transition-colors shadow-lg text-sm'
                   >
-                    Understand ESG
+                    {t('hero.ctaUnderstand')}
                     <ArrowRightIcon className='w-4 h-4' />
                   </a>
                   <a
                     href='#eu-regulations'
                     className='inline-flex items-center gap-2 border border-white/30 text-white font-bold px-6 py-3.5 rounded-full hover:border-white/60 hover:bg-white/5 transition-colors text-sm'
                   >
-                    See EU laws
+                    {t('hero.ctaLaws')}
                     <ArrowRightIcon className='w-4 h-4' />
                   </a>
                 </div>
@@ -474,28 +405,13 @@ export default async function ESGPage({ params }: PageProps) {
 
               {/* Right - stat cards */}
               <div className='hidden lg:flex flex-col gap-4 pb-16'>
-                {[
-                  {
-                    n: '70%',
-                    label: "of Tunisia's exports go to the EU - European Commission, DG Trade",
-                    color: 'border-secondary-light/30',
-                  },
-                  {
-                    n: '€450M',
-                    label:
-                      'turnover above which your European customers must report - Directive (EU) 2026/470',
-                    color: 'border-secondary-light/25',
-                  },
-                  {
-                    n: '6',
-                    label:
-                      'goods categories CBAM taxes at the EU border - cement, steel, aluminium, fertilisers, electricity, hydrogen. Not food.',
-                    color: 'border-white/20',
-                  },
-                ].map((s, i) => (
-                  <div key={i} className={`bg-white/10 border ${s.color} rounded-2xl px-6 py-5`}>
-                    <p className='font-heading text-3xl font-bold text-white mb-1'>{s.n}</p>
-                    <p className='text-white/65 text-sm leading-snug'>{s.label}</p>
+                {heroStats.map((s, i) => (
+                  <div
+                    key={s.value}
+                    className={`bg-white/10 border ${HERO_STAT_BORDERS[i] ?? HERO_STAT_BORDERS[0]} rounded-2xl px-6 py-5`}
+                  >
+                    <p className='font-heading text-3xl font-bold text-white mb-1'>{s.value}</p>
+                    <p className='text-white/75 text-sm leading-snug'>{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -520,79 +436,84 @@ export default async function ESGPage({ params }: PageProps) {
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='text-center mb-14'>
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
-                The fundamentals
+                {t('fundamentals.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
-                What exactly is ESG?
+                {t('fundamentals.title')}
               </h2>
               <p className='text-primary-500/75 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
-                Three letters. Three dimensions of how a company interacts with the world. Together
-                they form the most important lens through which capital, regulators, and partners
-                now evaluate your business.
+                {t('fundamentals.lede')}
               </p>
             </div>
 
             <div className='grid md:grid-cols-3 gap-6 lg:gap-8'>
-              {esgPillars.map(pillar => (
-                <div
-                  key={pillar.letter}
-                  className={`relative bg-cream rounded-3xl p-8 border-2 ${pillar.border} hover:shadow-lg transition-all duration-300 group overflow-hidden`}
-                >
-                  {/* Large letter bg */}
+              {pillars.map((pillar, i) => {
+                const art = PILLAR_ART[i] ?? PILLAR_ART[0];
+                const PillarIcon = art.icon;
+                return (
                   <div
-                    className={`absolute -bottom-4 -right-2 text-[120px] font-black leading-none select-none pointer-events-none ${pillar.color} opacity-5`}
-                    aria-hidden='true'
+                    key={art.letter}
+                    className={`relative bg-cream rounded-3xl p-8 border-2 ${art.border} hover:shadow-lg transition-all duration-300 group overflow-hidden`}
                   >
-                    {pillar.letter}
-                  </div>
-
-                  {/* Icon */}
-                  <div
-                    className={`w-14 h-14 rounded-2xl ${pillar.bg} ${pillar.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <pillar.icon className='w-7 h-7' />
-                  </div>
-
-                  {/* Pillar badge */}
-                  <div className='flex items-center gap-2 mb-3'>
-                    <span
-                      className={`w-8 h-8 rounded-xl ${pillar.accent} text-white font-black text-base flex items-center justify-center`}
+                    {/* Large letter bg */}
+                    <div
+                      className={`absolute -bottom-4 -right-2 text-[120px] font-black leading-none select-none pointer-events-none ${art.color} opacity-5`}
+                      aria-hidden='true'
                     >
-                      {pillar.letter}
-                    </span>
-                    <p className={`text-xs font-black uppercase tracking-widest ${pillar.color}`}>
-                      {pillar.label}
+                      {art.letter}
+                    </div>
+
+                    {/* Icon */}
+                    <div
+                      className={`w-14 h-14 rounded-2xl ${art.bg} ${art.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
+                    >
+                      <PillarIcon className='w-7 h-7' />
+                    </div>
+
+                    {/* Pillar badge */}
+                    <div className='flex items-center gap-2 mb-3'>
+                      <span
+                        className={`w-8 h-8 rounded-xl ${art.accent} text-white font-black text-base flex items-center justify-center`}
+                      >
+                        {art.letter}
+                      </span>
+                      <p className={`text-xs font-black uppercase tracking-widest ${art.color}`}>
+                        {pillar.label}
+                      </p>
+                    </div>
+
+                    <h3 className='font-heading text-xl font-bold text-primary-500 mb-3 leading-snug'>
+                      {pillar.headline}
+                    </h3>
+                    <p className='text-sm text-primary-500/75 leading-relaxed mb-5'>
+                      {pillar.body}
                     </p>
-                  </div>
 
-                  <h3 className='font-heading text-xl font-bold text-primary-500 mb-3 leading-snug'>
-                    {pillar.headline}
-                  </h3>
-                  <p className='text-sm text-primary-500/75 leading-relaxed mb-5'>{pillar.body}</p>
-
-                  <ul className='space-y-2'>
-                    {pillar.metrics.map((m, mi) => (
-                      <li key={mi} className='flex items-center gap-2 text-xs text-primary-500/70'>
-                        <span
-                          className={`w-4 h-4 rounded-full ${pillar.bg} ${pillar.color} flex items-center justify-center shrink-0`}
+                    <ul className='space-y-2'>
+                      {pillar.metrics.map((m, mi) => (
+                        <li
+                          key={mi}
+                          className='flex items-center gap-2 text-xs text-primary-500/70'
                         >
-                          <CheckIcon className='w-2.5 h-2.5' />
-                        </span>
-                        {m}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                          <span
+                            className={`w-4 h-4 rounded-full ${art.bg} ${art.color} flex items-center justify-center shrink-0`}
+                          >
+                            <CheckIcon className='w-2.5 h-2.5' />
+                          </span>
+                          {m}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
             </div>
 
             {/* One-liner callout */}
             <div className='mt-10 bg-primary-500 rounded-3xl px-8 py-7 text-center'>
               <p className='font-heading text-xl lg:text-2xl font-bold text-white leading-snug'>
-                ESG is not a report you file once a year.{' '}
-                <span className='text-secondary-light italic'>
-                  It is how you run your company - measured, verified, and published.
-                </span>
+                {t('fundamentals.calloutStart')}{' '}
+                <span className='text-secondary-light italic'>{t('fundamentals.calloutEm')}</span>
               </p>
             </div>
           </div>
@@ -603,79 +524,37 @@ export default async function ESGPage({ params }: PageProps) {
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='text-center mb-14'>
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
-                The business case
+                {t('businessCase.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
-                Why every company needs an ESG strategy.{' '}
-                <span className='text-brand-green italic'>Now.</span>
+                {t('businessCase.titleStart')}{' '}
+                <span className='text-brand-green italic'>{t('businessCase.titleEm')}</span>
               </h2>
             </div>
 
             <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-5'>
-              {[
-                {
-                  icon: GlobeIcon,
-                  title: 'Access to global markets',
-                  body: 'EU, UK, and US markets are raising the bar on supplier sustainability. Companies without ESG credentials are being removed from procurement lists - regardless of price.',
-                  badge: 'Market Access',
-                  badgeColor: 'bg-brand-green text-white',
-                },
-                {
-                  icon: TrendingUpIcon,
-                  title: 'Lower cost of capital',
-                  body: 'Green bonds, sustainability-linked loans, and ESG-screened investment funds offer better rates to companies with documented practices. Your ESG score directly affects your borrowing cost.',
-                  badge: 'Finance',
-                  badgeColor: 'bg-brand-green text-white',
-                },
-                {
-                  icon: ShieldIcon,
-                  title: 'Regulatory compliance',
-                  body: 'EU regulations like CBAM and CSRD are already in force. Being prepared is not optional - it is the difference between trading with Europe and being excluded from it.',
-                  badge: 'Compliance',
-                  badgeColor: 'bg-brand-green text-white',
-                },
-                {
-                  icon: UsersIcon,
-                  title: 'Talent and retention',
-                  body: 'The best graduates and senior professionals choose employers with clear values. Companies with strong ESG programs reduce turnover and attract talent their competitors cannot.',
-                  badge: 'HR',
-                  badgeColor: 'bg-brand-green text-white',
-                },
-                {
-                  icon: BriefcaseIcon,
-                  title: 'Investor due diligence',
-                  body: 'ESG due diligence has become standard practice for institutional investors, PE funds and development finance institutions before capital is deployed. Without a baseline you assemble that answer under deadline instead of presenting it.',
-                  badge: 'Investment',
-                  badgeColor: 'bg-brand-green text-white',
-                },
-                {
-                  icon: ZapIcon,
-                  title: 'Operational efficiency',
-                  body: 'Measuring your energy, water and waste forces you to find the inefficiencies. Waste in particular is a cost you already carry and rarely count, which makes it the cheapest place to start and the easiest to put a number against.',
-                  badge: 'Efficiency',
-                  badgeColor: 'bg-brand-green text-white',
-                },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className='bg-white rounded-3xl p-7 border border-primary-500/10 hover:shadow-md hover:border-primary-500/20 transition-all duration-300 group'
-                >
-                  <div className='flex items-start justify-between mb-4'>
-                    <div className='w-12 h-12 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300'>
-                      <item.icon className='w-6 h-6' />
+              {businessCase.map((item, i) => {
+                const CardIcon = BUSINESS_ICONS[i] ?? BUSINESS_ICONS[0];
+                return (
+                  <div
+                    key={item.title}
+                    className='bg-white rounded-3xl p-7 border border-primary-500/10 hover:shadow-md hover:border-primary-500/20 transition-all duration-300 group'
+                  >
+                    <div className='flex items-start justify-between mb-4'>
+                      <div className='w-12 h-12 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300'>
+                        <CardIcon className='w-6 h-6' />
+                      </div>
+                      <span className='text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-brand-green text-white'>
+                        {item.badge}
+                      </span>
                     </div>
-                    <span
-                      className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${item.badgeColor}`}
-                    >
-                      {item.badge}
-                    </span>
+                    <h3 className='font-bold text-base text-primary-500 mb-2 leading-snug'>
+                      {item.title}
+                    </h3>
+                    <p className='text-sm text-primary-500/75 leading-relaxed'>{item.body}</p>
                   </div>
-                  <h3 className='font-bold text-base text-primary-500 mb-2 leading-snug'>
-                    {item.title}
-                  </h3>
-                  <p className='text-sm text-primary-500/75 leading-relaxed'>{item.body}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -685,89 +564,90 @@ export default async function ESGPage({ params }: PageProps) {
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='text-center mb-14'>
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
-                The regulatory reality
+                {t('regulations.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
-                The EU already passed the laws.
+                {t('regulations.titleStart')}
                 <br />
-                <span className='text-brand-green italic'>They apply to you.</span>
+                <span className='text-brand-green italic'>{t('regulations.titleEm')}</span>
               </h2>
               <p className='text-primary-500/75 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
-                These are enacted legislation, not draft proposals. Read the thresholds carefully
-                though: the 2026 Omnibus narrowed CSRD and CSDDD sharply, and most Tunisian
-                companies now sit outside both. What reaches you is your European customer, who is
-                still inside them and passes the requirements down by contract.
+                {t('regulations.lede')}
               </p>
             </div>
 
             <div className='space-y-5'>
-              {euRegulations.map((reg, i) => (
-                <div
-                  key={i}
-                  className='bg-cream rounded-3xl p-7 lg:p-8 border border-primary-500/10 hover:border-primary-500/15 hover:shadow-md transition-all duration-300'
-                >
-                  <div className='flex flex-wrap items-start gap-4 mb-5'>
-                    {/* Code badge */}
-                    <div className='shrink-0'>
-                      <span className='inline-flex items-center gap-1.5 bg-primary-500 text-white text-sm font-black px-4 py-2 rounded-full'>
-                        <span>{reg.flag}</span>
-                        {reg.code}
+              {regulations.map((reg, i) => {
+                const urgency = REGULATION_URGENCY[i] ?? 'medium';
+                return (
+                  <div
+                    key={reg.code}
+                    className='bg-cream rounded-3xl p-7 lg:p-8 border border-primary-500/10 hover:border-primary-500/15 hover:shadow-md transition-all duration-300'
+                  >
+                    <div className='flex flex-wrap items-start gap-4 mb-5'>
+                      {/* Code badge */}
+                      <div className='shrink-0'>
+                        <span className='inline-flex items-center gap-1.5 bg-primary-500 text-white text-sm font-black px-4 py-2 rounded-full'>
+                          {reg.code}
+                        </span>
+                      </div>
+
+                      <div className='flex-1 min-w-0'>
+                        <div className='flex flex-wrap items-center gap-3 mb-1'>
+                          <h3 className='font-bold text-base lg:text-lg text-primary-500'>
+                            {reg.full}
+                          </h3>
+                          <span className='text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border text-white bg-brand-green border-brand-green'>
+                            {reg.status}
+                          </span>
+                        </div>
+                        <p className='text-xs font-bold text-primary-500/75 uppercase tracking-wider'>
+                          {reg.deadline}
+                        </p>
+                      </div>
+
+                      {/* Urgency pill */}
+                      <span
+                        className={`shrink-0 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${
+                          urgency === 'immediate'
+                            ? 'bg-error text-white'
+                            : urgency === 'high'
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-primary-500/10 text-primary-500'
+                        }`}
+                      >
+                        {urgency === 'immediate'
+                          ? t('regulations.urgencyImmediate')
+                          : urgency === 'high'
+                            ? t('regulations.urgencyHigh')
+                            : t('regulations.urgencyMedium')}{' '}
+                        {t('regulations.urgencyLabel')}
                       </span>
                     </div>
 
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex flex-wrap items-center gap-3 mb-1'>
-                        <h3 className='font-bold text-base lg:text-lg text-primary-500'>
-                          {reg.full}
-                        </h3>
-                        <span
-                          className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${reg.statusColor}`}
-                        >
-                          {reg.status}
-                        </span>
+                    <div className='grid lg:grid-cols-[1fr_auto] gap-5'>
+                      <p className='text-sm text-primary-500/75 leading-relaxed'>{reg.summary}</p>
+                      <div className='lg:w-72 shrink-0 bg-white rounded-2xl p-4 border border-primary-500/10'>
+                        <p className='text-[10px] font-black uppercase tracking-widest text-primary-500/75 mb-2'>
+                          {t('regulations.impactLabel')}
+                        </p>
+                        <p className='text-sm font-bold text-primary-500 leading-snug'>
+                          {reg.impact}
+                        </p>
                       </div>
-                      <p className='text-xs font-bold text-primary-500/75 uppercase tracking-wider'>
-                        {reg.deadline}
-                      </p>
-                    </div>
-
-                    {/* Urgency pill */}
-                    <span
-                      className={`shrink-0 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${
-                        reg.urgency === 'Immediate'
-                          ? 'bg-error text-white'
-                          : reg.urgency === 'High'
-                            ? 'bg-primary-500 text-white'
-                            : 'bg-primary-500/10 text-primary-500'
-                      }`}
-                    >
-                      {reg.urgency} urgency
-                    </span>
-                  </div>
-
-                  <div className='grid lg:grid-cols-[1fr_auto] gap-5'>
-                    <p className='text-sm text-primary-500/75 leading-relaxed'>{reg.summary}</p>
-                    <div className='lg:w-72 shrink-0 bg-white rounded-2xl p-4 border border-primary-500/10'>
-                      <p className='text-[10px] font-black uppercase tracking-widest text-primary-500/75 mb-2'>
-                        Impact on your business
-                      </p>
-                      <p className='text-sm font-bold text-primary-500 leading-snug'>
-                        {reg.impact}
-                      </p>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Bottom note */}
             <div className='mt-8 flex items-start gap-3 bg-error/10 border border-error/25 rounded-2xl p-5'>
               <AlertTriangleIcon className='w-5 h-5 text-error shrink-0 mt-0.5' />
-              <p className='text-sm text-primary-500/70 leading-relaxed'>
-                <strong className='text-primary-500'>This list is not exhaustive.</strong> The
-                EU&apos;s regulatory agenda on sustainability is expanding every year. The direction
-                of travel is clear and irreversible: by 2030, ESG disclosure will be as standard as
-                financial auditing for any company operating in or trading with Europe.
+              <p className='text-sm text-primary-500/75 leading-relaxed'>
+                {t.rich('regulations.footnote', {
+                  b: chunks => <strong className='text-primary-500'>{chunks}</strong>,
+                })}
               </p>
             </div>
           </div>
@@ -800,30 +680,35 @@ export default async function ESGPage({ params }: PageProps) {
           <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-10 pb-8'>
             <div className='text-center mb-14'>
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-secondary-light mb-3'>
-                Tunisia specifically
+                {t('tunisia.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white mb-4'>
-                Why Tunisian companies{' '}
-                <span className='text-secondary-light italic'>cannot wait.</span>
+                {t('tunisia.titleStart')}{' '}
+                <span className='text-secondary-light italic'>{t('tunisia.titleEm')}</span>
               </h2>
               <p className='text-white/65 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
-                Tunisia is not isolated from the global ESG wave. It is directly in its path.
+                {t('tunisia.lede')}
               </p>
             </div>
 
             <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-5'>
-              {tunisiaReasons.map((item, i) => (
-                <div
-                  key={i}
-                  className='bg-white/10 border border-white/15 rounded-3xl p-7 hover:bg-white/15 hover:border-white/20 transition-all duration-300 group'
-                >
-                  <div className='w-12 h-12 rounded-xl bg-secondary-light/15 text-secondary-light flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300'>
-                    <item.icon className='w-6 h-6' />
+              {tunisiaReasons.map((item, i) => {
+                const ReasonIcon = TUNISIA_ICONS[i] ?? TUNISIA_ICONS[0];
+                return (
+                  <div
+                    key={item.title}
+                    className='bg-white/10 border border-white/15 rounded-3xl p-7 hover:bg-white/15 hover:border-white/20 transition-all duration-300 group'
+                  >
+                    <div className='w-12 h-12 rounded-xl bg-secondary-light/15 text-secondary-light flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300'>
+                      <ReasonIcon className='w-6 h-6' />
+                    </div>
+                    <h3 className='font-bold text-base text-white mb-3 leading-snug'>
+                      {item.title}
+                    </h3>
+                    <p className='text-sm text-white/65 leading-relaxed'>{item.body}</p>
                   </div>
-                  <h3 className='font-bold text-base text-white mb-3 leading-snug'>{item.title}</h3>
-                  <p className='text-sm text-white/65 leading-relaxed'>{item.body}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Flag + context */}
@@ -831,13 +716,10 @@ export default async function ESGPage({ params }: PageProps) {
               <div className='text-6xl shrink-0'>🇹🇳</div>
               <div>
                 <p className='font-heading text-xl lg:text-2xl font-bold text-white mb-2'>
-                  Tunisia exports to Europe. Europe now has an ESG price of entry.
+                  {t('tunisia.calloutTitle')}
                 </p>
                 <p className='text-white/65 text-sm lg:text-base leading-relaxed'>
-                  The Association Agreement, the ALECA framework, and the EU&apos;s Green Deal
-                  create a direct and growing ESG obligation for every Tunisian company with
-                  European commercial relationships. This is not speculation - it is the current
-                  state of trade policy.
+                  {t('tunisia.calloutBody')}
                 </p>
               </div>
             </div>
@@ -849,22 +731,21 @@ export default async function ESGPage({ params }: PageProps) {
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='text-center mb-14'>
               <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
-                Our contribution to your score
+                {t('contribution.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
-                How Too Fresh To Waste{' '}
-                <span className='text-brand-green italic'>builds your ESG case.</span>
+                {t('contribution.titleStart')}{' '}
+                <span className='text-brand-green italic'>{t('contribution.titleEm')}</span>
               </h2>
               <p className='text-primary-500/75 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
-                Partnering with Too Fresh To Waste gives your company measurable, reportable
-                contributions across all three ESG pillars - with the data to back it up.
+                {t('contribution.lede')}
               </p>
             </div>
 
             <div className='grid md:grid-cols-3 gap-6 lg:gap-8 mb-10'>
-              {tftwesgContributions.map((item, i) => (
+              {contributions.map((item, i) => (
                 <div
-                  key={i}
+                  key={item.pillar}
                   className='bg-white rounded-3xl p-8 border border-primary-500/10 hover:shadow-lg transition-all duration-300 group relative overflow-hidden'
                 >
                   <div
@@ -873,7 +754,7 @@ export default async function ESGPage({ params }: PageProps) {
                   />
                   <div className='flex items-center gap-3 mb-5'>
                     <span
-                      className={`w-10 h-10 rounded-xl ${item.pillarColor} text-white font-black text-lg flex items-center justify-center shrink-0`}
+                      className={`w-10 h-10 rounded-xl ${CONTRIBUTION_COLORS[i] ?? CONTRIBUTION_COLORS[0]} text-white font-black text-lg flex items-center justify-center shrink-0`}
                     >
                       {item.pillar}
                     </span>
@@ -897,7 +778,7 @@ export default async function ESGPage({ params }: PageProps) {
             {/* Reporting frameworks row */}
             <div className='bg-white rounded-3xl p-7 lg:p-8 border border-primary-500/10'>
               <p className='text-xs font-bold uppercase tracking-widest text-primary-500/75 mb-5 text-center'>
-                Our impact data is compatible with major reporting frameworks
+                {t('contribution.frameworksLabel')}
               </p>
               <div className='flex flex-wrap justify-center gap-3 lg:gap-5'>
                 {[
@@ -929,30 +810,28 @@ export default async function ESGPage({ params }: PageProps) {
 
               <div className='relative'>
                 <p className='text-white/65 text-xs font-bold uppercase tracking-[0.3em] mb-4'>
-                  Start your ESG journey
+                  {t('cta.eyebrow')}
                 </p>
                 <h2 className='font-heading text-3xl lg:text-5xl font-bold text-white leading-tight mb-5'>
-                  Your ESG baseline starts{' '}
-                  <span className='text-secondary-light italic'>with one decision.</span>
+                  {t('cta.titleStart')}{' '}
+                  <span className='text-secondary-light italic'>{t('cta.titleEm')}</span>
                 </h2>
                 <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-10 max-w-xl mx-auto'>
-                  Talk to us. We will show you exactly how a Too Fresh To Waste partnership
-                  contributes to your environmental and social metrics - with data your auditors can
-                  sign off on.
+                  {t('cta.body')}
                 </p>
                 <div className='flex flex-col sm:flex-row gap-4 justify-center'>
                   <Link
                     href='/contact'
                     className='inline-flex items-center justify-center gap-2 bg-white text-primary-500 font-black text-sm px-8 py-4 rounded-full hover:bg-cream transition-colors shadow-xl'
                   >
-                    Talk to our team
+                    {t('cta.ctaTeam')}
                     <ArrowRightIcon className='w-4 h-4' />
                   </Link>
                   <Link
                     href='/companies'
                     className='inline-flex items-center justify-center gap-2 border-2 border-white/30 text-white font-black text-sm px-8 py-4 rounded-full hover:border-white/60 hover:bg-white/10 transition-colors'
                   >
-                    Enterprise solutions
+                    {t('cta.ctaEnterprise')}
                     <ArrowRightIcon className='w-4 h-4' />
                   </Link>
                 </div>

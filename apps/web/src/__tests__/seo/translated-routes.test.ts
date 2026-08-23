@@ -82,44 +82,52 @@ describe('what each route may advertise', () => {
 });
 
 describe('the metadata that actually ships', () => {
+  /**
+   * Derived from the lists rather than named, because a hardcoded example rots
+   * the moment that route is translated - which is what happened when /esg was
+   * the example and then stopped being English-only.
+   */
+  const englishOnly = [...ENGLISH_ONLY_ROUTES][0] as string;
+  const translated = '/companies';
+
   const languagesOf = (path: string, locale: (typeof locales)[number]) =>
     buildPageMetadata({ path, locale, title: 't', description: 'd' }).alternates?.languages ?? {};
 
   it('gives a translated route all three hreflang entries plus x-default', () => {
-    expect(Object.keys(languagesOf('/companies', 'en')).sort()).toEqual(
+    expect(Object.keys(languagesOf(translated, 'en')).sort()).toEqual(
       ['ar-TN', 'en', 'fr-TN', 'x-default'].sort(),
     );
   });
 
   it('gives an English-only route just English and x-default', () => {
-    expect(Object.keys(languagesOf('/esg', 'en')).sort()).toEqual(['en', 'x-default'].sort());
+    expect(Object.keys(languagesOf(englishOnly, 'en')).sort()).toEqual(['en', 'x-default'].sort());
   });
 
   it.each(['fr', 'ar'] as const)(
     'points an English-only route canonical home when reached as /%s',
     locale => {
-      const meta = buildPageMetadata({ path: '/esg', locale, title: 't', description: 'd' });
-      expect(meta.alternates?.canonical).toContain('/en/esg');
-      expect(meta.alternates?.canonical).not.toContain(`/${locale}/esg`);
+      const meta = buildPageMetadata({ path: englishOnly, locale, title: 't', description: 'd' });
+      expect(meta.alternates?.canonical).toContain(`/en${englishOnly}`);
+      expect(meta.alternates?.canonical).not.toContain(`/${locale}${englishOnly}`);
     },
   );
 
   it.each(['fr', 'ar'] as const)('noindexes the untranslated /%s variant', locale => {
-    const meta = buildPageMetadata({ path: '/esg', locale, title: 't', description: 'd' });
+    const meta = buildPageMetadata({ path: englishOnly, locale, title: 't', description: 'd' });
     expect(meta.robots).toEqual({ index: false, follow: true });
   });
 
   it('leaves a translated route indexable in every locale', () => {
     for (const locale of locales) {
-      const meta = buildPageMetadata({ path: '/companies', locale, title: 't', description: 'd' });
+      const meta = buildPageMetadata({ path: translated, locale, title: 't', description: 'd' });
       expect(meta.robots).toBeUndefined();
-      expect(meta.alternates?.canonical).toContain(`/${locale}/companies`);
+      expect(meta.alternates?.canonical).toContain(`/${locale}${translated}`);
     }
   });
 
   it('still honours an explicit noIndex on a translated route', () => {
     const meta = buildPageMetadata({
-      path: '/companies',
+      path: translated,
       locale: 'en',
       title: 't',
       description: 'd',

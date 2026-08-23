@@ -35,6 +35,7 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
   '/consumer',
   '/contact',
   '/dream',
+  '/esg',
   '/food-waste-facts',
   '/how-to-collect',
   '/humanity-mission',
@@ -65,7 +66,6 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
 export const ENGLISH_ONLY_ROUTES = new Set<string>([
   '/account-deletion',
   '/cookie-policy',
-  '/esg',
   '/partner-kit',
   '/privacy-policy',
   '/security',
