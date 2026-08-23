@@ -20,6 +20,13 @@ const config: Config = {
           'teal-light': '#007a78',
           dark: '#0a1f1e',
           coral: '#ff7973',
+          /*
+           * The light-surface accent. Coral fails AA on white (2.55) and on
+           * cream (2.32); this passes both (5.11 / 4.65) in either direction.
+           * Never place it on the dark teal ground - 2.08, effectively
+           * invisible - and never beside gold at 2.50.
+           */
+          green: '#017C6E',
           // Food-waste editorial page tokens (alias of primary-500 / cream)
           deep: '#1E4448',
           cream: '#F9F3F0',

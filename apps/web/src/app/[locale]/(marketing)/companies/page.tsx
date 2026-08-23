@@ -60,7 +60,7 @@ function FrameworkCard({ item, index }: { item: FrameworkItem; index: number }) 
       <div className='absolute top-0 left-0 w-full h-0.5 bg-gradient-teal-r' aria-hidden='true' />
 
       {/* Code badge */}
-      <span className='inline-block text-[10px] font-black tracking-[0.2em] uppercase px-2.5 py-1 rounded-full mb-4 bg-accent-500/[.08] text-accent-500'>
+      <span className='inline-block text-[10px] font-black tracking-[0.2em] uppercase px-2.5 py-1 rounded-full mb-4 bg-brand-green/[.08] text-brand-green'>
         {item.code}
       </span>
 
@@ -143,7 +143,7 @@ export default function CompaniesPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
-              className='text-xs font-black tracking-[0.25em] uppercase mb-6 text-accent-500'
+              className='text-xs font-black tracking-[0.25em] uppercase mb-6 text-brand-green'
             >
               {t('hero.eyebrow')}
             </motion.p>
@@ -244,7 +244,7 @@ export default function CompaniesPage() {
             transition={{ duration: 0.6 }}
             className='mb-14'
           >
-            <p className='text-xs font-black tracking-[0.2em] uppercase mb-3 text-accent-500'>
+            <p className='text-xs font-black tracking-[0.2em] uppercase mb-3 text-brand-green'>
               {t('frameworks.eyebrow')}
             </p>
             <h2 className='text-4xl md:text-5xl font-black font-heading text-brand-dark'>
