@@ -30,6 +30,7 @@ import type { Locale } from '@/i18n/config';
 export const FULLY_TRANSLATED_ROUTES = new Set<string>([
   '/',
   '/blog',
+  '/careers',
   '/companies',
   '/consumer',
   '/contact',
@@ -63,7 +64,6 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
  */
 export const ENGLISH_ONLY_ROUTES = new Set<string>([
   '/account-deletion',
-  '/careers',
   '/cookie-policy',
   '/esg',
   '/partner-kit',

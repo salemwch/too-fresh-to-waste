@@ -4224,5 +4224,152 @@
       "finalQuote": "The planet does not need more companies that care about waste in their brand deck. It needs ones that care about it in their spreadsheets.",
       "finalAttribution": "Too Fresh To Waste"
     }
+  },
+  "careers": {
+    "hero": {
+      "badge": "We are hiring",
+      "titleStart": "We are not just building",
+      "titleEm1": "a startup.",
+      "titleMid": "We are building",
+      "titleEm2": "a movement.",
+      "lede": "Every night, tons of food that could feed entire families is thrown away - not because there is no hunger, but because there is no bridge. We are building that bridge. And we need the ones who refuse to watch the world waste its potential.",
+      "stats": [
+        {
+          "stat": "4",
+          "label": "Open positions"
+        },
+        {
+          "stat": "1.3B",
+          "label": "Tonnes wasted/year"
+        },
+        {
+          "stat": "4+",
+          "label": "Regions in our vision"
+        },
+        {
+          "stat": "∞",
+          "label": "Impact if we win"
+        }
+      ]
+    },
+    "dream": {
+      "eyebrow": "Our reason for existing",
+      "quote": "A planet where no family goes to sleep hungry. Where no child grows up without an education. Where food feeds people, not landfills.",
+      "body": "This is not a pitch deck quote. This is the reason we wake up. And if this sentence stirs something in you - something between urgency and hope - then you might already belong here."
+    },
+    "vision": {
+      "eyebrow": "Where we are going",
+      "titleStart": "Tunisia is",
+      "titleEm": "chapter one.",
+      "lede": "We are writing a story that starts in Tunis and ends on every continent. Here is the roadmap.",
+      "gccLabel": "Gulf Cooperation Council - 6 nations, one vision",
+      "stages": [
+        {
+          "region": "Tunisia",
+          "subtitle": "Where it all begins",
+          "desc": "We are launching in the heart of North Africa - connecting local restaurants and bakeries with consumers who care about their wallet and their planet."
+        },
+        {
+          "region": "Gulf Cooperation Council",
+          "subtitle": "Saudi Arabia · UAE · Qatar · Kuwait · Oman · Bahrain",
+          "desc": "Six nations with booming food scenes and a growing appetite for sustainability. The GCC is our second home - high impact, massive scale."
+        },
+        {
+          "region": "Africa",
+          "subtitle": "The continent of the future",
+          "desc": "From Morocco to Egypt, Senegal to Kenya - a billion people, thousands of local food businesses, and enormous potential to change how a continent eats."
+        },
+        {
+          "region": "Asia",
+          "subtitle": "The world’s largest opportunity",
+          "desc": "Home to more than half of humanity. Cities that never sleep, food cultures that run deep - and a food waste crisis that demands bold solutions."
+        }
+      ],
+      "countries": ["Saudi Arabia", "United Arab Emirates", "Qatar", "Kuwait", "Oman", "Bahrain"],
+      "nowBadge": "Now"
+    },
+    "positions": {
+      "eyebrow": "Open positions",
+      "titleStart": "Four seats at the table.",
+      "titleEm": "One mission.",
+      "lede": "We are not hiring employees. We are looking for founders-at-heart who want to own a piece of something that matters.",
+      "location": "Remote · Tunisia",
+      "dreamLabel": "You are this person if…",
+      "applyCta": "Apply for this role",
+      "genderMale": "Male",
+      "genderFemale": "Female",
+      "items": [
+        {
+          "tagline": "The architect of the engine that feeds thousands.",
+          "skills": [
+            "NestJS / Node.js",
+            "MongoDB & Redis",
+            "REST APIs & WebSockets",
+            "Authentication & Security"
+          ],
+          "description": "You will build the backbone of a platform that feeds families and fights waste at scale. Every endpoint you write powers a real meal rescued from the bin. We run NestJS, MongoDB, Redis, and Bull queues - and we move fast.",
+          "dream": "You dream in APIs and wake up thinking about performance. Bugs make you curious, not scared."
+        },
+        {
+          "tagline": "The voice that turns strangers into believers.",
+          "skills": [
+            "Social Media & Content",
+            "Performance Marketing",
+            "Community Building",
+            "Data & Analytics"
+          ],
+          "description": "You will craft the story of Too Fresh To Waste - the campaigns, the content, the message that makes people stop scrolling and start caring. You measure everything and optimize relentlessly.",
+          "dream": "You believe that a great message can change behavior. You want your work to mean something beyond a KPI."
+        },
+        {
+          "tagline": "The human connection behind every download.",
+          "skills": [
+            "Brand Identity & Storytelling",
+            "Influencer & Partnership",
+            "Email & CRM Campaigns",
+            "User Research"
+          ],
+          "description": "You will be the soul of our brand - building trust with consumers, nurturing our community, and ensuring every touchpoint feels warm, real, and human. You turn users into ambassadors.",
+          "dream": "You find meaning in connection. You believe brands should stand for something, not just sell something."
+        },
+        {
+          "tagline": "The designer of the world people actually see.",
+          "skills": [
+            "React Native (iOS & Android)",
+            "Next.js & React",
+            "Tailwind CSS & Design Systems",
+            "Performance & Animations"
+          ],
+          "description": "You will build the app that people open every day to rescue food, earn points, and make an impact. The UI is your canvas - beautiful, fast, accessible, and alive. You own the experience from pixel to production.",
+          "dream": "You obsess over details others miss. You believe that great software makes people feel something - not just click somewhere."
+        }
+      ]
+    },
+    "culture": {
+      "titleStart": "If you believe we can make a change -",
+      "titleEm": "be part of the change.",
+      "body": "We are a small team with a massive vision. There is no bureaucracy, no empty titles. Just work that matters, people who care, and the chance to look back in ten years and say:",
+      "bodyEm": "I helped build this."
+    },
+    "form": {
+      "eyebrow": "Ready to join us?",
+      "title": "Tell us your story.",
+      "lede": "No CV required (you can attach one in your letter if you like). We care more about who you are, what drives you, and what you will bring to the mission.",
+      "nameLabel": "Full Name",
+      "namePlaceholder": "Your full name",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "you@example.com",
+      "phoneLabel": "Phone Number",
+      "phonePlaceholder": "+216 XX XXX XXX",
+      "positionLabel": "Position Applying For",
+      "positionPlaceholder": "Select a position…",
+      "letterLabel": "Your Story - How Will You Help Us Change the World?",
+      "letterPlaceholder": "Tell us who you are, what drives you, and what you would bring to Too Fresh To Waste. This is not a cover letter - it is your chance to speak to us as a human being. What change do you want to see? Why does this mission matter to you personally? What will you add that no one else can?",
+      "letterHint": "Minimum 100 words. Be authentic - we value honesty over polish.",
+      "submit": "Send My Application",
+      "successTitle": "Application received.",
+      "successBody": "Thank you for believing in our mission. We read every single application personally. If your vision aligns with ours, we will be in touch soon.",
+      "successSignature": "- The Too Fresh To Waste Team"
+    }
   }
 }

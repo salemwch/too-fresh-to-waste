@@ -4233,5 +4233,152 @@
       "finalQuote": "La planète n’a pas besoin de plus d’entreprises qui se soucient du gaspillage dans leur plaquette de marque. Elle a besoin de celles qui s’en soucient dans leurs tableurs.",
       "finalAttribution": "Too Fresh To Waste"
     }
+  },
+  "careers": {
+    "hero": {
+      "badge": "Nous recrutons",
+      "titleStart": "Nous ne construisons pas",
+      "titleEm1": "une startup.",
+      "titleMid": "Nous construisons",
+      "titleEm2": "un mouvement.",
+      "lede": "Chaque nuit, des tonnes de nourriture qui pourraient nourrir des familles entières sont jetées - non parce qu’il n’y a pas de faim, mais parce qu’il n’y a pas de pont. Nous construisons ce pont. Et nous cherchons celles et ceux qui refusent de regarder le monde gaspiller son potentiel.",
+      "stats": [
+        {
+          "stat": "4",
+          "label": "Postes ouverts"
+        },
+        {
+          "stat": "1,3 Md",
+          "label": "Tonnes gaspillées/an"
+        },
+        {
+          "stat": "4+",
+          "label": "Régions dans notre vision"
+        },
+        {
+          "stat": "∞",
+          "label": "Impact si nous réussissons"
+        }
+      ]
+    },
+    "dream": {
+      "eyebrow": "Notre raison d’être",
+      "quote": "Une planète où aucune famille ne se couche le ventre vide. Où aucun enfant ne grandit sans éducation. Où la nourriture nourrit les gens, pas les décharges.",
+      "body": "Ce n’est pas une phrase de pitch deck. C’est la raison pour laquelle nous nous levons. Et si cette phrase provoque quelque chose en vous - entre urgence et espoir - alors vous êtes peut-être déjà des nôtres."
+    },
+    "vision": {
+      "eyebrow": "Où nous allons",
+      "titleStart": "La Tunisie est le",
+      "titleEm": "premier chapitre.",
+      "lede": "Nous écrivons une histoire qui commence à Tunis et se termine sur tous les continents. Voici la feuille de route.",
+      "gccLabel": "Conseil de coopération du Golfe - 6 nations, une vision",
+      "stages": [
+        {
+          "region": "Tunisie",
+          "subtitle": "Là où tout commence",
+          "desc": "Nous lançons au cœur de l’Afrique du Nord - en reliant les restaurants et boulangeries locaux à des consommateurs qui pensent à leur portefeuille et à leur planète."
+        },
+        {
+          "region": "Conseil de coopération du Golfe",
+          "subtitle": "Arabie saoudite · EAU · Qatar · Koweït · Oman · Bahreïn",
+          "desc": "Six pays aux scènes culinaires en plein essor et à l’appétit croissant pour la durabilité. Le CCG est notre seconde maison - fort impact, grande échelle."
+        },
+        {
+          "region": "Afrique",
+          "subtitle": "Le continent de demain",
+          "desc": "Du Maroc à l’Égypte, du Sénégal au Kenya - un milliard de personnes, des milliers de commerces alimentaires locaux, et un potentiel énorme de changer la façon dont un continent se nourrit."
+        },
+        {
+          "region": "Asie",
+          "subtitle": "La plus grande opportunité du monde",
+          "desc": "Plus de la moitié de l’humanité y vit. Des villes qui ne dorment jamais, des cultures culinaires profondes - et une crise du gaspillage qui exige des solutions audacieuses."
+        }
+      ],
+      "countries": ["Arabie saoudite", "Émirats arabes unis", "Qatar", "Koweït", "Oman", "Bahreïn"],
+      "nowBadge": "Maintenant"
+    },
+    "positions": {
+      "eyebrow": "Postes ouverts",
+      "titleStart": "Quatre places à table.",
+      "titleEm": "Une seule mission.",
+      "lede": "Nous ne recrutons pas des salariés. Nous cherchons des fondateurs dans l’âme, qui veulent posséder une part de quelque chose qui compte.",
+      "location": "Télétravail · Tunisie",
+      "dreamLabel": "Vous êtes cette personne si…",
+      "applyCta": "Postuler à ce poste",
+      "genderMale": "Homme",
+      "genderFemale": "Femme",
+      "items": [
+        {
+          "tagline": "L’architecte du moteur qui nourrit des milliers de personnes.",
+          "skills": [
+            "NestJS / Node.js",
+            "MongoDB & Redis",
+            "API REST & WebSockets",
+            "Authentification & sécurité"
+          ],
+          "description": "Vous construirez la colonne vertébrale d’une plateforme qui nourrit des familles et combat le gaspillage à grande échelle. Chaque endpoint que vous écrivez alimente un vrai repas sauvé de la poubelle. Nous utilisons NestJS, MongoDB, Redis et des files Bull - et nous avançons vite.",
+          "dream": "Vous rêvez en API et vous réveillez en pensant performance. Les bugs vous rendent curieux, pas anxieux."
+        },
+        {
+          "tagline": "La voix qui transforme des inconnus en convaincus.",
+          "skills": [
+            "Réseaux sociaux & contenu",
+            "Marketing à la performance",
+            "Animation de communauté",
+            "Données & analyse"
+          ],
+          "description": "Vous façonnerez le récit de Too Fresh To Waste - les campagnes, les contenus, le message qui fait arrêter de scroller et commencer à s’intéresser. Vous mesurez tout et optimisez sans relâche.",
+          "dream": "Vous croyez qu’un bon message peut changer un comportement. Vous voulez que votre travail veuille dire quelque chose au-delà d’un KPI."
+        },
+        {
+          "tagline": "Le lien humain derrière chaque téléchargement.",
+          "skills": [
+            "Identité de marque & storytelling",
+            "Influence & partenariats",
+            "Email & CRM",
+            "Recherche utilisateur"
+          ],
+          "description": "Vous serez l’âme de notre marque - en construisant la confiance des consommateurs, en animant notre communauté et en veillant à ce que chaque point de contact soit chaleureux, vrai et humain. Vous transformez des utilisateurs en ambassadeurs.",
+          "dream": "Vous trouvez du sens dans le lien. Vous croyez qu’une marque doit défendre quelque chose, pas seulement vendre quelque chose."
+        },
+        {
+          "tagline": "Le concepteur du monde que les gens voient vraiment.",
+          "skills": [
+            "React Native (iOS & Android)",
+            "Next.js & React",
+            "Tailwind CSS & design systems",
+            "Performance & animations"
+          ],
+          "description": "Vous construirez l’application que les gens ouvrent chaque jour pour sauver des repas, gagner des points et avoir un impact. L’interface est votre toile - belle, rapide, accessible et vivante. Vous êtes responsable de l’expérience, du pixel à la production.",
+          "dream": "Vous êtes obsédé par les détails que les autres ne voient pas. Vous croyez qu’un bon logiciel fait ressentir quelque chose - pas seulement cliquer quelque part."
+        }
+      ]
+    },
+    "culture": {
+      "titleStart": "Si vous croyez que nous pouvons changer les choses -",
+      "titleEm": "faites partie du changement.",
+      "body": "Nous sommes une petite équipe avec une vision immense. Pas de bureaucratie, pas de titres vides. Juste un travail qui compte, des gens qui s’investissent, et la possibilité de regarder en arrière dans dix ans et de dire :",
+      "bodyEm": "j’ai contribué à construire ça."
+    },
+    "form": {
+      "eyebrow": "Prêt à nous rejoindre ?",
+      "title": "Racontez-nous votre histoire.",
+      "lede": "Pas de CV obligatoire (vous pouvez en joindre un dans votre lettre si vous le souhaitez). Ce qui nous intéresse, c’est qui vous êtes, ce qui vous anime et ce que vous apporterez à la mission.",
+      "nameLabel": "Nom complet",
+      "namePlaceholder": "Votre nom complet",
+      "emailLabel": "Adresse e-mail",
+      "emailPlaceholder": "vous@exemple.com",
+      "phoneLabel": "Numéro de téléphone",
+      "phonePlaceholder": "+216 XX XXX XXX",
+      "positionLabel": "Poste visé",
+      "positionPlaceholder": "Choisissez un poste…",
+      "letterLabel": "Votre histoire - comment allez-vous nous aider à changer le monde ?",
+      "letterPlaceholder": "Dites-nous qui vous êtes, ce qui vous anime et ce que vous apporteriez à Too Fresh To Waste. Ce n’est pas une lettre de motivation - c’est votre occasion de nous parler d’humain à humain. Quel changement voulez-vous voir ? Pourquoi cette mission compte-t-elle pour vous personnellement ? Qu’allez-vous apporter que personne d’autre ne peut apporter ?",
+      "letterHint": "Minimum 100 mots. Soyez authentique - nous préférons l’honnêteté au style léché.",
+      "submit": "Envoyer ma candidature",
+      "successTitle": "Candidature reçue.",
+      "successBody": "Merci de croire en notre mission. Nous lisons personnellement chaque candidature. Si votre vision rejoint la nôtre, nous vous recontacterons bientôt.",
+      "successSignature": "- L’équipe Too Fresh To Waste"
+    }
   }
 }
