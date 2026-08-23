@@ -31,9 +31,11 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
   '/',
   '/blog',
   '/careers',
+  '/account-deletion',
   '/companies',
   '/consumer',
   '/contact',
+  '/cookie-policy',
   '/dream',
   '/esg',
   '/food-waste-facts',
@@ -44,6 +46,7 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
   '/mission-driven',
   '/parcless-bag',
   '/partner-kit',
+  '/security',
   '/partners',
 ]);
 
@@ -65,10 +68,7 @@ export const FULLY_TRANSLATED_ROUTES = new Set<string>([
  * pages entirely because I never thought to look at them.
  */
 export const ENGLISH_ONLY_ROUTES = new Set<string>([
-  '/account-deletion',
-  '/cookie-policy',
   '/privacy-policy',
-  '/security',
   '/terms-and-conditions',
   '/terms-of-service',
 ]);

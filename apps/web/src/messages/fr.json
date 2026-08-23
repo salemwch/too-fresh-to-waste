@@ -4793,5 +4793,267 @@
         "body": "Nous avons construit pour le marché alimentaire tunisien dès le premier jour - pas adapté un modèle étranger."
       }
     ]
+  },
+  "legal": {
+    "governingLanguage": "Cette page est une traduction fournie pour votre confort. <b>En cas de divergence entre cette version et la version anglaise, la version anglaise fait foi.</b>",
+    "dateline": "Dernière mise à jour : {date}",
+    "lastUpdated": "15 avril 2026",
+    "cookiePolicy": {
+      "meta": {
+        "title": "Politique relative aux cookies | Too Fresh To Waste",
+        "description": "Comment Too Fresh To Waste utilise les cookies et comment gérer vos préférences."
+      },
+      "title": "Politique relative aux cookies",
+      "intro": [
+        "Lorsque vous utilisez la plateforme Too Fresh To Waste - notre site ou notre application - nous utilisons des cookies et des technologies similaires pour assurer son bon fonctionnement et améliorer votre expérience. Cette page explique ce qu’ils sont, pourquoi nous les utilisons et comment vous pouvez les contrôler."
+      ],
+      "sections": [
+        {
+          "heading": "Que sont les cookies ?",
+          "paragraphs": [
+            "Les cookies sont de petits fichiers enregistrés sur votre appareil lorsque vous visitez un site ou utilisez une application. Ils permettent au service de retenir certaines informations sur votre visite - par exemple si vous êtes connecté ou quelle langue vous préférez - pour que vous n’ayez pas à les redonner à chaque fois."
+          ]
+        },
+        {
+          "heading": "Les cookies que nous utilisons",
+          "subsections": [
+            {
+              "heading": "Essentiels (toujours actifs)",
+              "paragraphs": [
+                "Ils vous maintiennent connecté en toute sécurité et font fonctionner la plateforme. Sans eux, vous ne pouvez ni vous connecter, ni commander, ni utiliser une fonction nécessitant un compte. Ils ne peuvent pas être désactivés."
+              ]
+            },
+            {
+              "heading": "Fonctionnels",
+              "paragraphs": [
+                "Ils retiennent vos préférences - comme la langue choisie (arabe, français ou anglais) - pour que la plateforme vous soit familière à chaque retour. Les désactiver ne casse pas la plateforme, mais certaines préférences peuvent être réinitialisées."
+              ]
+            },
+            {
+              "heading": "Mesure d’audience",
+              "paragraphs": [
+                "Nous utilisons Google Analytics pour comprendre comment la plateforme est utilisée - quelles pages sont consultées, ce qui peut être amélioré, et comment l’application se comporte. Toutes les données sont anonymisées ; nous ne voyons jamais qui vous êtes, seulement des tendances agrégées. Vous pouvez vous y opposer à tout moment (voir ci-dessous)."
+              ]
+            }
+          ],
+          "paragraphs": [
+            "Nous n’utilisons pas de cookies publicitaires et ne partageons aucune donnée de cookie avec des régies publicitaires."
+          ]
+        },
+        {
+          "heading": "Comment gérer les cookies",
+          "paragraphs": ["Vous gardez le contrôle. Voici vos options :"],
+          "subsections": [
+            {
+              "heading": "Paramètres du navigateur",
+              "paragraphs": [
+                "Tout navigateur moderne permet de consulter, bloquer ou supprimer les cookies. Regardez dans la rubrique Confidentialité ou Sécurité de ses paramètres. Bloquer tous les cookies vous empêchera de vous connecter."
+              ]
+            },
+            {
+              "heading": "Désactivation de Google Analytics",
+              "paragraphs": [
+                "Installez le <b>module de désactivation de Google Analytics</b> (tools.google.com/dlpage/gaoptout) pour empêcher Google Analytics de collecter des données sur vos visites, sur tous les sites que vous utilisez."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "Mises à jour de cette politique",
+          "paragraphs": [
+            "Si nous commençons à utiliser de nouveaux cookies ou modifions l’usage de ceux existants, nous mettrons cette page à jour et modifierons la date en haut. Nous vous invitons à la consulter de temps en temps."
+          ]
+        },
+        {
+          "heading": "Des questions ?",
+          "paragraphs": ["Écrivez-nous à <link>support@toofreshtowaste.com</link>."]
+        }
+      ]
+    },
+    "accountDeletion": {
+      "meta": {
+        "title": "Supprimer votre compte | Too Fresh To Waste",
+        "description": "Comment supprimer définitivement votre compte et vos données Too Fresh To Waste, ce qui est effacé et ce que nous devons conserver."
+      },
+      "title": "Supprimer votre compte",
+      "intro": [
+        "Vous pouvez supprimer définitivement votre compte <b>Too Fresh To Waste</b> à tout moment - soit directement dans l’application mobile, soit en contactant notre support. Cette page explique les deux méthodes, quelles données sont effacées et ce que nous sommes tenus de conserver."
+      ],
+      "sections": [
+        {
+          "heading": "Méthode 1 - Supprimer depuis l’application (immédiat)",
+          "items": [
+            "Ouvrez l’application <b>Too Fresh To Waste</b> sur votre téléphone.",
+            "Touchez l’onglet <b>Profile</b> (en bas à droite de l’écran).",
+            "Allez dans <b>Privacy & Data</b>.",
+            "Descendez jusqu’à <b>Danger Zone</b> et touchez <b>Delete Account</b>."
+          ],
+          "paragraphs": [
+            "Votre compte est désactivé immédiatement. Les données personnelles sont anonymisées ou effacées sous <b>30 jours</b>."
+          ]
+        },
+        {
+          "heading": "Méthode 2 - Demander la suppression par e-mail",
+          "paragraphs": [
+            "Si vous n’avez plus accès à l’application, envoyez un e-mail à <link>support@toofreshtowaste.com</link> avec pour objet <em>Account Deletion Request</em>. Indiquez l’adresse e-mail ou le numéro de téléphone associé à votre compte. Nous traiterons la demande sous <b>7 jours ouvrés</b> et vous confirmerons par e-mail."
+          ]
+        },
+        {
+          "heading": "Ce qui est supprimé",
+          "items": [
+            "Vos nom, adresse e-mail et numéro de téléphone",
+            "Photo de profil",
+            "Adresses enregistrées et historique de localisation",
+            "Solde de points de fidélité",
+            "Préférences de notification et jetons FCM",
+            "Liste de favoris"
+          ]
+        },
+        {
+          "heading": "Ce que nous conservons (et pourquoi)",
+          "paragraphs": [
+            "Certains enregistrements sont anonymisés et conservés pour répondre à des obligations légales ou opérationnelles. Aucun enregistrement conservé ne permet de vous identifier."
+          ],
+          "items": [
+            "<b>Historique de commandes</b> - conservé anonymisé pour la comptabilité, la prévention de la fraude et le règlement des litiges avec les commerçants (obligation de 5 ans en droit commercial tunisien).",
+            "<b>Contenu des avis</b> - les avis que vous avez publiés sont anonymisés (votre nom est remplacé par « Deleted User »).",
+            "<b>Statistiques agrégées</b> - synthèses statistiques (par exemple le total de commandes sauvées) qui ne peuvent pas être reliées à vous."
+          ]
+        },
+        {
+          "heading": "Calendrier de suppression",
+          "items": [
+            "<b>Immédiatement</b> - compte désactivé, sessions révoquées",
+            "<b>Sous 30 jours</b> - données personnelles anonymisées ou effacées",
+            "<b>Conservé 5 ans</b> - historique de commandes anonymisé (obligation légale)",
+            "<b>Sous 7 jours ouvrés</b> - e-mail de confirmation de suppression, pour les demandes par e-mail"
+          ]
+        },
+        {
+          "heading": "Des questions ?",
+          "paragraphs": ["Écrivez-nous à <link>support@toofreshtowaste.com</link>."]
+        }
+      ]
+    },
+    "security": {
+      "meta": {
+        "title": "Sécurité | Too Fresh To Waste",
+        "description": "Comment Too Fresh To Waste protège votre compte et vos données selon les standards du secteur - et comment signaler une vulnérabilité."
+      },
+      "title": "Sécurité",
+      "intro": [
+        "La sécurité n’est pas une fonctionnalité ajoutée tardivement. C’est la façon dont la plateforme est construite. Cette page décrit les mesures qui protègent votre compte et vos données, ce que vous pouvez faire de votre côté, et comment signaler une vulnérabilité si vous en trouvez une."
+      ],
+      "sections": [
+        {
+          "heading": "Comment nous protégeons vos données",
+          "subsections": [
+            {
+              "heading": "HTTPS partout",
+              "paragraphs": [
+                "Tout le trafic entre votre appareil et nos serveurs est chiffré en TLS 1.2 ou supérieur. Les requêtes HTTP simples sont automatiquement redirigées vers HTTPS. HSTS (HTTP Strict Transport Security) est appliqué pour que votre navigateur ne retombe jamais sur une connexion non sécurisée."
+              ]
+            },
+            {
+              "heading": "Sécurité des mots de passe",
+              "paragraphs": [
+                "Les mots de passe ne sont jamais stockés en clair. Nous utilisons bcrypt avec un facteur de coût élevé (cost 12) pour hacher chaque mot de passe avant qu’il n’atteigne notre base. Même en cas de compromission de la base, les mots de passe resteraient hors de portée d’un calcul réaliste."
+              ]
+            },
+            {
+              "heading": "Jetons de session de courte durée",
+              "paragraphs": [
+                "L’authentification repose sur des JSON Web Tokens (JWT). Les jetons d’accès expirent en 15 minutes ; les jetons de rafraîchissement en 7 jours. Les deux sont stockés exclusivement dans des cookies HttpOnly, Secure, SameSite=Strict - inaccessibles au JavaScript, ce qui vous protège des attaques XSS."
+              ]
+            },
+            {
+              "heading": "Authentification multifacteur",
+              "paragraphs": [
+                "Nous proposons des codes à usage unique (OTP) par e-mail comme second facteur à la connexion. Activer la MFA réduit fortement le risque de compromission même si votre mot de passe fuite."
+              ]
+            },
+            {
+              "heading": "Limitation de débit",
+              "paragraphs": [
+                "Tous les points d’API sont limités en débit via un throttling adossé à Redis. Les points de connexion et de réinitialisation de mot de passe ont des limites plus strictes, pour prévenir les attaques par force brute et par bourrage d’identifiants."
+              ]
+            },
+            {
+              "heading": "Assainissement des entrées",
+              "paragraphs": [
+                "Chaque donnée fournie par un utilisateur est validée par des DTO class-validator côté serveur et assainie par un middleware global avant traitement. Cela protège des attaques par injection et des XSS."
+              ]
+            },
+            {
+              "heading": "Sécurité de la base de données",
+              "paragraphs": [
+                "Notre base MongoDB est chiffrée au repos (AES-256) et en transit (TLS). Un contrôle d’accès par rôles garantit que seul le compte de service applicatif peut lire ou écrire. L’accès administrateur exige une authentification multifacteur et une liste d’adresses IP autorisées."
+              ]
+            },
+            {
+              "heading": "Gestion des secrets",
+              "paragraphs": [
+                "Tous les secrets - clés d’API, identifiants de base de données, clés de signature JWT - sont gérés via des variables d’environnement et des coffres de secrets CI/CD. Ils ne sont jamais écrits en dur dans le code ni versionnés."
+              ]
+            },
+            {
+              "heading": "En-têtes de sécurité",
+              "paragraphs": [
+                "Notre serveur d’API utilise Helmet.js pour définir une Content-Security-Policy stricte, ainsi que X-Content-Type-Options, X-Frame-Options et Referrer-Policy. Notre frontend Next.js applique des en-têtes correspondants via next.config.js."
+              ]
+            },
+            {
+              "heading": "Audit des dépendances",
+              "paragraphs": [
+                "Nous figeons explicitement toutes les versions de paquets et lançons des audits de vulnérabilités automatisés (pnpm audit) à chaque build. Les correctifs de sécurité critiques sont appliqués sous 48 heures après divulgation."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "Ce que vous pouvez faire",
+          "items": [
+            "Utilisez un <b>mot de passe fort et unique</b>, que vous ne réutilisez sur aucun autre service.",
+            "Activez l’<b>authentification multifacteur (MFA)</b> dans les paramètres de votre compte.",
+            "Méfiez-vous des <b>e-mails d’hameçonnage</b>. Nous ne vous demanderons jamais votre mot de passe par e-mail ou message.",
+            "Gardez votre application et votre appareil <b>à jour</b> pour recevoir les correctifs de sécurité.",
+            "Déconnectez-vous après usage sur un <b>appareil partagé ou public</b>."
+          ]
+        },
+        {
+          "heading": "Divulgation responsable",
+          "paragraphs": [
+            "Si vous pensez avoir trouvé une vulnérabilité, prévenez-nous avant d’en parler à quiconque.",
+            "Écrivez à <link>support@toofreshtowaste.com</link> avec pour objet <em>Security Vulnerability Report</em>. Décrivez la vulnérabilité en détail - étapes de reproduction, impact potentiel, captures d’écran ou code de démonstration à l’appui.",
+            "Ne divulguez pas publiquement la vulnérabilité avant que nous ayons eu une occasion raisonnable d’enquêter et de corriger (généralement 90 jours)."
+          ],
+          "subsections": [
+            {
+              "heading": "Nos engagements",
+              "items": [
+                "Nous accuserons réception de votre signalement sous 3 jours ouvrés.",
+                "Nous vous tiendrons informé pendant l’investigation et la correction.",
+                "Nous n’engagerons aucune action en justice contre les chercheurs qui signalent de bonne foi et respectent cette politique.",
+                "Nous créditons publiquement les personnes qui signalent (avec leur accord) une fois le correctif déployé."
+              ]
+            },
+            {
+              "heading": "Hors périmètre",
+              "items": [
+                "Attaques par déni de service (DoS/DDoS)",
+                "Ingénierie sociale ou hameçonnage de nos employés",
+                "Attaques nécessitant un accès physique à l’appareil d’un utilisateur"
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "Contact sécurité",
+          "paragraphs": [
+            "Too Fresh To Waste - équipe sécurité. Écrivez-nous à <link>support@toofreshtowaste.com</link>."
+          ]
+        }
+      ]
+    }
   }
 }

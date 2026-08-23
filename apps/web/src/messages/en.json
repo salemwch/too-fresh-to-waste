@@ -4784,5 +4784,265 @@
         "body": "We built for the Tunisian food market from day one - not adapting a foreign model."
       }
     ]
+  },
+  "legal": {
+    "governingLanguage": "",
+    "dateline": "Last updated: {date}",
+    "lastUpdated": "April 15, 2026",
+    "cookiePolicy": {
+      "meta": {
+        "title": "Cookie Policy | Too Fresh To Waste",
+        "description": "Learn how Too Fresh To Waste uses cookies and how you can manage your preferences."
+      },
+      "title": "Cookie Policy",
+      "intro": [
+        "When you use the Too Fresh To Waste platform - our website or app - we use cookies and similar technologies to make things work properly and to help us improve your experience. This page explains what they are, why we use them, and how you can control them."
+      ],
+      "sections": [
+        {
+          "heading": "What Are Cookies?",
+          "paragraphs": [
+            "Cookies are small files stored on your device when you visit a website or use an app. They let the service remember things about your visit - like whether you are logged in or what language you prefer - so you do not have to repeat yourself every time."
+          ]
+        },
+        {
+          "heading": "Cookies We Use",
+          "subsections": [
+            {
+              "heading": "Essential (always on)",
+              "paragraphs": [
+                "These keep you signed in securely and make the platform function. Without them you cannot log in, place orders, or use any feature that requires an account. They cannot be turned off."
+              ]
+            },
+            {
+              "heading": "Functional",
+              "paragraphs": [
+                "These remember your preferences - such as your chosen language (Arabic, French, or English) - so the platform feels familiar each time you return. Disabling them will not break the platform but some preferences may reset."
+              ]
+            },
+            {
+              "heading": "Analytics",
+              "paragraphs": [
+                "We use Google Analytics to understand how people use our platform - which pages are popular, where things can be improved, and how our app is performing. All data is anonymised; we never see who you are, only patterns in aggregate. You can opt out at any time (see below)."
+              ]
+            }
+          ],
+          "paragraphs": ["We do not use advertising cookies or share cookie data with ad networks."]
+        },
+        {
+          "heading": "How to Manage Cookies",
+          "paragraphs": ["You are in control. Here are your options:"],
+          "subsections": [
+            {
+              "heading": "Browser settings",
+              "paragraphs": [
+                "Every modern browser lets you view, block, or delete cookies. Look under Privacy or Security in your browser settings. Blocking all cookies will prevent you from logging in."
+              ]
+            },
+            {
+              "heading": "Google Analytics opt-out",
+              "paragraphs": [
+                "Install the <b>Google Analytics Opt-out Browser Add-on</b> (tools.google.com/dlpage/gaoptout) to stop Google Analytics from collecting data about your visits across all websites you use."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "Updates to This Policy",
+          "paragraphs": [
+            "If we start using new cookies or change how we use existing ones, we will update this page and revise the date at the top. We encourage you to check back from time to time."
+          ]
+        },
+        {
+          "heading": "Questions?",
+          "paragraphs": ["Reach us at <link>support@toofreshtowaste.com</link>."]
+        }
+      ]
+    },
+    "accountDeletion": {
+      "meta": {
+        "title": "Delete Your Account | Too Fresh To Waste",
+        "description": "How to permanently delete your Too Fresh To Waste account and data, what is removed, and what we are required to retain."
+      },
+      "title": "Delete Your Account",
+      "intro": [
+        "You can permanently delete your <b>Too Fresh To Waste</b> account at any time - either directly inside the mobile app or by contacting our support team. This page explains both methods, what data is removed, and what (if anything) we are required to retain."
+      ],
+      "sections": [
+        {
+          "heading": "Method 1 - Delete from the mobile app (instant)",
+          "items": [
+            "Open the <b>Too Fresh To Waste</b> app on your phone.",
+            "Tap the <b>Profile</b> tab (bottom-right of the screen).",
+            "Go to <b>Privacy & Data</b>.",
+            "Scroll to <b>Danger Zone</b> and tap <b>Delete Account</b>."
+          ],
+          "paragraphs": [
+            "Your account is deactivated immediately. Personal data is anonymised or purged within <b>30 days</b>."
+          ]
+        },
+        {
+          "heading": "Method 2 - Request deletion by email",
+          "paragraphs": [
+            "If you no longer have access to the app, send an email to <link>support@toofreshtowaste.com</link> with the subject line <em>Account Deletion Request</em>. Include the email address or phone number registered to your account. We will process the request within <b>7 business days</b> and confirm by email."
+          ]
+        },
+        {
+          "heading": "What is deleted",
+          "items": [
+            "Your name, email address, and phone number",
+            "Profile photo",
+            "Saved addresses and location history",
+            "Loyalty points balance",
+            "Notification preferences and FCM tokens",
+            "Favourites list"
+          ]
+        },
+        {
+          "heading": "What we retain (and why)",
+          "paragraphs": [
+            "Some records are anonymised and kept to satisfy legal or operational requirements. No retained record can identify you."
+          ],
+          "items": [
+            "<b>Order records</b> - anonymised order history retained for accounting, fraud prevention, and merchant dispute resolution (required under Tunisian commercial law for 5 years).",
+            "<b>Review content</b> - reviews you posted are anonymised (your name is replaced with \"Deleted User\").",
+            "<b>Aggregate analytics</b> - statistical summaries (for example total orders saved) that cannot be linked back to you."
+          ]
+        },
+        {
+          "heading": "Deletion timeline",
+          "items": [
+            "<b>Immediately</b> - account deactivated, sessions revoked",
+            "<b>Within 30 days</b> - personal data anonymised or purged",
+            "<b>Retained 5 years</b> - anonymised order records (legal requirement)",
+            "<b>Within 7 business days</b> - deletion confirmation email sent, for email requests"
+          ]
+        },
+        {
+          "heading": "Questions?",
+          "paragraphs": ["Reach us at <link>support@toofreshtowaste.com</link>."]
+        }
+      ]
+    },
+    "security": {
+      "meta": {
+        "title": "Security | Too Fresh To Waste",
+        "description": "How Too Fresh To Waste protects your account and data with industry-standard security practices - and how to report a vulnerability."
+      },
+      "title": "Security",
+      "intro": [
+        "Security is not a feature we added late. It is how the platform is built. This page describes the measures protecting your account and your data, what you can do on your side, and how to report a vulnerability if you find one."
+      ],
+      "sections": [
+        {
+          "heading": "How we protect your data",
+          "subsections": [
+            {
+              "heading": "HTTPS everywhere",
+              "paragraphs": [
+                "All traffic between your device and our servers is encrypted using TLS 1.2 or higher. Plain HTTP requests are automatically redirected to HTTPS. HTTP Strict Transport Security (HSTS) is enforced so your browser never falls back to an insecure connection."
+              ]
+            },
+            {
+              "heading": "Password security",
+              "paragraphs": [
+                "Passwords are never stored in plain text. We use bcrypt with a high work factor (cost 12) to hash every password before it reaches our database. This means even if our database were compromised, passwords would remain computationally infeasible to crack."
+              ]
+            },
+            {
+              "heading": "Short-lived session tokens",
+              "paragraphs": [
+                "Authentication is handled with JSON Web Tokens (JWT). Access tokens expire in 15 minutes; refresh tokens expire in 7 days. Both are stored exclusively in HttpOnly, Secure, SameSite=Strict cookies - inaccessible to JavaScript, protecting you from cross-site scripting (XSS) attacks."
+              ]
+            },
+            {
+              "heading": "Multi-factor authentication",
+              "paragraphs": [
+                "We support email-based one-time codes (OTP) as a second factor during login. Enabling MFA significantly reduces the risk of account compromise even if your password is leaked."
+              ]
+            },
+            {
+              "heading": "Rate limiting",
+              "paragraphs": [
+                "All API endpoints are rate-limited via Redis-backed throttling. Login and password-reset endpoints have stricter limits to prevent brute-force and credential-stuffing attacks."
+              ]
+            },
+            {
+              "heading": "Input sanitisation",
+              "paragraphs": [
+                "Every piece of user-supplied input is validated with class-validator DTOs on the backend and sanitised by a global middleware before processing. This protects against injection attacks and cross-site scripting (XSS)."
+              ]
+            },
+            {
+              "heading": "Database security",
+              "paragraphs": [
+                "Our MongoDB database uses encryption at rest (AES-256) and in transit (TLS). Role-based access control ensures that only the application service account can read or write data. Admin access requires multi-factor authentication and IP allowlisting."
+              ]
+            },
+            {
+              "heading": "Secret management",
+              "paragraphs": [
+                "All secrets - API keys, database credentials, JWT signing keys - are managed via environment variables and CI/CD secret stores. They are never hard-coded in source code or committed to version control."
+              ]
+            },
+            {
+              "heading": "Security headers",
+              "paragraphs": [
+                "Our API server uses Helmet.js to set a strict Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, and Referrer-Policy. Our Next.js frontend applies matching security headers via next.config.js."
+              ]
+            },
+            {
+              "heading": "Dependency auditing",
+              "paragraphs": [
+                "We pin all package versions explicitly and run automated vulnerability audits (pnpm audit) on every build. Critical security updates are applied within 48 hours of disclosure."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "How you can stay safe",
+          "items": [
+            "Use a <b>strong, unique password</b> that you do not reuse on any other service.",
+            "Enable <b>Multi-Factor Authentication (MFA)</b> in your account settings.",
+            "Be wary of <b>phishing emails</b>. We will never ask for your password by email or message.",
+            "Keep your app and device <b>up to date</b> so you receive security patches.",
+            "Sign out when you finish on a <b>shared or public device</b>."
+          ]
+        },
+        {
+          "heading": "Responsible disclosure",
+          "paragraphs": [
+            "If you believe you have found a security vulnerability, tell us before you tell anyone else.",
+            "Email <link>support@toofreshtowaste.com</link> with the subject line <em>Security Vulnerability Report</em>. Describe the vulnerability in detail - include steps to reproduce, potential impact, and any supporting screenshots or proof-of-concept code.",
+            "Do not publicly disclose the vulnerability until we have had a reasonable opportunity to investigate and remediate it (typically 90 days)."
+          ],
+          "subsections": [
+            {
+              "heading": "Our commitment",
+              "items": [
+                "We will acknowledge your report within 3 business days.",
+                "We will keep you informed as we investigate and fix the issue.",
+                "We will not take legal action against researchers who report vulnerabilities in good faith and follow this policy.",
+                "We recognise reporters publicly (with their consent) once a fix has been deployed."
+              ]
+            },
+            {
+              "heading": "Out of scope",
+              "items": [
+                "Denial-of-service (DoS/DDoS) attacks",
+                "Social engineering or phishing of our employees",
+                "Attacks requiring physical access to a user’s device"
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "Security contact",
+          "paragraphs": [
+            "Too Fresh To Waste - Security Team. Reach us at <link>support@toofreshtowaste.com</link>."
+          ]
+        }
+      ]
+    }
   }
 }
