@@ -104,6 +104,29 @@ These read as templated and are not used anywhere on the site:
   track fill.
 - **The em dash `—`.** Use `-`. See `feedback_no_em_dash` in project memory.
 
+### The second teal, #017C6E
+
+A light-surface colour, not a second accent. Measured against the palette:
+
+| Pairing                    | Ratio | Verdict            |
+| -------------------------- | ----- | ------------------ |
+| `#017C6E` on white         | 5.11  | passes AA for text |
+| white on `#017C6E`         | 5.11  | passes AA for text |
+| `#017C6E` on `#1E4448`     | 2.08  | fails, unusable    |
+| `#017C6E` beside `#FFA000` | 2.50  | fails              |
+
+**Use it on light sections only**: links, filled buttons with white text, active
+states, icons, and data marks on white or cream. It is the interactive colour
+for light surfaces, the way gold is the accent for the dark ground.
+
+**Never on the dark teal ground.** At 2.08 it is barely visible - the two
+colours are five points of lightness apart. And never adjacent to gold: 2.50
+between two saturated hues reads as a clash rather than a pairing.
+
+This keeps one system with a light and a dark half, rather than two accents
+competing. Gold owns the dark ground; #017C6E owns the light one; coral stays
+reserved for destructive and error states.
+
 ### One accent, one display face
 
 Gold (`secondary`, #FFA000) is the only accent. Coral (`accent-500`) is reserved

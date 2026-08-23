@@ -465,7 +465,8 @@
       },
       "faq4": {
         "question": "Que contient le Grand Prix ?",
-        "answer": "Trois nuits à l’hôtel\nUne trottinette électrique\nUne année complète en salle de sport\nUn téléphone\nUn bon à dépenser en vêtements"
+        "answer": "Trois jours à l’hôtel\nUne trottinette électrique\nUne année complète en salle de sport\nUn téléphone\nUn bon à dépenser en vêtements",
+        "intro": "Tous les six mois, une fois que nous avons sauvé 30 000 paniers ensemble, la liste s’ouvre et le gagnant choisit le prix qu’il veut."
       }
     }
   },
@@ -3361,11 +3362,11 @@
     },
     "families": {
       "label": "Un enfant a ce qu’il lui faut",
-      "body": "Cinq pour cent de ce que nous gagnons sur chaque panier va à des familles près de chez vous : chaussures, fournitures scolaires, médicaments. On ne vous demande jamais rien. Cela arrive parce que vous avez choisi de sauver un repas."
+      "body": "Simplement en sauvant un repas, vous aidez des familles près de chez vous. Nous reversons 5% de ce que nous gagnons sur chaque panier pour offrir l’essentiel : chaussures, fournitures scolaires, médicaments. Aucun don supplémentaire n’est demandé - juste plus d’impact."
     },
     "prize": {
       "label": "Remporter",
-      "body": "Un séjour à l’hôtel, une trottinette électrique, une année en salle de sport, un téléphone ou un bon pour des vêtements."
+      "body": "Trois jours à l’hôtel, une trottinette électrique, une année en salle de sport, un téléphone ou un bon pour des vêtements."
     }
   }
 }

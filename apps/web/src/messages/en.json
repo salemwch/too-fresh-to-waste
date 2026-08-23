@@ -465,7 +465,8 @@
       },
       "faq4": {
         "question": "What is in the Big Prize?",
-        "answer": "Three nights in a hotel\nAn electric scooter\nA full year of gym membership\nA phone\nA voucher to spend on clothes"
+        "answer": "Three days in a hotel\nAn electric scooter\nA full year of gym membership\nA phone\nA voucher to spend on clothes",
+        "intro": "Every six months, once we have rescued 30,000 bags together, the list opens and the winner chooses which prize they want."
       }
     }
   },
@@ -3357,11 +3358,11 @@
     },
     "families": {
       "label": "A child gets what they need",
-      "body": "Five percent of what we earn on every bag goes to families near you: shoes, school books, medicine. You are never asked for a thing. It happens because you chose to save a meal."
+      "body": "Simply by saving a meal, you are helping families near you. We donate 5% of our earnings from every bag to provide essentials like shoes, school books, and medicine. No extra donations required - just extra impact."
     },
     "prize": {
       "label": "Win",
-      "body": "A hotel stay, an electric scooter, a year at the gym, a phone, or a voucher for clothes."
+      "body": "Three days in a hotel, an electric scooter, a year at the gym, a phone, or a voucher for clothes."
     }
   }
 }

@@ -127,6 +127,11 @@ export default function Section5() {
                     >
                       {faq.id === 4 ? (
                         <div className='text-slate-700 text-sm md:text-base leading-relaxed space-y-3'>
+                          {/* Sits above the list rather than inside the answer:
+                              the answer is split on newlines and paired with
+                              icons by position, so a sentence added to it would
+                              take an icon and shift every prize after it. */}
+                          <p className='mb-4'>{t('faqs.faq4.intro')}</p>
                           {(() => {
                             const items = faq.answer.split('\n').filter(item => item.trim());
                             // One icon per prize, in the order the answer
