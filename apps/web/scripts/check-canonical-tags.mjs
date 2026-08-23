@@ -34,7 +34,14 @@ const APP = join(ROOT, '.next/server/app');
 export function canonicalPathOf(html) {
   const m = html.match(/<link rel="canonical" href="([^"]*)"/);
   if (!m) return null;
-  return new URL(m[1]).pathname.replace(/\/$/, '') || '/';
+  /**
+   * Decoded, because a non-ASCII slug is percent-encoded in the href and plain
+   * on disk. Comparing the two forms made every Arabic blog post look like a
+   * mismatch, which is why this script reported them clean: they were being
+   * skipped as unreadable rather than compared.
+   */
+  const path = decodeURIComponent(new URL(m[1]).pathname);
+  return path.replace(/\/$/, '') || '/';
 }
 
 export const isNoIndex = html => /name="robots" content="noindex/.test(html);
@@ -92,6 +99,21 @@ function main() {
   }
 
   console.log(`${checked} indexable pages checked`);
+
+  /**
+   * A checker that examined nothing must not report success. This printed
+   * "Every indexable page is canonical to itself" over zero pages after a build
+   * left `.next` empty, which is the most convincing way a gate can lie.
+   */
+  const MIN_EXPECTED_PAGES = 20;
+  if (checked < MIN_EXPECTED_PAGES) {
+    console.error(
+      `\nOnly ${checked} pages found, expected at least ${MIN_EXPECTED_PAGES}.` +
+        '\nThe build output looks incomplete - this is not a pass.',
+    );
+    return 1;
+  }
+
   if (offences.length === 0) {
     console.log('Every indexable page is canonical to itself.');
     return 0;

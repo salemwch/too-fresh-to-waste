@@ -71,11 +71,28 @@ describe('translation pairing drives hreflang', () => {
   });
 
   it('omits locales that have no translation', () => {
-    // A French-only post must not claim an English or Arabic version.
-    const map = getTranslationSlugs('bakery-surplus-options');
-    expect(map.fr).toBe('que-faire-invendus-boulangerie');
-    expect(map.en).toBeUndefined();
-    expect(map.ar).toBeUndefined();
+    /**
+     * Derived rather than named. This used to assert that
+     * `bakery-surplus-options` had neither an English nor an Arabic version,
+     * and it failed the moment the Arabic one was written - the test was
+     * pinning the state of the content library, not the behaviour of the
+     * function. What matters is that a locale appears only when a file exists.
+     */
+    const everyKey = [...new Set(locales.flatMap(l => getAllPosts(l).map(p => p.translationKey)))];
+    const incomplete = everyKey.filter(
+      key => Object.keys(getTranslationSlugs(key)).length < locales.length,
+    );
+
+    expect(incomplete.length).toBeGreaterThan(0);
+
+    for (const key of incomplete) {
+      const map = getTranslationSlugs(key);
+      for (const locale of locales) {
+        const hasFile = getAllPosts(locale).some(p => p.translationKey === key);
+        if (hasFile) expect(map[locale]).toBeDefined();
+        else expect(map[locale]).toBeUndefined();
+      }
+    }
   });
 
   it('returns an empty map for an unknown key rather than throwing', () => {

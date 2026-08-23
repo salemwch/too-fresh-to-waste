@@ -80,8 +80,27 @@ export function getAllPosts(locale: Locale = defaultLocale): PostMeta[] {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
+/**
+ * A slug arriving from `params` is percent-encoded when it contains anything
+ * outside ASCII; the filename on disk is not. Arabic slugs therefore looked up
+ * `%D9%85%D8%A7-....mdx`, found nothing, and the article rendered as a 37-byte
+ * shell - `generateMetadata` returned `{}`, so the post inherited the root
+ * layout's canonical and every Arabic article declared itself to be `/ar`.
+ *
+ * Nothing failed loudly. The build reported six more prerendered pages and the
+ * blog index linked to all of them.
+ */
+function decodeSlug(slug: string): string {
+  try {
+    return decodeURIComponent(slug);
+  } catch {
+    // A malformed escape sequence is not a slug we have a file for anyway.
+    return slug;
+  }
+}
+
 export function getPostBySlug(slug: string, locale: Locale = defaultLocale): Post | null {
-  return readPostFile(locale, `${slug}.mdx`);
+  return readPostFile(locale, `${decodeSlug(slug)}.mdx`);
 }
 
 /** Slugs available in `locale` — drives generateStaticParams. */
