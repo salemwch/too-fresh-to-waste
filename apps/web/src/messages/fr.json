@@ -420,32 +420,6 @@
     "description": "Nous mettons la touche finale à l'application mobile. Elle sera disponible sur l'App Store et Google Play très bientôt.",
     "platforms": "Disponible sur iOS et Android · Téléchargement gratuit"
   },
-  "businessSignup": {
-    "title": "Bientôt disponible",
-    "description": "Nous construisons quelque chose d'incroyable pour les entreprises qui souhaitent rejoindre notre plateforme et aider à réduire le gaspillage alimentaire.",
-    "subDescription": "Devenez partenaire de Too Fresh To Waste et transformez vos surplus alimentaires en revenus tout en ayant un impact environnemental positif.",
-    "notifyQuestion": "Vous souhaitez être informé du lancement ?",
-    "backToHome": "Retour à l'accueil",
-    "animationNotAvailable": "Animation non disponible",
-    "features": {
-      "analytics": {
-        "title": "Tableau de bord analytique",
-        "description": "Suivez votre impact et vos ventes en temps réel"
-      },
-      "revenue": {
-        "title": "Récupération de revenus",
-        "description": "Transformez automatiquement vos surplus en profits"
-      },
-      "sustainability": {
-        "title": "Métriques de durabilité",
-        "description": "Mesurez votre contribution environnementale"
-      },
-      "expiry": {
-        "title": "Gestion des produits proches de l'expiration",
-        "description": "Identifiez et gérez numériquement les produits proches de l'expiration pour augmenter vos profits"
-      }
-    }
-  },
   "section4": {
     "title": "TROIS ÉTAPES JUSQU’À VOTRE PREMIER PANIER",
     "mobileHint": "Glissez ou appuyez sur les diapositives pour naviguer",
@@ -3380,14 +3354,14 @@
   "rewards": {
     "eyebrow": "Points et prix",
     "title": "Chaque panier sauvé rapporte des points",
-    "description": "Les points s’accumulent à chaque commande et comptent pour le Grand Prix, attribué tous les six mois une fois que la communauté a sauvé 30 000 paniers ensemble. Vous pouvez aussi les donner.",
+    "description": "Les points s’accumulent à chaque commande et comptent pour le Grand Prix, attribué tous les six mois une fois que la communauté a sauvé 30 000 paniers ensemble.",
     "points": {
       "label": "Gagner",
       "body": "Des points à chaque commande, et davantage en parrainant un ami ou en laissant un avis honnête."
     },
-    "donate": {
-      "label": "Donner",
-      "body": "Transformez vos points en repas pour une famille proche plutôt que de les garder."
+    "families": {
+      "label": "Un enfant a ce qu’il lui faut",
+      "body": "Cinq pour cent de ce que nous gagnons sur chaque panier va à des familles près de chez vous : chaussures, fournitures scolaires, médicaments. On ne vous demande jamais rien. Cela arrive parce que vous avez choisi de sauver un repas."
     },
     "prize": {
       "label": "Remporter",

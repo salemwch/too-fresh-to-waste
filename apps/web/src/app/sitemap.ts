@@ -33,7 +33,6 @@ const marketingPages: Array<{
   { path: '/contact', changeFrequency: 'monthly', priority: PRIORITY.support },
   { path: '/careers', changeFrequency: 'monthly', priority: PRIORITY.informational },
   { path: '/companies', changeFrequency: 'monthly', priority: PRIORITY.support },
-  { path: '/business-signup', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   // Added on master after this branch forked — kept, mapped onto the priority scale.
   { path: '/how-to-collect', changeFrequency: 'monthly', priority: PRIORITY.marketing },
   { path: '/mission-driven', changeFrequency: 'monthly', priority: PRIORITY.marketing },

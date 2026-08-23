@@ -27,7 +27,6 @@ const MARKETING_NAMESPACES = [
   'marquee',
   'newsletter',
   'merchantSignup',
-  'businessSignup',
   'features',
   'howItWorks',
   'comingSoon',

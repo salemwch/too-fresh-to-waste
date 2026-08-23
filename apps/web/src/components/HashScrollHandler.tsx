@@ -6,7 +6,7 @@ import { useEffect } from 'react';
  * HashScrollHandler
  *
  * Client component that handles scrolling to hash fragments in the URL.
- * This is necessary for cross-page navigation (e.g., /business-signup -> /#features)
+ * This is necessary for cross-page navigation (e.g., /merchant-signup -> /#features)
  * because Next.js client-side routing may load the page before content is fully rendered.
  */
 export function HashScrollHandler() {

@@ -420,32 +420,6 @@
     "description": "We're putting the finishing touches on the mobile app. It will be available on the App Store and Google Play very soon.",
     "platforms": "Available on iOS & Android · Free to download"
   },
-  "businessSignup": {
-    "title": "Coming Soon",
-    "description": "We're building something amazing for businesses to join our platform and help reduce food waste.",
-    "subDescription": "Partner with Too Fresh To Waste and turn your surplus food into revenue while making a positive environmental impact.",
-    "notifyQuestion": "Want to be notified when we launch?",
-    "backToHome": "Back to Home",
-    "animationNotAvailable": "Animation not available",
-    "features": {
-      "analytics": {
-        "title": "Analytics Dashboard",
-        "description": "Track your impact and sales in real-time"
-      },
-      "revenue": {
-        "title": "Revenue Recovery",
-        "description": "Turn surplus into profit automatically"
-      },
-      "sustainability": {
-        "title": "Sustainability Metrics",
-        "description": "Measure your environmental contribution"
-      },
-      "expiry": {
-        "title": "Manage Near-Expiry Products",
-        "description": "Identify and manage near-expiry products digitally to boost profit and efficiency"
-      }
-    }
-  },
   "section4": {
     "title": "THREE STEPS TO YOUR FIRST BAG",
     "mobileHint": "Swipe or tap slides to navigate",
@@ -3376,14 +3350,14 @@
   "rewards": {
     "eyebrow": "Points and prizes",
     "title": "Every bag you rescue earns points",
-    "description": "Points build up with every order and count towards the Big Prize, which is awarded every six months once the community has rescued 30,000 bags together. You can also donate them.",
+    "description": "Points build up with every order and count towards the Big Prize, which is awarded every six months once the community has rescued 30,000 bags together.",
     "points": {
       "label": "Earn",
       "body": "Points on every order, plus more for referring a friend or leaving an honest review."
     },
-    "donate": {
-      "label": "Donate",
-      "body": "Turn your points into meals for a family nearby instead of keeping them."
+    "families": {
+      "label": "A child gets what they need",
+      "body": "Five percent of what we earn on every bag goes to families near you: shoes, school books, medicine. You are never asked for a thing. It happens because you chose to save a meal."
     },
     "prize": {
       "label": "Win",

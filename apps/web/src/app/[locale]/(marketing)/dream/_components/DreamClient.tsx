@@ -73,7 +73,7 @@ export default function DreamClient() {
 
           <div className='dream-rise d3 flex flex-col gap-3 sm:flex-row'>
             <Link
-              href='/business-signup'
+              href='/merchant-signup'
               className='bg-secondary text-primary-500 rounded-full px-8 py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
             >
               {t('cta.primary')}
@@ -159,7 +159,7 @@ export default function DreamClient() {
           </h2>
           <p className='max-w-xl text-base leading-relaxed text-white/70'>{t('close.body')}</p>
           <Link
-            href='/business-signup'
+            href='/merchant-signup'
             className='bg-secondary text-primary-500 rounded-full px-8 py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
           >
             {t('close.cta')}

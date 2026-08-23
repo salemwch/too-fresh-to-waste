@@ -96,6 +96,33 @@ const nextConfig = {
       .filter(Boolean),
   }),
 
+  /*
+   * Permanent redirects for routes that have been removed.
+   *
+   * `/business-signup` was a marketing page whose only action was a mailto:
+   * link. It was in the sitemap, so it is indexed and will have inbound links;
+   * deleting it without a redirect turns every one of those into a 404 and
+   * throws away whatever authority the URL had earned. 308 tells Google to
+   * transfer that to the real signup instead.
+   *
+   * Both forms are listed because next-intl serves the locale-prefixed URL
+   * while a bare path can still arrive from an old link or a typed address.
+   */
+  async redirects() {
+    return [
+      {
+        source: '/business-signup',
+        destination: '/merchant-signup',
+        permanent: true,
+      },
+      {
+        source: '/:locale(en|fr|ar)/business-signup',
+        destination: '/:locale/merchant-signup',
+        permanent: true,
+      },
+    ];
+  },
+
   // Security headers
   async headers() {
     const isProd = process.env.NODE_ENV === 'production';

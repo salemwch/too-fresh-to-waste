@@ -15,7 +15,7 @@ import { HeartHandshake, Sparkles, Trophy } from 'lucide-react';
  */
 const CARDS = [
   { key: 'points', Icon: Sparkles },
-  { key: 'donate', Icon: HeartHandshake },
+  { key: 'families', Icon: HeartHandshake },
   { key: 'prize', Icon: Trophy },
 ] as const;
 

@@ -17,7 +17,7 @@ import { Link } from '@/i18n/routing';
 const DOORS = [
   {
     key: 'merchant',
-    href: '/business-signup',
+    href: '/merchant-signup',
     Icon: Store,
     // The merchant door is the emphasised one because the hero already spoke to
     // them; this confirms rather than redirects.

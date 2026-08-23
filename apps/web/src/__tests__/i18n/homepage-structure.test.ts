@@ -61,7 +61,7 @@ describe.each(LOCALES)('homepage copy - %s', (_locale, messages) => {
     for (const key of ['title', 'description', 'merchant', 'consumer']) {
       expect(m.audienceSplit[key]).toBeDefined();
     }
-    for (const key of ['eyebrow', 'title', 'description', 'points', 'donate', 'prize']) {
+    for (const key of ['eyebrow', 'title', 'description', 'points', 'families', 'prize']) {
       expect(m.rewards[key]).toBeDefined();
     }
   });

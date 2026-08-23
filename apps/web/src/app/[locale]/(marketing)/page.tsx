@@ -197,7 +197,7 @@ function HeroSection({ locale }: { locale: Locale }) {
 
           <div className='mt-8 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center lg:justify-start'>
             <Link
-              href='/business-signup'
+              href='/merchant-signup'
               className='bg-secondary text-primary-500 hover:bg-white rounded-full px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap outline-none transition-all duration-300 hover:scale-105 sm:text-base'
               aria-label={t('cta.merchant')}
             >

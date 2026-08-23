@@ -180,7 +180,7 @@ describe('internal links inside posts resolve', () => {
   });
 
   it('other internal links point at routes that exist', () => {
-    const KNOWN_ROUTES = ['/business-signup', '/partners', '/blog', '/contact', '/companies'];
+    const KNOWN_ROUTES = ['/merchant-signup', '/partners', '/blog', '/contact', '/companies'];
     locales.forEach(locale => {
       linksIn(locale)
         .filter(l => !l.href.startsWith('/blog/') && !l.href.startsWith('/locations/'))
