@@ -143,7 +143,7 @@ const AvailabilityPanel = memo(function AvailabilityPanel({
                 </p>
               )}
             </div>
-            <Button asChild variant='outline' size='sm' className='h-7 shrink-0 text-xs'>
+            <Button asChild variant='outline' size='sm' className='shrink-0 text-xs'>
               {/* Coordinates only — no API key, no map bundle, opens in the
                   admin's own maps app. */}
               <a

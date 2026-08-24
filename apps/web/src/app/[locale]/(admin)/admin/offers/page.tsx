@@ -162,7 +162,7 @@ function BulkBar({
           key={action}
           size='sm'
           variant='ghost'
-          className='h-7 gap-xs px-sm text-xs'
+          className='gap-xs px-sm text-xs'
           disabled={isPending}
           onClick={() => onAction(action)}
         >
@@ -173,7 +173,7 @@ function BulkBar({
       <Button
         size='sm'
         variant='ghost'
-        className='h-7 gap-xs px-sm text-xs text-destructive hover:text-destructive'
+        className='gap-xs px-sm text-xs text-destructive hover:text-destructive'
         disabled={isPending}
         onClick={() => onAction('delete')}
       >
@@ -355,7 +355,7 @@ function AllOffersTable({
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-sm'
+              className='px-sm'
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
@@ -367,7 +367,7 @@ function AllOffersTable({
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-sm'
+              className='px-sm'
               disabled={page >= totalPages}
               onClick={() => setPage(p => p + 1)}
             >
@@ -498,7 +498,7 @@ function LowPickupTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-sm'
+              className='px-sm'
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
@@ -507,7 +507,7 @@ function LowPickupTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-sm'
+              className='px-sm'
               disabled={page * 20 >= total}
               onClick={() => setPage(p => p + 1)}
             >
@@ -571,7 +571,7 @@ function PriceViolationsTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-sm'
+              className='px-sm'
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
@@ -580,7 +580,7 @@ function PriceViolationsTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-sm'
+              className='px-sm'
               disabled={page * 20 >= total}
               onClick={() => setPage(p => p + 1)}
             >
@@ -632,7 +632,7 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
               <Button
                 size='sm'
                 variant='outline'
-                className='h-7 gap-xs px-sm text-xs shrink-0'
+                className='gap-xs px-sm text-xs shrink-0'
                 disabled={restoreMutation.isPending}
                 onClick={() => restoreMutation.mutate(item._id)}
               >
@@ -649,7 +649,7 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-sm'
+              className='px-sm'
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
@@ -658,7 +658,7 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-sm'
+              className='px-sm'
               disabled={page * 20 >= total}
               onClick={() => setPage(p => p + 1)}
             >
@@ -849,7 +849,7 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                     <Button
                       size='sm'
                       variant='outline'
-                      className='h-8 gap-1.5 shrink-0'
+                      className='gap-1.5 shrink-0'
                       disabled={reserveMutation.isPending || !reserveQty || Number(reserveQty) <= 0}
                       onClick={() => {
                         reserveMutation.mutate(
@@ -876,7 +876,7 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                     <Button
                       size='sm'
                       variant='outline'
-                      className='h-8 gap-1.5 shrink-0 text-destructive border-destructive/30'
+                      className='gap-1.5 shrink-0 text-destructive border-destructive/30'
                       disabled={
                         cancelReservationMutation.isPending || !cancelQty || Number(cancelQty) <= 0
                       }

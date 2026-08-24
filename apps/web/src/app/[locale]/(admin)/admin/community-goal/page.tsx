@@ -304,7 +304,7 @@ export default function AdminMonthlyBagGoalPage() {
               size='sm'
               onClick={handleSave}
               disabled={!isDirty || updateGoal.isPending}
-              className='h-7 px-md text-xs'
+              className='px-md text-xs'
             >
               {updateGoal.isPending ? (
                 <>
@@ -335,7 +335,7 @@ export default function AdminMonthlyBagGoalPage() {
           <Button
             variant='outline'
             size='sm'
-            className='h-7 px-md text-xs border-destructive/40 text-destructive hover:bg-destructive/5'
+            className='px-md text-xs border-destructive/40 text-destructive hover:bg-destructive/5'
             onClick={() => setResetDialog(true)}
           >
             <Trophy className='me-1.5 size-3.5' />

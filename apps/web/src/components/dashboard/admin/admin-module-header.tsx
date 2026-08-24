@@ -61,7 +61,7 @@ export function AdminModuleHeader({
           </Select>
         )}
         {onExport && (
-          <Button size='sm' variant='outline' onClick={onExport} className='h-8 px-md text-xs'>
+          <Button size='sm' variant='outline' onClick={onExport} className='px-md text-xs'>
             <Download className='me-1.5 size-3.5' />
             {exportLabel}
           </Button>

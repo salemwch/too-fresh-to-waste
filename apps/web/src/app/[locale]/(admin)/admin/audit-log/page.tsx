@@ -342,7 +342,7 @@ function AuditLogContent() {
         <Button
           variant='ghost'
           size='sm'
-          className='h-7 w-7 p-0'
+          className='h-9 w-9 p-0'
           onClick={() => setSelectedEntry(e)}
         >
           <Eye className='size-3.5' />

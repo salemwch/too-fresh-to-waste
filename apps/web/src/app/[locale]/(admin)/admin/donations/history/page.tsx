@@ -64,7 +64,7 @@ export default function AdminDonationHistoryPage() {
         <div>
           <div className='flex items-center gap-sm mb-xs'>
             <Link href='/admin/donations'>
-              <Button variant='ghost' size='sm' className='h-7 px-sm text-xs'>
+              <Button variant='ghost' size='sm' className='px-sm text-xs'>
                 <ArrowLeft className='me-xs size-3.5' />
                 {t('title')}
               </Button>

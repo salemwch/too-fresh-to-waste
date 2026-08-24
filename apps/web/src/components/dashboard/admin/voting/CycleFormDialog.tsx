@@ -233,7 +233,7 @@ export function CycleFormDialog({
             >
               Cancel
             </Button>
-            <Button type='submit' disabled={isSubmitting} className='h-8 px-lg text-xs'>
+            <Button type='submit' disabled={isSubmitting} className='px-lg text-xs'>
               {isSubmitting ? 'Saving…' : isEdit ? 'Update Cycle' : 'Create Cycle'}
             </Button>
           </div>

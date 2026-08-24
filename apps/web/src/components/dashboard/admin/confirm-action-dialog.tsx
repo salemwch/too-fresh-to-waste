@@ -113,7 +113,7 @@ export function ConfirmActionDialog({
             size='sm'
             onClick={handleConfirm}
             disabled={isLoading}
-            className={cn('h-7 px-md text-xs', confirmBtnClass)}
+            className={cn('px-md text-xs', confirmBtnClass)}
           >
             {isLoading ? (
               <>

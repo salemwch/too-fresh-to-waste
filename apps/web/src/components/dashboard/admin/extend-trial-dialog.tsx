@@ -205,7 +205,7 @@ export function ExtendTrialDialog({
             size='sm'
             onClick={handleConfirm}
             disabled={isLoading || !isValid}
-            className='h-7 px-md text-xs'
+            className='px-md text-xs'
           >
             {isLoading ? (
               <>

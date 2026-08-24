@@ -402,7 +402,7 @@ function LeaderboardsContent() {
           <Button
             variant='ghost'
             size='sm'
-            className='h-7 w-7 p-0'
+            className='h-9 w-9 p-0'
             onClick={() => setSelectedUser(u)}
           >
             <Eye className='size-3.5' />
@@ -410,7 +410,7 @@ function LeaderboardsContent() {
           <Button
             variant='ghost'
             size='sm'
-            className='h-7 w-7 p-0 text-amber-600'
+            className='h-9 w-9 p-0 text-amber-600'
             onClick={e => {
               e.stopPropagation();
               setAddPointsUser(u);

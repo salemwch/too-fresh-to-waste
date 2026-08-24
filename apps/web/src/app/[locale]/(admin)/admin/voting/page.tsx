@@ -118,7 +118,7 @@ export default function VotingAdminPage() {
             <RefreshCw className={`me-1.5 size-3.5 ${isFetching ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button size='sm' onClick={handleCreate} className='h-7 px-md text-xs'>
+          <Button size='sm' onClick={handleCreate} className='px-md text-xs'>
             <Plus className='me-1.5 size-3.5' />
             Create Cycle
           </Button>
@@ -128,13 +128,13 @@ export default function VotingAdminPage() {
       {/* Sub-page navigation */}
       <div className='flex flex-wrap gap-sm'>
         <Link href='/admin/voting/dashboard'>
-          <Button size='sm' variant='outline' className='h-7 px-md text-xs'>
+          <Button size='sm' variant='outline' className='px-md text-xs'>
             <BarChart3 className='me-1.5 size-3.5' />
             Live Dashboard
           </Button>
         </Link>
         <Link href='/admin/voting/winners'>
-          <Button size='sm' variant='outline' className='h-7 px-md text-xs'>
+          <Button size='sm' variant='outline' className='px-md text-xs'>
             <Trophy className='me-1.5 size-3.5' />
             Winners & Claims
           </Button>

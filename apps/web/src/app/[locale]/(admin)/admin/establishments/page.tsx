@@ -257,7 +257,7 @@ export default function AdminEstablishmentsPage() {
       render: est => (
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
+            <Button variant='ghost' size='sm' className='h-9 w-9 p-0'>
               <MoreHorizontal className='size-3.5' />
             </Button>
           </DropdownMenuTrigger>
@@ -395,7 +395,7 @@ export default function AdminEstablishmentsPage() {
                           <div className='mt-2.5 flex gap-sm'>
                             <Button
                               size='sm'
-                              className='h-7 flex-1 bg-emerald-600 text-xs hover:bg-emerald-700'
+                              className='flex-1 bg-emerald-600 text-xs hover:bg-emerald-700'
                               onClick={() => openAction(est, 'approve')}
                             >
                               <CheckCircle className='me-1.5 size-3' />
@@ -404,7 +404,7 @@ export default function AdminEstablishmentsPage() {
                             <Button
                               size='sm'
                               variant='outline'
-                              className='h-7 flex-1 border-rose-300 text-xs text-rose-600 hover:bg-rose-50'
+                              className='flex-1 border-rose-300 text-xs text-rose-600 hover:bg-rose-50'
                               onClick={() => openAction(est, 'reject')}
                             >
                               <XCircle className='me-1.5 size-3' />
@@ -622,7 +622,7 @@ export default function AdminEstablishmentsPage() {
                       <Button
                         size='sm'
                         variant='outline'
-                        className='h-7 flex-1 border-indigo-300 text-xs text-indigo-600 hover:bg-indigo-50'
+                        className='flex-1 border-indigo-300 text-xs text-indigo-600 hover:bg-indigo-50'
                         onClick={() => setExtendTrialOpen(true)}
                       >
                         <CalendarClock className='me-1.5 size-3' />
@@ -631,7 +631,7 @@ export default function AdminEstablishmentsPage() {
                       <Button
                         size='sm'
                         variant='outline'
-                        className='h-7 flex-1 border-emerald-300 text-xs text-emerald-600 hover:bg-emerald-50'
+                        className='flex-1 border-emerald-300 text-xs text-emerald-600 hover:bg-emerald-50'
                         disabled={detail.subscriptionStatus === 'paid'}
                         onClick={() => setMarkPaidConfirmOpen(true)}
                       >

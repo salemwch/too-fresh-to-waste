@@ -22,7 +22,7 @@ export function AdminMobileNav({ groups }: AdminMobileNavProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant='ghost' className='xl:hidden h-7 w-7 p-0 flex items-center justify-center'>
+        <Button variant='ghost' className='xl:hidden h-9 w-9 p-0 flex items-center justify-center'>
           <Menu className='h-4 w-4' />
           <span className='sr-only'>Toggle navigation</span>
         </Button>

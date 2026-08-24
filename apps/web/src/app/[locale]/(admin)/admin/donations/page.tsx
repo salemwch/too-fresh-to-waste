@@ -251,7 +251,7 @@ export default function AdminDonationPoolPage() {
             </span>
           )}
           <Link href='/admin/donations/history'>
-            <Button size='sm' variant='outline' className='h-7 px-2.5 text-xs'>
+            <Button size='sm' variant='outline' className='px-2.5 text-xs'>
               <History className='me-1.5 size-3.5' />
               {t('viewHistory')}
             </Button>
@@ -491,7 +491,7 @@ export default function AdminDonationPoolPage() {
               size='sm'
               onClick={handleSave}
               disabled={!isDirty || updatePool.isPending}
-              className='h-7 px-md text-xs'
+              className='px-md text-xs'
             >
               {updatePool.isPending ? (
                 <>
@@ -522,7 +522,7 @@ export default function AdminDonationPoolPage() {
           <Button
             variant='outline'
             size='sm'
-            className='h-7 px-md text-xs border-destructive/40 text-destructive hover:bg-destructive/5'
+            className='px-md text-xs border-destructive/40 text-destructive hover:bg-destructive/5'
             onClick={() => setResetDialog(true)}
           >
             <HeartHandshake className='me-1.5 size-3.5' />
@@ -541,7 +541,7 @@ export default function AdminDonationPoolPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Button size='sm' className='h-7 px-md text-xs' onClick={() => setSeasonDialog(true)}>
+            <Button size='sm' className='px-md text-xs' onClick={() => setSeasonDialog(true)}>
               <Sparkles className='me-1.5 size-3.5' />
               {t('startNewSeason')}
             </Button>

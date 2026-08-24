@@ -153,14 +153,14 @@ function BroadcastBuilderDrawer({ open, onClose }: { open: boolean; onClose: () 
             <div className='flex gap-sm pt-sm'>
               <Button
                 size='sm'
-                className='flex-1 h-8 text-xs'
+                className='flex-1 text-xs'
                 onClick={handleSend}
                 disabled={broadcast.isPending || !title.trim() || !message.trim()}
               >
                 <Send className='me-1.5 size-3.5' />
                 {broadcast.isPending ? t('builder.sending') : t('builder.sendNow')}
               </Button>
-              <Button size='sm' variant='ghost' className='h-8 text-xs' onClick={onClose}>
+              <Button size='sm' variant='ghost' className='text-xs' onClick={onClose}>
                 {t('builder.cancel')}
               </Button>
             </div>
@@ -288,7 +288,7 @@ function NotificationsContent() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={
-          <Button size='sm' className='h-8 text-xs' onClick={() => setBuilderOpen(true)}>
+          <Button size='sm' className='text-xs' onClick={() => setBuilderOpen(true)}>
             <Plus className='me-1.5 size-3.5' />
             {t('sendBroadcast')}
           </Button>

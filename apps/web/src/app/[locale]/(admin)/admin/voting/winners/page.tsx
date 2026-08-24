@@ -171,7 +171,7 @@ function PrizeClaimsSection() {
             key={s}
             size='sm'
             variant={statusFilter === s ? 'default' : 'outline'}
-            className='h-7 text-xs'
+            className='text-xs'
             onClick={() => {
               setStatusFilter(s);
               setPage(1);
@@ -239,7 +239,7 @@ function PrizeClaimsSection() {
           <Button
             size='sm'
             variant='outline'
-            className='h-7 text-xs'
+            className='text-xs'
             disabled={page <= 1}
             onClick={() => setPage(p => p - 1)}
           >
@@ -251,7 +251,7 @@ function PrizeClaimsSection() {
           <Button
             size='sm'
             variant='outline'
-            className='h-7 text-xs'
+            className='text-xs'
             disabled={page >= meta.totalPages}
             onClick={() => setPage(p => p + 1)}
           >
@@ -320,7 +320,7 @@ function PrizeClaimsSection() {
                   <Button
                     size='sm'
                     variant='outline'
-                    className='h-8 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50'
+                    className='text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50'
                     disabled={updateMutation.isPending}
                     onClick={() =>
                       updateMutation.mutate({
@@ -334,7 +334,7 @@ function PrizeClaimsSection() {
                   <Button
                     size='sm'
                     variant='outline'
-                    className='h-8 text-xs text-rose-600 border-rose-200 hover:bg-rose-50'
+                    className='text-xs text-rose-600 border-rose-200 hover:bg-rose-50'
                     disabled={updateMutation.isPending}
                     onClick={() =>
                       updateMutation.mutate({
@@ -350,7 +350,7 @@ function PrizeClaimsSection() {
               {selectedClaim.status === 'verified' && (
                 <Button
                   size='sm'
-                  className='h-8 text-xs'
+                  className='text-xs'
                   disabled={updateMutation.isPending}
                   onClick={() =>
                     updateMutation.mutate({
@@ -391,7 +391,7 @@ export default function VotingWinnersPage() {
     <div className='space-y-xl'>
       <div className='flex items-center gap-md'>
         <Link href='/admin/voting'>
-          <Button size='sm' variant='ghost' className='h-7 px-sm text-xs'>
+          <Button size='sm' variant='ghost' className='px-sm text-xs'>
             <ArrowLeft className='me-xs size-3.5' />
             Cycles
           </Button>
@@ -407,7 +407,7 @@ export default function VotingWinnersPage() {
         <Button
           size='sm'
           variant={tab === 'winners' ? 'default' : 'ghost'}
-          className='h-8 text-xs'
+          className='text-xs'
           onClick={() => setTab('winners')}
         >
           <Trophy className='me-1.5 size-3.5' />
@@ -416,7 +416,7 @@ export default function VotingWinnersPage() {
         <Button
           size='sm'
           variant={tab === 'claims' ? 'default' : 'ghost'}
-          className='h-8 text-xs'
+          className='text-xs'
           onClick={() => setTab('claims')}
         >
           <Package className='me-1.5 size-3.5' />
@@ -434,7 +434,7 @@ export default function VotingWinnersPage() {
                 key={c._id}
                 size='sm'
                 variant={activeCycleId === c._id ? 'default' : 'outline'}
-                className='h-7 text-xs'
+                className='text-xs'
                 onClick={() => setSelectedCycleId(c._id)}
               >
                 {c.name}

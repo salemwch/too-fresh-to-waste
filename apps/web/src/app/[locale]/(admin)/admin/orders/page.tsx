@@ -445,7 +445,7 @@ function OrderDetailDrawer({
                   <Button
                     size='sm'
                     variant='outline'
-                    className='h-8 text-xs text-rose-600 border-rose-200 hover:bg-rose-50'
+                    className='text-xs text-rose-600 border-rose-200 hover:bg-rose-50'
                   >
                     <Ban className='me-1.5 size-3.5' />
                     Cancel Order
@@ -457,7 +457,7 @@ function OrderDetailDrawer({
                     <Button
                       size='sm'
                       variant='outline'
-                      className='h-8 text-xs text-sky-600 border-sky-200 hover:bg-sky-50'
+                      className='text-xs text-sky-600 border-sky-200 hover:bg-sky-50'
                     >
                       <RotateCcw className='me-1.5 size-3.5' />
                       Issue Refund
@@ -674,7 +674,7 @@ function OrdersContent() {
       render: order => (
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
+            <Button variant='ghost' size='sm' className='h-9 w-9 p-0'>
               <MoreHorizontal className='size-3.5' />
               <span className='sr-only'>Actions</span>
             </Button>

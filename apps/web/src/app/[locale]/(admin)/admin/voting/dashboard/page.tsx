@@ -62,7 +62,7 @@ export default function VotingDashboardPage() {
       <div className='p-2xl'>
         <div className='mb-lg flex items-center gap-md'>
           <Link href='/admin/voting'>
-            <Button size='sm' variant='ghost' className='h-7 px-sm text-xs'>
+            <Button size='sm' variant='ghost' className='px-sm text-xs'>
               <ArrowLeft className='me-xs size-3.5' />
               Cycles
             </Button>
@@ -88,7 +88,7 @@ export default function VotingDashboardPage() {
       <div className='mb-xl flex items-center justify-between'>
         <div className='flex items-center gap-md'>
           <Link href='/admin/voting'>
-            <Button size='sm' variant='ghost' className='h-7 px-sm text-xs'>
+            <Button size='sm' variant='ghost' className='px-sm text-xs'>
               <ArrowLeft className='me-xs size-3.5' />
               Cycles
             </Button>

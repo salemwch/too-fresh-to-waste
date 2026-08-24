@@ -141,7 +141,7 @@ export function AdminDataTable<T extends { _id?: string; id?: string }>({
               <Button
                 variant='outline'
                 size='sm'
-                className='h-7 w-7 p-0'
+                className='h-9 w-9 p-0'
                 onClick={() => onPageChange(page - 1)}
                 disabled={page <= 1}
                 aria-label='Previous page'
@@ -154,7 +154,7 @@ export function AdminDataTable<T extends { _id?: string; id?: string }>({
               <Button
                 variant='outline'
                 size='sm'
-                className='h-7 w-7 p-0'
+                className='h-9 w-9 p-0'
                 onClick={() => onPageChange(page + 1)}
                 disabled={page >= totalPages}
                 aria-label='Next page'

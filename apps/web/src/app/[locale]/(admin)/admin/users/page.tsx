@@ -365,7 +365,7 @@ export default function AdminUsersPage() {
       render: user => (
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button variant='ghost' size='sm' className='h-7 w-7 p-0'>
+            <Button variant='ghost' size='sm' className='h-9 w-9 p-0'>
               <MoreHorizontal className='size-3.5' />
               <span className='sr-only'>Actions</span>
             </Button>

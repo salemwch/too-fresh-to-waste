@@ -637,7 +637,7 @@ export default function MerchantEstablishmentPage() {
           </div>
         )}
       </div>
-      <Button type='submit' size='sm' className='h-7 text-xs px-md' disabled={isSaving}>
+      <Button type='submit' size='sm' className='text-xs px-md' disabled={isSaving}>
         {isSaving ? (
           <>
             <Loader2 className='mr-xs h-3 w-3 animate-spin' />
@@ -851,7 +851,7 @@ export default function MerchantEstablishmentPage() {
                 type='button'
                 variant='outline'
                 size='sm'
-                className='h-7 text-xs px-2.5'
+                className='text-xs px-2.5'
                 disabled={isUploadingPhotos || images.length >= MAX_TOTAL_IMAGES}
                 onClick={() => photoInputRef.current?.click()}
               >

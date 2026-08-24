@@ -401,10 +401,10 @@ function AnalyticsContent() {
                               {report.description}
                             </p>
                             <div className='flex gap-sm mt-md'>
-                              <Button size='sm' variant='outline' className='h-7 text-xs'>
+                              <Button size='sm' variant='outline' className='text-xs'>
                                 <Download className='me-xs size-3' /> CSV
                               </Button>
-                              <Button size='sm' variant='outline' className='h-7 text-xs'>
+                              <Button size='sm' variant='outline' className='text-xs'>
                                 <FileText className='me-xs size-3' /> PDF
                               </Button>
                             </div>

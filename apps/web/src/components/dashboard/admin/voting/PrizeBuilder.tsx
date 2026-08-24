@@ -205,7 +205,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
           type='button'
           variant='outline'
           onClick={addPrize}
-          className='w-full h-8 text-xs border-dashed'
+          className='w-full text-xs border-dashed'
         >
           <Plus className='size-3.5 me-1.5' />
           Add Prize
