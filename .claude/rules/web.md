@@ -32,8 +32,10 @@ these are coding-level decisions only.
 8. **Token refresh**: handled by AuthProvider (proactive 13min interval +
    reactive 401 interceptor). `performRefreshOnce()` mutex prevents concurrent
    refresh calls. Never add separate refresh logic.
-9. **Fonts**: Inter (Latin) + Noto Sans Arabic. Selected by locale direction in
-   root layout.
+9. **Fonts**: Quicksand (`font-sans`) + Comfortaa (`font-heading`), both with
+   Noto Sans Arabic in the stack so Arabic resolves per character with no locale
+   conditional. Loaded via `next/font/google` in `app/[locale]/layout.tsx`. See
+   `DESIGN.md` §3.1.
 10. **Guards show loading state**: AuthGuard and RoleGuard render skeletons
     while `isLoading=true`. Never render protected content before auth state
     resolves.

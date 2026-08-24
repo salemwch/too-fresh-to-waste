@@ -32,11 +32,18 @@ variables.
 
 ### Spacing (8pt grid)
 
+Named semantic tokens. Tailwind's numeric keys are **not** overridden - `p-4` is
+16px, as everywhere else in the ecosystem.
+
 ```
-space-0.5 = 2px  |  space-1 = 4px  |  space-2 = 8px  |  space-3 = 16px
-space-4 = 24px   |  space-5 = 32px |  space-6 = 40px  |  space-7 = 48px
-space-8 = 64px   |  space-9 = 80px |  space-10 = 96px
+p-xxs = 2px  | p-xs  = 4px  | p-sm  = 8px  | p-md  = 16px
+p-lg  = 24px | p-xl  = 32px | p-2xl = 40px | p-3xl = 48px
+p-4xl = 64px | p-5xl = 80px | p-6xl = 96px
 ```
+
+Values match `apps/mobile/src/design-system/tokens/spacing.ts`. For a value with
+no named token (6px, 10px, 14px, 44px) use the numeric key - it renders the
+Tailwind default. Guarded by `pnpm --filter @foodwaste/web check:spacing`.
 
 ### Typography
 
@@ -61,6 +68,10 @@ rounded-md = 12px | rounded-xl = 20px | rounded-2xl = 24px | rounded-full
 ```
 
 Use `var(--radius)` (maps to `rounded-lg`) for shadcn component consistency.
+
+> These are web's current values. `DESIGN.md` §6.1 unifies the radius scale onto
+> mobile's (`md` 8px, `lg` 12px, `xl` 16px, `2xl` 20px), which transposes `md`
+> and `lg`. That migration is §19-E6 and has not landed.
 
 ### Shadows
 

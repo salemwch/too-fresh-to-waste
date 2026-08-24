@@ -18,7 +18,8 @@
     "check:translations": "node scripts/check-translation-coverage.mjs",
     "check:seo": "pnpm check:canonical && pnpm check:translations",
     "check:spacing": "node scripts/spacing-snapshot.mjs",
-    "snapshot:spacing": "node scripts/spacing-snapshot.mjs --write"
+    "snapshot:spacing": "node scripts/spacing-snapshot.mjs --write",
+    "check:design": "pnpm check:spacing && pnpm check:opacity"
   },
   "dependencies": {
     "@foodwaste/shared": "workspace:*",
