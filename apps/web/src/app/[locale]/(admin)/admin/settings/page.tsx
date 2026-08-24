@@ -585,7 +585,7 @@ export default function AdminSettingsPage() {
                           <Button
                             variant='outline'
                             size='sm'
-                            className='h-6 px-sm text-xs'
+                            className='px-sm text-xs'
                             onClick={() => setRollbackDialog(ver.version)}
                           >
                             <RotateCcw className='me-xs size-3' />

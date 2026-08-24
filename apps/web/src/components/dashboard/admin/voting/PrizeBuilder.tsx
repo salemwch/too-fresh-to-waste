@@ -121,7 +121,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
                 type='button'
                 size='sm'
                 variant='outline'
-                className='h-6 w-6 p-0 border-destructive/30 text-destructive hover:bg-destructive/5'
+                className='w-6 p-0 border-destructive/30 text-destructive hover:bg-destructive/5'
                 onClick={() => removePrize(index)}
                 aria-label={`Remove prize ${index + 1}`}
               >

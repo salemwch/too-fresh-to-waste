@@ -541,7 +541,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
           <button
             type='button'
             onClick={onClose}
-            className='flex-1 h-7 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors'
+            className='flex-1 h-12 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors'
           >
             {t('merchantOffers.cancel')}
           </button>
@@ -550,7 +550,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
             disabled={!canConfirm || isPending}
             onClick={handleConfirm}
             className={cn(
-              'flex-1 h-7 rounded-lg bg-primary text-white text-[11px] font-bold transition-all',
+              'flex-1 h-12 rounded-lg bg-primary text-white text-[11px] font-bold transition-all',
               'hover:opacity-90 active:scale-[0.97]',
               'disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100',
               isPending && 'animate-pulse',

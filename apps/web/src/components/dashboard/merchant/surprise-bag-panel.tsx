@@ -576,7 +576,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   onClick={decrement}
                   disabled={quantity <= 1}
                   aria-label={t(`decreaseQuantity`)}
-                  className='flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
+                  className='flex h-12 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
                 >
                   <Minus className='h-3 w-3' />
                 </button>

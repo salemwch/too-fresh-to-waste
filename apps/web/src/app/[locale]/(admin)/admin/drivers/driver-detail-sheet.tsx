@@ -287,7 +287,7 @@ function OrderHistory({ driverId, locale }: { driverId: string; locale: string }
             <Button
               variant='outline'
               size='sm'
-              className='h-6 w-6 p-0'
+              className='w-6 p-0'
               onClick={goPrev}
               disabled={page <= 1}
               aria-label={t('detail.orders.previous')}
@@ -297,7 +297,7 @@ function OrderHistory({ driverId, locale }: { driverId: string; locale: string }
             <Button
               variant='outline'
               size='sm'
-              className='h-6 w-6 p-0'
+              className='w-6 p-0'
               onClick={goNext}
               disabled={page >= totalPages}
               aria-label={t('detail.orders.next')}

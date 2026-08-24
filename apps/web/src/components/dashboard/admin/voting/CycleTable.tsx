@@ -136,22 +136,18 @@ export function CycleTable({
               <Button
                 size='sm'
                 variant='outline'
-                className='h-6 px-sm text-[10px]'
+                className='px-sm text-[10px]'
                 onClick={() => onEdit(cycle)}
               >
                 Edit
               </Button>
-              <Button
-                size='sm'
-                className='h-6 px-sm text-[10px]'
-                onClick={() => onActivate(cycle._id)}
-              >
+              <Button size='sm' className='px-sm text-[10px]' onClick={() => onActivate(cycle._id)}>
                 Activate
               </Button>
               <Button
                 size='sm'
                 variant='outline'
-                className='h-6 px-sm text-[10px] border-destructive/40 text-destructive hover:bg-destructive/5'
+                className='px-sm text-[10px] border-destructive/40 text-destructive hover:bg-destructive/5'
                 onClick={() => onDelete(cycle._id)}
               >
                 Delete
@@ -162,7 +158,7 @@ export function CycleTable({
             <Button
               size='sm'
               variant='outline'
-              className='h-6 px-sm text-[10px]'
+              className='px-sm text-[10px]'
               onClick={() => onEdit(cycle)}
             >
               Edit
@@ -172,7 +168,7 @@ export function CycleTable({
             <Button
               size='sm'
               variant='outline'
-              className='h-6 px-sm text-[10px]'
+              className='px-sm text-[10px]'
               onClick={() => onArchive(cycle._id)}
             >
               Archive
