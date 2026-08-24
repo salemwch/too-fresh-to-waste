@@ -11,30 +11,31 @@ analysis against it.
 
 ## Remediation status
 
-Pass 1 (2026-08-24) fixed the highest-confidence foundational items. V1 was
-deliberately **not** touched.
+Pass 1 (2026-08-24) fixed the highest-confidence foundational items. Pass 2 the
+same day migrated V1; see
+[`SPACING_MIGRATION_REPORT.md`](./SPACING_MIGRATION_REPORT.md).
 
-| ID  | Status               | Note                                            |
-| --- | -------------------- | ----------------------------------------------- |
-| V1  | **OPEN**             | Deferred on purpose. Its own PR, per Part 3     |
-| V2  | **FIXED**            | body -> `bg-background text-foreground`         |
-| V3  | **FIXED**            | 7 `.dark` tokens repointed; `:root` untouched   |
-| V4  | **FIXED**            | input/textarea/select -> `text-md md:text-base` |
-| V5  | OPEN                 | Not in scope for pass 1                         |
-| V6  | OPEN                 | Not in scope for pass 1                         |
-| V7  | OPEN                 | Not in scope for pass 1                         |
-| V8  | **FIXED** (18 sites) | Count corrected from 20 - see the V8 entry      |
-| V9  | OPEN                 | Not in scope for pass 1                         |
-| V10 | OPEN                 | Not in scope for pass 1                         |
-| V11 | **FIXED**            | `ui-ux.md` fonts corrected                      |
-| V12 | **FIXED**            | `ui-ux.md` component list corrected             |
-| V13 | **FIXED**            | `ui-ux.md` `secondary` -> `#C4A25A` (2 places)  |
-| V14 | FIXED (earlier)      | `DESIGN.md` rewritten                           |
-| V15 | OPEN                 | Sequenced after V1                              |
-| V16 | OPEN                 | Not in scope for pass 1                         |
-| V17 | OPEN                 | Not in scope for pass 1                         |
-| V18 | OPEN                 | Not in scope for pass 1                         |
-| V19 | OPEN                 | Needs a brand decision                          |
+| ID  | Status               | Note                                                |
+| --- | -------------------- | --------------------------------------------------- |
+| V1  | **FIXED**            | Migrated on `chore/v1-spacing-migration`, 4 commits |
+| V2  | **FIXED**            | body -> `bg-background text-foreground`             |
+| V3  | **FIXED**            | 7 `.dark` tokens repointed; `:root` untouched       |
+| V4  | **FIXED**            | input/textarea/select -> `text-md md:text-base`     |
+| V5  | OPEN                 | Not in scope for pass 1                             |
+| V6  | OPEN                 | Not in scope for pass 1                             |
+| V7  | OPEN                 | Not in scope for pass 1                             |
+| V8  | **FIXED** (18 sites) | Count corrected from 20 - see the V8 entry          |
+| V9  | OPEN                 | Not in scope for pass 1                             |
+| V10 | OPEN                 | Not in scope for pass 1                             |
+| V11 | **FIXED**            | `ui-ux.md` fonts corrected                          |
+| V12 | **FIXED**            | `ui-ux.md` component list corrected                 |
+| V13 | **FIXED**            | `ui-ux.md` `secondary` -> `#C4A25A` (2 places)      |
+| V14 | FIXED (earlier)      | `DESIGN.md` rewritten                               |
+| V15 | OPEN                 | Sequenced after V1                                  |
+| V16 | OPEN                 | Not in scope for pass 1                             |
+| V17 | OPEN                 | Not in scope for pass 1                             |
+| V18 | OPEN                 | Not in scope for pass 1                             |
+| V19 | OPEN                 | Needs a brand decision                              |
 
 **Verification after pass 1:** `type-check` clean; `lint` clean (pre-existing
 warnings only, none on touched lines); **840/840 tests pass**; production build

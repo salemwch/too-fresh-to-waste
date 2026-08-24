@@ -1634,13 +1634,23 @@ systems accept this and rely on label, placement and focus ring as the
 affordance. **Needs a decision:** darken the input border specifically, or
 document acceptance with the compensating affordances named. Not actioned.
 
-**E5. Tailwind numeric spacing keys are overridden.** `OPEN` (P0)
-`tailwind.config.ts:142-155` overrides keys `0`-`10`, so `p-4` is 24px and
-`h-10` is 96px. The default `<Button>` renders 96px tall and `size="sm"` (80px)
-is taller than `size="lg"` (44px). **3,777 occurrences** across 8 changed keys.
-Full proof, category census and migration plan: `DESIGN_AUDIT_REPORT.md` Part 1.
-**Until this lands, §4.2's numeric-key rule describes the target, not the
-code.**
+**E5. Tailwind numeric spacing keys are overridden.** `RESOLVED 2026-08-24` The
+override of keys 0-10 is removed and replaced with the named tokens in §4.1;
+Tailwind's default n x 4px scale is restored. The default `<Button>` renders
+40px again and `sm` (36px) is no longer taller than `lg` (44px).
+
+4,223 Category A/D utilities across 140 app files were remapped to the named
+token rendering the identical pixel, so no layout moved; 801 kept their numeric
+key because no named token matches their value exactly. Categories B and C
+changed by design. 65 Button height workarounds and 12 sub-floor touch targets
+were removed as part of the same migration.
+
+Guarded going forward by `scripts/spacing-snapshot.mjs` and
+`src/__tests__/design/spacing-scale.test.ts`. Full detail, including seven
+unresolved visual cases, in
+[`SPACING_MIGRATION_REPORT.md`](./SPACING_MIGRATION_REPORT.md).
+
+**§4.2 now describes the code**, not a target.
 
 **E6. Web and mobile radius scales are transposed.** `PLANNED` Web has `md` 12 /
 `lg` 8; mobile has `md` 8 / `lg` 12. §6.1 adopts the mobile scale as canonical.
