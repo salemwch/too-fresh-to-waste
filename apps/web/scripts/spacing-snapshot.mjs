@@ -41,7 +41,19 @@ const REPO = join(ROOT, '..', '..');
 const BASELINE = join(ROOT, 'scripts', 'spacing-baseline.json');
 
 const SCAN = [join(ROOT, 'src'), join(REPO, 'packages', 'ui', 'src')];
-const SKIP_DIRS = new Set(['node_modules', '.next', 'dist', 'coverage', '.turbo', 'build']);
+/*
+ * 'visual-harness' is the Playwright screenshot scaffold, not product UI. Its
+ * spacing is a fixture, so it does not belong in the product baseline.
+ */
+const SKIP_DIRS = new Set([
+  'node_modules',
+  '.next',
+  'dist',
+  'coverage',
+  '.turbo',
+  'build',
+  'visual-harness',
+]);
 
 /* ------------------------------------------------------------------ scale -- */
 

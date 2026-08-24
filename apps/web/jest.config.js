@@ -13,6 +13,13 @@ const customConfig = {
   displayName: 'web',
 
   /*
+   * Playwright specs live in tests/visual and import @playwright/test, which is
+   * not a Jest runner. Without this Jest collects them and every suite fails to
+   * run - the two frameworks share the .spec.ts suffix.
+   */
+  testPathIgnorePatterns: ['<rootDir>/tests/visual/', '<rootDir>/node_modules/', '<rootDir>/.next/'],
+
+  /*
    * Coverage floor, not a coverage target.
    *
    * The shared base sets 70% globally. Web collects coverage from all of
