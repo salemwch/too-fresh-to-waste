@@ -16,7 +16,9 @@
     "fix:opacity": "node scripts/check-opacity-scale.mjs --fix",
     "check:canonical": "node scripts/check-canonical-tags.mjs",
     "check:translations": "node scripts/check-translation-coverage.mjs",
-    "check:seo": "pnpm check:canonical && pnpm check:translations"
+    "check:seo": "pnpm check:canonical && pnpm check:translations",
+    "check:spacing": "node scripts/spacing-snapshot.mjs",
+    "snapshot:spacing": "node scripts/spacing-snapshot.mjs --write"
   },
   "dependencies": {
     "@foodwaste/shared": "workspace:*",
