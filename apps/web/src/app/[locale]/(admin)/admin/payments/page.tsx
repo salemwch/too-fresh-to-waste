@@ -32,9 +32,9 @@ function PaymentMethodsCard({
 
   return (
     <Card className='border-border/60'>
-      <CardContent className='p-5'>
-        <h3 className='text-sm font-semibold mb-4'>{t('methodsBreakdown')}</h3>
-        <div className='space-y-3'>
+      <CardContent className='p-xl'>
+        <h3 className='text-sm font-semibold mb-lg'>{t('methodsBreakdown')}</h3>
+        <div className='space-y-md'>
           {methods.map(m => {
             const pct = totalCount > 0 ? (m.count / totalCount) * 100 : 0;
             return (
@@ -58,7 +58,7 @@ function PaymentMethodsCard({
             );
           })}
           {methods.length === 0 && (
-            <p className='text-xs text-muted-foreground text-center py-4'>{t('noMethodData')}</p>
+            <p className='text-xs text-muted-foreground text-center py-lg'>{t('noMethodData')}</p>
           )}
         </div>
       </CardContent>
@@ -161,7 +161,7 @@ function PaymentsContent() {
       render: p => (
         <span
           className={cn(
-            'inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold',
+            'inline-flex rounded-full border px-sm py-xxs text-[10px] font-semibold',
             'bg-muted text-muted-foreground',
           )}
         >
@@ -172,7 +172,7 @@ function PaymentsContent() {
   ];
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       <AdminModuleHeader title={t('title')} subtitle={t('subtitle')} />
 
       <AdminKpiRow items={kpis} loading={statsLoading} />
@@ -180,13 +180,13 @@ function PaymentsContent() {
       <Card className='border-border/60'>
         <CardContent className='p-0'>
           <AdminTabNav tabs={tabs} />
-          <div className='p-4'>
+          <div className='p-lg'>
             {currentTab === 'overview' && (
-              <div className='grid grid-cols-1 lg:grid-cols-2 gap-5'>
+              <div className='grid grid-cols-1 lg:grid-cols-2 gap-xl'>
                 <Card className='border-border/60'>
-                  <CardContent className='p-5'>
-                    <h3 className='text-sm font-semibold mb-4'>{t('overview.summary')}</h3>
-                    <div className='space-y-3'>
+                  <CardContent className='p-xl'>
+                    <h3 className='text-sm font-semibold mb-lg'>{t('overview.summary')}</h3>
+                    <div className='space-y-md'>
                       {[
                         {
                           label: t('overview.totalPayments'),
@@ -249,9 +249,9 @@ export default function AdminPaymentsPage() {
   return (
     <Suspense
       fallback={
-        <div className='space-y-5'>
+        <div className='space-y-xl'>
           <Skeleton className='h-16 rounded-lg' />
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-md'>
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className='h-24 rounded-lg' />
             ))}

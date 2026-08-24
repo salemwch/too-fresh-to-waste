@@ -118,28 +118,28 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
       <div className='min-h-screen bg-brand-cream text-brand-deep'>
         {/* ── HERO ──────────────────────────────────────────────────── */}
         <section className='relative'>
-          <div className='mx-auto w-full max-w-[1400px] px-8 py-14 md:py-20 grid gap-12 md:grid-cols-12 items-center'>
+          <div className='mx-auto w-full max-w-[1400px] px-4xl py-14 md:py-5xl grid gap-3xl md:grid-cols-12 items-center'>
             <div className='md:col-span-7'>
-              <p className='mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/75'>
+              <p className='mb-2xl flex items-center gap-md text-xs uppercase tracking-[0.25em] text-brand-deep/75'>
                 {t('hero.eyebrow')}
               </p>
               <h1 className='font-heading text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
                 {t('hero.titleStart')}
                 <span className='italic text-brand-green'> {t('hero.titleEm')}</span>.
               </h1>
-              <p className='mt-8 max-w-xl text-lg leading-relaxed text-brand-deep/75'>
+              <p className='mt-4xl max-w-xl text-lg leading-relaxed text-brand-deep/75'>
                 {t('hero.lede')}
               </p>
-              <div className='mt-10 flex flex-wrap gap-4'>
+              <div className='mt-6xl flex flex-wrap gap-lg'>
                 <Link
                   href='/partner-kit'
-                  className='rounded-full bg-brand-deep px-7 py-3.5 text-sm text-brand-cream hover:bg-brand-green transition-all'
+                  className='rounded-full bg-brand-deep px-3xl py-3.5 text-sm text-brand-cream hover:bg-brand-green transition-all'
                 >
                   {t('hero.ctaKit')}
                 </Link>
                 <Link
                   href='/contact'
-                  className='rounded-full border border-brand-deep/30 px-7 py-3.5 text-sm hover:border-brand-green hover:text-brand-green transition-colors'
+                  className='rounded-full border border-brand-deep/30 px-3xl py-3.5 text-sm hover:border-brand-green hover:text-brand-green transition-colors'
                 >
                   {t('hero.ctaContact')}
                 </Link>
@@ -147,21 +147,21 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
             </div>
 
             <div className='md:col-span-5'>
-              <div className='grid grid-cols-2 gap-3'>
+              <div className='grid grid-cols-2 gap-md'>
                 {impactStats.slice(0, 4).map((s, i) => (
                   <div
                     key={s.value}
-                    className='bg-white/60 border border-brand-deep/10 rounded-sm p-5 hover:bg-brand-green/10 transition-colors'
+                    className='bg-white/60 border border-brand-deep/10 rounded-sm p-xl hover:bg-brand-green/10 transition-colors'
                   >
                     <p className='font-heading text-4xl font-light text-brand-deep leading-none'>
                       {s.value}
                     </p>
-                    <p className='mt-3 text-xs leading-relaxed text-brand-deep/70'>{s.label}</p>
+                    <p className='mt-md text-xs leading-relaxed text-brand-deep/70'>{s.label}</p>
                     <a
                       href={IMPACT_SOURCES[i] ?? IMPACT_SOURCES[0]}
                       target='_blank'
                       rel='noopener noreferrer'
-                      className='mt-2 block text-[10px] uppercase tracking-wider text-brand-green hover:underline'
+                      className='mt-sm block text-[10px] uppercase tracking-wider text-brand-green hover:underline'
                     >
                       {s.source}
                     </a>
@@ -172,12 +172,12 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
           </div>
 
           {/* Ticker */}
-          <div className='border-y border-brand-deep/15 bg-brand-deep py-2 text-brand-cream overflow-hidden'>
-            <div className='flex w-max animate-marquee-fw gap-12 whitespace-nowrap'>
+          <div className='border-y border-brand-deep/15 bg-brand-deep py-sm text-brand-cream overflow-hidden'>
+            <div className='flex w-max animate-marquee-fw gap-3xl whitespace-nowrap'>
               {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className='flex items-center gap-12 font-heading text-2xl italic'>
+                <div key={i} className='flex items-center gap-3xl font-heading text-2xl italic'>
                   {ticker.map(line => (
-                    <span key={line} className='flex items-center gap-12'>
+                    <span key={line} className='flex items-center gap-3xl'>
                       {line}
                       <span className='text-secondary-light'>●</span>
                     </span>
@@ -189,17 +189,17 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
         </section>
 
         {/* ── THE PROBLEM ───────────────────────────────────────────── */}
-        <section className='mx-auto w-full max-w-[1400px] px-8 py-12 md:py-16'>
-          <div className='grid gap-8 md:grid-cols-12 mb-10'>
+        <section className='mx-auto w-full max-w-[1400px] px-4xl py-3xl md:py-4xl'>
+          <div className='grid gap-4xl md:grid-cols-12 mb-6xl'>
             <div className='md:col-span-4'>
               <p className='text-xs uppercase tracking-[0.25em] text-brand-green'>
                 {t('problem.eyebrow')}
               </p>
-              <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
+              <h2 className='mt-md font-heading text-5xl font-light md:text-6xl'>
                 {t('problem.titleStart')} <em>{t('problem.titleEm')}</em>.
               </h2>
             </div>
-            <div className='md:col-span-7 md:col-start-6 space-y-5 text-brand-deep/75 leading-relaxed'>
+            <div className='md:col-span-7 md:col-start-6 space-y-xl text-brand-deep/75 leading-relaxed'>
               <p className='text-lg'>
                 {t.rich('problem.p1', {
                   b: chunks => <strong className='text-brand-deep'>{chunks}</strong>,
@@ -226,11 +226,11 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
         </section>
 
         {/* ── HOW IT WORKS ──────────────────────────────────────────── */}
-        <section className='bg-brand-deep text-brand-cream py-12 md:py-16'>
-          <div className='mx-auto w-full max-w-[1400px] px-8'>
-            <div className='mb-10 grid gap-8 md:grid-cols-12'>
+        <section className='bg-brand-deep text-brand-cream py-3xl md:py-4xl'>
+          <div className='mx-auto w-full max-w-[1400px] px-4xl'>
+            <div className='mb-6xl grid gap-4xl md:grid-cols-12'>
               <div className='md:col-span-5'>
-                <p className='text-xs uppercase tracking-[0.25em] text-secondary-light mb-3'>
+                <p className='text-xs uppercase tracking-[0.25em] text-secondary-light mb-md'>
                   {t('solution.eyebrow')}
                 </p>
                 <h2 className='font-heading text-5xl font-light md:text-6xl'>
@@ -247,14 +247,14 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               {howItWorks.map(step => (
                 <article
                   key={step.n}
-                  className='grid gap-6 border-t border-brand-cream/15 py-5 md:grid-cols-12 group'
+                  className='grid gap-2xl border-t border-brand-cream/15 py-xl md:grid-cols-12 group'
                 >
                   <p className='md:col-span-2 font-heading text-5xl font-light text-secondary-light'>
                     {step.n}
                   </p>
                   <div className='md:col-span-9'>
                     <h3 className='font-heading text-3xl md:text-4xl'>{step.title}</h3>
-                    <p className='mt-3 text-brand-cream/70 leading-relaxed max-w-2xl'>
+                    <p className='mt-md text-brand-cream/70 leading-relaxed max-w-2xl'>
                       {step.body}
                     </p>
                   </div>
@@ -265,12 +265,12 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
         </section>
 
         {/* ── BENEFITS ──────────────────────────────────────────────── */}
-        <section className='mx-auto w-full max-w-[1400px] px-8 py-12 md:py-16'>
-          <div className='mb-10'>
+        <section className='mx-auto w-full max-w-[1400px] px-4xl py-3xl md:py-4xl'>
+          <div className='mb-6xl'>
             <p className='text-xs uppercase tracking-[0.25em] text-brand-green'>
               {t('benefits.eyebrow')}
             </p>
-            <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
+            <h2 className='mt-md font-heading text-5xl font-light md:text-6xl'>
               What partners <em>actually get</em>.
             </h2>
           </div>
@@ -278,26 +278,26 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
             {benefits.map((b, i) => (
               <div
                 key={i}
-                className='bg-brand-cream p-8 hover:bg-brand-green/10 transition-colors group'
+                className='bg-brand-cream p-4xl hover:bg-brand-green/10 transition-colors group'
               >
                 <span className='text-3xl'>{BENEFIT_ICONS[i] ?? BENEFIT_ICONS[0]}</span>
-                <h3 className='mt-5 font-heading text-2xl'>{b.title}</h3>
-                <div className='mt-4 h-px w-10 bg-brand-deep/30 group-hover:bg-brand-deep transition-colors' />
-                <p className='mt-5 text-sm leading-relaxed text-brand-deep/70'>{b.body}</p>
+                <h3 className='mt-xl font-heading text-2xl'>{b.title}</h3>
+                <div className='mt-lg h-px w-10 bg-brand-deep/30 group-hover:bg-brand-deep transition-colors' />
+                <p className='mt-xl text-sm leading-relaxed text-brand-deep/70'>{b.body}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* ── WHY NOW ───────────────────────────────────────────────── */}
-        <section className='bg-white/40 py-12 md:py-16'>
-          <div className='mx-auto w-full max-w-[1400px] px-8'>
-            <div className='mb-10 grid gap-8 md:grid-cols-12'>
+        <section className='bg-white/40 py-3xl md:py-4xl'>
+          <div className='mx-auto w-full max-w-[1400px] px-4xl'>
+            <div className='mb-6xl grid gap-4xl md:grid-cols-12'>
               <div className='md:col-span-4'>
                 <p className='text-xs uppercase tracking-[0.25em] text-brand-green'>
                   {t('whyNow.eyebrow')}
                 </p>
-                <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
+                <h2 className='mt-md font-heading text-5xl font-light md:text-6xl'>
                   {t('whyNow.title')}
                 </h2>
               </div>
@@ -310,18 +310,18 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
               {whyNow.map((w, i) => (
                 <div
                   key={w.stat}
-                  className='bg-brand-cream p-8 hover:bg-brand-green/10 transition-colors'
+                  className='bg-brand-cream p-4xl hover:bg-brand-green/10 transition-colors'
                 >
                   <p className='font-heading text-5xl font-light text-brand-deep leading-none'>
                     {w.stat}
                   </p>
-                  <div className='mt-5 h-px w-12 bg-brand-deep/30' />
-                  <p className='mt-5 leading-relaxed text-brand-deep/75'>{w.label}</p>
+                  <div className='mt-xl h-px w-12 bg-brand-deep/30' />
+                  <p className='mt-xl leading-relaxed text-brand-deep/75'>{w.label}</p>
                   <a
                     href={WHY_NOW_SOURCES[i] ?? WHY_NOW_SOURCES[0]}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='mt-4 block text-[11px] uppercase tracking-wider text-brand-green hover:underline'
+                    className='mt-lg block text-[11px] uppercase tracking-wider text-brand-green hover:underline'
                   >
                     {w.source}
                   </a>
@@ -332,37 +332,37 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
         </section>
 
         {/* ── WHY TFTW ──────────────────────────────────────────────── */}
-        <section className='mx-auto w-full max-w-[1400px] px-8 py-12 md:py-16'>
-          <div className='grid gap-10 md:grid-cols-12 items-start'>
+        <section className='mx-auto w-full max-w-[1400px] px-4xl py-3xl md:py-4xl'>
+          <div className='grid gap-6xl md:grid-cols-12 items-start'>
             <div className='md:col-span-5'>
               <p className='text-xs uppercase tracking-[0.25em] text-brand-green'>
                 {t('whyUs.eyebrow')}
               </p>
-              <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
+              <h2 className='mt-md font-heading text-5xl font-light md:text-6xl'>
                 {t('whyUs.titleStart')} <em>{t('whyUs.titleEm')}</em>
                 {t('whyUs.titleEnd')}
               </h2>
-              <p className='mt-6 text-lg leading-relaxed text-brand-deep/75'>{t('whyUs.lede')}</p>
-              <div className='mt-8'>
+              <p className='mt-2xl text-lg leading-relaxed text-brand-deep/75'>{t('whyUs.lede')}</p>
+              <div className='mt-4xl'>
                 <Link
                   href='/partner-kit'
-                  className='inline-block rounded-full bg-brand-green text-white px-7 py-3.5 text-sm font-medium hover:bg-brand-deep transition-all'
+                  className='inline-block rounded-full bg-brand-green text-white px-3xl py-3.5 text-sm font-medium hover:bg-brand-deep transition-all'
                 >
                   {t('whyUs.cta')}
                 </Link>
               </div>
             </div>
 
-            <div className='md:col-span-6 md:col-start-7 grid gap-4'>
+            <div className='md:col-span-6 md:col-start-7 grid gap-lg'>
               {whyUsPoints.map(item => (
                 <div
                   key={item.title}
-                  className='flex gap-5 border-b border-brand-deep/10 pb-4 last:border-0'
+                  className='flex gap-xl border-b border-brand-deep/10 pb-lg last:border-0'
                 >
-                  <span className='mt-1 size-1.5 shrink-0 rounded-full bg-brand-green' />
+                  <span className='mt-xs size-1.5 shrink-0 rounded-full bg-brand-green' />
                   <div>
                     <p className='font-semibold text-sm'>{item.title}</p>
-                    <p className='text-sm leading-relaxed text-brand-deep/65 mt-0.5'>{item.body}</p>
+                    <p className='text-sm leading-relaxed text-brand-deep/65 mt-xxs'>{item.body}</p>
                   </div>
                 </div>
               ))}
@@ -371,11 +371,11 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
         </section>
 
         {/* ── FOUNDING PARTNERS ─────────────────────────────────────── */}
-        <section className='bg-brand-deep text-brand-cream py-12 md:py-16'>
-          <div className='mx-auto w-full max-w-[1400px] px-8'>
-            <div className='mb-10 grid gap-6 md:grid-cols-12'>
+        <section className='bg-brand-deep text-brand-cream py-3xl md:py-4xl'>
+          <div className='mx-auto w-full max-w-[1400px] px-4xl'>
+            <div className='mb-6xl grid gap-2xl md:grid-cols-12'>
               <div className='md:col-span-5'>
-                <p className='text-xs uppercase tracking-[0.25em] text-secondary-light mb-3'>
+                <p className='text-xs uppercase tracking-[0.25em] text-secondary-light mb-md'>
                   {t('founding.eyebrow')}
                 </p>
                 <h2 className='font-heading text-5xl font-light md:text-6xl'>
@@ -390,14 +390,14 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
 
             <div className='grid gap-px bg-brand-cream/15 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden rounded-sm'>
               {FOUNDING_PARTNERS.map((name, i) => (
-                <div key={name} className='p-8 hover:bg-brand-cream/10 transition-colors'>
-                  <div className='size-12 rounded-full bg-secondary-light/20 flex items-center justify-center mb-6'>
+                <div key={name} className='p-4xl hover:bg-brand-cream/10 transition-colors'>
+                  <div className='size-12 rounded-full bg-secondary-light/20 flex items-center justify-center mb-2xl'>
                     <span className='font-heading text-xl text-secondary-light'>
                       {name.charAt(0)}
                     </span>
                   </div>
                   <h3 className='font-heading text-3xl'>{name}</h3>
-                  <p className='mt-2 text-sm text-brand-cream/75'>{foundingCategories[i]}</p>
+                  <p className='mt-sm text-sm text-brand-cream/75'>{foundingCategories[i]}</p>
                 </div>
               ))}
             </div>
@@ -405,31 +405,31 @@ export default async function PartnersPage({ params }: PartnersPageProps) {
         </section>
 
         {/* ── CTA ───────────────────────────────────────────────────── */}
-        <section className='mx-auto w-full max-w-[1400px] px-8 py-16 md:py-24 text-center'>
-          <p className='text-xs uppercase tracking-[0.25em] text-brand-green mb-5'>
+        <section className='mx-auto w-full max-w-[1400px] px-4xl py-4xl md:py-6xl text-center'>
+          <p className='text-xs uppercase tracking-[0.25em] text-brand-green mb-xl'>
             {t('cta.eyebrow')}
           </p>
           <h2 className='font-heading text-5xl font-light md:text-7xl text-balance max-w-3xl mx-auto'>
             {t('cta.titleStart')} <em>{t('cta.titleEm')}</em>.
           </h2>
-          <p className='mt-6 text-lg text-brand-deep/75 max-w-xl mx-auto leading-relaxed'>
+          <p className='mt-2xl text-lg text-brand-deep/75 max-w-xl mx-auto leading-relaxed'>
             {t('cta.lede')}
           </p>
-          <div className='mt-10 flex flex-wrap justify-center gap-4'>
+          <div className='mt-6xl flex flex-wrap justify-center gap-lg'>
             <Link
               href='/partner-kit'
-              className='rounded-full bg-brand-deep px-8 py-4 text-sm text-brand-cream hover:bg-brand-green transition-all font-medium'
+              className='rounded-full bg-brand-deep px-4xl py-lg text-sm text-brand-cream hover:bg-brand-green transition-all font-medium'
             >
               {t('cta.ctaKit')}
             </Link>
             <Link
               href='/contact'
-              className='rounded-full border border-brand-deep/30 px-8 py-4 text-sm hover:border-brand-green hover:text-brand-green transition-colors'
+              className='rounded-full border border-brand-deep/30 px-4xl py-lg text-sm hover:border-brand-green hover:text-brand-green transition-colors'
             >
               {t('cta.ctaContact')}
             </Link>
           </div>
-          <p className='mt-8 text-xs text-brand-deep/75'>{t('cta.footnote')}</p>
+          <p className='mt-4xl text-xs text-brand-deep/75'>{t('cta.footnote')}</p>
         </section>
       </div>
     </>

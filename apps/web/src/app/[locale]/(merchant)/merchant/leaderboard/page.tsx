@@ -61,18 +61,18 @@ function PrivacyChoiceDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className='grid gap-3 pt-2'>
+        <div className='grid gap-md pt-sm'>
           <button
             onClick={() => onChoose(false)}
             disabled={isPending}
-            className='flex items-center gap-4 p-4 rounded-xl border border-primary-500/10 hover:border-primary-500/30 hover:bg-primary-500/[0.03] transition-colors text-left disabled:opacity-50'
+            className='flex items-center gap-lg p-lg rounded-xl border border-primary-500/10 hover:border-primary-500/30 hover:bg-primary-500/[0.03] transition-colors text-left disabled:opacity-50'
           >
             <div className='h-10 w-10 rounded-full bg-primary-500/10 grid place-items-center shrink-0'>
               <Eye size={18} className='text-primary-500' />
             </div>
             <div>
               <div className='text-sm font-semibold text-primary-500'>Use my name & photo</div>
-              <div className='text-xs text-primary-500/50 mt-0.5'>
+              <div className='text-xs text-primary-500/50 mt-xxs'>
                 Your real name and profile image will be visible
               </div>
             </div>
@@ -81,14 +81,14 @@ function PrivacyChoiceDialog({
           <button
             onClick={() => onChoose(true)}
             disabled={isPending}
-            className='flex items-center gap-4 p-4 rounded-xl border border-primary-500/10 hover:border-primary-500/30 hover:bg-primary-500/[0.03] transition-colors text-left disabled:opacity-50'
+            className='flex items-center gap-lg p-lg rounded-xl border border-primary-500/10 hover:border-primary-500/30 hover:bg-primary-500/[0.03] transition-colors text-left disabled:opacity-50'
           >
             <div className='h-10 w-10 rounded-full bg-primary-500/10 grid place-items-center shrink-0'>
               <EyeOff size={18} className='text-primary-500' />
             </div>
             <div>
               <div className='text-sm font-semibold text-primary-500'>Stay anonymous</div>
-              <div className='text-xs text-primary-500/50 mt-0.5'>
+              <div className='text-xs text-primary-500/50 mt-xxs'>
                 You&apos;ll appear as &ldquo;Anonymous&rdquo; with a default avatar
               </div>
             </div>
@@ -141,7 +141,7 @@ function LeaderboardRow({
         <div className='text-[13px] font-medium text-primary-500 truncate'>
           {entry.displayName}
           {isMe && (
-            <span className='ml-2 text-[10px] text-brand-coral font-semibold uppercase tracking-wide'>
+            <span className='ml-sm text-[10px] text-brand-coral font-semibold uppercase tracking-wide'>
               You
             </span>
           )}
@@ -220,10 +220,10 @@ export default function LeaderboardPage() {
 
       <div className='space-y-[28px]'>
         {/* Header */}
-        <div className='flex items-start justify-between gap-4 flex-wrap'>
+        <div className='flex items-start justify-between gap-lg flex-wrap'>
           <div>
             <h1 className='font-display text-3xl text-primary-500'>Leaderboard</h1>
-            <p className='text-primary-500/60 text-sm mt-1'>
+            <p className='text-primary-500/60 text-sm mt-xs'>
               Merchants ranked by meals saved (confirmed paid orders).
             </p>
           </div>
@@ -234,24 +234,24 @@ export default function LeaderboardPage() {
         {myRank > 0 && (
           <div className='glass rounded-2xl p-[24px] shadow-soft flex items-center gap-[24px] flex-wrap'>
             <div className='flex-1 min-w-[160px]'>
-              <div className='text-[10px] uppercase tracking-wider text-primary-500/60 mb-1'>
+              <div className='text-[10px] uppercase tracking-wider text-primary-500/60 mb-xs'>
                 Your Rank
               </div>
               <div className='font-display text-5xl text-brand-coral tabular-nums'>#{myRank}</div>
-              <div className='text-xs text-primary-500/50 mt-1'>
+              <div className='text-xs text-primary-500/50 mt-xs'>
                 of {totalParticipants} establishments
               </div>
             </div>
 
             <div className='flex-1 min-w-[120px]'>
-              <div className='text-[10px] uppercase tracking-wider text-primary-500/60 mb-1'>
+              <div className='text-[10px] uppercase tracking-wider text-primary-500/60 mb-xs'>
                 Meals Saved
               </div>
               <div className='font-display text-4xl text-primary-500 tabular-nums'>{myMeals}</div>
             </div>
 
             <div className='flex-1 min-w-[120px]'>
-              <div className='text-[10px] uppercase tracking-wider text-primary-500/60 mb-2'>
+              <div className='text-[10px] uppercase tracking-wider text-primary-500/60 mb-sm'>
                 Percentile
               </div>
               <div className='h-[6px] w-full rounded-full bg-primary-500/[0.08] overflow-hidden'>
@@ -262,14 +262,14 @@ export default function LeaderboardPage() {
                   transition={{ duration: 1.2, ease: 'easeOut' }}
                 />
               </div>
-              <div className='text-xs text-primary-500/60 mt-1'>Top {100 - myPercentile + 1}%</div>
+              <div className='text-xs text-primary-500/60 mt-xs'>Top {100 - myPercentile + 1}%</div>
             </div>
           </div>
         )}
 
         {/* Leaderboard list */}
         <div className='glass rounded-2xl shadow-soft overflow-hidden'>
-          <div className='flex items-center gap-2 px-[20px] py-[16px] border-b border-primary-500/[0.06]'>
+          <div className='flex items-center gap-sm px-[20px] py-[16px] border-b border-primary-500/[0.06]'>
             <Trophy size={16} className='text-brand-coral' />
             <span className='text-[13px] font-semibold text-primary-500'>Top Merchants</span>
           </div>
@@ -300,10 +300,10 @@ export default function LeaderboardPage() {
               })}
 
               {hasMore && (
-                <div className='flex justify-center pt-3 pb-1'>
+                <div className='flex justify-center pt-md pb-xs'>
                   <button
                     onClick={() => setVisibleCount(c => c + 15)}
-                    className='text-[13px] font-medium text-primary-500/60 hover:text-primary-500 px-5 py-2 rounded-xl hover:bg-primary-500/[0.04] transition-colors'
+                    className='text-[13px] font-medium text-primary-500/60 hover:text-primary-500 px-xl py-sm rounded-xl hover:bg-primary-500/[0.04] transition-colors'
                   >
                     Load more
                   </button>
@@ -312,7 +312,7 @@ export default function LeaderboardPage() {
             </div>
           ) : (
             <div className='flex flex-col items-center justify-center py-[48px] text-center px-[24px]'>
-              <Trophy size={32} className='text-primary-500/20 mb-3' />
+              <Trophy size={32} className='text-primary-500/20 mb-md' />
               <p className='text-primary-500/50 text-sm'>No rankings yet. Be the first!</p>
             </div>
           )}

@@ -349,11 +349,11 @@ function MerchantSignupInner() {
 
   // ── "Check Your Inbox" UI (replaces form after successful registration) ──
   const renderCheckInbox = () => (
-    <div className='flex flex-col items-center text-center space-y-5'>
+    <div className='flex flex-col items-center text-center space-y-xl'>
       <div className='flex h-20 w-20 items-center justify-center rounded-full bg-green-100'>
         <MailCheck className='h-10 w-10 text-green-600' />
       </div>
-      <div className='space-y-2'>
+      <div className='space-y-sm'>
         <h2
           className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
           style={{ fontFamily: 'var(--font-serif)' }}
@@ -371,12 +371,12 @@ function MerchantSignupInner() {
         onClick={handleResend}
         disabled={isResending || cooldown > 0}
       >
-        {isResending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+        {isResending && <Loader2 className='mr-sm h-4 w-4 animate-spin' />}
         {cooldown > 0 ? t('resendCooldown', { seconds: cooldown }) : t('resendEmail')}
       </Button>
       {resendFeedback && (
         <div
-          className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2.5 text-sm ${
+          className={`flex w-full items-center gap-sm rounded-lg border px-md py-2.5 text-sm ${
             resendFeedback.type === 'success'
               ? 'border-green-200 bg-green-50 text-green-700'
               : 'border-destructive/30 bg-destructive/5 text-destructive'
@@ -398,7 +398,7 @@ function MerchantSignupInner() {
 
   // ── Step indicator ──
   const renderStepIndicator = () => (
-    <div className='flex items-center gap-2'>
+    <div className='flex items-center gap-sm'>
       {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
         <div
           key={i}
@@ -415,10 +415,10 @@ function MerchantSignupInner() {
     switch (step) {
       case 1:
         return (
-          <div className='space-y-4 sm:space-y-5'>
+          <div className='space-y-lg sm:space-y-xl'>
             <div>
               <h2
-                className='flex items-center gap-2 text-xl font-bold text-black sm:text-2xl lg:text-3xl'
+                className='flex items-center gap-sm text-xl font-bold text-black sm:text-2xl lg:text-3xl'
                 style={{ fontFamily: 'var(--font-serif)' }}
               >
                 {t('step1Title')}
@@ -430,7 +430,7 @@ function MerchantSignupInner() {
                   className='h-3 w-3 shrink-0 sm:h-4 sm:w-4'
                 />
               </h2>
-              <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
+              <p className='mt-xs text-sm text-muted-foreground sm:text-base'>
                 {t('step1Description')}
               </p>
             </div>
@@ -475,7 +475,7 @@ function MerchantSignupInner() {
           o => o.value === formData.establishmentType,
         );
         return (
-          <div className='space-y-5 sm:space-y-6'>
+          <div className='space-y-xl sm:space-y-2xl'>
             <div>
               <h2
                 className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
@@ -483,12 +483,12 @@ function MerchantSignupInner() {
               >
                 {t('step2TypeTitle')}
               </h2>
-              <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
+              <p className='mt-xs text-sm text-muted-foreground sm:text-base'>
                 {t('step2TypeDescription')}
               </p>
             </div>
 
-            <div className='space-y-4'>
+            <div className='space-y-lg'>
               <p className='text-sm font-semibold text-foreground'>{t('businessDetailsLabel')}</p>
 
               <div className='space-y-1.5'>
@@ -500,7 +500,7 @@ function MerchantSignupInner() {
                     id='businessType'
                     type='button'
                     onClick={() => setTypeDropdownOpen(v => !v)}
-                    className={`flex h-12 w-full items-center justify-between rounded-xl border bg-background px-4 text-sm transition-colors hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                    className={`flex h-12 w-full items-center justify-between rounded-xl border bg-background px-lg text-sm transition-colors hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
                       typeDropdownOpen ? 'border-primary ring-2 ring-primary/20' : 'border-input'
                     }`}
                   >
@@ -532,7 +532,7 @@ function MerchantSignupInner() {
                               updateField('establishmentType', value);
                               setTypeDropdownOpen(false);
                             }}
-                            className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/50 ${
+                            className={`flex w-full items-center gap-md px-lg py-md text-sm transition-colors hover:bg-muted/50 ${
                               isSelected
                                 ? 'bg-primary/5 font-medium text-primary'
                                 : 'text-foreground'
@@ -549,10 +549,10 @@ function MerchantSignupInner() {
               </div>
             </div>
 
-            <div className='flex gap-3 pt-1'>
+            <div className='flex gap-md pt-xs'>
               <Button
                 variant='outline'
-                className='h-12 rounded-xl px-4 text-sm font-semibold'
+                className='h-12 rounded-xl px-lg text-sm font-semibold'
                 onClick={handleBack}
               >
                 <ArrowLeft className='h-4 w-4' />
@@ -571,7 +571,7 @@ function MerchantSignupInner() {
 
       case 3:
         return (
-          <div className='space-y-4 sm:space-y-5'>
+          <div className='space-y-lg sm:space-y-xl'>
             <div>
               <h2
                 className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
@@ -579,20 +579,20 @@ function MerchantSignupInner() {
               >
                 {t('step2Title')}
               </h2>
-              <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
+              <p className='mt-xs text-sm text-muted-foreground sm:text-base'>
                 {t('step2Description')}
               </p>
             </div>
 
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Label htmlFor='email'>{t('emailLabel')}</Label>
               <div className='relative'>
-                <Mail className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                <Mail className='absolute left-3.5 top-xs/2 h-4 w-4 -translate-y-xs/2 text-muted-foreground' />
                 <Input
                   id='email'
                   type='email'
                   placeholder={t('emailPlaceholder')}
-                  className={`h-11 rounded-xl border-input bg-secondary/50 pl-10 text-sm sm:h-12 ${emailError ? 'border-destructive' : ''}`}
+                  className={`h-11 rounded-xl border-input bg-secondary/50 pl-6xl text-sm sm:h-12 ${emailError ? 'border-destructive' : ''}`}
                   value={formData.email}
                   onChange={e => {
                     setEmailError('');
@@ -603,20 +603,20 @@ function MerchantSignupInner() {
                 />
               </div>
               {emailError && (
-                <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+                <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
                   <AlertCircle className='h-4 w-4 shrink-0' />
                   <span>{emailError}</span>
                 </div>
               )}
             </div>
 
-            <div className='flex gap-3'>
+            <div className='flex gap-md'>
               <Button
                 variant='outline'
                 className='h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12'
                 onClick={handleBack}
               >
-                <ArrowLeft className='mr-2 h-4 w-4' />
+                <ArrowLeft className='mr-sm h-4 w-4' />
                 {t('back')}
               </Button>
               <Button
@@ -632,7 +632,7 @@ function MerchantSignupInner() {
 
       case 4:
         return (
-          <div className='space-y-4 sm:space-y-5'>
+          <div className='space-y-lg sm:space-y-xl'>
             <div>
               <h2
                 className='text-xl font-bold text-black sm:text-2xl lg:text-3xl'
@@ -640,17 +640,17 @@ function MerchantSignupInner() {
               >
                 {t('step3Title')}
               </h2>
-              <p className='mt-1 text-sm text-muted-foreground sm:text-base'>
+              <p className='mt-xs text-sm text-muted-foreground sm:text-base'>
                 {t('step3Description')}
               </p>
             </div>
 
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Label htmlFor='phone'>{t('phoneLabel')}</Label>
               <div
                 className={`flex h-11 overflow-hidden rounded-xl border bg-secondary/50 sm:h-12 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${phoneError ? 'border-destructive' : 'border-input'}`}
               >
-                <span className='flex items-center border-e border-input bg-muted px-3 text-sm font-medium text-muted-foreground select-none'>
+                <span className='flex items-center border-e border-input bg-muted px-md text-sm font-medium text-muted-foreground select-none'>
                   +216
                 </span>
                 <input
@@ -658,7 +658,7 @@ function MerchantSignupInner() {
                   type='tel'
                   inputMode='numeric'
                   placeholder='XX XXX XXX'
-                  className='flex-1 bg-transparent px-3 text-sm outline-none'
+                  className='flex-1 bg-transparent px-md text-sm outline-none'
                   value={formData.phone}
                   onChange={e => {
                     const digits = e.target.value.replace(/\D/g, '');
@@ -670,22 +670,22 @@ function MerchantSignupInner() {
                 />
               </div>
               {phoneError && (
-                <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+                <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
                   <AlertCircle className='h-4 w-4 shrink-0' />
                   <span>{phoneError}</span>
                 </div>
               )}
             </div>
 
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Label htmlFor='password'>{t('passwordLabel')}</Label>
               <div className='relative'>
-                <Lock className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
+                <Lock className='absolute left-3.5 top-xs/2 h-4 w-4 -translate-y-xs/2 text-muted-foreground pointer-events-none' />
                 <Input
                   id='password'
                   type={showPassword ? 'text' : 'password'}
                   placeholder={t('passwordPlaceholder')}
-                  className='h-11 rounded-xl border-input bg-secondary/50 pl-7 pr-10 text-sm sm:h-12'
+                  className='h-11 rounded-xl border-input bg-secondary/50 pl-3xl pr-6xl text-sm sm:h-12'
                   value={formData.password}
                   onChange={e => updateField('password', e.target.value)}
                   maxLength={PASSWORD_MAX_LENGTH}
@@ -694,7 +694,7 @@ function MerchantSignupInner() {
                 <button
                   type='button'
                   onClick={() => setShowPassword(v => !v)}
-                  className='absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
+                  className='absolute right-3.5 top-xs/2 -translate-y-xs/2 text-muted-foreground hover:text-foreground'
                 >
                   {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                 </button>
@@ -703,19 +703,19 @@ function MerchantSignupInner() {
             </div>
 
             {submitError && (
-              <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+              <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
                 <AlertCircle className='h-4 w-4 shrink-0' />
                 <span>{submitError}</span>
               </div>
             )}
 
-            <div className='flex gap-3'>
+            <div className='flex gap-md'>
               <Button
                 variant='outline'
                 className='h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12'
                 onClick={handleBack}
               >
-                <ArrowLeft className='mr-2 h-4 w-4' />
+                <ArrowLeft className='mr-sm h-4 w-4' />
                 {t('back')}
               </Button>
               <Button
@@ -739,7 +739,7 @@ function MerchantSignupInner() {
       {/* ================================================================
           LEFT HERO SECTION (unchanged)
           ================================================================ */}
-      <div className='relative flex flex-[1.1] flex-col justify-between px-5 py-3 sm:py-6 sm:px-8 lg:flex-1 lg:p-12'>
+      <div className='relative flex flex-[1.1] flex-col justify-between px-xl py-md sm:py-2xl sm:px-4xl lg:flex-1 lg:p-3xl'>
         <Image
           src='/images/hero-bg.jpg'
           alt=''
@@ -751,9 +751,9 @@ function MerchantSignupInner() {
         />
         <div className='absolute inset-0 bg-[hsl(174,72%,17%)] opacity-85' />
 
-        <div className='relative z-10 flex h-full flex-col justify-between gap-2 sm:gap-5 lg:gap-8'>
+        <div className='relative z-10 flex h-full flex-col justify-between gap-sm sm:gap-xl lg:gap-4xl'>
           {/* Logo */}
-          <Link href='/' className='flex items-center gap-2 transition-opacity hover:opacity-80'>
+          <Link href='/' className='flex items-center gap-sm transition-opacity hover:opacity-80'>
             <Image
               src='/images/image.svg'
               alt='Too Fresh To Waste'
@@ -768,16 +768,16 @@ function MerchantSignupInner() {
 
           {/* Main hero content */}
           <div className='flex max-w-xl flex-1 flex-col justify-center'>
-            <span className='mb-1 inline-block w-fit rounded-full bg-white/15 px-3 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-4 sm:px-5 sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
+            <span className='mb-xs inline-block w-fit rounded-full bg-white/15 px-md py-xs text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-lg sm:px-xl sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
               {t('heroBadge')}
             </span>
             <h1
-              className='mb-1 text-xl font-bold leading-[1.2] text-white sm:mb-2 sm:text-2xl lg:mb-3 lg:text-4xl'
+              className='mb-xs text-xl font-bold leading-[1.2] text-white sm:mb-sm sm:text-2xl lg:mb-md lg:text-4xl'
               style={{ fontFamily: 'var(--font-serif)' }}
             >
               {t('heroTitle')}
             </h1>
-            <p className='mb-1 text-xs leading-snug text-white/75 sm:mb-4 sm:text-sm sm:leading-relaxed lg:mb-6 lg:text-lg'>
+            <p className='mb-xs text-xs leading-snug text-white/75 sm:mb-lg sm:text-sm sm:leading-relaxed lg:mb-2xl lg:text-lg'>
               {t('heroTitleAccent')}
             </p>
             <p className='hidden text-white/60 sm:block sm:text-xs lg:text-base'>
@@ -786,8 +786,8 @@ function MerchantSignupInner() {
           </div>
 
           {/* Stats */}
-          <div className='space-y-2 sm:space-y-4 lg:space-y-8'>
-            <div className='flex gap-2 sm:gap-3'>
+          <div className='space-y-sm sm:space-y-lg lg:space-y-4xl'>
+            <div className='flex gap-sm sm:gap-md'>
               {[
                 { value: '34%', label: t('statRevenue'), Icon: TrendingUp },
                 { value: '2+', label: t('statStores'), Icon: Store },
@@ -795,7 +795,7 @@ function MerchantSignupInner() {
               ].map(stat => (
                 <div
                   key={stat.label}
-                  className='flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2 py-2 backdrop-blur-md sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 lg:gap-3 lg:rounded-2xl lg:px-5 lg:py-4'
+                  className='flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-sm py-sm backdrop-blur-md sm:gap-sm sm:rounded-xl sm:px-md sm:py-md lg:gap-md lg:rounded-2xl lg:px-xl lg:py-lg'
                 >
                   <stat.Icon className='h-3.5 w-3.5 shrink-0 text-white/70 sm:h-4 sm:w-4 lg:h-5 lg:w-5' />
                   <div className='min-w-0'>
@@ -814,11 +814,11 @@ function MerchantSignupInner() {
             </div>
 
             {/* Testimonial */}
-            <div className='border-t border-white/15 pt-2 sm:pt-4'>
+            <div className='border-t border-white/15 pt-sm sm:pt-lg'>
               <p className='text-[10px] italic leading-relaxed text-white/70 sm:text-xs lg:text-sm'>
                 &ldquo;{t('testimonialQuote')}&rdquo;
               </p>
-              <p className='mt-1 text-[9px] font-medium text-white/50 sm:text-[10px] lg:text-xs'>
+              <p className='mt-xs text-[9px] font-medium text-white/50 sm:text-[10px] lg:text-xs'>
                 {t('testimonialAuthor')}
               </p>
             </div>
@@ -829,8 +829,8 @@ function MerchantSignupInner() {
       {/* ================================================================
           RIGHT FORM SECTION — Multi-step
           ================================================================ */}
-      <div className='flex flex-1 flex-col items-center justify-center bg-background px-5 py-6 sm:p-8 lg:p-16'>
-        <div className='w-full max-w-md space-y-4 sm:space-y-6 lg:space-y-8'>
+      <div className='flex flex-1 flex-col items-center justify-center bg-background px-xl py-2xl sm:p-4xl lg:p-4xl'>
+        <div className='w-full max-w-md space-y-lg sm:space-y-2xl lg:space-y-4xl'>
           {registeredEmail ? (
             /* ── "Check Your Inbox" replaces the form ── */
             renderCheckInbox()
@@ -840,7 +840,7 @@ function MerchantSignupInner() {
               <button
                 type='button'
                 onClick={() => (step === 1 ? router.back() : handleBack())}
-                className='flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground'
+                className='flex items-center gap-xs text-muted-foreground transition-colors hover:text-foreground'
                 aria-label='Go back'
               >
                 <ChevronLeft className='h-5 w-5' />

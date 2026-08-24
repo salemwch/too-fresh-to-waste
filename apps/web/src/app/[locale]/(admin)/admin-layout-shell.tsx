@@ -30,7 +30,7 @@ function AdminHeader({ navGroups }: { navGroups: NavGroup[] }) {
   const t = useTranslations('dashboard');
 
   return (
-    <header className='shrink-0 z-40 bg-white border-b border-slate-100 px-3 lg:px-5 py-1 lg:py-2 flex items-center justify-between gap-2'>
+    <header className='shrink-0 z-40 bg-white border-b border-slate-100 px-md lg:px-xl py-xs lg:py-sm flex items-center justify-between gap-sm'>
       <div className='flex items-center gap-1.5'>
         <AdminMobileNav groups={navGroups} />
         <div className='hidden sm:block'>
@@ -38,13 +38,13 @@ function AdminHeader({ navGroups }: { navGroups: NavGroup[] }) {
         </div>
       </div>
 
-      <div className='flex-1 max-w-sm mx-2 hidden md:block'>
+      <div className='flex-1 max-w-sm mx-sm hidden md:block'>
         <div className='relative group'>
-          <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-primary-500' />
+          <Search className='absolute left-2.5 top-xs/2 -translate-y-xs/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-primary-500' />
           <input
             type='text'
             placeholder={t('search')}
-            className='w-full bg-slate-50 border border-slate-200 rounded-md pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all'
+            className='w-full bg-slate-50 border border-slate-200 rounded-md pl-4xl pr-md py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all'
           />
         </div>
       </div>
@@ -52,7 +52,7 @@ function AdminHeader({ navGroups }: { navGroups: NavGroup[] }) {
       <div className='flex items-center gap-1.5'>
         <LanguageSwitcherCompact className='w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-100 transition-colors text-slate-600' />
         <NotificationBell />
-        <div className='hidden sm:flex items-center pl-2 border-l border-slate-200'>
+        <div className='hidden sm:flex items-center pl-sm border-l border-slate-200'>
           <UserNav />
         </div>
       </div>
@@ -86,7 +86,7 @@ export function AdminLayoutShell({ children, collapsedGroups }: AdminLayoutShell
 
           <div className='flex flex-1 flex-col min-w-0'>
             <AdminHeader navGroups={navGroups} />
-            <main className='flex-1 overflow-y-auto overscroll-contain min-h-0 p-4 lg:p-6'>
+            <main className='flex-1 overflow-y-auto overscroll-contain min-h-0 p-lg lg:p-2xl'>
               {/* Withheld while the redirect above runs, so a forbidden page never
                   paints — and never fires its data hooks into a wall of 403s. */}
               {isAllowed ? children : null}

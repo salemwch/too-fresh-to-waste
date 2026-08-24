@@ -101,7 +101,7 @@ export function CycleTable({
         const pct = seasonProgressPercent(cycle.seasonBagProgress, cycle.seasonBagTarget);
         return (
           <div className='min-w-[120px]'>
-            <div className='flex items-center gap-1 text-xs'>
+            <div className='flex items-center gap-xs text-xs'>
               <Target className='size-3 shrink-0 text-muted-foreground' />
               <span className='tabular-nums'>
                 {formatCount(locale, cycle.seasonBagProgress)} /{' '}
@@ -109,7 +109,7 @@ export function CycleTable({
               </span>
               {pct !== null && <span className='text-[10px] text-muted-foreground'>({pct}%)</span>}
             </div>
-            <div className='mt-1 h-1 w-full overflow-hidden rounded-full bg-muted'>
+            <div className='mt-xs h-1 w-full overflow-hidden rounded-full bg-muted'>
               <div
                 className='h-full rounded-full bg-primary transition-all'
                 style={{ width: `${pct ?? 0}%` }}
@@ -136,14 +136,14 @@ export function CycleTable({
               <Button
                 size='sm'
                 variant='outline'
-                className='h-6 px-2 text-[10px]'
+                className='h-6 px-sm text-[10px]'
                 onClick={() => onEdit(cycle)}
               >
                 Edit
               </Button>
               <Button
                 size='sm'
-                className='h-6 px-2 text-[10px]'
+                className='h-6 px-sm text-[10px]'
                 onClick={() => onActivate(cycle._id)}
               >
                 Activate
@@ -151,7 +151,7 @@ export function CycleTable({
               <Button
                 size='sm'
                 variant='outline'
-                className='h-6 px-2 text-[10px] border-destructive/40 text-destructive hover:bg-destructive/5'
+                className='h-6 px-sm text-[10px] border-destructive/40 text-destructive hover:bg-destructive/5'
                 onClick={() => onDelete(cycle._id)}
               >
                 Delete
@@ -162,7 +162,7 @@ export function CycleTable({
             <Button
               size='sm'
               variant='outline'
-              className='h-6 px-2 text-[10px]'
+              className='h-6 px-sm text-[10px]'
               onClick={() => onEdit(cycle)}
             >
               Edit
@@ -172,7 +172,7 @@ export function CycleTable({
             <Button
               size='sm'
               variant='outline'
-              className='h-6 px-2 text-[10px]'
+              className='h-6 px-sm text-[10px]'
               onClick={() => onArchive(cycle._id)}
             >
               Archive

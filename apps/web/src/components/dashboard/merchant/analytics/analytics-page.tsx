@@ -120,12 +120,12 @@ function PeriodFilter({
   };
 
   return (
-    <div className='flex items-center gap-2 text-xs'>
+    <div className='flex items-center gap-sm text-xs'>
       {PERIODS.map(p => (
         <button
           key={p}
           onClick={() => onChange(p)}
-          className={`px-3 py-1.5 rounded-full transition-colors ${
+          className={`px-md py-1.5 rounded-full transition-colors ${
             active === p
               ? 'bg-primary-500 text-white'
               : 'text-primary-500/60 hover:text-primary-500'
@@ -162,14 +162,14 @@ function KpiCard({ title, value, unit, trend, changePercent, icon: Icon, index }
       transition={{ delay: 0.1 + index * 0.06, duration: 0.5, ease: 'easeOut' }}
       className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden group'
     >
-      <div className='absolute -top-10 -right-10 h-32 w-32 rounded-full bg-brand-coral/10 blur-2xl group-hover:bg-brand-coral/20 transition-colors pointer-events-none' />
+      <div className='absolute -top-6xl -right-6xl h-32 w-32 rounded-full bg-brand-coral/10 blur-2xl group-hover:bg-brand-coral/20 transition-colors pointer-events-none' />
 
       <div className='relative flex items-start justify-between mb-[16px]'>
         <div className='h-11 w-11 rounded-xl bg-primary-500/[0.08] grid place-items-center text-primary-500'>
           <Icon size={20} />
         </div>
         {changePercent !== undefined && (
-          <div className={`flex items-center gap-1 text-[11px] font-medium ${trendColor}`}>
+          <div className={`flex items-center gap-xs text-[11px] font-medium ${trendColor}`}>
             <TrendIcon size={12} />
             {Math.abs(changePercent).toFixed(1)}%
           </div>
@@ -177,7 +177,7 @@ function KpiCard({ title, value, unit, trend, changePercent, icon: Icon, index }
       </div>
 
       <div className='relative'>
-        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-2'>{title}</div>
+        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-sm'>{title}</div>
         <div className='flex items-baseline gap-1.5'>
           <span className='font-display text-3xl text-primary-500 tracking-tight'>{value}</span>
           {unit && <span className='text-sm text-primary-500/60 font-medium'>{unit}</span>}
@@ -266,13 +266,13 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
 function RevenueTooltip({ active, payload, label, t }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className='glass rounded-xl px-[16px] py-3 shadow-elegant'>
+    <div className='glass rounded-xl px-[16px] py-md shadow-elegant'>
       <div className='text-[10px] uppercase tracking-wider text-primary-500/60'>{label}</div>
       <div className='font-display text-xl text-primary-500'>
         {(payload[0].value ?? 0).toFixed(2)} TND
       </div>
       {payload[0].payload?.orderCount !== undefined && (
-        <div className='text-[11px] font-medium text-brand-coral mt-1'>
+        <div className='text-[11px] font-medium text-brand-coral mt-xs'>
           {t('revenueChart.tooltip.orders')}: {payload[0].payload.orderCount}
         </div>
       )}
@@ -300,7 +300,7 @@ function RevenueChart({
       className='glass rounded-2xl p-[24px] shadow-soft'
     >
       <div className='mb-[24px]'>
-        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-1'>
+        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-xs'>
           {t('revenueChart.subtitle')}
         </div>
         <h3 className='font-display text-2xl text-primary-500'>{t('revenueChart.title')}</h3>
@@ -311,7 +311,7 @@ function RevenueChart({
           {t('noData')}
         </div>
       ) : (
-        <div className='h-64 -ms-2'>
+        <div className='h-64 -ms-sm'>
           <ResponsiveContainer width='100%' height='100%' minWidth={0} minHeight={0}>
             <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
@@ -378,7 +378,7 @@ function OrdersChart({
       className='glass rounded-2xl p-[24px] shadow-soft'
     >
       <div className='mb-[24px]'>
-        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-1'>
+        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-xs'>
           {t('ordersChart.subtitle')}
         </div>
         <h3 className='font-display text-2xl text-primary-500'>{t('ordersChart.title')}</h3>
@@ -389,7 +389,7 @@ function OrdersChart({
           {t('noData')}
         </div>
       ) : (
-        <div className='h-64 -ms-2'>
+        <div className='h-64 -ms-sm'>
           <ResponsiveContainer width='100%' height='100%' minWidth={0} minHeight={0}>
             <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <XAxis
@@ -435,10 +435,10 @@ function CustomerLocations({
   if (isLoading) {
     return (
       <div className='glass rounded-2xl p-[24px] shadow-soft'>
-        <div className='h-6 w-40 rounded bg-white/30 animate-pulse mb-2' />
+        <div className='h-6 w-40 rounded bg-white/30 animate-pulse mb-sm' />
         <div className='h-4 w-60 rounded bg-white/30 animate-pulse mb-[24px]' />
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className='h-10 rounded bg-white/30 animate-pulse mb-3' />
+          <div key={i} className='h-10 rounded bg-white/30 animate-pulse mb-md' />
         ))}
       </div>
     );
@@ -453,7 +453,7 @@ function CustomerLocations({
       transition={{ delay: 0.2, duration: 0.5, ease: 'easeOut' }}
       className='glass rounded-2xl p-[24px] shadow-soft'
     >
-      <div className='flex items-center gap-3 mb-[24px]'>
+      <div className='flex items-center gap-md mb-[24px]'>
         <div className='h-11 w-11 rounded-xl bg-primary-500/[0.08] grid place-items-center text-primary-500'>
           <MapPin size={20} />
         </div>
@@ -464,7 +464,7 @@ function CustomerLocations({
       </div>
 
       {locations.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+        <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
           <MapPin size={32} className='text-primary-500/30' />
           <p className='text-sm text-primary-500/60'>{t('customerLocations.noData')}</p>
         </div>
@@ -479,7 +479,7 @@ function CustomerLocations({
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 + i * 0.06, duration: 0.4 }}
-                className='flex items-center gap-3'
+                className='flex items-center gap-md'
               >
                 <span className='text-xs font-semibold text-primary-500/40 w-5 text-end'>
                   {i + 1}
@@ -489,7 +489,7 @@ function CustomerLocations({
                     <span className='text-sm font-medium text-primary-500 truncate'>
                       {loc.city}
                     </span>
-                    <span className='text-xs text-primary-500/60 ms-2'>
+                    <span className='text-xs text-primary-500/60 ms-sm'>
                       {loc.count} {t('customerLocations.orders')}
                     </span>
                   </div>
@@ -567,7 +567,7 @@ function SustainabilityPanel({
       className='glass rounded-2xl p-[24px] shadow-soft'
     >
       <div className='mb-[24px]'>
-        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-1'>
+        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-xs'>
           {t('sustainability.subtitle')}
         </div>
         <h3 className='font-display text-2xl text-primary-500'>{t('sustainability.title')}</h3>
@@ -582,7 +582,7 @@ function SustainabilityPanel({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + i * 0.06, duration: 0.4 }}
-              className='flex items-center gap-3 rounded-xl bg-primary-500/[0.04] p-[16px] group'
+              className='flex items-center gap-md rounded-xl bg-primary-500/[0.04] p-[16px] group'
             >
               <div className='h-11 w-11 rounded-xl bg-primary-500/[0.08] grid place-items-center text-primary-500 group-hover:bg-brand-coral/10 transition-colors'>
                 <Icon size={20} />
@@ -591,7 +591,7 @@ function SustainabilityPanel({
                 <div className='text-xs uppercase tracking-wider text-primary-500/60'>
                   {m.label}
                 </div>
-                <div className='flex items-baseline gap-1'>
+                <div className='flex items-baseline gap-xs'>
                   <span className='font-display text-2xl text-primary-500'>{m.value}</span>
                   <span className='text-sm text-primary-500/60 font-medium'>{m.unit}</span>
                 </div>
@@ -611,7 +611,7 @@ function ErrorState({ message }: { message: string }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className='flex items-center gap-3 rounded-xl bg-brand-coral/10 border border-brand-coral/20 p-[16px]'
+      className='flex items-center gap-md rounded-xl bg-brand-coral/10 border border-brand-coral/20 p-[16px]'
     >
       <AlertCircle size={18} className='text-brand-coral shrink-0' />
       <p className='text-sm text-brand-coral'>{message}</p>
@@ -648,12 +648,12 @@ export function AnalyticsPage() {
       {/* Header */}
       <div className='flex flex-col sm:flex-row sm:items-start justify-between gap-[16px]'>
         <div>
-          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
+          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-sm'>
             {t('subtitle')}
           </div>
           <h1 className='font-display text-3xl md:text-4xl text-primary-500'>{t('title')}</h1>
         </div>
-        <div className='flex items-center gap-3 flex-wrap'>
+        <div className='flex items-center gap-md flex-wrap'>
           {showLocationSwitcher && <LocationSwitcher />}
           <PeriodFilter active={period} onChange={setPeriod} t={t} />
         </div>

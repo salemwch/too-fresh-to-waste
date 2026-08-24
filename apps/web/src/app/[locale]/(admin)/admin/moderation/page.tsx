@@ -200,7 +200,7 @@ export default function AdminModerationPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='w-36'>
             <DropdownMenuItem onClick={() => setSelectedReportId(report._id)}>
-              <Eye className='me-2 size-3.5' />
+              <Eye className='me-sm size-3.5' />
               {t('actions.view')}
             </DropdownMenuItem>
             {(report.status === 'pending' || report.status === 'in_review') && (
@@ -241,15 +241,15 @@ export default function AdminModerationPage() {
   ];
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       {/* Header */}
       <div>
         <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-        <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+        <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
       </div>
 
       {/* Stats */}
-      <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
+      <div className='grid grid-cols-2 gap-md sm:grid-cols-4'>
         <AdminStatCard
           label={t('stats.totalReports')}
           value={stats?.totalReports ?? '—'}
@@ -286,8 +286,8 @@ export default function AdminModerationPage() {
       </div>
 
       {/* Tabs + Table */}
-      <div className='space-y-3'>
-        <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+      <div className='space-y-md'>
+        <div className='flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between'>
           <Tabs
             value={activeTab}
             onValueChange={v => {
@@ -297,7 +297,7 @@ export default function AdminModerationPage() {
           >
             <TabsList className='h-8'>
               {STATUS_TABS.map(tab => (
-                <TabsTrigger key={tab} value={tab} className='h-6 px-3 text-xs'>
+                <TabsTrigger key={tab} value={tab} className='h-6 px-md text-xs'>
                   {t(`tabs.${tab === 'in_review' ? 'inReview' : tab}` as Parameters<typeof t>[0])}
                 </TabsTrigger>
               ))}
@@ -338,14 +338,14 @@ export default function AdminModerationPage() {
       <Sheet open={!!selectedReportId} onOpenChange={open => !open && setSelectedReportId(null)}>
         <SheetContent className='w-full overflow-y-auto sm:max-w-lg'>
           {loadingDetail ? (
-            <div className='p-6 space-y-4'>
+            <div className='p-2xl space-y-lg'>
               <div className='h-6 w-48 bg-muted animate-pulse rounded' />
               <div className='h-4 w-32 bg-muted animate-pulse rounded' />
             </div>
           ) : reportDetail ? (
-            <div className='space-y-6 py-6'>
+            <div className='space-y-2xl py-2xl'>
               <SheetHeader>
-                <div className='flex items-center gap-2'>
+                <div className='flex items-center gap-sm'>
                   {(() => {
                     const Icon = REPORT_TYPE_ICONS[reportDetail.type] ?? Flag;
                     return <Icon className='size-5 text-muted-foreground' />;
@@ -354,7 +354,7 @@ export default function AdminModerationPage() {
                     <SheetTitle className='text-base capitalize'>
                       {reportDetail.type} Report
                     </SheetTitle>
-                    <div className='mt-1 flex gap-1.5'>
+                    <div className='mt-xs flex gap-1.5'>
                       <StatusBadge status={reportDetail.status} variant='report' />
                       <StatusBadge status={reportDetail.priority} variant='priority' />
                     </div>
@@ -364,7 +364,7 @@ export default function AdminModerationPage() {
 
               <Separator />
 
-              <div className='space-y-3 text-sm'>
+              <div className='space-y-md text-sm'>
                 {[
                   { label: t('detail.reason'), value: reportDetail.reason.replace(/_/g, ' ') },
                   { label: t('detail.description'), value: reportDetail.description },
@@ -383,7 +383,7 @@ export default function AdminModerationPage() {
                     : []),
                 ].map(row => (
                   <div key={row.label}>
-                    <p className='mb-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
+                    <p className='mb-xxs text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
                       {row.label}
                     </p>
                     <p className='text-xs capitalize'>{row.value}</p>
@@ -406,10 +406,10 @@ export default function AdminModerationPage() {
               {(reportDetail.status === 'pending' || reportDetail.status === 'in_review') && (
                 <>
                   <Separator />
-                  <div className='space-y-3'>
+                  <div className='space-y-md'>
                     <p className='text-xs font-semibold'>{t('detail.takeAction')}</p>
-                    <div className='grid grid-cols-2 gap-2'>
-                      <div className='space-y-1'>
+                    <div className='grid grid-cols-2 gap-sm'>
+                      <div className='space-y-xs'>
                         <Label className='text-xs'>{t('detail.actionType')}</Label>
                         <Select
                           value={actionForm.actionType}
@@ -429,7 +429,7 @@ export default function AdminModerationPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className='space-y-1'>
+                      <div className='space-y-xs'>
                         <Label className='text-xs'>{t('detail.severity')}</Label>
                         <Select
                           value={actionForm.severity}
@@ -449,7 +449,7 @@ export default function AdminModerationPage() {
                         </Select>
                       </div>
                     </div>
-                    <div className='space-y-1'>
+                    <div className='space-y-xs'>
                       <Label className='text-xs'>{t('detail.resolutionNotes')}</Label>
                       <textarea
                         value={actionForm.notes}
@@ -458,10 +458,10 @@ export default function AdminModerationPage() {
                         }
                         placeholder={t('detail.resolutionPlaceholder')}
                         rows={3}
-                        className='w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                        className='w-full resize-none rounded-md border border-input bg-background px-md py-sm text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                       />
                     </div>
-                    <div className='flex gap-2'>
+                    <div className='flex gap-sm'>
                       <Button
                         size='sm'
                         className='flex-1 bg-rose-600 hover:bg-rose-700'

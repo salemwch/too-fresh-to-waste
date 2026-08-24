@@ -18,13 +18,13 @@ export default function Section3Animated() {
   const t = useTranslations('section3');
 
   return (
-    <section id='features' className='bg-[#f9f3f0] md:pb-12' aria-labelledby='features-heading'>
+    <section id='features' className='bg-[#f9f3f0] md:pb-3xl' aria-labelledby='features-heading'>
       <div className='container mx-auto max-w-7xl'>
         {/* Title Section */}
-        <div className='text-center mb-1'>
+        <div className='text-center mb-xs'>
           <h2
             id='features-heading'
-            className='text-primary-500 text-3xl md:text-4xl lg:text-5xl mb-2'
+            className='text-primary-500 text-3xl md:text-4xl lg:text-5xl mb-sm'
             style={{ fontWeight: 900 }}
           >
             {t('titleLine1')}
@@ -38,7 +38,7 @@ export default function Section3Animated() {
         </div>
 
         {/* Desktop: Bag with Left and Right Text - Grid Layout */}
-        <div className='hidden xl:grid grid-cols-3 gap-x-16 lg:gap-x-24 gap-y-4 lg:gap-y-6 pb-8 items-center justify-items-center max-w-[1400px] mx-auto'>
+        <div className='hidden xl:grid grid-cols-3 gap-x-4xl lg:gap-x-6xl gap-y-lg lg:gap-y-2xl pb-4xl items-center justify-items-center max-w-[1400px] mx-auto'>
           {/* Row 1, Col 1: Enjoy Good Food - 75% OFF */}
           <div className='flex flex-col items-end text-right w-[320px] self-end'>
             <Image
@@ -46,7 +46,7 @@ export default function Section3Animated() {
               alt='Low Price'
               width={60}
               height={60}
-              className='mb-3'
+              className='mb-md'
               loading='lazy'
             />
             <p
@@ -77,7 +77,7 @@ export default function Section3Animated() {
               alt='Help Others'
               width={60}
               height={60}
-              className='mb-3'
+              className='mb-md'
               loading='lazy'
             />
             <p
@@ -94,7 +94,7 @@ export default function Section3Animated() {
                 the Big Prize, and a wrapped present read as a giveaway. Drawn
                 rather than a raster asset so it stays sharp at any density. */}
             <Trophy
-              className='text-secondary mb-3 h-[60px] w-[60px]'
+              className='text-secondary mb-md h-[60px] w-[60px]'
               strokeWidth={1.5}
               aria-hidden='true'
             />
@@ -113,7 +113,7 @@ export default function Section3Animated() {
               alt='Help Planet'
               width={60}
               height={60}
-              className='mb-3'
+              className='mb-md'
               loading='lazy'
             />
             <p
@@ -126,17 +126,17 @@ export default function Section3Animated() {
         </div>
 
         {/* Mobile & Tablet: Icons and Text Above Bag */}
-        <div className='xl:hidden flex flex-col items-center px-4 md:px-8 lg:px-12'>
+        <div className='xl:hidden flex flex-col items-center px-lg md:px-4xl lg:px-3xl'>
           {/* Icons and Text Grid - 2 columns */}
-          <div className='grid grid-cols-2 gap-x-4 gap-y-6 md:gap-x-6 md:gap-y-8 lg:gap-x-10 lg:gap-y-10 mb-8 w-full max-w-md md:max-w-lg lg:max-w-2xl'>
+          <div className='grid grid-cols-2 gap-x-lg gap-y-2xl md:gap-x-2xl md:gap-y-4xl lg:gap-x-6xl lg:gap-y-6xl mb-4xl w-full max-w-md md:max-w-lg lg:max-w-2xl'>
             {/* 1. Enjoy Good Food - 75% OFF */}
-            <div className='flex flex-col items-center text-center px-2'>
+            <div className='flex flex-col items-center text-center px-sm'>
               <Image
                 src='/images/low-price.png'
                 alt='Low Price'
                 width={50}
                 height={50}
-                className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'
+                className='mb-sm md:w-14 md:h-14 lg:w-16 lg:h-16'
                 loading='lazy'
               />
               <p
@@ -148,13 +148,13 @@ export default function Section3Animated() {
             </div>
 
             {/* 2. Help Others Live */}
-            <div className='flex flex-col items-center text-center px-2'>
+            <div className='flex flex-col items-center text-center px-sm'>
               <Image
                 src='/icons/share.png'
                 alt='Help Others'
                 width={50}
                 height={50}
-                className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'
+                className='mb-sm md:w-14 md:h-14 lg:w-16 lg:h-16'
                 loading='lazy'
               />
               <p
@@ -166,9 +166,9 @@ export default function Section3Animated() {
             </div>
 
             {/* 3. Get Rewards */}
-            <div className='flex flex-col items-center text-center px-2'>
+            <div className='flex flex-col items-center text-center px-sm'>
               <Trophy
-                className='text-secondary mb-2 h-12 w-12'
+                className='text-secondary mb-sm h-12 w-12'
                 strokeWidth={1.5}
                 aria-hidden='true'
               />
@@ -181,13 +181,13 @@ export default function Section3Animated() {
             </div>
 
             {/* 4. Help the Planet */}
-            <div className='flex flex-col items-center text-center px-2'>
+            <div className='flex flex-col items-center text-center px-sm'>
               <Image
                 src='/images/help.png'
                 alt='Help Planet'
                 width={50}
                 height={50}
-                className='mb-2 md:w-14 md:h-14 lg:w-16 lg:h-16'
+                className='mb-sm md:w-14 md:h-14 lg:w-16 lg:h-16'
                 loading='lazy'
               />
               <p

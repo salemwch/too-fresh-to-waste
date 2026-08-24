@@ -94,7 +94,7 @@ export default function TeamManagementPage() {
   const { data: members, isLoading } = useTeamMembers(params);
 
   return (
-    <div className='space-y-6 p-6'>
+    <div className='space-y-2xl p-2xl'>
       {/* Header */}
       <div className='flex items-center justify-between'>
         <div>
@@ -105,7 +105,7 @@ export default function TeamManagementPage() {
       </div>
 
       {/* Filters */}
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-sm'>
         <Input
           placeholder={t('searchPlaceholder')}
           value={search}
@@ -131,7 +131,7 @@ export default function TeamManagementPage() {
         <EmptyState />
       ) : (
         <div className='rounded-md border'>
-          <div className='grid grid-cols-[1fr_120px_180px_120px_80px] gap-4 p-3 border-b bg-muted/50 text-xs font-medium text-muted-foreground'>
+          <div className='grid grid-cols-[1fr_120px_180px_120px_80px] gap-lg p-md border-b bg-muted/50 text-xs font-medium text-muted-foreground'>
             <span>Member</span>
             <span>{t('role')}</span>
             <span>{t('permissions')}</span>
@@ -165,9 +165,9 @@ function MemberRow({ member }: { member: TeamMemberRow }) {
 
   return (
     <>
-      <div className='grid grid-cols-[1fr_120px_180px_120px_80px] gap-4 p-3 border-b last:border-0 items-center'>
+      <div className='grid grid-cols-[1fr_120px_180px_120px_80px] gap-lg p-md border-b last:border-0 items-center'>
         {/* Name & email */}
-        <div className='flex items-center gap-3 min-w-0'>
+        <div className='flex items-center gap-md min-w-0'>
           <Avatar className='size-8 shrink-0'>
             <AvatarFallback className='text-xs'>{initials}</AvatarFallback>
           </Avatar>
@@ -183,9 +183,9 @@ function MemberRow({ member }: { member: TeamMemberRow }) {
         <div>
           <Badge variant={member.role === 'admin' ? 'default' : 'secondary'} className='capitalize'>
             {member.role === 'admin' ? (
-              <ShieldCheck className='size-3 me-1' />
+              <ShieldCheck className='size-3 me-xs' />
             ) : (
-              <Shield className='size-3 me-1' />
+              <Shield className='size-3 me-xs' />
             )}
             {t(member.role)}
           </Badge>
@@ -211,15 +211,15 @@ function MemberRow({ member }: { member: TeamMemberRow }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>
               <DropdownMenuItem onClick={() => setPermissionsOpen(true)}>
-                <Key className='size-4 me-2' />
+                <Key className='size-4 me-sm' />
                 {t('editPermissions')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleChangeRole}>
-                <ArrowUpDown className='size-4 me-2' />
+                <ArrowUpDown className='size-4 me-sm' />
                 {t('changeRole')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setRemoveOpen(true)} className='text-destructive'>
-                <Trash2 className='size-4 me-2' />
+                <Trash2 className='size-4 me-sm' />
                 {t('remove')}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -284,9 +284,9 @@ function PermissionsSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className='overflow-y-auto'>
         <SheetTitle>{t('permissionsDialog.title')}</SheetTitle>
-        <p className='text-sm text-muted-foreground mb-4'>{t('permissionsDialog.desc')}</p>
+        <p className='text-sm text-muted-foreground mb-lg'>{t('permissionsDialog.desc')}</p>
 
-        <div className='flex gap-2 mb-4'>
+        <div className='flex gap-sm mb-lg'>
           <Button variant='outline' size='sm' onClick={() => setSelected(new Set(allPerms))}>
             {t('permissionsDialog.selectAll')}
           </Button>
@@ -295,15 +295,15 @@ function PermissionsSheet({
           </Button>
         </div>
 
-        <div className='space-y-4'>
+        <div className='space-y-lg'>
           {Object.entries(PERMISSION_GROUPS).map(([group, perms]) => (
             <div key={group}>
-              <h4 className='text-sm font-medium mb-2 capitalize'>
+              <h4 className='text-sm font-medium mb-sm capitalize'>
                 {t(`permissionGroups.${group}` as Parameters<typeof t>[0])}
               </h4>
-              <div className='space-y-2 ps-2'>
+              <div className='space-y-sm ps-sm'>
                 {perms.map(perm => (
-                  <label key={perm} className='flex items-center gap-2 text-sm cursor-pointer'>
+                  <label key={perm} className='flex items-center gap-sm text-sm cursor-pointer'>
                     <input
                       type='checkbox'
                       checked={selected.has(perm)}
@@ -318,7 +318,7 @@ function PermissionsSheet({
           ))}
         </div>
 
-        <Separator className='my-4' />
+        <Separator className='my-lg' />
 
         <Button
           size='sm'
@@ -395,13 +395,15 @@ function InviteDialog() {
         </DialogHeader>
 
         {tempPassword ? (
-          <div className='space-y-4 py-2'>
-            <div className='rounded-md bg-muted p-4 text-center'>
-              <p className='text-sm text-muted-foreground mb-1'>{t('inviteDialog.tempPassword')}</p>
+          <div className='space-y-lg py-sm'>
+            <div className='rounded-md bg-muted p-lg text-center'>
+              <p className='text-sm text-muted-foreground mb-xs'>
+                {t('inviteDialog.tempPassword')}
+              </p>
               <p className='font-mono text-lg font-semibold'>{tempPassword}</p>
             </div>
             <p className='text-xs text-muted-foreground'>{t('inviteDialog.tempPasswordNote')}</p>
-            <div className='flex gap-2'>
+            <div className='flex gap-sm'>
               <Button variant='outline' size='sm' className='flex-1' onClick={handleCopy}>
                 {copied ? (
                   <Check className='size-3.5 me-1.5' />
@@ -416,8 +418,8 @@ function InviteDialog() {
             </div>
           </div>
         ) : (
-          <div className='space-y-3 py-2'>
-            <div className='space-y-1'>
+          <div className='space-y-md py-sm'>
+            <div className='space-y-xs'>
               <Label className='text-xs'>{t('inviteDialog.email')}</Label>
               <Input
                 type='email'
@@ -427,8 +429,8 @@ function InviteDialog() {
                 className='h-9 text-sm'
               />
             </div>
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-1'>
+            <div className='grid grid-cols-2 gap-md'>
+              <div className='space-y-xs'>
                 <Label className='text-xs'>{t('inviteDialog.firstName')}</Label>
                 <Input
                   value={firstName}
@@ -436,7 +438,7 @@ function InviteDialog() {
                   className='h-9 text-sm'
                 />
               </div>
-              <div className='space-y-1'>
+              <div className='space-y-xs'>
                 <Label className='text-xs'>{t('inviteDialog.lastName')}</Label>
                 <Input
                   value={lastName}
@@ -445,7 +447,7 @@ function InviteDialog() {
                 />
               </div>
             </div>
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <Label className='text-xs'>{t('inviteDialog.role')}</Label>
               <Select value={role} onValueChange={v => setRole(v as 'admin' | 'moderator')}>
                 <SelectTrigger className='h-9 text-sm'>
@@ -477,7 +479,7 @@ function InviteDialog() {
 function EmptyState() {
   const t = useTranslations('adminTeam');
   return (
-    <div className='flex flex-col items-center justify-center py-16 gap-3 text-center'>
+    <div className='flex flex-col items-center justify-center py-4xl gap-md text-center'>
       <Users className='size-12 text-muted-foreground' />
       <h3 className='text-md font-semibold'>{t('noMembers')}</h3>
       <p className='text-sm text-muted-foreground max-w-xs'>{t('noMembersDesc')}</p>
@@ -489,9 +491,9 @@ function EmptyState() {
 
 function TeamSkeleton() {
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className='flex items-center gap-4 p-3'>
+        <div key={i} className='flex items-center gap-lg p-md'>
           <Skeleton className='size-8 rounded-full' />
           <Skeleton className='h-4 w-40' />
           <Skeleton className='h-4 w-20' />

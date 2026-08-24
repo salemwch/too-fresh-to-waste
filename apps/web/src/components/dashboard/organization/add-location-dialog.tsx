@@ -264,7 +264,7 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
           </DialogHeader>
 
           {/* Step indicator */}
-          <div className='flex gap-1.5 mb-1'>
+          <div className='flex gap-1.5 mb-xs'>
             {(['search', 'confirm-type'] as const).map((s, i) => (
               <div
                 key={s}
@@ -282,7 +282,7 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
           </div>
 
           {step === 'search' && (
-            <div className='space-y-4 pt-1'>
+            <div className='space-y-lg pt-xs'>
               <BusinessSearchAutocomplete
                 onSelect={handleBusinessSelect}
                 onClear={handleBusinessClear}
@@ -295,24 +295,24 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
           )}
 
           {step === 'confirm-type' && selectedBusiness && (
-            <div className='space-y-5 pt-1'>
+            <div className='space-y-xl pt-xs'>
               {/* Selected business summary */}
-              <div className='rounded-lg border bg-muted/40 px-4 py-3 space-y-1'>
+              <div className='rounded-lg border bg-muted/40 px-lg py-md space-y-xs'>
                 <p className='text-sm font-semibold text-foreground'>{selectedBusiness.name}</p>
                 <div className='flex items-start gap-1.5 text-xs text-muted-foreground'>
-                  <MapPin className='size-3.5 mt-0.5 shrink-0' />
+                  <MapPin className='size-3.5 mt-xxs shrink-0' />
                   <span>{selectedBusiness.formattedAddress}</span>
                 </div>
               </div>
 
               {/* Type picker */}
-              <div className='space-y-2'>
+              <div className='space-y-sm'>
                 <p className='text-sm font-medium text-foreground'>Establishment Type</p>
                 <div className='relative' ref={typeDropdownRef}>
                   <button
                     type='button'
                     onClick={() => setTypeDropdownOpen(v => !v)}
-                    className={`flex h-11 w-full items-center justify-between rounded-lg border bg-background px-3 text-sm transition-colors hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                    className={`flex h-11 w-full items-center justify-between rounded-lg border bg-background px-md text-sm transition-colors hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
                       typeDropdownOpen ? 'border-primary ring-2 ring-primary/20' : 'border-input'
                     }`}
                   >
@@ -343,7 +343,7 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
                               setSelectedType(value);
                               setTypeDropdownOpen(false);
                             }}
-                            className={`flex w-full items-center gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-muted/50 ${
+                            className={`flex w-full items-center gap-md px-md py-2.5 text-sm transition-colors hover:bg-muted/50 ${
                               isSelected
                                 ? 'bg-primary/5 font-medium text-primary'
                                 : 'text-foreground'
@@ -361,14 +361,14 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
 
               {/* Error */}
               {error && (
-                <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
+                <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
                   <AlertCircle className='size-4 shrink-0' />
                   <span>{error}</span>
                 </div>
               )}
 
               {/* Actions */}
-              <div className='flex gap-3 pt-1'>
+              <div className='flex gap-md pt-xs'>
                 <Button
                   variant='outline'
                   className='flex-1'
@@ -378,7 +378,7 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
                   Back
                 </Button>
                 <Button className='flex-[2]' onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className='size-4 me-2 animate-spin' />}
+                  {isSubmitting && <Loader2 className='size-4 me-sm animate-spin' />}
                   {isSubmitting ? 'Creating...' : 'Create Location'}
                 </Button>
               </div>

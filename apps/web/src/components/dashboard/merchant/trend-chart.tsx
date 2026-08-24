@@ -24,13 +24,13 @@ function CustomTooltip({ active, payload, label, bagsUnit, peakLabel }: any) {
   const dataArr: { v: number }[] = payload[0].payload ? [{ v }] : [{ v }];
   const isRecord = v === Math.max(...dataArr.map((d: { v: number }) => d.v));
   return (
-    <div className='glass rounded-xl px-[16px] py-3 shadow-elegant'>
+    <div className='glass rounded-xl px-[16px] py-md shadow-elegant'>
       <div className='text-[10px] uppercase tracking-wider text-primary-500/60'>{label}</div>
       <div className='font-display text-xl text-primary-500'>
         {v} {bagsUnit}
       </div>
       {isRecord && v > 0 && (
-        <div className='mt-1 text-[11px] font-medium text-brand-coral'>{peakLabel}</div>
+        <div className='mt-xs text-[11px] font-medium text-brand-coral'>{peakLabel}</div>
       )}
     </div>
   );
@@ -49,19 +49,19 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
 
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <div className='flex items-start justify-between mb-[24px] flex-wrap gap-3'>
+      <div className='flex items-start justify-between mb-[24px] flex-wrap gap-md'>
         <div>
-          <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-1'>
+          <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-xs'>
             {t('subtitle')}
           </div>
           <h3 className='font-display text-2xl text-primary-500'>{t('title')}</h3>
         </div>
-        <div className='flex items-center gap-2 text-xs'>
+        <div className='flex items-center gap-sm text-xs'>
           {RANGE_KEYS.map(key => (
             <button
               key={key}
               onClick={() => onDatePresetChange(key)}
-              className={`px-3 py-1.5 rounded-full transition-colors ${
+              className={`px-md py-1.5 rounded-full transition-colors ${
                 datePreset === key
                   ? 'bg-primary-500 text-white'
                   : 'text-primary-500/60 hover:text-primary-500'
@@ -78,7 +78,7 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
           {t('noData')}
         </div>
       ) : (
-        <div className='h-64 -ml-2'>
+        <div className='h-64 -ml-sm'>
           <ResponsiveContainer width='100%' height='100%'>
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>

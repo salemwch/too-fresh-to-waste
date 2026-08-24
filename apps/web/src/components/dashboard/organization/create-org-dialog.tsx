@@ -73,7 +73,7 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className='sm:max-w-[425px]'>
         {success ? (
-          <div className='flex flex-col items-center py-6 gap-3 text-center'>
+          <div className='flex flex-col items-center py-2xl gap-md text-center'>
             <CheckCircle2 className='size-12 text-success' />
             <h3 className='text-lg font-semibold'>Organization Created</h3>
             <p className='text-sm text-muted-foreground max-w-xs'>
@@ -85,14 +85,14 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className='flex items-center gap-2'>
+              <DialogTitle className='flex items-center gap-sm'>
                 <Building2 className='size-5' />
                 Create Organization
               </DialogTitle>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className='space-y-4'>
-              <div className='space-y-2'>
+            <form onSubmit={handleSubmit} className='space-y-lg'>
+              <div className='space-y-sm'>
                 <label htmlFor='orgName' className='text-sm font-medium'>
                   Organization Name
                 </label>
@@ -107,7 +107,7 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder='e.g. Movenpick Tunisia'
-                  className='w-full px-3 py-2 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
+                  className='w-full px-md py-sm border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
                   required
                   minLength={2}
                   maxLength={100}
@@ -118,23 +118,23 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
               </div>
 
               {establishment && (
-                <div className='rounded-md bg-muted/50 p-3 text-sm'>
+                <div className='rounded-md bg-muted/50 p-md text-sm'>
                   <p className='text-muted-foreground'>
                     Your current establishment will be the first location:
                   </p>
-                  <p className='font-medium mt-1'>{establishment.name}</p>
+                  <p className='font-medium mt-xs'>{establishment.name}</p>
                 </div>
               )}
 
               {!establishment && (
-                <div className='rounded-md bg-destructive/10 p-3 text-sm text-destructive'>
+                <div className='rounded-md bg-destructive/10 p-md text-sm text-destructive'>
                   You need at least one establishment before creating an organization. Complete your
                   establishment profile first.
                 </div>
               )}
 
               {error && (
-                <div className='rounded-md bg-destructive/10 p-3 text-sm text-destructive break-words overflow-hidden'>
+                <div className='rounded-md bg-destructive/10 p-md text-sm text-destructive break-words overflow-hidden'>
                   {error}
                 </div>
               )}
@@ -144,7 +144,7 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
                 className='w-full'
                 disabled={createOrg.isPending || !establishmentId}
               >
-                {createOrg.isPending && <Loader2 className='size-4 me-2 animate-spin' />}
+                {createOrg.isPending && <Loader2 className='size-4 me-sm animate-spin' />}
                 Create Organization
               </Button>
             </form>

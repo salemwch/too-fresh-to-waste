@@ -153,19 +153,19 @@ const mdxComponents = {
   // that from static analysis and reads as an empty heading.
   h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h2
-      className='font-heading text-3xl font-light mt-12 mb-5 text-brand-deep leading-snug'
+      className='font-heading text-3xl font-light mt-3xl mb-xl text-brand-deep leading-snug'
       {...props}
     >
       {children}
     </h2>
   ),
   h3: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className='text-lg font-semibold mt-8 mb-3 text-brand-deep' {...props}>
+    <h3 className='text-lg font-semibold mt-4xl mb-md text-brand-deep' {...props}>
       {children}
     </h3>
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className='text-[15px] leading-[1.85] text-brand-deep/80 mb-5' {...props} />
+    <p className='text-[15px] leading-[1.85] text-brand-deep/80 mb-xl' {...props} />
   ),
   a: ({ children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
@@ -179,13 +179,13 @@ const mdxComponents = {
   ),
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
     <ul
-      className='space-y-2 my-5 ps-5 list-disc marker:text-brand-coral text-[15px] text-brand-deep/80'
+      className='space-y-sm my-xl ps-xl list-disc marker:text-brand-coral text-[15px] text-brand-deep/80'
       {...props}
     />
   ),
   ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
     <ol
-      className='space-y-2 my-5 ps-5 list-decimal marker:text-brand-coral text-[15px] text-brand-deep/80'
+      className='space-y-sm my-xl ps-xl list-decimal marker:text-brand-coral text-[15px] text-brand-deep/80'
       {...props}
     />
   ),
@@ -198,38 +198,38 @@ const mdxComponents = {
   ),
   blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
     <blockquote
-      className='border-s-2 border-brand-coral ps-5 my-6 text-brand-deep/65 italic text-[15px] leading-relaxed'
+      className='border-s-2 border-brand-coral ps-xl my-2xl text-brand-deep/65 italic text-[15px] leading-relaxed'
       {...props}
     />
   ),
-  hr: () => <hr className='border-brand-deep/10 my-10' />,
+  hr: () => <hr className='border-brand-deep/10 my-6xl' />,
   img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    <span className='block my-8 text-center'>
+    <span className='block my-4xl text-center'>
       <img
         {...props}
         alt={props.alt ?? ''}
         className='inline-block max-h-[520px] w-auto rounded-2xl shadow-xl'
       />
       {props.alt && (
-        <span className='block mt-2 text-[11px] uppercase tracking-wider text-brand-deep/35'>
+        <span className='block mt-sm text-[11px] uppercase tracking-wider text-brand-deep/35'>
           {props.alt}
         </span>
       )}
     </span>
   ),
   table: (props: React.HTMLAttributes<HTMLTableElement>) => (
-    <div className='overflow-x-auto my-6'>
+    <div className='overflow-x-auto my-2xl'>
       <table className='w-full text-sm border-collapse' {...props} />
     </div>
   ),
   th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
     <th
-      className='text-left px-4 py-2 bg-brand-deep text-brand-cream text-xs uppercase tracking-wider font-medium'
+      className='text-left px-lg py-sm bg-brand-deep text-brand-cream text-xs uppercase tracking-wider font-medium'
       {...props}
     />
   ),
   td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <td className='px-4 py-2 border-b border-brand-deep/10 text-brand-deep/75' {...props} />
+    <td className='px-lg py-sm border-b border-brand-deep/10 text-brand-deep/75' {...props} />
   ),
 };
 
@@ -267,9 +267,9 @@ export default async function BlogPostPage({ params }: PostPageProps) {
 
       <div className='min-h-screen bg-brand-cream text-brand-deep'>
         {/* ── HERO ──────────────────────────────────────────────────── */}
-        <section className='mx-auto w-full max-w-[800px] px-8 pt-14 pb-8 md:pt-20'>
+        <section className='mx-auto w-full max-w-[800px] px-4xl pt-14 pb-4xl md:pt-5xl'>
           {/* Breadcrumb */}
-          <nav className='flex items-center gap-2 text-xs text-brand-deep/45 mb-10 uppercase tracking-wider'>
+          <nav className='flex items-center gap-sm text-xs text-brand-deep/45 mb-6xl uppercase tracking-wider'>
             <Link href='/' className='hover:text-brand-deep transition-colors'>
               {ui.home}
             </Link>
@@ -282,11 +282,11 @@ export default async function BlogPostPage({ params }: PostPageProps) {
           </nav>
 
           {/* Tags */}
-          <div className='flex flex-wrap gap-2 mb-6'>
+          <div className='flex flex-wrap gap-sm mb-2xl'>
             {post.tags.map(tag => (
               <span
                 key={tag}
-                className='text-[10px] uppercase tracking-wider text-brand-coral bg-brand-coral/10 px-2.5 py-1 rounded-full'
+                className='text-[10px] uppercase tracking-wider text-brand-coral bg-brand-coral/10 px-2.5 py-xs rounded-full'
               >
                 {tags[tag] ?? tag}
               </span>
@@ -299,7 +299,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
           </h1>
 
           {/* Meta */}
-          <div className='mt-6 flex flex-wrap items-center gap-4 text-[11px] uppercase tracking-wider text-brand-deep/40'>
+          <div className='mt-2xl flex flex-wrap items-center gap-lg text-[11px] uppercase tracking-wider text-brand-deep/40'>
             <span>{post.author}</span>
             <span className='text-brand-coral'>·</span>
             <time dateTime={post.date}>{formatDate(post.date, loc)}</time>
@@ -312,7 +312,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
 
         {/* ── COVER IMAGE ───────────────────────────────────────────── */}
         {post.coverImage && (
-          <div className='mx-auto w-full max-w-[1000px] px-8 pb-12'>
+          <div className='mx-auto w-full max-w-[1000px] px-4xl pb-3xl'>
             <div className='relative h-64 md:h-[420px] overflow-hidden rounded-sm'>
               <Image
                 src={post.coverImage}
@@ -328,7 +328,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
         )}
 
         {/* ── ARTICLE BODY ──────────────────────────────────────────── */}
-        <article className='mx-auto w-full max-w-[720px] px-8 pb-20'>
+        <article className='mx-auto w-full max-w-[720px] px-4xl pb-5xl'>
           <MDXRemote
             source={post.content}
             components={mdxComponents}
@@ -343,16 +343,16 @@ export default async function BlogPostPage({ params }: PostPageProps) {
         {/* ── RELATED POSTS ─────────────────────────────────────────── */}
         {related.length > 0 && (
           <section className='border-t border-brand-deep/10 bg-white/30'>
-            <div className='mx-auto w-full max-w-[1400px] px-8 py-14'>
-              <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-3'>
+            <div className='mx-auto w-full max-w-[1400px] px-4xl py-14'>
+              <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-md'>
                 {ui.keepReading}
               </p>
-              <h2 className='font-heading text-3xl font-light mb-8'>{ui.moreArticles}</h2>
-              <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+              <h2 className='font-heading text-3xl font-light mb-4xl'>{ui.moreArticles}</h2>
+              <div className='grid gap-2xl sm:grid-cols-2 lg:grid-cols-3'>
                 {related.map(p => (
                   <Link key={p.slug} href={`/blog/${p.slug}`} className='group block'>
-                    <article className='border-t-2 border-brand-deep/10 pt-5 group-hover:border-brand-coral transition-colors'>
-                      <div className='flex flex-wrap gap-1.5 mb-3'>
+                    <article className='border-t-2 border-brand-deep/10 pt-xl group-hover:border-brand-coral transition-colors'>
+                      <div className='flex flex-wrap gap-1.5 mb-md'>
                         {p.tags.slice(0, 2).map(tag => (
                           <span
                             key={tag}
@@ -365,10 +365,10 @@ export default async function BlogPostPage({ params }: PostPageProps) {
                       <h3 className='font-heading text-xl font-light leading-snug group-hover:text-brand-coral transition-colors'>
                         {p.title}
                       </h3>
-                      <p className='mt-2 text-sm text-brand-deep/55 line-clamp-2'>
+                      <p className='mt-sm text-sm text-brand-deep/55 line-clamp-2'>
                         {p.description}
                       </p>
-                      <p className='mt-4 text-[11px] text-brand-deep/35 uppercase tracking-wider'>
+                      <p className='mt-lg text-[11px] text-brand-deep/35 uppercase tracking-wider'>
                         {p.readTime} {ui.minRead}
                       </p>
                     </article>
@@ -381,24 +381,24 @@ export default async function BlogPostPage({ params }: PostPageProps) {
 
         {/* ── CTA ───────────────────────────────────────────────────── */}
         <section className='bg-brand-deep text-brand-cream py-14'>
-          <div className='mx-auto w-full max-w-[720px] px-8 text-center'>
-            <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-4'>
+          <div className='mx-auto w-full max-w-[720px] px-4xl text-center'>
+            <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-lg'>
               {ui.ctaEyebrow}
             </p>
-            <h2 className='font-heading text-3xl font-light md:text-4xl mb-5'>{ui.ctaHeadline}</h2>
-            <p className='text-brand-cream/65 text-sm leading-relaxed mb-8 max-w-md mx-auto'>
+            <h2 className='font-heading text-3xl font-light md:text-4xl mb-xl'>{ui.ctaHeadline}</h2>
+            <p className='text-brand-cream/65 text-sm leading-relaxed mb-4xl max-w-md mx-auto'>
               {ui.ctaBody}
             </p>
-            <div className='flex flex-wrap justify-center gap-4'>
+            <div className='flex flex-wrap justify-center gap-lg'>
               <Link
                 href='/partners'
-                className='rounded-full bg-brand-coral text-brand-deep px-6 py-3 text-sm font-medium hover:bg-brand-cream transition-colors'
+                className='rounded-full bg-brand-coral text-brand-deep px-2xl py-md text-sm font-medium hover:bg-brand-cream transition-colors'
               >
                 {ui.ctaPartner}
               </Link>
               <Link
                 href='/blog'
-                className='rounded-full border border-brand-cream/30 px-6 py-3 text-sm hover:border-brand-cream/60 transition-colors'
+                className='rounded-full border border-brand-cream/30 px-2xl py-md text-sm hover:border-brand-cream/60 transition-colors'
               >
                 {ui.backToBlog}
               </Link>

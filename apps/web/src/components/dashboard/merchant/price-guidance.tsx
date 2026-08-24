@@ -39,7 +39,7 @@ export function PriceGuidance({ discountedPrice }: PriceGuidanceProps) {
   const StatusIcon = status === 'inRange' ? Check : status === 'below' ? ArrowDown : ArrowUp;
 
   return (
-    <div className='rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5'>
+    <div className='rounded-md border border-slate-200 bg-slate-50 px-sm py-1.5'>
       <p className='flex items-start gap-1.5 text-[11px] text-slate-500'>
         <Info className='mt-px size-3 shrink-0' aria-hidden='true' />
         <span>
@@ -52,7 +52,7 @@ export function PriceGuidance({ discountedPrice }: PriceGuidanceProps) {
       {status && (
         <p
           className={cn(
-            'mt-1 flex items-center gap-1.5 text-[11px] font-medium',
+            'mt-xs flex items-center gap-1.5 text-[11px] font-medium',
             status === 'inRange' ? 'text-success' : 'text-warning',
           )}
         >

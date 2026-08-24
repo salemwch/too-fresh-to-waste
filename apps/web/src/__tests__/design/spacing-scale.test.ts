@@ -21,12 +21,60 @@
  *   pnpm --filter @foodwaste/web check:spacing --write
  */
 
-import { buildSnapshot, compare } from '../../../scripts/spacing-snapshot.mjs';
+import resolveConfig from 'tailwindcss/resolveConfig';
+
+import { readSpacingScale, buildSnapshot, compare } from '../../../scripts/spacing-snapshot.mjs';
 
 import baseline from '../../../scripts/spacing-baseline.json';
 
 /** file -> category -> `<prefix>:<px>` -> count */
 type Snapshot = Record<string, Record<string, Record<string, number>>>;
+
+describe('the scale is read from the config, not assumed', () => {
+  const scale = readSpacingScale() as Record<string, string>;
+
+  it('keeps Tailwind default numeric keys', () => {
+    // n * 4px. If an override ever returns, these are the first things to move.
+    expect(scale['1']).toBe('0.25rem');
+    expect(scale['4']).toBe('1rem');
+    expect(scale['10']).toBe('2.5rem');
+  });
+
+  it('is monotonic across the integer keys', () => {
+    const px = (v: string) =>
+      v.endsWith('rem') ? parseFloat(v) * 16 : v === '0' ? 0 : parseFloat(v);
+    const integers = Object.keys(scale)
+      .filter(k => /^\d+$/.test(k))
+      .map(Number)
+      .sort((a, b) => a - b);
+
+    const values = integers.map(k => px(scale[String(k)] as string));
+    const sorted = [...values].sort((a, b) => a - b);
+    // The old override climbed to 96px at key 10 then collapsed to 44px at 11.
+    expect(values).toEqual(sorted);
+  });
+
+  it('exposes the named semantic tokens from DESIGN.md §4.1', () => {
+    expect(scale.xxs).toBe('2px');
+    expect(scale.xs).toBe('4px');
+    expect(scale.sm).toBe('8px');
+    expect(scale.md).toBe('16px');
+    expect(scale.lg).toBe('24px');
+    expect(scale.xl).toBe('32px');
+    expect(scale['2xl']).toBe('40px');
+    expect(scale['6xl']).toBe('96px');
+  });
+
+  it('does not let a named token shadow maxWidth', () => {
+    // max-w-md must stay 28rem. Adding spacing.md would break 30 call sites if
+    // maxWidth spread the spacing scale - it does not, and this proves it.
+    const cfg = resolveConfig({
+      content: [],
+      theme: { extend: { spacing: { md: '16px' } } },
+    });
+    expect(cfg.theme.maxWidth.md).toBe('28rem');
+  });
+});
 
 describe('comparison logic', () => {
   it('flags a change in a locked category as drift', () => {

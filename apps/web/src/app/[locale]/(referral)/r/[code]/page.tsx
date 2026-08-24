@@ -18,10 +18,10 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
   const businessSignupLink = `/${locale}/merchant-signup?ref=${code}`;
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-center px-4 py-12'>
-      <div className='w-full max-w-md space-y-8 text-center'>
+    <main className='flex min-h-screen flex-col items-center justify-center px-lg py-3xl'>
+      <div className='w-full max-w-md space-y-4xl text-center'>
         {/* Logo / Brand */}
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           <div className='flex justify-center'>
             <Image
               src='/images/green-header-center.png'
@@ -37,19 +37,19 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
         </div>
 
         {/* Referral code badge */}
-        <div className='rounded-xl border border-primary/20 bg-primary/5 px-4 py-3'>
+        <div className='rounded-xl border border-primary/20 bg-primary/5 px-lg py-md'>
           <p className='text-xs font-medium text-muted-foreground'>Your referral code</p>
           <p className='font-mono text-lg font-bold text-primary'>{code}</p>
         </div>
 
         {/* Two paths */}
-        <div className='space-y-4'>
+        <div className='space-y-lg'>
           <p className='text-sm font-medium text-muted-foreground'>How do you want to join?</p>
 
           {/* Consumer path — opens mobile app via deep link */}
           <a
             href={consumerAppLink}
-            className='flex w-full items-center justify-center gap-3 rounded-xl bg-primary px-6 py-4 text-white shadow-md transition-shadow hover:shadow-lg'
+            className='flex w-full items-center justify-center gap-md rounded-xl bg-primary px-2xl py-lg text-white shadow-md transition-shadow hover:shadow-lg'
           >
             <svg
               xmlns='http://www.w3.org/2000/svg'
@@ -74,7 +74,7 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
           {/* Business path — web signup (plain anchor; path includes dynamic query string) */}
           <a
             href={businessSignupLink}
-            className='flex w-full items-center justify-center gap-3 rounded-xl border-2 border-primary bg-white px-6 py-4 text-primary shadow-sm transition-shadow hover:shadow-md'
+            className='flex w-full items-center justify-center gap-md rounded-xl border-2 border-primary bg-white px-2xl py-lg text-primary shadow-sm transition-shadow hover:shadow-md'
           >
             <svg
               xmlns='http://www.w3.org/2000/svg'
@@ -98,7 +98,7 @@ export default async function ReferralPage({ params }: ReferralPageProps) {
         </div>
 
         {/* Footer info */}
-        <div className='space-y-1 pt-4 text-xs text-muted-foreground'>
+        <div className='space-y-xs pt-lg text-xs text-muted-foreground'>
           <p>Save food. Save money. Earn rewards.</p>
         </div>
       </div>

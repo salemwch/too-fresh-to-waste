@@ -44,25 +44,25 @@ export default async function ContactPage({ params }: ContactPageProps) {
       <Header />
       <main className='min-h-screen bg-[#f9f3f0]'>
         {/* Hero */}
-        <section className='bg-primary-500 pt-32 pb-16 px-4'>
+        <section className='bg-primary-500 pt-32 pb-4xl px-lg'>
           <div className='max-w-4xl mx-auto text-center'>
-            <h1 className='text-4xl md:text-5xl font-bold text-white mb-3'>{t('hero.title')}</h1>
+            <h1 className='text-4xl md:text-5xl font-bold text-white mb-md'>{t('hero.title')}</h1>
             <p className='text-white/75 text-base md:text-lg'>{t('hero.subtitle')}</p>
           </div>
         </section>
 
         {/* Content */}
-        <section className='max-w-5xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-8'>
+        <section className='max-w-5xl mx-auto px-lg py-4xl grid md:grid-cols-2 gap-4xl'>
           {/* Provider card */}
-          <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-8'>
-            <p className='text-xs font-bold uppercase tracking-widest text-primary-500/60 mb-4'>
+          <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-4xl'>
+            <p className='text-xs font-bold uppercase tracking-widest text-primary-500/60 mb-lg'>
               {t('provider.title')}
             </p>
-            <h2 className='text-2xl font-bold text-gray-900 mb-6'>{t('provider.name')}</h2>
-            <div className='space-y-2 text-gray-600 text-sm'>
-              <div className='flex items-start gap-3'>
+            <h2 className='text-2xl font-bold text-gray-900 mb-2xl'>{t('provider.name')}</h2>
+            <div className='space-y-sm text-gray-600 text-sm'>
+              <div className='flex items-start gap-md'>
                 <svg
-                  className='w-4 h-4 mt-0.5 text-primary-500 shrink-0'
+                  className='w-4 h-4 mt-xxs text-primary-500 shrink-0'
                   fill='none'
                   stroke='currentColor'
                   viewBox='0 0 24 24'
@@ -90,11 +90,11 @@ export default async function ContactPage({ params }: ContactPageProps) {
           </div>
 
           {/* Contact cards */}
-          <div className='space-y-4'>
+          <div className='space-y-lg'>
             {(['0', '1'] as const).map(i => (
               <div
                 key={i}
-                className='bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-start gap-4'
+                className='bg-white rounded-2xl shadow-sm border border-gray-100 p-2xl flex items-start gap-lg'
               >
                 <div className='w-10 h-10 rounded-full bg-primary-500/10 flex items-center justify-center shrink-0'>
                   <svg
@@ -113,14 +113,14 @@ export default async function ContactPage({ params }: ContactPageProps) {
                   </svg>
                 </div>
                 <div>
-                  <p className='font-semibold text-gray-900 mb-0.5'>{t(`cards.${i}.title`)}</p>
+                  <p className='font-semibold text-gray-900 mb-xxs'>{t(`cards.${i}.title`)}</p>
                   <a
                     href={`mailto:${t(`cards.${i}.email`)}`}
                     className='text-primary-500 font-medium text-sm hover:underline'
                   >
                     {t(`cards.${i}.email`)}
                   </a>
-                  <p className='text-gray-500 text-xs mt-1'>{t(`cards.${i}.desc`)}</p>
+                  <p className='text-gray-500 text-xs mt-xs'>{t(`cards.${i}.desc`)}</p>
                 </div>
               </div>
             ))}

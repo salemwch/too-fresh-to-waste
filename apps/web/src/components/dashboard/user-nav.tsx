@@ -29,7 +29,7 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className='flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'>
+        <button className='flex items-center gap-sm rounded-lg px-1.5 py-xs hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'>
           <Avatar className='h-7 w-7 rounded-md flex-shrink-0'>
             <AvatarImage
               src={resolveProfileImage(user.profileImage)}
@@ -51,7 +51,7 @@ export function UserNav() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className='w-56' align='end' forceMount>
         <DropdownMenuLabel className='font-normal'>
-          <div className='flex flex-col space-y-1'>
+          <div className='flex flex-col space-y-xs'>
             <p className='text-sm font-medium leading-none'>
               {user.firstName} {user.lastName}
             </p>
@@ -60,13 +60,13 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href='/merchant/profile' className='flex items-center gap-2 cursor-pointer'>
+          <Link href='/merchant/profile' className='flex items-center gap-sm cursor-pointer'>
             <User className='h-4 w-4' />
             {t('profile')}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href='/merchant/security' className='flex items-center gap-2 cursor-pointer'>
+          <Link href='/merchant/security' className='flex items-center gap-sm cursor-pointer'>
             <Shield className='h-4 w-4' />
             {t('security')}
           </Link>
@@ -74,7 +74,7 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={logout}
-          className='flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10'
+          className='flex items-center gap-sm cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10'
         >
           <LogOut className='h-4 w-4' />
           {t('logout')}

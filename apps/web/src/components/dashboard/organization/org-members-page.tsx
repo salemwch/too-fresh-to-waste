@@ -28,7 +28,7 @@ export function OrgMembersPage() {
 
   if (orgLoading || invLoading) {
     return (
-      <div className='space-y-4'>
+      <div className='space-y-lg'>
         <Skeleton className='h-8 w-48' />
         <Skeleton className='h-24 w-full' />
         <Skeleton className='h-24 w-full' />
@@ -39,7 +39,7 @@ export function OrgMembersPage() {
   if (!org) return null;
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       <div className='flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-bold tracking-tight'>Team Members</h1>
@@ -50,7 +50,7 @@ export function OrgMembersPage() {
           establishments={establishments ?? []}
           trigger={
             <Button size='sm'>
-              <UserPlus className='size-4 me-2' />
+              <UserPlus className='size-4 me-sm' />
               Invite Manager
             </Button>
           }
@@ -59,7 +59,7 @@ export function OrgMembersPage() {
 
       {!invitations || invitations.length === 0 ? (
         <Card>
-          <CardContent className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+          <CardContent className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
             <UserPlus className='size-12 text-muted-foreground' />
             <h3 className='text-md font-semibold'>No invitations yet</h3>
             <p className='text-sm text-muted-foreground max-w-xs'>
@@ -69,11 +69,11 @@ export function OrgMembersPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className='space-y-3'>
+        <div className='space-y-md'>
           {invitations.map(inv => (
             <Card key={inv._id}>
-              <CardContent className='flex items-center justify-between py-4'>
-                <div className='flex items-center gap-4'>
+              <CardContent className='flex items-center justify-between py-lg'>
+                <div className='flex items-center gap-lg'>
                   <div className='size-10 rounded-full bg-muted flex items-center justify-center'>
                     <Mail className='size-5 text-muted-foreground' />
                   </div>
@@ -83,7 +83,7 @@ export function OrgMembersPage() {
                   </div>
                 </div>
 
-                <div className='flex items-center gap-3'>
+                <div className='flex items-center gap-md'>
                   <Badge className={statusColors[inv.status] ?? ''}>{inv.status}</Badge>
                   {inv.status === 'pending' && (
                     <Button

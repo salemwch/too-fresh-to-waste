@@ -19,18 +19,18 @@ export default function Section2() {
   return (
     <section
       id='app'
-      className='bg-[#f9f3f0] pt-8 md:pt-12 lg:pt-16 pb-4 md:pb-6 lg:pb-8 px-4'
+      className='bg-[#f9f3f0] pt-4xl md:pt-3xl lg:pt-4xl pb-lg md:pb-2xl lg:pb-4xl px-lg'
       aria-labelledby='app-heading'
     >
       <div className='container mx-auto max-w-6xl'>
         {/* Title with rewards icon */}
         <h2
           id='app-heading'
-          className='text-primary-500 text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-6 leading-tight'
+          className='text-primary-500 text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-2xl leading-tight'
         >
           {t('title')}
           <span
-            className='inline-block ml-2 text-4xl md:text-5xl lg:text-6xl'
+            className='inline-block ml-sm text-4xl md:text-5xl lg:text-6xl'
             role='img'
             aria-label='rewards'
           >
@@ -40,19 +40,19 @@ export default function Section2() {
 
         {/* Secondary title line */}
         {/* Subtitle */}
-        <p className='text-[#5F6D6D] text-base md:text-lg lg:text-xl text-center mb-12 max-w-4xl mx-auto leading-relaxed'>
+        <p className='text-[#5F6D6D] text-base md:text-lg lg:text-xl text-center mb-3xl max-w-4xl mx-auto leading-relaxed'>
           {t.rich('description', {
             discount: chunks => <span className='font-bold text-primary-500'>{chunks}</span>,
           })}
         </p>
 
         {/* Download Buttons */}
-        <div className='flex flex-col sm:flex-row gap-3 justify-center items-center'>
+        <div className='flex flex-col sm:flex-row gap-md justify-center items-center'>
           {/* App Store Button */}
           <button
             type='button'
             onClick={openLaunchModal}
-            className='group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
+            className='group flex items-center justify-center gap-sm bg-black text-white px-lg py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
             aria-label='Download on the App Store'
           >
             <svg className='w-6 h-6 flex-shrink-0' viewBox='0 0 24 24' fill='currentColor'>
@@ -70,7 +70,7 @@ export default function Section2() {
           <button
             type='button'
             onClick={openLaunchModal}
-            className='group flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
+            className='group flex items-center justify-center gap-sm bg-black text-white px-lg py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
             aria-label='Get it on Google Play'
           >
             <svg className='w-6 h-6 flex-shrink-0' viewBox='0 0 24 24' fill='currentColor'>

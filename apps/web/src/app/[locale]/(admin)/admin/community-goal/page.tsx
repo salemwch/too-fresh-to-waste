@@ -48,7 +48,7 @@ function StatusBadge({
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${variants[status] ?? variants.active}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-xxs text-xs font-semibold ${variants[status] ?? variants.active}`}
     >
       {t(`status.${status}`)}
     </span>
@@ -70,14 +70,14 @@ function KpiCard({
 }) {
   return (
     <Card className='border-border/60'>
-      <CardContent className='p-5'>
+      <CardContent className='p-xl'>
         <div className='flex items-start justify-between'>
           <div>
             <p className='text-xs font-medium text-muted-foreground'>{label}</p>
-            <p className='mt-1 text-2xl font-bold tracking-tight'>{value}</p>
-            {sub && <p className='mt-0.5 text-xs text-muted-foreground'>{sub}</p>}
+            <p className='mt-xs text-2xl font-bold tracking-tight'>{value}</p>
+            {sub && <p className='mt-xxs text-xs text-muted-foreground'>{sub}</p>}
           </div>
-          <div className='rounded-lg bg-primary-500/10 p-2'>
+          <div className='rounded-lg bg-primary-500/10 p-sm'>
             <Icon className='size-4 text-primary-500' />
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function AdminMonthlyBagGoalPage() {
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center py-24'>
+      <div className='flex items-center justify-center py-6xl'>
         <Loader2 className='size-6 animate-spin text-muted-foreground' />
       </div>
     );
@@ -152,14 +152,14 @@ export default function AdminMonthlyBagGoalPage() {
     : null;
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       {/* Header */}
-      <div className='flex items-start justify-between gap-4'>
+      <div className='flex items-start justify-between gap-lg'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-sm'>
           {goal && <StatusBadge status={goal.status} t={t} />}
           <Button
             size='sm'
@@ -175,7 +175,7 @@ export default function AdminMonthlyBagGoalPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid gap-lg sm:grid-cols-2 lg:grid-cols-4'>
         <KpiCard
           label={t('currentBags')}
           value={String(goal?.currentCount ?? 0)}
@@ -204,8 +204,8 @@ export default function AdminMonthlyBagGoalPage() {
 
       {/* Progress bar */}
       <Card className='border-border/60'>
-        <CardContent className='p-5'>
-          <div className='flex items-center justify-between mb-2'>
+        <CardContent className='p-xl'>
+          <div className='flex items-center justify-between mb-sm'>
             <span className='text-sm font-medium'>{t('progress')}</span>
             <span className='text-sm font-semibold tabular-nums'>{progressPct.toFixed(1)}%</span>
           </div>
@@ -215,14 +215,14 @@ export default function AdminMonthlyBagGoalPage() {
               style={{ width: `${Math.min(progressPct, 100)}%` }}
             />
           </div>
-          <div className='mt-2 flex justify-between text-xs text-muted-foreground'>
+          <div className='mt-sm flex justify-between text-xs text-muted-foreground'>
             <span>
               {goal?.currentCount ?? 0} / {goal?.targetCount ?? 0} bags
             </span>
             <span>{goal?.seasonName ?? '—'}</span>
           </div>
           {goal?.endDate && (
-            <p className='mt-1 text-xs text-muted-foreground'>
+            <p className='mt-xs text-xs text-muted-foreground'>
               Deadline: {new Date(goal.endDate).toLocaleDateString()}
             </p>
           )}
@@ -235,7 +235,7 @@ export default function AdminMonthlyBagGoalPage() {
           <CardTitle className='text-sm'>{t('settings.title')}</CardTitle>
           <CardDescription className='text-xs'>{t('settings.description')}</CardDescription>
         </CardHeader>
-        <CardContent className='space-y-5'>
+        <CardContent className='space-y-xl'>
           {/* Target Count */}
           <div className='space-y-1.5'>
             <Label className='text-xs font-medium'>{t('settings.targetCount')}</Label>
@@ -271,7 +271,7 @@ export default function AdminMonthlyBagGoalPage() {
           {/* End Date (Prize Drop Deadline) */}
           <div className='space-y-1.5'>
             <Label className='text-xs font-medium'>{t('settings.endDate')}</Label>
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-sm'>
               <Input
                 type='date'
                 value={endDate}
@@ -282,7 +282,7 @@ export default function AdminMonthlyBagGoalPage() {
                 <button
                   type='button'
                   onClick={() => setEndDate('')}
-                  className='inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors'
+                  className='inline-flex items-center gap-xs text-xs text-muted-foreground hover:text-foreground transition-colors'
                 >
                   <CalendarX className='size-3.5' />
                   {t('settings.clearDate')}
@@ -304,7 +304,7 @@ export default function AdminMonthlyBagGoalPage() {
               size='sm'
               onClick={handleSave}
               disabled={!isDirty || updateGoal.isPending}
-              className='h-7 px-3 text-xs'
+              className='h-7 px-md text-xs'
             >
               {updateGoal.isPending ? (
                 <>
@@ -325,7 +325,7 @@ export default function AdminMonthlyBagGoalPage() {
       {/* Danger Zone */}
       <Card className='border-destructive/40'>
         <CardHeader>
-          <CardTitle className='flex items-center gap-2 text-sm text-destructive'>
+          <CardTitle className='flex items-center gap-sm text-sm text-destructive'>
             <AlertTriangle className='size-4' />
             {t('reset.title')}
           </CardTitle>
@@ -335,7 +335,7 @@ export default function AdminMonthlyBagGoalPage() {
           <Button
             variant='outline'
             size='sm'
-            className='h-7 px-3 text-xs border-destructive/40 text-destructive hover:bg-destructive/5'
+            className='h-7 px-md text-xs border-destructive/40 text-destructive hover:bg-destructive/5'
             onClick={() => setResetDialog(true)}
           >
             <Trophy className='me-1.5 size-3.5' />

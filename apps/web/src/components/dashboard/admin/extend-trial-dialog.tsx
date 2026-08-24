@@ -89,27 +89,27 @@ export function ExtendTrialDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-md'>
         <DialogHeader>
-          <div className='flex items-start gap-3'>
-            <div className='mt-0.5 shrink-0 rounded-full bg-indigo-100 p-1.5 text-indigo-600'>
+          <div className='flex items-start gap-md'>
+            <div className='mt-xxs shrink-0 rounded-full bg-indigo-100 p-1.5 text-indigo-600'>
               <CalendarClock className='size-4' />
             </div>
             <div>
               <DialogTitle className='text-base'>Extend free trial</DialogTitle>
-              <DialogDescription className='mt-1 text-sm'>
+              <DialogDescription className='mt-xs text-sm'>
                 Current trial ends: <span className='font-medium'>{currentLabel}</span>
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className='mt-3 space-y-4'>
+        <div className='mt-md space-y-lg'>
           {/* Mode toggle */}
-          <div className='flex gap-2'>
+          <div className='flex gap-sm'>
             <button
               type='button'
               onClick={() => setMode('days')}
               className={cn(
-                'flex-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors',
+                'flex-1 rounded-md border px-md py-1.5 text-xs font-medium transition-colors',
                 mode === 'days'
                   ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
                   : 'border-border bg-background text-muted-foreground hover:bg-muted/50',
@@ -121,7 +121,7 @@ export function ExtendTrialDialog({
               type='button'
               onClick={() => setMode('date')}
               className={cn(
-                'flex-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors',
+                'flex-1 rounded-md border px-md py-1.5 text-xs font-medium transition-colors',
                 mode === 'date'
                   ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
                   : 'border-border bg-background text-muted-foreground hover:bg-muted/50',
@@ -132,7 +132,7 @@ export function ExtendTrialDialog({
           </div>
 
           {mode === 'days' ? (
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <div className='flex flex-wrap gap-1.5'>
                 {DAY_PRESETS.map(preset => (
                   <button
@@ -140,7 +140,7 @@ export function ExtendTrialDialog({
                     type='button'
                     onClick={() => setDays(preset)}
                     className={cn(
-                      'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
+                      'rounded-md border px-2.5 py-xs text-xs font-medium transition-colors',
                       days === preset
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'border-border text-muted-foreground hover:bg-muted/50',
@@ -160,7 +160,7 @@ export function ExtendTrialDialog({
                   max={365}
                   value={days}
                   onChange={e => setDays(Number(e.target.value) || 0)}
-                  className='mt-1 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                  className='mt-xs w-full rounded-md border border-input bg-background px-md py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                 />
               </label>
             </div>
@@ -172,7 +172,7 @@ export function ExtendTrialDialog({
                 value={dateValue}
                 min={toDateInputValue(new Date().toISOString())}
                 onChange={e => setDateValue(e.target.value)}
-                className='mt-1 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                className='mt-xs w-full rounded-md border border-input bg-background px-md py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
               />
             </label>
           )}
@@ -186,18 +186,18 @@ export function ExtendTrialDialog({
               onChange={e => setNotes(e.target.value)}
               rows={2}
               placeholder='Reason for the extension — visible in the audit log.'
-              className='mt-1 w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+              className='mt-xs w-full resize-none rounded-md border border-input bg-background px-md py-sm text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             />
           </label>
         </div>
 
-        <div className='mt-4 flex justify-end gap-2'>
+        <div className='mt-lg flex justify-end gap-sm'>
           <Button
             variant='outline'
             size='sm'
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
-            className='h-7 px-3 text-xs'
+            className='h-7 px-md text-xs'
           >
             Cancel
           </Button>
@@ -205,11 +205,11 @@ export function ExtendTrialDialog({
             size='sm'
             onClick={handleConfirm}
             disabled={isLoading || !isValid}
-            className='h-7 px-3 text-xs'
+            className='h-7 px-md text-xs'
           >
             {isLoading ? (
               <>
-                <Loader2 className='me-2 size-3.5 animate-spin' />
+                <Loader2 className='me-sm size-3.5 animate-spin' />
                 Extending…
               </>
             ) : (

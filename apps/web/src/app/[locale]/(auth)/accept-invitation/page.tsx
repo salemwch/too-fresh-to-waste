@@ -79,7 +79,7 @@ function AcceptInvitationInner() {
   // ── Loading ────────────────────────────────────────────────────────────────
   if (state === 'loading') {
     return (
-      <div className='flex justify-center py-16'>
+      <div className='flex justify-center py-4xl'>
         <Loader2 className='size-8 animate-spin text-primary' />
       </div>
     );
@@ -89,7 +89,7 @@ function AcceptInvitationInner() {
   if (state === 'error') {
     return (
       <Card>
-        <CardContent className='flex flex-col items-center py-10 gap-3 text-center'>
+        <CardContent className='flex flex-col items-center py-6xl gap-md text-center'>
           <AlertCircle className='size-12 text-destructive' />
           <h3 className='text-lg font-semibold'>Invitation Error</h3>
           <p className='text-sm text-muted-foreground'>{error}</p>
@@ -105,7 +105,7 @@ function AcceptInvitationInner() {
   if (state === 'success') {
     return (
       <Card>
-        <CardContent className='flex flex-col items-center py-10 gap-3 text-center'>
+        <CardContent className='flex flex-col items-center py-6xl gap-md text-center'>
           <CheckCircle2 className='size-12 text-success' />
           <h3 className='text-lg font-semibold'>Welcome aboard!</h3>
           <p className='text-sm text-muted-foreground'>
@@ -121,18 +121,18 @@ function AcceptInvitationInner() {
   return (
     <Card>
       <CardHeader className='text-center'>
-        <div className='mx-auto mb-3 size-12 rounded-full bg-primary/10 flex items-center justify-center'>
+        <div className='mx-auto mb-md size-12 rounded-full bg-primary/10 flex items-center justify-center'>
           <Building2 className='size-6 text-primary' />
         </div>
         <CardTitle className='text-xl'>Join {invitation?.organizationName}</CardTitle>
-        <p className='text-sm text-muted-foreground mt-1'>
+        <p className='text-sm text-muted-foreground mt-xs'>
           You have been invited to manage <strong>{invitation?.establishmentName}</strong>
         </p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          <div className='grid grid-cols-2 gap-3'>
-            <div className='space-y-1'>
+        <form onSubmit={handleSubmit} className='space-y-lg'>
+          <div className='grid grid-cols-2 gap-md'>
+            <div className='space-y-xs'>
               <label htmlFor='firstName' className='text-sm font-medium'>
                 First Name
               </label>
@@ -141,13 +141,13 @@ function AcceptInvitationInner() {
                 type='text'
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
-                className='w-full px-3 py-2 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
+                className='w-full px-md py-sm border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
                 required
                 minLength={2}
                 autoComplete='given-name'
               />
             </div>
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <label htmlFor='lastName' className='text-sm font-medium'>
                 Last Name
               </label>
@@ -156,7 +156,7 @@ function AcceptInvitationInner() {
                 type='text'
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
-                className='w-full px-3 py-2 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
+                className='w-full px-md py-sm border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
                 required
                 minLength={2}
                 autoComplete='family-name'
@@ -164,7 +164,7 @@ function AcceptInvitationInner() {
             </div>
           </div>
 
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <label htmlFor='password' className='text-sm font-medium'>
               Password
             </label>
@@ -173,7 +173,7 @@ function AcceptInvitationInner() {
               type='password'
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className='w-full px-3 py-2 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
+              className='w-full px-md py-sm border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
               required
               minLength={8}
               placeholder='Min 8 chars, uppercase, lowercase, number, special'
@@ -181,7 +181,7 @@ function AcceptInvitationInner() {
             />
           </div>
 
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <label htmlFor='phoneNumber' className='text-sm font-medium'>
               Phone <span className='text-muted-foreground font-normal'>(optional)</span>
             </label>
@@ -190,14 +190,14 @@ function AcceptInvitationInner() {
               type='tel'
               value={phoneNumber}
               onChange={e => setPhoneNumber(e.target.value)}
-              className='w-full px-3 py-2 border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
+              className='w-full px-md py-sm border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
               placeholder='+216 XX XXX XXX'
               autoComplete='tel'
             />
           </div>
 
           <Button type='submit' className='w-full' disabled={submitting}>
-            {submitting && <Loader2 className='size-4 me-2 animate-spin' />}
+            {submitting && <Loader2 className='size-4 me-sm animate-spin' />}
             Create Account &amp; Accept
           </Button>
         </form>
@@ -209,7 +209,7 @@ function AcceptInvitationInner() {
 // ── Fallback shown while useSearchParams resolves ─────────────────────────────
 function AcceptInvitationFallback() {
   return (
-    <div className='flex justify-center py-16'>
+    <div className='flex justify-center py-4xl'>
       <Loader2 className='size-8 animate-spin text-primary' />
     </div>
   );

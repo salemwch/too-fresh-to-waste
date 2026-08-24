@@ -38,15 +38,15 @@ export function WasteImpactBanner({
   if (loading) {
     return (
       <Card className='border-emerald-200/60 bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10'>
-        <CardContent className='p-5'>
-          <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6'>
+        <CardContent className='p-xl'>
+          <div className='flex flex-col gap-lg sm:flex-row sm:items-center sm:gap-2xl'>
             <div className='flex-1 space-y-1.5'>
               <Skeleton className='h-4 w-36' />
               <Skeleton className='h-3 w-48' />
             </div>
-            <div className='flex flex-wrap gap-6'>
+            <div className='flex flex-wrap gap-2xl'>
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className='space-y-1'>
+                <div key={i} className='space-y-xs'>
                   <Skeleton className='h-7 w-16' />
                   <Skeleton className='h-3 w-20' />
                 </div>
@@ -67,17 +67,17 @@ export function WasteImpactBanner({
 
   return (
     <Card className='border-emerald-200/60 bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10'>
-      <CardContent className='p-5'>
-        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6'>
+      <CardContent className='p-xl'>
+        <div className='flex flex-col gap-lg sm:flex-row sm:items-center sm:justify-between sm:gap-2xl'>
           <div>
             <p className='text-sm font-semibold text-emerald-800 dark:text-emerald-300'>{title}</p>
-            <p className='mt-0.5 text-xs text-emerald-700/70 dark:text-emerald-400/70'>
+            <p className='mt-xxs text-xs text-emerald-700/70 dark:text-emerald-400/70'>
               {subtitle}
             </p>
           </div>
-          <div className='flex flex-wrap gap-6 sm:gap-8'>
+          <div className='flex flex-wrap gap-2xl sm:gap-4xl'>
             {metrics.map(({ value, label, icon: Icon, color }) => (
-              <div key={label} className='flex items-center gap-2'>
+              <div key={label} className='flex items-center gap-sm'>
                 <Icon className={cn('size-5 shrink-0', color)} />
                 <div>
                   <p className='text-xl font-bold tabular-nums text-foreground'>

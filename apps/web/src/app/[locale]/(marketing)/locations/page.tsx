@@ -117,33 +117,36 @@ export default async function LocationsPage({ params }: LocationsPageProps) {
       <Header />
 
       <main role='main'>
-        <section className='bg-primary-500 px-4 py-16 md:py-24' aria-labelledby='locations-heading'>
+        <section
+          className='bg-primary-500 px-lg py-4xl md:py-6xl'
+          aria-labelledby='locations-heading'
+        >
           <div className='mx-auto max-w-3xl text-center'>
             <h1 id='locations-heading' className='text-3xl font-bold text-white md:text-5xl'>
               {copy.heading}
             </h1>
-            <p className='mt-6 text-md leading-relaxed text-white/90 md:text-lg'>{copy.intro}</p>
+            <p className='mt-2xl text-md leading-relaxed text-white/90 md:text-lg'>{copy.intro}</p>
           </div>
         </section>
 
-        <section className='px-4 py-12 md:py-16' aria-labelledby='city-list-heading'>
+        <section className='px-lg py-3xl md:py-4xl' aria-labelledby='city-list-heading'>
           <div className='mx-auto max-w-5xl'>
             <h2 id='city-list-heading' className='sr-only'>
               {copy.listHeading}
             </h2>
-            <ul className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+            <ul className='grid gap-lg sm:grid-cols-2 lg:grid-cols-3'>
               {cities.map(city => (
                 <li key={city.slug}>
                   <Link
                     href={`/locations/${city.slug}`}
-                    className='block h-full rounded border border-border bg-card p-6 transition-colors hover:border-primary-500'
+                    className='block h-full rounded border border-border bg-card p-2xl transition-colors hover:border-primary-500'
                   >
                     <h3 className='text-lg font-semibold'>{t(city.name, loc)}</h3>
-                    <p className='mt-1 text-sm text-muted-foreground'>{t(city.region, loc)}</p>
-                    <p className='mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground'>
+                    <p className='mt-xs text-sm text-muted-foreground'>{t(city.region, loc)}</p>
+                    <p className='mt-md line-clamp-3 text-sm leading-relaxed text-muted-foreground'>
                       {t(city.intro, loc)}
                     </p>
-                    <span className='mt-4 inline-block text-sm font-medium text-primary-500'>
+                    <span className='mt-lg inline-block text-sm font-medium text-primary-500'>
                       {copy.cta} →
                     </span>
                   </Link>

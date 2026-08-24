@@ -490,12 +490,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         )}
       >
         {/* ── Header ── */}
-        <div className='flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0'>
+        <div className='flex items-center justify-between px-xl py-lg border-b border-slate-100 shrink-0'>
           <div>
             <h2 className='font-display text-[15px] font-bold tracking-tight text-slate-900'>
               {t(`title`)}
             </h2>
-            <p className='text-[11px] text-slate-400 mt-0.5 leading-none'>{t(`subtitle`)}</p>
+            <p className='text-[11px] text-slate-400 mt-xxs leading-none'>{t(`subtitle`)}</p>
           </div>
           <button
             type='button'
@@ -508,9 +508,9 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         </div>
 
         {/* ── Scrollable body ── */}
-        <div className='flex-1 overflow-y-auto px-4 py-4 space-y-4'>
+        <div className='flex-1 overflow-y-auto px-lg py-lg space-y-lg'>
           {/* Item Name */}
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <label htmlFor='offer-title' className='block text-xs font-semibold text-slate-700'>
               {t(`itemName`)}
             </label>
@@ -520,13 +520,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
               value={title}
               onChange={e => setTitle(e.target.value)}
               maxLength={100}
-              className='w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+              className='w-full rounded-lg border border-slate-200 bg-slate-50 px-md py-sm text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
               placeholder={t(`itemNamePlaceholder`)}
             />
           </div>
 
           {/* Description — pre-written per type, the merchant's to change */}
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <div className='flex items-center justify-between'>
               <label
                 htmlFor='offer-description'
@@ -553,7 +553,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
               }}
               rows={4}
               maxLength={500}
-              className='w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+              className='w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-md py-sm text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
             />
             <p className='text-[11px] text-slate-400'>
               {t(`descriptionHelp`, { count: description.trim().length })}
@@ -561,9 +561,9 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           </div>
 
           {/* Quantity + Offer Type */}
-          <div className='flex items-end gap-3'>
+          <div className='flex items-end gap-md'>
             {/* Quantity */}
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <label className='flex items-center gap-1.5 text-xs font-semibold text-slate-700'>
                 {t(`quantity`)}
                 <span className='text-[11px] font-normal text-slate-400'>
@@ -607,7 +607,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             </div>
 
             {/* Offer Type */}
-            <div className='flex-1 space-y-1'>
+            <div className='flex-1 space-y-xs'>
               <label htmlFor='offer-type' className='block text-xs font-semibold text-slate-700'>
                 {t(`offerType`)}
               </label>
@@ -615,7 +615,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                 id='offer-type'
                 value={bagType}
                 onChange={e => setBagType(e.target.value as OfferBagType)}
-                className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
+                className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-sm text-[11px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
               >
                 {BAG_TYPE_OPTIONS.map(value => (
                   <option key={value} value={value}>
@@ -630,17 +630,17 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           <div className='border-t border-slate-100' />
 
           {/* Pricing */}
-          <div className='space-y-3'>
+          <div className='space-y-md'>
             <p className='text-xs font-semibold text-slate-700'>{t(`pricing`)}</p>
 
             {/* Original value */}
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <div className='flex items-center justify-between'>
                 <p className='text-[11px] text-slate-400'>{t(`originalValue`)}</p>
                 <p className='text-[10px] text-slate-400'>{t(`priceMax`, { value: MAX_PRICE })}</p>
               </div>
-              <div className='flex gap-1'>
-                <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
+              <div className='flex gap-xs'>
+                <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-sm text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
                   TND
                 </span>
                 <input
@@ -648,16 +648,16 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   inputMode='decimal'
                   value={rawPrice}
                   onChange={handlePriceChange}
-                  className='h-7 flex-1 rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+                  className='h-7 flex-1 rounded-md border border-slate-200 bg-slate-50 px-sm text-[11px] text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
                   placeholder='10.000'
                 />
               </div>
             </div>
 
             {/* Discount pills */}
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <p className='text-xs text-slate-400'>{t(`discount`, { min: MIN_DISCOUNT_PCT })}</p>
-              <div className='grid grid-cols-7 gap-1'>
+              <div className='grid grid-cols-7 gap-xs'>
                 {DISCOUNT_OPTIONS.map(pct => (
                   <button
                     key={pct}
@@ -671,7 +671,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     )}
                   >
                     {pct >= 70 && (
-                      <Flame className='absolute -top-2 left-1/2 -translate-x-1/2 h-3.5 w-3.5 text-orange-500' />
+                      <Flame className='absolute -top-sm left-xs/2 -translate-x-xs/2 h-3.5 w-3.5 text-orange-500' />
                     )}
                     {pct}%
                   </button>
@@ -680,12 +680,12 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             </div>
 
             {/* Customer pays */}
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <p className='text-[11px] text-slate-400'>{t(`customerPays`)}</p>
-              <div className='flex gap-1'>
+              <div className='flex gap-xs'>
                 <div
                   className={cn(
-                    'flex-1 h-7 rounded-md border flex items-center px-2',
+                    'flex-1 h-7 rounded-md border flex items-center px-sm',
                     discountedPrice > 0
                       ? 'border-emerald-200 bg-emerald-50'
                       : 'border-slate-200 bg-slate-50',
@@ -700,7 +700,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     {discountedPrice > 0 ? discountedPrice.toFixed(3) : '—'}
                   </span>
                 </div>
-                <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
+                <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-sm text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
                   TND
                 </span>
               </div>
@@ -723,7 +723,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             <p className='text-xs font-semibold text-slate-700'>{t(`pickupWindow`)}</p>
 
             {/* Day toggle */}
-            <div className='flex gap-2'>
+            <div className='flex gap-sm'>
               {(['today', 'tomorrow'] as const).map(d => (
                 <button
                   key={d}
@@ -755,7 +755,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                       setCustomOpen(false);
                     }}
                     className={cn(
-                      'flex-1 flex flex-col items-center rounded-lg border py-1.5 px-1 transition-all',
+                      'flex-1 flex flex-col items-center rounded-lg border py-1.5 px-xs transition-all',
                       active
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:bg-primary/5',
@@ -766,7 +766,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     </span>
                     <span
                       className={cn(
-                        'text-[10px] mt-0.5 tabular-nums',
+                        'text-[10px] mt-xxs tabular-nums',
                         active ? 'text-primary/70' : 'text-slate-400',
                       )}
                     >
@@ -800,14 +800,14 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
             {/* Custom From / Until selects */}
             {customOpen && (
-              <div className='flex gap-2 animate-in slide-in-from-top-1 duration-150'>
-                <div className='flex-1 space-y-1'>
+              <div className='flex gap-sm animate-in slide-in-from-top-1 duration-150'>
+                <div className='flex-1 space-y-xs'>
                   <p className='text-[10px] font-medium text-slate-500'>{t(`from`)}</p>
                   <select
                     value={pickupFrom}
                     aria-label={t(`fromLabel`)}
                     onChange={e => setPickupFrom(e.target.value)}
-                    className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
+                    className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-sm text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
                     {pickupDay === 'today' && <option value='now'>⚡ {t(`rightNow`)}</option>}
                     {getAvailableFromTimes(pickupDay).map(slot => (
@@ -817,13 +817,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     ))}
                   </select>
                 </div>
-                <div className='flex-1 space-y-1'>
+                <div className='flex-1 space-y-xs'>
                   <p className='text-[10px] font-medium text-slate-500'>{t(`until`)}</p>
                   <select
                     value={pickupUntil}
                     aria-label={t(`untilLabel`)}
                     onChange={e => setPickupUntil(e.target.value)}
-                    className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
+                    className='h-7 w-full rounded-md border border-slate-200 bg-slate-50 px-sm text-[11px] text-slate-800 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors cursor-pointer'
                   >
                     {getAvailableUntilTimes(pickupFrom).map(slot => (
                       <option key={slot} value={slot}>
@@ -865,7 +865,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           <div className='border-t border-slate-100' />
 
           {/* Offer Image */}
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <div className='flex items-center justify-between'>
               <p className='text-xs font-semibold text-slate-700'>{t(`offerImage`)}</p>
               <span className='text-[11px] text-slate-400'>{t(`imageFormats`)}</span>
@@ -883,11 +883,11 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                   type='button'
                   onClick={removeImage}
                   aria-label={t(`removeImage`)}
-                  className='absolute top-1.5 right-1.5 rounded-full bg-black/50 p-1 text-white hover:bg-black/70 transition-colors'
+                  className='absolute top-1.5 right-1.5 rounded-full bg-black/50 p-xs text-white hover:bg-black/70 transition-colors'
                 >
                   <X className='h-3 w-3' />
                 </button>
-                <p className='absolute bottom-0 left-0 right-0 bg-black/40 px-2 py-1 text-[10px] text-white truncate'>
+                <p className='absolute bottom-0 left-0 right-0 bg-black/40 px-sm py-xs text-[10px] text-white truncate'>
                   {imageFile?.name}
                 </p>
               </div>
@@ -910,7 +910,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             <p className='text-xs text-slate-400 animate-pulse'>{t(`loadingEstablishment`)}</p>
           )}
           {!estLoading && !establishment && (
-            <div className='flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2'>
+            <div className='flex items-center gap-sm rounded-lg bg-amber-50 border border-amber-200 px-md py-sm'>
               <AlertCircle className='h-4 w-4 text-amber-500 shrink-0' />
               <p className='text-xs text-amber-700'>{t(`noEstablishment`)}</p>
             </div>
@@ -918,13 +918,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
           {/* Feedback */}
           {errorMsg && (
-            <div className='flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5'>
-              <AlertCircle className='h-4 w-4 text-red-500 mt-0.5 shrink-0' />
+            <div className='flex items-start gap-sm rounded-lg bg-red-50 border border-red-200 px-md py-2.5'>
+              <AlertCircle className='h-4 w-4 text-red-500 mt-xxs shrink-0' />
               <p className='text-xs text-red-700'>{errorMsg}</p>
             </div>
           )}
           {successMsg && (
-            <div className='flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5'>
+            <div className='flex items-center gap-sm rounded-lg bg-emerald-50 border border-emerald-200 px-md py-2.5'>
               <CheckCircle2 className='h-4 w-4 text-emerald-500 shrink-0' />
               <p className='text-xs font-medium text-emerald-700'>{successMsg}</p>
             </div>
@@ -932,13 +932,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
         </div>
 
         {/* ── Footer ── */}
-        <div className='border-t border-slate-100 px-5 py-4 shrink-0 bg-white'>
+        <div className='border-t border-slate-100 px-xl py-lg shrink-0 bg-white'>
           <button
             type='button'
             onClick={() => void handlePublish()}
             disabled={!canPublish}
             className={cn(
-              'w-full rounded-xl py-3 text-sm font-bold tracking-wide',
+              'w-full rounded-xl py-md text-sm font-bold tracking-wide',
               'bg-primary text-white shadow-sm',
               'hover:opacity-90 active:scale-[0.98]',
               'transition-all duration-150',
@@ -946,7 +946,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
             )}
           >
             {mutation.isPending ? (
-              <span className='flex items-center justify-center gap-2'>
+              <span className='flex items-center justify-center gap-sm'>
                 <Flame className='h-4 w-4 animate-spin' />
                 {t(`publishing`)}
               </span>

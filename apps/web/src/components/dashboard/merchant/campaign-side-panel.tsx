@@ -42,7 +42,7 @@ export function CampaignSidePanel({
             ? 'Your free trial has ended. Contact the admin team to reactivate your account.'
             : undefined
         }
-        className='w-full flex items-center justify-between gap-2 px-[14px] py-[10px] rounded-xl bg-gradient-to-b from-[#2a5c62] to-primary-500 text-white shadow-[0_4px_0_0_#0f2e31] transition-[transform,box-shadow] duration-100 ease-out hover:brightness-105 active:translate-y-[4px] active:shadow-none group disabled:cursor-not-allowed disabled:opacity-50'
+        className='w-full flex items-center justify-between gap-sm px-[14px] py-[10px] rounded-xl bg-gradient-to-b from-[#2a5c62] to-primary-500 text-white shadow-[0_4px_0_0_#0f2e31] transition-[transform,box-shadow] duration-100 ease-out hover:brightness-105 active:translate-y-[4px] active:shadow-none group disabled:cursor-not-allowed disabled:opacity-50'
       >
         <div className='flex items-center gap-[10px]'>
           <div className='h-[30px] w-[30px] rounded-lg bg-brand-coral grid place-items-center shrink-0'>
@@ -55,7 +55,7 @@ export function CampaignSidePanel({
         </div>
         <ArrowUpRight
           size={14}
-          className='opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0'
+          className='opacity-70 group-hover:translate-x-xxs group-hover:-translate-y-xxs transition-transform shrink-0'
         />
       </button>
 
@@ -69,7 +69,7 @@ export function CampaignSidePanel({
         </div>
 
         {campaigns.length === 0 ? (
-          <p className='text-xs text-primary-500/50 italic text-center py-4'>{t('noCampaigns')}</p>
+          <p className='text-xs text-primary-500/50 italic text-center py-lg'>{t('noCampaigns')}</p>
         ) : (
           <div className='space-y-[16px]'>
             {campaigns.map(c => {
@@ -101,10 +101,10 @@ export function CampaignSidePanel({
 
       {/* Next tier card */}
       <div className='rounded-2xl p-[24px] bg-gradient-primary text-white shadow-elegant relative overflow-hidden'>
-        <div className='absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-brand-coral/30 blur-3xl pointer-events-none' />
+        <div className='absolute -bottom-6xl -right-6xl h-40 w-40 rounded-full bg-brand-coral/30 blur-3xl pointer-events-none' />
         <div className='relative'>
-          <div className='text-xs uppercase tracking-wider opacity-70 mb-2'>{t('nextTier')}</div>
-          <div className='font-display text-2xl leading-tight mb-3'>
+          <div className='text-xs uppercase tracking-wider opacity-70 mb-sm'>{t('nextTier')}</div>
+          <div className='font-display text-2xl leading-tight mb-md'>
             {t('nextTierText', { remaining })}
           </div>
           <div className='text-sm opacity-80'>{t('nextTierReward')}</div>

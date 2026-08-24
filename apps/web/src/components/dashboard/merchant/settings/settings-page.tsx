@@ -54,17 +54,17 @@ import type { ActiveSession, SessionDeviceInfo } from '@/types/settings';
 
 function SettingsSkeleton() {
   return (
-    <div className='space-y-6'>
-      <div className='glass rounded-2xl p-[24px] shadow-soft space-y-4'>
+    <div className='space-y-2xl'>
+      <div className='glass rounded-2xl p-[24px] shadow-soft space-y-lg'>
         <Skeleton className='h-6 w-48' />
         <Skeleton className='h-4 w-64' />
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 pt-4'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-lg pt-lg'>
           <Skeleton className='h-10 w-full' />
           <Skeleton className='h-10 w-full' />
           <Skeleton className='h-10 w-full' />
           <Skeleton className='h-10 w-full' />
         </div>
-        <Skeleton className='h-10 w-32 mt-4' />
+        <Skeleton className='h-10 w-32 mt-lg' />
       </div>
     </div>
   );
@@ -75,7 +75,7 @@ function SettingsSkeleton() {
 function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+      <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
         <AlertCircle className='size-12 text-muted-foreground' />
         <p className='text-sm text-muted-foreground'>{message}</p>
         {onRetry && (
@@ -152,10 +152,10 @@ function ProfileTab() {
         <h2 className='font-display text-xl text-primary-500 font-semibold'>
           {t('profile.title')}
         </h2>
-        <p className='text-sm text-muted-foreground mt-1'>{t('profile.subtitle')}</p>
+        <p className='text-sm text-muted-foreground mt-xs'>{t('profile.subtitle')}</p>
 
         {/* Avatar section */}
-        <div className='flex items-center gap-4 mt-6'>
+        <div className='flex items-center gap-lg mt-2xl'>
           <div className='relative'>
             {profileImageUrl ? (
               <Image
@@ -173,7 +173,7 @@ function ProfileTab() {
             <button
               type='button'
               onClick={() => fileInputRef.current?.click()}
-              className='absolute -bottom-1 -end-1 size-7 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-md hover:bg-primary-500/90 transition-colors'
+              className='absolute -bottom-xs -end-xs size-7 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-md hover:bg-primary-500/90 transition-colors'
             >
               <Camera className='size-3.5' />
             </button>
@@ -191,19 +191,19 @@ function ProfileTab() {
             </p>
             <p className='text-xs text-muted-foreground'>{profile.email}</p>
             {profile.authProvider !== 'local' && (
-              <Badge variant='secondary' className='mt-1 text-xs'>
+              <Badge variant='secondary' className='mt-xs text-xs'>
                 {t('profile.authProvider', { provider: profile.authProvider })}
               </Badge>
             )}
           </div>
         </div>
 
-        <Separator className='my-6' />
+        <Separator className='my-2xl' />
 
         {/* Profile form */}
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <div className='space-y-2'>
+        <form onSubmit={handleSubmit} className='space-y-lg'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-lg'>
+            <div className='space-y-sm'>
               <Label htmlFor='firstName'>{t('profile.firstName')}</Label>
               <Input
                 id='firstName'
@@ -211,15 +211,15 @@ function ProfileTab() {
                 onChange={e => setFirstName(e.target.value)}
               />
             </div>
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Label htmlFor='lastName'>{t('profile.lastName')}</Label>
               <Input id='lastName' value={lastName} onChange={e => setLastName(e.target.value)} />
             </div>
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Label htmlFor='email'>{t('profile.email')}</Label>
               <Input id='email' value={profile.email} disabled className='bg-muted' />
             </div>
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Label htmlFor='phone'>{t('profile.phone')}</Label>
               <Input id='phone' value={phone} onChange={e => setPhone(e.target.value)} type='tel' />
             </div>
@@ -299,28 +299,28 @@ function SecurityTab() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className='space-y-6'
+      className='space-y-2xl'
     >
       {/* Password change section */}
       <div className='glass rounded-2xl p-[24px] shadow-soft'>
-        <div className='flex items-center gap-3 mb-1'>
+        <div className='flex items-center gap-md mb-xs'>
           <Lock className='size-5 text-primary-500' />
           <h2 className='font-display text-xl text-primary-500 font-semibold'>
             {t('security.changePassword')}
           </h2>
         </div>
-        <p className='text-sm text-muted-foreground mb-6'>{t('security.subtitle')}</p>
+        <p className='text-sm text-muted-foreground mb-2xl'>{t('security.subtitle')}</p>
 
         {isOAuth ? (
-          <div className='flex items-center gap-3 rounded-xl bg-muted/50 p-4'>
+          <div className='flex items-center gap-md rounded-xl bg-muted/50 p-lg'>
             <AlertCircle className='size-5 text-muted-foreground shrink-0' />
             <p className='text-sm text-muted-foreground'>
               {t('security.oauthNote', { provider: profile?.authProvider || '' })}
             </p>
           </div>
         ) : (
-          <form onSubmit={handleChangePassword} className='space-y-4 max-w-md'>
-            <div className='space-y-2'>
+          <form onSubmit={handleChangePassword} className='space-y-lg max-w-md'>
+            <div className='space-y-sm'>
               <Label htmlFor='currentPassword'>{t('security.currentPassword')}</Label>
               <Input
                 id='currentPassword'
@@ -330,7 +330,7 @@ function SecurityTab() {
                 required
               />
             </div>
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Label htmlFor='newPassword'>{t('security.newPassword')}</Label>
               <Input
                 id='newPassword'
@@ -341,7 +341,7 @@ function SecurityTab() {
                 minLength={8}
               />
             </div>
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Label htmlFor='confirmPassword'>{t('security.confirmPassword')}</Label>
               <Input
                 id='confirmPassword'
@@ -366,7 +366,7 @@ function SecurityTab() {
       {/* MFA status */}
       <div className='glass rounded-2xl p-[24px] shadow-soft'>
         <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-md'>
             {mfaStatus?.enabled ? (
               <ShieldCheck className='size-5 text-emerald-500' />
             ) : (
@@ -387,8 +387,8 @@ function SecurityTab() {
 
       {/* Danger zone */}
       <div className='rounded-2xl border border-destructive/20 bg-destructive/5 p-[24px]'>
-        <h3 className='font-semibold text-destructive mb-4'>{t('security.dangerZone')}</h3>
-        <div className='space-y-4'>
+        <h3 className='font-semibold text-destructive mb-lg'>{t('security.dangerZone')}</h3>
+        <div className='space-y-lg'>
           {/* Logout all */}
           <div className='flex items-center justify-between'>
             <div>
@@ -402,7 +402,7 @@ function SecurityTab() {
               disabled={logoutAll.isPending}
               className='border-destructive/30 text-destructive hover:bg-destructive/10'
             >
-              <LogOut className='size-4 me-2' />
+              <LogOut className='size-4 me-sm' />
               {t('security.logoutAll')}
             </Button>
           </div>
@@ -418,7 +418,7 @@ function SecurityTab() {
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant='destructive' size='sm'>
-                  <Trash2 className='size-4 me-2' />
+                  <Trash2 className='size-4 me-sm' />
                   {t('security.deleteAccount')}
                 </Button>
               </DialogTrigger>
@@ -427,7 +427,7 @@ function SecurityTab() {
                   <DialogTitle>{t('security.deleteAccount')}</DialogTitle>
                   <DialogDescription>{t('security.deleteWarning')}</DialogDescription>
                 </DialogHeader>
-                <div className='space-y-2 py-4'>
+                <div className='space-y-sm py-lg'>
                   <Label>{t('security.deleteConfirm')}</Label>
                   <Input
                     value={deleteConfirmText}
@@ -487,13 +487,13 @@ function SessionCard({ session }: { session: ActiveSession }) {
     formatSessionDate(session.lastActivityAt) ?? formatSessionDate(session.createdAt);
 
   return (
-    <div className='flex items-center justify-between rounded-xl border border-border p-4'>
-      <div className='flex items-center gap-3'>
+    <div className='flex items-center justify-between rounded-xl border border-border p-lg'>
+      <div className='flex items-center gap-md'>
         <div className='size-10 rounded-lg bg-primary-500/[0.08] flex items-center justify-center'>
           <DeviceIcon className='size-5 text-primary-500' />
         </div>
         <div>
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center gap-sm'>
             <p className='text-sm font-medium'>{deviceLabel ?? t('unknownDevice')}</p>
             {session.isCurrentSession && (
               <Badge
@@ -535,7 +535,7 @@ function SessionsTab() {
 
   if (isLoading) {
     return (
-      <div className='glass rounded-2xl p-[24px] shadow-soft space-y-3'>
+      <div className='glass rounded-2xl p-[24px] shadow-soft space-y-md'>
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className='h-16 w-full rounded-xl' />
         ))}
@@ -555,15 +555,15 @@ function SessionsTab() {
     >
       <div className='glass rounded-2xl p-[24px] shadow-soft'>
         <h2 className='font-display text-xl text-primary-500 font-semibold'>{t('title')}</h2>
-        <p className='text-sm text-muted-foreground mt-1 mb-6'>{t('subtitle')}</p>
+        <p className='text-sm text-muted-foreground mt-xs mb-2xl'>{t('subtitle')}</p>
 
         {!sessions || sessions.length === 0 ? (
-          <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+          <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
             <Monitor className='size-12 text-muted-foreground' />
             <p className='text-sm text-muted-foreground'>{t('noSessions')}</p>
           </div>
         ) : (
-          <div className='space-y-3'>
+          <div className='space-y-md'>
             {sessions.map(session => (
               <SessionCard key={session.sessionId} session={session} />
             ))}
@@ -580,7 +580,7 @@ export function SettingsPage() {
   const t = useTranslations('dashboard.settings');
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
@@ -590,21 +590,21 @@ export function SettingsPage() {
         <h1 className='font-display text-3xl md:text-4xl text-primary-500 font-bold'>
           {t('title')}
         </h1>
-        <p className='text-sm text-muted-foreground mt-1'>{t('subtitle')}</p>
+        <p className='text-sm text-muted-foreground mt-xs'>{t('subtitle')}</p>
       </motion.div>
 
       {/* Tabs */}
       <Tabs defaultValue='profile' className='w-full'>
-        <TabsList className='glass shadow-soft mb-6'>
-          <TabsTrigger value='profile' className='gap-2'>
+        <TabsList className='glass shadow-soft mb-2xl'>
+          <TabsTrigger value='profile' className='gap-sm'>
             <User className='size-4' />
             {t('tabs.profile')}
           </TabsTrigger>
-          <TabsTrigger value='security' className='gap-2'>
+          <TabsTrigger value='security' className='gap-sm'>
             <Shield className='size-4' />
             {t('tabs.security')}
           </TabsTrigger>
-          <TabsTrigger value='sessions' className='gap-2'>
+          <TabsTrigger value='sessions' className='gap-sm'>
             <Monitor className='size-4' />
             {t('tabs.sessions')}
           </TabsTrigger>

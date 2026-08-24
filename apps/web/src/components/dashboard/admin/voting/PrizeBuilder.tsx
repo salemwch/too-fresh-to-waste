@@ -106,13 +106,13 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
   }
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       <Label className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
         Prizes ({prizes.length})
       </Label>
 
       {prizes.map((prize, index) => (
-        <div key={index} className='rounded-lg border border-border/60 bg-muted/10 p-4 space-y-3'>
+        <div key={index} className='rounded-lg border border-border/60 bg-muted/10 p-lg space-y-md'>
           {/* Prize header */}
           <div className='flex items-center justify-between'>
             <span className='text-xs font-semibold text-muted-foreground'>Prize {index + 1}</span>
@@ -131,8 +131,8 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
           </div>
 
           {/* Fields grid */}
-          <div className='grid grid-cols-2 gap-3'>
-            <div className='space-y-1'>
+          <div className='grid grid-cols-2 gap-md'>
+            <div className='space-y-xs'>
               <Label className='text-xs'>Name *</Label>
               <Input
                 value={prize.name}
@@ -144,7 +144,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
               />
             </div>
 
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <Label className='text-xs'>Value</Label>
               <Input
                 value={prize.value}
@@ -155,7 +155,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
               />
             </div>
 
-            <div className='col-span-2 space-y-1'>
+            <div className='col-span-2 space-y-xs'>
               <Label className='text-xs'>Description</Label>
               <Input
                 value={prize.description}
@@ -166,7 +166,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
               />
             </div>
 
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <Label className='text-xs'>Category</Label>
               <Select
                 value={prize.category}
@@ -186,7 +186,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
               </Select>
             </div>
 
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <Label className='text-xs'>Image URL</Label>
               <Input
                 value={prize.imageUrl}

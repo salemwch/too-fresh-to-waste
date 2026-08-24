@@ -108,17 +108,17 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       {/* ── Status Header ── */}
       <Card className='border-border/60'>
-        <CardHeader className='pb-3'>
-          <div className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
+        <CardHeader className='pb-md'>
+          <div className='flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between'>
             <CardTitle className='text-lg'>{cycle.name}</CardTitle>
             <Badge className={STATUS_STYLES[cycle.status] ?? ''}>{cycle.status}</Badge>
           </div>
         </CardHeader>
         <CardContent>
-          <div className='flex flex-wrap gap-4 text-sm text-muted-foreground'>
+          <div className='flex flex-wrap gap-lg text-sm text-muted-foreground'>
             {countdown && <span className='font-medium text-foreground'>{countdown}</span>}
             <span>Cycle #{cycle.cycleNumber}</span>
             {cycle.ballotOpensAt && (
@@ -138,10 +138,10 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
 
       {/* ── Community Goal ── */}
       <Card className='border-border/60'>
-        <CardHeader className='pb-3'>
+        <CardHeader className='pb-md'>
           <CardTitle className='text-sm font-semibold'>Community Goal</CardTitle>
         </CardHeader>
-        <CardContent className='space-y-3'>
+        <CardContent className='space-y-md'>
           <ProgressBar value={goalPercent ?? 0} />
           <div className='flex items-center justify-between text-sm'>
             <span className='text-muted-foreground'>
@@ -158,17 +158,17 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
       {/* ── Snapshot Warning ── */}
       {cycle.status === CycleStatus.BALLOT_OPEN && !cycle.snapshotReady && (
         <Card className='border-warning/50 bg-warning/5'>
-          <CardContent className='flex items-center justify-between pt-5 pb-5'>
+          <CardContent className='flex items-center justify-between pt-xl pb-xl'>
             <div>
               <p className='text-sm font-medium text-warning'>Snapshot not ready</p>
-              <p className='text-xs text-muted-foreground mt-0.5'>
+              <p className='text-xs text-muted-foreground mt-xxs'>
                 Voting is blocked until the eligibility snapshot completes.
               </p>
             </div>
             <Button
               size='sm'
               variant='outline'
-              className='shrink-0 border-warning text-warning hover:bg-warning/10 ms-4'
+              className='shrink-0 border-warning text-warning hover:bg-warning/10 ms-lg'
               onClick={() => retrySnapshotMutation.mutate()}
               disabled={retrySnapshotMutation.isPending}
             >
@@ -181,7 +181,7 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
       {/* ── Ballot Results ── */}
       {isBallotPhase && (
         <Card className='border-border/60'>
-          <CardHeader className='pb-3'>
+          <CardHeader className='pb-md'>
             <div className='flex items-center justify-between'>
               <CardTitle className='text-sm font-semibold'>Ballot Results</CardTitle>
               {statsData && (
@@ -192,9 +192,9 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
               )}
             </div>
           </CardHeader>
-          <CardContent className='space-y-4'>
+          <CardContent className='space-y-lg'>
             {!statsData ? (
-              <div className='space-y-3'>
+              <div className='space-y-md'>
                 {[1, 2, 3].map(i => (
                   <div key={i} className='space-y-1.5'>
                     <div className='h-3 w-1/3 rounded bg-muted animate-pulse' />
@@ -203,7 +203,7 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
                 ))}
               </div>
             ) : sortedResults.length === 0 ? (
-              <p className='py-4 text-center text-sm text-muted-foreground'>No votes cast yet.</p>
+              <p className='py-lg text-center text-sm text-muted-foreground'>No votes cast yet.</p>
             ) : (
               sortedResults.map((result, index) => {
                 const pct = maxVotes > 0 ? (result.totalWeightedVotes / maxVotes) * 100 : 0;
@@ -211,12 +211,12 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
                 return (
                   <div
                     key={result.prizeId}
-                    className={`space-y-1.5 rounded-lg p-3 ${isLeading ? 'bg-primary/5 ring-1 ring-primary/20' : ''}`}
+                    className={`space-y-1.5 rounded-lg p-md ${isLeading ? 'bg-primary/5 ring-1 ring-primary/20' : ''}`}
                   >
                     <div className='flex items-center justify-between text-sm'>
                       <span className={isLeading ? 'font-semibold text-primary' : 'font-medium'}>
                         {isLeading && (
-                          <span className='me-1.5 inline-block rounded-sm bg-primary/10 px-1 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary'>
+                          <span className='me-1.5 inline-block rounded-sm bg-primary/10 px-xs py-xxs text-[10px] font-bold uppercase tracking-wide text-primary'>
                             Leading
                           </span>
                         )}
@@ -252,10 +252,10 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
       {/* ── Winner Panel ── */}
       {cycle.status === CycleStatus.COMPLETED && cycle.winner && (
         <Card className='border-success/50 bg-success/5'>
-          <CardHeader className='pb-3'>
+          <CardHeader className='pb-md'>
             <CardTitle className='text-sm font-semibold text-success'>Winner Announced</CardTitle>
           </CardHeader>
-          <CardContent className='space-y-1'>
+          <CardContent className='space-y-xs'>
             <p className='text-xl font-bold'>{cycle.winner.name}</p>
             <p className='text-sm text-muted-foreground'>
               {formatCount(locale, cycle.winner.totalWeightedVotes)} weighted votes ·{' '}
@@ -272,9 +272,9 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
       {/* ── Expired State ── */}
       {cycle.status === CycleStatus.EXPIRED && (
         <Card className='border-destructive/50 bg-destructive/5'>
-          <CardContent className='pt-5 pb-5'>
+          <CardContent className='pt-xl pb-xl'>
             <p className='text-sm font-medium text-destructive'>Cycle expired</p>
-            <p className='text-xs text-muted-foreground mt-0.5'>
+            <p className='text-xs text-muted-foreground mt-xxs'>
               The community goal was not met. Archive this cycle to start a new one.
             </p>
           </CardContent>

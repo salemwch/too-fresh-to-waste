@@ -17,9 +17,9 @@ function SliderRow({ label, value, min, max, step, unit, onChange }: SliderRowPr
 
   return (
     <div>
-      <div className='flex items-baseline justify-between mb-2'>
+      <div className='flex items-baseline justify-between mb-sm'>
         <p className='text-white/55 text-xs font-bold uppercase tracking-[0.15em]'>{label}</p>
-        <div className='flex items-baseline gap-1'>
+        <div className='flex items-baseline gap-xs'>
           <span className='font-heading text-3xl font-bold text-white tabular-nums leading-none'>
             {value}
           </span>
@@ -85,11 +85,11 @@ export default function RevenueCalculator() {
   const waterSaved = bagsPerYear * 300;
 
   return (
-    <div className='grid lg:grid-cols-2 gap-6 lg:gap-12 items-start'>
+    <div className='grid lg:grid-cols-2 gap-2xl lg:gap-3xl items-start'>
       {/* ── LEFT - Sliders ── */}
-      <div className='bg-white/5 border border-white/10 rounded-3xl p-4 lg:p-5 space-y-3'>
+      <div className='bg-white/5 border border-white/10 rounded-3xl p-lg lg:p-xl space-y-md'>
         <div>
-          <p className='text-white/70 text-[10px] font-bold uppercase tracking-[0.2em] mb-1'>
+          <p className='text-white/70 text-[10px] font-bold uppercase tracking-[0.2em] mb-xs'>
             Your business
           </p>
           <p className='text-white font-heading text-2xl font-bold leading-snug'>
@@ -139,15 +139,15 @@ export default function RevenueCalculator() {
       </div>
 
       {/* ── RIGHT - Results ── */}
-      <div className='space-y-4'>
+      <div className='space-y-lg'>
         {/* Monthly + annual */}
-        <div className='bg-white/10 border border-white/10 rounded-3xl p-7 relative overflow-hidden'>
+        <div className='bg-white/10 border border-white/10 rounded-3xl p-3xl relative overflow-hidden'>
           {/* coral glow */}
 
-          <p className='text-white/60 text-[10px] font-bold uppercase tracking-widest mb-2'>
+          <p className='text-white/60 text-[10px] font-bold uppercase tracking-widest mb-sm'>
             Monthly revenue
           </p>
-          <div className='flex items-baseline gap-2 mb-2'>
+          <div className='flex items-baseline gap-sm mb-sm'>
             <span className='font-heading text-5xl lg:text-6xl font-bold text-white tabular-nums leading-none'>
               {fmt(revenuePerMonth)}
             </span>
@@ -157,7 +157,7 @@ export default function RevenueCalculator() {
             {bags} bags × {bagPrice % 1 === 0 ? bagPrice : bagPrice.toFixed(1)} TND × {days} days
           </p>
 
-          <div className='mt-5 pt-5 border-t border-white/10 flex items-baseline justify-between gap-4'>
+          <div className='mt-xl pt-xl border-t border-white/10 flex items-baseline justify-between gap-lg'>
             <p className='text-white/60 text-[10px] font-bold uppercase tracking-widest shrink-0'>
               Per year
             </p>
@@ -169,24 +169,24 @@ export default function RevenueCalculator() {
         </div>
 
         {/* Impact metrics */}
-        <div className='grid grid-cols-3 gap-3'>
-          <div className='bg-white/5 border border-white/10 rounded-2xl p-4 text-center'>
+        <div className='grid grid-cols-3 gap-md'>
+          <div className='bg-white/5 border border-white/10 rounded-2xl p-lg text-center'>
             <p className='font-heading text-xl font-bold text-white tabular-nums'>
               {fmt(bagsPerYear)}
             </p>
-            <p className='text-white/80 text-[10px] mt-1 leading-tight'>Bags saved / year</p>
+            <p className='text-white/80 text-[10px] mt-xs leading-tight'>Bags saved / year</p>
           </div>
-          <div className='bg-white/5 border border-white/10 rounded-2xl p-4 text-center'>
+          <div className='bg-white/5 border border-white/10 rounded-2xl p-lg text-center'>
             <p className='font-heading text-xl font-bold text-emerald-400 tabular-nums'>
               {formatCO2(co2Saved)}
             </p>
-            <p className='text-white/80 text-[10px] mt-1 leading-tight'>CO₂ avoided / year</p>
+            <p className='text-white/80 text-[10px] mt-xs leading-tight'>CO₂ avoided / year</p>
           </div>
-          <div className='bg-white/5 border border-white/10 rounded-2xl p-4 text-center'>
+          <div className='bg-white/5 border border-white/10 rounded-2xl p-lg text-center'>
             <p className='font-heading text-xl font-bold text-sky-300 tabular-nums'>
               {formatWater(waterSaved)}
             </p>
-            <p className='text-white/80 text-[10px] mt-1 leading-tight'>Water saved / year</p>
+            <p className='text-white/80 text-[10px] mt-xs leading-tight'>Water saved / year</p>
           </div>
         </div>
 

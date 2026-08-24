@@ -46,19 +46,19 @@ export default function MerchantSecurityPage() {
 
   return (
     <div className='max-w-md'>
-      <div className='mb-5'>
+      <div className='mb-xl'>
         <h1 className='font-display text-lg font-semibold text-slate-900'>{t('title')}</h1>
-        <p className='text-xs text-slate-500 mt-0.5'>{t('description')}</p>
+        <p className='text-xs text-slate-500 mt-xxs'>{t('description')}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className='space-y-3'>
+      <form onSubmit={handleSubmit} className='space-y-md'>
         {/* Current Password */}
-        <div className='space-y-1'>
+        <div className='space-y-xs'>
           <Label htmlFor='currentPassword' className='text-xs font-medium text-slate-700'>
             {t('currentPassword')}
           </Label>
           <div className='relative'>
-            <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+            <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
             <Input
               id='currentPassword'
               type={showCurrent ? 'text' : 'password'}
@@ -67,12 +67,12 @@ export default function MerchantSecurityPage() {
               required
               disabled={isLoading}
               autoComplete='current-password'
-              className='h-[36px] pl-8 pr-9 text-sm'
+              className='h-[36px] pl-4xl pr-5xl text-sm'
             />
             <button
               type='button'
               onClick={() => setShowCurrent(v => !v)}
-              className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+              className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
               tabIndex={-1}
               aria-label={showCurrent ? 'Hide password' : 'Show password'}
             >
@@ -82,12 +82,12 @@ export default function MerchantSecurityPage() {
         </div>
 
         {/* New Password */}
-        <div className='space-y-1'>
+        <div className='space-y-xs'>
           <Label htmlFor='newPassword' className='text-xs font-medium text-slate-700'>
             {t('newPassword')}
           </Label>
           <div className='relative'>
-            <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+            <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
             <Input
               id='newPassword'
               type={showNew ? 'text' : 'password'}
@@ -96,12 +96,12 @@ export default function MerchantSecurityPage() {
               required
               disabled={isLoading}
               autoComplete='new-password'
-              className='h-[36px] pl-8 pr-9 text-sm'
+              className='h-[36px] pl-4xl pr-5xl text-sm'
             />
             <button
               type='button'
               onClick={() => setShowNew(v => !v)}
-              className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+              className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
               tabIndex={-1}
               aria-label={showNew ? 'Hide password' : 'Show password'}
             >
@@ -112,12 +112,12 @@ export default function MerchantSecurityPage() {
         </div>
 
         {/* Confirm Password */}
-        <div className='space-y-1'>
+        <div className='space-y-xs'>
           <Label htmlFor='confirmPassword' className='text-xs font-medium text-slate-700'>
             {t('confirmPassword')}
           </Label>
           <div className='relative'>
-            <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+            <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
             <Input
               id='confirmPassword'
               type={showConfirm ? 'text' : 'password'}
@@ -126,12 +126,12 @@ export default function MerchantSecurityPage() {
               required
               disabled={isLoading}
               autoComplete='new-password'
-              className='h-[36px] pl-8 pr-9 text-sm'
+              className='h-[36px] pl-4xl pr-5xl text-sm'
             />
             <button
               type='button'
               onClick={() => setShowConfirm(v => !v)}
-              className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+              className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
               tabIndex={-1}
               aria-label={showConfirm ? 'Hide password' : 'Show password'}
             >
@@ -142,19 +142,19 @@ export default function MerchantSecurityPage() {
 
         {/* Feedback */}
         {error && (
-          <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive'>
+          <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-sm text-xs text-destructive'>
             <AlertCircle className='h-3.5 w-3.5 shrink-0' />
             <span>{error}</span>
           </div>
         )}
         {success && (
-          <div className='flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700'>
+          <div className='flex items-center gap-sm rounded-lg border border-green-200 bg-green-50 px-md py-sm text-xs text-green-700'>
             <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
             <span>{t('success')}</span>
           </div>
         )}
 
-        <Button type='submit' disabled={isLoading} className='mt-1 h-[36px] px-4 text-sm'>
+        <Button type='submit' disabled={isLoading} className='mt-xs h-[36px] px-lg text-sm'>
           {isLoading && <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />}
           {isLoading ? t('updating') : t('updatePassword')}
         </Button>

@@ -222,26 +222,26 @@ export default async function ConsumerPage({ params }: PageProps) {
         <section className='bg-primary-500 relative overflow-hidden'>
           {/* Decorative radial glows */}
 
-          <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-12 pb-0 lg:pt-16'>
-            <div className='grid lg:grid-cols-2 gap-10 lg:gap-16 items-center'>
+          <div className='relative mx-auto max-w-7xl px-2xl lg:px-4xl pt-3xl pb-0 lg:pt-4xl'>
+            <div className='grid lg:grid-cols-2 gap-6xl lg:gap-4xl items-center'>
               {/* Left - copy */}
-              <div className='pb-10 lg:pb-16'>
+              <div className='pb-6xl lg:pb-4xl'>
                 {/* Eyebrow */}
-                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
+                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-xl'>
                   {t('hero.titleStart')}{' '}
                   <span className='text-secondary-light italic'>{t('hero.titleEm')}</span>{' '}
                   {t('hero.titleEnd')}
                 </h1>
 
-                <p className='text-white/70 text-base lg:text-lg leading-relaxed mb-8 max-w-lg'>
+                <p className='text-white/70 text-base lg:text-lg leading-relaxed mb-4xl max-w-lg'>
                   {t('hero.lede')}
                 </p>
 
                 {/* Download CTAs */}
-                <div className='flex flex-col sm:flex-row gap-3 mb-5'>
+                <div className='flex flex-col sm:flex-row gap-md mb-xl'>
                   {/* App Store */}
                   <AppDownloadButton
-                    className='inline-flex items-center gap-3 bg-white text-primary-500 font-bold px-6 py-3.5 rounded-full hover:bg-cream transition-colors shadow-lg text-sm'
+                    className='inline-flex items-center gap-md bg-white text-primary-500 font-bold px-2xl py-3.5 rounded-full hover:bg-cream transition-colors shadow-lg text-sm'
                     aria-label={t('common.appStore')}
                   >
                     <svg
@@ -257,7 +257,7 @@ export default async function ConsumerPage({ params }: PageProps) {
 
                   {/* Google Play */}
                   <AppDownloadButton
-                    className='inline-flex items-center gap-3 border border-white/40 text-white font-bold px-6 py-3.5 rounded-full hover:border-white/70 hover:bg-white/5 transition-colors text-sm'
+                    className='inline-flex items-center gap-md border border-white/40 text-white font-bold px-2xl py-3.5 rounded-full hover:border-white/70 hover:bg-white/5 transition-colors text-sm'
                     aria-label={t('common.googlePlay')}
                   >
                     <svg
@@ -301,15 +301,15 @@ export default async function ConsumerPage({ params }: PageProps) {
         </section>
 
         {/* ── MARQUEE TICKER ───────────────────────────────────────────────── */}
-        <div className='bg-brand-green py-3 overflow-hidden' aria-hidden='true'>
-          <div className='flex w-max animate-marquee-fw gap-16 whitespace-nowrap'>
+        <div className='bg-brand-green py-md overflow-hidden' aria-hidden='true'>
+          <div className='flex w-max animate-marquee-fw gap-4xl whitespace-nowrap'>
             {Array.from({ length: 2 }).map((_, i) => (
               <div
                 key={i}
-                className='flex items-center gap-16 font-bold text-white text-xs uppercase tracking-[0.2em]'
+                className='flex items-center gap-4xl font-bold text-white text-xs uppercase tracking-[0.2em]'
               >
                 {ticker.map(line => (
-                  <span key={line} className='flex items-center gap-16'>
+                  <span key={line} className='flex items-center gap-4xl'>
                     {line}
                     <span className='text-white/75'>✦</span>
                   </span>
@@ -320,10 +320,10 @@ export default async function ConsumerPage({ params }: PageProps) {
         </div>
 
         {/* ── QUICK WINS ───────────────────────────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-20'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='text-center mb-10'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-2'>
+        <section className='bg-cream py-4xl lg:py-5xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='text-center mb-6xl'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-sm'>
                 {t('quickWins.eyebrow')}
               </p>
               <h2 className='font-heading text-3xl lg:text-4xl font-bold text-primary-500'>
@@ -331,24 +331,24 @@ export default async function ConsumerPage({ params }: PageProps) {
               </h2>
             </div>
 
-            <div className='grid md:grid-cols-3 gap-5'>
+            <div className='grid md:grid-cols-3 gap-xl'>
               {quickWins.map((w, i) => {
                 const art = QUICK_WIN_ICONS[i] ?? QUICK_WIN_ICONS[0];
                 const Icon = art.Icon;
                 return (
                   <div
                     key={w.stat}
-                    className='bg-white rounded-3xl p-7 border border-primary-500/10 hover:border-brand-green/25 hover:shadow-lg transition-all duration-300 group'
+                    className='bg-white rounded-3xl p-3xl border border-primary-500/10 hover:border-brand-green/25 hover:shadow-lg transition-all duration-300 group'
                   >
                     <div
-                      className={`w-14 h-14 rounded-2xl ${art.iconBg} flex items-center justify-center mb-5 ${art.iconColor} group-hover:scale-110 transition-transform duration-300`}
+                      className={`w-14 h-14 rounded-2xl ${art.iconBg} flex items-center justify-center mb-xl ${art.iconColor} group-hover:scale-110 transition-transform duration-300`}
                     >
                       <Icon className='w-7 h-7' />
                     </div>
-                    <p className='text-xl font-black text-primary-500 mb-1 leading-tight'>
+                    <p className='text-xl font-black text-primary-500 mb-xs leading-tight'>
                       {w.stat}
                     </p>
-                    <p className='text-xs font-bold uppercase tracking-widest text-brand-green mb-3'>
+                    <p className='text-xs font-bold uppercase tracking-widest text-brand-green mb-md'>
                       {w.label}
                     </p>
                     <p className='text-sm text-primary-500/75 leading-relaxed'>{w.body}</p>
@@ -360,10 +360,10 @@ export default async function ConsumerPage({ params }: PageProps) {
         </section>
 
         {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
-        <section className='bg-white py-16 lg:py-20'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='text-center mb-12'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+        <section className='bg-white py-4xl lg:py-5xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='text-center mb-3xl'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('howItWorks.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
@@ -372,23 +372,23 @@ export default async function ConsumerPage({ params }: PageProps) {
               </h2>
             </div>
 
-            <div className='grid md:grid-cols-3 gap-6'>
+            <div className='grid md:grid-cols-3 gap-2xl'>
               {howItWorksSteps.map((step, i) => {
                 const art = HOW_IT_WORKS_ART[i] ?? HOW_IT_WORKS_ART[0];
                 return (
                   <div
                     key={step.n}
-                    className='group bg-cream rounded-3xl p-7 hover:shadow-md transition-all duration-300 border border-transparent hover:border-brand-green/20 relative overflow-hidden'
+                    className='group bg-cream rounded-3xl p-3xl hover:shadow-md transition-all duration-300 border border-transparent hover:border-brand-green/20 relative overflow-hidden'
                   >
                     {/* Step number badge */}
                     <div
-                      className={`w-14 h-14 rounded-2xl ${art.colorClass} flex items-center justify-center mb-5 shadow-md`}
+                      className={`w-14 h-14 rounded-2xl ${art.colorClass} flex items-center justify-center mb-xl shadow-md`}
                     >
                       <span className='text-white font-black text-xl font-heading'>{step.n}</span>
                     </div>
 
                     {/* Icon */}
-                    <div className='w-12 h-12 mb-4'>
+                    <div className='w-12 h-12 mb-lg'>
                       <Image
                         src={art.icon}
                         alt={step.iconAlt}
@@ -398,7 +398,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                       />
                     </div>
 
-                    <h3 className='font-bold text-lg text-primary-500 mb-3 leading-snug'>
+                    <h3 className='font-bold text-lg text-primary-500 mb-md leading-snug'>
                       {step.title}
                     </h3>
                     <p className='text-sm text-primary-500/75 leading-relaxed'>{step.body}</p>
@@ -406,7 +406,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                     {/* Connector line on desktop */}
                     {i < howItWorksSteps.length - 1 && (
                       <div
-                        className='hidden md:block absolute top-10 -right-3 w-6 h-px bg-primary-500/15 z-10'
+                        className='hidden md:block absolute top-6xl -right-md w-6 h-px bg-primary-500/15 z-10'
                         aria-hidden='true'
                       />
                     )}
@@ -418,7 +418,7 @@ export default async function ConsumerPage({ params }: PageProps) {
         </section>
 
         {/* ── WALLET STORY ─────────────────────────────────────────────────── */}
-        <section className='bg-primary-500 py-16 lg:py-24 relative overflow-hidden'>
+        <section className='bg-primary-500 py-4xl lg:py-6xl relative overflow-hidden'>
           {/* Top wave from white */}
           <div className='absolute top-0 left-0 right-0' aria-hidden='true'>
             <svg
@@ -444,23 +444,23 @@ export default async function ConsumerPage({ params }: PageProps) {
 
           {/* Glow */}
 
-          <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-10'>
-            <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
+          <div className='relative mx-auto max-w-7xl px-2xl lg:px-4xl pt-6xl'>
+            <div className='grid lg:grid-cols-2 gap-3xl lg:gap-4xl items-center'>
               {/* Left - copy */}
               <div>
-                <p className='text-xs font-bold uppercase tracking-[0.25em] text-secondary-light mb-4'>
+                <p className='text-xs font-bold uppercase tracking-[0.25em] text-secondary-light mb-lg'>
                   {t('wallet.eyebrow')}
                 </p>
-                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white leading-tight mb-5'>
+                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white leading-tight mb-xl'>
                   {t('wallet.title')}
                 </h2>
-                <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-7'>
+                <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-3xl'>
                   {t('wallet.lede')}
                 </p>
 
-                <ul className='space-y-3 mb-8'>
+                <ul className='space-y-md mb-4xl'>
                   {walletBullets.map(item => (
-                    <li key={item} className='flex items-center gap-3 text-sm text-white/75'>
+                    <li key={item} className='flex items-center gap-md text-sm text-white/75'>
                       <span className='w-5 h-5 rounded-full bg-secondary-light/25 text-secondary-light flex items-center justify-center shrink-0'>
                         <CheckIcon className='w-3 h-3' />
                       </span>
@@ -470,7 +470,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </ul>
 
                 <AppDownloadButton
-                  className='inline-flex items-center gap-2 bg-brand-green text-white font-bold px-7 py-3.5 rounded-full hover:opacity-90 transition-opacity shadow-lg text-sm'
+                  className='inline-flex items-center gap-sm bg-brand-green text-white font-bold px-3xl py-3.5 rounded-full hover:opacity-90 transition-opacity shadow-lg text-sm'
                   aria-label={t('wallet.cta')}
                 >
                   {t('wallet.cta')}
@@ -495,22 +495,22 @@ export default async function ConsumerPage({ params }: PageProps) {
               <div className='flex justify-center lg:justify-end'>
                 <div className='relative w-full max-w-[320px]'>
                   {/* Main card */}
-                  <div className='bg-white rounded-3xl shadow-2xl p-6 relative overflow-hidden'>
+                  <div className='bg-white rounded-3xl shadow-2xl p-2xl relative overflow-hidden'>
                     {/* Header */}
-                    <div className='bg-primary-500 rounded-2xl p-5 mb-5 text-center relative overflow-hidden bg-grain'>
-                      <p className='relative text-white/75 text-[10px] uppercase tracking-[0.3em] mb-1'>
+                    <div className='bg-primary-500 rounded-2xl p-xl mb-xl text-center relative overflow-hidden bg-grain'>
+                      <p className='relative text-white/75 text-[10px] uppercase tracking-[0.3em] mb-xs'>
                         {t('wallet.card.brand')}
                       </p>
-                      <p className='relative font-heading text-2xl font-bold text-white mb-1'>
+                      <p className='relative font-heading text-2xl font-bold text-white mb-xs'>
                         {t('wallet.card.name')}
                       </p>
                       <p className='relative text-white/75 text-sm'>{t('wallet.card.subtitle')}</p>
                     </div>
 
                     {/* Price comparison */}
-                    <div className='flex items-center justify-between bg-cream rounded-2xl p-4 mb-3'>
+                    <div className='flex items-center justify-between bg-cream rounded-2xl p-lg mb-md'>
                       <div>
-                        <p className='text-xs text-primary-500/75 mb-1'>
+                        <p className='text-xs text-primary-500/75 mb-xs'>
                           {t('wallet.card.originalLabel')}
                         </p>
                         <p className='text-xl font-bold text-primary-500/75 line-through'>
@@ -519,7 +519,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                       </div>
                       <div className='h-8 w-px bg-primary-500/10' aria-hidden='true' />
                       <div className='text-right'>
-                        <p className='text-xs text-primary-500/75 mb-1'>
+                        <p className='text-xs text-primary-500/75 mb-xs'>
                           {t('wallet.card.payLabel')}
                         </p>
                         <p className='text-2xl font-black text-brand-green'>
@@ -529,20 +529,20 @@ export default async function ConsumerPage({ params }: PageProps) {
                     </div>
 
                     {/* You save highlight */}
-                    <div className='bg-brand-green/10 border border-brand-green/20 rounded-2xl p-4 text-center'>
-                      <p className='text-brand-green text-[10px] uppercase tracking-widest font-bold mb-1'>
+                    <div className='bg-brand-green/10 border border-brand-green/20 rounded-2xl p-lg text-center'>
+                      <p className='text-brand-green text-[10px] uppercase tracking-widest font-bold mb-xs'>
                         {t('wallet.card.saveLabel')}
                       </p>
                       <p className='text-brand-green text-3xl font-black font-heading'>
                         {t('wallet.card.saveValue')}
                       </p>
-                      <p className='text-brand-green text-xs mt-1'>{t('wallet.card.savePer')}</p>
+                      <p className='text-brand-green text-xs mt-xs'>{t('wallet.card.savePer')}</p>
                     </div>
                   </div>
 
                   {/* Save badge */}
                   <div
-                    className='absolute -top-4 -right-4 bg-brand-green text-white rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-xl rotate-[12deg]'
+                    className='absolute -top-lg -right-lg bg-brand-green text-white rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-xl rotate-[12deg]'
                     aria-label={`${t('wallet.card.badgeLabel')} ${t('wallet.card.badgeValue')}`}
                   >
                     <span className='text-[10px] font-bold leading-tight'>
@@ -554,7 +554,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                   </div>
 
                   {/* Bottom label */}
-                  <p className='text-center text-white/75 text-xs mt-4'>
+                  <p className='text-center text-white/75 text-xs mt-lg'>
                     {t('wallet.card.disclaimer')}
                   </p>
                 </div>
@@ -564,17 +564,17 @@ export default async function ConsumerPage({ params }: PageProps) {
         </section>
 
         {/* ── PLANET STORY ─────────────────────────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-24 relative overflow-hidden'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
+        <section className='bg-cream py-4xl lg:py-6xl relative overflow-hidden'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='grid lg:grid-cols-2 gap-3xl lg:gap-4xl items-center'>
               {/* Left - impact numbers */}
-              <div className='space-y-6'>
+              <div className='space-y-2xl'>
                 {/* Big stat */}
-                <div className='bg-white rounded-3xl p-8 border border-primary-500/10 shadow-teal-sm'>
-                  <p className='text-xs font-bold uppercase tracking-widest text-primary-500/75 mb-2'>
+                <div className='bg-white rounded-3xl p-4xl border border-primary-500/10 shadow-teal-sm'>
+                  <p className='text-xs font-bold uppercase tracking-widest text-primary-500/75 mb-sm'>
                     {t('planet.globalLabel')}
                   </p>
-                  <p className='font-heading text-7xl font-bold text-primary-500 leading-none mb-2'>
+                  <p className='font-heading text-7xl font-bold text-primary-500 leading-none mb-sm'>
                     {t('planet.globalValue')}
                   </p>
                   <p className='text-primary-500/75 text-base leading-relaxed'>
@@ -583,23 +583,23 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </div>
 
                 {/* Two mini stats */}
-                <div className='grid grid-cols-2 gap-4'>
-                  <div className='bg-white rounded-2xl p-5 border border-primary-500/10'>
-                    <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-3'>
+                <div className='grid grid-cols-2 gap-lg'>
+                  <div className='bg-white rounded-2xl p-xl border border-primary-500/10'>
+                    <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-md'>
                       <LeafIcon className='w-5 h-5' />
                     </div>
-                    <p className='font-black text-primary-500 text-base leading-tight mb-1'>
+                    <p className='font-black text-primary-500 text-base leading-tight mb-xs'>
                       {t('planet.co2Value')}
                     </p>
                     <p className='text-xs text-primary-500/75 leading-relaxed'>
                       {t('planet.co2Label')}
                     </p>
                   </div>
-                  <div className='bg-white rounded-2xl p-5 border border-primary-500/10'>
-                    <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-3'>
+                  <div className='bg-white rounded-2xl p-xl border border-primary-500/10'>
+                    <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-md'>
                       <DropletIcon className='w-5 h-5' />
                     </div>
-                    <p className='font-black text-primary-500 text-base leading-tight mb-1'>
+                    <p className='font-black text-primary-500 text-base leading-tight mb-xs'>
                       {t('planet.waterValue')}
                     </p>
                     <p className='text-xs text-primary-500/75 leading-relaxed'>
@@ -611,23 +611,23 @@ export default async function ConsumerPage({ params }: PageProps) {
 
               {/* Right - copy */}
               <div>
-                <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-4'>
+                <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-lg'>
                   {t('planet.eyebrow')}
                 </p>
-                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-5'>
+                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-xl'>
                   {t('planet.titleStart')}{' '}
                   <span className='text-brand-green italic'>{t('planet.titleEm')}</span>
                 </h2>
-                <p className='text-primary-500/75 text-base lg:text-lg leading-relaxed mb-6'>
+                <p className='text-primary-500/75 text-base lg:text-lg leading-relaxed mb-2xl'>
                   {t('planet.body1')}
                 </p>
-                <p className='text-primary-500/75 text-base leading-relaxed mb-8'>
+                <p className='text-primary-500/75 text-base leading-relaxed mb-4xl'>
                   {t('planet.body2')}
                 </p>
 
                 <Link
                   href='/food-waste-facts'
-                  className='inline-flex items-center gap-2 text-primary-500 font-bold text-sm hover:text-brand-green transition-colors'
+                  className='inline-flex items-center gap-sm text-primary-500 font-bold text-sm hover:text-brand-green transition-colors'
                 >
                   {t('planet.link')}
                   <svg
@@ -663,23 +663,23 @@ export default async function ConsumerPage({ params }: PageProps) {
         </section>
 
         {/* ── REFERRAL ─────────────────────────────────────────────────────── */}
-        <section className='bg-white py-16 lg:py-20'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
+        <section className='bg-white py-4xl lg:py-5xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='grid lg:grid-cols-2 gap-3xl lg:gap-4xl items-center'>
               {/* Left - copy */}
               <div>
-                <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-4'>
+                <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-lg'>
                   {t('referral.eyebrow')}
                 </p>
-                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-5'>
+                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-xl'>
                   {t('referral.titleStart')}{' '}
                   <span className='text-brand-green italic'>{t('referral.titleEm')}</span>
                 </h2>
-                <p className='text-primary-500/75 text-base lg:text-lg leading-relaxed mb-6'>
+                <p className='text-primary-500/75 text-base lg:text-lg leading-relaxed mb-2xl'>
                   {t('referral.lede')}
                 </p>
 
-                <div className='space-y-1.5 mb-8'>
+                <div className='space-y-1.5 mb-4xl'>
                   {referralSteps.map((text, i) => {
                     const Icon = REFERRAL_ICONS[i] ?? REFERRAL_ICONS[0];
                     return (
@@ -694,7 +694,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 </div>
 
                 <AppDownloadButton
-                  className='inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-7 py-3.5 rounded-full hover:bg-primary-600 transition-colors text-sm'
+                  className='inline-flex items-center gap-sm bg-primary-500 text-white font-bold px-3xl py-3.5 rounded-full hover:bg-primary-600 transition-colors text-sm'
                   aria-label={t('referral.cta')}
                 >
                   {t('referral.cta')}
@@ -705,12 +705,12 @@ export default async function ConsumerPage({ params }: PageProps) {
               <div className='flex justify-center lg:justify-end'>
                 <div className='w-full max-w-[320px]'>
                   {/* Card */}
-                  <div className='bg-cream rounded-3xl p-6 border-2 border-dashed border-primary-500/20 relative overflow-hidden'>
+                  <div className='bg-cream rounded-3xl p-2xl border-2 border-dashed border-primary-500/20 relative overflow-hidden'>
                     {/* Glow top-right */}
 
                     {/* Share row */}
-                    <div className='flex items-center gap-3 mb-5'>
-                      <div className='flex items-center gap-2 flex-1'>
+                    <div className='flex items-center gap-md mb-xl'>
+                      <div className='flex items-center gap-sm flex-1'>
                         <Image
                           src='/icons/earn-points.png'
                           alt=''
@@ -739,7 +739,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                     </div>
 
                     {/* Bottom note */}
-                    <div className='pt-4 border-t border-primary-500/10'>
+                    <div className='pt-lg border-t border-primary-500/10'>
                       <p className='text-[10px] text-primary-500/75 text-center'>
                         {t('referral.cardFooter')}
                       </p>
@@ -752,7 +752,7 @@ export default async function ConsumerPage({ params }: PageProps) {
         </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
-        <section className='bg-primary-500 relative overflow-hidden py-20 lg:py-28'>
+        <section className='bg-primary-500 relative overflow-hidden py-5xl lg:py-28'>
           {/* Top wave from white */}
           <div className='absolute top-0 left-0 right-0' aria-hidden='true'>
             <svg
@@ -767,22 +767,22 @@ export default async function ConsumerPage({ params }: PageProps) {
 
           {/* Decorative glows */}
 
-          <div className='relative mx-auto max-w-3xl px-6 text-center pt-10'>
-            <p className='text-white/75 text-xs font-bold uppercase tracking-[0.3em] mb-4'>
+          <div className='relative mx-auto max-w-3xl px-2xl text-center pt-6xl'>
+            <p className='text-white/75 text-xs font-bold uppercase tracking-[0.3em] mb-lg'>
               {t('finalCta.eyebrow')}
             </p>
-            <h2 className='font-heading text-4xl lg:text-6xl font-bold text-white leading-tight mb-5'>
+            <h2 className='font-heading text-4xl lg:text-6xl font-bold text-white leading-tight mb-xl'>
               {t('finalCta.titleStart')}{' '}
               <span className='text-secondary-light'>{t('finalCta.titleEm')}</span>
             </h2>
-            <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-10 max-w-xl mx-auto'>
+            <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-6xl max-w-xl mx-auto'>
               {t('finalCta.body')}
             </p>
 
             {/* Download buttons */}
-            <div className='flex flex-col sm:flex-row gap-4 justify-center mb-6'>
+            <div className='flex flex-col sm:flex-row gap-lg justify-center mb-2xl'>
               <AppDownloadButton
-                className='inline-flex items-center justify-center gap-3 bg-white text-primary-500 font-black text-sm px-8 py-4 rounded-full hover:bg-cream transition-colors shadow-xl'
+                className='inline-flex items-center justify-center gap-md bg-white text-primary-500 font-black text-sm px-4xl py-lg rounded-full hover:bg-cream transition-colors shadow-xl'
                 aria-label={t('common.appStore')}
               >
                 <svg
@@ -796,7 +796,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 {t('common.appStore')}
               </AppDownloadButton>
               <AppDownloadButton
-                className='inline-flex items-center justify-center gap-3 border-2 border-white text-white font-black text-sm px-8 py-4 rounded-full hover:bg-white/10 transition-colors'
+                className='inline-flex items-center justify-center gap-md border-2 border-white text-white font-black text-sm px-4xl py-lg rounded-full hover:bg-white/10 transition-colors'
                 aria-label={t('common.googlePlay')}
               >
                 <svg

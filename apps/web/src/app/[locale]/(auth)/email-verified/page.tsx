@@ -34,9 +34,9 @@ function DashboardSkeleton() {
   return (
     <div className='fixed inset-0 z-50 flex bg-background'>
       {/* Sidebar */}
-      <aside className='hidden w-64 shrink-0 border-r border-border bg-card p-4 lg:block'>
-        <div className='mb-6 h-8 w-32 animate-pulse rounded-md bg-muted' />
-        <div className='space-y-2'>
+      <aside className='hidden w-64 shrink-0 border-r border-border bg-card p-lg lg:block'>
+        <div className='mb-2xl h-8 w-32 animate-pulse rounded-md bg-muted' />
+        <div className='space-y-sm'>
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className='h-9 w-full animate-pulse rounded-md bg-muted' />
           ))}
@@ -44,10 +44,10 @@ function DashboardSkeleton() {
       </aside>
 
       {/* Main */}
-      <main className='flex-1 overflow-hidden p-4 sm:p-6 lg:p-8'>
+      <main className='flex-1 overflow-hidden p-lg sm:p-2xl lg:p-4xl'>
         {/* Top bar */}
-        <div className='mb-6 flex items-center justify-between'>
-          <div className='space-y-2'>
+        <div className='mb-2xl flex items-center justify-between'>
+          <div className='space-y-sm'>
             <div className='h-7 w-48 animate-pulse rounded-md bg-muted' />
             <div className='h-4 w-64 animate-pulse rounded-md bg-muted/60' />
           </div>
@@ -55,17 +55,17 @@ function DashboardSkeleton() {
         </div>
 
         {/* Stat cards */}
-        <div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+        <div className='mb-2xl grid grid-cols-1 gap-lg sm:grid-cols-2 lg:grid-cols-4'>
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className='h-28 animate-pulse rounded-xl border border-border bg-card p-4'
+              className='h-28 animate-pulse rounded-xl border border-border bg-card p-lg'
             />
           ))}
         </div>
 
         {/* Content blocks */}
-        <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-lg lg:grid-cols-3'>
           <div className='h-80 animate-pulse rounded-xl border border-border bg-card lg:col-span-2' />
           <div className='h-80 animate-pulse rounded-xl border border-border bg-card' />
         </div>
@@ -107,13 +107,13 @@ function EmailVerifiedInner() {
 
   if (errored) {
     return (
-      <div className='fixed inset-0 z-50 flex items-center justify-center bg-background px-4'>
-        <div className='w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-lg'>
-          <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100'>
+      <div className='fixed inset-0 z-50 flex items-center justify-center bg-background px-lg'>
+        <div className='w-full max-w-md rounded-2xl border border-border bg-card p-4xl text-center shadow-lg'>
+          <div className='mx-auto mb-lg flex h-16 w-16 items-center justify-center rounded-full bg-red-100'>
             <XCircle className='h-8 w-8 text-red-600' />
           </div>
-          <h1 className='mb-2 text-2xl font-semibold text-foreground'>{t('verifyFailedTitle')}</h1>
-          <p className='mb-6 text-sm text-muted-foreground'>{t('verifyError')}</p>
+          <h1 className='mb-sm text-2xl font-semibold text-foreground'>{t('verifyFailedTitle')}</h1>
+          <p className='mb-2xl text-sm text-muted-foreground'>{t('verifyError')}</p>
           <Link
             href='/login'
             className='inline-flex items-center justify-center text-sm font-medium text-primary hover:underline'

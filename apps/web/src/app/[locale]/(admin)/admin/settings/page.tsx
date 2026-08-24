@@ -64,7 +64,7 @@ function Toggle({
   description?: string;
 }) {
   return (
-    <div className='flex items-center justify-between gap-4 py-2'>
+    <div className='flex items-center justify-between gap-lg py-sm'>
       <div>
         <p className='text-sm font-medium'>{label}</p>
         {description && <p className='text-xs text-muted-foreground'>{description}</p>}
@@ -79,7 +79,7 @@ function Toggle({
       >
         <span
           className={`pointer-events-none block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-            checked ? 'translate-x-4' : 'translate-x-0.5'
+            checked ? 'translate-x-lg' : 'translate-x-xxs'
           }`}
         />
       </button>
@@ -103,9 +103,9 @@ function NumberInput({
   suffix?: string;
 }) {
   return (
-    <div className='space-y-1'>
+    <div className='space-y-xs'>
       <Label className='text-xs'>{label}</Label>
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-sm'>
         <Input
           type='number'
           value={value}
@@ -221,21 +221,21 @@ export default function AdminSettingsPage() {
 
   if (isLoading || !platform || !security || !notifications || !payment) {
     return (
-      <div className='flex items-center justify-center py-24'>
+      <div className='flex items-center justify-center py-6xl'>
         <Loader2 className='size-6 animate-spin text-muted-foreground' />
       </div>
     );
   }
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       {/* Header */}
-      <div className='flex items-start justify-between gap-4'>
+      <div className='flex items-start justify-between gap-lg'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-sm'>
           {config && (
             <Badge variant='outline' className='text-xs'>
               v{config.version}
@@ -260,12 +260,12 @@ export default function AdminSettingsPage() {
           <Button size='sm' onClick={() => setSaveDialog(true)} disabled={updateConfig.isPending}>
             {updateConfig.isPending ? (
               <>
-                <Loader2 className='me-2 size-3.5 animate-spin' />
+                <Loader2 className='me-sm size-3.5 animate-spin' />
                 {t('saving')}
               </>
             ) : (
               <>
-                <Settings className='me-2 size-3.5' />
+                <Settings className='me-sm size-3.5' />
                 {t('saveChanges')}
               </>
             )}
@@ -291,12 +291,12 @@ export default function AdminSettingsPage() {
         </TabsList>
 
         {/* Platform */}
-        <TabsContent value='platform' className='mt-4'>
+        <TabsContent value='platform' className='mt-lg'>
           <Card className='border-border/60'>
             <CardHeader>
               <CardTitle className='text-sm'>{t('platform.title')}</CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'>
+            <CardContent className='space-y-lg'>
               <div className='divide-y divide-border/40'>
                 <Toggle
                   checked={platform.maintenanceMode}
@@ -318,7 +318,7 @@ export default function AdminSettingsPage() {
                 />
               </div>
               <Separator />
-              <div className='grid gap-4 sm:grid-cols-2'>
+              <div className='grid gap-lg sm:grid-cols-2'>
                 <NumberInput
                   value={platform.maxOffersPerEstablishment}
                   onChange={v => setPlatform(p => p && { ...p, maxOffersPerEstablishment: v })}
@@ -370,13 +370,13 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         {/* Security */}
-        <TabsContent value='security' className='mt-4'>
+        <TabsContent value='security' className='mt-lg'>
           <Card className='border-border/60'>
             <CardHeader>
               <CardTitle className='text-sm'>{t('security.title')}</CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='grid gap-4 sm:grid-cols-2'>
+            <CardContent className='space-y-lg'>
+              <div className='grid gap-lg sm:grid-cols-2'>
                 <NumberInput
                   value={security.maxLoginAttempts}
                   onChange={v => setSecurity(s => s && { ...s, maxLoginAttempts: v })}
@@ -444,7 +444,7 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         {/* Notifications */}
-        <TabsContent value='notifications' className='mt-4'>
+        <TabsContent value='notifications' className='mt-lg'>
           <Card className='border-border/60'>
             <CardHeader>
               <CardTitle className='text-sm'>{t('notifications.title')}</CardTitle>
@@ -475,12 +475,12 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         {/* Payment */}
-        <TabsContent value='payment' className='mt-4'>
+        <TabsContent value='payment' className='mt-lg'>
           <Card className='border-border/60'>
             <CardHeader>
               <CardTitle className='text-sm'>{t('payment.title')}</CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'>
+            <CardContent className='space-y-lg'>
               <div className='divide-y divide-border/40'>
                 <Toggle
                   checked={payment.stripeEnabled}
@@ -499,7 +499,7 @@ export default function AdminSettingsPage() {
                 />
               </div>
               <Separator />
-              <div className='grid gap-4 sm:grid-cols-2'>
+              <div className='grid gap-lg sm:grid-cols-2'>
                 <NumberInput
                   value={payment.minimumPayoutAmount}
                   onChange={v => setPayment(p => p && { ...p, minimumPayoutAmount: v })}
@@ -516,14 +516,14 @@ export default function AdminSettingsPage() {
                   suffix='days'
                 />
               </div>
-              <div className='space-y-1'>
+              <div className='space-y-xs'>
                 <Label className='text-xs'>{t('payment.payoutFrequency')}</Label>
-                <div className='flex gap-2'>
+                <div className='flex gap-sm'>
                   {(['daily', 'weekly', 'monthly'] as const).map(freq => (
                     <button
                       key={freq}
                       onClick={() => setPayment(p => p && { ...p, payoutFrequency: freq })}
-                      className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      className={`rounded-md border px-md py-1.5 text-xs font-medium transition-colors ${
                         payment.payoutFrequency === freq
                           ? 'border-primary bg-primary text-primary-foreground'
                           : 'border-border bg-background hover:bg-muted'
@@ -562,7 +562,7 @@ export default function AdminSettingsPage() {
                     ].map((h, i) => (
                       <th
                         key={i}
-                        className='px-3 py-2 text-start font-semibold text-muted-foreground'
+                        className='px-md py-sm text-start font-semibold text-muted-foreground'
                       >
                         {h}
                       </th>
@@ -572,23 +572,23 @@ export default function AdminSettingsPage() {
                 <tbody className='divide-y divide-border/30'>
                   {history.map(ver => (
                     <tr key={ver.id} className='hover:bg-muted/20'>
-                      <td className='px-3 py-2 font-mono font-medium'>v{ver.version}</td>
-                      <td className='max-w-[200px] truncate px-3 py-2 text-muted-foreground'>
+                      <td className='px-md py-sm font-mono font-medium'>v{ver.version}</td>
+                      <td className='max-w-[200px] truncate px-md py-sm text-muted-foreground'>
                         {ver.description ?? t('history.noDescription')}
                       </td>
-                      <td className='px-3 py-2 text-muted-foreground'>{ver.lastModifiedBy}</td>
-                      <td className='px-3 py-2 text-muted-foreground tabular-nums'>
+                      <td className='px-md py-sm text-muted-foreground'>{ver.lastModifiedBy}</td>
+                      <td className='px-md py-sm text-muted-foreground tabular-nums'>
                         {relativeDate(ver.createdAt)}
                       </td>
-                      <td className='px-3 py-2'>
+                      <td className='px-md py-sm'>
                         {!ver.isActive && (
                           <Button
                             variant='outline'
                             size='sm'
-                            className='h-6 px-2 text-xs'
+                            className='h-6 px-sm text-xs'
                             onClick={() => setRollbackDialog(ver.version)}
                           >
-                            <RotateCcw className='me-1 size-3' />
+                            <RotateCcw className='me-xs size-3' />
                             {t('history.rollback')}
                           </Button>
                         )}
@@ -646,12 +646,12 @@ export default function AdminSettingsPage() {
       >
         <DialogContent className='max-w-lg'>
           <DialogHeader>
-            <DialogTitle className='flex items-center gap-2'>
+            <DialogTitle className='flex items-center gap-sm'>
               <Upload className='size-4' />
               Import Configuration
             </DialogTitle>
           </DialogHeader>
-          <div className='space-y-3 py-2'>
+          <div className='space-y-md py-sm'>
             <p className='text-xs text-muted-foreground'>
               Paste a previously exported configuration JSON. Validate before applying to check for
               errors.
@@ -668,16 +668,16 @@ export default function AdminSettingsPage() {
             />
             {importValidation && (
               <div
-                className={`flex items-start gap-2 rounded-lg border px-3 py-2.5 text-xs ${
+                className={`flex items-start gap-sm rounded-lg border px-md py-2.5 text-xs ${
                   importValidation.valid
                     ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
                     : 'border-rose-200 bg-rose-50 text-rose-800'
                 }`}
               >
                 {importValidation.valid ? (
-                  <CheckCircle2 className='mt-0.5 size-3.5 shrink-0' />
+                  <CheckCircle2 className='mt-xxs size-3.5 shrink-0' />
                 ) : (
-                  <XCircle className='mt-0.5 size-3.5 shrink-0' />
+                  <XCircle className='mt-xxs size-3.5 shrink-0' />
                 )}
                 <div>
                   {importValidation.valid
@@ -687,7 +687,7 @@ export default function AdminSettingsPage() {
               </div>
             )}
           </div>
-          <DialogFooter className='gap-2'>
+          <DialogFooter className='gap-sm'>
             <Button
               variant='outline'
               size='sm'

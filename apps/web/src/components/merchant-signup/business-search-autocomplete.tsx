@@ -237,15 +237,15 @@ export function BusinessSearchAutocomplete({
   // Selected business card
   if (selectedBusiness) {
     return (
-      <div className='rounded-xl border border-primary/20 bg-primary/5 p-4'>
-        <div className='flex items-start justify-between gap-3'>
-          <div className='flex items-start gap-3'>
-            <div className='mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10'>
+      <div className='rounded-xl border border-primary/20 bg-primary/5 p-lg'>
+        <div className='flex items-start justify-between gap-md'>
+          <div className='flex items-start gap-md'>
+            <div className='mt-xxs flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10'>
               <MapPin className='h-4 w-4 text-primary' />
             </div>
             <div className='min-w-0'>
               <p className='text-sm font-semibold text-foreground'>{selectedBusiness.name}</p>
-              <p className='mt-0.5 text-xs text-muted-foreground'>
+              <p className='mt-xxs text-xs text-muted-foreground'>
                 {selectedBusiness.formattedAddress}
               </p>
             </div>
@@ -266,11 +266,11 @@ export function BusinessSearchAutocomplete({
     <div ref={containerRef} className='relative'>
       {/* Search input */}
       <div className='relative'>
-        <Search className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+        <Search className='absolute left-3.5 top-xs/2 h-4 w-4 -translate-y-xs/2 text-muted-foreground' />
         <Input
           type='search'
           placeholder={t('searchPlaceholder')}
-          className='h-11 rounded-xl border-input bg-secondary/50 pl-7 pr-10 text-sm sm:h-12 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&:-webkit-autofill]:bg-secondary/50 [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_hsl(var(--secondary)/0.5)]'
+          className='h-11 rounded-xl border-input bg-secondary/50 pl-3xl pr-6xl text-sm sm:h-12 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&:-webkit-autofill]:bg-secondary/50 [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_hsl(var(--secondary)/0.5)]'
           value={query}
           onChange={e => handleInputChange(e.target.value)}
           onFocus={() => {
@@ -279,7 +279,7 @@ export function BusinessSearchAutocomplete({
           autoComplete='off'
         />
         {/* Right icon: spinner when loading, X to clear when idle with text */}
-        <div className='absolute right-3.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center'>
+        <div className='absolute right-3.5 top-xs/2 flex h-4 w-4 -translate-y-xs/2 items-center justify-center'>
           {isLoading || isSelectingDetails ? (
             <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
           ) : query.length > 0 ? (
@@ -302,8 +302,8 @@ export function BusinessSearchAutocomplete({
 
       {/* Inline conflict error — shown when the selected place is already registered */}
       {placeConflict && (
-        <div className='mt-2 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive'>
-          <AlertCircle className='mt-0.5 h-4 w-4 shrink-0' />
+        <div className='mt-sm flex items-start gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
+          <AlertCircle className='mt-xxs h-4 w-4 shrink-0' />
           <span>{placeConflict}</span>
         </div>
       )}
@@ -312,17 +312,17 @@ export function BusinessSearchAutocomplete({
       {showDropdown && (
         <div className='absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-border bg-background shadow-lg'>
           {isLoading ? (
-            <div className='flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground'>
+            <div className='flex items-center gap-sm px-lg py-md text-sm text-muted-foreground'>
               <Loader2 className='h-4 w-4 animate-spin' />
               {t('searchLoading')}
             </div>
           ) : hasError ? (
-            <div className='flex items-center gap-2 px-4 py-3 text-sm text-destructive'>
+            <div className='flex items-center gap-sm px-lg py-md text-sm text-destructive'>
               <AlertCircle className='h-4 w-4 shrink-0' />
               {t('searchError')}
             </div>
           ) : suggestions.length === 0 ? (
-            <div className='px-4 py-3 text-sm text-muted-foreground'>{t('searchNoResults')}</div>
+            <div className='px-lg py-md text-sm text-muted-foreground'>{t('searchNoResults')}</div>
           ) : (
             <ul className='max-h-64 overflow-y-auto'>
               {suggestions.map(suggestion => (
@@ -330,9 +330,9 @@ export function BusinessSearchAutocomplete({
                   <button
                     type='button'
                     onClick={() => handleSelect(suggestion)}
-                    className='flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/50'
+                    className='flex w-full items-start gap-md px-lg py-md text-left transition-colors hover:bg-secondary/50'
                   >
-                    <MapPin className='mt-0.5 h-4 w-4 shrink-0 text-muted-foreground' />
+                    <MapPin className='mt-xxs h-4 w-4 shrink-0 text-muted-foreground' />
                     <div className='min-w-0'>
                       <p className='truncate text-sm font-medium text-foreground'>
                         {suggestion.name}

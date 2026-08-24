@@ -173,7 +173,7 @@ function DetailCell({ item }: { item: AuditLogItem }) {
     <span className='text-[11px] text-muted-foreground'>
       <span className='font-medium capitalize text-foreground/70'>{parts[0]}</span>
       {parts.slice(1).map((p, i) => (
-        <span key={i} className='ms-1'>
+        <span key={i} className='ms-xs'>
           {p}
         </span>
       ))}
@@ -199,7 +199,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className='h-7 appearance-none rounded-md border border-border/60 bg-background pe-6 ps-2.5 text-[11px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40'
+        className='h-7 appearance-none rounded-md border border-border/60 bg-background pe-2xl ps-2.5 text-[11px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40'
       >
         <option value='all'>{placeholder}</option>
         {options.map(o => (
@@ -208,7 +208,7 @@ function FilterSelect({
           </option>
         ))}
       </select>
-      <ChevronDown className='pointer-events-none absolute end-1.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground' />
+      <ChevronDown className='pointer-events-none absolute end-1.5 top-xs/2 size-3 -translate-y-xs/2 text-muted-foreground' />
     </div>
   );
 }
@@ -257,9 +257,9 @@ export function ActivityFeed({
   if (loading) return <AdminTableSkeleton rows={5} cols={4} />;
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {/* Filters row */}
-      <div className='flex flex-wrap items-center gap-2'>
+      <div className='flex flex-wrap items-center gap-sm'>
         <FilterSelect
           value={actionFilter}
           onChange={setActionFilter}
@@ -279,19 +279,19 @@ export function ActivityFeed({
           }))}
         />
         <div className='relative ms-auto'>
-          <Search className='absolute start-2 top-1/2 size-3 -translate-y-1/2 text-muted-foreground' />
+          <Search className='absolute start-sm top-xs/2 size-3 -translate-y-xs/2 text-muted-foreground' />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder='Search action…'
-            className='h-7 w-36 rounded-md border border-border/60 bg-background ps-6 pe-2 text-[11px] placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/40'
+            className='h-7 w-36 rounded-md border border-border/60 bg-background ps-2xl pe-sm text-[11px] placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/40'
           />
         </div>
       </div>
 
       {/* Table */}
       {filtered.length === 0 ? (
-        <div className='flex flex-col items-center justify-center gap-2 py-8 text-center'>
+        <div className='flex flex-col items-center justify-center gap-sm py-4xl text-center'>
           <Shield className='size-8 text-muted-foreground/30' />
           <p className='text-sm font-medium text-muted-foreground'>{emptyTitle}</p>
           {emptyDescription && (
@@ -309,16 +309,16 @@ export function ActivityFeed({
             </colgroup>
             <thead>
               <tr className='border-b border-border/60 bg-muted/40'>
-                <th className='px-2 py-2 text-start text-[11px] font-medium text-muted-foreground'>
+                <th className='px-sm py-sm text-start text-[11px] font-medium text-muted-foreground'>
                   Date
                 </th>
-                <th className='px-2 py-2 text-start text-[11px] font-medium text-muted-foreground'>
+                <th className='px-sm py-sm text-start text-[11px] font-medium text-muted-foreground'>
                   Admin
                 </th>
-                <th className='px-2 py-2 text-start text-[11px] font-medium text-muted-foreground'>
+                <th className='px-sm py-sm text-start text-[11px] font-medium text-muted-foreground'>
                   Action
                 </th>
-                <th className='px-2 py-2 text-start text-[11px] font-medium text-muted-foreground'>
+                <th className='px-sm py-sm text-start text-[11px] font-medium text-muted-foreground'>
                   Details
                 </th>
               </tr>
@@ -332,7 +332,7 @@ export function ActivityFeed({
                 return (
                   <tr key={item.id ?? idx} className='transition-colors hover:bg-muted/20'>
                     {/* Date — fixed-width, never wraps */}
-                    <td className='whitespace-nowrap px-2 py-2'>
+                    <td className='whitespace-nowrap px-sm py-sm'>
                       <p className='text-[11px] font-medium tabular-nums text-foreground'>
                         {formatDate(item.timestamp)}
                       </p>
@@ -342,7 +342,7 @@ export function ActivityFeed({
                     </td>
 
                     {/* Admin */}
-                    <td className='px-2 py-2'>
+                    <td className='px-sm py-sm'>
                       <div className='flex min-w-0 items-center gap-1.5'>
                         <AdminAvatar firstName={item.adminFirstName} email={item.adminEmail} />
                         <p className='min-w-0 truncate text-[11px] font-medium text-foreground'>
@@ -352,9 +352,9 @@ export function ActivityFeed({
                     </td>
 
                     {/* Action */}
-                    <td className='px-2 py-2'>
+                    <td className='px-sm py-sm'>
                       <div className='flex items-center gap-1.5'>
-                        <span className={cn('rounded-full p-1 shrink-0', color)}>
+                        <span className={cn('rounded-full p-xs shrink-0', color)}>
                           <Icon className='size-3' />
                         </span>
                         <span className='text-[11px] font-medium text-foreground'>{label}</span>
@@ -362,7 +362,7 @@ export function ActivityFeed({
                     </td>
 
                     {/* Details — takes all remaining width */}
-                    <td className='px-2 py-2'>
+                    <td className='px-sm py-sm'>
                       <DetailCell item={item} />
                     </td>
                   </tr>

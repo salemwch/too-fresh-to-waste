@@ -198,7 +198,7 @@ function DocRow({
 
   return (
     <div className='flex flex-col'>
-      <div className='flex items-center gap-3 px-5 py-2.5'>
+      <div className='flex items-center gap-md px-xl py-2.5'>
         {/* Status icon */}
         <div
           className={`h-7 w-7 shrink-0 rounded-full flex items-center justify-center ${
@@ -219,7 +219,7 @@ function DocRow({
         {/* Label + date */}
         <div className='flex-1 min-w-0'>
           <p className='text-sm font-semibold text-slate-800'>{label}</p>
-          <p className='text-xs text-slate-400 mt-0.5'>
+          <p className='text-xs text-slate-400 mt-xxs'>
             {isUploaded && uploadDate ? uploadDate : tAwaitingUpload}
           </p>
         </div>
@@ -239,7 +239,7 @@ function DocRow({
               type='button'
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className='rounded-full border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors'
+              className='rounded-full border border-slate-200 px-lg py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors'
             >
               {uploading ? tUploadingDoc : tReplaceDoc}
             </button>
@@ -248,7 +248,7 @@ function DocRow({
               type='button'
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className='flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50 transition-colors'
+              className='flex items-center gap-1.5 rounded-full bg-primary px-lg py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50 transition-colors'
             >
               {uploading ? (
                 <Loader2 className='h-3.5 w-3.5 animate-spin' />
@@ -261,7 +261,7 @@ function DocRow({
         </div>
       </div>
 
-      {localError && <p className='px-5 pb-2 text-[10px] text-red-500'>{localError}</p>}
+      {localError && <p className='px-xl pb-sm text-[10px] text-red-500'>{localError}</p>}
     </div>
   );
 }
@@ -510,43 +510,43 @@ export default function MerchantEstablishmentPage() {
   // ── Loading / error states ────────────────────────────────────────────────────
   if (isLoadingPage) {
     return (
-      <div className='space-y-4 animate-pulse'>
+      <div className='space-y-lg animate-pulse'>
         {/* Header row */}
-        <div className='flex items-start justify-between gap-3'>
+        <div className='flex items-start justify-between gap-md'>
           <div className='space-y-1.5'>
             <div className='h-4 w-48 rounded bg-slate-200' />
             <div className='h-3 w-64 rounded bg-slate-100' />
           </div>
-          <div className='flex items-center gap-2 shrink-0'>
+          <div className='flex items-center gap-sm shrink-0'>
             <div className='h-5 w-16 rounded-full bg-slate-200' />
             <div className='h-5 w-20 rounded-full bg-slate-200' />
           </div>
         </div>
 
         {/* Stats row */}
-        <div className='flex flex-wrap items-center gap-4 rounded-xl border bg-white px-4 py-3 shadow-sm'>
+        <div className='flex flex-wrap items-center gap-lg rounded-xl border bg-white px-lg py-md shadow-sm'>
           <div className='h-3 w-24 rounded bg-slate-200' />
           <div className='h-3 w-20 rounded bg-slate-200' />
           <div className='h-3 w-28 rounded bg-slate-200' />
         </div>
 
         {/* Tab nav */}
-        <div className='flex gap-1 rounded-xl bg-slate-100 p-1'>
+        <div className='flex gap-xs rounded-xl bg-slate-100 p-xs'>
           {[0, 1, 2].map(i => (
             <div key={i} className='flex-1 h-8 rounded-lg bg-slate-200' />
           ))}
         </div>
 
         {/* Photos section */}
-        <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+        <div className='rounded-xl border bg-white p-md sm:p-lg shadow-sm space-y-md'>
           <div className='flex items-center justify-between'>
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <div className='h-3 w-20 rounded bg-slate-200' />
               <div className='h-2.5 w-52 rounded bg-slate-100' />
             </div>
             <div className='h-7 w-24 rounded-lg bg-slate-200' />
           </div>
-          <div className='grid grid-cols-4 sm:grid-cols-5 gap-2'>
+          <div className='grid grid-cols-4 sm:grid-cols-5 gap-sm'>
             {[0, 1, 2, 3, 4].map(i => (
               <div key={i} className='aspect-square rounded-lg bg-slate-200' />
             ))}
@@ -554,9 +554,9 @@ export default function MerchantEstablishmentPage() {
         </div>
 
         {/* 2-col grid */}
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-lg'>
           {/* Basic Info */}
-          <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+          <div className='rounded-xl border bg-white p-md sm:p-lg shadow-sm space-y-md'>
             <div className='h-3 w-24 rounded bg-slate-200' />
             {[60, 72, 48, 96].map((w, i) => (
               <div key={i} className='space-y-1.5'>
@@ -567,8 +567,8 @@ export default function MerchantEstablishmentPage() {
           </div>
 
           {/* Right column: Contact + Address + Options */}
-          <div className='space-y-4'>
-            <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+          <div className='space-y-lg'>
+            <div className='rounded-xl border bg-white p-md sm:p-lg shadow-sm space-y-md'>
               <div className='h-3 w-20 rounded bg-slate-200' />
               {[56, 48].map((w, i) => (
                 <div key={i} className='space-y-1.5'>
@@ -577,15 +577,15 @@ export default function MerchantEstablishmentPage() {
                 </div>
               ))}
             </div>
-            <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-2'>
+            <div className='rounded-xl border bg-white p-md sm:p-lg shadow-sm space-y-sm'>
               <div className='h-3 w-20 rounded bg-slate-200' />
-              <div className='rounded-lg bg-slate-50 px-3 py-2 space-y-1.5'>
+              <div className='rounded-lg bg-slate-50 px-md py-sm space-y-1.5'>
                 <div className='h-2.5 w-40 rounded bg-slate-200' />
                 <div className='h-2.5 w-32 rounded bg-slate-200' />
                 <div className='h-2.5 w-24 rounded bg-slate-200' />
               </div>
             </div>
-            <div className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm space-y-3'>
+            <div className='rounded-xl border bg-white p-md sm:p-lg shadow-sm space-y-md'>
               <div className='h-3 w-20 rounded bg-slate-200' />
               <div className='space-y-1.5'>
                 <div className='h-2.5 w-24 rounded bg-slate-100' />
@@ -596,7 +596,7 @@ export default function MerchantEstablishmentPage() {
         </div>
 
         {/* Save bar */}
-        <div className='flex justify-end pt-2 border-t border-slate-100'>
+        <div className='flex justify-end pt-sm border-t border-slate-100'>
           <div className='h-7 w-24 rounded-lg bg-slate-200' />
         </div>
       </div>
@@ -605,7 +605,7 @@ export default function MerchantEstablishmentPage() {
 
   if (loadError || !establishment) {
     return (
-      <div className='flex h-64 flex-col items-center justify-center gap-2 text-center'>
+      <div className='flex h-64 flex-col items-center justify-center gap-sm text-center'>
         <AlertCircle className='h-8 w-8 text-red-400' />
         <p className='font-medium text-slate-700'>{t('notFound')}</p>
         <p className='text-sm text-slate-500'>{t('notFoundDescription')}</p>
@@ -622,7 +622,7 @@ export default function MerchantEstablishmentPage() {
 
   // ── Save button (shared between Profile and Hours tabs) ───────────────────
   const SaveBar = () => (
-    <div className='flex items-center justify-between pt-2 border-t border-slate-100 mt-4'>
+    <div className='flex items-center justify-between pt-sm border-t border-slate-100 mt-lg'>
       <div className='flex-1'>
         {saveError && (
           <div className='flex items-center gap-1.5 text-xs text-red-600'>
@@ -637,10 +637,10 @@ export default function MerchantEstablishmentPage() {
           </div>
         )}
       </div>
-      <Button type='submit' size='sm' className='h-7 text-xs px-3' disabled={isSaving}>
+      <Button type='submit' size='sm' className='h-7 text-xs px-md' disabled={isSaving}>
         {isSaving ? (
           <>
-            <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+            <Loader2 className='mr-xs h-3 w-3 animate-spin' />
             {t('saving')}
           </>
         ) : (
@@ -651,13 +651,13 @@ export default function MerchantEstablishmentPage() {
   );
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-lg'>
       {/* ── Header Card ──────────────────────────────────────────────────── */}
       <div className='relative rounded-2xl bg-primary overflow-hidden'>
         <div className='absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none' />
-        <div className='relative p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+        <div className='relative p-xl sm:p-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-lg'>
           {/* Left: avatar + info */}
-          <div className='flex items-center gap-4'>
+          <div className='flex items-center gap-lg'>
             <div className='h-14 w-14 rounded-2xl bg-accent flex items-center justify-center shrink-0'>
               <span className='text-xl font-bold text-white'>
                 {establishment.name.charAt(0).toUpperCase()}
@@ -666,7 +666,7 @@ export default function MerchantEstablishmentPage() {
             <div className='space-y-1.5 min-w-0'>
               <div className='flex flex-wrap items-center gap-1.5'>
                 <span
-                  className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${headerStatusStyle}`}
+                  className={`flex items-center gap-xs rounded-full px-2.5 py-xxs text-xs font-medium ${headerStatusStyle}`}
                 >
                   {establishment.status === 'active' && (
                     <span className='h-1.5 w-1.5 rounded-full bg-green-400' />
@@ -674,7 +674,7 @@ export default function MerchantEstablishmentPage() {
                   {t(statusKey)}
                 </span>
                 {establishment.isVerified && (
-                  <span className='flex items-center gap-1 rounded-full bg-accent/20 border border-accent/30 px-2.5 py-0.5 text-xs font-medium text-white/90'>
+                  <span className='flex items-center gap-xs rounded-full bg-accent/20 border border-accent/30 px-2.5 py-xxs text-xs font-medium text-white/90'>
                     <CheckCheck className='h-3 w-3' />
                     {t('verified')}
                   </span>
@@ -687,10 +687,10 @@ export default function MerchantEstablishmentPage() {
             </div>
           </div>
           {/* Right: action buttons */}
-          <div className='flex items-center gap-2 shrink-0'>
+          <div className='flex items-center gap-sm shrink-0'>
             <button
               type='button'
-              className='flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-medium text-white transition-colors'
+              className='flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-white/20 px-md py-1.5 text-xs font-medium text-white transition-colors'
             >
               <Eye className='h-3.5 w-3.5' />
               Preview
@@ -699,7 +699,7 @@ export default function MerchantEstablishmentPage() {
               type='button'
               onClick={doSave}
               disabled={isSaving || activeTab === 'documents'}
-              className='flex items-center gap-1.5 rounded-full bg-accent hover:bg-accent/90 disabled:opacity-50 px-3 py-1.5 text-xs font-medium text-white transition-colors'
+              className='flex items-center gap-1.5 rounded-full bg-accent hover:bg-accent/90 disabled:opacity-50 px-md py-1.5 text-xs font-medium text-white transition-colors'
             >
               {isSaving ? (
                 <Loader2 className='h-3.5 w-3.5 animate-spin' />
@@ -713,10 +713,10 @@ export default function MerchantEstablishmentPage() {
       </div>
 
       {/* ── Stat Cards ───────────────────────────────────────────────────── */}
-      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-md'>
         {/* Rating */}
-        <div className='rounded-xl border bg-white p-4 shadow-sm'>
-          <div className='flex items-start justify-between mb-2'>
+        <div className='rounded-xl border bg-white p-lg shadow-sm'>
+          <div className='flex items-start justify-between mb-sm'>
             <p className='text-[10px] font-semibold uppercase tracking-wider text-slate-400'>
               Rating
             </p>
@@ -727,7 +727,7 @@ export default function MerchantEstablishmentPage() {
           <p className='text-2xl font-bold text-slate-800 leading-tight'>
             {(establishment.averageRating ?? 0).toFixed(1)}
           </p>
-          <p className='text-xs text-primary mt-1'>
+          <p className='text-xs text-primary mt-xs'>
             {(establishment.totalReviews ?? 0) > 0
               ? `${establishment.totalReviews} ${t('reviews', { count: establishment.totalReviews ?? 0 })}`
               : 'No reviews yet'}
@@ -735,8 +735,8 @@ export default function MerchantEstablishmentPage() {
         </div>
 
         {/* Orders */}
-        <div className='rounded-xl border bg-white p-4 shadow-sm'>
-          <div className='flex items-start justify-between mb-2'>
+        <div className='rounded-xl border bg-white p-lg shadow-sm'>
+          <div className='flex items-start justify-between mb-sm'>
             <p className='text-[10px] font-semibold uppercase tracking-wider text-slate-400'>
               Orders
             </p>
@@ -747,12 +747,12 @@ export default function MerchantEstablishmentPage() {
           <p className='text-2xl font-bold text-slate-800 leading-tight'>
             {establishment.completedOrders ?? 0}
           </p>
-          <p className='text-xs text-primary mt-1'>Last 30 days</p>
+          <p className='text-xs text-primary mt-xs'>Last 30 days</p>
         </div>
 
         {/* Location */}
-        <div className='rounded-xl border bg-white p-4 shadow-sm'>
-          <div className='flex items-start justify-between mb-2'>
+        <div className='rounded-xl border bg-white p-lg shadow-sm'>
+          <div className='flex items-start justify-between mb-sm'>
             <p className='text-[10px] font-semibold uppercase tracking-wider text-slate-400'>
               Location
             </p>
@@ -763,14 +763,14 @@ export default function MerchantEstablishmentPage() {
           <p className='text-xl font-bold text-slate-800 leading-tight truncate'>
             {establishment.address?.city ?? '—'}
           </p>
-          <p className='text-xs text-primary mt-1 truncate'>
+          <p className='text-xs text-primary mt-xs truncate'>
             {establishment.address?.street ?? ''}
           </p>
         </div>
 
         {/* Profile Completion */}
-        <div className='rounded-xl border bg-white p-4 shadow-sm'>
-          <div className='flex items-start justify-between mb-2'>
+        <div className='rounded-xl border bg-white p-lg shadow-sm'>
+          <div className='flex items-start justify-between mb-sm'>
             <p className='text-[10px] font-semibold uppercase tracking-wider text-slate-400 leading-tight'>
               Profile
               <br />
@@ -781,7 +781,7 @@ export default function MerchantEstablishmentPage() {
             </div>
           </div>
           <p className='text-2xl font-bold text-slate-800 leading-tight'>{profileCompletion}%</p>
-          <p className='text-xs text-primary mt-1'>
+          <p className='text-xs text-primary mt-xs'>
             {pendingDocs > 0 ? t('documentsPending', { count: pendingDocs }) : t('profileComplete')}
           </p>
         </div>
@@ -789,8 +789,8 @@ export default function MerchantEstablishmentPage() {
 
       {/* ── Rejection reason (full-width alert) ──────────────────────────── */}
       {establishment.rejectionReason && (
-        <div className='flex items-start gap-1.5 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-xs text-red-700'>
-          <AlertCircle className='mt-0.5 h-3.5 w-3.5 shrink-0' />
+        <div className='flex items-start gap-1.5 rounded-xl bg-red-50 border border-red-100 px-lg py-md text-xs text-red-700'>
+          <AlertCircle className='mt-xxs h-3.5 w-3.5 shrink-0' />
           <span>
             <strong>{t('rejectionReason')}:</strong> {establishment.rejectionReason}
           </span>
@@ -798,7 +798,7 @@ export default function MerchantEstablishmentPage() {
       )}
 
       {/* ── Tab navigation ────────────────────────────────────────────────── */}
-      <div className='inline-flex gap-1 rounded-full border border-slate-200 bg-white p-1'>
+      <div className='inline-flex gap-xs rounded-full border border-slate-200 bg-white p-xs'>
         {(
           [
             { id: 'profile', label: 'Profile' },
@@ -810,7 +810,7 @@ export default function MerchantEstablishmentPage() {
             key={id}
             type='button'
             onClick={() => setActiveTab(id)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+            className={`rounded-full px-lg py-1.5 text-sm font-medium transition-all ${
               activeTab === id
                 ? 'bg-primary text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
@@ -825,10 +825,10 @@ export default function MerchantEstablishmentPage() {
       {/* TAB: PROFILE                                                      */}
       {/* ══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'profile' && (
-        <form onSubmit={handleSave} className='space-y-4'>
+        <form onSubmit={handleSave} className='space-y-lg'>
           {/* Photos */}
-          <section className='rounded-xl border bg-white p-3 sm:p-4 shadow-sm'>
-            <div className='flex items-center justify-between mb-3'>
+          <section className='rounded-xl border bg-white p-md sm:p-lg shadow-sm'>
+            <div className='flex items-center justify-between mb-md'>
               <div>
                 <h2 className='text-xs font-medium text-slate-700 flex items-center gap-1.5'>
                   <Camera className='h-3.5 w-3.5 text-primary-500' />
@@ -837,7 +837,7 @@ export default function MerchantEstablishmentPage() {
                     ({images.length}/{MAX_TOTAL_IMAGES})
                   </span>
                 </h2>
-                <p className='mt-0.5 text-[10px] text-slate-400'>{t('photosHint')}</p>
+                <p className='mt-xxs text-[10px] text-slate-400'>{t('photosHint')}</p>
               </div>
               <input
                 ref={photoInputRef}
@@ -857,31 +857,31 @@ export default function MerchantEstablishmentPage() {
               >
                 {isUploadingPhotos ? (
                   <>
-                    <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+                    <Loader2 className='mr-xs h-3 w-3 animate-spin' />
                     {t('uploading')}
                   </>
                 ) : (
                   <>
-                    <Camera className='mr-1 h-3 w-3' />
+                    <Camera className='mr-xs h-3 w-3' />
                     {t('uploadPhotos')}
                   </>
                 )}
               </Button>
             </div>
             {photoError && (
-              <div className='mb-3 flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600'>
+              <div className='mb-md flex items-center gap-1.5 rounded-lg bg-red-50 px-md py-sm text-xs text-red-600'>
                 <AlertCircle className='h-3.5 w-3.5 shrink-0' />
                 {photoError}
               </div>
             )}
             {photoSuccess && (
-              <div className='mb-3 flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-600'>
+              <div className='mb-md flex items-center gap-1.5 rounded-lg bg-green-50 px-md py-sm text-xs text-green-600'>
                 <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
                 {t('photosSuccess')}
               </div>
             )}
             {images.length > 0 ? (
-              <div className='grid grid-cols-4 sm:grid-cols-5 gap-2'>
+              <div className='grid grid-cols-4 sm:grid-cols-5 gap-sm'>
                 {images.map((url, idx) => (
                   <div
                     key={idx}
@@ -907,7 +907,7 @@ export default function MerchantEstablishmentPage() {
                 ))}
               </div>
             ) : (
-              <div className='flex h-20 items-center justify-center rounded-lg border-2 border-dashed border-slate-200 text-slate-400 text-xs gap-2'>
+              <div className='flex h-20 items-center justify-center rounded-lg border-2 border-dashed border-slate-200 text-slate-400 text-xs gap-sm'>
                 <Camera className='h-4 w-4' />
                 {t('uploadPhotos')}
               </div>
@@ -915,10 +915,10 @@ export default function MerchantEstablishmentPage() {
           </section>
 
           {/* Basic Info + Contact & Location side by side */}
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-lg'>
             {/* ── Basic Information ─────────────────────────────────────── */}
-            <section className='rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-4'>
-              <div className='flex items-center gap-3'>
+            <section className='rounded-2xl border bg-white p-lg sm:p-xl shadow-sm space-y-lg'>
+              <div className='flex items-center gap-md'>
                 <div className='h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0'>
                   <Store className='h-5 w-5 text-primary' />
                 </div>
@@ -946,7 +946,7 @@ export default function MerchantEstablishmentPage() {
                 />
               </div>
 
-              <div className='grid grid-cols-2 gap-3'>
+              <div className='grid grid-cols-2 gap-md'>
                 <div className='space-y-1.5'>
                   <label
                     htmlFor='est-type'
@@ -958,7 +958,7 @@ export default function MerchantEstablishmentPage() {
                     id='est-type'
                     value={type}
                     onChange={e => setType(e.target.value)}
-                    className='w-full h-7 rounded-lg border border-slate-200 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white'
+                    className='w-full h-7 rounded-lg border border-slate-200 px-md text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white'
                   >
                     <option value='' disabled />
                     {ESTABLISHMENT_TYPES.map(({ value, labelKey }) => (
@@ -975,11 +975,11 @@ export default function MerchantEstablishmentPage() {
                   >
                     Cuisine / Category
                   </label>
-                  <div className='flex flex-wrap items-center gap-1 min-h-[28px] rounded-lg border border-slate-200 px-2.5 py-1 focus-within:ring-2 focus-within:ring-primary/30 bg-white cursor-text'>
+                  <div className='flex flex-wrap items-center gap-xs min-h-[28px] rounded-lg border border-slate-200 px-2.5 py-xs focus-within:ring-2 focus-within:ring-primary/30 bg-white cursor-text'>
                     {cuisineTypes.map(tag => (
                       <span
                         key={tag}
-                        className='flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'
+                        className='flex items-center gap-xs rounded-full bg-primary/10 px-sm py-xxs text-xs font-medium text-primary'
                       >
                         {tag}
                         <button
@@ -1019,15 +1019,15 @@ export default function MerchantEstablishmentPage() {
                   minLength={10}
                   maxLength={280}
                   rows={4}
-                  className='w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none'
+                  className='w-full rounded-lg border border-slate-200 px-md py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none'
                 />
                 <p className='text-[10px] text-slate-400'>Up to 280 characters</p>
               </div>
             </section>
 
             {/* ── Contact & Location ────────────────────────────────────── */}
-            <section className='rounded-2xl border bg-white p-4 sm:p-5 shadow-sm space-y-4'>
-              <div className='flex items-center gap-3'>
+            <section className='rounded-2xl border bg-white p-lg sm:p-xl shadow-sm space-y-lg'>
+              <div className='flex items-center gap-md'>
                 <div className='h-11 w-11 rounded-2xl bg-accent/10 flex items-center justify-center shrink-0'>
                   <Phone className='h-5 w-5 text-accent' />
                 </div>
@@ -1037,7 +1037,7 @@ export default function MerchantEstablishmentPage() {
                 </div>
               </div>
 
-              <div className='grid grid-cols-2 gap-3'>
+              <div className='grid grid-cols-2 gap-md'>
                 <div className='space-y-1.5'>
                   <label
                     htmlFor='est-phone'
@@ -1046,14 +1046,14 @@ export default function MerchantEstablishmentPage() {
                     Phone
                   </label>
                   <div className='relative'>
-                    <Phone className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
+                    <Phone className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
                     <Input
                       id='est-phone'
                       type='tel'
                       value={phoneNumber}
                       onChange={e => setPhoneNumber(e.target.value)}
                       placeholder='+216 XX XXX XXX'
-                      className='h-7 rounded-lg pl-8 text-xs'
+                      className='h-7 rounded-lg pl-4xl text-xs'
                     />
                   </div>
                 </div>
@@ -1065,14 +1065,14 @@ export default function MerchantEstablishmentPage() {
                     Website
                   </label>
                   <div className='relative'>
-                    <Globe className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
+                    <Globe className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
                     <Input
                       id='est-website'
                       type='url'
                       value={website}
                       onChange={e => setWebsite(e.target.value)}
                       placeholder={t('websitePlaceholder')}
-                      className='h-7 rounded-lg pl-8 text-xs'
+                      className='h-7 rounded-lg pl-4xl text-xs'
                     />
                   </div>
                 </div>
@@ -1086,13 +1086,13 @@ export default function MerchantEstablishmentPage() {
                   Email
                 </label>
                 <div className='relative'>
-                  <Mail className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
+                  <Mail className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
                   <Input
                     id='est-email'
                     type='email'
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className='h-7 rounded-lg pl-8 text-xs'
+                    className='h-7 rounded-lg pl-4xl text-xs'
                   />
                 </div>
               </div>
@@ -1107,20 +1107,20 @@ export default function MerchantEstablishmentPage() {
                       Address
                     </span>
                     <div className='relative'>
-                      <MapPin className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
-                      <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600 truncate'>
+                      <MapPin className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                      <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-4xl pr-md flex items-center text-xs text-slate-600 truncate'>
                         {establishment.address.street ?? '—'}
                       </div>
                     </div>
                   </div>
-                  <div className='grid grid-cols-2 gap-3'>
+                  <div className='grid grid-cols-2 gap-md'>
                     <div className='space-y-1.5'>
                       <span className='block text-[10px] font-semibold uppercase tracking-wider text-slate-500'>
                         City
                       </span>
                       <div className='relative'>
-                        <MapPin className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
-                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600'>
+                        <MapPin className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-4xl pr-md flex items-center text-xs text-slate-600'>
                           {establishment.address.city ?? '—'}
                         </div>
                       </div>
@@ -1130,8 +1130,8 @@ export default function MerchantEstablishmentPage() {
                         Postal Code
                       </span>
                       <div className='relative'>
-                        <Hash className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
-                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 flex items-center text-xs text-slate-600'>
+                        <Hash className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-4xl pr-md flex items-center text-xs text-slate-600'>
                           {establishment.address.postalCode ?? '—'}
                         </div>
                       </div>
@@ -1153,13 +1153,13 @@ export default function MerchantEstablishmentPage() {
         <form onSubmit={handleSave}>
           <section className='rounded-2xl border bg-white shadow-sm overflow-hidden'>
             {/* Header */}
-            <div className='flex items-center gap-3 p-4 sm:p-5 border-b border-slate-100'>
+            <div className='flex items-center gap-md p-lg sm:p-xl border-b border-slate-100'>
               <div className='h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0'>
                 <Clock className='h-5 w-5 text-primary' />
               </div>
               <div>
                 <h2 className='text-sm font-semibold text-slate-800'>{t('openingHours')}</h2>
-                <p className='text-xs text-slate-400 mt-0.5'>{t('openingHoursHint')}</p>
+                <p className='text-xs text-slate-400 mt-xxs'>{t('openingHoursHint')}</p>
               </div>
             </div>
 
@@ -1169,7 +1169,7 @@ export default function MerchantEstablishmentPage() {
                 const hours = businessHours[day];
                 const isOpen = !hours.closed;
                 return (
-                  <div key={day} className='flex items-center gap-4 px-4 sm:px-6 py-3.5'>
+                  <div key={day} className='flex items-center gap-lg px-lg sm:px-2xl py-3.5'>
                     {/* Toggle switch */}
                     <button
                       type='button'
@@ -1203,11 +1203,11 @@ export default function MerchantEstablishmentPage() {
                       {t('open')}
                     </span>
                     <div
-                      className={`flex items-center gap-3 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-40'}`}
+                      className={`flex items-center gap-md transition-opacity ${isOpen ? 'opacity-100' : 'opacity-40'}`}
                     >
                       <label
                         htmlFor={`${day}-open`}
-                        className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
+                        className={`flex items-center gap-sm rounded-xl border border-slate-200 bg-white px-md py-1.5 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
                       >
                         <input
                           id={`${day}-open`}
@@ -1222,7 +1222,7 @@ export default function MerchantEstablishmentPage() {
                       <span className='text-slate-400 font-medium select-none'>—</span>
                       <label
                         htmlFor={`${day}-close`}
-                        className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
+                        className={`flex items-center gap-sm rounded-xl border border-slate-200 bg-white px-md py-1.5 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
                       >
                         <input
                           id={`${day}-close`}
@@ -1260,13 +1260,13 @@ export default function MerchantEstablishmentPage() {
       {activeTab === 'documents' && (
         <section className='rounded-2xl border bg-white shadow-sm overflow-hidden'>
           {/* Header */}
-          <div className='flex items-center gap-3 p-4 sm:p-5 border-b border-slate-100'>
+          <div className='flex items-center gap-md p-lg sm:p-xl border-b border-slate-100'>
             <div className='h-11 w-11 rounded-full bg-slate-100 flex items-center justify-center shrink-0'>
               <FileText className='h-5 w-5 text-primary' />
             </div>
             <div>
               <h2 className='text-sm font-semibold text-slate-800'>Documents</h2>
-              <p className='text-xs text-slate-400 mt-0.5'>
+              <p className='text-xs text-slate-400 mt-xxs'>
                 Upload required documents to keep your account verified
               </p>
             </div>
@@ -1275,7 +1275,7 @@ export default function MerchantEstablishmentPage() {
           {/* Feedback banner */}
           {docFeedback && (
             <div
-              className={`flex items-center gap-1.5 mx-5 mt-4 rounded-xl px-3 py-2 text-xs ${
+              className={`flex items-center gap-1.5 mx-xl mt-lg rounded-xl px-md py-sm text-xs ${
                 docFeedback.type === 'success'
                   ? 'bg-green-50 text-green-600'
                   : 'bg-red-50 text-red-600'

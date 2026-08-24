@@ -50,7 +50,7 @@ function FrameworkCard({ item, index }: { item: FrameworkItem; index: number }) 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.07, ease: 'easeOut' }}
-      className='group relative rounded-2xl p-6 cursor-default overflow-hidden bg-white border border-brand-teal/[.12]'
+      className='group relative rounded-2xl p-2xl cursor-default overflow-hidden bg-white border border-brand-teal/[.12]'
       whileHover={{
         boxShadow: '0 8px 32px rgba(0,82,80,0.10)',
         borderColor: 'rgba(0,82,80,0.35)',
@@ -60,11 +60,11 @@ function FrameworkCard({ item, index }: { item: FrameworkItem; index: number }) 
       <div className='absolute top-0 left-0 w-full h-0.5 bg-gradient-teal-r' aria-hidden='true' />
 
       {/* Code badge */}
-      <span className='inline-block text-[10px] font-black tracking-[0.2em] uppercase px-2.5 py-1 rounded-full mb-4 bg-brand-green/[.08] text-brand-green'>
+      <span className='inline-block text-[10px] font-black tracking-[0.2em] uppercase px-2.5 py-xs rounded-full mb-lg bg-brand-green/[.08] text-brand-green'>
         {item.code}
       </span>
 
-      <h3 className='font-bold text-base mb-2 text-brand-teal font-heading'>{item.title}</h3>
+      <h3 className='font-bold text-base mb-sm text-brand-teal font-heading'>{item.title}</h3>
       <p className='text-sm leading-relaxed text-brand-dark/60'>{item.body}</p>
     </motion.div>
   );
@@ -129,25 +129,25 @@ export default function CompaniesPage() {
       <Header />
 
       {/* ── HERO ──────────────────────────────────────────────────── */}
-      <section className='relative min-h-[calc(100vh-72px)] flex items-center pt-20 pb-24 overflow-hidden bg-companies-hero'>
+      <section className='relative min-h-[calc(100vh-72px)] flex items-center pt-5xl pb-6xl overflow-hidden bg-companies-hero'>
         {/* Decorative circles */}
         <div
-          className='absolute -top-24 -right-24 w-[480px] h-[480px] rounded-full opacity-[.07] pointer-events-none bg-brand-teal'
+          className='absolute -top-6xl -right-6xl w-[480px] h-[480px] rounded-full opacity-[.07] pointer-events-none bg-brand-teal'
           aria-hidden='true'
         />
         <div
-          className='absolute bottom-0 -left-24 w-72 h-72 rounded-full opacity-[.05] pointer-events-none bg-brand-teal'
+          className='absolute bottom-0 -left-6xl w-72 h-72 rounded-full opacity-[.05] pointer-events-none bg-brand-teal'
           aria-hidden='true'
         />
 
-        <div className='max-w-7xl mx-auto px-6 lg:px-10 w-full grid lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_480px] gap-12 lg:gap-16 items-start'>
+        <div className='max-w-7xl mx-auto px-2xl lg:px-6xl w-full grid lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_480px] gap-3xl lg:gap-4xl items-start'>
           {/* Left: Hook */}
           <div>
             <motion.p
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
-              className='text-xs font-black tracking-[0.25em] uppercase mb-6 text-brand-green'
+              className='text-xs font-black tracking-[0.25em] uppercase mb-2xl text-brand-green'
             >
               {t('hero.eyebrow')}
             </motion.p>
@@ -156,7 +156,7 @@ export default function CompaniesPage() {
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className='text-5xl md:text-6xl xl:text-7xl font-black leading-[1.05] tracking-tight mb-8 font-heading text-brand-dark'
+              className='text-5xl md:text-6xl xl:text-7xl font-black leading-[1.05] tracking-tight mb-4xl font-heading text-brand-dark'
             >
               {t('hero.headline')}
             </motion.h1>
@@ -165,46 +165,46 @@ export default function CompaniesPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
-              className='text-lg leading-relaxed max-w-xl mb-12 text-brand-dark/65'
+              className='text-lg leading-relaxed max-w-xl mb-3xl text-brand-dark/65'
             >
               {t('hero.sub')}
             </motion.p>
 
             {/* Stats */}
-            <div className='grid grid-cols-3 gap-4 md:gap-6'>
+            <div className='grid grid-cols-3 gap-lg md:gap-2xl'>
               {stats.map((stat, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.35 + i * 0.1 }}
-                  className='rounded-2xl p-4 md:p-5 bg-white border border-brand-teal/15 shadow-teal-sm'
+                  className='rounded-2xl p-lg md:p-xl bg-white border border-brand-teal/15 shadow-teal-sm'
                 >
-                  <p className='text-3xl md:text-4xl font-black mb-1 leading-none text-brand-teal font-heading'>
+                  <p className='text-3xl md:text-4xl font-black mb-xs leading-none text-brand-teal font-heading'>
                     <Counter target={stat.value} />
                   </p>
                   <p className='text-xs leading-snug text-brand-dark/50'>{stat.label}</p>
-                  <p className='text-brand-dark/35 mt-2 text-[10px] leading-snug'>{stat.source}</p>
+                  <p className='text-brand-dark/35 mt-sm text-[10px] leading-snug'>{stat.source}</p>
                 </motion.div>
               ))}
             </div>
           </div>
 
           {/* Right: Form */}
-          <div className='lg:sticky lg:top-24'>
+          <div className='lg:sticky lg:top-6xl'>
             <EnterpriseForm />
           </div>
         </div>
       </section>
 
       {/* ── URGENCY BANNER ────────────────────────────────────────── */}
-      <section className='py-20 px-6 relative overflow-hidden bg-brand-teal'>
+      <section className='py-5xl px-2xl relative overflow-hidden bg-brand-teal'>
         <div
-          className='absolute -right-16 -top-16 w-72 h-72 rounded-full border border-cream opacity-10 pointer-events-none'
+          className='absolute -right-4xl -top-4xl w-72 h-72 rounded-full border border-cream opacity-10 pointer-events-none'
           aria-hidden='true'
         />
         <div
-          className='absolute -left-10 -bottom-10 w-48 h-48 rounded-full border border-cream opacity-10 pointer-events-none'
+          className='absolute -left-6xl -bottom-6xl w-48 h-48 rounded-full border border-cream opacity-10 pointer-events-none'
           aria-hidden='true'
         />
 
@@ -214,7 +214,7 @@ export default function CompaniesPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
-            className='text-xs font-black tracking-[0.25em] uppercase mb-4 text-cream/55'
+            className='text-xs font-black tracking-[0.25em] uppercase mb-lg text-cream/55'
           >
             {t('urgency.eyebrow')}
           </motion.p>
@@ -223,7 +223,7 @@ export default function CompaniesPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className='text-3xl md:text-4xl font-black mb-5 font-heading text-cream'
+            className='text-3xl md:text-4xl font-black mb-xl font-heading text-cream'
           >
             {t('urgency.title')}
           </motion.h2>
@@ -240,7 +240,7 @@ export default function CompaniesPage() {
       </section>
 
       {/* ── FRAMEWORKS ────────────────────────────────────────────── */}
-      <section className='py-24 px-6 bg-white'>
+      <section className='py-6xl px-2xl bg-white'>
         <div className='max-w-7xl mx-auto'>
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -249,7 +249,7 @@ export default function CompaniesPage() {
             transition={{ duration: 0.6 }}
             className='mb-14'
           >
-            <p className='text-xs font-black tracking-[0.2em] uppercase mb-3 text-brand-green'>
+            <p className='text-xs font-black tracking-[0.2em] uppercase mb-md text-brand-green'>
               {t('frameworks.eyebrow')}
             </p>
             <h2 className='text-4xl md:text-5xl font-black font-heading text-brand-dark'>
@@ -257,7 +257,7 @@ export default function CompaniesPage() {
             </h2>
           </motion.div>
 
-          <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-5'>
+          <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-xl'>
             {frameworks.map((item, i) => (
               <FrameworkCard key={item.code} item={item} index={i} />
             ))}
@@ -266,10 +266,10 @@ export default function CompaniesPage() {
       </section>
 
       {/* ── EMPLOYEE BENEFITS ─────────────────────────────────────── */}
-      <section className='py-24 px-6 relative overflow-hidden bg-cream'>
+      <section className='py-6xl px-2xl relative overflow-hidden bg-cream'>
         {/* Large watermark */}
         <p
-          className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10rem] md:text-[16rem] font-black pointer-events-none select-none whitespace-nowrap font-heading leading-none text-brand-teal/[.04]'
+          className='absolute top-xs/2 left-xs/2 -translate-x-xs/2 -translate-y-xs/2 text-[10rem] md:text-[16rem] font-black pointer-events-none select-none whitespace-nowrap font-heading leading-none text-brand-teal/[.04]'
           aria-hidden='true'
         >
           IMPACT
@@ -283,7 +283,7 @@ export default function CompaniesPage() {
             transition={{ duration: 0.6 }}
             className='mb-14'
           >
-            <p className='text-xs font-black tracking-[0.2em] uppercase mb-3 text-brand-teal'>
+            <p className='text-xs font-black tracking-[0.2em] uppercase mb-md text-brand-teal'>
               {t('employee.eyebrow')}
             </p>
             <h2 className='text-4xl md:text-5xl font-black font-heading text-brand-dark'>
@@ -293,12 +293,12 @@ export default function CompaniesPage() {
             {/* The turn from compliance to people, said out loud. Without it the
                 register changes with nothing telling a compliance reader why an
                 employee-perk section is addressed to them. */}
-            <p className='text-brand-dark/70 mt-5 max-w-2xl text-base leading-relaxed'>
+            <p className='text-brand-dark/70 mt-xl max-w-2xl text-base leading-relaxed'>
               {t('employee.bridge')}
             </p>
           </motion.div>
 
-          <div className='grid sm:grid-cols-2 gap-6'>
+          <div className='grid sm:grid-cols-2 gap-2xl'>
             {employeePoints.map((point, i) => (
               <motion.div
                 key={i}
@@ -306,13 +306,13 @@ export default function CompaniesPage() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className='flex gap-5 rounded-2xl p-7 bg-white border border-brand-teal/10 shadow-teal-sm'
+                className='flex gap-xl rounded-2xl p-3xl bg-white border border-brand-teal/10 shadow-teal-sm'
               >
                 <div className='w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-brand-teal/[.08] text-brand-teal'>
                   {employeeIcons[i]}
                 </div>
                 <div>
-                  <h3 className='font-bold text-lg mb-2 text-brand-dark font-heading'>
+                  <h3 className='font-bold text-lg mb-sm text-brand-dark font-heading'>
                     {point.title}
                   </h3>
                   <p className='text-sm leading-relaxed text-brand-dark/60'>{point.body}</p>
@@ -324,14 +324,14 @@ export default function CompaniesPage() {
       </section>
 
       {/* ── BOTTOM CTA SPLIT ──────────────────────────────────────── */}
-      <section className='py-24 px-6 relative overflow-hidden bg-brand-teal'>
+      <section className='py-6xl px-2xl relative overflow-hidden bg-brand-teal'>
         {/* Decorative blob */}
         <div
-          className='absolute top-0 right-0 w-96 h-96 rounded-full opacity-[.06] pointer-events-none -translate-y-1/3 translate-x-1/3 bg-cream'
+          className='absolute top-0 right-0 w-96 h-96 rounded-full opacity-[.06] pointer-events-none -translate-y-xs/3 translate-x-xs/3 bg-cream'
           aria-hidden='true'
         />
 
-        <div className='max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-start relative z-10'>
+        <div className='max-w-7xl mx-auto grid lg:grid-cols-2 gap-4xl items-start relative z-10'>
           {/* Left: Pitch */}
           <motion.div
             initial={{ opacity: 0, x: -32 }}
@@ -339,18 +339,18 @@ export default function CompaniesPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <p className='text-xs font-black tracking-[0.2em] uppercase mb-4 text-cream/55'>
+            <p className='text-xs font-black tracking-[0.2em] uppercase mb-lg text-cream/55'>
               {t('form.ctaEyebrow')}
             </p>
-            <h2 className='text-4xl md:text-5xl font-black leading-tight mb-6 font-heading text-cream'>
+            <h2 className='text-4xl md:text-5xl font-black leading-tight mb-2xl font-heading text-cream'>
               {t('form.title')}.
               <br />
               <span className='text-cream/65'>{t('form.ctaSubheadline')}</span>
             </h2>
-            <p className='text-base leading-relaxed mb-10 text-cream/65'>{t('form.sub')}</p>
+            <p className='text-base leading-relaxed mb-6xl text-cream/65'>{t('form.sub')}</p>
 
             {/* Trust signals */}
-            <div className='space-y-3'>
+            <div className='space-y-md'>
               {trustPoints.map((item, i) => (
                 <motion.div
                   key={i}
@@ -358,7 +358,7 @@ export default function CompaniesPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
-                  className='flex items-center gap-3'
+                  className='flex items-center gap-md'
                 >
                   <div className='w-5 h-5 rounded-full flex items-center justify-center shrink-0 bg-cream/[.12] border border-cream/35'>
                     <svg

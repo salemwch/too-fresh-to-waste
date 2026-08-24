@@ -46,7 +46,7 @@ export default function VotingDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className='space-y-5 p-6'>
+      <div className='space-y-xl p-2xl'>
         <div className='h-7 w-48 rounded bg-muted animate-pulse' />
         <div className='h-28 w-full rounded-lg bg-muted animate-pulse' />
         <div className='h-24 w-full rounded-lg bg-muted animate-pulse' />
@@ -59,20 +59,20 @@ export default function VotingDashboardPage() {
 
   if (!liveCycle) {
     return (
-      <div className='p-6'>
-        <div className='mb-4 flex items-center gap-3'>
+      <div className='p-2xl'>
+        <div className='mb-lg flex items-center gap-md'>
           <Link href='/admin/voting'>
-            <Button size='sm' variant='ghost' className='h-7 px-2 text-xs'>
-              <ArrowLeft className='me-1 size-3.5' />
+            <Button size='sm' variant='ghost' className='h-7 px-sm text-xs'>
+              <ArrowLeft className='me-xs size-3.5' />
               Cycles
             </Button>
           </Link>
           <h1 className='text-xl font-bold tracking-tight'>Voting Dashboard</h1>
         </div>
         <Card className='border-border/60'>
-          <CardContent className='flex flex-col items-center justify-center py-12 text-center'>
+          <CardContent className='flex flex-col items-center justify-center py-3xl text-center'>
             <p className='text-sm font-medium'>No active voting cycle</p>
-            <p className='mt-1 text-xs text-muted-foreground'>
+            <p className='mt-xs text-xs text-muted-foreground'>
               Create a cycle from Cycle Management and activate it to see live data here.
             </p>
           </CardContent>
@@ -84,12 +84,12 @@ export default function VotingDashboardPage() {
   // ─── Dashboard ────────────────────────────────────────────────────────────
 
   return (
-    <div className='p-6'>
-      <div className='mb-5 flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
+    <div className='p-2xl'>
+      <div className='mb-xl flex items-center justify-between'>
+        <div className='flex items-center gap-md'>
           <Link href='/admin/voting'>
-            <Button size='sm' variant='ghost' className='h-7 px-2 text-xs'>
-              <ArrowLeft className='me-1 size-3.5' />
+            <Button size='sm' variant='ghost' className='h-7 px-sm text-xs'>
+              <ArrowLeft className='me-xs size-3.5' />
               Cycles
             </Button>
           </Link>

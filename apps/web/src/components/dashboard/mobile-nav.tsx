@@ -22,8 +22,8 @@ export function MobileNav({ items }: MobileNavProps) {
       </SheetTrigger>
       <SheetContent side='left' className='w-56 p-0'>
         <SheetTitle className='sr-only'>Navigation</SheetTitle>
-        <div className='flex h-12 items-center border-b px-4'>
-          <Link href='/' className='flex items-center gap-2'>
+        <div className='flex h-12 items-center border-b px-lg'>
+          <Link href='/' className='flex items-center gap-sm'>
             <Image
               src='/images/green-header-center.png'
               alt='Logo'
@@ -34,7 +34,7 @@ export function MobileNav({ items }: MobileNavProps) {
             <span className='text-sm font-bold text-foreground'>TFTW</span>
           </Link>
         </div>
-        <div className='py-3'>
+        <div className='py-md'>
           <SidebarNav items={items} />
         </div>
       </SheetContent>

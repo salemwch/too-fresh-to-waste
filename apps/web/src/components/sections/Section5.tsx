@@ -30,7 +30,7 @@ export default function Section5() {
   return (
     <section
       id='faq'
-      className='bg-[#f9f3f0] flex justify-center items-center py-12 md:py-16 px-4 relative'
+      className='bg-[#f9f3f0] flex justify-center items-center py-3xl md:py-4xl px-lg relative'
       aria-labelledby='faq-heading'
     >
       <div className='max-w-6xl mx-auto w-full'>
@@ -55,17 +55,17 @@ export default function Section5() {
           {/* Right Side: FAQ Content */}
           <div className='w-full md:w-7/12'>
             {/* Section Label */}
-            <p className='text-primary-500 text-sm font-semibold uppercase tracking-wide mb-2'>
+            <p className='text-primary-500 text-sm font-semibold uppercase tracking-wide mb-sm'>
               {t('sectionLabel')}
             </p>
 
             {/* Heading */}
-            <h2 id='faq-heading' className='text-slate-900 text-2xl md:text-3xl font-bold mb-3'>
+            <h2 id='faq-heading' className='text-slate-900 text-2xl md:text-3xl font-bold mb-md'>
               {t('title')}
             </h2>
 
             {/* Description */}
-            <p className='text-slate-600 text-sm md:text-base leading-relaxed mb-6'>
+            <p className='text-slate-600 text-sm md:text-base leading-relaxed mb-2xl'>
               {t('description')}
             </p>
 
@@ -79,7 +79,7 @@ export default function Section5() {
                     <h3>
                       <button
                         type='button'
-                        className='flex items-center justify-between gap-4 w-full py-4 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                        className='flex items-center justify-between gap-lg w-full py-lg text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                         onClick={() => toggleFAQ(index)}
                         aria-expanded={isExpanded ? 'true' : 'false'}
                         aria-controls={`faq-answer-${faq.id}`}
@@ -126,12 +126,12 @@ export default function Section5() {
                       }}
                     >
                       {faq.id === 4 ? (
-                        <div className='text-slate-700 text-sm md:text-base leading-relaxed space-y-3'>
+                        <div className='text-slate-700 text-sm md:text-base leading-relaxed space-y-md'>
                           {/* Sits above the list rather than inside the answer:
                               the answer is split on newlines and paired with
                               icons by position, so a sentence added to it would
                               take an icon and shift every prize after it. */}
-                          <p className='mb-4'>{t('faqs.faq4.intro')}</p>
+                          <p className='mb-lg'>{t('faqs.faq4.intro')}</p>
                           {(() => {
                             const items = faq.answer.split('\n').filter(item => item.trim());
                             // One icon per prize, in the order the answer
@@ -141,9 +141,9 @@ export default function Section5() {
                             return items.map((item, idx) => {
                               const Icon = icons[idx] ?? Gift;
                               return (
-                                <div key={idx} className='flex items-center gap-3'>
+                                <div key={idx} className='flex items-center gap-md'>
                                   <Icon
-                                    className='text-primary-500 mt-0.5 h-5 w-5 flex-shrink-0'
+                                    className='text-primary-500 mt-xxs h-5 w-5 flex-shrink-0'
                                     strokeWidth={1.75}
                                     aria-hidden='true'
                                   />
@@ -165,10 +165,10 @@ export default function Section5() {
             </div>
 
             {/* CTA Button (Optional) */}
-            <div className='mt-8 text-center md:text-left'>
+            <div className='mt-4xl text-center md:text-left'>
               <a
                 href='mailto:support@toofreshtoowaste.com?subject=Support Inquiry - Too Fresh To Waste'
-                className='inline-block px-6 py-3 bg-primary-500 text-white rounded-full font-bold text-sm md:text-base transition-all duration-300 hover:bg-primary-600 hover:scale-105 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                className='inline-block px-2xl py-md bg-primary-500 text-white rounded-full font-bold text-sm md:text-base transition-all duration-300 hover:bg-primary-600 hover:scale-105 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                 aria-label={t('ctaButton')}
               >
                 {t('ctaButton')}

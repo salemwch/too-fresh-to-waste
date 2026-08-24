@@ -49,26 +49,26 @@ export function InviteMemberDialog({ orgId, establishments, trigger }: InviteMem
         <DialogHeader>
           <DialogTitle>Invite Location Manager</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          <div className='space-y-2'>
+        <form onSubmit={handleSubmit} className='space-y-lg'>
+          <div className='space-y-sm'>
             <label htmlFor='inviteEmail' className='text-sm font-medium'>
               Email
             </label>
             <div className='relative'>
-              <Mail className='absolute start-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground' />
+              <Mail className='absolute start-md top-xs/2 -translate-y-xs/2 size-4 text-muted-foreground' />
               <input
                 id='inviteEmail'
                 type='email'
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder='receptionist@hotel.tn'
-                className='w-full ps-10 pe-3 py-2 border rounded-md text-sm'
+                className='w-full ps-6xl pe-md py-sm border rounded-md text-sm'
                 required
               />
             </div>
           </div>
 
-          <div className='space-y-2'>
+          <div className='space-y-sm'>
             <label htmlFor='assignLocation' className='text-sm font-medium'>
               Assign to Location
             </label>
@@ -79,7 +79,7 @@ export function InviteMemberDialog({ orgId, establishments, trigger }: InviteMem
               <SelectContent>
                 {establishments.map(est => (
                   <SelectItem key={est._id} value={est._id}>
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-sm'>
                       <MapPin className='size-3' />
                       {est.name} — {est.address?.city}
                     </div>
@@ -90,7 +90,7 @@ export function InviteMemberDialog({ orgId, establishments, trigger }: InviteMem
           </div>
 
           <Button type='submit' className='w-full' disabled={invite.isPending}>
-            {invite.isPending && <Loader2 className='size-4 me-2 animate-spin' />}
+            {invite.isPending && <Loader2 className='size-4 me-sm animate-spin' />}
             Send Invitation
           </Button>
         </form>

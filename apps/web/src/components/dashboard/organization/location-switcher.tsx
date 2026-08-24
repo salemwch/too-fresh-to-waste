@@ -25,13 +25,13 @@ export function LocationSwitcher() {
       value={activeEstablishmentId ?? 'all'}
       onValueChange={val => setActiveEstablishmentId(val === 'all' ? null : val)}
     >
-      <SelectTrigger className='w-auto min-w-[140px] max-w-[220px] h-[38px] gap-1.5 rounded-full glass shadow-soft border-0 px-3 text-[12px] font-medium text-primary-500 hover:bg-primary-500/[0.06] transition-colors'>
+      <SelectTrigger className='w-auto min-w-[140px] max-w-[220px] h-[38px] gap-1.5 rounded-full glass shadow-soft border-0 px-md text-[12px] font-medium text-primary-500 hover:bg-primary-500/[0.06] transition-colors'>
         <MapPin className='size-3.5 shrink-0 text-primary-500/60' />
         <span className='truncate'>{selectedLabel}</span>
       </SelectTrigger>
       <SelectContent align='end'>
         <SelectItem value='all'>
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center gap-sm'>
             <Building2 className='size-3.5' />
             All Locations
           </div>

@@ -118,13 +118,13 @@ function StatCard({
 }) {
   return (
     <Card className='border-border/60'>
-      <CardContent className='px-3 py-3'>
+      <CardContent className='px-md py-md'>
         <div className='flex items-center gap-2.5'>
           <Icon className={cn('size-4 shrink-0', iconColor)} />
           <p className='truncate text-[11px] text-muted-foreground'>{label}</p>
         </div>
         <p className='mt-1.5 text-xl font-bold tabular-nums leading-none'>{value}</p>
-        {sub && <p className='mt-1 text-[10px] text-muted-foreground'>{sub}</p>}
+        {sub && <p className='mt-xs text-[10px] text-muted-foreground'>{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -147,7 +147,7 @@ function BulkBar({
 }) {
   if (selected.length === 0) return null;
   return (
-    <div className='flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 flex-wrap'>
+    <div className='flex items-center gap-sm rounded-lg border border-primary/20 bg-primary/5 px-md py-sm flex-wrap'>
       <span className='text-xs font-semibold text-primary'>
         {t('bulk.selected', { count: selected.length })}
       </span>
@@ -162,7 +162,7 @@ function BulkBar({
           key={action}
           size='sm'
           variant='ghost'
-          className='h-7 gap-1 px-2 text-xs'
+          className='h-7 gap-xs px-sm text-xs'
           disabled={isPending}
           onClick={() => onAction(action)}
         >
@@ -173,7 +173,7 @@ function BulkBar({
       <Button
         size='sm'
         variant='ghost'
-        className='h-7 gap-1 px-2 text-xs text-destructive hover:text-destructive'
+        className='h-7 gap-xs px-sm text-xs text-destructive hover:text-destructive'
         disabled={isPending}
         onClick={() => onAction('delete')}
       >
@@ -182,7 +182,7 @@ function BulkBar({
       </Button>
       <button
         onClick={onClear}
-        className='ms-auto rounded p-1 text-muted-foreground hover:text-foreground'
+        className='ms-auto rounded p-xs text-muted-foreground hover:text-foreground'
         aria-label={t('bulk.clearSelection')}
       >
         <X className='size-3.5' />
@@ -232,16 +232,16 @@ function AllOffersTable({
   }, []);
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {/* Filters */}
-      <div className='flex flex-wrap gap-2'>
+      <div className='flex flex-wrap gap-sm'>
         <div className='relative flex-1 min-w-48'>
-          <Search className='absolute start-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground' />
+          <Search className='absolute start-2.5 top-xs/2 -translate-y-xs/2 size-3.5 text-muted-foreground' />
           <Input
             value={search}
             onChange={e => handleSearch(e.target.value)}
             placeholder={t('filters.searchPlaceholder')}
-            className='ps-8 h-8 text-sm'
+            className='ps-4xl h-8 text-sm'
           />
         </div>
         <Select
@@ -270,7 +270,7 @@ function AllOffersTable({
         <table className='w-full text-sm'>
           <thead>
             <tr className='border-b border-border/60 bg-muted/40'>
-              <th className='w-8 px-3 py-2.5'>
+              <th className='w-8 px-md py-2.5'>
                 <input
                   type='checkbox'
                   className='rounded'
@@ -279,22 +279,22 @@ function AllOffersTable({
                   aria-label='Select all'
                 />
               </th>
-              <th className='px-3 py-2.5 text-start text-xs font-medium text-muted-foreground'>
+              <th className='px-md py-2.5 text-start text-xs font-medium text-muted-foreground'>
                 {t('columns.offer')}
               </th>
-              <th className='px-3 py-2.5 text-start text-xs font-medium text-muted-foreground hidden md:table-cell'>
+              <th className='px-md py-2.5 text-start text-xs font-medium text-muted-foreground hidden md:table-cell'>
                 {t('columns.establishment')}
               </th>
-              <th className='px-3 py-2.5 text-start text-xs font-medium text-muted-foreground'>
+              <th className='px-md py-2.5 text-start text-xs font-medium text-muted-foreground'>
                 {t('columns.status')}
               </th>
-              <th className='px-3 py-2.5 text-end text-xs font-medium text-muted-foreground hidden lg:table-cell'>
+              <th className='px-md py-2.5 text-end text-xs font-medium text-muted-foreground hidden lg:table-cell'>
                 {t('columns.discount')}
               </th>
-              <th className='px-3 py-2.5 text-end text-xs font-medium text-muted-foreground hidden lg:table-cell'>
+              <th className='px-md py-2.5 text-end text-xs font-medium text-muted-foreground hidden lg:table-cell'>
                 {t('columns.pickupRate')}
               </th>
-              <th className='px-3 py-2.5 text-end text-xs font-medium text-muted-foreground hidden xl:table-cell'>
+              <th className='px-md py-2.5 text-end text-xs font-medium text-muted-foreground hidden xl:table-cell'>
                 {t('columns.quantity')}
               </th>
             </tr>
@@ -303,32 +303,32 @@ function AllOffersTable({
             {isLoading ? (
               [...Array(8)].map((_, i) => (
                 <tr key={i} className='border-b border-border/40'>
-                  <td className='px-3 py-2.5'>
+                  <td className='px-md py-2.5'>
                     <Skeleton className='size-4 rounded' />
                   </td>
-                  <td className='px-3 py-2.5'>
+                  <td className='px-md py-2.5'>
                     <Skeleton className='h-4 w-40 rounded' />
                   </td>
-                  <td className='hidden px-3 py-2.5 md:table-cell'>
+                  <td className='hidden px-md py-2.5 md:table-cell'>
                     <Skeleton className='h-4 w-28 rounded' />
                   </td>
-                  <td className='px-3 py-2.5'>
+                  <td className='px-md py-2.5'>
                     <Skeleton className='h-5 w-16 rounded-full' />
                   </td>
-                  <td className='hidden px-3 py-2.5 lg:table-cell'>
+                  <td className='hidden px-md py-2.5 lg:table-cell'>
                     <Skeleton className='h-4 w-10 rounded ms-auto' />
                   </td>
-                  <td className='hidden px-3 py-2.5 lg:table-cell'>
+                  <td className='hidden px-md py-2.5 lg:table-cell'>
                     <Skeleton className='h-4 w-12 rounded ms-auto' />
                   </td>
-                  <td className='hidden px-3 py-2.5 xl:table-cell'>
+                  <td className='hidden px-md py-2.5 xl:table-cell'>
                     <Skeleton className='h-4 w-10 rounded ms-auto' />
                   </td>
                 </tr>
               ))
             ) : offers.length === 0 ? (
               <tr>
-                <td colSpan={7} className='py-12 text-center text-sm text-muted-foreground'>
+                <td colSpan={7} className='py-3xl text-center text-sm text-muted-foreground'>
                   {t('empty')}
                 </td>
               </tr>
@@ -351,23 +351,23 @@ function AllOffersTable({
       {totalPages > 1 && (
         <div className='flex items-center justify-between text-xs text-muted-foreground'>
           <span>{total} offers</span>
-          <div className='flex gap-1'>
+          <div className='flex gap-xs'>
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-2'
+              className='h-7 px-sm'
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
               ←
             </Button>
-            <span className='flex items-center px-2'>
+            <span className='flex items-center px-sm'>
               {page} / {totalPages}
             </span>
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-2'
+              className='h-7 px-sm'
               disabled={page >= totalPages}
               onClick={() => setPage(p => p + 1)}
             >
@@ -398,7 +398,7 @@ function OfferRow({
         selected && 'bg-primary/5',
       )}
     >
-      <td className='px-3 py-2.5' onClick={e => e.stopPropagation()}>
+      <td className='px-md py-2.5' onClick={e => e.stopPropagation()}>
         <input
           type='checkbox'
           className='rounded'
@@ -407,35 +407,35 @@ function OfferRow({
           aria-label='Select offer'
         />
       </td>
-      <td className='px-3 py-2.5' onClick={onView}>
-        <div className='flex items-center gap-2'>
+      <td className='px-md py-2.5' onClick={onView}>
+        <div className='flex items-center gap-sm'>
           {offer.isFeaturedManual && <Star className='size-3 shrink-0 text-[#FFA000]' />}
           <p className='max-w-[200px] truncate text-sm font-medium'>{offer.title}</p>
         </div>
       </td>
-      <td className='hidden px-3 py-2.5 md:table-cell' onClick={onView}>
+      <td className='hidden px-md py-2.5 md:table-cell' onClick={onView}>
         <p className='max-w-[160px] truncate text-xs text-muted-foreground'>
           {offer.establishment?.name ?? '—'}
         </p>
       </td>
-      <td className='px-3 py-2.5' onClick={onView}>
+      <td className='px-md py-2.5' onClick={onView}>
         <Badge variant={statusVariant(offer.status)} className='capitalize text-[10px]'>
           {offer.status}
         </Badge>
       </td>
       <td
-        className='hidden px-3 py-2.5 text-end text-xs tabular-nums lg:table-cell'
+        className='hidden px-md py-2.5 text-end text-xs tabular-nums lg:table-cell'
         onClick={onView}
       >
         {fmtDiscount(offer.pricing.discountPercentage)}
       </td>
-      <td className='hidden px-3 py-2.5 text-end lg:table-cell' onClick={onView}>
+      <td className='hidden px-md py-2.5 text-end lg:table-cell' onClick={onView}>
         <span className={cn('text-xs font-medium tabular-nums', pickupRateColor(offer.pickupRate))}>
           {fmtPct(offer.pickupRate)}
         </span>
       </td>
       <td
-        className='hidden px-3 py-2.5 text-end text-xs tabular-nums text-muted-foreground xl:table-cell'
+        className='hidden px-md py-2.5 text-end text-xs tabular-nums text-muted-foreground xl:table-cell'
         onClick={onView}
       >
         {offer.soldQuantity}/{offer.totalQuantity}
@@ -453,21 +453,21 @@ function LowPickupTab({ t }: { t: ReturnType<typeof useTranslations> }) {
   const total = data?.total ?? 0;
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {isLoading ? (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className='h-14 rounded-lg' />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <p className='py-10 text-center text-sm text-muted-foreground'>{t('lowPickupEmpty')}</p>
+        <p className='py-6xl text-center text-sm text-muted-foreground'>{t('lowPickupEmpty')}</p>
       ) : (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {items.map((item: AdminLowPickupItem) => (
             <div
               key={item._id}
-              className='flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2.5'
+              className='flex items-center gap-md rounded-lg border border-border/60 px-md py-2.5'
             >
               <TrendingDown className='size-4 shrink-0 text-destructive' />
               <div className='flex-1 min-w-0'>
@@ -494,11 +494,11 @@ function LowPickupTab({ t }: { t: ReturnType<typeof useTranslations> }) {
       {total > 20 && (
         <div className='flex items-center justify-between text-xs text-muted-foreground'>
           <span>{total} offers</span>
-          <div className='flex gap-1'>
+          <div className='flex gap-xs'>
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-2'
+              className='h-7 px-sm'
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
@@ -507,7 +507,7 @@ function LowPickupTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-2'
+              className='h-7 px-sm'
               disabled={page * 20 >= total}
               onClick={() => setPage(p => p + 1)}
             >
@@ -529,21 +529,21 @@ function PriceViolationsTab({ t }: { t: ReturnType<typeof useTranslations> }) {
   const total = data?.total ?? 0;
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {isLoading ? (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className='h-14 rounded-lg' />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <p className='py-10 text-center text-sm text-muted-foreground'>{t('violationsEmpty')}</p>
+        <p className='py-6xl text-center text-sm text-muted-foreground'>{t('violationsEmpty')}</p>
       ) : (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {items.map((item: AdminPriceViolationItem) => (
             <div
               key={item._id}
-              className='flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2.5'
+              className='flex items-center gap-md rounded-lg border border-warning/30 bg-warning/5 px-md py-2.5'
             >
               <AlertTriangle className='size-4 shrink-0 text-warning' />
               <div className='flex-1 min-w-0'>
@@ -567,11 +567,11 @@ function PriceViolationsTab({ t }: { t: ReturnType<typeof useTranslations> }) {
       )}
       {total > 20 && (
         <div className='flex justify-end'>
-          <div className='flex gap-1'>
+          <div className='flex gap-xs'>
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-2'
+              className='h-7 px-sm'
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
@@ -580,7 +580,7 @@ function PriceViolationsTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-2'
+              className='h-7 px-sm'
               disabled={page * 20 >= total}
               onClick={() => setPage(p => p + 1)}
             >
@@ -603,21 +603,21 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
   const total = data?.total ?? 0;
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {isLoading ? (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className='h-14 rounded-lg' />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <p className='py-10 text-center text-sm text-muted-foreground'>{t('deletedEmpty')}</p>
+        <p className='py-6xl text-center text-sm text-muted-foreground'>{t('deletedEmpty')}</p>
       ) : (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {items.map((item: AdminDeletedOfferItem) => (
             <div
               key={item._id}
-              className='flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2.5 opacity-70'
+              className='flex items-center gap-md rounded-lg border border-border/60 px-md py-2.5 opacity-70'
             >
               <Trash2 className='size-4 shrink-0 text-muted-foreground' />
               <div className='flex-1 min-w-0'>
@@ -632,7 +632,7 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
               <Button
                 size='sm'
                 variant='outline'
-                className='h-7 gap-1 px-2 text-xs shrink-0'
+                className='h-7 gap-xs px-sm text-xs shrink-0'
                 disabled={restoreMutation.isPending}
                 onClick={() => restoreMutation.mutate(item._id)}
               >
@@ -645,11 +645,11 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
       )}
       {total > 20 && (
         <div className='flex justify-end'>
-          <div className='flex gap-1'>
+          <div className='flex gap-xs'>
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-2'
+              className='h-7 px-sm'
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
@@ -658,7 +658,7 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Button
               size='sm'
               variant='outline'
-              className='h-7 px-2'
+              className='h-7 px-sm'
               disabled={page * 20 >= total}
               onClick={() => setPage(p => p + 1)}
             >
@@ -685,15 +685,15 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
     <Sheet open={!!offerId} onOpenChange={open => !open && onClose()}>
       <SheetContent className='w-full overflow-y-auto sm:max-w-lg'>
         {isLoading ? (
-          <div className='space-y-4 py-6'>
+          <div className='space-y-lg py-2xl'>
             {[...Array(6)].map((_, i) => (
               <Skeleton key={i} className={`h-4 rounded ${i === 0 ? 'w-48' : 'w-full'}`} />
             ))}
           </div>
         ) : offer ? (
-          <div className='space-y-5 py-6'>
+          <div className='space-y-xl py-2xl'>
             <SheetHeader>
-              <div className='flex items-start gap-3'>
+              <div className='flex items-start gap-md'>
                 <div className='flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50'>
                   <Tag className='size-5 text-emerald-600' />
                 </div>
@@ -705,7 +705,7 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                     </Badge>
                     {offer.isFeaturedManual && (
                       <Badge className='border-amber-200 bg-amber-50 text-amber-700 text-[10px]'>
-                        <Star className='me-1 size-2.5' />
+                        <Star className='me-xs size-2.5' />
                         Featured
                       </Badge>
                     )}
@@ -717,18 +717,18 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
             <Separator />
 
             {/* Pricing */}
-            <div className='grid grid-cols-3 gap-3 text-center'>
-              <div className='rounded-lg bg-muted/40 px-2 py-3'>
+            <div className='grid grid-cols-3 gap-md text-center'>
+              <div className='rounded-lg bg-muted/40 px-sm py-md'>
                 <p className='text-xs text-muted-foreground'>Original</p>
                 <p className='text-sm font-bold tabular-nums'>{offer.pricing.originalPrice} TND</p>
               </div>
-              <div className='rounded-lg bg-emerald-50 px-2 py-3'>
+              <div className='rounded-lg bg-emerald-50 px-sm py-md'>
                 <p className='text-xs text-muted-foreground'>Discounted</p>
                 <p className='text-sm font-bold tabular-nums text-emerald-700'>
                   {offer.pricing.discountedPrice} TND
                 </p>
               </div>
-              <div className='rounded-lg bg-violet-50 px-2 py-3'>
+              <div className='rounded-lg bg-violet-50 px-sm py-md'>
                 <p className='text-xs text-muted-foreground'>Discount</p>
                 <p className='text-sm font-bold tabular-nums text-violet-700'>
                   {offer.pricing.discountPercentage}%
@@ -737,8 +737,8 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
             </div>
 
             {/* Performance */}
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-0.5 rounded-lg border border-border/60 px-3 py-2.5'>
+            <div className='grid grid-cols-2 gap-md'>
+              <div className='space-y-xxs rounded-lg border border-border/60 px-md py-2.5'>
                 <p className='text-[10px] text-muted-foreground uppercase tracking-wide'>
                   Pickup Rate
                 </p>
@@ -751,7 +751,7 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                   {fmtPct(offer.pickupRate)}
                 </p>
               </div>
-              <div className='space-y-0.5 rounded-lg border border-border/60 px-3 py-2.5'>
+              <div className='space-y-xxs rounded-lg border border-border/60 px-md py-2.5'>
                 <p className='text-[10px] text-muted-foreground uppercase tracking-wide'>Bags</p>
                 <p className='text-lg font-bold tabular-nums'>
                   {offer.soldQuantity}
@@ -760,11 +760,11 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                   </span>
                 </p>
               </div>
-              <div className='space-y-0.5 rounded-lg border border-border/60 px-3 py-2.5'>
+              <div className='space-y-xxs rounded-lg border border-border/60 px-md py-2.5'>
                 <p className='text-[10px] text-muted-foreground uppercase tracking-wide'>Views</p>
                 <p className='text-lg font-bold tabular-nums'>{offer.viewCount.toLocaleString()}</p>
               </div>
-              <div className='space-y-0.5 rounded-lg border border-border/60 px-3 py-2.5'>
+              <div className='space-y-xxs rounded-lg border border-border/60 px-md py-2.5'>
                 <p className='text-[10px] text-muted-foreground uppercase tracking-wide'>
                   Favorites
                 </p>
@@ -797,9 +797,9 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                   value: new Date(offer.createdAt).toLocaleDateString(),
                 },
               ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className='flex items-start gap-3'>
-                  <Icon className='mt-0.5 size-3.5 shrink-0 text-muted-foreground' />
-                  <div className='flex flex-1 items-start justify-between gap-2 text-xs'>
+                <div key={label} className='flex items-start gap-md'>
+                  <Icon className='mt-xxs size-3.5 shrink-0 text-muted-foreground' />
+                  <div className='flex flex-1 items-start justify-between gap-sm text-xs'>
                     <span className='text-muted-foreground'>{label}</span>
                     <span className='text-right font-medium capitalize'>{value}</span>
                   </div>
@@ -812,7 +812,7 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
               <>
                 <Separator />
                 <div>
-                  <p className='mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
+                  <p className='mb-sm text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
                     Categories
                   </p>
                   <div className='flex flex-wrap gap-1.5'>
@@ -830,12 +830,12 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
             {offer.status === 'active' && (
               <>
                 <Separator />
-                <div className='space-y-3'>
+                <div className='space-y-md'>
                   <p className='text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
                     {t('reservation.title')}
                   </p>
-                  <div className='flex items-end gap-2'>
-                    <div className='flex-1 space-y-1'>
+                  <div className='flex items-end gap-sm'>
+                    <div className='flex-1 space-y-xs'>
                       <Label className='text-xs'>{t('reservation.reserveLabel')}</Label>
                       <Input
                         type='number'
@@ -862,8 +862,8 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                       {t('reservation.reserve')}
                     </Button>
                   </div>
-                  <div className='flex items-end gap-2'>
-                    <div className='flex-1 space-y-1'>
+                  <div className='flex items-end gap-sm'>
+                    <div className='flex-1 space-y-xs'>
                       <Label className='text-xs'>{t('reservation.cancelLabel')}</Label>
                       <Input
                         type='number'
@@ -908,17 +908,17 @@ function ExpiringTab({ t }: { t: ReturnType<typeof useTranslations> }) {
   const items = (data ?? []) as ExpiringOfferItem[];
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {isLoading ? (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className='h-14 rounded-lg' />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <p className='py-10 text-center text-sm text-muted-foreground'>{t('expiringEmpty')}</p>
+        <p className='py-6xl text-center text-sm text-muted-foreground'>{t('expiringEmpty')}</p>
       ) : (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {items.map((item: ExpiringOfferItem) => {
             const hoursLeft = Math.max(
               0,
@@ -927,7 +927,7 @@ function ExpiringTab({ t }: { t: ReturnType<typeof useTranslations> }) {
             return (
               <div
                 key={item.id}
-                className='flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2.5'
+                className='flex items-center gap-md rounded-lg border border-warning/30 bg-warning/5 px-md py-2.5'
               >
                 <Clock className='size-4 shrink-0 text-warning' />
                 <div className='flex-1 min-w-0'>
@@ -1016,14 +1016,14 @@ export default function AdminOffersPage() {
   };
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       {/* Header */}
-      <div className='flex items-start justify-between gap-4'>
+      <div className='flex items-start justify-between gap-lg'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
         </div>
-        <div className='flex gap-2 shrink-0'>
+        <div className='flex gap-sm shrink-0'>
           <Button
             variant='outline'
             size='sm'
@@ -1072,13 +1072,13 @@ export default function AdminOffersPage() {
 
       {/* Stats row */}
       {loadingStats ? (
-        <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7'>
+        <div className='grid grid-cols-2 gap-md sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7'>
           {[...Array(7)].map((_, i) => (
             <Skeleton key={i} className='h-[76px] rounded-xl' />
           ))}
         </div>
       ) : (
-        <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7'>
+        <div className='grid grid-cols-2 gap-md sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7'>
           <StatCard
             label={t('stats.totalActive')}
             value={(stats?.countByStatus?.['active'] ?? 0).toLocaleString()}
@@ -1135,7 +1135,7 @@ export default function AdminOffersPage() {
       <Card className='border-border/60'>
         <CardContent className='p-0'>
           <Tabs defaultValue='all'>
-            <div className='border-b border-border/60 px-4 pt-1'>
+            <div className='border-b border-border/60 px-lg pt-xs'>
               <TabsList className='h-auto gap-0 rounded-none border-none bg-transparent p-0'>
                 {[
                   { value: 'all', label: t('tabs.all'), icon: null },
@@ -1147,7 +1147,7 @@ export default function AdminOffersPage() {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className='relative rounded-none border-none bg-transparent px-3 py-2.5 text-xs font-medium text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:rounded-full after:bg-transparent data-[state=active]:after:bg-primary'
+                    className='relative rounded-none border-none bg-transparent px-md py-2.5 text-xs font-medium text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:rounded-full after:bg-transparent data-[state=active]:after:bg-primary'
                   >
                     {tab.icon && <tab.icon className='me-1.5 size-3' />}
                     {tab.label}
@@ -1155,7 +1155,7 @@ export default function AdminOffersPage() {
                 ))}
               </TabsList>
             </div>
-            <div className='p-4'>
+            <div className='p-lg'>
               {/* Bulk action bar — only on All tab */}
               <BulkBar
                 selected={selected}
@@ -1165,7 +1165,7 @@ export default function AdminOffersPage() {
                 t={t}
               />
 
-              <TabsContent value='all' className='mt-3'>
+              <TabsContent value='all' className='mt-md'>
                 <AllOffersTable
                   t={t}
                   selected={selected}
@@ -1175,19 +1175,19 @@ export default function AdminOffersPage() {
                 />
               </TabsContent>
 
-              <TabsContent value='expiring' className='mt-3'>
+              <TabsContent value='expiring' className='mt-md'>
                 <ExpiringTab t={t} />
               </TabsContent>
 
-              <TabsContent value='lowPickup' className='mt-3'>
+              <TabsContent value='lowPickup' className='mt-md'>
                 <LowPickupTab t={t} />
               </TabsContent>
 
-              <TabsContent value='violations' className='mt-3'>
+              <TabsContent value='violations' className='mt-md'>
                 <PriceViolationsTab t={t} />
               </TabsContent>
 
-              <TabsContent value='deleted' className='mt-3'>
+              <TabsContent value='deleted' className='mt-md'>
                 <DeletedTab t={t} />
               </TabsContent>
             </div>
@@ -1204,7 +1204,7 @@ export default function AdminOffersPage() {
           <DialogHeader>
             <DialogTitle>{t('bulk.delete')}</DialogTitle>
           </DialogHeader>
-          <div className='space-y-3 py-2'>
+          <div className='space-y-md py-sm'>
             <p className='text-sm text-muted-foreground'>
               You are about to delete <strong>{selected.length}</strong> offer(s). This action
               creates a soft-delete record and can be reversed from the Deleted tab.

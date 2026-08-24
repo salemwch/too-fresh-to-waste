@@ -36,7 +36,7 @@ function MiniBarChart({
         const val = Number(item[valueKey]);
         const height = maxVal > 0 ? (val / maxVal) * 100 : 0;
         return (
-          <div key={i} className='flex-1 flex flex-col items-center gap-1'>
+          <div key={i} className='flex-1 flex flex-col items-center gap-xs'>
             <span className='text-[9px] text-muted-foreground tabular-nums'>
               {val}
               {unit}
@@ -170,7 +170,7 @@ function AnalyticsContent() {
   };
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       <AdminModuleHeader
         title={t('title')}
         subtitle={t('subtitle')}
@@ -185,12 +185,12 @@ function AnalyticsContent() {
       <Card className='border-border/60'>
         <CardContent className='p-0'>
           <AdminTabNav tabs={tabs} />
-          <div className='p-4'>
+          <div className='p-lg'>
             {currentTab === 'impact' && (
-              <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 lg:grid-cols-2 gap-lg'>
                 {orderTrends.length > 0 && (
                   <Card className='border-border/60'>
-                    <CardHeader className='pb-2'>
+                    <CardHeader className='pb-sm'>
                       <CardTitle className='text-sm font-semibold'>
                         {t('impact.wasteTrend')}
                       </CardTitle>
@@ -218,7 +218,7 @@ function AnalyticsContent() {
 
                 {statusEntries.length > 0 && (
                   <Card className='border-border/60'>
-                    <CardHeader className='pb-2'>
+                    <CardHeader className='pb-sm'>
                       <CardTitle className='text-sm font-semibold'>
                         {t('impact.orderDist')}
                       </CardTitle>
@@ -227,14 +227,14 @@ function AnalyticsContent() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className='space-y-3'>
+                      <div className='space-y-md'>
                         {statusEntries
                           .sort((a, b) => b.count - a.count)
                           .map(item => {
                             const pct = totalOrders > 0 ? (item.count / totalOrders) * 100 : 0;
                             return (
                               <div key={item.status}>
-                                <div className='flex items-center justify-between mb-1'>
+                                <div className='flex items-center justify-between mb-xs'>
                                   <span className='text-xs font-medium capitalize'>
                                     {item.status}
                                   </span>
@@ -260,11 +260,11 @@ function AnalyticsContent() {
                 )}
 
                 <Card className='border-border/60 lg:col-span-2'>
-                  <CardHeader className='pb-2'>
+                  <CardHeader className='pb-sm'>
                     <CardTitle className='text-sm font-semibold'>{t('impact.summary')}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+                    <div className='grid grid-cols-2 md:grid-cols-4 gap-lg'>
                       {[
                         {
                           label: t('impact.totalOrders'),
@@ -285,10 +285,10 @@ function AnalyticsContent() {
                       ].map(stat => (
                         <div
                           key={stat.label}
-                          className='rounded-lg border border-border/60 p-3 text-center'
+                          className='rounded-lg border border-border/60 p-md text-center'
                         >
                           <p className='text-xl font-bold tabular-nums'>{stat.value}</p>
-                          <p className='text-[10px] text-muted-foreground mt-0.5'>{stat.label}</p>
+                          <p className='text-[10px] text-muted-foreground mt-xxs'>{stat.label}</p>
                         </div>
                       ))}
                     </div>
@@ -296,7 +296,7 @@ function AnalyticsContent() {
                 </Card>
 
                 {isLoading && (
-                  <div className='lg:col-span-2 grid grid-cols-2 gap-4'>
+                  <div className='lg:col-span-2 grid grid-cols-2 gap-lg'>
                     <Skeleton className='h-64 rounded-lg' />
                     <Skeleton className='h-64 rounded-lg' />
                   </div>
@@ -305,9 +305,9 @@ function AnalyticsContent() {
             )}
 
             {currentTab === 'growth' && (
-              <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 lg:grid-cols-2 gap-lg'>
                 <Card className='border-border/60'>
-                  <CardHeader className='pb-2'>
+                  <CardHeader className='pb-sm'>
                     <CardTitle className='text-sm font-semibold'>
                       {t('growth.userGrowth')}
                     </CardTitle>
@@ -316,7 +316,7 @@ function AnalyticsContent() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className='space-y-4'>
+                    <div className='space-y-lg'>
                       {[
                         {
                           label: t('growth.totalUsers'),
@@ -345,13 +345,13 @@ function AnalyticsContent() {
                 </Card>
 
                 <Card className='border-border/60'>
-                  <CardHeader className='pb-2'>
+                  <CardHeader className='pb-sm'>
                     <CardTitle className='text-sm font-semibold'>
                       {t('growth.merchantOnboarding')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className='space-y-4'>
+                    <div className='space-y-lg'>
                       {[
                         {
                           label: t('growth.totalMerchants'),
@@ -382,7 +382,7 @@ function AnalyticsContent() {
             )}
 
             {currentTab === 'reports' && (
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-md'>
                 {REPORT_TEMPLATES.map(report => {
                   const Icon = report.icon;
                   return (
@@ -390,22 +390,22 @@ function AnalyticsContent() {
                       key={report.id}
                       className='border-border/60 hover:border-primary/30 transition-colors cursor-pointer group'
                     >
-                      <CardContent className='p-4'>
-                        <div className='flex items-start gap-3'>
+                      <CardContent className='p-lg'>
+                        <div className='flex items-start gap-md'>
                           <div className='rounded-lg bg-primary/10 p-2.5 shrink-0 group-hover:bg-primary/15 transition-colors'>
                             <Icon className='size-5 text-primary' />
                           </div>
                           <div className='flex-1 min-w-0'>
                             <p className='text-sm font-semibold'>{report.name}</p>
-                            <p className='text-xs text-muted-foreground mt-0.5'>
+                            <p className='text-xs text-muted-foreground mt-xxs'>
                               {report.description}
                             </p>
-                            <div className='flex gap-2 mt-3'>
+                            <div className='flex gap-sm mt-md'>
                               <Button size='sm' variant='outline' className='h-7 text-xs'>
-                                <Download className='me-1 size-3' /> CSV
+                                <Download className='me-xs size-3' /> CSV
                               </Button>
                               <Button size='sm' variant='outline' className='h-7 text-xs'>
-                                <FileText className='me-1 size-3' /> PDF
+                                <FileText className='me-xs size-3' /> PDF
                               </Button>
                             </div>
                           </div>
@@ -427,9 +427,9 @@ export default function AdminAnalyticsPage() {
   return (
     <Suspense
       fallback={
-        <div className='space-y-5'>
+        <div className='space-y-xl'>
           <Skeleton className='h-16 rounded-lg' />
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-md'>
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className='h-24 rounded-lg' />
             ))}

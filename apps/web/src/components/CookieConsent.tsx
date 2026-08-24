@@ -66,18 +66,18 @@ export function CookieConsent() {
       role='dialog'
       aria-label='Cookie consent'
       className={cn(
-        'fixed z-50 bottom-4 start-4 end-4 sm:end-auto sm:max-w-sm',
+        'fixed z-50 bottom-lg start-lg end-lg sm:end-auto sm:max-w-sm',
         'rounded-2xl border border-border/50',
         'bg-background/80 backdrop-blur-xl shadow-2xl shadow-black/10',
-        'p-5',
+        'p-xl',
         'transition-all duration-500 ease-out',
         exiting
-          ? 'translate-y-4 opacity-0 scale-95'
+          ? 'translate-y-lg opacity-0 scale-95'
           : 'translate-y-0 opacity-100 scale-100 animate-in slide-in-from-bottom-8 fade-in duration-700',
       )}
     >
       <div className='flex items-start gap-3.5'>
-        <CookieIcon className='size-10 shrink-0 mt-0.5' />
+        <CookieIcon className='size-10 shrink-0 mt-xxs' />
         <div className='flex-1 min-w-0'>
           <p className='text-sm leading-relaxed text-foreground/90'>{t('message')}</p>
 

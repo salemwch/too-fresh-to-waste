@@ -201,14 +201,14 @@ export default function InfiniteMarquee() {
   ];
 
   return (
-    <div className='w-full bg-primary-500 py-2 md:py-2.5 relative overflow-hidden'>
+    <div className='w-full bg-primary-500 py-sm md:py-2.5 relative overflow-hidden'>
       {/* Gradient fade on edges */}
       <div className='absolute left-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-r from-primary-500 to-transparent z-10 pointer-events-none' />
       <div className='absolute right-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-l from-primary-500 to-transparent z-10 pointer-events-none' />
 
       {/* Static container - single line */}
       <div className='flex justify-center overflow-x-auto scrollbar-hide'>
-        <div className='flex items-center gap-4 md:gap-8 lg:gap-12 px-4 whitespace-nowrap'>
+        <div className='flex items-center gap-lg md:gap-4xl lg:gap-3xl px-lg whitespace-nowrap'>
           {items.map((item, index) => (
             <div
               key={`item-${index}`}

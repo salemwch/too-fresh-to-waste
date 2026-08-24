@@ -16,8 +16,8 @@ export default function OrganizationLayout({ children }: { children: React.React
   const locale = useLocale();
 
   return (
-    <div className='space-y-6'>
-      <div className='flex gap-1 border-b border-border'>
+    <div className='space-y-2xl'>
+      <div className='flex gap-xs border-b border-border'>
         {tabs.map(tab => {
           const fullHref = `/${locale}${tab.href}`;
           const isActive =
@@ -30,7 +30,7 @@ export default function OrganizationLayout({ children }: { children: React.React
               key={tab.href}
               href={tab.href}
               className={cn(
-                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
+                'flex items-center gap-sm px-lg py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
                 isActive
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',

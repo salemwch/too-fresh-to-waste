@@ -68,7 +68,7 @@ export default function SupportTicketsPage() {
   const { data: stats } = useTicketStats();
 
   return (
-    <div className='space-y-6 p-6'>
+    <div className='space-y-2xl p-2xl'>
       <div>
         <h1 className='text-2xl font-semibold'>{t('title')}</h1>
         <p className='text-sm text-muted-foreground'>{t('subtitle')}</p>
@@ -76,7 +76,7 @@ export default function SupportTicketsPage() {
 
       {/* Stats cards */}
       {stats && (
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+        <div className='grid grid-cols-2 md:grid-cols-4 gap-lg'>
           <StatCard icon={Ticket} label={t('totalTickets')} value={stats.total} />
           <StatCard icon={AlertTriangle} label={t('openTickets')} value={stats.open} />
           <StatCard icon={Clock} label={t('urgentCount')} value={stats.byPriority['urgent'] ?? 0} />
@@ -85,7 +85,7 @@ export default function SupportTicketsPage() {
       )}
 
       {/* Filters */}
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-sm'>
         <Input
           placeholder={t('searchPlaceholder')}
           value={search}
@@ -123,14 +123,14 @@ export default function SupportTicketsPage() {
       {isLoading ? (
         <TicketSkeleton />
       ) : !tickets || tickets.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-16 gap-3 text-center'>
+        <div className='flex flex-col items-center justify-center py-4xl gap-md text-center'>
           <Ticket className='size-12 text-muted-foreground' />
           <h3 className='text-md font-semibold'>{t('noTickets')}</h3>
           <p className='text-sm text-muted-foreground max-w-xs'>{t('noTicketsDesc')}</p>
         </div>
       ) : (
         <div className='rounded-md border'>
-          <div className='grid grid-cols-[1fr_120px_100px_100px_80px] gap-4 p-3 border-b bg-muted/50 text-xs font-medium text-muted-foreground'>
+          <div className='grid grid-cols-[1fr_120px_100px_100px_80px] gap-lg p-md border-b bg-muted/50 text-xs font-medium text-muted-foreground'>
             <span>{t('subject')}</span>
             <span>{t('category')}</span>
             <span>{t('priorityLabel')}</span>
@@ -142,7 +142,7 @@ export default function SupportTicketsPage() {
               key={ticket._id}
               role='button'
               tabIndex={0}
-              className='grid grid-cols-[1fr_120px_100px_100px_80px] gap-4 p-3 border-b last:border-0 items-center cursor-pointer hover:bg-muted/30'
+              className='grid grid-cols-[1fr_120px_100px_100px_80px] gap-lg p-md border-b last:border-0 items-center cursor-pointer hover:bg-muted/30'
               onClick={() => setSelectedId(ticket._id)}
               onKeyDown={activateOnKey(() => setSelectedId(ticket._id))}
             >
@@ -196,8 +196,8 @@ function StatCard({
 }) {
   return (
     <Card>
-      <CardContent className='flex items-center gap-3 p-4'>
-        <div className='rounded-md bg-primary/10 p-2'>
+      <CardContent className='flex items-center gap-md p-lg'>
+        <div className='rounded-md bg-primary/10 p-sm'>
           <Icon className='size-5 text-primary' />
         </div>
         <div>
@@ -238,15 +238,15 @@ function TicketDetailSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className='overflow-y-auto sm:max-w-lg'>
         {!ticket ? (
-          <div className='space-y-4'>
+          <div className='space-y-lg'>
             <Skeleton className='h-6 w-48' />
             <Skeleton className='h-4 w-full' />
             <Skeleton className='h-4 w-3/4' />
           </div>
         ) : (
-          <div className='space-y-4'>
+          <div className='space-y-lg'>
             <SheetTitle>{ticket.subject}</SheetTitle>
-            <div className='flex gap-2'>
+            <div className='flex gap-sm'>
               <Badge className={STATUS_COLORS[ticket.status]}>{ticket.status}</Badge>
               <Badge className={PRIORITY_COLORS[ticket.priority]}>{ticket.priority}</Badge>
             </div>
@@ -256,7 +256,7 @@ function TicketDetailSheet({
             <Separator />
 
             {/* Status actions */}
-            <div className='flex flex-wrap gap-2'>
+            <div className='flex flex-wrap gap-sm'>
               {ticket.status !== 'resolved' && (
                 <Button
                   size='sm'
@@ -287,22 +287,22 @@ function TicketDetailSheet({
             <h4 className='text-sm font-medium'>
               {t('replies')} ({ticket.replies.length})
             </h4>
-            <div className='space-y-3 max-h-64 overflow-y-auto'>
+            <div className='space-y-md max-h-64 overflow-y-auto'>
               {ticket.replies.map((r, i) => (
                 <div
                   key={i}
-                  className={`rounded-md p-3 text-sm ${
-                    r.authorRole === 'admin' ? 'bg-primary/5 ms-4' : 'bg-muted me-4'
+                  className={`rounded-md p-md text-sm ${
+                    r.authorRole === 'admin' ? 'bg-primary/5 ms-lg' : 'bg-muted me-lg'
                   }`}
                 >
-                  <p className='text-xs text-muted-foreground mb-1 capitalize'>{r.authorRole}</p>
+                  <p className='text-xs text-muted-foreground mb-xs capitalize'>{r.authorRole}</p>
                   <p>{r.message}</p>
                 </div>
               ))}
             </div>
 
             {/* Reply input */}
-            <div className='flex gap-2'>
+            <div className='flex gap-sm'>
               <Input
                 value={replyMsg}
                 onChange={e => setReplyMsg(e.target.value)}
@@ -312,7 +312,7 @@ function TicketDetailSheet({
               />
               <Button
                 size='sm'
-                className='px-3'
+                className='px-md'
                 onClick={handleReply}
                 disabled={reply.isPending || !replyMsg.trim()}
               >
@@ -328,9 +328,9 @@ function TicketDetailSheet({
 
 function TicketSkeleton() {
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className='flex items-center gap-4 p-3'>
+        <div key={i} className='flex items-center gap-lg p-md'>
           <Skeleton className='h-4 w-48' />
           <Skeleton className='h-4 w-20' />
           <Skeleton className='h-4 w-16' />

@@ -99,13 +99,13 @@ function UserDetailDrawer({
       <SheetContent className='w-full overflow-y-auto sm:max-w-lg'>
         <SheetTitle className='sr-only'>{t('userDetails')}</SheetTitle>
         <div className='space-y-0'>
-          <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
-            <div className='flex items-start gap-3'>
+          <div className='-mx-2xl -mt-2xl mb-0 border-b border-border/60 bg-muted/20 px-2xl pb-xl pt-xl pe-14'>
+            <div className='flex items-start gap-md'>
               <div className='relative'>
                 <Avatar className='size-14'>
                   <AvatarFallback className='text-base font-semibold'>{initials}</AvatarFallback>
                 </Avatar>
-                <div className='absolute -top-1 -end-1'>{getRankIcon(user.rank)}</div>
+                <div className='absolute -top-xs -end-xs'>{getRankIcon(user.rank)}</div>
               </div>
               <div>
                 <p className='text-base font-semibold'>
@@ -120,30 +120,30 @@ function UserDetailDrawer({
                 </Badge>
               </div>
             </div>
-            <div className='mt-3 grid grid-cols-3 gap-2'>
-              <div className='rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+            <div className='mt-md grid grid-cols-3 gap-sm'>
+              <div className='rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                 <p className='text-lg font-bold tabular-nums text-amber-600'>
                   {user.totalPoints.toLocaleString()}
                 </p>
                 <p className='text-[10px] text-muted-foreground'>{t('columns.totalPoints')}</p>
               </div>
-              <div className='rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+              <div className='rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                 <p className='text-lg font-bold tabular-nums'>{user.totalBagsSaved}</p>
                 <p className='text-[10px] text-muted-foreground'>{t('columns.bagsSaved')}</p>
               </div>
-              <div className='rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+              <div className='rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                 <p className='text-lg font-bold tabular-nums'>{user.totalOrdersCount}</p>
                 <p className='text-[10px] text-muted-foreground'>{t('columns.orders')}</p>
               </div>
             </div>
           </div>
 
-          <div className='space-y-5 py-5'>
-            <section className='space-y-3'>
+          <div className='space-y-xl py-xl'>
+            <section className='space-y-md'>
               <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 {t('activityBreakdown')}
               </h3>
-              <div className='space-y-2'>
+              <div className='space-y-sm'>
                 {[
                   {
                     label: t('columns.orders'),
@@ -162,7 +162,7 @@ function UserDetailDrawer({
                   },
                 ].map(item => (
                   <div key={item.label} className='flex items-center justify-between py-1.5'>
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-sm'>
                       <item.icon className='size-3.5 text-muted-foreground' />
                       <span className='text-xs'>{item.label}</span>
                     </div>
@@ -228,7 +228,7 @@ function AddPointsDialog({
         <DialogHeader>
           <DialogTitle>{t('addPoints.title')}</DialogTitle>
         </DialogHeader>
-        <div className='space-y-4 py-2'>
+        <div className='space-y-lg py-sm'>
           {user && (
             <p className='text-sm text-muted-foreground'>
               {t('addPoints.description', { name: `${user.firstName} ${user.lastName}` })}
@@ -398,7 +398,7 @@ function LeaderboardsContent() {
       key: 'actions',
       header: '',
       render: u => (
-        <div className='flex items-center gap-1'>
+        <div className='flex items-center gap-xs'>
           <Button
             variant='ghost'
             size='sm'
@@ -424,7 +424,7 @@ function LeaderboardsContent() {
   ];
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       <AdminModuleHeader title={t('title')} subtitle={t('subtitle')} />
 
       <AdminKpiRow items={kpis} loading={statsLoading} />
@@ -432,11 +432,11 @@ function LeaderboardsContent() {
       <Card className='border-border/60'>
         <CardContent className='p-0'>
           <AdminTabNav tabs={tabs} />
-          <div className='p-4'>
+          <div className='p-lg'>
             {currentTab === 'overview' && (
-              <div className='space-y-4'>
+              <div className='space-y-lg'>
                 {statsLoading ? (
-                  <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+                  <div className='grid grid-cols-2 md:grid-cols-4 gap-md'>
                     {[...Array(4)].map((_, i) => (
                       <Skeleton key={i} className='h-24 rounded-lg' />
                     ))}
@@ -444,29 +444,29 @@ function LeaderboardsContent() {
                 ) : stats?.tierBreakdown && stats.tierBreakdown.length > 0 ? (
                   <>
                     <h3 className='text-sm font-semibold'>{t('tierDistribution')}</h3>
-                    <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+                    <div className='grid grid-cols-2 md:grid-cols-4 gap-md'>
                       {stats.tierBreakdown.map(tb => (
                         <Card key={tb.tier} className='border-border/60'>
-                          <CardContent className='p-4 text-center'>
+                          <CardContent className='p-lg text-center'>
                             <Badge
                               variant='outline'
-                              className={cn('mb-2 text-[10px] capitalize', getTierColor(tb.tier))}
+                              className={cn('mb-sm text-[10px] capitalize', getTierColor(tb.tier))}
                             >
                               {tb.tier}
                             </Badge>
                             <p className='text-2xl font-bold tabular-nums'>
                               {tb.count.toLocaleString()}
                             </p>
-                            <p className='text-[10px] text-muted-foreground mt-1'>{t('users')}</p>
+                            <p className='text-[10px] text-muted-foreground mt-xs'>{t('users')}</p>
                           </CardContent>
                         </Card>
                       ))}
                     </div>
                     <Separator />
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-lg'>
                       <Card className='border-border/60'>
-                        <CardContent className='p-4'>
-                          <div className='flex items-center gap-2 mb-2'>
+                        <CardContent className='p-lg'>
+                          <div className='flex items-center gap-sm mb-sm'>
                             <Users className='size-4 text-indigo-600' />
                             <span className='text-xs font-medium'>
                               {t('kpi.totalParticipants')}
@@ -478,8 +478,8 @@ function LeaderboardsContent() {
                         </CardContent>
                       </Card>
                       <Card className='border-border/60'>
-                        <CardContent className='p-4'>
-                          <div className='flex items-center gap-2 mb-2'>
+                        <CardContent className='p-lg'>
+                          <div className='flex items-center gap-sm mb-sm'>
                             <Star className='size-4 text-amber-600' />
                             <span className='text-xs font-medium'>{t('kpi.totalPoints')}</span>
                           </div>
@@ -489,8 +489,8 @@ function LeaderboardsContent() {
                         </CardContent>
                       </Card>
                       <Card className='border-border/60'>
-                        <CardContent className='p-4'>
-                          <div className='flex items-center gap-2 mb-2'>
+                        <CardContent className='p-lg'>
+                          <div className='flex items-center gap-sm mb-sm'>
                             <TrendingUp className='size-4 text-violet-600' />
                             <span className='text-xs font-medium'>{t('kpi.averagePoints')}</span>
                           </div>
@@ -505,11 +505,11 @@ function LeaderboardsContent() {
                         <Separator />
                         <h3 className='text-sm font-semibold'>{t('topMerchants')}</h3>
                         <p className='text-xs text-muted-foreground'>{t('topMerchantsDesc')}</p>
-                        <div className='space-y-2'>
+                        <div className='space-y-sm'>
                           {topMerchants.map(m => (
                             <div
                               key={m.establishmentId}
-                              className='flex items-center gap-3 rounded-lg border border-border/60 p-3'
+                              className='flex items-center gap-md rounded-lg border border-border/60 p-md'
                             >
                               <div className='flex items-center justify-center w-8'>
                                 {getRankIcon(m.rank)}
@@ -517,7 +517,7 @@ function LeaderboardsContent() {
                               <div className='flex-1 min-w-0'>
                                 <p className='text-xs font-medium'>{m.establishmentName}</p>
                               </div>
-                              <div className='flex items-center gap-2'>
+                              <div className='flex items-center gap-sm'>
                                 <span className='text-xs font-bold tabular-nums'>
                                   {m.bagsSaved.toLocaleString()} {t('bags')}
                                 </span>
@@ -532,7 +532,7 @@ function LeaderboardsContent() {
                     )}
                   </>
                 ) : (
-                  <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+                  <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
                     <Trophy className='size-12 text-muted-foreground' />
                     <h3 className='text-md font-semibold'>{t('empty.title')}</h3>
                     <p className='text-sm text-muted-foreground max-w-xs'>
@@ -583,9 +583,9 @@ export default function AdminLeaderboardsPage() {
   return (
     <Suspense
       fallback={
-        <div className='space-y-5'>
+        <div className='space-y-xl'>
           <Skeleton className='h-16 rounded-lg' />
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-md'>
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className='h-24 rounded-lg' />
             ))}

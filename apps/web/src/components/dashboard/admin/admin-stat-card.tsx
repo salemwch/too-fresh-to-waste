@@ -30,9 +30,9 @@ export function AdminStatCard({
   if (loading) {
     return (
       <Card className='border-border/60'>
-        <CardContent className='p-4'>
-          <div className='flex items-start justify-between gap-3'>
-            <div className='flex-1 space-y-2'>
+        <CardContent className='p-lg'>
+          <div className='flex items-start justify-between gap-md'>
+            <div className='flex-1 space-y-sm'>
               <Skeleton className='h-3.5 w-24' />
               <Skeleton className='h-7 w-16' />
               <Skeleton className='h-3 w-20' />
@@ -51,13 +51,13 @@ export function AdminStatCard({
         highlight && 'border-amber-300 bg-amber-50/40 dark:bg-amber-950/10',
       )}
     >
-      <CardContent className='p-4'>
-        <div className='flex items-start justify-between gap-3'>
+      <CardContent className='p-lg'>
+        <div className='flex items-start justify-between gap-md'>
           <div className='min-w-0 flex-1'>
             <p className='truncate text-xs font-medium text-muted-foreground'>{label}</p>
             <p
               className={cn(
-                'mt-1 text-2xl font-bold tracking-tight tabular-nums',
+                'mt-xs text-2xl font-bold tracking-tight tabular-nums',
                 highlight ? 'text-amber-700 dark:text-amber-400' : 'text-foreground',
               )}
             >
@@ -66,7 +66,7 @@ export function AdminStatCard({
             {change && (
               <div
                 className={cn(
-                  'mt-1.5 flex items-center gap-1 text-xs font-medium',
+                  'mt-1.5 flex items-center gap-xs text-xs font-medium',
                   change.direction === 'up' ? 'text-emerald-600' : 'text-rose-500',
                 )}
               >
@@ -85,7 +85,7 @@ export function AdminStatCard({
               </div>
             )}
           </div>
-          <div className={cn('rounded-lg p-2 shrink-0', iconBg)}>
+          <div className={cn('rounded-lg p-sm shrink-0', iconBg)}>
             <Icon className={cn('size-5', iconColor)} />
           </div>
         </div>

@@ -127,33 +127,33 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
         >
           {/* Decorative floating hearts */}
           <span
-            className='absolute top-16 left-[8%] text-primary-500 text-5xl animate-float select-none pointer-events-none'
+            className='absolute top-4xl left-[8%] text-primary-500 text-5xl animate-float select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
           <span
-            className='absolute top-24 right-[10%] text-primary-500 text-3xl animate-float-slow select-none pointer-events-none'
+            className='absolute top-6xl right-[10%] text-primary-500 text-3xl animate-float-slow select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
           <span
-            className='absolute bottom-20 left-[20%] text-primary-500 text-2xl animate-float-slower select-none pointer-events-none'
+            className='absolute bottom-5xl left-[20%] text-primary-500 text-2xl animate-float-slower select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
           <span
-            className='absolute bottom-16 right-[18%] text-primary-500 text-4xl animate-float select-none pointer-events-none'
+            className='absolute bottom-4xl right-[18%] text-primary-500 text-4xl animate-float select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
 
-          <div className='relative max-w-3xl mx-auto px-4 pt-36 pb-20 text-center'>
+          <div className='relative max-w-3xl mx-auto px-lg pt-36 pb-5xl text-center'>
             {/* Eyebrow */}
-            <p className='inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-primary-500 mb-4'>
+            <p className='inline-flex items-center gap-sm text-xs font-bold uppercase tracking-[0.25em] text-primary-500 mb-lg'>
               <svg viewBox='0 0 512 512' className='w-3 h-3 flex-shrink-0' aria-hidden='true'>
                 <path
                   d='M365.4,59.628c60.56,0,109.6,49.03,109.6,109.47c0,109.47-109.6,171.8-219.06,281.271
@@ -174,7 +174,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             </p>
 
             {/* Headline */}
-            <h1 className='text-4xl md:text-6xl font-bold text-white leading-tight mb-5 font-heading'>
+            <h1 className='text-4xl md:text-6xl font-bold text-white leading-tight mb-xl font-heading'>
               {t('hero.headline')}
             </h1>
 
@@ -184,7 +184,7 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             </p>
 
             {/* Scroll indicator */}
-            <div className='mt-10 flex justify-center'>
+            <div className='mt-6xl flex justify-center'>
               <div
                 className='w-px h-10 bg-gradient-to-b from-white/40 to-transparent'
                 aria-hidden='true'
@@ -206,25 +206,25 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
         </section>
 
         {/* ── 5% PLEDGE ────────────────────────────────────────── */}
-        <section className='bg-cream px-4 pt-16 pb-20'>
+        <section className='bg-cream px-lg pt-4xl pb-5xl'>
           <div className='max-w-2xl mx-auto text-center'>
-            <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500 mb-3'>
+            <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500 mb-md'>
               {t('pledge.eyebrow')}
             </p>
 
             {/* The card */}
-            <div className='bg-white rounded-3xl shadow-teal-form border border-brand-coral/10 p-8 md:p-10 relative overflow-hidden'>
+            <div className='bg-white rounded-3xl shadow-teal-form border border-brand-coral/10 p-4xl md:p-6xl relative overflow-hidden'>
               {/* Soft coral glow top-right */}
 
               {/* Big 5% */}
               <div className='relative'>
                 <p
-                  className='text-8xl md:text-9xl font-bold font-heading leading-none mb-2'
+                  className='text-8xl md:text-9xl font-bold font-heading leading-none mb-sm'
                   style={{ color: '#ff7973' }}
                 >
                   {t('pledge.percent')}
                 </p>
-                <h2 className='text-2xl md:text-3xl font-bold text-primary-500 mb-4 font-heading'>
+                <h2 className='text-2xl md:text-3xl font-bold text-primary-500 mb-lg font-heading'>
                   {t('pledge.headline')}
                 </h2>
                 <p className='text-sm md:text-base text-primary-500/70 leading-relaxed max-w-lg mx-auto'>
@@ -236,11 +236,11 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
         </section>
 
         {/* ── FOUR PILLARS ─────────────────────────────────────── */}
-        <section className='bg-white px-4 py-20'>
+        <section className='bg-white px-lg py-5xl'>
           <div className='max-w-5xl mx-auto'>
             {/* Section header */}
-            <div className='text-center mb-12'>
-              <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500 mb-2'>
+            <div className='text-center mb-3xl'>
+              <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500 mb-sm'>
                 {t('pillars.eyebrow')}
               </p>
               <h2 className='text-3xl md:text-4xl font-bold text-primary-500 font-heading'>
@@ -249,18 +249,18 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             </div>
 
             {/* Cards grid */}
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-xl'>
               {pillars.map((pillar, i) => (
                 <div
                   key={i}
-                  className='group bg-cream rounded-2xl p-6 border border-brand-coral/10 hover:border-brand-coral/30 hover:shadow-md transition-all duration-300'
+                  className='group bg-cream rounded-2xl p-2xl border border-brand-coral/10 hover:border-brand-coral/30 hover:shadow-md transition-all duration-300'
                 >
                   {/* Icon circle */}
-                  <div className='w-14 h-14 rounded-full bg-brand-coral/10 flex items-center justify-center mb-4 text-primary-500 group-hover:bg-brand-coral/20 transition-colors duration-300'>
+                  <div className='w-14 h-14 rounded-full bg-brand-coral/10 flex items-center justify-center mb-lg text-primary-500 group-hover:bg-brand-coral/20 transition-colors duration-300'>
                     {PillarIcons[i]}
                   </div>
 
-                  <h3 className='text-base font-bold text-primary-500 mb-2 leading-snug'>
+                  <h3 className='text-base font-bold text-primary-500 mb-sm leading-snug'>
                     {pillar.title}
                   </h3>
                   <p className='text-sm text-primary-500/65 leading-relaxed'>{pillar.body}</p>
@@ -271,16 +271,16 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
         </section>
 
         {/* ── B2B PARTNER SHOUTOUT ─────────────────────────────── */}
-        <section className='bg-primary-500 px-4 py-20 relative overflow-hidden'>
+        <section className='bg-primary-500 px-lg py-5xl relative overflow-hidden'>
           {/* Decorative hearts */}
           <span
-            className='absolute top-10 right-[6%] text-primary-500 opacity-15 text-6xl animate-float-slow select-none pointer-events-none'
+            className='absolute top-6xl right-[6%] text-primary-500 opacity-15 text-6xl animate-float-slow select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
           </span>
           <span
-            className='absolute bottom-10 left-[4%] text-primary-500 opacity-10 text-4xl animate-float select-none pointer-events-none'
+            className='absolute bottom-6xl left-[4%] text-primary-500 opacity-10 text-4xl animate-float select-none pointer-events-none'
             aria-hidden='true'
           >
             ♥
@@ -298,20 +298,20 @@ export default async function HumanityMissionPage({ params }: HumanityMissionPag
             </svg>
           </div>
 
-          <div className='relative max-w-3xl mx-auto text-center pt-16'>
-            <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-300 mb-3'>
+          <div className='relative max-w-3xl mx-auto text-center pt-4xl'>
+            <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-300 mb-md'>
               {t('partner.eyebrow')}
             </p>
-            <h2 className='text-3xl md:text-4xl font-bold text-white font-heading mb-5'>
+            <h2 className='text-3xl md:text-4xl font-bold text-white font-heading mb-xl'>
               {t('partner.headline')}
             </h2>
-            <p className='text-sm md:text-base text-white/70 leading-relaxed mb-8 max-w-xl mx-auto'>
+            <p className='text-sm md:text-base text-white/70 leading-relaxed mb-4xl max-w-xl mx-auto'>
               {t('partner.body')}
             </p>
 
             <Link
               href='/companies'
-              className='inline-flex items-center gap-2 bg-brand-coral text-white font-bold text-sm px-6 py-3 rounded-full hover:opacity-90 transition-opacity shadow-md'
+              className='inline-flex items-center gap-sm bg-brand-coral text-white font-bold text-sm px-2xl py-md rounded-full hover:opacity-90 transition-opacity shadow-md'
             >
               {t('partner.cta')}
               <svg

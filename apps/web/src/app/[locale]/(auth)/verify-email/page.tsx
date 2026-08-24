@@ -101,7 +101,7 @@ function VerifyEmailInner() {
   return (
     <div className='merchant-signup-theme fixed inset-0 z-50 flex flex-col overflow-hidden lg:flex-row'>
       {/* LEFT HERO SECTION */}
-      <div className='relative flex flex-[1.1] flex-col justify-between px-5 py-3 sm:py-6 sm:px-8 lg:flex-1 lg:p-12 bg-[hsl(174,72%,17%)]'>
+      <div className='relative flex flex-[1.1] flex-col justify-between px-xl py-md sm:py-2xl sm:px-4xl lg:flex-1 lg:p-3xl bg-[hsl(174,72%,17%)]'>
         <Image
           src='/images/hero-bg.jpg'
           alt=''
@@ -113,8 +113,8 @@ function VerifyEmailInner() {
         />
         <div className='absolute inset-0 bg-[hsl(174,72%,17%)] opacity-85' />
 
-        <div className='relative z-10 flex h-full flex-col justify-between gap-2 sm:gap-5 lg:gap-8'>
-          <Link href='/' className='flex items-center gap-2 transition-opacity hover:opacity-80'>
+        <div className='relative z-10 flex h-full flex-col justify-between gap-sm sm:gap-xl lg:gap-4xl'>
+          <Link href='/' className='flex items-center gap-sm transition-opacity hover:opacity-80'>
             <Image
               src='/images/image.svg'
               alt='Too Fresh To Waste'
@@ -128,16 +128,16 @@ function VerifyEmailInner() {
           </Link>
 
           <div className='flex max-w-xl flex-1 flex-col justify-center'>
-            <span className='mb-1 inline-block w-fit rounded-full bg-white/15 px-3 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-4 sm:px-5 sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
+            <span className='mb-xs inline-block w-fit rounded-full bg-white/15 px-md py-xs text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-lg sm:px-xl sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
               {tHero('heroBadge')}
             </span>
             <h1
-              className='mb-1 text-xl font-bold leading-[1.2] text-white sm:mb-2 sm:text-2xl lg:mb-3 lg:text-4xl'
+              className='mb-xs text-xl font-bold leading-[1.2] text-white sm:mb-sm sm:text-2xl lg:mb-md lg:text-4xl'
               style={{ fontFamily: 'var(--font-serif)' }}
             >
               {tHero('heroTitle')}
             </h1>
-            <p className='mb-1 text-xs leading-snug text-white/75 sm:mb-4 sm:text-sm sm:leading-relaxed lg:mb-6 lg:text-lg'>
+            <p className='mb-xs text-xs leading-snug text-white/75 sm:mb-lg sm:text-sm sm:leading-relaxed lg:mb-2xl lg:text-lg'>
               {tHero('heroTitleAccent')}
             </p>
             <p className='hidden text-white/60 sm:block sm:text-xs lg:text-base'>
@@ -145,12 +145,12 @@ function VerifyEmailInner() {
             </p>
           </div>
 
-          <div className='space-y-2 sm:space-y-4 lg:space-y-8'>
-            <div className='flex gap-2 sm:gap-3'>
+          <div className='space-y-sm sm:space-y-lg lg:space-y-4xl'>
+            <div className='flex gap-sm sm:gap-md'>
               {stats.map(stat => (
                 <div
                   key={stat.label}
-                  className='flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2 py-2 backdrop-blur-md sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 lg:gap-3 lg:rounded-2xl lg:px-5 lg:py-4'
+                  className='flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-sm py-sm backdrop-blur-md sm:gap-sm sm:rounded-xl sm:px-md sm:py-md lg:gap-md lg:rounded-2xl lg:px-xl lg:py-lg'
                 >
                   <stat.Icon className='h-3.5 w-3.5 shrink-0 text-white/70 sm:h-4 sm:w-4 lg:h-5 lg:w-5' />
                   <div className='min-w-0'>
@@ -168,11 +168,11 @@ function VerifyEmailInner() {
               ))}
             </div>
 
-            <div className='border-t border-white/15 pt-2 sm:pt-4'>
+            <div className='border-t border-white/15 pt-sm sm:pt-lg'>
               <p className='text-[10px] italic leading-relaxed text-white/70 sm:text-xs lg:text-sm'>
                 &ldquo;{tHero('testimonialQuote')}&rdquo;
               </p>
-              <p className='mt-1 text-[9px] font-medium text-white/50 sm:text-[10px] lg:text-xs'>
+              <p className='mt-xs text-[9px] font-medium text-white/50 sm:text-[10px] lg:text-xs'>
                 {tHero('testimonialAuthor')}
               </p>
             </div>
@@ -181,25 +181,25 @@ function VerifyEmailInner() {
       </div>
 
       {/* RIGHT CONTENT */}
-      <div className='flex flex-1 flex-col items-center justify-center bg-background px-5 py-6 sm:p-8 lg:p-16'>
-        <div className='w-full max-w-md space-y-6'>
+      <div className='flex flex-1 flex-col items-center justify-center bg-background px-xl py-2xl sm:p-4xl lg:p-4xl'>
+        <div className='w-full max-w-md space-y-2xl'>
           {/* Back to home */}
           <Link
             href='/'
-            className='flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground'
+            className='flex items-center gap-xs text-muted-foreground transition-colors hover:text-foreground'
             aria-label='Go to home page'
           >
             <ChevronLeft className='h-5 w-5' />
           </Link>
           {state === 'loading' && (
-            <div className='flex flex-col items-center gap-4 text-center'>
+            <div className='flex flex-col items-center gap-lg text-center'>
               <Loader2 className='h-12 w-12 animate-spin text-primary' />
               <h2 className='text-2xl font-semibold'>{t('verifyEmailTitle')}</h2>
             </div>
           )}
 
           {state === 'success-consumer' && (
-            <div className='flex flex-col items-center gap-4 text-center'>
+            <div className='flex flex-col items-center gap-lg text-center'>
               <div className='flex h-20 w-20 items-center justify-center rounded-full bg-green-100'>
                 <CheckCircle2 className='h-10 w-10 text-green-600' />
               </div>
@@ -209,7 +209,7 @@ function VerifyEmailInner() {
               </p>
               <a
                 href={`/${locale}`}
-                className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+                className='mt-lg inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4xl text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
               >
                 {t('verifyEmailGoToHome')}
               </a>
@@ -217,7 +217,7 @@ function VerifyEmailInner() {
           )}
 
           {state === 'success-merchant' && (
-            <div className='flex flex-col items-center gap-4 text-center'>
+            <div className='flex flex-col items-center gap-lg text-center'>
               <div className='flex h-20 w-20 items-center justify-center rounded-full bg-green-100'>
                 <CheckCircle2 className='h-10 w-10 text-green-600' />
               </div>
@@ -227,7 +227,7 @@ function VerifyEmailInner() {
               </p>
               <a
                 href={`/${locale}/merchant/dashboard`}
-                className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+                className='mt-lg inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4xl text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
               >
                 {t('verifyEmailGoToDashboard')}
               </a>
@@ -235,7 +235,7 @@ function VerifyEmailInner() {
           )}
 
           {state === 'error' && (
-            <div className='flex flex-col items-center gap-4 text-center'>
+            <div className='flex flex-col items-center gap-lg text-center'>
               <div className='flex h-20 w-20 items-center justify-center rounded-full bg-red-100'>
                 <XCircle className='h-10 w-10 text-red-600' />
               </div>
@@ -245,7 +245,7 @@ function VerifyEmailInner() {
               </p>
               <Link
                 href='/login'
-                className='mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+                className='mt-lg inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4xl text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
               >
                 {t('verifyEmailFailedBackToLogin')}
               </Link>

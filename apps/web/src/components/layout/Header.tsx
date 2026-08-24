@@ -208,9 +208,9 @@ export default function Header() {
         }}
         role='banner'
       >
-        <div className='w-full px-3 lg:px-6'>
+        <div className='w-full px-md lg:px-2xl'>
           <nav
-            className='grid grid-cols-[1fr_auto_1fr] items-center h-14 gap-2'
+            className='grid grid-cols-[1fr_auto_1fr] items-center h-14 gap-sm'
             role='navigation'
             aria-label='Main navigation'
           >
@@ -228,7 +228,7 @@ export default function Header() {
               </div>
 
               {/* Desktop: Navigation Links */}
-              <div className='hidden lg:flex items-center gap-3 xl:gap-6'>
+              <div className='hidden lg:flex items-center gap-md xl:gap-2xl'>
                 {NAV_ITEMS.map(item => (
                   <div
                     key={item.label}
@@ -237,7 +237,7 @@ export default function Header() {
                   >
                     <Link
                       href={item.href}
-                      className={`text-[10px] lg:text-xs xl:text-sm font-bold tracking-tighter lg:tracking-tight xl:tracking-wide transition-colors duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent flex items-center gap-1 ${linkColorClass}`}
+                      className={`text-[10px] lg:text-xs xl:text-sm font-bold tracking-tighter lg:tracking-tight xl:tracking-wide transition-colors duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent flex items-center gap-xs ${linkColorClass}`}
                       aria-label={item.label}
                     >
                       {item.label}
@@ -293,13 +293,13 @@ export default function Header() {
             </div>
 
             {/* RIGHT - CTA buttons (desktop) / Hamburger (mobile) */}
-            <div className='flex items-center justify-end gap-2'>
+            <div className='flex items-center justify-end gap-sm'>
               {/* Desktop: CTA Buttons */}
-              <div className='hidden lg:flex items-center gap-2 xl:gap-3'>
+              <div className='hidden lg:flex items-center gap-sm xl:gap-md'>
                 <button
                   type='button'
                   onClick={openLaunchModal}
-                  className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
+                  className={`px-2.5 xl:px-md py-sm rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
                     isScrolledState ? 'bg-primary-500 text-white' : 'bg-white text-primary-500'
                   }`}
                   aria-label={t('cta.downloadApp')}
@@ -313,18 +313,18 @@ export default function Header() {
                 </span>
                 <Link
                   href='/merchant-signup'
-                  className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
+                  className={`px-2.5 xl:px-md py-sm rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
                   aria-label={t('cta.businessSignup')}
                 >
                   {t('cta.businessSignupShort')}
                 </Link>
                 <LanguageSwitcher
                   showIcon={false}
-                  buttonClassName={`flex items-center gap-2 px-2.5 xl:px-3 py-2 rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
+                  buttonClassName={`flex items-center gap-sm px-2.5 xl:px-md py-sm rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                 />
                 <Link
                   href='/login'
-                  className={`flex flex-col items-center gap-0.5 shrink-0 transition-all duration-200 hover:opacity-75 outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
+                  className={`flex flex-col items-center gap-xxs shrink-0 transition-all duration-200 hover:opacity-75 outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
                   aria-label={t('cta.login')}
                 >
                   <Image
@@ -378,15 +378,15 @@ export default function Header() {
             onMouseEnter={() => handleNavEnter(openDropdown!)}
             onMouseLeave={handleNavLeave}
           >
-            <div className='w-full px-6 lg:px-10 py-6'>
-              <div className='flex gap-8 xl:gap-12'>
+            <div className='w-full px-2xl lg:px-6xl py-2xl'>
+              <div className='flex gap-4xl xl:gap-3xl'>
                 {activeMegaMenu.map((section, sIdx) => (
                   <div key={section.title} className='w-44 xl:w-52 shrink-0'>
                     {sIdx > 0 && (
-                      <div className='hidden' /> // visual gap via gap-8
+                      <div className='hidden' /> // visual gap via gap-4xl
                     )}
                     <p
-                      className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${
+                      className={`text-[10px] font-bold uppercase tracking-widest mb-md ${
                         isScrolledState ? 'text-primary-500/60' : 'text-white/50'
                       }`}
                     >
@@ -397,17 +397,17 @@ export default function Header() {
                         <Link
                           key={link.label}
                           href={link.href}
-                          className={`group flex items-start gap-1 text-base py-1 transition-colors leading-snug ${
+                          className={`group flex items-start gap-xs text-base py-xs transition-colors leading-snug ${
                             isScrolledState
                               ? 'text-gray-800 hover:text-primary-500'
                               : 'text-white hover:text-white/60'
                           }`}
                           onClick={() => setOpenDropdown(null)}
                         >
-                          <span className='group-hover:translate-x-0.5 transition-transform duration-150'>
+                          <span className='group-hover:translate-x-xxs transition-transform duration-150'>
                             {link.label}
                           </span>
-                          <span className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm shrink-0 mt-0.5'>
+                          <span className='opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm shrink-0 mt-xxs'>
                             ›
                           </span>
                         </Link>
@@ -439,18 +439,18 @@ export default function Header() {
             role='menu'
             tabIndex={-1}
           >
-            <div className='px-4 py-6 space-y-1'>
+            <div className='px-lg py-2xl space-y-xs'>
               {NAV_ITEMS.map(item => {
                 const isAccordionOpen = openMobileAccordion === item.label;
                 if (item.dropdown) {
                   return (
                     <div key={item.label}>
                       <button
-                        className={`w-full flex items-center justify-between px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
+                        className={`w-full flex items-center justify-between px-lg py-md text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
                         onClick={() => setOpenMobileAccordion(isAccordionOpen ? null : item.label)}
                         aria-expanded={isAccordionOpen}
                       >
-                        <span className='flex items-center gap-1'>
+                        <span className='flex items-center gap-xs'>
                           {item.label}
                           {item.icon}
                         </span>
@@ -470,11 +470,11 @@ export default function Header() {
                         </svg>
                       </button>
                       {isAccordionOpen && (
-                        <div className='mt-1 mb-2 ms-4 ps-4 border-s border-white/20 space-y-0.5'>
+                        <div className='mt-xs mb-sm ms-lg ps-lg border-s border-white/20 space-y-xxs'>
                           {item.dropdown.map(section => (
                             <div key={section.title}>
                               <p
-                                className={`px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest ${isScrolledState ? 'text-primary-500/50' : 'text-white/50'}`}
+                                className={`px-md pt-md pb-xs text-[10px] font-bold uppercase tracking-widest ${isScrolledState ? 'text-primary-500/50' : 'text-white/50'}`}
                               >
                                 {section.title}
                               </p>
@@ -482,7 +482,7 @@ export default function Header() {
                                 <Link
                                   key={link.label}
                                   href={link.href}
-                                  className={`block px-3 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-white/10 ${linkColorClass}`}
+                                  className={`block px-md py-sm text-sm font-medium rounded-lg transition-colors hover:bg-white/10 ${linkColorClass}`}
                                   onClick={() => {
                                     setIsMobileMenuOpen(false);
                                     setOpenMobileAccordion(null);
@@ -502,7 +502,7 @@ export default function Header() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className={`flex items-center gap-1 px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
+                    className={`flex items-center gap-xs px-lg py-md text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                     role='menuitem'
                   >
@@ -512,23 +512,23 @@ export default function Header() {
                 );
               })}
               <div
-                className={`my-4 border-t ${isScrolledState ? 'border-primary-500/20' : 'border-white/20'}`}
+                className={`my-lg border-t ${isScrolledState ? 'border-primary-500/20' : 'border-white/20'}`}
               />
-              <div className='space-y-3 px-4'>
+              <div className='space-y-md px-lg'>
                 <button
                   type='button'
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     openLaunchModal();
                   }}
-                  className={`block w-full text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
+                  className={`block w-full text-center px-2xl py-md border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                   role='menuitem'
                 >
                   {t('cta.downloadApp')}
                 </button>
                 <Link
                   href='/merchant-signup'
-                  className={`block text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
+                  className={`block text-center px-2xl py-md border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >
@@ -536,7 +536,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href='/login'
-                  className={`flex items-center justify-center gap-2 px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
+                  className={`flex items-center justify-center gap-sm px-2xl py-md border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >

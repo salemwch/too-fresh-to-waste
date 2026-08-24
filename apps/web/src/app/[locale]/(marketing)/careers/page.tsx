@@ -281,7 +281,7 @@ function ApplicationForm() {
 
   if (submitted) {
     return (
-      <div className='flex flex-col items-center justify-center py-16 gap-5 text-center'>
+      <div className='flex flex-col items-center justify-center py-4xl gap-xl text-center'>
         <div className='w-20 h-20 rounded-full bg-primary-500/10 flex items-center justify-center'>
           <CheckCircleIcon className='w-10 h-10 text-primary-500' />
         </div>
@@ -293,8 +293,8 @@ function ApplicationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-6' noValidate>
-      <div className='grid sm:grid-cols-2 gap-5'>
+    <form onSubmit={handleSubmit} className='space-y-2xl' noValidate>
+      <div className='grid sm:grid-cols-2 gap-xl'>
         {/* Full Name */}
         <div className='flex flex-col gap-1.5'>
           <label
@@ -311,7 +311,7 @@ function ApplicationForm() {
             value={formData.name}
             onChange={handleChange}
             placeholder={t('namePlaceholder')}
-            className='w-full bg-cream border border-primary-500/15 rounded-xl px-4 py-3 text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all'
+            className='w-full bg-cream border border-primary-500/15 rounded-xl px-lg py-md text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all'
           />
         </div>
 
@@ -331,12 +331,12 @@ function ApplicationForm() {
             value={formData.email}
             onChange={handleChange}
             placeholder={t('emailPlaceholder')}
-            className='w-full bg-cream border border-primary-500/15 rounded-xl px-4 py-3 text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all'
+            className='w-full bg-cream border border-primary-500/15 rounded-xl px-lg py-md text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all'
           />
         </div>
       </div>
 
-      <div className='grid sm:grid-cols-2 gap-5'>
+      <div className='grid sm:grid-cols-2 gap-xl'>
         {/* Phone */}
         <div className='flex flex-col gap-1.5'>
           <label
@@ -353,7 +353,7 @@ function ApplicationForm() {
             value={formData.phone}
             onChange={handleChange}
             placeholder={t('phonePlaceholder')}
-            className='w-full bg-cream border border-primary-500/15 rounded-xl px-4 py-3 text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all'
+            className='w-full bg-cream border border-primary-500/15 rounded-xl px-lg py-md text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all'
           />
         </div>
 
@@ -371,7 +371,7 @@ function ApplicationForm() {
             required
             value={formData.position}
             onChange={handleChange}
-            className='w-full bg-cream border border-primary-500/15 rounded-xl px-4 py-3 text-sm text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all appearance-none cursor-pointer'
+            className='w-full bg-cream border border-primary-500/15 rounded-xl px-lg py-md text-sm text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all appearance-none cursor-pointer'
           >
             <option value='' disabled>
               {t('positionPlaceholder')}
@@ -402,7 +402,7 @@ function ApplicationForm() {
           value={formData.letter}
           onChange={handleChange}
           placeholder={t('letterPlaceholder')}
-          className='w-full bg-cream border border-primary-500/15 rounded-xl px-4 py-3 text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all resize-none leading-relaxed'
+          className='w-full bg-cream border border-primary-500/15 rounded-xl px-lg py-md text-sm text-primary-500 placeholder:text-primary-500/35 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/40 transition-all resize-none leading-relaxed'
         />
         <p className='text-xs text-primary-500/75'>{t('letterHint')}</p>
       </div>
@@ -417,7 +417,7 @@ function ApplicationForm() {
           !formData.position ||
           !formData.letter
         }
-        className='w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-primary-500 text-white font-black text-sm px-10 py-4 rounded-full hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl'
+        className='w-full sm:w-auto inline-flex items-center justify-center gap-md bg-primary-500 text-white font-black text-sm px-6xl py-lg rounded-full hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl'
       >
         {loading ? (
           <>
@@ -466,26 +466,26 @@ export default function CareersPage() {
 
           {/* Floating decorative numbers */}
           <div
-            className='absolute top-20 left-[5%] text-[120px] font-black text-white/[0.03] select-none pointer-events-none leading-none'
+            className='absolute top-5xl left-[5%] text-[120px] font-black text-white/[0.03] select-none pointer-events-none leading-none'
             aria-hidden='true'
           >
             01
           </div>
           <div
-            className='absolute bottom-10 right-[4%] text-[180px] font-black text-white/[0.03] select-none pointer-events-none leading-none'
+            className='absolute bottom-6xl right-[4%] text-[180px] font-black text-white/[0.03] select-none pointer-events-none leading-none'
             aria-hidden='true'
           >
             ∞
           </div>
 
-          <div className='relative mx-auto max-w-5xl px-6 lg:px-8 pt-16 pb-0 lg:pt-24 text-center'>
+          <div className='relative mx-auto max-w-5xl px-2xl lg:px-4xl pt-4xl pb-0 lg:pt-6xl text-center'>
             {/* Eyebrow */}
-            <div className='inline-flex items-center gap-2 bg-secondary-light/20 border border-secondary-light/40 text-secondary-light text-xs font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-8'>
+            <div className='inline-flex items-center gap-sm bg-secondary-light/20 border border-secondary-light/40 text-secondary-light text-xs font-black uppercase tracking-[0.3em] px-lg py-sm rounded-full mb-4xl'>
               <RocketIcon className='w-3.5 h-3.5' />
               {t('hero.badge')}
             </div>
 
-            <h1 className='font-heading text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight mb-6'>
+            <h1 className='font-heading text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight mb-2xl'>
               {t('hero.titleStart')}{' '}
               <span className='text-secondary-light italic'>{t('hero.titleEm1')}</span>
               <br />
@@ -493,18 +493,18 @@ export default function CareersPage() {
               <span className='text-secondary-light italic'>{t('hero.titleEm2')}</span>
             </h1>
 
-            <p className='text-white/75 text-base lg:text-xl leading-relaxed max-w-3xl mx-auto mb-10'>
+            <p className='text-white/75 text-base lg:text-xl leading-relaxed max-w-3xl mx-auto mb-6xl'>
               {t('hero.lede')}
             </p>
 
             {/* Stats row */}
-            <div className='flex flex-wrap justify-center gap-8 lg:gap-16 pb-16'>
+            <div className='flex flex-wrap justify-center gap-4xl lg:gap-4xl pb-4xl'>
               {heroStats.map(item => (
                 <div key={item.label} className='text-center'>
                   <p className='font-heading text-3xl lg:text-4xl font-bold text-white'>
                     {item.stat}
                   </p>
-                  <p className='text-white/75 text-xs uppercase tracking-widest mt-1'>
+                  <p className='text-white/75 text-xs uppercase tracking-widest mt-xs'>
                     {item.label}
                   </p>
                 </div>
@@ -526,12 +526,12 @@ export default function CareersPage() {
         </section>
 
         {/* ── THE DREAM ────────────────────────────────────────────────────── */}
-        <section className='bg-white py-16 lg:py-24'>
-          <div className='mx-auto max-w-4xl px-6 lg:px-8 text-center'>
-            <p className='text-xs font-bold uppercase tracking-[0.3em] text-brand-green mb-6'>
+        <section className='bg-white py-4xl lg:py-6xl'>
+          <div className='mx-auto max-w-4xl px-2xl lg:px-4xl text-center'>
+            <p className='text-xs font-bold uppercase tracking-[0.3em] text-brand-green mb-2xl'>
               {t('dream.eyebrow')}
             </p>
-            <blockquote className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-8'>
+            <blockquote className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-4xl'>
               &ldquo;{t('dream.quote')}&rdquo;
             </blockquote>
             <p className='text-primary-500/75 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto'>
@@ -541,17 +541,17 @@ export default function CareersPage() {
         </section>
 
         {/* ── VISION & EXPANSION ───────────────────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-24 relative overflow-hidden'>
-          <div className='relative mx-auto max-w-7xl px-6 lg:px-8'>
+        <section className='bg-cream py-4xl lg:py-6xl relative overflow-hidden'>
+          <div className='relative mx-auto max-w-7xl px-2xl lg:px-4xl'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('vision.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
                 {t('vision.titleStart')}{' '}
                 <span className='text-brand-green italic'>{t('vision.titleEm')}</span>
               </h2>
-              <p className='text-primary-500/75 text-base lg:text-lg mt-4 max-w-2xl mx-auto leading-relaxed'>
+              <p className='text-primary-500/75 text-base lg:text-lg mt-lg max-w-2xl mx-auto leading-relaxed'>
                 {t('vision.lede')}
               </p>
             </div>
@@ -560,37 +560,37 @@ export default function CareersPage() {
             <div className='relative'>
               {/* Connecting line (desktop) */}
               <div
-                className='hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-px bg-primary-500/10'
+                className='hidden lg:block absolute top-3xl left-[12.5%] right-[12.5%] h-px bg-primary-500/10'
                 aria-hidden='true'
               />
 
-              <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+              <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-2xl'>
                 {stages.map((stage, i) => {
                   const art = EXPANSION_ART[i] ?? EXPANSION_ART[0];
                   return (
                     <div key={stage.region} className='relative'>
                       {/* Step dot */}
                       <div
-                        className={`hidden lg:flex absolute -top-[3px] left-1/2 -translate-x-1/2 w-6 h-6 rounded-full border-2 border-white items-center justify-center shadow-md z-10 ${art.active ? 'bg-brand-teal' : 'bg-primary-500/25'}`}
+                        className={`hidden lg:flex absolute -top-[3px] left-xs/2 -translate-x-xs/2 w-6 h-6 rounded-full border-2 border-white items-center justify-center shadow-md z-10 ${art.active ? 'bg-brand-teal' : 'bg-primary-500/25'}`}
                         aria-hidden='true'
                       />
 
                       <div
-                        className={`mt-0 lg:mt-10 bg-white rounded-3xl p-6 border-2 ${art.active ? `${art.borderColor} shadow-lg` : 'border-transparent'} transition-all hover:shadow-md`}
+                        className={`mt-0 lg:mt-6xl bg-white rounded-3xl p-2xl border-2 ${art.active ? `${art.borderColor} shadow-lg` : 'border-transparent'} transition-all hover:shadow-md`}
                       >
-                        <div className='text-3xl mb-3 leading-none'>{art.flag}</div>
-                        <div className='flex items-center gap-2 mb-1'>
+                        <div className='text-3xl mb-md leading-none'>{art.flag}</div>
+                        <div className='flex items-center gap-sm mb-xs'>
                           <h3 className='font-bold text-base text-primary-500 leading-tight'>
                             {stage.region}
                           </h3>
                           {art.active && (
-                            <span className='text-[9px] font-black uppercase tracking-widest bg-primary-500 text-white px-2 py-0.5 rounded-full leading-none'>
+                            <span className='text-[9px] font-black uppercase tracking-widest bg-primary-500 text-white px-sm py-xxs rounded-full leading-none'>
                               {t('vision.nowBadge')}
                             </span>
                           )}
                         </div>
                         <p
-                          className={`text-xs font-bold uppercase tracking-wider ${art.textColor} mb-3`}
+                          className={`text-xs font-bold uppercase tracking-wider ${art.textColor} mb-md`}
                         >
                           {stage.subtitle}
                         </p>
@@ -603,11 +603,11 @@ export default function CareersPage() {
             </div>
 
             {/* GCC country flags detail */}
-            <div className='mt-10 bg-white rounded-3xl p-6 lg:p-8 border border-primary-500/10'>
-              <p className='text-xs font-bold uppercase tracking-widest text-primary-500/50 mb-5 text-center'>
+            <div className='mt-6xl bg-white rounded-3xl p-2xl lg:p-4xl border border-primary-500/10'>
+              <p className='text-xs font-bold uppercase tracking-widest text-primary-500/50 mb-xl text-center'>
                 {t('vision.gccLabel')}
               </p>
-              <div className='flex flex-wrap justify-center gap-4 lg:gap-8'>
+              <div className='flex flex-wrap justify-center gap-lg lg:gap-4xl'>
                 {countries.map((name, i) => (
                   <div key={name} className='flex flex-col items-center gap-1.5'>
                     <span className='text-3xl leading-none'>{GCC_FLAGS[i]}</span>
@@ -622,39 +622,39 @@ export default function CareersPage() {
         </section>
 
         {/* ── WHO WE NEED ──────────────────────────────────────────────────── */}
-        <section className='bg-white py-16 lg:py-24'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+        <section className='bg-white py-4xl lg:py-6xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('positions.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
                 {t('positions.titleStart')}{' '}
                 <span className='text-brand-green italic'>{t('positions.titleEm')}</span>
               </h2>
-              <p className='text-primary-500/75 text-base lg:text-lg mt-4 max-w-xl mx-auto leading-relaxed'>
+              <p className='text-primary-500/75 text-base lg:text-lg mt-lg max-w-xl mx-auto leading-relaxed'>
                 {t('positions.lede')}
               </p>
             </div>
 
-            <div className='grid md:grid-cols-2 gap-6 lg:gap-8'>
+            <div className='grid md:grid-cols-2 gap-2xl lg:gap-4xl'>
               {positions.map((pos, i) => {
                 const meta = POSITION_META[i] ?? POSITION_META[0];
                 const PositionIcon = meta.Icon;
                 return (
                   <div
                     key={meta.id}
-                    className={`group relative bg-cream rounded-3xl p-7 lg:p-8 border-2 ${meta.accentBorder} hover:shadow-xl transition-all duration-300 overflow-hidden`}
+                    className={`group relative bg-cream rounded-3xl p-3xl lg:p-4xl border-2 ${meta.accentBorder} hover:shadow-xl transition-all duration-300 overflow-hidden`}
                   >
                     {/* Background pattern */}
                     <div
-                      className='absolute -bottom-8 -right-8 w-40 h-40 rounded-full opacity-5 pointer-events-none'
+                      className='absolute -bottom-4xl -right-4xl w-40 h-40 rounded-full opacity-5 pointer-events-none'
                       style={{ backgroundColor: 'currentColor' }}
                       aria-hidden='true'
                     />
 
                     {/* Header */}
-                    <div className='flex items-start justify-between mb-5'>
+                    <div className='flex items-start justify-between mb-xl'>
                       <div
                         className={`w-14 h-14 rounded-2xl ${meta.accentBg} ${meta.accentText} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
                       >
@@ -662,32 +662,32 @@ export default function CareersPage() {
                       </div>
                       <div className='flex flex-col items-end gap-1.5'>
                         <span
-                          className={`text-[10px] font-black uppercase tracking-widest ${meta.badgeBg} text-white px-3 py-1 rounded-full`}
+                          className={`text-[10px] font-black uppercase tracking-widest ${meta.badgeBg} text-white px-md py-xs rounded-full`}
                         >
                           {meta.isFemale ? t('positions.genderFemale') : t('positions.genderMale')}
                         </span>
-                        <span className='text-[10px] font-bold uppercase tracking-widest text-primary-500/40 flex items-center gap-1'>
+                        <span className='text-[10px] font-bold uppercase tracking-widest text-primary-500/40 flex items-center gap-xs'>
                           <MapPinIcon className='w-3 h-3' />
                           {t('positions.location')}
                         </span>
                       </div>
                     </div>
 
-                    <h3 className='font-heading text-xl lg:text-2xl font-bold text-primary-500 mb-1 leading-snug'>
+                    <h3 className='font-heading text-xl lg:text-2xl font-bold text-primary-500 mb-xs leading-snug'>
                       {meta.role}
                     </h3>
-                    <p className={`text-sm font-bold italic ${meta.accentText} mb-4`}>
+                    <p className={`text-sm font-bold italic ${meta.accentText} mb-lg`}>
                       {pos.tagline}
                     </p>
-                    <p className='text-sm text-primary-500/65 leading-relaxed mb-5'>
+                    <p className='text-sm text-primary-500/65 leading-relaxed mb-xl'>
                       {pos.description}
                     </p>
 
                     {/* What you dream */}
                     <div
-                      className={`${meta.accentBg} rounded-2xl p-4 mb-5 border ${meta.accentBorder}`}
+                      className={`${meta.accentBg} rounded-2xl p-lg mb-xl border ${meta.accentBorder}`}
                     >
-                      <p className='text-xs font-bold uppercase tracking-wider text-primary-500/50 mb-1'>
+                      <p className='text-xs font-bold uppercase tracking-wider text-primary-500/50 mb-xs'>
                         {t('positions.dreamLabel')}
                       </p>
                       <p className={`text-sm font-medium ${meta.accentText} leading-relaxed`}>
@@ -696,11 +696,11 @@ export default function CareersPage() {
                     </div>
 
                     {/* Skills */}
-                    <div className='flex flex-wrap gap-2'>
+                    <div className='flex flex-wrap gap-sm'>
                       {pos.skills.map((skill, si) => (
                         <span
                           key={si}
-                          className='text-xs font-bold text-primary-500/70 bg-white border border-primary-500/10 px-3 py-1 rounded-full'
+                          className='text-xs font-bold text-primary-500/70 bg-white border border-primary-500/10 px-md py-xs rounded-full'
                         >
                           {skill}
                         </span>
@@ -710,7 +710,7 @@ export default function CareersPage() {
                     {/* Apply anchor */}
                     <a
                       href='#apply'
-                      className={`mt-6 inline-flex items-center gap-2 text-sm font-black ${meta.accentText} hover:opacity-75 transition-opacity`}
+                      className={`mt-2xl inline-flex items-center gap-sm text-sm font-black ${meta.accentText} hover:opacity-75 transition-opacity`}
                     >
                       {t('positions.applyCta')}
                       <ArrowRightIcon className='w-4 h-4' />
@@ -723,7 +723,7 @@ export default function CareersPage() {
         </section>
 
         {/* ── VALUES BANNER ────────────────────────────────────────────────── */}
-        <section className='bg-primary-500 py-14 lg:py-20 relative overflow-hidden'>
+        <section className='bg-primary-500 py-14 lg:py-5xl relative overflow-hidden'>
           {/* Top wave */}
           <div className='absolute top-0 left-0 right-0' aria-hidden='true'>
             <svg
@@ -747,9 +747,9 @@ export default function CareersPage() {
             </svg>
           </div>
 
-          <div className='relative mx-auto max-w-5xl px-6 lg:px-8 pt-8 text-center'>
-            <GlobeIcon className='w-10 h-10 text-secondary-light mx-auto mb-6' />
-            <h2 className='font-heading text-3xl lg:text-5xl font-bold text-white mb-5 leading-tight'>
+          <div className='relative mx-auto max-w-5xl px-2xl lg:px-4xl pt-4xl text-center'>
+            <GlobeIcon className='w-10 h-10 text-secondary-light mx-auto mb-2xl' />
+            <h2 className='font-heading text-3xl lg:text-5xl font-bold text-white mb-xl leading-tight'>
               {t('culture.titleStart')}
               <br />
               <span className='text-secondary-light italic'>{t('culture.titleEm')}</span>
@@ -761,13 +761,13 @@ export default function CareersPage() {
         </section>
 
         {/* ── APPLICATION FORM ─────────────────────────────────────────────── */}
-        <section id='apply' className='bg-cream py-16 lg:py-24 scroll-mt-20'>
-          <div className='mx-auto max-w-3xl px-6 lg:px-8'>
-            <div className='text-center mb-12'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+        <section id='apply' className='bg-cream py-4xl lg:py-6xl scroll-mt-20'>
+          <div className='mx-auto max-w-3xl px-2xl lg:px-4xl'>
+            <div className='text-center mb-3xl'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('form.eyebrow')}
               </p>
-              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-lg'>
                 {t('form.title')}
               </h2>
               <p className='text-primary-500/75 text-base leading-relaxed max-w-xl mx-auto'>
@@ -775,7 +775,7 @@ export default function CareersPage() {
               </p>
             </div>
 
-            <div className='bg-white rounded-3xl p-8 lg:p-10 border border-primary-500/10 shadow-sm'>
+            <div className='bg-white rounded-3xl p-4xl lg:p-6xl border border-primary-500/10 shadow-sm'>
               <ApplicationForm />
             </div>
           </div>

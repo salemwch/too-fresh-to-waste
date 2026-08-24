@@ -46,19 +46,19 @@ import { TIER_CONFIG, type LoyaltyTier, type DonationHistoryItem } from '@/types
 
 function LoyaltySkeleton() {
   return (
-    <div className='space-y-6'>
-      <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+    <div className='space-y-2xl'>
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-lg'>
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className='glass rounded-2xl p-[24px] shadow-soft'>
-            <Skeleton className='h-4 w-20 mb-3' />
+            <Skeleton className='h-4 w-20 mb-md' />
             <Skeleton className='h-8 w-16' />
           </div>
         ))}
       </div>
       <div className='glass rounded-2xl p-[24px] shadow-soft'>
-        <Skeleton className='h-6 w-48 mb-4' />
+        <Skeleton className='h-6 w-48 mb-lg' />
         <Skeleton className='h-4 w-full' />
-        <Skeleton className='h-8 w-full mt-3' />
+        <Skeleton className='h-8 w-full mt-md' />
       </div>
     </div>
   );
@@ -69,7 +69,7 @@ function LoyaltySkeleton() {
 function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+      <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
         <AlertCircle className='size-12 text-muted-foreground' />
         <p className='text-sm text-muted-foreground'>{message}</p>
         {onRetry && (
@@ -106,10 +106,10 @@ function TierProgress({
 
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <div className='flex items-center justify-between mb-4'>
+      <div className='flex items-center justify-between mb-lg'>
         <div>
           <h3 className='font-semibold text-sm'>{t('stats.currentTier')}</h3>
-          <div className='flex items-center gap-2 mt-1'>
+          <div className='flex items-center gap-sm mt-xs'>
             <div
               className='size-6 rounded-full flex items-center justify-center'
               style={{ backgroundColor: TIER_CONFIG[currentTier].color + '30' }}
@@ -144,7 +144,7 @@ function TierProgress({
           style={{ backgroundColor: TIER_CONFIG[currentTier].color }}
         />
       </div>
-      <p className='text-xs text-muted-foreground mt-2'>
+      <p className='text-xs text-muted-foreground mt-sm'>
         {nextTier
           ? t('tiers.progress', {
               current: totalPoints.toString(),
@@ -157,11 +157,11 @@ function TierProgress({
       </p>
 
       {/* Tier milestones */}
-      <div className='flex justify-between mt-4'>
+      <div className='flex justify-between mt-lg'>
         {TIER_ORDER.map((tier, i) => {
           const isReached = i <= currentIdx;
           return (
-            <div key={tier} className='flex flex-col items-center gap-1'>
+            <div key={tier} className='flex flex-col items-center gap-xs'>
               <div
                 className={`size-8 rounded-full flex items-center justify-center border-2 transition-colors ${
                   isReached ? 'border-transparent' : 'border-muted bg-muted/50'
@@ -203,15 +203,15 @@ function BadgesSection() {
 
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <h3 className='font-display text-lg text-primary-500 font-semibold mb-1'>{t('title')}</h3>
-      <p className='text-xs text-muted-foreground mb-4'>{t('subtitle')}</p>
-      <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3'>
+      <h3 className='font-display text-lg text-primary-500 font-semibold mb-xs'>{t('title')}</h3>
+      <p className='text-xs text-muted-foreground mb-lg'>{t('subtitle')}</p>
+      <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-md'>
         {badges.map(badge => (
           <motion.div
             key={badge.type}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className='flex flex-col items-center gap-1.5 p-3 rounded-xl bg-primary-500/[0.04] hover:bg-primary-500/[0.08] transition-colors'
+            className='flex flex-col items-center gap-1.5 p-md rounded-xl bg-primary-500/[0.04] hover:bg-primary-500/[0.08] transition-colors'
           >
             <div className='size-10 rounded-full bg-amber-500/10 flex items-center justify-center'>
               <Star className='size-5 text-amber-500' />
@@ -241,13 +241,13 @@ function ReferralSection() {
 
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <h3 className='font-display text-lg text-primary-500 font-semibold mb-1'>{t('title')}</h3>
-      <p className='text-xs text-muted-foreground mb-4'>{t('subtitle')}</p>
+      <h3 className='font-display text-lg text-primary-500 font-semibold mb-xs'>{t('title')}</h3>
+      <p className='text-xs text-muted-foreground mb-lg'>{t('subtitle')}</p>
 
-      <div className='flex items-center gap-2'>
-        <div className='flex-1 rounded-xl border border-border bg-muted/30 px-4 py-2.5'>
+      <div className='flex items-center gap-sm'>
+        <div className='flex-1 rounded-xl border border-border bg-muted/30 px-lg py-2.5'>
           <p className='text-xs text-muted-foreground'>{t('code')}</p>
-          <p className='font-mono text-sm font-semibold tracking-wider mt-0.5'>{code || '---'}</p>
+          <p className='font-mono text-sm font-semibold tracking-wider mt-xxs'>{code || '---'}</p>
         </div>
         <Button
           variant='outline'
@@ -284,8 +284,8 @@ function GamificationSection() {
   if (isLoading) {
     return (
       <div className='glass rounded-2xl p-[24px] shadow-soft'>
-        <Skeleton className='h-6 w-32 mb-4' />
-        <div className='grid grid-cols-2 gap-4'>
+        <Skeleton className='h-6 w-32 mb-lg' />
+        <div className='grid grid-cols-2 gap-lg'>
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className='h-20 w-full rounded-xl' />
           ))}
@@ -329,10 +329,10 @@ function GamificationSection() {
 
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <h3 className='font-display text-lg text-primary-500 font-semibold mb-1'>{t('title')}</h3>
-      <p className='text-xs text-muted-foreground mb-4'>{t('subtitle')}</p>
+      <h3 className='font-display text-lg text-primary-500 font-semibold mb-xs'>{t('title')}</h3>
+      <p className='text-xs text-muted-foreground mb-lg'>{t('subtitle')}</p>
 
-      <div className='grid grid-cols-2 gap-3'>
+      <div className='grid grid-cols-2 gap-md'>
         {progressCards.map((card, i) => {
           const Icon = card.icon;
           return (
@@ -341,14 +341,14 @@ function GamificationSection() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.08 }}
-              className='rounded-xl border border-border p-3'
+              className='rounded-xl border border-border p-md'
             >
-              <div className='flex items-center gap-2 mb-2'>
+              <div className='flex items-center gap-sm mb-sm'>
                 <Icon className={`size-4 ${card.color}`} />
                 <span className='text-xs text-muted-foreground'>{card.label}</span>
               </div>
               <p className='font-display text-xl font-bold text-primary-500'>{card.value}</p>
-              <p className='text-xs text-muted-foreground mt-0.5'>{card.sub}</p>
+              <p className='text-xs text-muted-foreground mt-xxs'>{card.sub}</p>
             </motion.div>
           );
         })}
@@ -391,7 +391,7 @@ function DonationSection() {
 
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <div className='flex items-center justify-between mb-4'>
+      <div className='flex items-center justify-between mb-lg'>
         <div>
           <h3 className='font-display text-lg text-primary-500 font-semibold'>{t('title')}</h3>
           <p className='text-xs text-muted-foreground'>{t('subtitle')}</p>
@@ -399,7 +399,7 @@ function DonationSection() {
         <Dialog open={donateDialogOpen} onOpenChange={setDonateDialogOpen}>
           <DialogTrigger asChild>
             <Button size='sm' className='bg-primary-500 hover:bg-primary-500/90 text-white'>
-              <Heart className='size-4 me-2' />
+              <Heart className='size-4 me-sm' />
               {t('donate')}
             </Button>
           </DialogTrigger>
@@ -407,8 +407,8 @@ function DonationSection() {
             <DialogHeader>
               <DialogTitle>{t('donate')}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleDonate} className='space-y-4'>
-              <div className='space-y-2'>
+            <form onSubmit={handleDonate} className='space-y-lg'>
+              <div className='space-y-sm'>
                 <Label>{t('amount')}</Label>
                 <Input
                   type='number'
@@ -418,7 +418,7 @@ function DonationSection() {
                   min={1}
                 />
               </div>
-              <div className='flex items-center gap-2'>
+              <div className='flex items-center gap-sm'>
                 <input
                   type='checkbox'
                   id='anonymous'
@@ -430,7 +430,7 @@ function DonationSection() {
                   {t('anonymous')}
                 </Label>
               </div>
-              <div className='space-y-2'>
+              <div className='space-y-sm'>
                 <Label>{t('message')}</Label>
                 <Input value={message} onChange={e => setMessage(e.target.value)} />
               </div>
@@ -449,21 +449,21 @@ function DonationSection() {
       </div>
 
       {isLoading ? (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className='h-12 w-full rounded-lg' />
           ))}
         </div>
       ) : !donations || donations.length === 0 ? (
-        <p className='text-sm text-muted-foreground text-center py-4'>{t('empty')}</p>
+        <p className='text-sm text-muted-foreground text-center py-lg'>{t('empty')}</p>
       ) : (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {donations.slice(0, 5).map((donation: DonationHistoryItem) => (
             <div
               key={donation.id}
-              className='flex items-center justify-between rounded-lg border border-border p-3'
+              className='flex items-center justify-between rounded-lg border border-border p-md'
             >
-              <div className='flex items-center gap-3'>
+              <div className='flex items-center gap-md'>
                 <div className='size-8 rounded-full bg-pink-500/10 flex items-center justify-center'>
                   <Heart className='size-4 text-pink-500' />
                 </div>
@@ -471,7 +471,7 @@ function DonationSection() {
                   <p className='text-sm font-medium'>
                     {donation.donationAmount} pts
                     {donation.isAnonymous && (
-                      <span className='text-xs text-muted-foreground ms-1'>(anonymous)</span>
+                      <span className='text-xs text-muted-foreground ms-xs'>(anonymous)</span>
                     )}
                   </p>
                   <p className='text-xs text-muted-foreground'>
@@ -504,7 +504,7 @@ export function LoyaltyPage() {
   if (!stats) {
     return (
       <div className='glass rounded-2xl p-[24px] shadow-soft'>
-        <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+        <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
           <Award className='size-12 text-muted-foreground' />
           <h3 className='text-md font-semibold'>{t('empty.title')}</h3>
           <p className='text-sm text-muted-foreground max-w-xs'>{t('empty.description')}</p>
@@ -525,7 +525,7 @@ export function LoyaltyPage() {
   ];
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
@@ -535,11 +535,11 @@ export function LoyaltyPage() {
         <h1 className='font-display text-3xl md:text-4xl text-primary-500 font-bold'>
           {t('title')}
         </h1>
-        <p className='text-sm text-muted-foreground mt-1'>{t('subtitle')}</p>
+        <p className='text-sm text-muted-foreground mt-xs'>{t('subtitle')}</p>
       </motion.div>
 
       {/* Stats cards */}
-      <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-lg'>
         {statCards.map((card, i) => {
           const Icon = card.icon;
           return (
@@ -550,13 +550,13 @@ export function LoyaltyPage() {
               transition={{ delay: 0.1 + i * 0.08, duration: 0.3 }}
               className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden'
             >
-              <div className='absolute -top-4 -end-4 w-20 h-20 rounded-full bg-brand-coral/10 blur-2xl' />
+              <div className='absolute -top-lg -end-lg w-20 h-20 rounded-full bg-brand-coral/10 blur-2xl' />
               <div className='relative'>
-                <div className='h-11 w-11 rounded-xl bg-primary-500/[0.08] flex items-center justify-center mb-3'>
+                <div className='h-11 w-11 rounded-xl bg-primary-500/[0.08] flex items-center justify-center mb-md'>
                   <Icon className='size-5 text-primary-500' />
                 </div>
                 <p className='text-xs text-muted-foreground'>{card.label}</p>
-                <p className='font-display text-2xl text-primary-500 font-bold mt-1'>
+                <p className='font-display text-2xl text-primary-500 font-bold mt-xs'>
                   {card.value}
                 </p>
               </div>
@@ -569,7 +569,7 @@ export function LoyaltyPage() {
       <TierProgress currentTier={stats.currentTier} totalPoints={stats.totalPoints} />
 
       {/* Two-column layout for badges + referral */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-2xl'>
         <BadgesSection />
         <ReferralSection />
       </div>

@@ -39,12 +39,12 @@ export function AdminModuleHeader({
   actions,
 }: AdminModuleHeaderProps) {
   return (
-    <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+    <div className='flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between'>
       <div>
         <h1 className='text-xl font-bold tracking-tight'>{title}</h1>
-        <p className='mt-0.5 text-sm text-muted-foreground'>{subtitle}</p>
+        <p className='mt-xxs text-sm text-muted-foreground'>{subtitle}</p>
       </div>
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-sm'>
         {actions}
         {period !== undefined && onPeriodChange && (
           <Select value={period} onValueChange={v => onPeriodChange(v as AnalyticsPeriod)}>
@@ -61,7 +61,7 @@ export function AdminModuleHeader({
           </Select>
         )}
         {onExport && (
-          <Button size='sm' variant='outline' onClick={onExport} className='h-8 px-3 text-xs'>
+          <Button size='sm' variant='outline' onClick={onExport} className='h-8 px-md text-xs'>
             <Download className='me-1.5 size-3.5' />
             {exportLabel}
           </Button>

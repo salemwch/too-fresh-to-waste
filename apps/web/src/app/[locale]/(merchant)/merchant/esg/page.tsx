@@ -41,8 +41,8 @@ function MetricRow({
   icon: React.ElementType;
 }) {
   return (
-    <div className='flex items-center justify-between py-3 border-b border-primary-500/[0.06] last:border-0'>
-      <div className='flex items-center gap-3 text-sm text-primary-500/75'>
+    <div className='flex items-center justify-between py-md border-b border-primary-500/[0.06] last:border-0'>
+      <div className='flex items-center gap-md text-sm text-primary-500/75'>
         <Icon size={15} className='text-primary-500/50 shrink-0' />
         {label}
       </div>
@@ -86,22 +86,22 @@ function EsgContent() {
 
   return (
     <div className='space-y-[32px]'>
-      <div className='flex items-start justify-between gap-4 flex-wrap'>
+      <div className='flex items-start justify-between gap-lg flex-wrap'>
         <div>
-          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
+          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-sm'>
             {t('breadcrumb')}
           </div>
           <h1 className='font-display text-3xl md:text-4xl text-primary-500 leading-[1.05]'>
             {t('title')}
           </h1>
-          <p className='mt-2 text-primary-500/65 text-sm max-w-xl'>{t('subtitle')}</p>
+          <p className='mt-sm text-primary-500/65 text-sm max-w-xl'>{t('subtitle')}</p>
         </div>
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-md'>
           <LocationSwitcher />
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className='inline-flex items-center gap-2 px-5 py-3 rounded-full bg-primary-500 text-white text-sm font-medium hover:opacity-90 transition shadow-soft disabled:opacity-60 shrink-0'
+            className='inline-flex items-center gap-sm px-xl py-md rounded-full bg-primary-500 text-white text-sm font-medium hover:opacity-90 transition shadow-soft disabled:opacity-60 shrink-0'
           >
             {downloading ? <Loader2 size={16} className='animate-spin' /> : <Download size={16} />}
             {downloading ? t('downloading') : t('downloadPdf')}
@@ -115,7 +115,7 @@ function EsgContent() {
         transition={{ duration: 0.5 }}
         className='glass rounded-2xl p-[24px] shadow-soft'
       >
-        <div className='flex items-center gap-3 mb-[24px]'>
+        <div className='flex items-center gap-md mb-[24px]'>
           <div className='h-10 w-10 rounded-xl bg-primary-500/[0.08] grid place-items-center text-primary-500'>
             <Leaf size={18} />
           </div>
@@ -139,9 +139,9 @@ function EsgContent() {
           </div>
         </div>
 
-        <div className='space-y-3'>
+        <div className='space-y-md'>
           {(tier?.allTiers ?? []).map(tierItem => (
-            <div key={tierItem.name} className='flex items-center gap-3'>
+            <div key={tierItem.name} className='flex items-center gap-md'>
               {tierItem.reached ? (
                 <CheckCircle2 size={18} className='text-brand-coral shrink-0' />
               ) : (
@@ -158,7 +158,7 @@ function EsgContent() {
                 </div>
               </div>
               {tierItem.reached && (
-                <span className='text-[10px] px-2 py-0.5 rounded-full bg-brand-coral/10 text-brand-coral font-medium'>
+                <span className='text-[10px] px-sm py-xxs rounded-full bg-brand-coral/10 text-brand-coral font-medium'>
                   {t('reached')}
                 </span>
               )}
@@ -167,14 +167,14 @@ function EsgContent() {
         </div>
 
         {tier?.remaining != null && tier.remaining > 0 && (
-          <div className='mt-[24px] p-3 rounded-xl bg-primary-500/[0.04]'>
+          <div className='mt-[24px] p-md rounded-xl bg-primary-500/[0.04]'>
             <p className='text-xs text-primary-500/70'>
               {t('remaining', {
                 count: fmt(tier.remaining),
                 tier: tier.nextTier ? ` (${tier.nextTier})` : '',
               })}
             </p>
-            <div className='mt-2 h-1.5 w-full rounded-full bg-primary-500/[0.08] overflow-hidden'>
+            <div className='mt-sm h-1.5 w-full rounded-full bg-primary-500/[0.08] overflow-hidden'>
               <motion.div
                 className='h-full rounded-full bg-brand-coral'
                 initial={{ width: 0 }}
@@ -238,7 +238,7 @@ function EsgContent() {
                 value={`${fmt(carbon.treesEquivalent)} ${t('treesPlanted')}`}
                 icon={TreePine}
               />
-              <div className='mt-4 text-[10px] text-primary-500/45 italic'>
+              <div className='mt-lg text-[10px] text-primary-500/45 italic'>
                 {t('period')} : {carbon.periodLabel}
               </div>
             </div>
@@ -278,7 +278,7 @@ function EsgContent() {
                 value={`${fmt(social.foodWeightKg, 1)} kg`}
                 icon={Package}
               />
-              <div className='mt-4 text-[10px] text-primary-500/45 italic'>
+              <div className='mt-lg text-[10px] text-primary-500/45 italic'>
                 {t('period')} : {social.periodLabel}
               </div>
             </div>
@@ -295,13 +295,13 @@ function EsgContent() {
           transition={{ duration: 0.5, delay: 0.25 }}
           className='glass rounded-2xl p-[24px] shadow-soft'
         >
-          <div className='flex items-center justify-between mb-3'>
+          <div className='flex items-center justify-between mb-md'>
             <div className='text-xs uppercase tracking-wider text-primary-500/60'>
               {t('monthlyGoal')} · {goal.month}
             </div>
             <span className='font-semibold text-primary-500'>{goal.progressPercentage}%</span>
           </div>
-          <div className='flex items-end justify-between mb-2'>
+          <div className='flex items-end justify-between mb-sm'>
             <span className='text-sm text-primary-500/70'>
               {t('bagsThisMonth', {
                 current: fmt(goal.currentMonthBags),

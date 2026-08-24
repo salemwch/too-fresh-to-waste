@@ -72,11 +72,11 @@ export function SubscriptionModal({
         </DialogHeader>
 
         {/* Cycle toggle */}
-        <div className='flex items-center justify-center gap-1 rounded-lg bg-muted p-1 w-fit mx-auto'>
+        <div className='flex items-center justify-center gap-xs rounded-lg bg-muted p-xs w-fit mx-auto'>
           <button
             type='button'
             onClick={() => setCycle('monthly')}
-            className={`rounded-md px-5 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-md px-xl py-sm text-sm font-medium transition-colors ${
               cycle === 'monthly'
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -87,7 +87,7 @@ export function SubscriptionModal({
           <button
             type='button'
             onClick={() => setCycle('yearly')}
-            className={`rounded-md px-5 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-md px-xl py-sm text-sm font-medium transition-colors ${
               cycle === 'yearly'
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -98,14 +98,14 @@ export function SubscriptionModal({
         </div>
 
         {/* Plan cards */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-lg'>
           {/* Standard */}
-          <div className='rounded-xl border border-border bg-card p-5 space-y-4'>
+          <div className='rounded-xl border border-border bg-card p-xl space-y-lg'>
             <div>
               <h4 className='font-semibold text-base text-foreground'>{t('standardPlan')}</h4>
-              <p className='text-sm text-muted-foreground mt-1'>{t('standardDescription')}</p>
+              <p className='text-sm text-muted-foreground mt-xs'>{t('standardDescription')}</p>
             </div>
-            <div className='flex items-baseline gap-1'>
+            <div className='flex items-baseline gap-xs'>
               <span className='text-3xl font-bold text-foreground'>
                 {PRICES.standard[cycle].toFixed(3)}
               </span>
@@ -114,10 +114,10 @@ export function SubscriptionModal({
                 {cycle === 'monthly' ? t('perMonth') : t('perYear')}
               </span>
             </div>
-            <ul className='space-y-2'>
+            <ul className='space-y-sm'>
               {STANDARD_FEATURES.map(key => (
-                <li key={key} className='flex items-start gap-2 text-sm text-foreground'>
-                  <Check className='size-4 text-green-600 shrink-0 mt-0.5' />
+                <li key={key} className='flex items-start gap-sm text-sm text-foreground'>
+                  <Check className='size-4 text-green-600 shrink-0 mt-xxs' />
                   {t(key)}
                 </li>
               ))}
@@ -126,7 +126,7 @@ export function SubscriptionModal({
               type='button'
               onClick={() => handleSubscribe('standard')}
               disabled={loading !== null}
-              className='w-full inline-flex items-center justify-center gap-2 rounded-lg border border-primary bg-transparent px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50'
+              className='w-full inline-flex items-center justify-center gap-sm rounded-lg border border-primary bg-transparent px-lg py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50'
             >
               {loading === `standard-${cycle}` ? (
                 <Loader2 className='size-4 animate-spin' />
@@ -138,16 +138,16 @@ export function SubscriptionModal({
           </div>
 
           {/* Pro */}
-          <div className='rounded-xl border-2 border-primary bg-card p-5 space-y-4 relative'>
-            <span className='absolute -top-3 end-4 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground'>
+          <div className='rounded-xl border-2 border-primary bg-card p-xl space-y-lg relative'>
+            <span className='absolute -top-md end-lg inline-flex items-center gap-xs rounded-full bg-primary px-md py-xs text-xs font-semibold text-primary-foreground'>
               <Star className='size-3' />
               {t('popular')}
             </span>
             <div>
               <h4 className='font-semibold text-base text-foreground'>{t('proPlan')}</h4>
-              <p className='text-sm text-muted-foreground mt-1'>{t('proDescription')}</p>
+              <p className='text-sm text-muted-foreground mt-xs'>{t('proDescription')}</p>
             </div>
-            <div className='flex items-baseline gap-1'>
+            <div className='flex items-baseline gap-xs'>
               <span className='text-3xl font-bold text-foreground'>
                 {PRICES.pro[cycle].toFixed(3)}
               </span>
@@ -156,10 +156,10 @@ export function SubscriptionModal({
                 {cycle === 'monthly' ? t('perMonth') : t('perYear')}
               </span>
             </div>
-            <ul className='space-y-2'>
+            <ul className='space-y-sm'>
               {PRO_FEATURES.map(key => (
-                <li key={key} className='flex items-start gap-2 text-sm text-foreground'>
-                  <Check className='size-4 text-green-600 shrink-0 mt-0.5' />
+                <li key={key} className='flex items-start gap-sm text-sm text-foreground'>
+                  <Check className='size-4 text-green-600 shrink-0 mt-xxs' />
                   {t(key)}
                 </li>
               ))}
@@ -168,7 +168,7 @@ export function SubscriptionModal({
               type='button'
               onClick={() => handleSubscribe('pro')}
               disabled={loading !== null}
-              className='w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50'
+              className='w-full inline-flex items-center justify-center gap-sm rounded-lg bg-primary px-lg py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50'
             >
               {loading === `pro-${cycle}` ? (
                 <Loader2 className='size-4 animate-spin' />

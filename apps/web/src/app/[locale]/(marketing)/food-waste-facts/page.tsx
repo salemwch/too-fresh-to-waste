@@ -87,10 +87,10 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
       <div className='min-h-screen bg-brand-cream text-brand-deep'>
         {/* ── HERO ──────────────────────────────────────────────────── */}
         <section className='relative'>
-          <div className='mx-auto w-full max-w-[1400px] px-8 grid gap-12 py-10 md:grid-cols-12 md:py-16'>
+          <div className='mx-auto w-full max-w-[1400px] px-4xl grid gap-3xl py-6xl md:grid-cols-12 md:py-4xl'>
             {/* Left copy */}
             <div className='md:col-span-7 animate-rise'>
-              <p className='mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-brand-deep/75'>
+              <p className='mb-2xl flex items-center gap-md text-xs uppercase tracking-[0.25em] text-brand-deep/75'>
                 {t('hero.eyebrow')}
               </p>
               <h1 className='font-heading text-5xl font-light leading-[0.95] text-balance md:text-7xl lg:text-8xl'>
@@ -98,19 +98,19 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
                 <span className='italic text-brand-green'> {t('hero.headlineEm')} </span>
                 {t('hero.headlineEnd')}
               </h1>
-              <p className='mt-8 max-w-xl text-lg leading-relaxed text-brand-deep/75'>
+              <p className='mt-4xl max-w-xl text-lg leading-relaxed text-brand-deep/75'>
                 {t('hero.lede')}
               </p>
-              <div className='mt-10 flex flex-wrap gap-4'>
+              <div className='mt-6xl flex flex-wrap gap-lg'>
                 <Link
                   href='#scale'
-                  className='rounded-full bg-brand-deep px-7 py-3.5 text-sm text-brand-cream hover:bg-brand-green transition-all'
+                  className='rounded-full bg-brand-deep px-3xl py-3.5 text-sm text-brand-cream hover:bg-brand-green transition-all'
                 >
                   {t('hero.ctaNumbers')}
                 </Link>
                 <Link
                   href='#act'
-                  className='rounded-full border border-brand-deep/30 px-7 py-3.5 text-sm hover:border-brand-green hover:text-brand-green transition-colors'
+                  className='rounded-full border border-brand-deep/30 px-3xl py-3.5 text-sm hover:border-brand-green hover:text-brand-green transition-colors'
                 >
                   {t('hero.ctaAct')}
                 </Link>
@@ -129,25 +129,25 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
                   priority
                 />
                 <div className='absolute inset-0 bg-gradient-to-t from-brand-deep/60 via-transparent to-transparent' />
-                <div className='absolute bottom-6 left-6 right-6 text-brand-cream'>
+                <div className='absolute bottom-2xl left-2xl right-2xl text-brand-cream'>
                   <p className='font-heading text-3xl italic leading-tight'>
                     &ldquo;{t('hero.caption')}&rdquo;
                   </p>
                 </div>
               </div>
-              <div className='absolute -bottom-6 -left-6 hidden md:block bg-brand-green text-white px-6 py-4 rotate-[-4deg] shadow-soft'>
+              <div className='absolute -bottom-2xl -left-2xl hidden md:block bg-brand-green text-white px-2xl py-lg rotate-[-4deg] shadow-soft'>
                 <p className='font-heading text-2xl font-medium'>{t('hero.stamp')}</p>
               </div>
             </div>
           </div>
 
           {/* Marquee ticker */}
-          <div className='border-y border-brand-deep/15 bg-brand-deep py-2 text-brand-cream overflow-hidden'>
-            <div className='flex w-max animate-marquee-fw gap-12 whitespace-nowrap'>
+          <div className='border-y border-brand-deep/15 bg-brand-deep py-sm text-brand-cream overflow-hidden'>
+            <div className='flex w-max animate-marquee-fw gap-3xl whitespace-nowrap'>
               {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className='flex items-center gap-12 font-heading text-2xl italic'>
+                <div key={i} className='flex items-center gap-3xl font-heading text-2xl italic'>
                   {ticker.map(line => (
-                    <span key={line} className='flex items-center gap-12'>
+                    <span key={line} className='flex items-center gap-3xl'>
                       {line}
                       <span className='text-secondary-light'>●</span>
                     </span>
@@ -159,13 +159,13 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         </section>
 
         {/* ── THE SCALE ─────────────────────────────────────────────── */}
-        <section id='scale' className='mx-auto w-full max-w-[1400px] px-8 py-10 md:py-14'>
-          <div className='mb-8 grid gap-8 md:grid-cols-12'>
+        <section id='scale' className='mx-auto w-full max-w-[1400px] px-4xl py-6xl md:py-14'>
+          <div className='mb-4xl grid gap-4xl md:grid-cols-12'>
             <div className='md:col-span-4'>
               <p className='text-xs uppercase tracking-[0.25em] text-brand-green'>
                 {t('scale.chapter')}
               </p>
-              <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
+              <h2 className='mt-md font-heading text-5xl font-light md:text-6xl'>
                 {t('scale.title')}
               </h2>
             </div>
@@ -176,13 +176,13 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
 
           <div className='grid gap-px bg-brand-deep/15 md:grid-cols-2 lg:grid-cols-4 overflow-hidden rounded-sm'>
             {stats.map(s => (
-              <div key={s.label} className='bg-brand-cream p-8 transition-colors group'>
+              <div key={s.label} className='bg-brand-cream p-4xl transition-colors group'>
                 <p className='font-heading text-6xl font-light leading-none md:text-7xl'>
                   {s.value}
                 </p>
-                <div className='mt-6 h-px w-12 bg-brand-deep/40' />
-                <p className='mt-6 text-sm leading-relaxed'>{s.label}</p>
-                <p className='mt-4 text-[11px] uppercase tracking-wider text-brand-deep/75'>
+                <div className='mt-2xl h-px w-12 bg-brand-deep/40' />
+                <p className='mt-2xl text-sm leading-relaxed'>{s.label}</p>
+                <p className='mt-lg text-[11px] uppercase tracking-wider text-brand-deep/75'>
                   {s.source}
                 </p>
               </div>
@@ -191,13 +191,13 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         </section>
 
         {/* ── JOURNEY ───────────────────────────────────────────────── */}
-        <section id='journey' className='bg-brand-deep text-brand-cream py-10 md:py-14 bg-grain'>
-          <div className='mx-auto w-full max-w-[1400px] px-8'>
-            <div className='mb-10'>
-              <p className='text-xs uppercase tracking-[0.25em] text-secondary-light mb-3'>
+        <section id='journey' className='bg-brand-deep text-brand-cream py-6xl md:py-14 bg-grain'>
+          <div className='mx-auto w-full max-w-[1400px] px-4xl'>
+            <div className='mb-6xl'>
+              <p className='text-xs uppercase tracking-[0.25em] text-secondary-light mb-md'>
                 {t('journey.chapter')}
               </p>
-              <div className='grid gap-8 md:grid-cols-12'>
+              <div className='grid gap-4xl md:grid-cols-12'>
                 <h2 className='md:col-span-5 font-heading text-5xl font-light md:text-6xl'>
                   {t('journey.titleStart')}{' '}
                   <em className='text-secondary-light'>{t('journey.titleEm')}</em>{' '}
@@ -213,14 +213,14 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
               {chapters.map((c, i) => (
                 <article
                   key={c.n}
-                  className='grid gap-6 border-t border-brand-cream/15 py-4 md:grid-cols-12 md:py-5 group'
+                  className='grid gap-2xl border-t border-brand-cream/15 py-lg md:grid-cols-12 md:py-xl group'
                 >
                   <p className='md:col-span-2 font-heading text-5xl font-light text-secondary-light'>
                     {c.n}
                   </p>
                   <div className='md:col-span-5'>
                     <h3 className='font-heading text-3xl md:text-4xl'>{c.title}</h3>
-                    <p className='mt-4 text-brand-cream/75 leading-relaxed'>{c.text}</p>
+                    <p className='mt-lg text-brand-cream/75 leading-relaxed'>{c.text}</p>
                   </div>
                   <div className='md:col-span-5 overflow-hidden rounded-sm relative h-36'>
                     <Image
@@ -238,14 +238,14 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         </section>
 
         {/* ── PULL QUOTE ────────────────────────────────────────────── */}
-        <section className='mx-auto w-full max-w-[1400px] px-8 py-10 md:py-14'>
+        <section className='mx-auto w-full max-w-[1400px] px-4xl py-6xl md:py-14'>
           <blockquote className='mx-auto max-w-4xl text-center'>
             <p className='font-heading text-4xl font-light italic leading-tight md:text-6xl text-balance'>
               &ldquo;{t('quote.before')}
               <span className='text-brand-green'> {t('quote.em')} </span>
               {t('quote.after')}&rdquo;
             </p>
-            <footer className='mt-8 text-xs uppercase tracking-[0.25em] text-brand-deep/75'>
+            <footer className='mt-4xl text-xs uppercase tracking-[0.25em] text-brand-deep/75'>
               - {t('quote.attribution')}
             </footer>
           </blockquote>
@@ -254,14 +254,14 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
         {/* ── CHAPTER III - WHAT GETS WASTED ────────────────────────── */}
         <section
           id='act'
-          className='mx-auto w-full max-w-[1400px] px-8 pt-10 md:pt-14 pb-4 md:pb-6'
+          className='mx-auto w-full max-w-[1400px] px-4xl pt-6xl md:pt-14 pb-lg md:pb-2xl'
         >
-          <div className='mb-8 grid gap-8 md:grid-cols-12'>
+          <div className='mb-4xl grid gap-4xl md:grid-cols-12'>
             <div className='md:col-span-5'>
               <p className='text-xs uppercase tracking-[0.25em] text-brand-green'>
                 {t('suspects.chapter')}
               </p>
-              <h2 className='mt-3 font-heading text-5xl font-light md:text-6xl'>
+              <h2 className='mt-md font-heading text-5xl font-light md:text-6xl'>
                 {t('suspects.titleStart')}{' '}
                 <em className='text-brand-green'>{t('suspects.titleEm')}</em>.
               </h2>
@@ -282,19 +282,19 @@ export default async function FoodWasteFactsPage({ params }: FoodWasteFactsPageP
 
           <div className='grid gap-px bg-brand-deep/15 md:grid-cols-2 lg:grid-cols-3 overflow-hidden rounded-sm'>
             {suspects.map((w, i) => (
-              <article key={w.item} className='bg-brand-cream p-4 transition-colors group'>
+              <article key={w.item} className='bg-brand-cream p-lg transition-colors group'>
                 <p className='font-heading text-5xl font-light text-brand-deep/40'>0{i + 1}</p>
-                <p className='mt-4 text-[11px] uppercase tracking-[0.2em] text-brand-green'>
+                <p className='mt-lg text-[11px] uppercase tracking-[0.2em] text-brand-green'>
                   {w.sector}
                 </p>
-                <h3 className='mt-3 font-heading text-3xl leading-tight'>{w.item}</h3>
-                <div className='mt-5 h-px w-12 bg-brand-deep/40' />
-                <p className='mt-5 text-sm leading-relaxed text-brand-deep/75'>{w.note}</p>
+                <h3 className='mt-md font-heading text-3xl leading-tight'>{w.item}</h3>
+                <div className='mt-xl h-px w-12 bg-brand-deep/40' />
+                <p className='mt-xl text-sm leading-relaxed text-brand-deep/75'>{w.note}</p>
               </article>
             ))}
           </div>
 
-          <p className='mt-8 text-xs uppercase tracking-[0.2em] text-brand-deep/75'>
+          <p className='mt-4xl text-xs uppercase tracking-[0.2em] text-brand-deep/75'>
             {t('suspects.footnote')}
           </p>
         </section>

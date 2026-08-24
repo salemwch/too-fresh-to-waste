@@ -139,20 +139,32 @@ const config: Config = {
         '6xl': ['42px', { lineHeight: '1.25' }],
         '7xl': ['48px', { lineHeight: '1.25' }],
       },
+      /*
+       * Named semantic tokens only. The numeric keys are deliberately absent so
+       * Tailwind's default scale (n = n * 4px) stands: every shadcn primitive,
+       * every copied snippet and every developer's muscle memory assumes it.
+       *
+       * Overriding keys 0-10 here is what made the default <Button> render 96px
+       * tall and `size="sm"` (80px) taller than `size="lg"` (44px), because
+       * keys 11 and up were never overridden - the scale climbed to 96px at 10
+       * then collapsed to 44px at 11. See DESIGN_AUDIT_REPORT.md Part 1.
+       *
+       * These names and values match apps/mobile/src/design-system/tokens/
+       * spacing.ts exactly, so web and mobile share one rhythm. Guarded by
+       * src/__tests__/design/spacing-scale.test.ts.
+       */
       spacing: {
-        // 8pt grid system
-        0: '0',
-        0.5: '2px',
-        1: '4px',
-        2: '8px',
-        3: '16px',
-        4: '24px',
-        5: '32px',
-        6: '40px',
-        7: '48px',
-        8: '64px',
-        9: '80px',
-        10: '96px',
+        xxs: '2px',
+        xs: '4px',
+        sm: '8px',
+        md: '16px',
+        lg: '24px',
+        xl: '32px',
+        '2xl': '40px',
+        '3xl': '48px',
+        '4xl': '64px',
+        '5xl': '80px',
+        '6xl': '96px',
       },
       borderRadius: {
         none: '0',

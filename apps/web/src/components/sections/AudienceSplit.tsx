@@ -37,10 +37,10 @@ export default function AudienceSplit() {
   return (
     <section
       aria-labelledby='audience-split-heading'
-      className='bg-primary-500 border-t border-white/10 px-4 py-14 md:py-20'
+      className='bg-primary-500 border-t border-white/10 px-lg py-14 md:py-5xl'
     >
-      <div className='mx-auto flex max-w-5xl flex-col gap-8'>
-        <div className='flex flex-col gap-2 text-center'>
+      <div className='mx-auto flex max-w-5xl flex-col gap-4xl'>
+        <div className='flex flex-col gap-sm text-center'>
           <h2
             id='audience-split-heading'
             className='font-heading text-2xl leading-tight text-white md:text-3xl'
@@ -50,15 +50,15 @@ export default function AudienceSplit() {
           <p className='text-sm text-white/60'>{t('description')}</p>
         </div>
 
-        <div className='grid gap-4 md:grid-cols-2'>
+        <div className='grid gap-lg md:grid-cols-2'>
           {DOORS.map(({ key, href, Icon, primary }) => (
             <Link
               key={key}
               href={href}
               className={
                 primary
-                  ? 'group border-secondary/50 hover:border-secondary flex flex-col gap-3 rounded-2xl border bg-white/[0.06] p-6 transition-colors md:p-8'
-                  : 'group flex flex-col gap-3 rounded-2xl border border-white/15 bg-white/[0.03] p-6 transition-colors hover:border-white/35 md:p-8'
+                  ? 'group border-secondary/50 hover:border-secondary flex flex-col gap-md rounded-2xl border bg-white/[0.06] p-2xl transition-colors md:p-4xl'
+                  : 'group flex flex-col gap-md rounded-2xl border border-white/15 bg-white/[0.03] p-2xl transition-colors hover:border-white/35 md:p-4xl'
               }
             >
               <Icon
@@ -74,13 +74,13 @@ export default function AudienceSplit() {
               <span
                 className={
                   primary
-                    ? 'text-secondary mt-1 inline-flex items-center gap-2 text-sm font-bold'
-                    : 'mt-1 inline-flex items-center gap-2 text-sm font-bold text-white'
+                    ? 'text-secondary mt-xs inline-flex items-center gap-sm text-sm font-bold'
+                    : 'mt-xs inline-flex items-center gap-sm text-sm font-bold text-white'
                 }
               >
                 {t(`${key}.cta`)}
                 <ArrowRight
-                  className='size-4 shrink-0 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5'
+                  className='size-4 shrink-0 transition-transform group-hover:translate-x-xxs rtl:rotate-180 rtl:group-hover:-translate-x-xxs'
                   aria-hidden='true'
                 />
               </span>

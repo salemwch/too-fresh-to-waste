@@ -136,7 +136,7 @@ function StatusBadge({ status, t }: { status: OrderStatus; t: (key: string) => s
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+        'inline-flex items-center gap-xs rounded-full px-sm py-xxs text-[10px] font-semibold',
         style.bg,
         style.text,
       )}
@@ -156,7 +156,7 @@ function PaymentIndicator({ order, t }: { order: MerchantOrder; t: (key: string)
   if (method === 'online') {
     if (paymentStatus === 'completed' || paymentStatus === 'paid') {
       return (
-        <span className='inline-flex items-center gap-1 text-[10px] font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5'>
+        <span className='inline-flex items-center gap-xs text-[10px] font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-sm py-xxs'>
           <CheckCircle2 className='h-2.5 w-2.5' />
           {t('paymentPaid')}
         </span>
@@ -164,7 +164,7 @@ function PaymentIndicator({ order, t }: { order: MerchantOrder; t: (key: string)
     }
     if (paymentStatus === 'failed') {
       return (
-        <span className='inline-flex items-center gap-1 text-[10px] font-medium text-red-700 bg-red-50 border border-red-200 rounded-full px-2 py-0.5'>
+        <span className='inline-flex items-center gap-xs text-[10px] font-medium text-red-700 bg-red-50 border border-red-200 rounded-full px-sm py-xxs'>
           <XCircle className='h-2.5 w-2.5' />
           {t('paymentFailed')}
         </span>
@@ -172,14 +172,14 @@ function PaymentIndicator({ order, t }: { order: MerchantOrder; t: (key: string)
     }
     if (paymentStatus === 'refunded') {
       return (
-        <span className='inline-flex items-center gap-1 text-[10px] font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded-full px-2 py-0.5'>
+        <span className='inline-flex items-center gap-xs text-[10px] font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded-full px-sm py-xxs'>
           <AlertCircle className='h-2.5 w-2.5' />
           {t('paymentRefunded')}
         </span>
       );
     }
     return (
-      <span className='inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5'>
+      <span className='inline-flex items-center gap-xs text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-sm py-xxs'>
         <Clock className='h-2.5 w-2.5' />
         {t('paymentAwaitingPayment')}
       </span>
@@ -187,7 +187,7 @@ function PaymentIndicator({ order, t }: { order: MerchantOrder; t: (key: string)
   }
 
   return (
-    <span className='inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-2 py-0.5'>
+    <span className='inline-flex items-center gap-xs text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-sm py-xxs'>
       <Banknote className='h-2.5 w-2.5' />
       {t('paymentPayAtPickup')}
     </span>
@@ -215,13 +215,13 @@ function OrderCard({ order, onClick, t }: OrderCardProps) {
       className='w-full text-start rounded-xl border border-border bg-card p-3.5 hover:border-primary/30 hover:shadow-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
     >
       {/* Top row: order number + status */}
-      <div className='flex items-center justify-between gap-2'>
+      <div className='flex items-center justify-between gap-sm'>
         <span className='text-xs font-bold text-foreground'>#{order.orderNumber}</span>
         <StatusBadge status={order.status} t={t} />
       </div>
 
       {/* Customer + amount */}
-      <div className='flex items-center justify-between mt-2'>
+      <div className='flex items-center justify-between mt-sm'>
         <div className='flex items-center gap-1.5 min-w-0'>
           <User className='h-3 w-3 text-muted-foreground shrink-0' />
           <span className='text-xs text-foreground truncate'>{getCustomerName(customer)}</span>
@@ -237,7 +237,7 @@ function OrderCard({ order, onClick, t }: OrderCardProps) {
       </p>
 
       {/* Bottom row: payment status + time + pickup code */}
-      <div className='flex items-center justify-between mt-2.5 gap-2'>
+      <div className='flex items-center justify-between mt-2.5 gap-sm'>
         <PaymentIndicator order={order} t={t} />
         <span className='text-[10px] text-muted-foreground shrink-0'>
           {formatRelativeTime(order.createdAt)}
@@ -251,7 +251,7 @@ function OrderCard({ order, onClick, t }: OrderCardProps) {
             <span className='text-[10px] font-semibold uppercase tracking-wider text-primary/70'>
               {t('pickupCode')}:
             </span>
-            <div className='flex gap-1'>
+            <div className='flex gap-xs'>
               {pickupCode.split('').map((d, i) => (
                 <span
                   key={i}
@@ -311,25 +311,25 @@ function OrderColumn({
   return (
     <div className='flex-1 min-w-0 flex flex-col rounded-xl border border-border bg-background overflow-hidden'>
       {/* Column header */}
-      <div className='shrink-0 flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30'>
+      <div className='shrink-0 flex items-center gap-sm px-lg py-md border-b border-border bg-muted/30'>
         {icon}
         <h2 className='text-sm font-semibold text-foreground'>{title}</h2>
-        <span className='inline-flex items-center justify-center rounded-full text-[10px] font-bold min-w-5 h-5 px-1 bg-primary text-primary-foreground'>
+        <span className='inline-flex items-center justify-center rounded-full text-[10px] font-bold min-w-5 h-5 px-xs bg-primary text-primary-foreground'>
           {totalCount}
         </span>
       </div>
 
       {/* Order list */}
-      <div className='flex-1 overflow-y-auto p-3'>
+      <div className='flex-1 overflow-y-auto p-md'>
         {isLoading ? (
           <div className='flex items-center justify-center h-32'>
             <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
           </div>
         ) : isEmpty ? (
-          <div className='flex flex-col items-center justify-center h-40 px-4 text-center'>
-            <Package className='h-8 w-8 text-muted-foreground/40 mb-2' />
+          <div className='flex flex-col items-center justify-center h-40 px-lg text-center'>
+            <Package className='h-8 w-8 text-muted-foreground/40 mb-sm' />
             <p className='text-xs font-medium text-muted-foreground'>{t('noOrders')}</p>
-            <p className='text-[10px] text-muted-foreground/70 mt-1'>{t('noOrdersDesc')}</p>
+            <p className='text-[10px] text-muted-foreground/70 mt-xs'>{t('noOrdersDesc')}</p>
           </div>
         ) : (
           <>
@@ -351,7 +351,7 @@ function OrderColumn({
             {showHistory && historyOrders.length > 0 && (
               <>
                 {/* Divider */}
-                <div className='flex items-center gap-3 my-4'>
+                <div className='flex items-center gap-md my-lg'>
                   <div className='flex-1 h-px bg-border' />
                   <span className='text-[10px] font-semibold uppercase tracking-wider text-muted-foreground'>
                     {t('historySection', { count: historyOrders.length })}
@@ -373,11 +373,11 @@ function OrderColumn({
 
                 {/* Pagination controls */}
                 {totalHistoryPages > 1 && (
-                  <div className='flex items-center justify-between mt-3 pt-3 border-t border-border/60'>
+                  <div className='flex items-center justify-between mt-md pt-md border-t border-border/60'>
                     <button
                       onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
                       disabled={historyPage <= 1}
-                      className='h-7 px-2.5 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1'
+                      className='h-7 px-2.5 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-xs'
                     >
                       <ChevronLeft className='h-3.5 w-3.5' />
                       {t('paginationPrev')}
@@ -388,7 +388,7 @@ function OrderColumn({
                     <button
                       onClick={() => setHistoryPage(p => Math.min(totalHistoryPages, p + 1))}
                       disabled={historyPage >= totalHistoryPages}
-                      className='h-7 px-2.5 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1'
+                      className='h-7 px-2.5 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-xs'
                     >
                       {t('paginationNext')}
                       <ChevronRight className='h-3.5 w-3.5' />
@@ -418,12 +418,12 @@ function PickupCodeBlock({
   const digits = (code ?? '------').split('');
 
   return (
-    <div className='rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4'>
-      <p className='text-[10px] font-semibold uppercase tracking-widest text-primary/70 text-center mb-3'>
+    <div className='rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-lg'>
+      <p className='text-[10px] font-semibold uppercase tracking-widest text-primary/70 text-center mb-md'>
         {t('pickupCode')}
       </p>
 
-      <div className='flex justify-center gap-2'>
+      <div className='flex justify-center gap-sm'>
         {digits.map((d, i) => (
           <div
             key={i}
@@ -434,16 +434,16 @@ function PickupCodeBlock({
         ))}
       </div>
 
-      <p className='mt-3 text-center text-[10px] text-muted-foreground'>{t('pickupCodeHint')}</p>
+      <p className='mt-md text-center text-[10px] text-muted-foreground'>{t('pickupCodeHint')}</p>
 
-      <div className='mt-4'>
+      <div className='mt-lg'>
         {status === 'picked_up' || status === 'completed' ? (
-          <div className='flex items-center justify-center gap-2 rounded-lg bg-green-50 border border-green-200 py-2.5 px-4'>
+          <div className='flex items-center justify-center gap-sm rounded-lg bg-green-50 border border-green-200 py-2.5 px-lg'>
             <CheckCircle2 className='h-4 w-4 text-green-600 shrink-0' />
             <span className='text-xs font-semibold text-green-700'>{t('confirmedPickup')}</span>
           </div>
         ) : (
-          <div className='flex items-center justify-center gap-2 rounded-lg bg-amber-50 border border-amber-200 py-2.5 px-4'>
+          <div className='flex items-center justify-center gap-sm rounded-lg bg-amber-50 border border-amber-200 py-2.5 px-lg'>
             <span className='relative flex h-2.5 w-2.5 shrink-0'>
               <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75' />
               <span className='relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500' />
@@ -484,9 +484,9 @@ function CancelDialog({ orderId, orderNumber, onClose, onCancelled, t }: CancelD
   };
 
   return (
-    <div className='fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4'>
-      <div className='w-full max-w-sm rounded-2xl bg-background shadow-xl border border-border p-6'>
-        <div className='flex items-center gap-3 mb-4'>
+    <div className='fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-lg'>
+      <div className='w-full max-w-sm rounded-2xl bg-background shadow-xl border border-border p-2xl'>
+        <div className='flex items-center gap-md mb-lg'>
           <div className='h-9 w-9 rounded-full bg-red-100 flex items-center justify-center shrink-0'>
             <Ban className='h-4 w-4 text-red-600' />
           </div>
@@ -494,19 +494,19 @@ function CancelDialog({ orderId, orderNumber, onClose, onCancelled, t }: CancelD
             <h3 className='text-sm font-semibold text-foreground'>
               {t('cancelConfirmTitle')} #{orderNumber}
             </h3>
-            <p className='text-xs text-muted-foreground mt-0.5'>{t('cancelConfirmDesc')}</p>
+            <p className='text-xs text-muted-foreground mt-xxs'>{t('cancelConfirmDesc')}</p>
           </div>
         </div>
 
         <textarea
-          className='w-full rounded-lg border border-input bg-background px-3 py-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-ring'
+          className='w-full rounded-lg border border-input bg-background px-md py-sm text-xs resize-none focus:outline-none focus:ring-1 focus:ring-ring'
           rows={3}
           placeholder={t('cancelReasonPlaceholder')}
           value={reason}
           onChange={e => setReason(e.target.value)}
         />
 
-        <div className='flex gap-2 mt-4'>
+        <div className='flex gap-sm mt-lg'>
           <button
             onClick={onClose}
             className='flex-1 h-8 rounded-lg border border-border text-xs font-medium hover:bg-accent transition-colors'
@@ -556,7 +556,7 @@ function OrderDrawer({ orderId, open, onClose, t }: OrderDrawerProps) {
           aria-describedby={undefined}
         >
           {/* Header */}
-          <div className='shrink-0 flex items-center justify-between px-6 py-4 border-b border-border'>
+          <div className='shrink-0 flex items-center justify-between px-2xl py-lg border-b border-border'>
             <DialogPrimitive.Title className='text-base font-bold text-foreground'>
               {t('orderDetails')}
             </DialogPrimitive.Title>
@@ -573,9 +573,9 @@ function OrderDrawer({ orderId, open, onClose, t }: OrderDrawerProps) {
                 <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
               </div>
             ) : !order ? (
-              <div className='flex items-center justify-center h-48 p-8 text-center'>
+              <div className='flex items-center justify-center h-48 p-4xl text-center'>
                 <div>
-                  <AlertCircle className='h-8 w-8 text-muted-foreground mx-auto mb-2' />
+                  <AlertCircle className='h-8 w-8 text-muted-foreground mx-auto mb-sm' />
                   <p className='text-sm text-muted-foreground'>Order not found</p>
                 </div>
               </div>
@@ -618,12 +618,12 @@ function OrderDetailContent({
   const canCancel = isActive && order.status !== 'picked_up' && order.status !== 'completed';
 
   return (
-    <div className='p-6 space-y-5'>
+    <div className='p-2xl space-y-xl'>
       {/* Order header with status + payment method */}
-      <div className='flex items-start justify-between gap-3'>
+      <div className='flex items-start justify-between gap-md'>
         <div>
           <h3 className='text-base font-bold text-foreground'>#{order.orderNumber}</h3>
-          <p className='text-xs text-muted-foreground mt-0.5'>
+          <p className='text-xs text-muted-foreground mt-xxs'>
             {formatRelativeTime(order.createdAt)}
           </p>
         </div>
@@ -634,7 +634,7 @@ function OrderDetailContent({
       </div>
 
       {/* Payment method badge */}
-      <div className='flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2.5 border border-border'>
+      <div className='flex items-center gap-sm rounded-lg bg-muted/50 px-md py-2.5 border border-border'>
         {isOnlinePayment(order) ? (
           <>
             <CreditCard className='h-4 w-4 text-blue-600' />
@@ -653,7 +653,7 @@ function OrderDetailContent({
 
       {/* Picked-up confirmation banner */}
       {(order.status === 'picked_up' || order.status === 'completed') && (
-        <div className='flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-3'>
+        <div className='flex items-center gap-sm rounded-xl bg-green-50 border border-green-200 px-lg py-md'>
           <CheckCircle2 className='h-4 w-4 text-green-600 shrink-0' />
           <span className='text-xs font-semibold text-green-700'>{t('confirmedPickup')}</span>
         </div>
@@ -661,11 +661,11 @@ function OrderDetailContent({
 
       {/* Customer info */}
       <section>
-        <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5'>
+        <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-sm flex items-center gap-1.5'>
           <User className='h-3.5 w-3.5' />
           {t('customer')}
         </h3>
-        <div className='rounded-xl border border-border bg-card p-3 space-y-1.5'>
+        <div className='rounded-xl border border-border bg-card p-md space-y-1.5'>
           <p className='text-sm font-medium text-foreground'>{getCustomerName(customer)}</p>
           {getCustomerEmail(customer) && (
             <div className='flex items-center gap-1.5 text-xs text-muted-foreground'>
@@ -684,13 +684,13 @@ function OrderDetailContent({
 
       {/* Items */}
       <section>
-        <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5'>
+        <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-sm flex items-center gap-1.5'>
           <ShoppingBag className='h-3.5 w-3.5' />
           {t('items')}
         </h3>
         <div className='rounded-xl border border-border bg-card divide-y divide-border'>
           {order.items.map((item, idx) => (
-            <div key={idx} className='flex items-center justify-between px-3 py-2.5 gap-3'>
+            <div key={idx} className='flex items-center justify-between px-md py-2.5 gap-md'>
               <div className='flex-1 min-w-0'>
                 <p className='text-xs font-medium text-foreground truncate'>{item.offerTitle}</p>
                 <p className='text-[10px] text-muted-foreground'>
@@ -707,10 +707,10 @@ function OrderDetailContent({
 
       {/* Pricing breakdown */}
       <section>
-        <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2'>
+        <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-sm'>
           {t('pricing')}
         </h3>
-        <div className='rounded-xl border border-border bg-card p-3 space-y-1.5'>
+        <div className='rounded-xl border border-border bg-card p-md space-y-1.5'>
           {[
             { label: t('subtotal'), value: order.pricing?.subtotal },
             {
@@ -732,7 +732,7 @@ function OrderDetailContent({
                 </span>
               </div>
             ))}
-          <div className='pt-1.5 mt-1 border-t border-border flex items-center justify-between'>
+          <div className='pt-1.5 mt-xs border-t border-border flex items-center justify-between'>
             <span className='text-sm font-bold text-foreground'>{t('total')}</span>
             <span className='text-sm font-black text-foreground'>
               {formatCurrency(order.pricing?.total ?? 0, currency)}
@@ -744,10 +744,10 @@ function OrderDetailContent({
       {/* Pickup instructions */}
       {order.pickupDetails?.instructions && (
         <section>
-          <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2'>
+          <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-sm'>
             {t('instructions')}
           </h3>
-          <div className='rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground'>
+          <div className='rounded-xl border border-border bg-card px-md py-2.5 text-xs text-foreground'>
             {order.pickupDetails.instructions}
           </div>
         </section>
@@ -851,13 +851,13 @@ export default function MerchantOrdersPage() {
   }, []);
 
   return (
-    <div className='h-full flex flex-col gap-4'>
+    <div className='h-full flex flex-col gap-lg'>
       {/* Page header */}
       <div className='shrink-0 flex items-center justify-between'>
         <div>
-          <h1 className='font-display text-lg font-bold tracking-tight text-foreground flex items-center gap-2'>
+          <h1 className='font-display text-lg font-bold tracking-tight text-foreground flex items-center gap-sm'>
             {t('title')}
-            <span className='inline-flex items-center gap-1 text-[10px] font-medium text-green-600 bg-green-50 border border-green-200 rounded-full px-2 py-0.5'>
+            <span className='inline-flex items-center gap-xs text-[10px] font-medium text-green-600 bg-green-50 border border-green-200 rounded-full px-sm py-xxs'>
               <span className='relative flex h-1.5 w-1.5'>
                 <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75' />
                 <span className='relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500' />
@@ -866,26 +866,26 @@ export default function MerchantOrdersPage() {
               {t('liveIndicator')}
             </span>
           </h1>
-          <p className='text-xs text-muted-foreground mt-0.5'>{t('description')}</p>
+          <p className='text-xs text-muted-foreground mt-xxs'>{t('description')}</p>
         </div>
         <LocationSwitcher />
       </div>
 
       {/* Stats bar */}
-      <div className='shrink-0 flex items-center gap-3 flex-wrap'>
-        <div className='inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-200 px-3 py-1.5'>
+      <div className='shrink-0 flex items-center gap-md flex-wrap'>
+        <div className='inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-200 px-md py-1.5'>
           <Package className='h-3.5 w-3.5 text-blue-600' />
           <span className='text-xs font-semibold text-blue-700'>
             {t('statsActive', { count: stats.active })}
           </span>
         </div>
-        <div className='inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-1.5'>
+        <div className='inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-md py-1.5'>
           <Clock className='h-3.5 w-3.5 text-amber-600' />
           <span className='text-xs font-semibold text-amber-700'>
             {t('statsAwaitingPickup', { count: stats.awaitingPickup })}
           </span>
         </div>
-        <div className='inline-flex items-center gap-1.5 rounded-lg bg-green-50 border border-green-200 px-3 py-1.5'>
+        <div className='inline-flex items-center gap-1.5 rounded-lg bg-green-50 border border-green-200 px-md py-1.5'>
           <CheckCircle2 className='h-3.5 w-3.5 text-green-600' />
           <span className='text-xs font-semibold text-green-700'>
             {t('statsCompletedToday', { count: stats.completedToday })}
@@ -894,18 +894,18 @@ export default function MerchantOrdersPage() {
       </div>
 
       {/* Search + history toggle */}
-      <div className='shrink-0 flex items-center gap-3'>
+      <div className='shrink-0 flex items-center gap-md'>
         <div className='relative flex-1 max-w-sm'>
-          <Search className='absolute start-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none' />
+          <Search className='absolute start-md top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none' />
           <input
             type='search'
-            className='w-full h-9 rounded-lg border border-input bg-background ps-9 pe-3 text-xs focus:outline-none focus:ring-1 focus:ring-ring'
+            className='w-full h-9 rounded-lg border border-input bg-background ps-5xl pe-md text-xs focus:outline-none focus:ring-1 focus:ring-ring'
             placeholder={t('searchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <label className='inline-flex items-center gap-2 cursor-pointer select-none'>
+        <label className='inline-flex items-center gap-sm cursor-pointer select-none'>
           <input
             type='checkbox'
             checked={showHistory}
@@ -917,7 +917,7 @@ export default function MerchantOrdersPage() {
       </div>
 
       {/* Two-column layout */}
-      <div className='flex-1 min-h-0 flex gap-4'>
+      <div className='flex-1 min-h-0 flex gap-lg'>
         <OrderColumn
           title={t('columnCash')}
           icon={<Banknote className='h-4 w-4 text-green-600' />}

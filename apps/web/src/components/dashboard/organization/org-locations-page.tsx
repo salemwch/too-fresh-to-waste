@@ -24,7 +24,7 @@ export function OrgLocationsPage() {
 
   if (orgLoading || estLoading) {
     return (
-      <div className='space-y-4'>
+      <div className='space-y-lg'>
         <Skeleton className='h-8 w-64' />
         <Skeleton className='h-40 w-full' />
         <Skeleton className='h-40 w-full' />
@@ -35,7 +35,7 @@ export function OrgLocationsPage() {
   if (!org) {
     return (
       <Card>
-        <CardContent className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+        <CardContent className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
           <Building2 className='size-12 text-muted-foreground' />
           <h3 className='text-md font-semibold'>No Organization Yet</h3>
           <p className='text-sm text-muted-foreground max-w-xs'>
@@ -48,7 +48,7 @@ export function OrgLocationsPage() {
   }
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       <div className='flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-bold tracking-tight'>{org.name}</h1>
@@ -56,7 +56,7 @@ export function OrgLocationsPage() {
             {(establishments ?? []).length} location{(establishments ?? []).length !== 1 ? 's' : ''}
           </p>
         </div>
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-md'>
           <LocationSwitcher />
           <Badge className={statusColors[org.status] ?? statusColors['pending']}>
             {org.status}
@@ -65,7 +65,7 @@ export function OrgLocationsPage() {
             orgId={org._id}
             trigger={
               <Button size='sm'>
-                <Plus className='size-4 me-2' />
+                <Plus className='size-4 me-sm' />
                 Add Location
               </Button>
             }
@@ -73,10 +73,10 @@ export function OrgLocationsPage() {
         </div>
       </div>
 
-      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
+      <div className='grid gap-lg md:grid-cols-2 xl:grid-cols-3'>
         {(establishments ?? []).map(est => (
           <Card key={est._id} className='relative'>
-            <CardHeader className='pb-3'>
+            <CardHeader className='pb-md'>
               <div className='flex items-start justify-between'>
                 <CardTitle className='text-base font-semibold'>{est.name}</CardTitle>
                 <Badge
@@ -87,12 +87,12 @@ export function OrgLocationsPage() {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className='space-y-2 text-sm'>
-              <div className='flex items-center gap-2 text-muted-foreground'>
+            <CardContent className='space-y-sm text-sm'>
+              <div className='flex items-center gap-sm text-muted-foreground'>
                 <MapPin className='size-4 shrink-0' />
                 <span>{est.address?.city ?? 'Address pending'}</span>
               </div>
-              <div className='flex items-center gap-2 text-muted-foreground'>
+              <div className='flex items-center gap-sm text-muted-foreground'>
                 <Users className='size-4 shrink-0' />
                 <span>
                   {invitations?.find(

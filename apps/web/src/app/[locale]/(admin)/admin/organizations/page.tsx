@@ -46,15 +46,15 @@ function OrgDetailDrawer({
       <SheetContent className='w-full overflow-y-auto sm:max-w-lg'>
         <SheetTitle className='sr-only'>{t('detail.title')}</SheetTitle>
         {isLoading ? (
-          <div className='space-y-4 py-6'>
+          <div className='space-y-lg py-2xl'>
             <Skeleton className='h-8 w-48 rounded' />
             <Skeleton className='h-20 rounded-lg' />
             <Skeleton className='h-16 rounded-lg' />
           </div>
         ) : org ? (
           <div className='space-y-0'>
-            <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
-              <div className='flex items-start gap-3'>
+            <div className='-mx-2xl -mt-2xl mb-0 border-b border-border/60 bg-muted/20 px-2xl pb-xl pt-xl pe-14'>
+              <div className='flex items-start gap-md'>
                 <div className='flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10'>
                   <Network className='size-5 text-primary' />
                 </div>
@@ -68,12 +68,12 @@ function OrgDetailDrawer({
                   </Badge>
                 </div>
               </div>
-              <div className='mt-3 grid grid-cols-2 gap-2'>
-                <div className='rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+              <div className='mt-md grid grid-cols-2 gap-sm'>
+                <div className='rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                   <p className='text-lg font-bold tabular-nums'>{org.establishmentIds.length}</p>
                   <p className='text-[10px] text-muted-foreground'>{t('columns.locations')}</p>
                 </div>
-                <div className='rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+                <div className='rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                   <p className='text-lg font-bold tabular-nums'>
                     {new Date(org.createdAt).toLocaleDateString()}
                   </p>
@@ -82,8 +82,8 @@ function OrgDetailDrawer({
               </div>
             </div>
 
-            <div className='space-y-5 py-5'>
-              <section className='space-y-3'>
+            <div className='space-y-xl py-xl'>
+              <section className='space-y-md'>
                 <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                   {t('detail.info')}
                 </h3>
@@ -121,7 +121,7 @@ function OrgDetailDrawer({
               {org.establishmentIds.length > 0 && (
                 <>
                   <Separator />
-                  <section className='space-y-3'>
+                  <section className='space-y-md'>
                     <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                       {t('detail.establishmentIds')}
                     </h3>
@@ -129,7 +129,7 @@ function OrgDetailDrawer({
                       {org.establishmentIds.map(id => (
                         <div
                           key={id}
-                          className='flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2'
+                          className='flex items-center gap-sm rounded-lg border border-border/60 px-md py-sm'
                         >
                           <MapPin className='size-3.5 text-muted-foreground' />
                           <span className='font-mono text-xs text-muted-foreground'>
@@ -242,7 +242,7 @@ export default function OrganizationsPage() {
   };
 
   return (
-    <div className='space-y-6 p-6'>
+    <div className='space-y-2xl p-2xl'>
       {/* Header */}
       <div>
         <h1 className='text-2xl font-semibold'>{t('title')}</h1>
@@ -253,7 +253,7 @@ export default function OrganizationsPage() {
       <AdminKpiRow items={kpiItems} loading={isLoading} />
 
       {/* Filters */}
-      <div className='flex flex-wrap items-center gap-3'>
+      <div className='flex flex-wrap items-center gap-md'>
         <Input
           placeholder={t('filters.searchPlaceholder')}
           value={search}
@@ -284,19 +284,19 @@ export default function OrganizationsPage() {
         <table className='w-full text-sm'>
           <thead>
             <tr className='border-b border-border/60 bg-muted/40'>
-              <th className='px-4 py-2.5 text-start text-xs font-medium text-muted-foreground'>
+              <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground'>
                 {t('columns.name')}
               </th>
-              <th className='px-4 py-2.5 text-start text-xs font-medium text-muted-foreground'>
+              <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground'>
                 {t('columns.status')}
               </th>
-              <th className='px-4 py-2.5 text-center text-xs font-medium text-muted-foreground hidden md:table-cell'>
+              <th className='px-lg py-2.5 text-center text-xs font-medium text-muted-foreground hidden md:table-cell'>
                 {t('columns.locations')}
               </th>
-              <th className='px-4 py-2.5 text-start text-xs font-medium text-muted-foreground hidden lg:table-cell'>
+              <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground hidden lg:table-cell'>
                 {t('columns.created')}
               </th>
-              <th className='px-4 py-2.5 text-end text-xs font-medium text-muted-foreground'>
+              <th className='px-lg py-2.5 text-end text-xs font-medium text-muted-foreground'>
                 {t('columns.actions')}
               </th>
             </tr>
@@ -305,27 +305,27 @@ export default function OrganizationsPage() {
             {isLoading ? (
               [...Array(6)].map((_, i) => (
                 <tr key={i} className='border-b border-border/40'>
-                  <td className='px-4 py-3'>
+                  <td className='px-lg py-md'>
                     <Skeleton className='h-4 w-36 rounded' />
                   </td>
-                  <td className='px-4 py-3'>
+                  <td className='px-lg py-md'>
                     <Skeleton className='h-5 w-16 rounded-full' />
                   </td>
-                  <td className='px-4 py-3 hidden md:table-cell'>
+                  <td className='px-lg py-md hidden md:table-cell'>
                     <Skeleton className='h-4 w-8 mx-auto rounded' />
                   </td>
-                  <td className='px-4 py-3 hidden lg:table-cell'>
+                  <td className='px-lg py-md hidden lg:table-cell'>
                     <Skeleton className='h-4 w-24 rounded' />
                   </td>
-                  <td className='px-4 py-3'>
+                  <td className='px-lg py-md'>
                     <Skeleton className='h-7 w-20 rounded ms-auto' />
                   </td>
                 </tr>
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className='py-12 text-center'>
-                  <div className='flex flex-col items-center gap-2'>
+                <td colSpan={5} className='py-3xl text-center'>
+                  <div className='flex flex-col items-center gap-sm'>
                     <Building2 className='size-10 text-muted-foreground/40' />
                     <p className='text-sm font-medium text-muted-foreground'>{t('empty')}</p>
                     <p className='text-xs text-muted-foreground/70'>{t('emptyDesc')}</p>
@@ -339,7 +339,7 @@ export default function OrganizationsPage() {
                   className='border-b border-border/40 hover:bg-muted/20 cursor-pointer'
                   onClick={() => setSelectedOrgId(org._id)}
                 >
-                  <td className='px-4 py-3'>
+                  <td className='px-lg py-md'>
                     <div className='flex items-center gap-2.5'>
                       <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10'>
                         <Network className='size-4 text-primary' />
@@ -347,19 +347,19 @@ export default function OrganizationsPage() {
                       <span className='font-medium text-foreground'>{org.name}</span>
                     </div>
                   </td>
-                  <td className='px-4 py-3'>
+                  <td className='px-lg py-md'>
                     <Badge variant='outline' className={STATUS_STYLES[org.status]}>
                       {t(`status.${org.status}`)}
                     </Badge>
                   </td>
-                  <td className='px-4 py-3 text-center hidden md:table-cell tabular-nums'>
+                  <td className='px-lg py-md text-center hidden md:table-cell tabular-nums'>
                     {org.establishmentIds.length}
                   </td>
-                  <td className='px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground tabular-nums'>
+                  <td className='px-lg py-md hidden lg:table-cell text-xs text-muted-foreground tabular-nums'>
                     {new Date(org.createdAt).toLocaleDateString()}
                   </td>
-                  <td className='px-4 py-3 text-end' onClick={e => e.stopPropagation()}>
-                    <div className='flex justify-end gap-2'>
+                  <td className='px-lg py-md text-end' onClick={e => e.stopPropagation()}>
+                    <div className='flex justify-end gap-sm'>
                       {org.status === 'pending' && (
                         <Button
                           variant='outline'
@@ -405,7 +405,7 @@ export default function OrganizationsPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className='flex items-center justify-center gap-2'>
+        <div className='flex items-center justify-center gap-sm'>
           <Button
             variant='outline'
             size='sm'

@@ -24,7 +24,7 @@ function StatChip({
   value: number | undefined;
 }) {
   return (
-    <div className='flex flex-col gap-1'>
+    <div className='flex flex-col gap-xs'>
       <span className='flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'>
         <Icon className='size-3.5 shrink-0' aria-hidden='true' />
         {label}
@@ -54,7 +54,7 @@ function StatusPill({ role }: { role: StopRole }) {
   return (
     <span
       className={cn(
-        'rounded-sm border px-1.5 py-0.5 text-[10px] font-medium tracking-[0.14em] whitespace-nowrap uppercase',
+        'rounded-sm border px-1.5 py-xxs text-[10px] font-medium tracking-[0.14em] whitespace-nowrap uppercase',
         tone,
       )}
     >
@@ -74,7 +74,7 @@ function UnlockMeter({ zone }: { zone: PublicZone }) {
   const left = Math.max(0, zone.foundingTarget - zone.foundingSigned);
 
   return (
-    <div className='mt-1'>
+    <div className='mt-xs'>
       <div
         className='h-1.5 w-full overflow-hidden rounded-full bg-white/10'
         role='progressbar'
@@ -85,7 +85,7 @@ function UnlockMeter({ zone }: { zone: PublicZone }) {
       >
         <div className='bg-secondary h-full rounded-full' style={{ width: `${pct}%` }} />
       </div>
-      <p className='mt-2 text-[11px] text-white/70 tabular-nums'>
+      <p className='mt-sm text-[11px] text-white/70 tabular-nums'>
         {t('foundingProgress', {
           signed: zone.foundingSigned,
           target: zone.foundingTarget,
@@ -121,7 +121,7 @@ function Stop({
      * of the city names. Nothing here can overlap: the text column is a sibling
      * that starts where the marker column ends.
      */
-    <li className='flex gap-4 pb-6 last:pb-0'>
+    <li className='flex gap-lg pb-2xl last:pb-0'>
       <div className='flex w-10 flex-none flex-col items-center'>
         <span
           aria-hidden='true'
@@ -138,7 +138,7 @@ function Stop({
         {!isLast && (
           <span
             aria-hidden='true'
-            className={cn('mt-2 w-0.5 flex-1', isLive ? 'bg-secondary' : 'bg-white/15')}
+            className={cn('mt-sm w-0.5 flex-1', isLive ? 'bg-secondary' : 'bg-white/15')}
           />
         )}
       </div>
@@ -146,10 +146,10 @@ function Stop({
       <div
         className={cn(
           'min-w-0 flex-1',
-          isNext && 'rounded-lg border border-white/15 bg-white/[0.04] px-4 py-3.5',
+          isNext && 'rounded-lg border border-white/15 bg-white/[0.04] px-lg py-3.5',
         )}
       >
-        <div className='flex flex-wrap items-center gap-x-3 gap-y-2'>
+        <div className='flex flex-wrap items-center gap-x-md gap-y-sm'>
           <h3
             className={cn(
               'font-heading text-lg leading-none md:text-xl',
@@ -183,21 +183,21 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
   const remaining = Math.max(0, zone.foundingTarget - zone.foundingSigned);
 
   return (
-    <aside className='rounded-xl border border-white/15 bg-white/[0.05] p-6'>
+    <aside className='rounded-xl border border-white/15 bg-white/[0.05] p-2xl'>
       <p className='text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase'>
         {t('panel.eyebrow')}
       </p>
-      <h3 className='font-heading mt-2 text-2xl leading-none text-white md:text-3xl'>
+      <h3 className='font-heading mt-sm text-2xl leading-none text-white md:text-3xl'>
         {zone.displayName}
       </h3>
-      <p className='mt-3 text-sm leading-relaxed text-white/75'>
+      <p className='mt-md text-sm leading-relaxed text-white/75'>
         {zone.foundingTarget > 0
           ? t('panel.body', { target: zone.foundingTarget, city: zone.displayName })
           : t('panel.bodyNoTarget', { city: zone.displayName })}
       </p>
 
-      <dl className='mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/15 bg-white/10'>
-        <div className='bg-primary-500 flex flex-col gap-1 p-3'>
+      <dl className='mt-xl grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/15 bg-white/10'>
+        <div className='bg-primary-500 flex flex-col gap-xs p-md'>
           <dt className='text-[10px] tracking-[0.15em] text-white/50 uppercase'>
             {t('panel.signed')}
           </dt>
@@ -207,7 +207,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
               : zone.foundingSigned}
           </dd>
         </div>
-        <div className='bg-primary-500 flex flex-col gap-1 p-3'>
+        <div className='bg-primary-500 flex flex-col gap-xs p-md'>
           <dt className='text-[10px] tracking-[0.15em] text-white/50 uppercase'>
             {t('panel.waiting')}
           </dt>
@@ -216,7 +216,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
           </dd>
         </div>
         {zone.foundingTarget > 0 && (
-          <div className='bg-primary-500 col-span-2 flex flex-col gap-1 p-3'>
+          <div className='bg-primary-500 col-span-2 flex flex-col gap-xs p-md'>
             <dt className='text-[10px] tracking-[0.15em] text-white/50 uppercase'>
               {t('panel.remaining')}
             </dt>
@@ -228,12 +228,12 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
       </dl>
 
       {mutation.isSuccess ? (
-        <p className='bg-secondary/15 text-secondary mt-5 rounded-lg px-4 py-3 text-sm font-medium'>
+        <p className='bg-secondary/15 text-secondary mt-xl rounded-lg px-lg py-md text-sm font-medium'>
           {t('form.success', { city: zone.displayName })}
         </p>
       ) : (
         <form
-          className='mt-5 flex flex-col gap-2'
+          className='mt-xl flex flex-col gap-sm'
           onSubmit={event => {
             event.preventDefault();
             if (!email.trim()) return;
@@ -251,12 +251,12 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
             value={email}
             onChange={event => setEmail(event.target.value)}
             placeholder={t('form.emailPlaceholder')}
-            className='focus:border-secondary focus:ring-secondary/40 w-full rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm text-white placeholder:text-white/40 focus:ring-2 focus:outline-none'
+            className='focus:border-secondary focus:ring-secondary/40 w-full rounded-full border border-white/20 bg-white/5 px-xl py-md text-sm text-white placeholder:text-white/40 focus:ring-2 focus:outline-none'
           />
           <button
             type='submit'
             disabled={mutation.isPending}
-            className='bg-secondary text-primary-500 flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-transform duration-200 hover:scale-[1.02] disabled:opacity-60'
+            className='bg-secondary text-primary-500 flex items-center justify-center gap-sm rounded-full px-xl py-md text-sm font-bold transition-transform duration-200 hover:scale-[1.02] disabled:opacity-60'
           >
             {mutation.isPending ? t('form.submitting') : t('form.submit')}
             <ArrowRight className='size-4 shrink-0 rtl:rotate-180' aria-hidden='true' />
@@ -269,7 +269,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
         </form>
       )}
 
-      <p className='mt-4 text-[11px] leading-relaxed text-white/45'>{t('panel.fine')}</p>
+      <p className='mt-lg text-[11px] leading-relaxed text-white/45'>{t('panel.fine')}</p>
     </aside>
   );
 }
@@ -314,23 +314,23 @@ export default function RolloutMap() {
     <section
       id='rollout'
       aria-labelledby='rollout-heading'
-      className='bg-primary-500 border-t border-white/10 px-4 py-16 md:py-24'
+      className='bg-primary-500 border-t border-white/10 px-lg py-4xl md:py-6xl'
     >
-      <div className='mx-auto flex max-w-6xl flex-col gap-10'>
-        <div className='flex flex-wrap items-end justify-between gap-8 border-b border-white/15 pb-8'>
+      <div className='mx-auto flex max-w-6xl flex-col gap-6xl'>
+        <div className='flex flex-wrap items-end justify-between gap-4xl border-b border-white/15 pb-4xl'>
           <div>
             <p className='text-[10px] font-medium tracking-[0.22em] text-white/50 uppercase'>
               {t('eyebrow')}
             </p>
             <h2
               id='rollout-heading'
-              className='font-heading mt-3 max-w-[16ch] text-3xl leading-[1.05] text-white md:text-5xl'
+              className='font-heading mt-md max-w-[16ch] text-3xl leading-[1.05] text-white md:text-5xl'
             >
               {t('headlineLead')} <span className='text-secondary'>{t('headlineAccent')}</span>
             </h2>
           </div>
 
-          <div className='flex flex-wrap gap-8'>
+          <div className='flex flex-wrap gap-4xl'>
             <StatChip icon={Radio} label={t('chips.citiesLive')} value={impact?.citiesLive} />
             <StatChip icon={Users} label={t('chips.waiting')} value={impact?.peopleWaiting} />
             <StatChip
@@ -342,13 +342,13 @@ export default function RolloutMap() {
         </div>
 
         {isLoading ? (
-          <div className='flex flex-col gap-4' aria-busy='true'>
+          <div className='flex flex-col gap-lg' aria-busy='true'>
             {[...Array(4)].map((_, i) => (
               <div key={i} className='h-14 animate-pulse rounded-lg bg-white/5' />
             ))}
           </div>
         ) : (
-          <div className='grid items-start gap-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]'>
+          <div className='grid items-start gap-6xl lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]'>
             <ol className='flex list-none flex-col'>
               {(zones ?? []).map((zone, i) => (
                 <Stop
@@ -366,7 +366,7 @@ export default function RolloutMap() {
         )}
 
         {/* ── International intent, deliberately a board and not a road ── */}
-        <div className='mt-4 flex flex-col gap-4'>
+        <div className='mt-lg flex flex-col gap-lg'>
           <h3 className='font-heading text-xl text-white md:text-2xl'>{t('board.title')}</h3>
           <div className='overflow-x-auto rounded-lg border border-white/15'>
             <table className='w-full min-w-[30rem] border-collapse text-sm'>
@@ -374,19 +374,19 @@ export default function RolloutMap() {
                 <tr>
                   <th
                     scope='col'
-                    className='border-b border-white/15 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
                   >
                     {t('board.destination')}
                   </th>
                   <th
                     scope='col'
-                    className='border-b border-white/15 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
                   >
                     {t('board.market')}
                   </th>
                   <th
                     scope='col'
-                    className='border-b border-white/15 px-4 py-3 text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
                   >
                     {t('board.status')}
                   </th>
@@ -395,16 +395,16 @@ export default function RolloutMap() {
               <tbody>
                 {DESTINATIONS.map(key => (
                   <tr key={key}>
-                    <td className='font-heading border-b border-white/[0.07] px-4 py-3 text-white'>
+                    <td className='font-heading border-b border-white/[0.07] px-lg py-md text-white'>
                       {t(`board.countries.${key}.name`)}
                     </td>
-                    <td className='border-b border-white/[0.07] px-4 py-3 text-white/60'>
+                    <td className='border-b border-white/[0.07] px-lg py-md text-white/60'>
                       {t(`board.countries.${key}.market`)}
                     </td>
-                    <td className='border-b border-white/[0.07] px-4 py-3'>
+                    <td className='border-b border-white/[0.07] px-lg py-md'>
                       <span
                         className={cn(
-                          'rounded-sm border px-1.5 py-0.5 text-[10px] font-medium tracking-[0.14em] uppercase',
+                          'rounded-sm border px-1.5 py-xxs text-[10px] font-medium tracking-[0.14em] uppercase',
                           key === 'tunisia'
                             ? 'text-secondary border-secondary'
                             : 'border-white/25 text-white/40',

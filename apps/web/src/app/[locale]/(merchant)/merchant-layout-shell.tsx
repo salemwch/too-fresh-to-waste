@@ -28,12 +28,12 @@ export function MerchantLayoutShell({ children }: { children: React.ReactNode })
 
           <div className='flex flex-col flex-1 min-w-0'>
             {/* Mobile header — only visible below xl breakpoint */}
-            <header className='xl:hidden shrink-0 z-40 bg-primary-500 text-white px-[16px] py-3 flex items-center justify-between gap-3'>
+            <header className='xl:hidden shrink-0 z-40 bg-primary-500 text-white px-[16px] py-md flex items-center justify-between gap-md'>
               <MobileNav items={visibleNavItems} />
               <span className='font-display font-semibold text-base tracking-tight'>
                 Too Fresh to Waste
               </span>
-              <div className='flex items-center gap-2'>
+              <div className='flex items-center gap-sm'>
                 <NotificationBell />
                 <UserNav />
               </div>

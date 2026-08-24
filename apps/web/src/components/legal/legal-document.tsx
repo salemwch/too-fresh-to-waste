@@ -78,24 +78,24 @@ export async function LegalDocument({ locale, document, contactEmail }: LegalDoc
 
   return (
     <div className='min-h-screen bg-background'>
-      <section className='bg-primary-500 py-16 px-4'>
+      <section className='bg-primary-500 py-4xl px-lg'>
         <div className='max-w-4xl mx-auto text-center'>
-          <h1 className='text-3xl md:text-4xl font-bold text-white mb-3'>{t('title')}</h1>
+          <h1 className='text-3xl md:text-4xl font-bold text-white mb-md'>{t('title')}</h1>
           <p className='text-white/75 text-sm'>
             {tLegal('dateline', { date: tLegal('lastUpdated') })}
           </p>
         </div>
       </section>
 
-      <article className='max-w-3xl mx-auto px-4 py-14'>
-        <div className='space-y-6 text-foreground'>
+      <article className='max-w-3xl mx-auto px-lg py-14'>
+        <div className='space-y-2xl text-foreground'>
           {/*
             Present on the French and Arabic renderings and absent on the
             English, which is the authoritative text - a document cannot
             sensibly defer to itself.
           */}
           {governing !== '' && (
-            <aside className='rounded-2xl border border-primary-500/20 bg-primary-500/5 px-5 py-4'>
+            <aside className='rounded-2xl border border-primary-500/20 bg-primary-500/5 px-xl py-lg'>
               <p className='text-sm leading-relaxed text-muted-foreground'>
                 {tLegal.rich('governingLanguage', tags)}
               </p>
@@ -107,7 +107,7 @@ export async function LegalDocument({ locale, document, contactEmail }: LegalDoc
               {intro.map((paragraph, i) => (
                 <p
                   key={paragraph}
-                  className={`text-sm leading-relaxed text-muted-foreground${i > 0 ? ' mt-4' : ''}`}
+                  className={`text-sm leading-relaxed text-muted-foreground${i > 0 ? ' mt-lg' : ''}`}
                 >
                   {rich(`intro.${i}`)}
                 </p>
@@ -118,9 +118,9 @@ export async function LegalDocument({ locale, document, contactEmail }: LegalDoc
           {sections.map((section, si) => (
             <div key={section.heading ?? String(si)}>
               <hr className='border-border' />
-              <section className='pt-6'>
+              <section className='pt-2xl'>
                 {section.heading !== undefined && (
-                  <h2 className='text-2xl md:text-3xl font-bold text-primary-500 mb-3'>
+                  <h2 className='text-2xl md:text-3xl font-bold text-primary-500 mb-md'>
                     {section.heading}
                   </h2>
                 )}
@@ -128,14 +128,14 @@ export async function LegalDocument({ locale, document, contactEmail }: LegalDoc
                 {section.paragraphs?.map((paragraph, pi) => (
                   <p
                     key={paragraph}
-                    className={`text-sm leading-relaxed text-muted-foreground${pi > 0 ? ' mt-4' : ''}`}
+                    className={`text-sm leading-relaxed text-muted-foreground${pi > 0 ? ' mt-lg' : ''}`}
                   >
                     {rich(`sections.${si}.paragraphs.${pi}`)}
                   </p>
                 ))}
 
                 {section.items !== undefined && section.items.length > 0 && (
-                  <ul className='list-disc list-outside ms-5 space-y-1 text-sm text-muted-foreground mt-3'>
+                  <ul className='list-disc list-outside ms-xl space-y-xs text-sm text-muted-foreground mt-md'>
                     {section.items.map((item, ii) => (
                       <li key={item}>{rich(`sections.${si}.items.${ii}`)}</li>
                     ))}
@@ -143,20 +143,20 @@ export async function LegalDocument({ locale, document, contactEmail }: LegalDoc
                 )}
 
                 {section.subsections?.map((sub, ui) => (
-                  <div key={sub.heading ?? String(ui)} className='mt-5'>
+                  <div key={sub.heading ?? String(ui)} className='mt-xl'>
                     {sub.heading !== undefined && (
-                      <h3 className='text-base font-semibold mb-2'>{sub.heading}</h3>
+                      <h3 className='text-base font-semibold mb-sm'>{sub.heading}</h3>
                     )}
                     {sub.paragraphs?.map((paragraph, pi) => (
                       <p
                         key={paragraph}
-                        className={`text-sm leading-relaxed text-muted-foreground${pi > 0 ? ' mt-3' : ''}`}
+                        className={`text-sm leading-relaxed text-muted-foreground${pi > 0 ? ' mt-md' : ''}`}
                       >
                         {rich(`sections.${si}.subsections.${ui}.paragraphs.${pi}`)}
                       </p>
                     ))}
                     {sub.items !== undefined && sub.items.length > 0 && (
-                      <ul className='list-disc list-outside ms-5 space-y-1 text-sm text-muted-foreground mt-2'>
+                      <ul className='list-disc list-outside ms-xl space-y-xs text-sm text-muted-foreground mt-sm'>
                         {sub.items.map((item, ii) => (
                           <li key={item}>{rich(`sections.${si}.subsections.${ui}.items.${ii}`)}</li>
                         ))}

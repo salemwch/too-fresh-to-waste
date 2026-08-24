@@ -152,22 +152,25 @@ export default function Footer() {
 
   return (
     <footer
-      className='tracking-wide bg-primary-500 px-3 sm:px-6 lg:px-12 pt-8 pb-4 overflow-hidden'
+      className='tracking-wide bg-primary-500 px-md sm:px-2xl lg:px-3xl pt-4xl pb-lg overflow-hidden'
       role='contentinfo'
       aria-label='Footer'
     >
-      <div className='grid min-[1200px]:grid-cols-3 gap-6 lg:gap-8 max-w-full'>
+      <div className='grid min-[1200px]:grid-cols-3 gap-2xl lg:gap-4xl max-w-full'>
         {/* Company Info Section */}
         <div className='min-[1200px]:max-w-sm w-full'>
-          <div className='pr-2'>
+          <div className='pr-sm'>
             <p className='text-white/80 leading-relaxed text-sm'>{t('description')}</p>
             <p className='text-white/80 leading-relaxed text-sm mt-1.5'>{t('tagline')}</p>
           </div>
 
           {/* Social Media Links */}
-          <div className='mt-4'>
-            <h3 className='text-white font-semibold text-base mb-3'>{t('social.followUs')}</h3>
-            <ul className='flex gap-3 sm:gap-4 md:gap-4 flex-wrap' aria-label='Social media links'>
+          <div className='mt-lg'>
+            <h3 className='text-white font-semibold text-base mb-md'>{t('social.followUs')}</h3>
+            <ul
+              className='flex gap-md sm:gap-lg md:gap-lg flex-wrap'
+              aria-label='Social media links'
+            >
               {socialLinks.map(social => (
                 <li key={social.name} className='flex-shrink-0'>
                   <a
@@ -186,18 +189,18 @@ export default function Footer() {
         </div>
 
         {/* Footer Links Grid */}
-        <div className='min-[1200px]:col-span-2 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6'>
+        <div className='min-[1200px]:col-span-2 grid grid-cols-2 lg:grid-cols-4 gap-lg sm:gap-2xl'>
           {footerSections.map(section => (
             <div key={section.title} className='min-w-0'>
-              <h3 className='text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3'>
+              <h3 className='text-white font-semibold text-sm sm:text-base mb-sm sm:mb-md'>
                 {section.title}
               </h3>
-              <ul className='space-y-1'>
+              <ul className='space-y-xs'>
                 {section.links.map(link => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors inline-flex items-center py-0.5'
+                      className='hover:text-white text-white/70 text-xs sm:text-sm font-normal transition-colors inline-flex items-center py-xxs'
                     >
                       {link.label}
                     </Link>
@@ -209,15 +212,15 @@ export default function Footer() {
 
           {/* Be With Us - download buttons */}
           <div className='min-w-0'>
-            <h3 className='text-white font-semibold text-sm sm:text-base mb-2 sm:mb-3'>
+            <h3 className='text-white font-semibold text-sm sm:text-base mb-sm sm:mb-md'>
               {t('beWithUs.title')}
             </h3>
-            <div className='flex flex-col gap-2'>
+            <div className='flex flex-col gap-sm'>
               {/* App Store */}
               <button
                 type='button'
                 onClick={openLaunchModal}
-                className='flex items-center gap-2 bg-black text-white px-3 py-2 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-fit'
+                className='flex items-center gap-sm bg-black text-white px-md py-sm rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-fit'
                 aria-label='Download on the App Store'
               >
                 <svg className='w-5 h-5 flex-shrink-0' viewBox='0 0 24 24' fill='currentColor'>
@@ -237,7 +240,7 @@ export default function Footer() {
               <button
                 type='button'
                 onClick={openLaunchModal}
-                className='flex items-center gap-2 bg-black text-white px-3 py-2 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-fit'
+                className='flex items-center gap-sm bg-black text-white px-md py-sm rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-fit'
                 aria-label='Get it on Google Play'
               >
                 <svg className='w-5 h-5 flex-shrink-0' viewBox='0 0 24 24' fill='currentColor'>
@@ -258,19 +261,19 @@ export default function Footer() {
       </div>
 
       {/* Divider */}
-      <hr className='mt-6 mb-4 border-white/20' />
+      <hr className='mt-2xl mb-lg border-white/20' />
 
       {/* City links - a sitemap entry alone leaves the /locations cluster
           orphaned. Site-wide internal links are what actually pass authority
           to it and let crawlers reach every city page from any page. */}
-      <nav aria-labelledby='footer-cities-heading' className='mb-4'>
+      <nav aria-labelledby='footer-cities-heading' className='mb-lg'>
         <h3
           id='footer-cities-heading'
-          className='text-white font-semibold text-sm sm:text-base mb-2'
+          className='text-white font-semibold text-sm sm:text-base mb-sm'
         >
           {t('sections.cities.title')}
         </h3>
-        <ul className='flex flex-wrap gap-x-4 gap-y-1'>
+        <ul className='flex flex-wrap gap-x-lg gap-y-xs'>
           {cityNav.map(city => (
             <li key={city.slug}>
               <Link
@@ -292,7 +295,7 @@ export default function Footer() {
         </ul>
       </nav>
 
-      <hr className='mb-4 border-white/20' />
+      <hr className='mb-lg border-white/20' />
 
       {/* Copyright */}
       <div className='flex items-center justify-center sm:justify-end'>

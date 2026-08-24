@@ -70,12 +70,12 @@ function BroadcastBuilderDrawer({ open, onClose }: { open: boolean; onClose: () 
       <SheetContent className='w-full overflow-y-auto sm:max-w-xl'>
         <SheetTitle className='sr-only'>Send Broadcast</SheetTitle>
         <div className='space-y-0'>
-          <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
+          <div className='-mx-2xl -mt-2xl mb-0 border-b border-border/60 bg-muted/20 px-2xl pb-xl pt-xl pe-14'>
             <h2 className='text-base font-semibold'>{t('builder.title')}</h2>
-            <p className='mt-0.5 text-xs text-muted-foreground'>{t('builder.subtitle')}</p>
+            <p className='mt-xxs text-xs text-muted-foreground'>{t('builder.subtitle')}</p>
           </div>
 
-          <div className='space-y-5 py-5'>
+          <div className='space-y-xl py-xl'>
             <div className='space-y-1.5'>
               <Label className='text-xs font-medium'>{t('builder.campaignTitle')}</Label>
               <Input
@@ -100,7 +100,7 @@ function BroadcastBuilderDrawer({ open, onClose }: { open: boolean; onClose: () 
 
             <Separator />
 
-            <div className='grid grid-cols-2 gap-3'>
+            <div className='grid grid-cols-2 gap-md'>
               <div className='space-y-1.5'>
                 <Label className='text-xs font-medium'>{t('builder.targetSegment')}</Label>
                 <Select value={segment} onValueChange={v => setSegment(v as typeof segment)}>
@@ -131,18 +131,18 @@ function BroadcastBuilderDrawer({ open, onClose }: { open: boolean; onClose: () 
 
             <Separator />
 
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 {t('builder.preview')}
               </h3>
-              <div className='rounded-lg border border-border/60 bg-muted/20 p-4'>
-                <div className='flex items-start gap-3'>
-                  <div className='rounded-lg bg-primary/10 p-2 shrink-0'>
+              <div className='rounded-lg border border-border/60 bg-muted/20 p-lg'>
+                <div className='flex items-start gap-md'>
+                  <div className='rounded-lg bg-primary/10 p-sm shrink-0'>
                     <Bell className='size-4 text-primary' />
                   </div>
                   <div className='min-w-0'>
                     <p className='text-sm font-semibold'>{title || t('builder.previewTitle')}</p>
-                    <p className='text-xs text-muted-foreground mt-0.5'>
+                    <p className='text-xs text-muted-foreground mt-xxs'>
                       {message || t('builder.previewMessage')}
                     </p>
                   </div>
@@ -150,7 +150,7 @@ function BroadcastBuilderDrawer({ open, onClose }: { open: boolean; onClose: () 
               </div>
             </div>
 
-            <div className='flex gap-2 pt-2'>
+            <div className='flex gap-sm pt-sm'>
               <Button
                 size='sm'
                 className='flex-1 h-8 text-xs'
@@ -198,9 +198,9 @@ function ChannelBreakdownCard({
 
   return (
     <Card className='border-border/60'>
-      <CardContent className='p-5'>
-        <h3 className='text-sm font-semibold mb-4'>{t('channelBreakdown')}</h3>
-        <div className='space-y-3'>
+      <CardContent className='p-xl'>
+        <h3 className='text-sm font-semibold mb-lg'>{t('channelBreakdown')}</h3>
+        <div className='space-y-md'>
           {channels.map(ch => {
             const pct = totalCount > 0 ? (ch.count / totalCount) * 100 : 0;
             const info = channelLabels[ch.channel] ?? { label: ch.channel, icon: Bell };
@@ -226,7 +226,7 @@ function ChannelBreakdownCard({
             );
           })}
           {channels.length === 0 && (
-            <p className='text-xs text-muted-foreground text-center py-4'>{t('noChannelData')}</p>
+            <p className='text-xs text-muted-foreground text-center py-lg'>{t('noChannelData')}</p>
           )}
         </div>
       </CardContent>
@@ -283,7 +283,7 @@ function NotificationsContent() {
   ];
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       <AdminModuleHeader
         title={t('title')}
         subtitle={t('subtitle')}
@@ -300,13 +300,13 @@ function NotificationsContent() {
       <Card className='border-border/60'>
         <CardContent className='p-0'>
           <AdminTabNav tabs={tabs} />
-          <div className='p-4'>
+          <div className='p-lg'>
             {currentTab === 'overview' && (
-              <div className='grid grid-cols-1 lg:grid-cols-2 gap-5'>
+              <div className='grid grid-cols-1 lg:grid-cols-2 gap-xl'>
                 <Card className='border-border/60'>
-                  <CardContent className='p-5'>
-                    <h3 className='text-sm font-semibold mb-4'>{t('overview.summary')}</h3>
-                    <div className='space-y-3'>
+                  <CardContent className='p-xl'>
+                    <h3 className='text-sm font-semibold mb-lg'>{t('overview.summary')}</h3>
+                    <div className='space-y-md'>
                       {[
                         {
                           label: t('overview.totalSent'),
@@ -358,9 +358,9 @@ export default function AdminNotificationsPage() {
   return (
     <Suspense
       fallback={
-        <div className='space-y-5'>
+        <div className='space-y-xl'>
           <Skeleton className='h-16 rounded-lg' />
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-md'>
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className='h-24 rounded-lg' />
             ))}

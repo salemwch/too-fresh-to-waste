@@ -168,7 +168,7 @@ function OrderDetailDrawer({
       <Sheet open={open} onOpenChange={v => !v && onClose()}>
         <SheetContent className='w-full overflow-y-auto sm:max-w-xl'>
           <SheetTitle className='sr-only'>Order Details</SheetTitle>
-          <div className='space-y-4 p-4'>
+          <div className='space-y-lg p-lg'>
             <Skeleton className='h-20' />
             <Skeleton className='h-40' />
             <Skeleton className='h-32' />
@@ -185,11 +185,11 @@ function OrderDetailDrawer({
 
         <div className='space-y-0'>
           {/* Header */}
-          <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
-            <div className='flex items-start justify-between gap-3'>
+          <div className='-mx-2xl -mt-2xl mb-0 border-b border-border/60 bg-muted/20 px-2xl pb-xl pt-xl pe-14'>
+            <div className='flex items-start justify-between gap-md'>
               <div>
                 <p className='text-base font-semibold'>{order.orderNumber}</p>
-                <p className='mt-0.5 text-xs text-muted-foreground'>
+                <p className='mt-xxs text-xs text-muted-foreground'>
                   {new Date(order.createdAt).toLocaleDateString('en-GB', {
                     day: '2-digit',
                     month: 'short',
@@ -201,26 +201,26 @@ function OrderDetailDrawer({
               </div>
               <span
                 className={cn(
-                  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+                  'inline-flex items-center rounded-full border px-2.5 py-xxs text-xs font-semibold',
                   orderStatusColor(order.status),
                 )}
               >
                 {tStatus(order.status)}
               </span>
             </div>
-            <div className='mt-3 flex gap-2'>
-              <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+            <div className='mt-md flex gap-sm'>
+              <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                 <p className='text-lg font-bold tabular-nums'>
                   {formatCurrency(order.pricing.total)}
                 </p>
                 <p className='text-[10px] text-muted-foreground'>Amount</p>
               </div>
-              <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
+              <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                 <p className='text-lg font-bold tabular-nums'>{order.items?.length ?? 0}</p>
                 <p className='text-[10px] text-muted-foreground'>Items</p>
               </div>
-              <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-3 py-2 text-center'>
-                <div className='flex items-center justify-center gap-1'>
+              <div className='flex-1 rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
+                <div className='flex items-center justify-center gap-xs'>
                   {getPaymentStatusIcon(order.paymentStatus)}
                   <p className='text-sm font-semibold capitalize'>
                     {order.paymentStatus.replace(/_/g, ' ')}
@@ -232,13 +232,13 @@ function OrderDetailDrawer({
           </div>
 
           {/* Body */}
-          <div className='space-y-5 px-0 py-5'>
+          <div className='space-y-xl px-0 py-xl'>
             {/* Customer */}
-            <section className='space-y-3'>
+            <section className='space-y-md'>
               <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 Customer
               </h3>
-              <div className='flex items-center gap-3 rounded-lg border border-border/60 p-3'>
+              <div className='flex items-center gap-md rounded-lg border border-border/60 p-md'>
                 <Avatar className='size-9'>
                   <AvatarFallback className='text-xs'>
                     {order.customer.name
@@ -258,11 +258,11 @@ function OrderDetailDrawer({
             </section>
 
             {/* Merchant */}
-            <section className='space-y-3'>
+            <section className='space-y-md'>
               <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 Merchant
               </h3>
-              <div className='flex items-center gap-3 rounded-lg border border-border/60 p-3'>
+              <div className='flex items-center gap-md rounded-lg border border-border/60 p-md'>
                 <div className='size-9 rounded-lg bg-primary/10 grid place-items-center'>
                   <Store className='size-4 text-primary' />
                 </div>
@@ -278,11 +278,11 @@ function OrderDetailDrawer({
             {order.deliveryMode === 'delivery' && (
               <>
                 <Separator />
-                <section className='space-y-3'>
+                <section className='space-y-md'>
                   <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                     {tDelivery('title')}
                   </h3>
-                  <div className='flex items-center gap-3 rounded-lg border border-border/60 p-3'>
+                  <div className='flex items-center gap-md rounded-lg border border-border/60 p-md'>
                     <div className='grid size-9 place-items-center rounded-lg bg-blue-50'>
                       <Truck className='size-4 text-blue-700' />
                     </div>
@@ -297,7 +297,7 @@ function OrderDetailDrawer({
                       </p>
                     </div>
                   </div>
-                  <div className='space-y-2'>
+                  <div className='space-y-sm'>
                     <DeliveryStep
                       label={tDelivery('assignedAt')}
                       at={order.driverAssignedAt}
@@ -331,7 +331,7 @@ function OrderDetailDrawer({
             <Separator />
 
             {/* Order Details */}
-            <section className='space-y-3'>
+            <section className='space-y-md'>
               <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 Details
               </h3>
@@ -391,13 +391,13 @@ function OrderDetailDrawer({
             {order.cancellationReason && (
               <>
                 <Separator />
-                <section className='space-y-3'>
+                <section className='space-y-md'>
                   <h3 className='text-xs font-semibold uppercase tracking-wide text-rose-600'>
                     Cancellation
                   </h3>
-                  <div className='rounded-lg border border-rose-200 bg-rose-50/50 p-3'>
-                    <div className='flex items-start gap-2'>
-                      <MessageSquare className='size-4 text-rose-600 mt-0.5 shrink-0' />
+                  <div className='rounded-lg border border-rose-200 bg-rose-50/50 p-md'>
+                    <div className='flex items-start gap-sm'>
+                      <MessageSquare className='size-4 text-rose-600 mt-xxs shrink-0' />
                       <p className='text-xs text-rose-800'>{order.cancellationReason}</p>
                     </div>
                   </div>
@@ -409,13 +409,13 @@ function OrderDetailDrawer({
             {order.refundRequests.length > 0 && (
               <>
                 <Separator />
-                <section className='space-y-3'>
+                <section className='space-y-md'>
                   <h3 className='text-xs font-semibold uppercase tracking-wide text-sky-600'>
                     Refund Requests
                   </h3>
                   {order.refundRequests.map((refund, i) => (
-                    <div key={i} className='rounded-lg border border-sky-200 bg-sky-50/50 p-3'>
-                      <div className='flex items-center justify-between mb-1'>
+                    <div key={i} className='rounded-lg border border-sky-200 bg-sky-50/50 p-md'>
+                      <div className='flex items-center justify-between mb-xs'>
                         <span className='text-[10px] font-medium uppercase text-sky-600'>
                           {refund.status}
                         </span>
@@ -425,7 +425,7 @@ function OrderDetailDrawer({
                       </div>
                       <p className='text-xs text-sky-800'>{refund.reason}</p>
                       {refund.notes && (
-                        <p className='mt-1 text-[11px] text-sky-600 italic'>{refund.notes}</p>
+                        <p className='mt-xs text-[11px] text-sky-600 italic'>{refund.notes}</p>
                       )}
                     </div>
                   ))}
@@ -436,11 +436,11 @@ function OrderDetailDrawer({
             <Separator />
 
             {/* Admin Actions */}
-            <section className='space-y-3'>
+            <section className='space-y-md'>
               <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 Actions
               </h3>
-              <div className='flex flex-wrap gap-2'>
+              <div className='flex flex-wrap gap-sm'>
                 {CANCELLABLE_STATUSES.includes(order.status) && (
                   <Button
                     size='sm'
@@ -604,7 +604,7 @@ function OrdersContent() {
       key: 'customer',
       header: t('columns.customer'),
       render: order => (
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-sm'>
           <User className='size-3.5 text-muted-foreground shrink-0' />
           <span className='text-xs truncate max-w-[120px]'>{order.customer.name}</span>
         </div>
@@ -614,7 +614,7 @@ function OrdersContent() {
       key: 'merchant',
       header: t('columns.merchant'),
       render: order => (
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-sm'>
           <Store className='size-3.5 text-muted-foreground shrink-0' />
           <span className='text-xs truncate max-w-[120px]'>{order.merchant.name}</span>
         </div>
@@ -641,7 +641,7 @@ function OrdersContent() {
       render: order => (
         <span
           className={cn(
-            'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold',
+            'inline-flex items-center rounded-full border px-sm py-xxs text-[10px] font-semibold',
             orderStatusColor(order.status),
           )}
         >
@@ -681,7 +681,7 @@ function OrdersContent() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='w-36'>
             <DropdownMenuItem onClick={() => setSelectedOrderId(order._id)}>
-              <Eye className='me-2 size-3.5' />
+              <Eye className='me-sm size-3.5' />
               {t('actions.viewDetails')}
             </DropdownMenuItem>
             {CANCELLABLE_STATUSES.includes(order.status) && (
@@ -689,7 +689,7 @@ function OrdersContent() {
                 className='text-rose-600'
                 onClick={() => setCancelDialog({ open: true, orderId: order._id })}
               >
-                <Ban className='me-2 size-3.5' />
+                <Ban className='me-sm size-3.5' />
                 {t('actions.cancel')}
               </DropdownMenuItem>
             )}
@@ -699,7 +699,7 @@ function OrdersContent() {
                   className='text-sky-600'
                   onClick={() => setRefundDialog({ open: true, orderId: order._id })}
                 >
-                  <RotateCcw className='me-2 size-3.5' />
+                  <RotateCcw className='me-sm size-3.5' />
                   {t('actions.refund')}
                 </DropdownMenuItem>
               )}
@@ -707,7 +707,7 @@ function OrdersContent() {
               className='text-destructive'
               onClick={() => setDeleteDialog({ open: true, orderId: order._id })}
             >
-              <Trash2 className='me-2 size-3.5' />
+              <Trash2 className='me-sm size-3.5' />
               {t('actions.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -717,10 +717,10 @@ function OrdersContent() {
   ];
 
   return (
-    <div className='space-y-5'>
-      <div className='flex items-start justify-between gap-4'>
+    <div className='space-y-xl'>
+      <div className='flex items-start justify-between gap-lg'>
         <AdminModuleHeader title={t('title')} subtitle={t('subtitle')} />
-        <div className='flex gap-2 shrink-0'>
+        <div className='flex gap-sm shrink-0'>
           <Button
             variant='outline'
             size='sm'
@@ -744,7 +744,7 @@ function OrdersContent() {
         <CardContent className='p-0'>
           <AdminTabNav tabs={tabs} />
 
-          <div className='p-4'>
+          <div className='p-lg'>
             <AdminDataTable
               columns={columns}
               data={orders}
@@ -827,9 +827,9 @@ export default function AdminOrdersPage() {
   return (
     <Suspense
       fallback={
-        <div className='space-y-5'>
+        <div className='space-y-xl'>
           <Skeleton className='h-16 rounded-lg' />
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-md'>
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className='h-24 rounded-lg' />
             ))}

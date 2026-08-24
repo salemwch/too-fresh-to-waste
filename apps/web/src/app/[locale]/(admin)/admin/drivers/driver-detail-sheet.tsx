@@ -59,14 +59,14 @@ interface StatTileProps {
 
 const StatTile = memo(function StatTile({ icon: Icon, label, value, tone }: StatTileProps) {
   return (
-    <div className='rounded-lg border border-border/60 bg-card p-3'>
+    <div className='rounded-lg border border-border/60 bg-card p-md'>
       <div className='flex items-center gap-1.5 text-muted-foreground'>
         <Icon className={cn('size-3.5', tone === 'warning' && 'text-warning')} />
         <span className='text-[11px] font-medium uppercase tracking-wide'>{label}</span>
       </div>
       <p
         className={cn(
-          'mt-1 text-lg font-semibold tabular-nums',
+          'mt-xs text-lg font-semibold tabular-nums',
           tone === 'warning' ? 'text-warning' : 'text-foreground',
         )}
       >
@@ -78,7 +78,7 @@ const StatTile = memo(function StatTile({ icon: Icon, label, value, tone }: Stat
 
 const InfoRow = memo(function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className='flex items-baseline justify-between gap-4 py-1.5'>
+    <div className='flex items-baseline justify-between gap-lg py-1.5'>
       <span className='shrink-0 text-xs text-muted-foreground'>{label}</span>
       <span className='truncate text-xs font-medium text-foreground'>{value}</span>
     </div>
@@ -87,7 +87,7 @@ const InfoRow = memo(function InfoRow({ label, value }: { label: string; value: 
 
 const SectionTitle = memo(function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className='mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+    <h3 className='mb-sm text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
       {children}
     </h3>
   );
@@ -112,8 +112,8 @@ const AvailabilityPanel = memo(function AvailabilityPanel({
   return (
     <section>
       <SectionTitle>{t('detail.position.title')}</SectionTitle>
-      <div className='rounded-lg border border-border/60 bg-card p-3'>
-        <div className='flex items-center gap-2'>
+      <div className='rounded-lg border border-border/60 bg-card p-md'>
+        <div className='flex items-center gap-sm'>
           <span
             aria-hidden='true'
             className={cn(
@@ -129,16 +129,16 @@ const AvailabilityPanel = memo(function AvailabilityPanel({
           </span>
         </div>
 
-        <Separator className='my-3' />
+        <Separator className='my-md' />
 
         {position ? (
-          <div className='flex items-center justify-between gap-3'>
+          <div className='flex items-center justify-between gap-md'>
             <div className='min-w-0'>
               <p className='truncate font-mono text-xs text-foreground'>
                 {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
               </p>
               {reportedAt && (
-                <p className='mt-0.5 text-[11px] text-muted-foreground'>
+                <p className='mt-xxs text-[11px] text-muted-foreground'>
                   {t('detail.position.reportedAt', { when: reportedAt })}
                 </p>
               )}
@@ -151,9 +151,9 @@ const AvailabilityPanel = memo(function AvailabilityPanel({
                 target='_blank'
                 rel='noopener noreferrer'
               >
-                <MapPin className='me-1 size-3' />
+                <MapPin className='me-xs size-3' />
                 {t('detail.position.viewOnMap')}
-                <ExternalLink className='ms-1 size-3' />
+                <ExternalLink className='ms-xs size-3' />
               </a>
             </Button>
           </div>
@@ -179,36 +179,36 @@ const OrderHistoryRow = memo(function OrderHistoryRow({
 
   return (
     <tr className='border-b border-border/40 last:border-0'>
-      <td className='py-2 pe-2'>
+      <td className='py-sm pe-sm'>
         <p className='font-mono text-[11px] font-medium'>{order.orderNumber}</p>
         <p className='text-[10px] text-muted-foreground'>
           {formatDate(locale, order.createdAt) ?? EM_DASH}
         </p>
       </td>
-      <td className='px-2 py-2'>
+      <td className='px-sm py-sm'>
         <span
           className={cn(
-            'inline-flex rounded-full border px-1.5 py-0.5 text-[10px] font-medium',
+            'inline-flex rounded-full border px-1.5 py-xxs text-[10px] font-medium',
             orderStatusColor(order.status),
           )}
         >
           {tStatus(order.status)}
         </span>
       </td>
-      <td className='px-2 py-2 text-[11px] text-muted-foreground'>
+      <td className='px-sm py-sm text-[11px] text-muted-foreground'>
         {order.deliveryCity ?? EM_DASH}
       </td>
-      <td className='px-2 py-2 text-[11px] tabular-nums text-muted-foreground'>
+      <td className='px-sm py-sm text-[11px] tabular-nums text-muted-foreground'>
         {order.estimatedDistanceKm !== null
           ? `${order.estimatedDistanceKm.toFixed(1)} km`
           : EM_DASH}
       </td>
-      <td className='ps-2 py-2 text-end text-[11px] font-medium tabular-nums'>
+      <td className='ps-sm py-sm text-end text-[11px] font-medium tabular-nums'>
         {order.driverEarnings !== null
           ? formatMoney(locale, order.driverEarnings, order.currency)
           : EM_DASH}
       </td>
-      <td className='ps-2 py-2 text-end text-[10px] text-muted-foreground'>
+      <td className='ps-sm py-sm text-end text-[10px] text-muted-foreground'>
         {formatRelative(locale, order.deliveredAt) ?? t('detail.notProvided')}
       </td>
     </tr>
@@ -232,19 +232,19 @@ function OrderHistory({ driverId, locale }: { driverId: string; locale: string }
   return (
     <section>
       <SectionTitle>{t('detail.orders.title')}</SectionTitle>
-      <div className='rounded-lg border border-border/60 bg-card p-3'>
+      <div className='rounded-lg border border-border/60 bg-card p-md'>
         {isError ? (
-          <p className='py-4 text-center text-xs text-muted-foreground'>
+          <p className='py-lg text-center text-xs text-muted-foreground'>
             {t('detail.orders.error')}
           </p>
         ) : isLoading ? (
-          <div className='space-y-2'>
+          <div className='space-y-sm'>
             {SKELETON_ROWS.map(i => (
               <Skeleton key={i} className='h-8 w-full' />
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <p className='py-4 text-center text-xs text-muted-foreground'>
+          <p className='py-lg text-center text-xs text-muted-foreground'>
             {t('detail.orders.empty')}
           </p>
         ) : (
@@ -252,18 +252,20 @@ function OrderHistory({ driverId, locale }: { driverId: string; locale: string }
             <table className='w-full min-w-[480px] text-xs'>
               <thead>
                 <tr className='border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground'>
-                  <th className='py-1.5 pe-2 text-start font-medium'>{t('detail.orders.order')}</th>
-                  <th className='px-2 py-1.5 text-start font-medium'>
+                  <th className='py-1.5 pe-sm text-start font-medium'>
+                    {t('detail.orders.order')}
+                  </th>
+                  <th className='px-sm py-1.5 text-start font-medium'>
                     {t('detail.orders.status')}
                   </th>
-                  <th className='px-2 py-1.5 text-start font-medium'>{t('detail.orders.city')}</th>
-                  <th className='px-2 py-1.5 text-start font-medium'>
+                  <th className='px-sm py-1.5 text-start font-medium'>{t('detail.orders.city')}</th>
+                  <th className='px-sm py-1.5 text-start font-medium'>
                     {t('detail.orders.distance')}
                   </th>
-                  <th className='ps-2 py-1.5 text-end font-medium'>
+                  <th className='ps-sm py-1.5 text-end font-medium'>
                     {t('detail.orders.earnings')}
                   </th>
-                  <th className='ps-2 py-1.5 text-end font-medium'>
+                  <th className='ps-sm py-1.5 text-end font-medium'>
                     {t('detail.orders.delivered')}
                   </th>
                 </tr>
@@ -278,7 +280,7 @@ function OrderHistory({ driverId, locale }: { driverId: string; locale: string }
         )}
 
         {totalPages > 1 && (
-          <div className='mt-3 flex items-center justify-end gap-2'>
+          <div className='mt-md flex items-center justify-end gap-sm'>
             <span className='text-[11px] text-muted-foreground'>
               {t('detail.orders.page', { page, total: totalPages })}
             </span>
@@ -320,18 +322,18 @@ const ReleaseRow = memo(function ReleaseRow({
 }) {
   const t = useTranslations('adminDrivers');
   return (
-    <li className='flex items-start gap-2 border-b border-border/40 py-2 last:border-0'>
+    <li className='flex items-start gap-sm border-b border-border/40 py-sm last:border-0'>
       <Ban
         aria-hidden='true'
         className={cn(
-          'mt-0.5 size-3 shrink-0',
+          'mt-xxs size-3 shrink-0',
           release.auto ? 'text-muted-foreground' : 'text-warning',
         )}
       />
       <div className='min-w-0 flex-1'>
         <p className='text-[11px] font-medium'>
           <span className='font-mono'>{release.orderNumber}</span>
-          <span className='ms-2 font-normal text-muted-foreground'>
+          <span className='ms-sm font-normal text-muted-foreground'>
             {release.auto ? t('detail.releases.auto') : t('detail.releases.manual')}
           </span>
         </p>
@@ -357,9 +359,9 @@ function DriverDetailBody({ detail, locale }: { detail: DriverDetail; locale: st
   const initials = `${driver.firstName.charAt(0)}${driver.lastName.charAt(0)}`.toUpperCase();
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       {/* Identity header */}
-      <div className='flex items-start gap-3'>
+      <div className='flex items-start gap-md'>
         <Avatar className='size-10'>
           <AvatarFallback className='bg-primary/10 text-sm font-semibold text-primary'>
             {initials}
@@ -386,7 +388,7 @@ function DriverDetailBody({ detail, locale }: { detail: DriverDetail; locale: st
       {/* Lifetime performance */}
       <section>
         <SectionTitle>{t('detail.stats.title')}</SectionTitle>
-        <div className='grid grid-cols-2 gap-2 sm:grid-cols-3'>
+        <div className='grid grid-cols-2 gap-sm sm:grid-cols-3'>
           <StatTile
             icon={CheckCircle2}
             label={t('detail.stats.delivered')}
@@ -428,7 +430,7 @@ function DriverDetailBody({ detail, locale }: { detail: DriverDetail; locale: st
       {/* Earnings buckets */}
       <section>
         <SectionTitle>{t('detail.earnings.title')}</SectionTitle>
-        <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+        <div className='grid grid-cols-2 gap-sm sm:grid-cols-4'>
           <StatTile
             icon={Wallet}
             label={t('detail.earnings.today')}
@@ -455,7 +457,7 @@ function DriverDetailBody({ detail, locale }: { detail: DriverDetail; locale: st
       {/* Identity details */}
       <section>
         <SectionTitle>{t('detail.identity')}</SectionTitle>
-        <div className='divide-y divide-border/40 rounded-lg border border-border/60 bg-card px-3 py-1'>
+        <div className='divide-y divide-border/40 rounded-lg border border-border/60 bg-card px-md py-xs'>
           <InfoRow
             label={t('detail.phone')}
             value={driver.phoneNumber ?? t('detail.notProvided')}
@@ -488,9 +490,9 @@ function DriverDetailBody({ detail, locale }: { detail: DriverDetail; locale: st
       {/* Unassignment trail */}
       <section>
         <SectionTitle>{t('detail.releases.title')}</SectionTitle>
-        <div className='rounded-lg border border-border/60 bg-card px-3 py-1'>
+        <div className='rounded-lg border border-border/60 bg-card px-md py-xs'>
           {unassignments.length === 0 ? (
-            <p className='py-3 text-center text-xs text-muted-foreground'>
+            <p className='py-md text-center text-xs text-muted-foreground'>
               {t('detail.releases.empty')}
             </p>
           ) : (
@@ -527,15 +529,15 @@ export function DriverDetailSheet({ driverId, open, onClose }: DriverDetailSheet
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className='w-full overflow-y-auto sm:max-w-2xl'>
-        <SheetTitle className='mb-4 flex items-center gap-2 text-base'>
+        <SheetTitle className='mb-lg flex items-center gap-sm text-base'>
           <Clock className='size-4 text-primary' aria-hidden='true' />
           {t('detail.title')}
         </SheetTitle>
 
         {isError ? (
-          <p className='py-10 text-center text-sm text-muted-foreground'>{t('detail.error')}</p>
+          <p className='py-6xl text-center text-sm text-muted-foreground'>{t('detail.error')}</p>
         ) : isLoading || !data ? (
-          <div className='space-y-3'>
+          <div className='space-y-md'>
             {SKELETON_BLOCKS.map(i => (
               <Skeleton key={i} className='h-20 w-full' />
             ))}

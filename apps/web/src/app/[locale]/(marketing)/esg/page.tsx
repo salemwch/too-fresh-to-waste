@@ -363,17 +363,17 @@ export default async function ESGPage({ params }: PageProps) {
         <section className='bg-primary-500 relative overflow-hidden'>
           {/* Decorative acronym ghost */}
           <div
-            className='absolute bottom-4 right-4 text-[200px] font-black text-white/[0.025] select-none pointer-events-none leading-none tracking-tighter hidden lg:block'
+            className='absolute bottom-lg right-lg text-[200px] font-black text-white/[0.025] select-none pointer-events-none leading-none tracking-tighter hidden lg:block'
             aria-hidden='true'
           >
             ESG
           </div>
 
-          <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-16 pb-0 lg:pt-24'>
-            <div className='grid lg:grid-cols-2 gap-12 lg:gap-20 items-center'>
+          <div className='relative mx-auto max-w-7xl px-2xl lg:px-4xl pt-4xl pb-0 lg:pt-6xl'>
+            <div className='grid lg:grid-cols-2 gap-3xl lg:gap-5xl items-center'>
               {/* Left - copy */}
-              <div className='pb-16 lg:pb-24'>
-                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
+              <div className='pb-4xl lg:pb-6xl'>
+                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-xl'>
                   {t('hero.titleStart')}{' '}
                   <span className='text-secondary-light italic'>{t('hero.titleEm1')}</span>
                   <br />
@@ -381,21 +381,21 @@ export default async function ESGPage({ params }: PageProps) {
                   <span className='text-secondary-light italic'>{t('hero.titleEm2')}</span>
                 </h1>
 
-                <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-8 max-w-xl'>
+                <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-4xl max-w-xl'>
                   {t('hero.lede')}
                 </p>
 
-                <div className='flex flex-wrap gap-3'>
+                <div className='flex flex-wrap gap-md'>
                   <a
                     href='#what-is-esg'
-                    className='inline-flex items-center gap-2 bg-white text-primary-500 font-bold px-6 py-3.5 rounded-full hover:bg-cream transition-colors shadow-lg text-sm'
+                    className='inline-flex items-center gap-sm bg-white text-primary-500 font-bold px-2xl py-3.5 rounded-full hover:bg-cream transition-colors shadow-lg text-sm'
                   >
                     {t('hero.ctaUnderstand')}
                     <ArrowRightIcon className='w-4 h-4' />
                   </a>
                   <a
                     href='#eu-regulations'
-                    className='inline-flex items-center gap-2 border border-white/30 text-white font-bold px-6 py-3.5 rounded-full hover:border-white/60 hover:bg-white/5 transition-colors text-sm'
+                    className='inline-flex items-center gap-sm border border-white/30 text-white font-bold px-2xl py-3.5 rounded-full hover:border-white/60 hover:bg-white/5 transition-colors text-sm'
                   >
                     {t('hero.ctaLaws')}
                     <ArrowRightIcon className='w-4 h-4' />
@@ -404,13 +404,13 @@ export default async function ESGPage({ params }: PageProps) {
               </div>
 
               {/* Right - stat cards */}
-              <div className='hidden lg:flex flex-col gap-4 pb-16'>
+              <div className='hidden lg:flex flex-col gap-lg pb-4xl'>
                 {heroStats.map((s, i) => (
                   <div
                     key={s.value}
-                    className={`bg-white/10 border ${HERO_STAT_BORDERS[i] ?? HERO_STAT_BORDERS[0]} rounded-2xl px-6 py-5`}
+                    className={`bg-white/10 border ${HERO_STAT_BORDERS[i] ?? HERO_STAT_BORDERS[0]} rounded-2xl px-2xl py-xl`}
                   >
-                    <p className='font-heading text-3xl font-bold text-white mb-1'>{s.value}</p>
+                    <p className='font-heading text-3xl font-bold text-white mb-xs'>{s.value}</p>
                     <p className='text-white/75 text-sm leading-snug'>{s.label}</p>
                   </div>
                 ))}
@@ -432,13 +432,13 @@ export default async function ESGPage({ params }: PageProps) {
         </section>
 
         {/* ── WHAT IS ESG ──────────────────────────────────────────────────── */}
-        <section id='what-is-esg' className='bg-white py-16 lg:py-24 scroll-mt-20'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+        <section id='what-is-esg' className='bg-white py-4xl lg:py-6xl scroll-mt-20'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('fundamentals.eyebrow')}
               </p>
-              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-lg'>
                 {t('fundamentals.title')}
               </h2>
               <p className='text-primary-500/75 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
@@ -446,18 +446,18 @@ export default async function ESGPage({ params }: PageProps) {
               </p>
             </div>
 
-            <div className='grid md:grid-cols-3 gap-6 lg:gap-8'>
+            <div className='grid md:grid-cols-3 gap-2xl lg:gap-4xl'>
               {pillars.map((pillar, i) => {
                 const art = PILLAR_ART[i] ?? PILLAR_ART[0];
                 const PillarIcon = art.icon;
                 return (
                   <div
                     key={art.letter}
-                    className={`relative bg-cream rounded-3xl p-8 border-2 ${art.border} hover:shadow-lg transition-all duration-300 group overflow-hidden`}
+                    className={`relative bg-cream rounded-3xl p-4xl border-2 ${art.border} hover:shadow-lg transition-all duration-300 group overflow-hidden`}
                   >
                     {/* Large letter bg */}
                     <div
-                      className={`absolute -bottom-4 -right-2 text-[120px] font-black leading-none select-none pointer-events-none ${art.color} opacity-5`}
+                      className={`absolute -bottom-lg -right-sm text-[120px] font-black leading-none select-none pointer-events-none ${art.color} opacity-5`}
                       aria-hidden='true'
                     >
                       {art.letter}
@@ -465,13 +465,13 @@ export default async function ESGPage({ params }: PageProps) {
 
                     {/* Icon */}
                     <div
-                      className={`w-14 h-14 rounded-2xl ${art.bg} ${art.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
+                      className={`w-14 h-14 rounded-2xl ${art.bg} ${art.color} flex items-center justify-center mb-xl group-hover:scale-110 transition-transform duration-300`}
                     >
                       <PillarIcon className='w-7 h-7' />
                     </div>
 
                     {/* Pillar badge */}
-                    <div className='flex items-center gap-2 mb-3'>
+                    <div className='flex items-center gap-sm mb-md'>
                       <span
                         className={`w-8 h-8 rounded-xl ${art.accent} text-white font-black text-base flex items-center justify-center`}
                       >
@@ -482,18 +482,18 @@ export default async function ESGPage({ params }: PageProps) {
                       </p>
                     </div>
 
-                    <h3 className='font-heading text-xl font-bold text-primary-500 mb-3 leading-snug'>
+                    <h3 className='font-heading text-xl font-bold text-primary-500 mb-md leading-snug'>
                       {pillar.headline}
                     </h3>
-                    <p className='text-sm text-primary-500/75 leading-relaxed mb-5'>
+                    <p className='text-sm text-primary-500/75 leading-relaxed mb-xl'>
                       {pillar.body}
                     </p>
 
-                    <ul className='space-y-2'>
+                    <ul className='space-y-sm'>
                       {pillar.metrics.map((m, mi) => (
                         <li
                           key={mi}
-                          className='flex items-center gap-2 text-xs text-primary-500/70'
+                          className='flex items-center gap-sm text-xs text-primary-500/70'
                         >
                           <span
                             className={`w-4 h-4 rounded-full ${art.bg} ${art.color} flex items-center justify-center shrink-0`}
@@ -510,7 +510,7 @@ export default async function ESGPage({ params }: PageProps) {
             </div>
 
             {/* One-liner callout */}
-            <div className='mt-10 bg-primary-500 rounded-3xl px-8 py-7 text-center'>
+            <div className='mt-6xl bg-primary-500 rounded-3xl px-4xl py-3xl text-center'>
               <p className='font-heading text-xl lg:text-2xl font-bold text-white leading-snug'>
                 {t('fundamentals.calloutStart')}{' '}
                 <span className='text-secondary-light italic'>{t('fundamentals.calloutEm')}</span>
@@ -520,35 +520,35 @@ export default async function ESGPage({ params }: PageProps) {
         </section>
 
         {/* ── WHY YOU NEED IT ──────────────────────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-24 relative overflow-hidden'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+        <section className='bg-cream py-4xl lg:py-6xl relative overflow-hidden'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('businessCase.eyebrow')}
               </p>
-              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-lg'>
                 {t('businessCase.titleStart')}{' '}
                 <span className='text-brand-green italic'>{t('businessCase.titleEm')}</span>
               </h2>
             </div>
 
-            <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-5'>
+            <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-xl'>
               {businessCase.map((item, i) => {
                 const CardIcon = BUSINESS_ICONS[i] ?? BUSINESS_ICONS[0];
                 return (
                   <div
                     key={item.title}
-                    className='bg-white rounded-3xl p-7 border border-primary-500/10 hover:shadow-md hover:border-primary-500/20 transition-all duration-300 group'
+                    className='bg-white rounded-3xl p-3xl border border-primary-500/10 hover:shadow-md hover:border-primary-500/20 transition-all duration-300 group'
                   >
-                    <div className='flex items-start justify-between mb-4'>
+                    <div className='flex items-start justify-between mb-lg'>
                       <div className='w-12 h-12 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300'>
                         <CardIcon className='w-6 h-6' />
                       </div>
-                      <span className='text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-brand-green text-white'>
+                      <span className='text-[10px] font-black uppercase tracking-widest px-2.5 py-xs rounded-full bg-brand-green text-white'>
                         {item.badge}
                       </span>
                     </div>
-                    <h3 className='font-bold text-base text-primary-500 mb-2 leading-snug'>
+                    <h3 className='font-bold text-base text-primary-500 mb-sm leading-snug'>
                       {item.title}
                     </h3>
                     <p className='text-sm text-primary-500/75 leading-relaxed'>{item.body}</p>
@@ -560,13 +560,13 @@ export default async function ESGPage({ params }: PageProps) {
         </section>
 
         {/* ── EU REGULATIONS ───────────────────────────────────────────────── */}
-        <section id='eu-regulations' className='bg-white py-16 lg:py-24 scroll-mt-20'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+        <section id='eu-regulations' className='bg-white py-4xl lg:py-6xl scroll-mt-20'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('regulations.eyebrow')}
               </p>
-              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-lg'>
                 {t('regulations.titleStart')}
                 <br />
                 <span className='text-brand-green italic'>{t('regulations.titleEm')}</span>
@@ -576,28 +576,28 @@ export default async function ESGPage({ params }: PageProps) {
               </p>
             </div>
 
-            <div className='space-y-5'>
+            <div className='space-y-xl'>
               {regulations.map((reg, i) => {
                 const urgency = REGULATION_URGENCY[i] ?? 'medium';
                 return (
                   <div
                     key={reg.code}
-                    className='bg-cream rounded-3xl p-7 lg:p-8 border border-primary-500/10 hover:border-primary-500/15 hover:shadow-md transition-all duration-300'
+                    className='bg-cream rounded-3xl p-3xl lg:p-4xl border border-primary-500/10 hover:border-primary-500/15 hover:shadow-md transition-all duration-300'
                   >
-                    <div className='flex flex-wrap items-start gap-4 mb-5'>
+                    <div className='flex flex-wrap items-start gap-lg mb-xl'>
                       {/* Code badge */}
                       <div className='shrink-0'>
-                        <span className='inline-flex items-center gap-1.5 bg-primary-500 text-white text-sm font-black px-4 py-2 rounded-full'>
+                        <span className='inline-flex items-center gap-1.5 bg-primary-500 text-white text-sm font-black px-lg py-sm rounded-full'>
                           {reg.code}
                         </span>
                       </div>
 
                       <div className='flex-1 min-w-0'>
-                        <div className='flex flex-wrap items-center gap-3 mb-1'>
+                        <div className='flex flex-wrap items-center gap-md mb-xs'>
                           <h3 className='font-bold text-base lg:text-lg text-primary-500'>
                             {reg.full}
                           </h3>
-                          <span className='text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border text-white bg-brand-green border-brand-green'>
+                          <span className='text-[10px] font-black uppercase tracking-widest px-2.5 py-xs rounded-full border text-white bg-brand-green border-brand-green'>
                             {reg.status}
                           </span>
                         </div>
@@ -608,7 +608,7 @@ export default async function ESGPage({ params }: PageProps) {
 
                       {/* Urgency pill */}
                       <span
-                        className={`shrink-0 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${
+                        className={`shrink-0 text-[10px] font-black uppercase tracking-widest px-md py-1.5 rounded-full ${
                           urgency === 'immediate'
                             ? 'bg-error text-white'
                             : urgency === 'high'
@@ -625,10 +625,10 @@ export default async function ESGPage({ params }: PageProps) {
                       </span>
                     </div>
 
-                    <div className='grid lg:grid-cols-[1fr_auto] gap-5'>
+                    <div className='grid lg:grid-cols-[1fr_auto] gap-xl'>
                       <p className='text-sm text-primary-500/75 leading-relaxed'>{reg.summary}</p>
-                      <div className='lg:w-72 shrink-0 bg-white rounded-2xl p-4 border border-primary-500/10'>
-                        <p className='text-[10px] font-black uppercase tracking-widest text-primary-500/75 mb-2'>
+                      <div className='lg:w-72 shrink-0 bg-white rounded-2xl p-lg border border-primary-500/10'>
+                        <p className='text-[10px] font-black uppercase tracking-widest text-primary-500/75 mb-sm'>
                           {t('regulations.impactLabel')}
                         </p>
                         <p className='text-sm font-bold text-primary-500 leading-snug'>
@@ -642,8 +642,8 @@ export default async function ESGPage({ params }: PageProps) {
             </div>
 
             {/* Bottom note */}
-            <div className='mt-8 flex items-start gap-3 bg-error/10 border border-error/25 rounded-2xl p-5'>
-              <AlertTriangleIcon className='w-5 h-5 text-error shrink-0 mt-0.5' />
+            <div className='mt-4xl flex items-start gap-md bg-error/10 border border-error/25 rounded-2xl p-xl'>
+              <AlertTriangleIcon className='w-5 h-5 text-error shrink-0 mt-xxs' />
               <p className='text-sm text-primary-500/75 leading-relaxed'>
                 {t.rich('regulations.footnote', {
                   b: chunks => <strong className='text-primary-500'>{chunks}</strong>,
@@ -654,7 +654,7 @@ export default async function ESGPage({ params }: PageProps) {
         </section>
 
         {/* ── WHY TUNISIA ──────────────────────────────────────────────────── */}
-        <section className='bg-primary-500 py-16 lg:py-24 relative overflow-hidden'>
+        <section className='bg-primary-500 py-4xl lg:py-6xl relative overflow-hidden'>
           {/* Waves */}
           <div className='absolute top-0 left-0 right-0' aria-hidden='true'>
             <svg
@@ -677,12 +677,12 @@ export default async function ESGPage({ params }: PageProps) {
             </svg>
           </div>
 
-          <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-10 pb-8'>
+          <div className='relative mx-auto max-w-7xl px-2xl lg:px-4xl pt-6xl pb-4xl'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-secondary-light mb-3'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-secondary-light mb-md'>
                 {t('tunisia.eyebrow')}
               </p>
-              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white mb-lg'>
                 {t('tunisia.titleStart')}{' '}
                 <span className='text-secondary-light italic'>{t('tunisia.titleEm')}</span>
               </h2>
@@ -691,18 +691,18 @@ export default async function ESGPage({ params }: PageProps) {
               </p>
             </div>
 
-            <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-5'>
+            <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-xl'>
               {tunisiaReasons.map((item, i) => {
                 const ReasonIcon = TUNISIA_ICONS[i] ?? TUNISIA_ICONS[0];
                 return (
                   <div
                     key={item.title}
-                    className='bg-white/10 border border-white/15 rounded-3xl p-7 hover:bg-white/15 hover:border-white/20 transition-all duration-300 group'
+                    className='bg-white/10 border border-white/15 rounded-3xl p-3xl hover:bg-white/15 hover:border-white/20 transition-all duration-300 group'
                   >
-                    <div className='w-12 h-12 rounded-xl bg-secondary-light/15 text-secondary-light flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300'>
+                    <div className='w-12 h-12 rounded-xl bg-secondary-light/15 text-secondary-light flex items-center justify-center mb-lg group-hover:scale-110 transition-transform duration-300'>
                       <ReasonIcon className='w-6 h-6' />
                     </div>
-                    <h3 className='font-bold text-base text-white mb-3 leading-snug'>
+                    <h3 className='font-bold text-base text-white mb-md leading-snug'>
                       {item.title}
                     </h3>
                     <p className='text-sm text-white/65 leading-relaxed'>{item.body}</p>
@@ -712,10 +712,10 @@ export default async function ESGPage({ params }: PageProps) {
             </div>
 
             {/* Flag + context */}
-            <div className='mt-10 bg-white/10 border border-white/15 rounded-3xl p-7 lg:p-8 flex flex-col lg:flex-row items-center gap-6 text-center lg:text-left'>
+            <div className='mt-6xl bg-white/10 border border-white/15 rounded-3xl p-3xl lg:p-4xl flex flex-col lg:flex-row items-center gap-2xl text-center lg:text-left'>
               <div className='text-6xl shrink-0'>🇹🇳</div>
               <div>
-                <p className='font-heading text-xl lg:text-2xl font-bold text-white mb-2'>
+                <p className='font-heading text-xl lg:text-2xl font-bold text-white mb-sm'>
                   {t('tunisia.calloutTitle')}
                 </p>
                 <p className='text-white/65 text-sm lg:text-base leading-relaxed'>
@@ -727,13 +727,13 @@ export default async function ESGPage({ params }: PageProps) {
         </section>
 
         {/* ── HOW TFTW HELPS YOUR ESG ──────────────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-24'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+        <section className='bg-cream py-4xl lg:py-6xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('contribution.eyebrow')}
               </p>
-              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 mb-lg'>
                 {t('contribution.titleStart')}{' '}
                 <span className='text-brand-green italic'>{t('contribution.titleEm')}</span>
               </h2>
@@ -742,17 +742,17 @@ export default async function ESGPage({ params }: PageProps) {
               </p>
             </div>
 
-            <div className='grid md:grid-cols-3 gap-6 lg:gap-8 mb-10'>
+            <div className='grid md:grid-cols-3 gap-2xl lg:gap-4xl mb-6xl'>
               {contributions.map((item, i) => (
                 <div
                   key={item.pillar}
-                  className='bg-white rounded-3xl p-8 border border-primary-500/10 hover:shadow-lg transition-all duration-300 group relative overflow-hidden'
+                  className='bg-white rounded-3xl p-4xl border border-primary-500/10 hover:shadow-lg transition-all duration-300 group relative overflow-hidden'
                 >
                   <div
-                    className='bg-brand-teal absolute -bottom-6 -right-6 h-32 w-32 rounded-full opacity-5 pointer-events-none'
+                    className='bg-brand-teal absolute -bottom-2xl -right-2xl h-32 w-32 rounded-full opacity-5 pointer-events-none'
                     aria-hidden='true'
                   />
-                  <div className='flex items-center gap-3 mb-5'>
+                  <div className='flex items-center gap-md mb-xl'>
                     <span
                       className={`w-10 h-10 rounded-xl ${CONTRIBUTION_COLORS[i] ?? CONTRIBUTION_COLORS[0]} text-white font-black text-lg flex items-center justify-center shrink-0`}
                     >
@@ -767,7 +767,7 @@ export default async function ESGPage({ params }: PageProps) {
                       </p>
                     </div>
                   </div>
-                  <h3 className='font-bold text-base text-primary-500 mb-3 leading-snug'>
+                  <h3 className='font-bold text-base text-primary-500 mb-md leading-snug'>
                     {item.title}
                   </h3>
                   <p className='text-sm text-primary-500/75 leading-relaxed'>{item.body}</p>
@@ -776,11 +776,11 @@ export default async function ESGPage({ params }: PageProps) {
             </div>
 
             {/* Reporting frameworks row */}
-            <div className='bg-white rounded-3xl p-7 lg:p-8 border border-primary-500/10'>
-              <p className='text-xs font-bold uppercase tracking-widest text-primary-500/75 mb-5 text-center'>
+            <div className='bg-white rounded-3xl p-3xl lg:p-4xl border border-primary-500/10'>
+              <p className='text-xs font-bold uppercase tracking-widest text-primary-500/75 mb-xl text-center'>
                 {t('contribution.frameworksLabel')}
               </p>
-              <div className='flex flex-wrap justify-center gap-3 lg:gap-5'>
+              <div className='flex flex-wrap justify-center gap-md lg:gap-xl'>
                 {[
                   'GRI Standards',
                   'SASB',
@@ -792,7 +792,7 @@ export default async function ESGPage({ params }: PageProps) {
                 ].map((f, fi) => (
                   <span
                     key={fi}
-                    className='text-xs font-bold text-primary-500/70 bg-cream border border-primary-500/10 px-4 py-2 rounded-full'
+                    className='text-xs font-bold text-primary-500/70 bg-cream border border-primary-500/10 px-lg py-sm rounded-full'
                   >
                     {f}
                   </span>
@@ -803,33 +803,33 @@ export default async function ESGPage({ params }: PageProps) {
         </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
-        <section className='bg-white py-16 lg:py-24 relative overflow-hidden'>
-          <div className='mx-auto max-w-4xl px-6 lg:px-8 text-center'>
-            <div className='bg-primary-500 rounded-3xl px-8 lg:px-16 py-14 lg:py-16 relative overflow-hidden'>
+        <section className='bg-white py-4xl lg:py-6xl relative overflow-hidden'>
+          <div className='mx-auto max-w-4xl px-2xl lg:px-4xl text-center'>
+            <div className='bg-primary-500 rounded-3xl px-4xl lg:px-4xl py-14 lg:py-4xl relative overflow-hidden'>
               {/* Glow */}
 
               <div className='relative'>
-                <p className='text-white/65 text-xs font-bold uppercase tracking-[0.3em] mb-4'>
+                <p className='text-white/65 text-xs font-bold uppercase tracking-[0.3em] mb-lg'>
                   {t('cta.eyebrow')}
                 </p>
-                <h2 className='font-heading text-3xl lg:text-5xl font-bold text-white leading-tight mb-5'>
+                <h2 className='font-heading text-3xl lg:text-5xl font-bold text-white leading-tight mb-xl'>
                   {t('cta.titleStart')}{' '}
                   <span className='text-secondary-light italic'>{t('cta.titleEm')}</span>
                 </h2>
-                <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-10 max-w-xl mx-auto'>
+                <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-6xl max-w-xl mx-auto'>
                   {t('cta.body')}
                 </p>
-                <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+                <div className='flex flex-col sm:flex-row gap-lg justify-center'>
                   <Link
                     href='/contact'
-                    className='inline-flex items-center justify-center gap-2 bg-white text-primary-500 font-black text-sm px-8 py-4 rounded-full hover:bg-cream transition-colors shadow-xl'
+                    className='inline-flex items-center justify-center gap-sm bg-white text-primary-500 font-black text-sm px-4xl py-lg rounded-full hover:bg-cream transition-colors shadow-xl'
                   >
                     {t('cta.ctaTeam')}
                     <ArrowRightIcon className='w-4 h-4' />
                   </Link>
                   <Link
                     href='/companies'
-                    className='inline-flex items-center justify-center gap-2 border-2 border-white/30 text-white font-black text-sm px-8 py-4 rounded-full hover:border-white/60 hover:bg-white/10 transition-colors'
+                    className='inline-flex items-center justify-center gap-sm border-2 border-white/30 text-white font-black text-sm px-4xl py-lg rounded-full hover:border-white/60 hover:bg-white/10 transition-colors'
                   >
                     {t('cta.ctaEnterprise')}
                     <ArrowRightIcon className='w-4 h-4' />

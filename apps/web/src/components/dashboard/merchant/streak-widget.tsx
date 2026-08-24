@@ -61,13 +61,13 @@ export function StreakWidget({ onListOffer, disabled }: StreakWidgetProps) {
               </span>
               <span className='text-sm text-primary-500/60 font-medium'>{t('days')}</span>
               {isRecord && (
-                <span className='flex items-center gap-0.5 text-[10px] font-semibold text-brand-coral uppercase tracking-wider'>
+                <span className='flex items-center gap-xxs text-[10px] font-semibold text-brand-coral uppercase tracking-wider'>
                   <Trophy size={10} />
                   {t('record')}
                 </span>
               )}
             </div>
-            <div className='text-xs text-primary-500/50 mt-0.5'>
+            <div className='text-xs text-primary-500/50 mt-xxs'>
               {listedToday
                 ? t('listedToday')
                 : currentStreak === 0
@@ -78,7 +78,7 @@ export function StreakWidget({ onListOffer, disabled }: StreakWidgetProps) {
         </div>
 
         {/* Freezes */}
-        <div className='px-[20px] py-[20px] flex flex-col items-center gap-1 shrink-0'>
+        <div className='px-[20px] py-[20px] flex flex-col items-center gap-xs shrink-0'>
           <div className='flex items-center gap-[5px]'>
             {Array.from({ length: 3 }).map((_, i) => (
               <Snowflake
@@ -97,7 +97,7 @@ export function StreakWidget({ onListOffer, disabled }: StreakWidgetProps) {
         </div>
 
         {/* Longest streak */}
-        <div className='px-[20px] py-[20px] flex flex-col items-center gap-0.5 shrink-0'>
+        <div className='px-[20px] py-[20px] flex flex-col items-center gap-xxs shrink-0'>
           <span className='font-display text-xl text-primary-500/40'>{longestStreak}</span>
           <span className='text-[10px] text-primary-500/40 whitespace-nowrap'>{t('best')}</span>
         </div>
@@ -136,7 +136,7 @@ export function StreakWidget({ onListOffer, disabled }: StreakWidgetProps) {
       {/* Progress bar to next freeze */}
       {freezesAvailable < 3 && currentStreak > 0 && (
         <div className='px-[24px] pb-[14px]'>
-          <div className='flex items-center justify-between text-[10px] text-primary-500/40 mb-1'>
+          <div className='flex items-center justify-between text-[10px] text-primary-500/40 mb-xs'>
             <span>{t('nextFreeze')}</span>
             <span>
               {7 - nextFreezeAt}/{7} {t('days')}

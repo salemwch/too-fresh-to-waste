@@ -39,8 +39,8 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicato
   const strengthKey = strengthKeys[score] ?? 'veryWeak';
 
   return (
-    <div className='space-y-1'>
-      <div className='flex gap-1'>
+    <div className='space-y-xs'>
+      <div className='flex gap-xs'>
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}

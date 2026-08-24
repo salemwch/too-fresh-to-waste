@@ -116,16 +116,19 @@ interface StatChipProps {
 function StatChip({ label, count, bg, text, iconColor, icon: Icon }: StatChipProps) {
   return (
     <div
-      className={cn('flex-1 min-w-[100px] rounded-2xl px-4 py-3 flex flex-col justify-between', bg)}
+      className={cn(
+        'flex-1 min-w-[100px] rounded-2xl px-lg py-md flex flex-col justify-between',
+        bg,
+      )}
       style={{ minHeight: 72 }}
     >
-      <div className='flex items-start justify-between gap-2'>
+      <div className='flex items-start justify-between gap-sm'>
         <span className={cn('font-display text-3xl font-bold leading-none tabular-nums', text)}>
           {count}
         </span>
-        <Icon className={cn('h-4 w-4 mt-0.5 shrink-0', iconColor)} />
+        <Icon className={cn('h-4 w-4 mt-xxs shrink-0', iconColor)} />
       </div>
-      <span className={cn('text-xs font-medium mt-2 block', text)}>{label}</span>
+      <span className={cn('text-xs font-medium mt-sm block', text)}>{label}</span>
     </div>
   );
 }
@@ -142,19 +145,19 @@ function EmptyOffers({
   t: (key: string) => string;
 }) {
   return (
-    <div className='flex flex-col items-center justify-center py-16 text-center'>
-      <Package className='h-12 w-12 text-slate-300 mb-4' />
+    <div className='flex flex-col items-center justify-center py-4xl text-center'>
+      <Package className='h-12 w-12 text-slate-300 mb-lg' />
       <p className='text-sm font-semibold text-slate-700'>
         {hasFilters ? t('merchantOffers.noMatchFilters') : t('merchantOffers.noOffers')}
       </p>
-      <p className='text-xs text-slate-500 mt-1 max-w-xs'>
+      <p className='text-xs text-slate-500 mt-xs max-w-xs'>
         {hasFilters ? t('merchantOffers.clearHint') : t('merchantOffers.createHint')}
       </p>
       {hasFilters && (
         <button
           type='button'
           onClick={onClear}
-          className='mt-4 text-xs font-semibold text-primary hover:underline'
+          className='mt-lg text-xs font-semibold text-primary hover:underline'
         >
           {t('merchantOffers.clearFilters')}
         </button>
@@ -263,7 +266,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
     (day === 'tomorrow' || fromOptions.length > 0 || pickupFrom === 'now');
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+    <div className='fixed inset-0 z-50 flex items-center justify-center p-lg'>
       {/* A button rather than a div with onClick: dismissing by backdrop has to
           be reachable without a mouse, and Escape above covers the keyboard. */}
       <button
@@ -279,12 +282,12 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
         className='relative bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[90vh]'
       >
         {/* Header */}
-        <div className='flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0'>
+        <div className='flex items-center justify-between px-xl py-md border-b border-slate-100 shrink-0'>
           <div>
             <p className='text-sm font-bold text-slate-900'>
               {t('merchantOffers.reactivateTitle')}
             </p>
-            <p className='text-xs text-slate-500 mt-0.5 truncate max-w-[220px]'>{offer.title}</p>
+            <p className='text-xs text-slate-500 mt-xxs truncate max-w-[220px]'>{offer.title}</p>
           </div>
           <button
             type='button'
@@ -295,20 +298,20 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
           </button>
         </div>
 
-        <div className='px-5 py-3 space-y-2.5 overflow-y-auto flex-1'>
+        <div className='px-xl py-md space-y-2.5 overflow-y-auto flex-1'>
           {/* Day toggle */}
           <div>
-            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1'>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-xs'>
               {t('merchantOffers.pickupDay')}
             </p>
-            <div className='flex gap-2'>
+            <div className='flex gap-sm'>
               {(['today', 'tomorrow'] as const).map(d => (
                 <button
                   key={d}
                   type='button'
                   onClick={() => setDay(d)}
                   className={cn(
-                    'flex-1 py-1 rounded-lg text-xs font-semibold border transition-all',
+                    'flex-1 py-xs rounded-lg text-xs font-semibold border transition-all',
                     day === d
                       ? 'bg-primary text-white border-primary'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40',
@@ -327,10 +330,10 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
           {/* Quick presets */}
           <div>
-            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1'>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-xs'>
               {t('merchantOffers.quickPresets')}
             </p>
-            <div className='flex gap-2'>
+            <div className='flex gap-sm'>
               {PRESET_KEYS.map(p => {
                 const resolvedFrom = fromOptions.includes(p.from)
                   ? p.from
@@ -342,7 +345,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                     type='button'
                     onClick={() => applyPreset(p)}
                     className={cn(
-                      'flex-1 flex flex-col items-center rounded-lg border py-1 px-1 transition-all',
+                      'flex-1 flex flex-col items-center rounded-lg border py-xs px-xs transition-all',
                       isActive
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/30',
@@ -353,7 +356,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                     </span>
                     <span
                       className={cn(
-                        'text-[10px] mt-0.5 tabular-nums',
+                        'text-[10px] mt-xxs tabular-nums',
                         isActive ? 'text-primary/70' : 'text-slate-400',
                       )}
                     >
@@ -366,9 +369,9 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
           </div>
 
           {/* From / Until selects — always visible */}
-          <div className='flex gap-3'>
+          <div className='flex gap-md'>
             <div className='flex-1'>
-              <label className='text-[10px] font-semibold text-slate-500 block mb-1'>
+              <label className='text-[10px] font-semibold text-slate-500 block mb-xs'>
                 {t('merchantOffers.from')}
               </label>
               <select
@@ -385,7 +388,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
               </select>
             </div>
             <div className='flex-1'>
-              <label className='text-[10px] font-semibold text-slate-500 block mb-1'>
+              <label className='text-[10px] font-semibold text-slate-500 block mb-xs'>
                 {t('merchantOffers.until')}
               </label>
               <select
@@ -405,7 +408,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                 ))}
               </select>
               {untilInPast && (
-                <p className='text-[10px] text-red-500 mt-1'>{t('merchantOffers.untilInPast')}</p>
+                <p className='text-[10px] text-red-500 mt-xs'>{t('merchantOffers.untilInPast')}</p>
               )}
             </div>
           </div>
@@ -419,15 +422,15 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
           {/* Pricing */}
           <div>
-            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1'>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-xs'>
               {t('merchantOffers.pricing')}
             </p>
             <div className='space-y-1.5'>
               {/* Original price */}
-              <div className='space-y-1'>
+              <div className='space-y-xs'>
                 <p className='text-[10px] text-slate-400'>{t('merchantOffers.originalPrice')}</p>
-                <div className='flex gap-1'>
-                  <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
+                <div className='flex gap-xs'>
+                  <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-sm text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
                     TND
                   </span>
                   <input
@@ -435,16 +438,16 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                     inputMode='decimal'
                     value={rawOriginalPrice}
                     onChange={e => setRawOriginalPrice(e.target.value)}
-                    className='h-7 flex-1 rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
+                    className='h-7 flex-1 rounded-md border border-slate-200 bg-slate-50 px-sm text-[11px] text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors'
                     placeholder='10.000'
                   />
                 </div>
               </div>
 
               {/* Discount pills */}
-              <div className='space-y-1'>
+              <div className='space-y-xs'>
                 <p className='text-[10px] text-slate-400'>{t('merchantOffers.discountLabel')}</p>
-                <div className='grid grid-cols-7 gap-1'>
+                <div className='grid grid-cols-7 gap-xs'>
                   {REACTIVATE_DISCOUNT_OPTIONS.map(pct => (
                     <button
                       key={pct}
@@ -464,12 +467,12 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
               </div>
 
               {/* Sale price (read-only) */}
-              <div className='space-y-1'>
+              <div className='space-y-xs'>
                 <p className='text-[10px] text-slate-400'>{t('merchantOffers.salePrice')}</p>
-                <div className='flex gap-1'>
+                <div className='flex gap-xs'>
                   <div
                     className={cn(
-                      'flex-1 h-7 rounded-md border flex items-center px-2',
+                      'flex-1 h-7 rounded-md border flex items-center px-sm',
                       discountedPrice > 0
                         ? 'border-emerald-200 bg-emerald-50'
                         : 'border-slate-200 bg-slate-50',
@@ -484,7 +487,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                       {discountedPrice > 0 ? discountedPrice.toFixed(3) : '—'}
                     </span>
                   </div>
-                  <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
+                  <span className='flex h-7 items-center rounded-md border border-slate-200 bg-slate-100 px-sm text-[11px] font-semibold text-slate-500 shrink-0 select-none'>
                     TND
                   </span>
                 </div>
@@ -502,10 +505,10 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
 
           {/* Quantity */}
           <div>
-            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1'>
+            <p className='text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-xs'>
               {t('merchantOffers.quantity')}
             </p>
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-sm'>
               <button
                 type='button'
                 onClick={() => setQty(q => Math.max(1, q - 1))}
@@ -519,7 +522,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
                 max={100}
                 value={quantity}
                 onChange={e => setQty(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
-                className='w-16 text-center rounded-lg border border-slate-200 bg-white px-1 py-1 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 tabular-nums'
+                className='w-16 text-center rounded-lg border border-slate-200 bg-white px-xs py-xs text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 tabular-nums'
               />
               <button
                 type='button'
@@ -534,7 +537,7 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
         </div>
 
         {/* Footer */}
-        <div className='flex gap-2 px-5 pt-2 pb-3 border-t border-slate-100 shrink-0'>
+        <div className='flex gap-sm px-xl pt-sm pb-md border-t border-slate-100 shrink-0'>
           <button
             type='button'
             onClick={onClose}
@@ -690,11 +693,11 @@ export function MerchantOffersView() {
         />
       )}
 
-      <div className='space-y-5'>
+      <div className='space-y-xl'>
         {/* ── Page header ──────────────────────────────────────────────────── */}
-        <div className='flex items-center justify-between gap-4 flex-wrap'>
+        <div className='flex items-center justify-between gap-lg flex-wrap'>
           <div>
-            <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-[12px] font-medium text-red-400 mb-2'>
+            <span className='inline-flex items-center gap-1.5 px-md py-xs rounded-full bg-red-100 text-[12px] font-medium text-red-400 mb-sm'>
               <Sparkles className='h-3 w-3' />
               {t('merchantOffers.manageLabel')}
             </span>
@@ -702,14 +705,14 @@ export function MerchantOffersView() {
               {t('merchantOffers.title')}
             </h1>
           </div>
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-md'>
             <LocationSwitcher />
             <button
               type='button'
               onClick={() => setPanelOpen(true)}
               disabled={isSuspended}
               className={cn(
-                'flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all',
+                'flex items-center gap-1.5 rounded-xl px-lg py-sm text-sm font-semibold text-white shadow-sm transition-all',
                 isSuspended
                   ? 'bg-primary/40 cursor-not-allowed'
                   : 'bg-primary hover:opacity-90 active:scale-[0.97]',
@@ -723,19 +726,19 @@ export function MerchantOffersView() {
 
         {/* ── Establishment approval banner ─────────────────────────────────── */}
         {!estabQuery.isLoading && !isEstablishmentApproved && (
-          <div className='flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3'>
-            <AlertTriangle className='h-4 w-4 text-amber-600 shrink-0 mt-0.5' />
+          <div className='flex items-start gap-md rounded-xl bg-amber-50 border border-amber-200 px-lg py-md'>
+            <AlertTriangle className='h-4 w-4 text-amber-600 shrink-0 mt-xxs' />
             <div>
               <p className='text-sm font-semibold text-amber-800'>
                 {t('merchantOffers.approvalTitle')}
               </p>
-              <p className='text-xs text-amber-700 mt-0.5'>{t('merchantOffers.approvalMessage')}</p>
+              <p className='text-xs text-amber-700 mt-xxs'>{t('merchantOffers.approvalMessage')}</p>
             </div>
           </div>
         )}
 
         {/* ── Stats chips ───────────────────────────────────────────────────── */}
-        <div className='flex gap-3 flex-wrap'>
+        <div className='flex gap-md flex-wrap'>
           <StatChip
             icon={Sparkles}
             label={t('merchantOffers.tabActive')}
@@ -779,14 +782,14 @@ export function MerchantOffersView() {
         </div>
 
         {/* ── Status filter tabs ────────────────────────────────────────────── */}
-        <div className='flex gap-1.5 overflow-x-auto pb-1 scrollbar-none'>
+        <div className='flex gap-1.5 overflow-x-auto pb-xs scrollbar-none'>
           {TAB_KEYS.map(key => (
             <button
               key={key}
               type='button'
               onClick={() => handleTabChange(key)}
               className={cn(
-                'shrink-0 flex items-center gap-1 h-6 px-2.5 rounded-full text-[11px] font-semibold border transition-all',
+                'shrink-0 flex items-center gap-xs h-6 px-2.5 rounded-full text-[11px] font-semibold border transition-all',
                 activeTab === key
                   ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-primary-500/40 hover:text-primary-500',
@@ -796,7 +799,7 @@ export function MerchantOffersView() {
               {t(`merchantOffers.${TAB_I18N_MAP[key]}`)}
               <span
                 className={cn(
-                  'min-w-[18px] px-1 py-px rounded-full text-[10px] font-bold tabular-nums text-center',
+                  'min-w-[18px] px-xs py-px rounded-full text-[10px] font-bold tabular-nums text-center',
                   activeTab === key ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500',
                 )}
               >
@@ -807,9 +810,9 @@ export function MerchantOffersView() {
         </div>
 
         {/* ── Toolbar: search · type filter · sort ─────────────────────────── */}
-        <div className='flex items-center gap-2 flex-wrap'>
+        <div className='flex items-center gap-sm flex-wrap'>
           <div className='relative flex-1 min-w-[180px]'>
-            <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none' />
+            <Search className='absolute left-md top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400 pointer-events-none' />
             <input
               type='text'
               placeholder={t('merchantOffers.searchPlaceholder')}
@@ -818,13 +821,13 @@ export function MerchantOffersView() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className='w-full h-7 rounded-full border border-slate-200 bg-white pl-8 pr-8 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50'
+              className='w-full h-7 rounded-full border border-slate-200 bg-white pl-4xl pr-4xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50'
             />
             {search && (
               <button
                 type='button'
                 onClick={() => setSearch('')}
-                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+                className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
               >
                 <X className='h-3.5 w-3.5' />
               </button>
@@ -837,7 +840,7 @@ export function MerchantOffersView() {
               setTypeFilter(e.target.value);
               setPage(1);
             }}
-            className='h-7 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30'
+            className='h-7 rounded-full border border-slate-200 bg-white px-md text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30'
           >
             {TYPE_FILTER_KEYS.map(o => (
               <option key={o.value} value={o.value}>
@@ -849,7 +852,7 @@ export function MerchantOffersView() {
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            className='h-7 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30'
+            className='h-7 rounded-full border border-slate-200 bg-white px-md text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/30'
           >
             {SORT_KEYS.map(o => (
               <option key={o.value} value={o.value}>
@@ -865,20 +868,20 @@ export function MerchantOffersView() {
 
         {/* ── Offer list ───────────────────────────────────────────────────── */}
         {offersQuery.isLoading ? (
-          <div className='space-y-3'>
+          <div className='space-y-md'>
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className='h-28 rounded-xl bg-slate-100 animate-pulse' />
             ))}
           </div>
         ) : offersQuery.isError ? (
-          <div className='rounded-xl border border-red-200 bg-red-50 px-5 py-6 text-center'>
+          <div className='rounded-xl border border-red-200 bg-red-50 px-xl py-2xl text-center'>
             <p className='text-sm font-medium text-red-700'>{t('merchantOffers.errorLoading')}</p>
-            <p className='text-xs text-red-500 mt-1'>{(offersQuery.error as Error).message}</p>
+            <p className='text-xs text-red-500 mt-xs'>{(offersQuery.error as Error).message}</p>
           </div>
         ) : displayedOffers.length === 0 ? (
           <EmptyOffers hasFilters={hasFilters} onClear={handleClearFilters} t={t} />
         ) : (
-          <div className='space-y-3'>
+          <div className='space-y-md'>
             {displayedOffers.map(offer => (
               <OfferCard
                 key={offer.id}
@@ -900,7 +903,7 @@ export function MerchantOffersView() {
 
         {/* ── Pagination ───────────────────────────────────────────────────── */}
         {meta && meta.totalPages > 1 && (
-          <div className='flex items-center justify-between pt-1'>
+          <div className='flex items-center justify-between pt-xs'>
             <p className='text-xs text-slate-500'>
               {t('merchantOffers.pagination', {
                 page: meta.page,
@@ -908,7 +911,7 @@ export function MerchantOffersView() {
                 total: meta.total,
               })}
             </p>
-            <div className='flex gap-1'>
+            <div className='flex gap-xs'>
               <button
                 type='button'
                 disabled={!meta.hasPrev}

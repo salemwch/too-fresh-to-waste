@@ -230,7 +230,7 @@ export default function AdminEstablishmentsPage() {
       header: t('columns.rating'),
       render: est =>
         est.rating ? (
-          <div className='flex items-center gap-1'>
+          <div className='flex items-center gap-xs'>
             <Star className='size-3 fill-amber-400 text-amber-400' />
             <span className='text-xs tabular-nums'>{est.rating.toFixed(1)}</span>
           </div>
@@ -263,7 +263,7 @@ export default function AdminEstablishmentsPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='w-36'>
             <DropdownMenuItem onClick={() => setSelectedId(est.id)}>
-              <Eye className='me-2 size-3.5' />
+              <Eye className='me-sm size-3.5' />
               {t('actions.view')}
             </DropdownMenuItem>
             {est.status === EstablishmentStatus.PENDING && (
@@ -272,14 +272,14 @@ export default function AdminEstablishmentsPage() {
                   className='text-emerald-600'
                   onClick={() => openAction(est, 'approve')}
                 >
-                  <CheckCircle className='me-2 size-3.5' />
+                  <CheckCircle className='me-sm size-3.5' />
                   {t('actions.approve')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className='text-rose-600'
                   onClick={() => openAction(est, 'reject')}
                 >
-                  <XCircle className='me-2 size-3.5' />
+                  <XCircle className='me-sm size-3.5' />
                   {t('actions.reject')}
                 </DropdownMenuItem>
               </>
@@ -322,14 +322,14 @@ export default function AdminEstablishmentsPage() {
   const isPending = approveMutation.isPending || statusMutation.isPending;
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       {/* Header + Stats */}
-      <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+      <div className='flex flex-col gap-lg sm:flex-row sm:items-start sm:justify-between'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
         </div>
-        <div className='flex flex-wrap gap-2'>
+        <div className='flex flex-wrap gap-sm'>
           {overviewStats.map(stat => (
             <div
               key={stat.label}
@@ -348,7 +348,7 @@ export default function AdminEstablishmentsPage() {
       {pendingCount > 0 && (
         <Alert className='border-amber-300 bg-amber-50/60 dark:bg-amber-950/10'>
           <AlertDescription>
-            <div className='space-y-3'>
+            <div className='space-y-md'>
               <button
                 onClick={() => setPendingExpanded(e => !e)}
                 className='flex w-full items-center justify-between text-sm font-semibold text-amber-800 dark:text-amber-300'
@@ -368,31 +368,31 @@ export default function AdminEstablishmentsPage() {
                   {loadingPending ? (
                     <AdminPendingCardsSkeleton count={3} />
                   ) : (
-                    <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
+                    <div className='grid gap-sm sm:grid-cols-2 lg:grid-cols-3'>
                       {(pending ?? []).map(est => (
                         <div
                           key={est.id}
-                          className='rounded-lg border border-amber-200 bg-white/70 p-3 dark:bg-amber-950/20'
+                          className='rounded-lg border border-amber-200 bg-white/70 p-md dark:bg-amber-950/20'
                         >
-                          <div className='flex items-start justify-between gap-2'>
+                          <div className='flex items-start justify-between gap-sm'>
                             <div className='min-w-0'>
                               <p className='truncate text-xs font-semibold'>{est.name}</p>
                               <p className='text-[10px] capitalize text-muted-foreground'>
                                 {est.type.replace(/_/g, ' ')}
                                 {est.address?.city ? ` · ${est.address.city}` : ''}
                               </p>
-                              <p className='mt-0.5 text-[10px] text-muted-foreground/70'>
+                              <p className='mt-xxs text-[10px] text-muted-foreground/70'>
                                 {relativeDate(est.createdAt)}
                               </p>
                             </div>
                             <button
                               onClick={() => setSelectedId(est.id)}
-                              className='mt-0.5 shrink-0 text-[10px] text-indigo-600 hover:underline'
+                              className='mt-xxs shrink-0 text-[10px] text-indigo-600 hover:underline'
                             >
                               {t('actions.view')}
                             </button>
                           </div>
-                          <div className='mt-2.5 flex gap-2'>
+                          <div className='mt-2.5 flex gap-sm'>
                             <Button
                               size='sm'
                               className='h-7 flex-1 bg-emerald-600 text-xs hover:bg-emerald-700'
@@ -480,22 +480,22 @@ export default function AdminEstablishmentsPage() {
           {loadingDetail ? (
             <AdminDetailSheetSkeleton />
           ) : detail ? (
-            <div className='space-y-5 py-6'>
+            <div className='space-y-xl py-2xl'>
               {/* Header */}
               <SheetHeader>
-                <div className='flex items-start gap-3'>
+                <div className='flex items-start gap-md'>
                   <div className='flex size-12 shrink-0 items-center justify-center rounded-xl bg-violet-50'>
                     <Building2 className='size-6 text-violet-600' />
                   </div>
                   <div>
                     <SheetTitle className='text-base'>{detail.name}</SheetTitle>
-                    <p className='mt-0.5 text-xs capitalize text-muted-foreground'>
+                    <p className='mt-xxs text-xs capitalize text-muted-foreground'>
                       {detail.type.replace(/_/g, ' ')}
                     </p>
                     <div className='mt-1.5 flex gap-1.5'>
                       <StatusBadge status={detail.status} variant='establishment' />
                       {detail.isVerified && (
-                        <span className='inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700'>
+                        <span className='inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-sm py-xxs text-xs font-medium text-emerald-700'>
                           {t('detail.verified')}
                         </span>
                       )}
@@ -519,7 +519,7 @@ export default function AdminEstablishmentsPage() {
                 </TabsList>
 
                 {/* Info tab */}
-                <TabsContent value='info' className='mt-4 space-y-4'>
+                <TabsContent value='info' className='mt-lg space-y-lg'>
                   <div className='space-y-2.5'>
                     {[
                       { label: t('detail.contact'), value: detail.contactEmail ?? '—' },
@@ -551,7 +551,7 @@ export default function AdminEstablishmentsPage() {
                           ]
                         : []),
                     ].map(row => (
-                      <div key={row.label} className='flex justify-between gap-4'>
+                      <div key={row.label} className='flex justify-between gap-lg'>
                         <span className='text-xs text-muted-foreground'>{row.label}</span>
                         <span className='text-right text-xs font-medium'>{row.value}</span>
                       </div>
@@ -591,12 +591,12 @@ export default function AdminEstablishmentsPage() {
                   <Separator />
 
                   {/* ── Subscription / Trial ── */}
-                  <div className='space-y-2'>
+                  <div className='space-y-sm'>
                     <p className='text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
                       Subscription
                     </p>
-                    <div className='rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5'>
-                      <div className='flex items-center justify-between gap-3'>
+                    <div className='rounded-lg border border-border/60 bg-muted/20 px-md py-2.5'>
+                      <div className='flex items-center justify-between gap-md'>
                         <div className='flex items-center gap-1.5'>
                           <span
                             className={`size-2 rounded-full ${
@@ -618,7 +618,7 @@ export default function AdminEstablishmentsPage() {
                         )}
                       </div>
                     </div>
-                    <div className='flex gap-2'>
+                    <div className='flex gap-sm'>
                       <Button
                         size='sm'
                         variant='outline'
@@ -642,7 +642,7 @@ export default function AdminEstablishmentsPage() {
                   </div>
 
                   <Separator />
-                  <div className='flex flex-col gap-2'>
+                  <div className='flex flex-col gap-sm'>
                     {!detail.isVerified && (
                       <Button
                         size='sm'
@@ -697,9 +697,9 @@ export default function AdminEstablishmentsPage() {
                 </TabsContent>
 
                 {/* Activity tab */}
-                <TabsContent value='activity' className='mt-4'>
+                <TabsContent value='activity' className='mt-lg'>
                   {loadingActivity ? (
-                    <div className='space-y-2'>
+                    <div className='space-y-sm'>
                       {[...Array(5)].map((_, i) => (
                         <Skeleton key={i} className='h-12 rounded-lg' />
                       ))}
@@ -711,7 +711,7 @@ export default function AdminEstablishmentsPage() {
                           key={entry._id ?? entry.id ?? i}
                           className='flex items-start gap-2.5 py-2.5 first:pt-0'
                         >
-                          <div className='mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-muted'>
+                          <div className='mt-xxs flex size-6 shrink-0 items-center justify-center rounded-full bg-muted'>
                             <Star className='size-3 text-muted-foreground' />
                           </div>
                           <div className='min-w-0 flex-1'>
@@ -730,23 +730,23 @@ export default function AdminEstablishmentsPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className='py-8 text-center text-sm text-muted-foreground'>
+                    <p className='py-4xl text-center text-sm text-muted-foreground'>
                       No activity found
                     </p>
                   )}
                 </TabsContent>
 
                 {/* Stats tab */}
-                <TabsContent value='stats' className='mt-4'>
+                <TabsContent value='stats' className='mt-lg'>
                   {loadingStats ? (
-                    <div className='grid grid-cols-2 gap-3'>
+                    <div className='grid grid-cols-2 gap-md'>
                       {[...Array(6)].map((_, i) => (
                         <Skeleton key={i} className='h-20 rounded-lg' />
                       ))}
                     </div>
                   ) : estStats ? (
-                    <div className='space-y-4'>
-                      <div className='grid grid-cols-2 gap-3'>
+                    <div className='space-y-lg'>
+                      <div className='grid grid-cols-2 gap-md'>
                         {[
                           {
                             label: 'Total Orders',
@@ -776,9 +776,12 @@ export default function AdminEstablishmentsPage() {
                             value: `${Math.round((estStats.pickupRate ?? 0) * 100)}%`,
                           },
                         ].map(({ label, value, color }) => (
-                          <div key={label} className='rounded-lg border border-border/60 px-3 py-3'>
+                          <div
+                            key={label}
+                            className='rounded-lg border border-border/60 px-md py-md'
+                          >
                             <p className='text-[10px] text-muted-foreground'>{label}</p>
-                            <p className={`mt-0.5 text-base font-bold tabular-nums ${color ?? ''}`}>
+                            <p className={`mt-xxs text-base font-bold tabular-nums ${color ?? ''}`}>
                               {value}
                             </p>
                           </div>
@@ -786,10 +789,10 @@ export default function AdminEstablishmentsPage() {
                       </div>
                       <Separator />
                       <div>
-                        <p className='mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
+                        <p className='mb-sm text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
                           Offers
                         </p>
-                        <div className='grid grid-cols-2 gap-2 text-xs'>
+                        <div className='grid grid-cols-2 gap-sm text-xs'>
                           {[
                             ['Total Offers', estStats.totalOffers],
                             ['Active', estStats.activeOffers],
@@ -807,10 +810,10 @@ export default function AdminEstablishmentsPage() {
                         </div>
                       </div>
                       <div>
-                        <p className='mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
+                        <p className='mb-sm text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
                           Reviews
                         </p>
-                        <div className='flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2.5'>
+                        <div className='flex items-center gap-md rounded-lg bg-muted/40 px-md py-2.5'>
                           <Star className='size-4 fill-amber-400 text-amber-400' />
                           <span className='text-sm font-bold'>
                             {(estStats.averageRating ?? 0).toFixed(1)}
@@ -822,7 +825,7 @@ export default function AdminEstablishmentsPage() {
                       </div>
                     </div>
                   ) : (
-                    <p className='py-8 text-center text-sm text-muted-foreground'>
+                    <p className='py-4xl text-center text-sm text-muted-foreground'>
                       No stats available
                     </p>
                   )}

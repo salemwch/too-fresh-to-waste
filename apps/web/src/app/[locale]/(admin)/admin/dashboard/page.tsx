@@ -98,9 +98,9 @@ function HealthWidget() {
 
   return (
     <Card className='border-border/60'>
-      <CardContent className='p-4'>
-        <div className='flex items-center justify-between gap-3'>
-          <div className='flex items-center gap-2'>
+      <CardContent className='p-lg'>
+        <div className='flex items-center justify-between gap-md'>
+          <div className='flex items-center gap-sm'>
             <Activity className='size-4 text-muted-foreground' />
             <span className='text-sm font-semibold'>System Health</span>
           </div>
@@ -119,7 +119,7 @@ function HealthWidget() {
         </div>
 
         {!isLoading && Object.keys(indicators).length > 0 && (
-          <div className='mt-3 grid grid-cols-2 gap-1.5'>
+          <div className='mt-md grid grid-cols-2 gap-1.5'>
             {Object.entries(indicators).map(([name, ind]) => (
               <div key={name} className='flex items-center gap-1.5'>
                 {ind.status === 'up' ? (
@@ -137,7 +137,7 @@ function HealthWidget() {
 
         <Link
           href='/admin/health'
-          className='mt-3 block text-center text-[11px] text-primary hover:underline'
+          className='mt-md block text-center text-[11px] text-primary hover:underline'
         >
           View details →
         </Link>
@@ -157,9 +157,9 @@ function RealTimeCard() {
 
   return (
     <Card className='border-border/60'>
-      <CardHeader className='pb-2'>
-        <div className='flex items-center justify-between gap-2'>
-          <div className='flex items-center gap-2'>
+      <CardHeader className='pb-sm'>
+        <div className='flex items-center justify-between gap-sm'>
+          <div className='flex items-center gap-sm'>
             <Zap className='size-4 text-[#FFA000]' />
             <CardTitle className='text-sm font-semibold'>Real-time</CardTitle>
           </div>
@@ -170,7 +170,7 @@ function RealTimeCard() {
             <button
               onClick={() => void refetch()}
               disabled={isFetching}
-              className='rounded p-1 text-muted-foreground hover:text-foreground'
+              className='rounded p-xs text-muted-foreground hover:text-foreground'
               aria-label='Refresh'
             >
               <RefreshCw className={cn('size-3', isFetching && 'animate-spin')} />
@@ -178,15 +178,15 @@ function RealTimeCard() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className='pb-4'>
+      <CardContent className='pb-lg'>
         {isLoading ? (
-          <div className='grid grid-cols-2 gap-2'>
+          <div className='grid grid-cols-2 gap-sm'>
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className='h-12 rounded-lg' />
             ))}
           </div>
         ) : (
-          <div className='grid grid-cols-2 gap-2'>
+          <div className='grid grid-cols-2 gap-sm'>
             {[
               { label: 'Active Users', value: data?.activeUsers ?? '—', icon: Users },
               { label: 'Active Offers', value: data?.activeOffers ?? '—', icon: Tag },
@@ -197,12 +197,12 @@ function RealTimeCard() {
                 icon: DollarSign,
               },
             ].map(({ label, value, icon: Icon }) => (
-              <div key={label} className='rounded-lg bg-muted/40 px-3 py-2.5'>
+              <div key={label} className='rounded-lg bg-muted/40 px-md py-2.5'>
                 <div className='flex items-center gap-1.5'>
                   <Icon className='size-3 text-muted-foreground' />
                   <span className='text-[10px] text-muted-foreground'>{label}</span>
                 </div>
-                <p className='mt-0.5 text-sm font-bold tabular-nums'>{String(value)}</p>
+                <p className='mt-xxs text-sm font-bold tabular-nums'>{String(value)}</p>
               </div>
             ))}
           </div>
@@ -237,15 +237,15 @@ function AuditStatsCard() {
 
   return (
     <Card className='border-border/60'>
-      <CardHeader className='pb-2'>
-        <div className='flex items-center justify-between gap-2'>
-          <div className='flex items-center gap-2'>
+      <CardHeader className='pb-sm'>
+        <div className='flex items-center justify-between gap-sm'>
+          <div className='flex items-center gap-sm'>
             <Activity className='size-4 text-muted-foreground' />
             <CardTitle className='text-sm font-semibold'>Admin Activity (30d)</CardTitle>
           </div>
           <button
             onClick={handleExportAuditLogs}
-            className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors'
+            className='flex items-center gap-xs rounded px-1.5 py-xxs text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors'
             title='Export audit logs as CSV'
           >
             <Download className='size-3' />
@@ -253,15 +253,15 @@ function AuditStatsCard() {
           </button>
         </div>
       </CardHeader>
-      <CardContent className='pb-4'>
+      <CardContent className='pb-lg'>
         {isLoading ? (
-          <div className='space-y-2'>
+          <div className='space-y-sm'>
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className='h-6 rounded' />
             ))}
           </div>
         ) : (
-          <div className='space-y-3'>
+          <div className='space-y-md'>
             <div className='flex items-center justify-between text-xs'>
               <span className='text-muted-foreground'>Total actions</span>
               <span className='font-bold tabular-nums'>
@@ -274,7 +274,7 @@ function AuditStatsCard() {
                   const pct = stats?.totalActions ? (count / stats.totalActions) * 100 : 0;
                   return (
                     <div key={action}>
-                      <div className='mb-0.5 flex items-center justify-between text-[11px]'>
+                      <div className='mb-xxs flex items-center justify-between text-[11px]'>
                         <span className='capitalize text-muted-foreground'>
                           {action.replace(/_/g, ' ')}
                         </span>
@@ -294,11 +294,11 @@ function AuditStatsCard() {
             {topAdmins.length > 0 && (
               <>
                 <p className='text-[11px] font-medium text-muted-foreground'>Top moderators</p>
-                <div className='space-y-1'>
+                <div className='space-y-xs'>
                   {topAdmins.map(({ adminEmail, count }) => (
                     <div key={adminEmail} className='flex items-center justify-between text-[11px]'>
                       <span className='truncate text-muted-foreground'>{adminEmail}</span>
-                      <span className='ms-2 shrink-0 font-medium tabular-nums'>{count}</span>
+                      <span className='ms-sm shrink-0 font-medium tabular-nums'>{count}</span>
                     </div>
                   ))}
                 </div>
@@ -321,9 +321,9 @@ function OfferPerformanceCard() {
 
   return (
     <Card className='border-border/60'>
-      <CardHeader className='pb-2'>
-        <div className='flex items-center justify-between gap-2'>
-          <div className='flex items-center gap-2'>
+      <CardHeader className='pb-sm'>
+        <div className='flex items-center justify-between gap-sm'>
+          <div className='flex items-center gap-sm'>
             <Tag className='size-4 text-muted-foreground' />
             <CardTitle className='text-sm font-semibold'>Offer Performance</CardTitle>
           </div>
@@ -332,16 +332,16 @@ function OfferPerformanceCard() {
           </Link>
         </div>
       </CardHeader>
-      <CardContent className='pb-4'>
+      <CardContent className='pb-lg'>
         {isLoading ? (
-          <div className='space-y-2'>
+          <div className='space-y-sm'>
             {[...Array(3)].map((_, i) => (
               <Skeleton key={i} className='h-8 rounded' />
             ))}
           </div>
         ) : (
-          <div className='space-y-3'>
-            <div className='grid grid-cols-3 gap-2 text-center'>
+          <div className='space-y-md'>
+            <div className='grid grid-cols-3 gap-sm text-center'>
               <div>
                 <p className='text-base font-bold tabular-nums'>
                   {stats?.countByStatus?.['active'] ?? 0}
@@ -370,7 +370,7 @@ function OfferPerformanceCard() {
                     const pct = totalForPct > 0 ? (count / totalForPct) * 100 : 0;
                     return (
                       <div key={category}>
-                        <div className='flex items-center justify-between text-[11px] mb-0.5'>
+                        <div className='flex items-center justify-between text-[11px] mb-xxs'>
                           <span className='capitalize text-muted-foreground'>{category}</span>
                           <span className='tabular-nums text-muted-foreground'>{count}</span>
                         </div>
@@ -437,15 +437,15 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       {/* Header + period selector */}
-      <div className='flex items-start justify-between gap-4'>
+      <div className='flex items-start justify-between gap-lg'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>
             {t('title')}
             {user?.firstName ? `, ${user.firstName}` : ''}
           </h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
         </div>
         <Select value={period} onValueChange={v => setPeriod(v as AnalyticsPeriod)}>
           <SelectTrigger className='h-8 w-28 text-xs'>
@@ -468,7 +468,7 @@ export default function AdminDashboardPage() {
       {loadingAnalytics ? (
         <AdminStatGridSkeleton count={5} />
       ) : (
-        <div className='grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5'>
+        <div className='grid grid-cols-2 gap-md md:grid-cols-3 lg:grid-cols-5'>
           <AdminStatCard
             label={t('kpi.totalUsers')}
             value={analytics?.users.totalUsers.toLocaleString() ?? '—'}
@@ -544,24 +544,24 @@ export default function AdminDashboardPage() {
       />
 
       {/* Main 3-column grid */}
-      <div className='grid grid-cols-1 gap-4 lg:grid-cols-12'>
+      <div className='grid grid-cols-1 gap-lg lg:grid-cols-12'>
         {/* Activity Feed — 7 cols */}
         <div className='lg:col-span-7'>
           <Card className='border-border/60'>
-            <CardHeader className='pb-3'>
-              <div className='flex items-start justify-between gap-3'>
+            <CardHeader className='pb-md'>
+              <div className='flex items-start justify-between gap-md'>
                 <div>
                   <CardTitle className='text-sm font-semibold'>{t('activity.title')}</CardTitle>
                   <CardDescription className='text-xs'>{t('activity.subtitle')}</CardDescription>
                 </div>
-                <div className='flex items-center gap-2'>
-                  <div className='flex items-center rounded-md border border-border/60 p-0.5'>
+                <div className='flex items-center gap-sm'>
+                  <div className='flex items-center rounded-md border border-border/60 p-xxs'>
                     {([7, 14] as const).map(d => (
                       <button
                         key={d}
                         onClick={() => setActivityDays(d)}
                         className={cn(
-                          'rounded px-2.5 py-1 text-[11px] font-medium transition-colors',
+                          'rounded px-2.5 py-xs text-[11px] font-medium transition-colors',
                           activityDays === d
                             ? 'bg-primary text-primary-foreground'
                             : 'text-muted-foreground hover:text-foreground',
@@ -592,10 +592,10 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Right sidebar — 5 cols */}
-        <div className='flex flex-col gap-4 lg:col-span-5'>
+        <div className='flex flex-col gap-lg lg:col-span-5'>
           {/* Quick Actions */}
           <Card className='border-border/60'>
-            <CardHeader className='pb-3'>
+            <CardHeader className='pb-md'>
               <CardTitle className='text-sm font-semibold'>{t('quickActions.title')}</CardTitle>
             </CardHeader>
             <CardContent>
@@ -627,7 +627,7 @@ export default function AdminDashboardPage() {
 
           {/* Pending approvals mini-queue */}
           <Card className='border-border/60'>
-            <CardHeader className='pb-3'>
+            <CardHeader className='pb-md'>
               <div className='flex items-center justify-between'>
                 <CardTitle className='text-sm font-semibold'>{t('pendingQueue.title')}</CardTitle>
                 <Link href='/admin/establishments' className='text-xs text-primary hover:underline'>
@@ -639,19 +639,19 @@ export default function AdminDashboardPage() {
               {loadingPending ? (
                 <AdminPendingCardsSkeleton count={3} />
               ) : !pending || pending.length === 0 ? (
-                <p className='py-4 text-center text-xs text-muted-foreground'>
+                <p className='py-lg text-center text-xs text-muted-foreground'>
                   {t('pendingQueue.empty')}
                 </p>
               ) : (
-                <div className='space-y-2'>
+                <div className='space-y-sm'>
                   {pending.slice(0, 5).map(est => (
                     <div
                       key={est.id}
-                      className='flex items-center justify-between gap-3 rounded-lg border border-amber-200/60 bg-amber-50/30 px-3 py-2.5'
+                      className='flex items-center justify-between gap-md rounded-lg border border-amber-200/60 bg-amber-50/30 px-md py-2.5'
                     >
                       <div className='min-w-0'>
                         <p className='truncate text-xs font-medium'>{est.name}</p>
-                        <div className='mt-0.5 flex items-center gap-1.5'>
+                        <div className='mt-xxs flex items-center gap-1.5'>
                           <StatusBadge status={est.type} variant='role' />
                           {est.address?.city && (
                             <span className='text-[10px] text-muted-foreground'>
@@ -663,13 +663,13 @@ export default function AdminDashboardPage() {
                       <div className='flex shrink-0 gap-1.5'>
                         <button
                           onClick={() => openAction(est, 'approve')}
-                          className='rounded px-2 py-1 text-[10px] font-medium text-emerald-700 hover:bg-emerald-100 transition-colors'
+                          className='rounded px-sm py-xs text-[10px] font-medium text-emerald-700 hover:bg-emerald-100 transition-colors'
                         >
                           {t('pendingQueue.approve')}
                         </button>
                         <button
                           onClick={() => openAction(est, 'reject')}
-                          className='rounded px-2 py-1 text-[10px] font-medium text-rose-600 hover:bg-rose-100 transition-colors'
+                          className='rounded px-sm py-xs text-[10px] font-medium text-rose-600 hover:bg-rose-100 transition-colors'
                         >
                           {t('pendingQueue.reject')}
                         </button>
@@ -685,8 +685,8 @@ export default function AdminDashboardPage() {
 
       {/* Anomaly Detection Alerts */}
       <Card className='border-border/60'>
-        <CardHeader className='pb-3'>
-          <div className='flex items-center gap-2'>
+        <CardHeader className='pb-md'>
+          <div className='flex items-center gap-sm'>
             <ShieldAlert className='size-4 text-destructive' />
             <CardTitle className='text-sm font-semibold'>{t('anomalies.title')}</CardTitle>
           </div>
@@ -694,23 +694,23 @@ export default function AdminDashboardPage() {
         </CardHeader>
         <CardContent>
           {loadingAnomalies ? (
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               {[...Array(3)].map((_, i) => (
                 <Skeleton key={i} className='h-14 rounded-lg' />
               ))}
             </div>
           ) : !anomalies || anomalies.length === 0 ? (
-            <div className='flex flex-col items-center gap-2 py-6'>
+            <div className='flex flex-col items-center gap-sm py-2xl'>
               <CheckCircle2 className='size-8 text-green-500/40' />
               <p className='text-xs font-medium text-muted-foreground'>{t('anomalies.noAlerts')}</p>
             </div>
           ) : (
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               {anomalies.slice(0, 8).map(alert => (
                 <div
                   key={alert.id}
                   className={cn(
-                    'flex items-start gap-3 rounded-lg border px-3 py-2.5',
+                    'flex items-start gap-md rounded-lg border px-md py-2.5',
                     alert.severity === 'critical'
                       ? 'border-destructive/40 bg-destructive/5'
                       : alert.severity === 'high'
@@ -720,7 +720,7 @@ export default function AdminDashboardPage() {
                 >
                   <AlertTriangle
                     className={cn(
-                      'size-4 mt-0.5 shrink-0',
+                      'size-4 mt-xxs shrink-0',
                       alert.severity === 'critical'
                         ? 'text-destructive'
                         : alert.severity === 'high'
@@ -729,11 +729,11 @@ export default function AdminDashboardPage() {
                     )}
                   />
                   <div className='min-w-0 flex-1'>
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-sm'>
                       <p className='text-xs font-semibold'>{alert.title}</p>
                       <span
                         className={cn(
-                          'inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                          'inline-flex rounded-full px-1.5 py-xxs text-[10px] font-medium',
                           alert.severity === 'critical'
                             ? 'bg-destructive/10 text-destructive'
                             : alert.severity === 'high'
@@ -744,7 +744,7 @@ export default function AdminDashboardPage() {
                         {alert.severity}
                       </span>
                     </div>
-                    <p className='mt-0.5 text-[11px] text-muted-foreground'>{alert.description}</p>
+                    <p className='mt-xxs text-[11px] text-muted-foreground'>{alert.description}</p>
                   </div>
                 </div>
               ))}

@@ -84,12 +84,12 @@ export function LanguageSwitcher({
 
   if (variant === 'inline') {
     return (
-      <div className={`flex items-center gap-2 ${className}`}>
+      <div className={`flex items-center gap-sm ${className}`}>
         {locales.map(loc => (
           <button
             key={loc}
             onClick={() => handleLocaleChange(loc)}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+            className={`px-md py-xs rounded-md text-sm font-medium transition-colors ${
               locale === loc
                 ? 'bg-primary-500 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -109,7 +109,7 @@ export function LanguageSwitcher({
     isOpen && mounted ? (
       <div
         ref={dropdownRef}
-        className='fixed bg-white rounded-lg shadow-xl py-1 z-[99999] max-h-[300px] overflow-y-auto'
+        className='fixed bg-white rounded-lg shadow-xl py-xs z-[99999] max-h-[300px] overflow-y-auto'
         role='listbox'
         aria-label='Available languages'
         style={{
@@ -128,7 +128,7 @@ export function LanguageSwitcher({
             <button
               key={loc}
               onClick={() => handleLocaleChange(loc)}
-              className={`w-full flex items-center justify-center px-3 py-2.5 text-sm transition-colors ${
+              className={`w-full flex items-center justify-center px-md py-2.5 text-sm transition-colors ${
                 isSelected
                   ? 'bg-primary-50 text-primary-700 font-semibold'
                   : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
@@ -138,7 +138,7 @@ export function LanguageSwitcher({
               style={{ minHeight: '44px' }}
             >
               <span
-                className={`flex items-center gap-2 ${config.direction === 'rtl' ? 'font-arabic' : ''}`}
+                className={`flex items-center gap-sm ${config.direction === 'rtl' ? 'font-arabic' : ''}`}
               >
                 <span className='text-sm font-medium uppercase'>{loc}</span>
               </span>
@@ -156,7 +156,7 @@ export function LanguageSwitcher({
           onClick={() => setIsOpen(!isOpen)}
           className={
             buttonClassName ||
-            'flex items-center gap-2 px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white'
+            'flex items-center gap-sm px-md py-sm rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white'
           }
           aria-expanded={isOpen}
           aria-haspopup='listbox'

@@ -160,11 +160,11 @@ function HeroSection({ locale }: { locale: Locale }) {
      */
     <section
       id='hero'
-      className='bg-primary-500 relative flex min-h-[100svh] items-center overflow-hidden px-4 py-12 md:py-16 lg:py-24'
+      className='bg-primary-500 relative flex min-h-[100svh] items-center overflow-hidden px-lg py-3xl md:py-4xl lg:py-6xl'
       aria-labelledby='hero-heading'
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      <div className='mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14'>
+      <div className='mx-auto grid w-full max-w-6xl items-center gap-6xl lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14'>
         {/* ── Copy column ── */}
         <div className='text-center font-sans lg:text-start'>
           <h1
@@ -179,32 +179,32 @@ function HeroSection({ locale }: { locale: Locale }) {
             {t('headline')}
           </h1>
 
-          <p className='mt-4 max-w-xl text-white/80 text-sm leading-relaxed md:text-base lg:mx-0 mx-auto'>
+          <p className='mt-lg max-w-xl text-white/80 text-sm leading-relaxed md:text-base lg:mx-0 mx-auto'>
             {t('subheadline')}
           </p>
 
           {/* Objection handling, in three claims that are all verifiable in
               product: signup is free, the split is 81/19, and the merchant
               chooses price and quantity in the create-offer panel. */}
-          <ul className='mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 lg:justify-start'>
+          <ul className='mt-2xl flex flex-wrap justify-center gap-x-xl gap-y-sm lg:justify-start'>
             {(['join', 'share', 'control'] as const).map(key => (
-              <li key={key} className='flex items-center gap-2 text-white/75 text-xs md:text-sm'>
+              <li key={key} className='flex items-center gap-sm text-white/75 text-xs md:text-sm'>
                 <span aria-hidden='true' className='bg-secondary size-1.5 shrink-0 rounded-full' />
                 {t(`trust.${key}`)}
               </li>
             ))}
           </ul>
 
-          <div className='mt-8 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center lg:justify-start'>
+          <div className='mt-4xl flex w-full flex-col items-stretch gap-md sm:flex-row sm:justify-center lg:justify-start'>
             <Link
               href='/merchant-signup'
-              className='bg-secondary text-primary-500 hover:bg-white rounded-full px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500 transition-all duration-300 hover:scale-105 sm:text-base'
+              className='bg-secondary text-primary-500 hover:bg-white rounded-full px-3xl py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500 transition-all duration-300 hover:scale-105 sm:text-base'
               aria-label={t('cta.merchant')}
             >
               {t('cta.merchant')}
             </Link>
             <AppDownloadButton
-              className='hover:text-primary-500 rounded-full border-[0.5px] border-white px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap text-white outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500 transition-all duration-300 hover:scale-105 hover:bg-white sm:text-base'
+              className='hover:text-primary-500 rounded-full border-[0.5px] border-white px-3xl py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap text-white outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500 transition-all duration-300 hover:scale-105 hover:bg-white sm:text-base'
               aria-label={t('cta.download')}
             >
               {t('cta.download')}
@@ -239,7 +239,7 @@ function HeroSection({ locale }: { locale: Locale }) {
                   {...(phone.lead ? { fetchPriority: 'high' as const } : {})}
                 />
                 <div
-                  className='absolute left-1/2 -translate-x-1/2'
+                  className='absolute left-xs/2 -translate-x-xs/2'
                   style={{
                     bottom: phone.shadow.bottom,
                     width: phone.shadow.width,

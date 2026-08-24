@@ -30,8 +30,8 @@ export function AdminMobileNav({ groups }: AdminMobileNavProps) {
       <SheetContent side='left' className='w-64 p-0 overflow-y-auto'>
         <SheetTitle className='sr-only'>Admin Navigation</SheetTitle>
 
-        <div className='flex h-12 items-center border-b px-4'>
-          <Link href='/' className='flex items-center gap-2'>
+        <div className='flex h-12 items-center border-b px-lg'>
+          <Link href='/' className='flex items-center gap-sm'>
             <Image
               src='/images/green-header-center.png'
               alt='Logo'
@@ -43,13 +43,13 @@ export function AdminMobileNav({ groups }: AdminMobileNavProps) {
           </Link>
         </div>
 
-        <nav className='py-3 px-3 space-y-1'>
+        <nav className='py-md px-md space-y-xs'>
           {groups.map(group => (
             <div key={group.groupKey}>
-              <div className='px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground'>
+              <div className='px-md py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground'>
                 {tGroups(group.groupKey)}
               </div>
-              <div className='space-y-0.5'>
+              <div className='space-y-xxs'>
                 {group.items
                   .filter(item => item.titleKey !== 'settings')
                   .map(item => {
@@ -60,7 +60,7 @@ export function AdminMobileNav({ groups }: AdminMobileNavProps) {
                         key={item.href}
                         href={item.href}
                         className={cn(
-                          'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                          'flex items-center gap-2.5 px-md py-sm rounded-lg text-sm font-medium transition-colors',
                           isActive
                             ? 'bg-primary text-primary-foreground'
                             : 'text-muted-foreground hover:bg-muted hover:text-foreground',

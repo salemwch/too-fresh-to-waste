@@ -168,16 +168,16 @@ function HeroSection() {
       style={{ backgroundImage: ZELLIGE_LIGHT }}
     >
       {/* Left - headline */}
-      <div className='flex flex-col justify-end px-9 py-20 lg:px-16 lg:py-24 relative z-10'>
+      <div className='flex flex-col justify-end px-5xl py-5xl lg:px-4xl lg:py-6xl relative z-10'>
         <p
-          className='text-secondary text-[0.68rem] font-semibold tracking-[0.22em] uppercase mb-7'
+          className='text-secondary text-[0.68rem] font-semibold tracking-[0.22em] uppercase mb-3xl'
           style={{ opacity: 0, animation: 'fadeUp 0.8s ease forwards 0.2s' }}
         >
           {t('eyebrow')}
         </p>
 
         <h1
-          className='text-[#F2EBD9] mb-7'
+          className='text-[#F2EBD9] mb-3xl'
           style={{
             ...SERIF,
             fontSize: 'clamp(3.4rem, 5.5vw, 5.2rem)',
@@ -206,12 +206,12 @@ function HeroSection() {
         </p>
 
         <div
-          className='flex flex-wrap gap-4 items-center'
+          className='flex flex-wrap gap-lg items-center'
           style={{ opacity: 0, animation: 'fadeUp 0.9s ease forwards 0.8s' }}
         >
           <a
             href='#cta'
-            className='bg-secondary text-primary font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-9 py-4 rounded-full flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:bg-[#F2EBD9] hover:shadow-[0_14px_42px_rgba(196,163,90,0.38)]'
+            className='bg-secondary text-primary font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-5xl py-lg rounded-full flex items-center gap-sm transition-all hover:-translate-y-xxs hover:bg-[#F2EBD9] hover:shadow-[0_14px_42px_rgba(196,163,90,0.38)]'
           >
             {t('ctaPartner')}
             <svg
@@ -226,7 +226,7 @@ function HeroSection() {
             </svg>
           </a>
           <button
-            className='text-[rgba(242,235,217,0.65)] text-[0.84rem] underline underline-offset-4 bg-transparent border-0 px-2 py-4 cursor-pointer transition-colors hover:text-secondary'
+            className='text-[rgba(242,235,217,0.65)] text-[0.84rem] underline underline-offset-4 bg-transparent border-0 px-sm py-lg cursor-pointer transition-colors hover:text-secondary'
             onClick={() => scrollTo('concept')}
           >
             {t('ctaLearnMore')}
@@ -241,7 +241,7 @@ function HeroSection() {
 
       {/* Scroll hint */}
       <div
-        className='absolute bottom-11 left-9 lg:left-16 flex items-center gap-3'
+        className='absolute bottom-11 left-5xl lg:left-4xl flex items-center gap-md'
         style={{ opacity: 0, animation: 'fadeUp 1s ease forwards 1.4s' }}
       >
         <span className='text-[0.62rem] tracking-[0.22em] uppercase text-[#7FA896]'>
@@ -267,7 +267,7 @@ function MarqueeStrip() {
         {[0, 1].map(copy => (
           <div key={copy} className='flex items-center flex-shrink-0'>
             {items.map(item => (
-              <div key={item} className='flex items-center gap-10 pr-10 flex-shrink-0'>
+              <div key={item} className='flex items-center gap-6xl pr-6xl flex-shrink-0'>
                 <span className='text-[#0A1C1E] text-[1.05rem] italic flex-shrink-0' style={SERIF}>
                   {item}
                 </span>
@@ -290,7 +290,7 @@ function ConceptSection() {
   return (
     <section
       id='concept'
-      className='bg-[#F2EBD9] px-9 py-20 lg:px-20 lg:py-28 grid grid-cols-1 lg:grid-cols-2 gap-[72px] items-center'
+      className='bg-[#F2EBD9] px-5xl py-5xl lg:px-5xl lg:py-28 grid grid-cols-1 lg:grid-cols-2 gap-[72px] items-center'
     >
       {/* Left */}
       <div>
@@ -298,7 +298,7 @@ function ConceptSection() {
           {t('label')}
         </p>
         <h2
-          className='rv d1 text-primary mb-6'
+          className='rv d1 text-primary mb-2xl'
           style={{
             ...SERIF,
             fontSize: 'clamp(2.4rem, 3.8vw, 3.6rem)',
@@ -310,17 +310,17 @@ function ConceptSection() {
           <br />
           {t('headlineAfter')}
         </h2>
-        <p className='rv d2 text-[#3A4F48] text-[0.96rem] font-light leading-[1.82] mb-5'>
+        <p className='rv d2 text-[#3A4F48] text-[0.96rem] font-light leading-[1.82] mb-xl'>
           {t('body1')}
         </p>
         <p className='rv d2 text-[#3A4F48] text-[0.96rem] font-light leading-[1.82]'>
           {t('body2')}
         </p>
-        <div className='rv d3 flex flex-wrap gap-[10px] mt-7'>
+        <div className='rv d3 flex flex-wrap gap-[10px] mt-3xl'>
           {tags.map((tag, i) => (
             <span
               key={tag}
-              className={`text-[0.68rem] font-medium tracking-[0.1em] uppercase px-[18px] py-2 rounded-full ${
+              className={`text-[0.68rem] font-medium tracking-[0.1em] uppercase px-[18px] py-sm rounded-full ${
                 i === 0
                   ? 'bg-primary text-[#F2EBD9]'
                   : 'text-primary border border-[rgba(30,68,72,0.35)]'
@@ -335,7 +335,7 @@ function ConceptSection() {
       {/* Right - stat card */}
       <div className='rv d2 relative'>
         <span
-          className='absolute -top-[18px] right-8 z-10 bg-[#C05F4A] text-white rounded-full px-[22px] py-[10px] text-[0.72rem] font-semibold tracking-[0.08em] uppercase shadow-[0_8px_28px_rgba(192,95,74,0.45)]'
+          className='absolute -top-[18px] right-4xl z-10 bg-[#C05F4A] text-white rounded-full px-[22px] py-[10px] text-[0.72rem] font-semibold tracking-[0.08em] uppercase shadow-[0_8px_28px_rgba(192,95,74,0.45)]'
           style={{ animation: 'floatItem 3s ease-in-out infinite' }}
         >
           {t('badge')}
@@ -350,16 +350,16 @@ function ConceptSection() {
           >
             <span className='text-secondary'>73</span>%
           </p>
-          <p className='text-[#7FA896] text-[0.87rem] font-light leading-[1.65] mb-9'>
+          <p className='text-[#7FA896] text-[0.87rem] font-light leading-[1.65] mb-5xl'>
             {t('statDesc')}
           </p>
-          <div className='grid grid-cols-2 gap-4'>
+          <div className='grid grid-cols-2 gap-lg'>
             {miniStats.map(({ n, l }) => (
               <div key={n} className='bg-[rgba(255,255,255,0.055)] rounded-xl p-[18px]'>
                 <p className='text-secondary text-[1.75rem] font-light' style={SERIF}>
                   {n}
                 </p>
-                <p className='text-[#7FA896] text-[0.68rem] font-light mt-1'>{l}</p>
+                <p className='text-[#7FA896] text-[0.68rem] font-light mt-xs'>{l}</p>
               </div>
             ))}
           </div>
@@ -376,7 +376,7 @@ function HowItWorksSection() {
 
   return (
     <section
-      className='bg-primary px-9 py-20 lg:px-20 lg:py-28 relative overflow-hidden'
+      className='bg-primary px-5xl py-5xl lg:px-5xl lg:py-28 relative overflow-hidden'
       style={{ backgroundImage: ZELLIGE_DARK }}
     >
       <div className='text-center mb-[72px] rv'>
@@ -394,14 +394,14 @@ function HowItWorksSection() {
         </p>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-lg'>
         {steps.map(({ n, icon, title, body }, i) => (
           <div
             key={n}
-            className={`rv d${i + 1} bg-[rgba(255,255,255,0.04)] border border-[rgba(196,163,90,0.14)] rounded-[20px] p-11 transition-all duration-300 hover:bg-[rgba(196,163,90,0.08)] hover:border-[rgba(196,163,90,0.38)] hover:-translate-y-2`}
+            className={`rv d${i + 1} bg-[rgba(255,255,255,0.04)] border border-[rgba(196,163,90,0.14)] rounded-[20px] p-11 transition-all duration-300 hover:bg-[rgba(196,163,90,0.08)] hover:border-[rgba(196,163,90,0.38)] hover:-translate-y-sm`}
           >
             <p
-              className='text-[rgba(196,163,90,0.18)] leading-none mb-5'
+              className='text-[rgba(196,163,90,0.18)] leading-none mb-xl'
               style={{ ...SERIF, fontSize: '4.5rem', fontWeight: 300 }}
             >
               {n}
@@ -452,7 +452,7 @@ function BenefitsSection() {
   const benefitTexts = t.raw('items') as Array<{ title: string; body: string; big?: string }>;
 
   return (
-    <section className='bg-[#F2EBD9] px-9 py-20 lg:px-20 lg:py-28'>
+    <section className='bg-[#F2EBD9] px-5xl py-5xl lg:px-5xl lg:py-28'>
       <div className='mb-[52px] rv'>
         <p className='text-[#C05F4A] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[10px]'>
           {t('label')}
@@ -489,7 +489,7 @@ function BenefitsSection() {
               </p>
               {text.big && (
                 <span
-                  className='block mt-6 leading-none text-secondary'
+                  className='block mt-2xl leading-none text-secondary'
                   style={{ ...SERIF, fontSize: '3.8rem', fontWeight: 300 }}
                 >
                   {text.big}
@@ -508,15 +508,15 @@ function QuoteSection() {
   const t = useTranslations('parclessBag.quote');
 
   return (
-    <section className='bg-[#F2EBD9] px-9 py-24 lg:px-20 flex flex-col items-center text-center'>
+    <section className='bg-[#F2EBD9] px-5xl py-6xl lg:px-5xl flex flex-col items-center text-center'>
       <div
-        className='rv text-secondary leading-[0.4] mb-8'
+        className='rv text-secondary leading-[0.4] mb-4xl'
         style={{ ...SERIF, fontSize: '7rem', opacity: 0.38 }}
       >
         &ldquo;
       </div>
       <blockquote
-        className='rv text-primary max-w-[680px] mb-7'
+        className='rv text-primary max-w-[680px] mb-3xl'
         style={{
           ...SERIF,
           fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)',
@@ -550,7 +550,7 @@ function CTASection() {
   };
 
   return (
-    <section id='cta' className='bg-primary px-9 py-24 lg:px-20 relative overflow-hidden'>
+    <section id='cta' className='bg-primary px-5xl py-6xl lg:px-5xl relative overflow-hidden'>
       <div className='max-w-[680px] relative z-10'>
         <p className='rv text-secondary text-[0.62rem] tracking-[0.26em] uppercase mb-[18px]'>
           {t('label')}
@@ -568,7 +568,7 @@ function CTASection() {
           <br />
           <em className='text-secondary'>{t('headlineEm')}</em>
         </h2>
-        <p className='rv text-[#7FA896] text-[0.96rem] font-light leading-[1.75] mb-9'>
+        <p className='rv text-[#7FA896] text-[0.96rem] font-light leading-[1.75] mb-5xl'>
           {t('body')}
         </p>
 
@@ -586,7 +586,7 @@ function CTASection() {
           />
           <button
             type='submit'
-            className={`flex items-center justify-center gap-2 font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-9 py-4 rounded-full flex-shrink-0 transition-all hover:-translate-y-0.5 ${
+            className={`flex items-center justify-center gap-sm font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-5xl py-lg rounded-full flex-shrink-0 transition-all hover:-translate-y-xxs ${
               submitted ? 'bg-[#3D6B5C] text-white' : 'bg-secondary text-primary hover:bg-[#F2EBD9]'
             }`}
           >

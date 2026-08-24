@@ -29,13 +29,13 @@ interface StatTileProps {
 
 function StatTile({ value, label, help }: StatTileProps) {
   return (
-    <div className='rounded-lg border border-border/60 bg-muted/20 p-3'>
+    <div className='rounded-lg border border-border/60 bg-muted/20 p-md'>
       {/* Numeric values and ranges stay LTR so "4.5–6 TND" does not reorder in Arabic. */}
       <p className='text-lg font-bold tabular-nums' dir='ltr'>
         {value}
       </p>
       <p className='text-[11px] font-semibold text-foreground/80'>{label}</p>
-      <p className='mt-1 text-[10px] leading-snug text-muted-foreground'>{help}</p>
+      <p className='mt-xs text-[10px] leading-snug text-muted-foreground'>{help}</p>
     </div>
   );
 }
@@ -47,11 +47,11 @@ function PanelShell({ children }: { children: React.ReactNode }) {
 function SmartPricingPanelSkeleton() {
   return (
     <PanelShell>
-      <CardHeader className='pb-3'>
+      <CardHeader className='pb-md'>
         <Skeleton className='h-5 w-48 rounded' />
-        <Skeleton className='h-3 w-64 rounded mt-1' />
+        <Skeleton className='h-3 w-64 rounded mt-xs' />
       </CardHeader>
-      <CardContent className='space-y-3'>
+      <CardContent className='space-y-md'>
         {[...Array(3)].map((_, i) => (
           <Skeleton key={i} className='h-16 rounded-lg' />
         ))}
@@ -83,8 +83,8 @@ export function SmartPricingPanel() {
   const { merchantStats, zoneStats, suggestedPriceRange, sample, insights } = data;
 
   const header = (
-    <CardHeader className='pb-3'>
-      <div className='flex items-center gap-2'>
+    <CardHeader className='pb-md'>
+      <div className='flex items-center gap-sm'>
         <Lightbulb className='size-4 text-warning' aria-hidden='true' />
         <CardTitle className='text-sm font-semibold'>{t('title')}</CardTitle>
       </div>
@@ -99,7 +99,7 @@ export function SmartPricingPanel() {
       <PanelShell>
         {header}
         <CardContent>
-          <div className='flex flex-col items-center justify-center gap-2 py-6 text-center'>
+          <div className='flex flex-col items-center justify-center gap-sm py-2xl text-center'>
             <Lightbulb className='size-10 text-muted-foreground' aria-hidden='true' />
             <h3 className='text-sm font-semibold'>{t('empty.title')}</h3>
             <p className='max-w-sm text-xs text-muted-foreground'>{t('empty.body')}</p>
@@ -112,8 +112,8 @@ export function SmartPricingPanel() {
   return (
     <PanelShell>
       {header}
-      <CardContent className='space-y-4'>
-        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+      <CardContent className='space-y-lg'>
+        <div className='grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-4'>
           <StatTile
             value={`${merchantStats.avgDiscountedPrice} TND`}
             label={t('tiles.avgPrice')}
@@ -148,7 +148,7 @@ export function SmartPricingPanel() {
         </div>
 
         {insights.length > 0 && (
-          <ul className='space-y-2'>
+          <ul className='space-y-sm'>
             {insights.map(insight => (
               <InsightRow key={insight.type} insight={insight} />
             ))}
@@ -186,12 +186,12 @@ function InsightRow({ insight }: { insight: PricingInsight }) {
   return (
     <li
       className={cn(
-        'flex items-start gap-3 rounded-lg border px-3 py-2.5',
+        'flex items-start gap-md rounded-lg border px-md py-2.5',
         isHigh ? 'border-warning/40 bg-warning/5' : 'border-border/60 bg-muted/10',
       )}
     >
       <Icon
-        className={cn('mt-0.5 size-4 shrink-0', isHigh ? 'text-warning' : 'text-muted-foreground')}
+        className={cn('mt-xxs size-4 shrink-0', isHigh ? 'text-warning' : 'text-muted-foreground')}
         aria-hidden='true'
       />
       <p className='min-w-0 flex-1 text-xs leading-relaxed text-foreground'>

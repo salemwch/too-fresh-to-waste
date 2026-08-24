@@ -356,22 +356,22 @@ export default function DriversPage() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       <AdminModuleHeader title={t('title')} subtitle={t('subtitle')} />
 
       <AdminKpiRow items={kpis} loading={isLoading} columns={4} />
 
       {/* Create form */}
-      <section className='rounded-lg border border-border/60 bg-card p-4'>
-        <h2 className='mb-3 text-sm font-semibold text-foreground'>{t('create.title')}</h2>
-        <form onSubmit={handleSubmit} className='space-y-3' noValidate>
+      <section className='rounded-lg border border-border/60 bg-card p-lg'>
+        <h2 className='mb-md text-sm font-semibold text-foreground'>{t('create.title')}</h2>
+        <form onSubmit={handleSubmit} className='space-y-md' noValidate>
           {FORM_ROWS.map((row, rowIndex) => (
-            <div key={rowIndex} className='grid gap-3 sm:grid-cols-3'>
+            <div key={rowIndex} className='grid gap-md sm:grid-cols-3'>
               {row.map(({ name, labelKey, placeholderKey }) => {
                 const error = errors[name];
                 const errorId = `${name}-error`;
                 return (
-                  <div key={name} className='space-y-1'>
+                  <div key={name} className='space-y-xs'>
                     <Label htmlFor={name} className='text-xs text-muted-foreground'>
                       {t(labelKey)}
                     </Label>
@@ -402,7 +402,7 @@ export default function DriversPage() {
             </p>
           )}
 
-          <div className='flex justify-end pt-1'>
+          <div className='flex justify-end pt-xs'>
             <Button type='submit' size='sm' disabled={isPending} className='min-w-[140px]'>
               {isPending ? t('create.submitting') : t('create.submit')}
             </Button>
@@ -412,7 +412,7 @@ export default function DriversPage() {
 
       {/* Fleet table */}
       {isError ? (
-        <div className='rounded-lg border border-border/60 bg-card py-12 text-center'>
+        <div className='rounded-lg border border-border/60 bg-card py-3xl text-center'>
           <p className='text-sm text-muted-foreground'>{t('list.error')}</p>
         </div>
       ) : (
@@ -440,14 +440,14 @@ export default function DriversPage() {
       <Dialog open={!!created} onOpenChange={NOOP}>
         <DialogContent onInteractOutside={preventDefault} onEscapeKeyDown={preventDefault}>
           <DialogHeader>
-            <DialogTitle className='flex items-center gap-2'>
+            <DialogTitle className='flex items-center gap-sm'>
               <Truck className='size-4' aria-hidden='true' />
               {t('password.title')}
             </DialogTitle>
           </DialogHeader>
-          <div className='space-y-4'>
+          <div className='space-y-lg'>
             <p className='text-sm text-muted-foreground'>{t('password.description')}</p>
-            <div className='flex items-center gap-2 rounded-md bg-muted px-3 py-2'>
+            <div className='flex items-center gap-sm rounded-md bg-muted px-md py-sm'>
               <code className='flex-1 font-mono text-sm font-bold tracking-widest'>
                 {created?.temporaryPassword}
               </code>

@@ -47,7 +47,7 @@ function TensionCard({
 
         <button
           onClick={() => setActive('left')}
-          className={`relative z-10 py-4 text-sm font-black uppercase tracking-widest transition-colors duration-300 ${
+          className={`relative z-10 py-lg text-sm font-black uppercase tracking-widest transition-colors duration-300 ${
             active === 'left' ? 'text-white' : 'text-primary-500/40 hover:text-primary-500/70'
           }`}
         >
@@ -55,7 +55,7 @@ function TensionCard({
         </button>
         <button
           onClick={() => setActive('right')}
-          className={`relative z-10 py-4 text-sm font-black uppercase tracking-widest transition-colors duration-300 ${
+          className={`relative z-10 py-lg text-sm font-black uppercase tracking-widest transition-colors duration-300 ${
             active === 'right' ? 'text-white' : 'text-primary-500/40 hover:text-primary-500/70'
           }`}
         >
@@ -64,14 +64,14 @@ function TensionCard({
       </div>
 
       {/* Description */}
-      <div className='px-6 pt-5 pb-3 min-h-[72px]'>
+      <div className='px-2xl pt-xl pb-md min-h-[72px]'>
         <p className='text-sm text-primary-500/65 leading-relaxed transition-all duration-200'>
           {active === 'left' ? data.leftDesc : data.rightDesc}
         </p>
       </div>
 
       {/* Navigation */}
-      <div className='mx-6 mb-6 bg-cream rounded-2xl px-5 py-4 border border-primary-500/10'>
+      <div className='mx-2xl mb-2xl bg-cream rounded-2xl px-xl py-lg border border-primary-500/10'>
         <p className='text-[10px] font-black uppercase tracking-widest text-primary-500/40 mb-1.5'>
           {navigationLabel}
         </p>
@@ -79,11 +79,11 @@ function TensionCard({
       </div>
 
       {/* Lean indicator */}
-      <div className='px-6 pb-5 flex items-center gap-2'>
+      <div className='px-2xl pb-xl flex items-center gap-sm'>
         <span className='text-[10px] font-black uppercase tracking-widest text-primary-500/30'>
           {leanLabel}
         </span>
-        <span className='text-[10px] font-black uppercase tracking-widest bg-primary-500/10 text-primary-500 px-2.5 py-1 rounded-full'>
+        <span className='text-[10px] font-black uppercase tracking-widest bg-primary-500/10 text-primary-500 px-2.5 py-xs rounded-full'>
           {data.right}
         </span>
         <span className='text-[10px] text-primary-500/30 italic'>- but we hold the tension</span>
@@ -116,9 +116,9 @@ function Door({
       onMouseLeave={() => setHovered(false)}
     >
       <div
-        className={`flex items-center justify-between px-8 lg:px-16 transition-all duration-500 ease-out ${hovered ? 'py-8 bg-primary-500' : 'py-6 bg-white'}`}
+        className={`flex items-center justify-between px-4xl lg:px-4xl transition-all duration-500 ease-out ${hovered ? 'py-4xl bg-primary-500' : 'py-2xl bg-white'}`}
       >
-        <div className='flex items-center gap-6 lg:gap-10 min-w-0'>
+        <div className='flex items-center gap-2xl lg:gap-6xl min-w-0'>
           <span
             className={`font-heading text-sm font-bold tabular-nums transition-colors duration-500 shrink-0 ${hovered ? 'text-white/30' : 'text-primary-500/20'}`}
           >
@@ -144,7 +144,7 @@ function Door({
           strokeWidth={1.5}
           strokeLinecap='round'
           strokeLinejoin='round'
-          className={`w-6 h-6 shrink-0 transition-all duration-500 ${hovered ? 'text-brand-green translate-x-2' : 'text-primary-500/40 translate-x-0'}`}
+          className={`w-6 h-6 shrink-0 transition-all duration-500 ${hovered ? 'text-brand-green translate-x-sm' : 'text-primary-500/40 translate-x-0'}`}
           aria-hidden='true'
         >
           <path d='M5 12h14M12 5l7 7-7 7' />
@@ -197,9 +197,9 @@ export default function MissionDrivenPage() {
             {t('watermark')}
           </p>
 
-          <div className='relative mx-auto max-w-5xl px-6 lg:px-8 py-20 lg:py-32'>
+          <div className='relative mx-auto max-w-5xl px-2xl lg:px-4xl py-5xl lg:py-32'>
             {/* Eyebrow */}
-            <div className='mb-10'>
+            <div className='mb-6xl'>
               <span className='text-secondary-light text-xs font-black uppercase tracking-[0.35em]'>
                 {t('hero.eyebrow')}
               </span>
@@ -211,13 +211,13 @@ export default function MissionDrivenPage() {
               <span className='block text-[clamp(42px,8vw,96px)] text-secondary-light italic'>
                 {t('hero.line2')}
               </span>
-              <span className='block text-[clamp(42px,8vw,96px)] mt-2'>{t('hero.line3')}</span>
+              <span className='block text-[clamp(42px,8vw,96px)] mt-sm'>{t('hero.line3')}</span>
               <span className='block text-[clamp(42px,8vw,96px)] text-secondary-light italic'>
                 {t('hero.line4')}
               </span>
             </h1>
 
-            <div className='mt-10 max-w-2xl'>
+            <div className='mt-6xl max-w-2xl'>
               <p className='text-white/75 text-base lg:text-xl leading-relaxed'>{t('hero.lede')}</p>
             </div>
 
@@ -231,13 +231,13 @@ export default function MissionDrivenPage() {
         </section>
 
         {/* ── THE ORIGIN ───────────────────────────────────────────────────── */}
-        <section className='bg-white py-20 lg:py-28'>
-          <div className='mx-auto max-w-4xl px-6 lg:px-8'>
-            <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-8'>
+        <section className='bg-white py-5xl lg:py-28'>
+          <div className='mx-auto max-w-4xl px-2xl lg:px-4xl'>
+            <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-4xl'>
               {t('origin.eyebrow')}
             </p>
 
-            <div className='space-y-6 text-primary-500'>
+            <div className='space-y-2xl text-primary-500'>
               <p className='font-heading text-2xl lg:text-3xl font-bold leading-snug'>
                 {t('origin.p1')}
               </p>
@@ -256,7 +256,7 @@ export default function MissionDrivenPage() {
             </div>
 
             {/* Pull quote */}
-            <div className='mt-12 border-l-4 border-brand-green pl-7'>
+            <div className='mt-3xl border-l-4 border-brand-green pl-3xl'>
               <p className='font-heading text-xl lg:text-2xl font-bold text-primary-500 italic leading-snug'>
                 &ldquo;{t('origin.quote')}&rdquo;
               </p>
@@ -265,11 +265,11 @@ export default function MissionDrivenPage() {
         </section>
 
         {/* ── WHAT MISSION-DRIVEN MEANS HERE ───────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-24'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='grid lg:grid-cols-[1fr_1.6fr] gap-10 lg:gap-16 items-start'>
-              <div className='lg:sticky lg:top-24'>
-                <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-5'>
+        <section className='bg-cream py-4xl lg:py-6xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='grid lg:grid-cols-[1fr_1.6fr] gap-6xl lg:gap-4xl items-start'>
+              <div className='lg:sticky lg:top-6xl'>
+                <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-xl'>
                   {t('proof.eyebrow')}
                 </p>
                 <h2 className='font-heading text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-500 leading-tight'>
@@ -277,23 +277,23 @@ export default function MissionDrivenPage() {
                   <br />
                   <span className='text-brand-green italic'>{t('proof.titleEm')}</span>
                 </h2>
-                <p className='text-primary-500/75 text-base mt-5 leading-relaxed'>
+                <p className='text-primary-500/75 text-base mt-xl leading-relaxed'>
                   {t('proof.lede')}
                 </p>
               </div>
 
-              <div className='space-y-4'>
+              <div className='space-y-lg'>
                 {proofItems.map(item => (
                   <div
                     key={item.n}
-                    className='bg-white rounded-3xl p-7 border border-primary-500/10 hover:border-primary-500/20 hover:shadow-md transition-all duration-300'
+                    className='bg-white rounded-3xl p-3xl border border-primary-500/10 hover:border-primary-500/20 hover:shadow-md transition-all duration-300'
                   >
-                    <div className='flex items-start gap-5'>
-                      <span className='font-heading text-2xl font-bold text-primary-500/15 shrink-0 leading-none mt-0.5'>
+                    <div className='flex items-start gap-xl'>
+                      <span className='font-heading text-2xl font-bold text-primary-500/15 shrink-0 leading-none mt-xxs'>
                         {item.n}
                       </span>
                       <div>
-                        <h3 className='font-bold text-base text-primary-500 mb-2 leading-snug'>
+                        <h3 className='font-bold text-base text-primary-500 mb-sm leading-snug'>
                           {item.title}
                         </h3>
                         <p className='text-sm text-primary-500/60 leading-relaxed'>{item.body}</p>
@@ -307,13 +307,13 @@ export default function MissionDrivenPage() {
         </section>
 
         {/* ── THE THREE TENSIONS ───────────────────────────────────────────── */}
-        <section className='bg-white py-16 lg:py-24'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='text-center mb-5'>
-              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-4'>
+        <section className='bg-white py-4xl lg:py-6xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='text-center mb-xl'>
+              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-lg'>
                 {t('tensions.eyebrow')}
               </p>
-              <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-4'>
+              <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight mb-lg'>
                 {t('tensions.title')}
                 <br />
                 <span className='text-brand-green italic'>{t('tensions.titleEm')}</span>
@@ -324,8 +324,8 @@ export default function MissionDrivenPage() {
             </div>
 
             {/* Instruction hint */}
-            <div className='flex justify-center mb-8'>
-              <div className='inline-flex items-center gap-2 bg-cream border border-primary-500/10 rounded-full px-4 py-2'>
+            <div className='flex justify-center mb-4xl'>
+              <div className='inline-flex items-center gap-sm bg-cream border border-primary-500/10 rounded-full px-lg py-sm'>
                 <svg
                   viewBox='0 0 24 24'
                   fill='none'
@@ -344,7 +344,7 @@ export default function MissionDrivenPage() {
               </div>
             </div>
 
-            <div className='grid md:grid-cols-3 gap-5 lg:gap-6'>
+            <div className='grid md:grid-cols-3 gap-xl lg:gap-2xl'>
               {tensions.map(item => (
                 <TensionCard
                   key={item.left}
@@ -358,10 +358,10 @@ export default function MissionDrivenPage() {
         </section>
 
         {/* ── WHO WE'RE FOR / NOT FOR ───────────────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-24 relative overflow-hidden'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+        <section className='bg-cream py-4xl lg:py-6xl relative overflow-hidden'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
             <div className='text-center mb-14'>
-              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-4'>
+              <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-lg'>
                 {t('audience.eyebrow')}
               </p>
               <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight'>
@@ -369,22 +369,22 @@ export default function MissionDrivenPage() {
               </h2>
             </div>
 
-            <div className='grid lg:grid-cols-2 gap-5 lg:gap-6'>
+            <div className='grid lg:grid-cols-2 gap-xl lg:gap-2xl'>
               {/* Built for */}
-              <div className='bg-primary-500 rounded-3xl p-8 lg:p-10'>
-                <div className='flex items-center gap-3 mb-7'>
+              <div className='bg-primary-500 rounded-3xl p-4xl lg:p-6xl'>
+                <div className='flex items-center gap-md mb-3xl'>
                   <div className='w-3 h-3 rounded-full bg-secondary-light' aria-hidden='true' />
                   <p className='text-secondary-light text-xs font-black uppercase tracking-[0.3em]'>
                     {t('audience.forLabel')}
                   </p>
                 </div>
-                <ul className='space-y-4'>
+                <ul className='space-y-lg'>
                   {forUs.map(item => (
-                    <li key={item} className='flex items-start gap-3'>
+                    <li key={item} className='flex items-start gap-md'>
                       <svg
                         viewBox='0 0 20 20'
                         fill='currentColor'
-                        className='w-4 h-4 text-secondary-light shrink-0 mt-0.5'
+                        className='w-4 h-4 text-secondary-light shrink-0 mt-xxs'
                         aria-hidden='true'
                       >
                         <path
@@ -400,16 +400,16 @@ export default function MissionDrivenPage() {
               </div>
 
               {/* Not for */}
-              <div className='bg-white rounded-3xl p-8 lg:p-10 border-2 border-primary-500/10'>
-                <div className='flex items-center gap-3 mb-7'>
+              <div className='bg-white rounded-3xl p-4xl lg:p-6xl border-2 border-primary-500/10'>
+                <div className='flex items-center gap-md mb-3xl'>
                   <div className='w-3 h-3 rounded-full bg-primary-500/20' aria-hidden='true' />
                   <p className='text-primary-500/75 text-xs font-black uppercase tracking-[0.3em]'>
                     {t('audience.notForLabel')}
                   </p>
                 </div>
-                <ul className='space-y-4'>
+                <ul className='space-y-lg'>
                   {notForUs.map(item => (
-                    <li key={item} className='flex items-start gap-3'>
+                    <li key={item} className='flex items-start gap-md'>
                       <svg
                         viewBox='0 0 24 24'
                         fill='none'
@@ -417,7 +417,7 @@ export default function MissionDrivenPage() {
                         strokeWidth={2}
                         strokeLinecap='round'
                         strokeLinejoin='round'
-                        className='w-4 h-4 text-primary-500/25 shrink-0 mt-0.5'
+                        className='w-4 h-4 text-primary-500/25 shrink-0 mt-xxs'
                         aria-hidden='true'
                       >
                         <line x1='18' y1='6' x2='6' y2='18' />
@@ -428,7 +428,7 @@ export default function MissionDrivenPage() {
                   ))}
                 </ul>
 
-                <div className='mt-8 pt-6 border-t border-primary-500/10'>
+                <div className='mt-4xl pt-2xl border-t border-primary-500/10'>
                   <p className='text-xs text-primary-500/75 italic leading-relaxed'>
                     {t('audience.footnote')}
                   </p>
@@ -439,9 +439,9 @@ export default function MissionDrivenPage() {
         </section>
 
         {/* ── THE INVITATION - doors ────────────────────────────────────────── */}
-        <section className='bg-white py-16 lg:py-20'>
-          <div className='mx-auto max-w-5xl px-6 lg:px-8 mb-12 text-center'>
-            <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-4'>
+        <section className='bg-white py-4xl lg:py-5xl'>
+          <div className='mx-auto max-w-5xl px-2xl lg:px-4xl mb-3xl text-center'>
+            <p className='text-xs font-black uppercase tracking-[0.3em] text-brand-green mb-lg'>
               {t('invitation.eyebrow')}
             </p>
             <h2 className='font-heading text-3xl lg:text-5xl font-bold text-primary-500 leading-tight'>
@@ -462,11 +462,11 @@ export default function MissionDrivenPage() {
           </div>
 
           {/* Final line */}
-          <div className='mx-auto max-w-5xl px-6 lg:px-8 pt-14 text-center'>
+          <div className='mx-auto max-w-5xl px-2xl lg:px-4xl pt-14 text-center'>
             <p className='font-heading text-lg lg:text-2xl text-primary-500/75 italic'>
               &ldquo;{t('invitation.finalQuote')}&rdquo;
             </p>
-            <p className='text-brand-green text-xs font-black uppercase tracking-widest mt-4'>
+            <p className='text-brand-green text-xs font-black uppercase tracking-widest mt-lg'>
               - {t('invitation.finalAttribution')}
             </p>
           </div>

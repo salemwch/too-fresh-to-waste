@@ -125,7 +125,7 @@ function InfoRow({
   badge?: React.ReactNode;
 }) {
   return (
-    <div className='flex items-center justify-between gap-4'>
+    <div className='flex items-center justify-between gap-lg'>
       <div className='flex items-center gap-1.5 text-muted-foreground'>
         <Icon className='size-3 shrink-0' />
         <span className='text-xs'>{label}</span>
@@ -157,7 +157,7 @@ function VerificationCard({
 }) {
   return (
     <div
-      className={`flex items-center gap-2.5 rounded-lg border p-3 ${
+      className={`flex items-center gap-2.5 rounded-lg border p-md ${
         ok ? 'border-[#2E7D32]/20 bg-[#2E7D32]/5' : 'border-border/60 bg-muted/20'
       }`}
     >
@@ -188,11 +188,11 @@ function AdminActionRow({
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-start transition-colors ${borderClass}`}
+      className={`flex w-full items-center justify-between rounded-lg border px-lg py-md text-start transition-colors ${borderClass}`}
     >
       <div>
         <p className={`text-sm font-medium ${colorClass}`}>{label}</p>
-        <p className='mt-0.5 text-xs text-muted-foreground'>{description}</p>
+        <p className='mt-xxs text-xs text-muted-foreground'>{description}</p>
       </div>
       <ChevronRight className={`size-4 shrink-0 opacity-60 ${colorClass}`} />
     </button>
@@ -372,7 +372,7 @@ export default function AdminUsersPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='w-36'>
             <DropdownMenuItem onClick={() => setSelectedUserId(user.id)}>
-              <Eye className='me-2 size-3.5' />
+              <Eye className='me-sm size-3.5' />
               {t('actions.view')}
             </DropdownMenuItem>
             {user.status !== UserStatus.SUSPENDED && user.status !== UserStatus.BLOCKED && (
@@ -380,7 +380,7 @@ export default function AdminUsersPage() {
                 className='text-orange-600'
                 onClick={() => openAction(user, 'suspend')}
               >
-                <UserX className='me-2 size-3.5' />
+                <UserX className='me-sm size-3.5' />
                 {t('actions.suspend')}
               </DropdownMenuItem>
             )}
@@ -389,18 +389,18 @@ export default function AdminUsersPage() {
                 className='text-emerald-600'
                 onClick={() => openAction(user, 'activate')}
               >
-                <UserCheck className='me-2 size-3.5' />
+                <UserCheck className='me-sm size-3.5' />
                 {t('actions.activate')}
               </DropdownMenuItem>
             )}
             {user.status !== UserStatus.BLOCKED && (
               <DropdownMenuItem className='text-rose-600' onClick={() => openAction(user, 'block')}>
-                <UserX className='me-2 size-3.5' />
+                <UserX className='me-sm size-3.5' />
                 {t('actions.block')}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem className='text-rose-700' onClick={() => openAction(user, 'delete')}>
-              <Trash2 className='me-2 size-3.5' />
+              <Trash2 className='me-sm size-3.5' />
               {t('actions.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -437,20 +437,20 @@ export default function AdminUsersPage() {
   ];
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       {/* Header + Stats */}
-      <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+      <div className='flex flex-col gap-lg sm:flex-row sm:items-start sm:justify-between'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
         </div>
-        <div className='flex flex-wrap gap-3'>
+        <div className='flex flex-wrap gap-md'>
           {overviewStats.map(stat => {
             const Icon = stat.icon;
             return (
               <div
                 key={stat.label}
-                className='flex items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 py-1.5'
+                className='flex items-center gap-1.5 rounded-lg border border-border/60 bg-card px-md py-1.5'
               >
                 <Icon className={`size-3.5 ${stat.color}`} />
                 <span className='text-xs font-semibold tabular-nums'>{stat.value}</span>
@@ -517,7 +517,7 @@ export default function AdminUsersPage() {
             <AdminDetailSheetSkeleton />
           ) : isUserDetailError || !selectedUser ? (
             /* ── Error / empty state ── */
-            <div className='flex flex-col items-center justify-center gap-3 py-20 text-center'>
+            <div className='flex flex-col items-center justify-center gap-md py-5xl text-center'>
               <AlertCircle className='size-10 text-muted-foreground/40' />
               <p className='text-sm font-medium'>Could not load user details</p>
               <p className='max-w-[220px] text-xs text-muted-foreground'>
@@ -531,8 +531,8 @@ export default function AdminUsersPage() {
             /* ── Main content ── */
             <div className='space-y-0'>
               {/* Header — bleeds to sheet edges via negative margins */}
-              <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
-                <div className='flex items-start gap-4'>
+              <div className='-mx-2xl -mt-2xl mb-0 border-b border-border/60 bg-muted/20 px-2xl pb-xl pt-xl pe-14'>
+                <div className='flex items-start gap-lg'>
                   <Avatar className='size-16 shrink-0'>
                     <AvatarImage
                       src={
@@ -545,7 +545,7 @@ export default function AdminUsersPage() {
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className='min-w-0 flex-1 space-y-1'>
+                  <div className='min-w-0 flex-1 space-y-xs'>
                     <p className='text-base font-semibold leading-tight'>
                       {selectedUser.firstName} {selectedUser.lastName}
                     </p>
@@ -559,7 +559,7 @@ export default function AdminUsersPage() {
                         <span>{selectedUser.phoneNumber}</span>
                       </div>
                     )}
-                    <div className='flex flex-wrap gap-1.5 pt-1'>
+                    <div className='flex flex-wrap gap-1.5 pt-xs'>
                       <StatusBadge status={selectedUser.role} variant='role' />
                       <StatusBadge status={selectedUser.status} variant='user' />
                     </div>
@@ -568,7 +568,7 @@ export default function AdminUsersPage() {
               </div>
 
               {/* Tabs — also bleed to edges */}
-              <Tabs defaultValue='overview' className='-mx-6'>
+              <Tabs defaultValue='overview' className='-mx-2xl'>
                 <TabsList className='h-9 w-full rounded-none border-b border-border/60 bg-transparent px-0'>
                   <TabsTrigger
                     value='overview'
@@ -591,9 +591,9 @@ export default function AdminUsersPage() {
                 </TabsList>
 
                 {/* ── Overview tab ── */}
-                <TabsContent value='overview' className='mt-0 space-y-5 px-6 py-5'>
+                <TabsContent value='overview' className='mt-0 space-y-xl px-2xl py-xl'>
                   {/* Identity */}
-                  <section className='space-y-3'>
+                  <section className='space-y-md'>
                     <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                       Identity
                     </h3>
@@ -615,7 +615,7 @@ export default function AdminUsersPage() {
                         }
                       />
                       {/* User ID row */}
-                      <div className='flex items-center justify-between gap-4'>
+                      <div className='flex items-center justify-between gap-lg'>
                         <div className='flex items-center gap-1.5 text-muted-foreground'>
                           <Hash className='size-3 shrink-0' />
                           <span className='text-xs'>User ID</span>
@@ -639,7 +639,7 @@ export default function AdminUsersPage() {
                   <Separator />
 
                   {/* Account */}
-                  <section className='space-y-3'>
+                  <section className='space-y-md'>
                     <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                       Account
                     </h3>
@@ -673,11 +673,11 @@ export default function AdminUsersPage() {
                   <Separator />
 
                   {/* Verification cards */}
-                  <section className='space-y-3'>
+                  <section className='space-y-md'>
                     <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                       Verification
                     </h3>
-                    <div className='grid grid-cols-2 gap-2'>
+                    <div className='grid grid-cols-2 gap-sm'>
                       <VerificationCard
                         label='Email'
                         ok={selectedUser.isEmailVerified}
@@ -693,17 +693,17 @@ export default function AdminUsersPage() {
                 </TabsContent>
 
                 {/* ── Activity tab ── */}
-                <TabsContent value='activity' className='mt-0 px-6 py-5'>
+                <TabsContent value='activity' className='mt-0 px-2xl py-xl'>
                   {loadingActivity ? (
-                    <div className='space-y-3'>
+                    <div className='space-y-md'>
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Skeleton key={i} className='h-14 rounded-lg' />
                       ))}
                     </div>
                   ) : userActivity ? (
-                    <div className='space-y-5'>
+                    <div className='space-y-xl'>
                       {/* Summary stats grid */}
-                      <div className='grid grid-cols-2 gap-2'>
+                      <div className='grid grid-cols-2 gap-sm'>
                         {[
                           {
                             label: 'Total Actions',
@@ -728,7 +728,7 @@ export default function AdminUsersPage() {
                         ].map(({ label, value, icon: Icon }) => (
                           <div
                             key={label}
-                            className='rounded-lg border border-border/60 bg-card p-3 text-center'
+                            className='rounded-lg border border-border/60 bg-card p-md text-center'
                           >
                             <Icon className='mx-auto mb-1.5 size-4 text-muted-foreground' />
                             <p className='text-xl font-bold tabular-nums'>{value}</p>
@@ -740,8 +740,8 @@ export default function AdminUsersPage() {
                       </div>
 
                       {/* Risk + Trend */}
-                      <div className='grid grid-cols-2 gap-2'>
-                        <div className='rounded-lg border border-border/60 bg-muted/30 p-3'>
+                      <div className='grid grid-cols-2 gap-sm'>
+                        <div className='rounded-lg border border-border/60 bg-muted/30 p-md'>
                           <p className='mb-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground'>
                             <ShieldAlert className='size-3' />
                             Risk Score
@@ -759,7 +759,7 @@ export default function AdminUsersPage() {
                             <span className='text-xs font-normal text-muted-foreground'>/100</span>
                           </p>
                         </div>
-                        <div className='rounded-lg border border-border/60 bg-muted/30 p-3'>
+                        <div className='rounded-lg border border-border/60 bg-muted/30 p-md'>
                           <p className='mb-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground'>
                             {userActivity.metrics.activityTrend === 'increasing' ? (
                               <TrendingUp className='size-3 text-emerald-600' />
@@ -781,14 +781,14 @@ export default function AdminUsersPage() {
                           >
                             {userActivity.metrics.activityTrend}
                           </p>
-                          <p className='mt-0.5 text-[10px] text-muted-foreground'>
+                          <p className='mt-xxs text-[10px] text-muted-foreground'>
                             {userActivity.metrics.averageActionsPerDay.toFixed(1)} avg/day
                           </p>
                         </div>
                       </div>
 
                       {/* Extra metadata */}
-                      <div className='space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3 text-xs'>
+                      <div className='space-y-sm rounded-lg border border-border/60 bg-muted/20 p-md text-xs'>
                         {userActivity.metrics.mostActiveDay && (
                           <div className='flex justify-between'>
                             <span className='text-muted-foreground'>Most active day</span>
@@ -825,7 +825,7 @@ export default function AdminUsersPage() {
 
                       {/* Event timeline */}
                       {userActivity.recentEvents.length > 0 && (
-                        <div className='space-y-2'>
+                        <div className='space-y-sm'>
                           <h4 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                             Recent Events
                           </h4>
@@ -850,9 +850,9 @@ export default function AdminUsersPage() {
                                       ? 'bg-amber-100 text-amber-600'
                                       : 'bg-muted text-muted-foreground';
                               return (
-                                <div key={i} className='flex items-start gap-2.5 px-3 py-2.5'>
+                                <div key={i} className='flex items-start gap-2.5 px-md py-2.5'>
                                   <span
-                                    className={`mt-0.5 shrink-0 rounded-full p-1.5 ${dotColor}`}
+                                    className={`mt-xxs shrink-0 rounded-full p-1.5 ${dotColor}`}
                                   >
                                     <Icon className='size-3' />
                                   </span>
@@ -860,7 +860,7 @@ export default function AdminUsersPage() {
                                     <p className='text-xs font-medium leading-snug'>
                                       {ev.description}
                                     </p>
-                                    <p className='mt-0.5 text-[10px] capitalize text-muted-foreground'>
+                                    <p className='mt-xxs text-[10px] capitalize text-muted-foreground'>
                                       {ev.type.replace(/_/g, ' ')} · {relativeDate(ev.timestamp)}
                                     </p>
                                   </div>
@@ -873,14 +873,14 @@ export default function AdminUsersPage() {
 
                       {/* Audit trail */}
                       {userActivity.auditTrail.length > 0 && (
-                        <div className='space-y-2'>
+                        <div className='space-y-sm'>
                           <h4 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                             Admin Audit Trail
                           </h4>
                           <div className='divide-y divide-border/40 overflow-hidden rounded-lg border border-border/60'>
                             {userActivity.auditTrail.slice(0, 6).map((ev, i) => (
-                              <div key={ev.id ?? i} className='px-3 py-2.5'>
-                                <div className='flex items-start justify-between gap-2'>
+                              <div key={ev.id ?? i} className='px-md py-2.5'>
+                                <div className='flex items-start justify-between gap-sm'>
                                   <p className='text-xs font-medium leading-snug'>
                                     {ev.description}
                                   </p>
@@ -889,7 +889,7 @@ export default function AdminUsersPage() {
                                   </span>
                                 </div>
                                 {ev.adminEmail && (
-                                  <p className='mt-0.5 text-[10px] text-muted-foreground'>
+                                  <p className='mt-xxs text-[10px] text-muted-foreground'>
                                     by {ev.adminEmail}
                                   </p>
                                 )}
@@ -902,14 +902,14 @@ export default function AdminUsersPage() {
                       {/* Empty events fallback */}
                       {userActivity.recentEvents.length === 0 &&
                         userActivity.auditTrail.length === 0 && (
-                          <div className='flex flex-col items-center gap-3 py-8 text-center'>
+                          <div className='flex flex-col items-center gap-md py-4xl text-center'>
                             <Activity className='size-8 text-muted-foreground/40' />
                             <p className='text-sm text-muted-foreground'>No recent activity</p>
                           </div>
                         )}
                     </div>
                   ) : (
-                    <div className='flex flex-col items-center gap-3 py-12 text-center'>
+                    <div className='flex flex-col items-center gap-md py-3xl text-center'>
                       <Activity className='size-10 text-muted-foreground/40' />
                       <p className='text-sm text-muted-foreground'>No activity data available</p>
                     </div>
@@ -917,13 +917,13 @@ export default function AdminUsersPage() {
                 </TabsContent>
 
                 {/* ── Actions tab ── */}
-                <TabsContent value='actions' className='mt-0 px-6 py-5'>
-                  <div className='space-y-5'>
+                <TabsContent value='actions' className='mt-0 px-2xl py-xl'>
+                  <div className='space-y-xl'>
                     <p className='text-xs text-muted-foreground'>
                       Status changes take effect immediately and notify the user.
                     </p>
 
-                    <div className='space-y-2'>
+                    <div className='space-y-sm'>
                       {selectedUser.status !== UserStatus.SUSPENDED &&
                         selectedUser.status !== UserStatus.BLOCKED && (
                           <AdminActionRow
@@ -957,10 +957,10 @@ export default function AdminUsersPage() {
 
                     <Separator />
 
-                    <div className='space-y-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4'>
+                    <div className='space-y-md rounded-lg border border-destructive/20 bg-destructive/5 p-lg'>
                       <div>
                         <p className='text-xs font-semibold text-destructive'>Danger Zone</p>
-                        <p className='mt-0.5 text-xs text-muted-foreground'>
+                        <p className='mt-xxs text-xs text-muted-foreground'>
                           Account deletion is permanent and cannot be undone. All associated data
                           will be removed.
                         </p>

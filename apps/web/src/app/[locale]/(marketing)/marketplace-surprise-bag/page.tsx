@@ -241,23 +241,23 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
 
           {/* Decorative circles */}
 
-          <div className='relative mx-auto max-w-7xl px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28'>
-            <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-center'>
+          <div className='relative mx-auto max-w-7xl px-2xl lg:px-4xl pt-4xl pb-5xl lg:pt-6xl lg:pb-28'>
+            <div className='grid lg:grid-cols-2 gap-3xl lg:gap-4xl items-center'>
               {/* Left - copy */}
               <div>
-                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-5'>
+                <h1 className='font-heading text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-xl'>
                   {t('hero.titleStart')}{' '}
                   <span className='text-secondary-light italic'>{t('hero.titleEm')}</span>
                 </h1>
 
-                <p className='text-white/70 text-base lg:text-lg leading-relaxed mb-8 max-w-lg'>
+                <p className='text-white/70 text-base lg:text-lg leading-relaxed mb-4xl max-w-lg'>
                   {t('hero.lede')}
                 </p>
 
-                <div className='flex flex-wrap gap-4'>
+                <div className='flex flex-wrap gap-lg'>
                   <Link
                     href='/merchant-signup'
-                    className='inline-flex items-center gap-2 bg-brand-green text-white font-bold px-8 py-4 rounded-full hover:opacity-90 transition-opacity shadow-lg text-sm tracking-wide'
+                    className='inline-flex items-center gap-sm bg-brand-green text-white font-bold px-4xl py-lg rounded-full hover:opacity-90 transition-opacity shadow-lg text-sm tracking-wide'
                   >
                     {t('hero.ctaPrimary')}
                     <svg
@@ -277,7 +277,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                   </Link>
                   <a
                     href='#how-it-works'
-                    className='inline-flex items-center gap-2 border border-white/30 text-white font-semibold px-8 py-4 rounded-full hover:border-white/60 transition-colors text-sm'
+                    className='inline-flex items-center gap-sm border border-white/30 text-white font-semibold px-4xl py-lg rounded-full hover:border-white/60 transition-colors text-sm'
                   >
                     {t('hero.ctaSecondary')}
                   </a>
@@ -288,21 +288,21 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
               <div className='flex justify-center lg:justify-end'>
                 <div className='relative w-full max-w-[340px]'>
                   {/* Main card */}
-                  <div className='bg-white rounded-3xl shadow-2xl p-6 relative overflow-hidden'>
+                  <div className='bg-white rounded-3xl shadow-2xl p-2xl relative overflow-hidden'>
                     {/* Card header */}
-                    <div className='bg-primary-500 rounded-2xl p-5 mb-5 text-center relative overflow-hidden'>
+                    <div className='bg-primary-500 rounded-2xl p-xl mb-xl text-center relative overflow-hidden'>
                       <div className='absolute inset-0 bg-grain opacity-20' aria-hidden='true' />
-                      <p className='relative text-white/75 text-[10px] uppercase tracking-[0.3em] mb-1'>
+                      <p className='relative text-white/75 text-[10px] uppercase tracking-[0.3em] mb-xs'>
                         {t('card.brand')}
                       </p>
-                      <p className='relative font-heading text-3xl font-bold text-white mb-1'>
+                      <p className='relative font-heading text-3xl font-bold text-white mb-xs'>
                         {t('card.name')}
                       </p>
                       <p className='relative text-white/75 text-sm'>{t('card.subtitle')}</p>
                     </div>
 
                     {/* Food icons */}
-                    <div className='flex justify-center gap-3 mb-5' aria-hidden='true'>
+                    <div className='flex justify-center gap-md mb-xl' aria-hidden='true'>
                       {[
                         {
                           bg: 'bg-brand-green/10 text-brand-green',
@@ -386,9 +386,9 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                     </div>
 
                     {/* Price comparison */}
-                    <div className='flex items-center justify-between bg-cream rounded-2xl p-4 mb-3'>
+                    <div className='flex items-center justify-between bg-cream rounded-2xl p-lg mb-md'>
                       <div>
-                        <p className='text-xs text-primary-500/75 mb-1'>
+                        <p className='text-xs text-primary-500/75 mb-xs'>
                           {t('card.originalLabel')}
                         </p>
                         <p className='text-xl font-bold text-primary-500/75 line-through'>
@@ -397,7 +397,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                       </div>
                       <div className='h-8 w-px bg-primary-500/10' aria-hidden='true' />
                       <div className='text-right'>
-                        <p className='text-xs text-primary-500/75 mb-1'>{t('card.priceLabel')}</p>
+                        <p className='text-xs text-primary-500/75 mb-xs'>{t('card.priceLabel')}</p>
                         <p className='text-2xl font-black text-brand-green'>
                           {t('card.priceValue')}
                         </p>
@@ -405,20 +405,20 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                     </div>
 
                     {/* Revenue highlight */}
-                    <div className='bg-primary-500 rounded-2xl p-4 text-center'>
-                      <p className='text-white/75 text-[10px] uppercase tracking-widest mb-1'>
+                    <div className='bg-primary-500 rounded-2xl p-lg text-center'>
+                      <p className='text-white/75 text-[10px] uppercase tracking-widest mb-xs'>
                         {t('card.earnLabel')}
                       </p>
                       <p className='text-white text-3xl font-black font-heading'>
                         {t('card.earnValue')}
                       </p>
-                      <p className='text-white/75 text-xs mt-1'>{t('card.earnNote')}</p>
+                      <p className='text-white/75 text-xs mt-xs'>{t('card.earnNote')}</p>
                     </div>
                   </div>
 
                   {/* Save badge */}
                   <div
-                    className='absolute -top-4 -right-4 bg-brand-green text-white rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-xl rotate-[12deg]'
+                    className='absolute -top-lg -right-lg bg-brand-green text-white rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-xl rotate-[12deg]'
                     aria-label={`${t('card.badgeLabel')} ${t('card.badgeValue')}`}
                   >
                     <span className='text-[10px] font-bold leading-tight'>
@@ -431,7 +431,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
 
                   {/* Floating label */}
                   <div
-                    className='absolute -bottom-3 -left-3 bg-brand-teal text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg rotate-[-3deg]'
+                    className='absolute -bottom-md -left-md bg-brand-teal text-white text-xs font-bold px-lg py-sm rounded-full shadow-lg rotate-[-3deg]'
                     aria-hidden='true'
                   >
                     {t('card.floating')}
@@ -443,12 +443,12 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         </section>
 
         {/* ── MARQUEE TICKER ────────────────────────────────────────── */}
-        <div className='bg-brand-green py-3 overflow-hidden' aria-hidden='true'>
-          <div className='flex w-max animate-marquee-fw gap-16 whitespace-nowrap'>
+        <div className='bg-brand-green py-md overflow-hidden' aria-hidden='true'>
+          <div className='flex w-max animate-marquee-fw gap-4xl whitespace-nowrap'>
             {Array.from({ length: 2 }).map((_, i) => (
               <div
                 key={i}
-                className='flex items-center gap-16 font-bold text-white text-xs uppercase tracking-[0.2em]'
+                className='flex items-center gap-4xl font-bold text-white text-xs uppercase tracking-[0.2em]'
               >
                 <span>Zero Waste</span>
                 <span className='text-white/40'>✦</span>
@@ -463,25 +463,25 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         </div>
 
         {/* ── WHAT IS THE SURPRISE BAG ──────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-20'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='grid lg:grid-cols-2 gap-12 lg:gap-16 items-start'>
+        <section className='bg-cream py-4xl lg:py-5xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='grid lg:grid-cols-2 gap-3xl lg:gap-4xl items-start'>
               {/* Left - explanation */}
               <div>
-                <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+                <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                   {t('what.eyebrow')}
                 </p>
-                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-6'>
+                <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500 leading-tight mb-2xl'>
                   {t('what.titleStart')}{' '}
                   <span className='text-brand-green italic'>{t('what.titleEm')}</span>
                 </h2>
-                <p className='text-primary-500/75 text-base leading-relaxed mb-6'>
+                <p className='text-primary-500/75 text-base leading-relaxed mb-2xl'>
                   {t('what.lede')}
                 </p>
 
-                <ul className='space-y-4 mb-8'>
+                <ul className='space-y-lg mb-4xl'>
                   {whatBullets.map(item => (
-                    <li key={item} className='flex items-center gap-3 text-sm text-primary-500/80'>
+                    <li key={item} className='flex items-center gap-md text-sm text-primary-500/80'>
                       <span className='w-5 h-5 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0'>
                         <svg
                           className='w-3 h-3'
@@ -503,7 +503,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
 
                 <Link
                   href='/merchant-signup'
-                  className='inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-7 py-3.5 rounded-full hover:bg-primary-600 transition-colors text-sm'
+                  className='inline-flex items-center gap-sm bg-primary-500 text-white font-bold px-3xl py-3.5 rounded-full hover:bg-primary-600 transition-colors text-sm'
                 >
                   {t('what.cta')}
                 </Link>
@@ -511,19 +511,19 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
 
               {/* Right - what can go inside grid */}
               <div>
-                <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500/75 mb-4'>
+                <p className='text-xs font-bold uppercase tracking-[0.2em] text-primary-500/75 mb-lg'>
                   {t('what.categoriesLabel')}
                 </p>
-                <div className='grid grid-cols-2 gap-3'>
+                <div className='grid grid-cols-2 gap-md'>
                   {categories.map((cat, i) => (
                     <div
                       key={cat.type}
-                      className='bg-white rounded-2xl p-4 border border-primary-500/10 hover:border-brand-green/30 hover:shadow-md transition-all duration-300 group'
+                      className='bg-white rounded-2xl p-lg border border-primary-500/10 hover:border-brand-green/30 hover:shadow-md transition-all duration-300 group'
                     >
-                      <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-3 group-hover:bg-brand-green/10 group-hover:text-brand-green transition-colors'>
+                      <div className='w-10 h-10 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center mb-md group-hover:bg-brand-green/10 group-hover:text-brand-green transition-colors'>
                         {CATEGORY_ICONS[i] ?? CATEGORY_ICONS[0]}
                       </div>
-                      <p className='font-bold text-sm text-primary-500 mb-1'>{cat.type}</p>
+                      <p className='font-bold text-sm text-primary-500 mb-xs'>{cat.type}</p>
                       <p className='text-xs text-primary-500/75 leading-relaxed'>{cat.items}</p>
                     </div>
                   ))}
@@ -534,10 +534,10 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         </section>
 
         {/* ── HOW IT WORKS ──────────────────────────────────────────── */}
-        <section id='how-it-works' className='bg-white py-16 lg:py-20'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='text-center mb-12'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+        <section id='how-it-works' className='bg-white py-4xl lg:py-5xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='text-center mb-3xl'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('howItWorks.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
@@ -545,18 +545,18 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
               </h2>
             </div>
 
-            <div className='grid md:grid-cols-3 gap-6'>
+            <div className='grid md:grid-cols-3 gap-2xl'>
               {steps.map((step, i) => (
                 <div
                   key={i}
-                  className='group bg-cream rounded-3xl p-7 hover:shadow-md transition-all duration-300 border border-transparent hover:border-brand-green/20'
+                  className='group bg-cream rounded-3xl p-3xl hover:shadow-md transition-all duration-300 border border-transparent hover:border-brand-green/20'
                 >
                   <div
-                    className={`w-14 h-14 rounded-2xl ${STEP_COLORS[i] ?? STEP_COLORS[0]} flex items-center justify-center mb-5 shadow-md`}
+                    className={`w-14 h-14 rounded-2xl ${STEP_COLORS[i] ?? STEP_COLORS[0]} flex items-center justify-center mb-xl shadow-md`}
                   >
                     <span className='text-white font-black text-xl font-heading'>{step.n}</span>
                   </div>
-                  <h3 className='font-bold text-lg text-primary-500 mb-3'>{step.title}</h3>
+                  <h3 className='font-bold text-lg text-primary-500 mb-md'>{step.title}</h3>
                   <p className='text-sm text-primary-500/65 leading-relaxed'>{step.body}</p>
                 </div>
               ))}
@@ -565,13 +565,13 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         </section>
 
         {/* ── REVENUE CALCULATOR ────────────────────────────────────── */}
-        <section className='bg-primary-500 py-16 lg:py-20 bg-grain'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='text-center mb-10'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-secondary-light mb-3'>
+        <section className='bg-primary-500 py-4xl lg:py-5xl bg-grain'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='text-center mb-6xl'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-secondary-light mb-md'>
                 {t('calculator.eyebrow')}
               </p>
-              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white mb-4'>
+              <h2 className='font-heading text-4xl lg:text-5xl font-bold text-white mb-lg'>
                 {t('calculator.title')}
               </h2>
               <p className='text-white/75 text-base max-w-xl mx-auto leading-relaxed'>
@@ -584,10 +584,10 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         </section>
 
         {/* ── WHY JOIN ──────────────────────────────────────────────── */}
-        <section className='bg-cream py-16 lg:py-20'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='text-center mb-12'>
-              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-3'>
+        <section className='bg-cream py-4xl lg:py-5xl'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='text-center mb-3xl'>
+              <p className='text-xs font-bold uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {t('benefits.eyebrow')}
               </p>
               <h2 className='font-heading text-4xl lg:text-5xl font-bold text-primary-500'>
@@ -596,16 +596,16 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
               </h2>
             </div>
 
-            <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-5'>
+            <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-xl'>
               {benefits.map((b, i) => (
                 <div
                   key={b.title}
-                  className='bg-white rounded-3xl p-6 border border-primary-500/10 hover:border-brand-green/25 hover:shadow-lg transition-all duration-300 group'
+                  className='bg-white rounded-3xl p-2xl border border-primary-500/10 hover:border-brand-green/25 hover:shadow-lg transition-all duration-300 group'
                 >
-                  <div className='w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center mb-4 text-primary-500 group-hover:bg-brand-green/10 group-hover:text-brand-green transition-colors'>
+                  <div className='w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center mb-lg text-primary-500 group-hover:bg-brand-green/10 group-hover:text-brand-green transition-colors'>
                     {BENEFIT_ICONS[i] ?? BENEFIT_ICONS[0]}
                   </div>
-                  <h3 className='font-bold text-base text-primary-500 mb-2 leading-snug'>
+                  <h3 className='font-bold text-base text-primary-500 mb-sm leading-snug'>
                     {b.title}
                   </h3>
                   <p className='text-sm text-primary-500/75 leading-relaxed'>{b.body}</p>
@@ -616,10 +616,10 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         </section>
 
         {/* ── URGENCY STRIP ─────────────────────────────────────────── */}
-        <section className='bg-white py-10 border-y border-primary-500/10'>
-          <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-            <div className='flex flex-col md:flex-row items-center justify-between gap-6'>
-              <div className='flex items-center gap-4'>
+        <section className='bg-white py-6xl border-y border-primary-500/10'>
+          <div className='mx-auto max-w-7xl px-2xl lg:px-4xl'>
+            <div className='flex flex-col md:flex-row items-center justify-between gap-2xl'>
+              <div className='flex items-center gap-lg'>
                 <div
                   className='w-12 h-12 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0 text-xl'
                   aria-hidden='true'
@@ -633,7 +633,7 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
               </div>
               <Link
                 href='/merchant-signup'
-                className='shrink-0 inline-flex items-center gap-2 bg-brand-green text-white font-bold px-7 py-3.5 rounded-full hover:opacity-90 transition-opacity text-sm shadow-md'
+                className='shrink-0 inline-flex items-center gap-sm bg-brand-green text-white font-bold px-3xl py-3.5 rounded-full hover:opacity-90 transition-opacity text-sm shadow-md'
               >
                 {t('urgency.cta')}
               </Link>
@@ -642,20 +642,20 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
         </section>
 
         {/* ── CLOSING CTA ───────────────────────────────────────────── */}
-        <section className='bg-brand-green relative overflow-hidden py-20 lg:py-28'>
-          <div className='relative mx-auto max-w-3xl px-6 text-center'>
-            <p className='text-white/75 text-xs font-bold uppercase tracking-[0.3em] mb-4'>
+        <section className='bg-brand-green relative overflow-hidden py-5xl lg:py-28'>
+          <div className='relative mx-auto max-w-3xl px-2xl text-center'>
+            <p className='text-white/75 text-xs font-bold uppercase tracking-[0.3em] mb-lg'>
               {t('closing.eyebrow')}
             </p>
-            <h2 className='font-heading text-4xl lg:text-6xl font-bold text-white leading-tight mb-6'>
+            <h2 className='font-heading text-4xl lg:text-6xl font-bold text-white leading-tight mb-2xl'>
               {t('closing.title')}
             </h2>
-            <p className='text-white/80 text-base lg:text-lg leading-relaxed mb-8 max-w-xl mx-auto'>
+            <p className='text-white/80 text-base lg:text-lg leading-relaxed mb-4xl max-w-xl mx-auto'>
               {t('closing.body')}
             </p>
             <Link
               href='/merchant-signup'
-              className='inline-flex items-center gap-3 bg-white text-brand-green font-black text-base px-10 py-5 rounded-full hover:bg-cream transition-colors shadow-xl'
+              className='inline-flex items-center gap-md bg-white text-brand-green font-black text-base px-6xl py-xl rounded-full hover:bg-cream transition-colors shadow-xl'
             >
               {t('closing.cta')}
               <svg

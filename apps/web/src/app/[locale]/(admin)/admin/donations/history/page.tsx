@@ -49,7 +49,7 @@ export default function AdminDonationHistoryPage() {
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center py-24'>
+      <div className='flex items-center justify-center py-6xl'>
         <Loader2 className='size-6 animate-spin text-muted-foreground' />
       </div>
     );
@@ -58,26 +58,26 @@ export default function AdminDonationHistoryPage() {
   const hasHistory = history && history.length > 0;
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       {/* Header */}
-      <div className='flex items-start justify-between gap-4'>
+      <div className='flex items-start justify-between gap-lg'>
         <div>
-          <div className='flex items-center gap-2 mb-1'>
+          <div className='flex items-center gap-sm mb-xs'>
             <Link href='/admin/donations'>
-              <Button variant='ghost' size='sm' className='h-7 px-2 text-xs'>
-                <ArrowLeft className='me-1 size-3.5' />
+              <Button variant='ghost' size='sm' className='h-7 px-sm text-xs'>
+                <ArrowLeft className='me-xs size-3.5' />
                 {t('title')}
               </Button>
             </Link>
           </div>
           <h1 className='text-xl font-bold tracking-tight'>{t('history.title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('history.description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('history.description')}</p>
         </div>
       </div>
 
       {!hasHistory ? (
         <Card className='border-border/60'>
-          <CardContent className='flex flex-col items-center justify-center py-16 gap-3 text-center'>
+          <CardContent className='flex flex-col items-center justify-center py-4xl gap-md text-center'>
             <HeartHandshake className='size-12 text-muted-foreground' />
             <h3 className='text-md font-semibold'>{t('history.empty')}</h3>
             <p className='text-sm text-muted-foreground max-w-xs'>
@@ -86,7 +86,7 @@ export default function AdminDonationHistoryPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className='space-y-4'>
+        <div className='space-y-lg'>
           {history.map(({ season, pools }) => {
             const isExpanded = expandedSeasons.has(season);
             const totalRaised = pools.reduce((sum, p) => sum + p.currentAmount, 0);
@@ -103,15 +103,15 @@ export default function AdminDonationHistoryPage() {
                   onClick={() => toggleSeason(season)}
                 >
                   <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-3'>
-                      <div className='rounded-lg bg-primary-500/10 p-2'>
+                    <div className='flex items-center gap-md'>
+                      <div className='rounded-lg bg-primary-500/10 p-sm'>
                         <Trophy className='size-4 text-primary-500' />
                       </div>
                       <div>
                         <CardTitle className='text-sm'>
                           {t('history.seasonLabel', { number: season })}
                         </CardTitle>
-                        <p className='text-xs text-muted-foreground mt-0.5'>
+                        <p className='text-xs text-muted-foreground mt-xxs'>
                           {t('history.seasonSummary', {
                             goals: goalsCompleted,
                             total: pools.length,
@@ -135,22 +135,22 @@ export default function AdminDonationHistoryPage() {
                       <table className='w-full text-xs'>
                         <thead>
                           <tr className='bg-muted/50'>
-                            <th className='text-start px-3 py-2 font-medium text-muted-foreground'>
+                            <th className='text-start px-md py-sm font-medium text-muted-foreground'>
                               {t('history.goal')}
                             </th>
-                            <th className='text-start px-3 py-2 font-medium text-muted-foreground'>
+                            <th className='text-start px-md py-sm font-medium text-muted-foreground'>
                               {t('history.status')}
                             </th>
-                            <th className='text-end px-3 py-2 font-medium text-muted-foreground'>
+                            <th className='text-end px-md py-sm font-medium text-muted-foreground'>
                               {t('history.raised')}
                             </th>
-                            <th className='text-end px-3 py-2 font-medium text-muted-foreground'>
+                            <th className='text-end px-md py-sm font-medium text-muted-foreground'>
                               {t('history.target')}
                             </th>
-                            <th className='text-end px-3 py-2 font-medium text-muted-foreground'>
+                            <th className='text-end px-md py-sm font-medium text-muted-foreground'>
                               {t('history.progressCol')}
                             </th>
-                            <th className='text-end px-3 py-2 font-medium text-muted-foreground'>
+                            <th className='text-end px-md py-sm font-medium text-muted-foreground'>
                               {t('history.date')}
                             </th>
                           </tr>
@@ -163,25 +163,25 @@ export default function AdminDonationHistoryPage() {
                                 : 0;
                             return (
                               <tr key={pool._id} className='border-t border-border/40'>
-                                <td className='px-3 py-2 font-medium'>
+                                <td className='px-md py-sm font-medium'>
                                   {CATEGORY_LABELS[pool.activeGoalCategory] ??
                                     pool.activeGoalCategory}
                                 </td>
-                                <td className='px-3 py-2'>
+                                <td className='px-md py-sm'>
                                   <span
-                                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[pool.status] ?? STATUS_STYLES.active}`}
+                                    className={`inline-flex items-center rounded-full border px-sm py-xxs text-[10px] font-semibold ${STATUS_STYLES[pool.status] ?? STATUS_STYLES.active}`}
                                   >
                                     {t(`status.${pool.status}`)}
                                   </span>
                                 </td>
-                                <td className='px-3 py-2 text-end tabular-nums'>
+                                <td className='px-md py-sm text-end tabular-nums'>
                                   {pool.currentAmount.toFixed(2)} TND
                                 </td>
-                                <td className='px-3 py-2 text-end tabular-nums'>
+                                <td className='px-md py-sm text-end tabular-nums'>
                                   {pool.targetAmount.toFixed(0)} TND
                                 </td>
-                                <td className='px-3 py-2 text-end'>
-                                  <div className='flex items-center justify-end gap-2'>
+                                <td className='px-md py-sm text-end'>
+                                  <div className='flex items-center justify-end gap-sm'>
                                     <div className='h-1.5 w-16 overflow-hidden rounded-full bg-muted'>
                                       <div
                                         className='h-full rounded-full bg-primary-500'
@@ -195,7 +195,7 @@ export default function AdminDonationHistoryPage() {
                                     </span>
                                   </div>
                                 </td>
-                                <td className='px-3 py-2 text-end text-muted-foreground'>
+                                <td className='px-md py-sm text-end text-muted-foreground'>
                                   {new Date(pool.startDate).toLocaleDateString()}
                                 </td>
                               </tr>

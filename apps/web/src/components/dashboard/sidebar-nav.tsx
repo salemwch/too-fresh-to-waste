@@ -26,7 +26,7 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
   const { data: draftOfferCount = 0 } = useOfferStatusCount('draft', isMerchantOrLM);
 
   return (
-    <nav className='flex flex-col gap-0.5 px-3'>
+    <nav className='flex flex-col gap-xxs px-md'>
       {items.map(item => {
         const isActive = pathname.startsWith(`/${locale}${item.href}`);
         const Icon = item.icon;
@@ -38,7 +38,7 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors group',
+              'flex items-center justify-between px-md py-sm rounded-lg text-sm font-medium transition-colors group',
               isActive
                 ? 'bg-primary-500 text-white shadow-md shadow-primary-900/10'
                 : 'text-slate-500 hover:bg-slate-50',
@@ -56,7 +56,7 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
               {!collapsed && isPro && (
                 <span
                   className={cn(
-                    'text-[9px] font-bold px-1.5 py-0.5 rounded border leading-none tracking-wide',
+                    'text-[9px] font-bold px-1.5 py-xxs rounded border leading-none tracking-wide',
                     isActive ? 'border-white/50 text-white' : 'border-amber-400/50 text-amber-500',
                   )}
                 >

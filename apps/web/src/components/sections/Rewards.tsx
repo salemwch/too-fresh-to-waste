@@ -25,10 +25,10 @@ export default function Rewards() {
   return (
     <section
       aria-labelledby='rewards-heading'
-      className='bg-primary-500 border-t border-white/10 px-4 py-14 md:py-20'
+      className='bg-primary-500 border-t border-white/10 px-lg py-14 md:py-5xl'
     >
-      <div className='mx-auto flex max-w-5xl flex-col gap-8'>
-        <div className='flex flex-col gap-3'>
+      <div className='mx-auto flex max-w-5xl flex-col gap-4xl'>
+        <div className='flex flex-col gap-md'>
           <p className='text-[11px] font-medium tracking-[0.2em] text-white/50 uppercase'>
             {t('eyebrow')}
           </p>
@@ -45,7 +45,7 @@ export default function Rewards() {
 
         <div className='grid gap-px overflow-hidden rounded-2xl border border-white/15 bg-white/10 sm:grid-cols-3'>
           {CARDS.map(({ key, Icon }) => (
-            <div key={key} className='bg-primary-500 flex flex-col gap-3 p-6'>
+            <div key={key} className='bg-primary-500 flex flex-col gap-md p-2xl'>
               <Icon className='text-secondary size-6' strokeWidth={1.5} aria-hidden='true' />
               <h3 className='font-heading text-lg text-white'>{t(`${key}.label`)}</h3>
               <p className='text-sm leading-relaxed text-white/65'>{t(`${key}.body`)}</p>

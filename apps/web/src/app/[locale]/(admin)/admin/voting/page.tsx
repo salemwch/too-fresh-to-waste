@@ -98,16 +98,16 @@ export default function VotingAdminPage() {
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       {/* Header */}
-      <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+      <div className='flex flex-col gap-lg sm:flex-row sm:items-start sm:justify-between'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>Voting Cycles</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>
+          <p className='mt-xxs text-sm text-muted-foreground'>
             Manage community voting cycles, prizes, and eligibility settings.
           </p>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-sm'>
           <Button
             size='sm'
             variant='outline'
@@ -118,7 +118,7 @@ export default function VotingAdminPage() {
             <RefreshCw className={`me-1.5 size-3.5 ${isFetching ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button size='sm' onClick={handleCreate} className='h-7 px-3 text-xs'>
+          <Button size='sm' onClick={handleCreate} className='h-7 px-md text-xs'>
             <Plus className='me-1.5 size-3.5' />
             Create Cycle
           </Button>
@@ -126,15 +126,15 @@ export default function VotingAdminPage() {
       </div>
 
       {/* Sub-page navigation */}
-      <div className='flex flex-wrap gap-2'>
+      <div className='flex flex-wrap gap-sm'>
         <Link href='/admin/voting/dashboard'>
-          <Button size='sm' variant='outline' className='h-7 px-3 text-xs'>
+          <Button size='sm' variant='outline' className='h-7 px-md text-xs'>
             <BarChart3 className='me-1.5 size-3.5' />
             Live Dashboard
           </Button>
         </Link>
         <Link href='/admin/voting/winners'>
-          <Button size='sm' variant='outline' className='h-7 px-3 text-xs'>
+          <Button size='sm' variant='outline' className='h-7 px-md text-xs'>
             <Trophy className='me-1.5 size-3.5' />
             Winners & Claims
           </Button>
@@ -142,8 +142,8 @@ export default function VotingAdminPage() {
       </div>
 
       {/* Stats row */}
-      <div className='flex flex-wrap gap-3'>
-        <div className='flex items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 py-1.5'>
+      <div className='flex flex-wrap gap-md'>
+        <div className='flex items-center gap-1.5 rounded-lg border border-border/60 bg-card px-md py-1.5'>
           <Vote className='size-3.5 text-primary' />
           <span className='text-xs font-semibold tabular-nums'>{total}</span>
           <span className='text-xs text-muted-foreground'>total cycle(s)</span>
@@ -152,7 +152,7 @@ export default function VotingAdminPage() {
 
       {/* Table card */}
       <Card className='border-border/60'>
-        <CardHeader className='pb-3'>
+        <CardHeader className='pb-md'>
           <CardTitle className='text-sm'>All Cycles</CardTitle>
           <CardDescription className='text-xs'>
             Showing {cycles.length} of {total} cycle(s)

@@ -29,8 +29,8 @@ export default async function AuthLayout({ children, params }: AuthLayoutProps) 
     <NextIntlClientProvider messages={messages}>
       <div className='min-h-screen flex flex-col bg-muted/30'>
         {/* Minimal header with logo and locale switcher */}
-        <header className='flex items-center justify-between px-6 py-4'>
-          <Link href='/' className='flex items-center gap-2'>
+        <header className='flex items-center justify-between px-2xl py-lg'>
+          <Link href='/' className='flex items-center gap-sm'>
             <Image
               src='/images/green-header-center.png'
               alt='Too Fresh To Waste'
@@ -43,12 +43,12 @@ export default async function AuthLayout({ children, params }: AuthLayoutProps) 
         </header>
 
         {/* Centered content area */}
-        <main className='flex-1 flex items-center justify-center px-4 py-8'>
+        <main className='flex-1 flex items-center justify-center px-lg py-4xl'>
           <div className='w-full max-w-md'>{children}</div>
         </main>
 
         {/* Minimal footer */}
-        <footer className='py-4 text-center text-sm text-muted-foreground'>
+        <footer className='py-lg text-center text-sm text-muted-foreground'>
           &copy; {new Date().getFullYear()} Too Fresh To Waste
         </footer>
       </div>

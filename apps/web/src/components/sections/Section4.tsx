@@ -32,7 +32,7 @@ export default function Section4() {
   return (
     <section
       id='how-to-use'
-      className='bg-primary-500 flex justify-center items-center pt-6 md:pt-0 pb-12 md:pb-16 px-4 relative z-10'
+      className='bg-primary-500 flex justify-center items-center pt-2xl md:pt-0 pb-3xl md:pb-4xl px-lg relative z-10'
       aria-labelledby='how-to-use-heading'
     >
       {/* Wave at the top */}
@@ -54,13 +54,13 @@ export default function Section4() {
         {/* Title */}
         <h2
           id='how-to-use-heading'
-          className='text-secondary text-xl md:text-3xl leading-tight font-bold mb-2'
+          className='text-secondary text-xl md:text-3xl leading-tight font-bold mb-sm'
         >
           {t('title')}
         </h2>
 
         {/* Description */}
-        <p className='text-[#f9f3f0]/70 text-base leading-normal mb-6'>{t('description')}</p>
+        <p className='text-[#f9f3f0]/70 text-base leading-normal mb-2xl'>{t('description')}</p>
 
         {/* Grid Layout */}
         <div className='steps-grid'>

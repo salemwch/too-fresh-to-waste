@@ -83,13 +83,13 @@ export function DashboardWelcomeHeader({ establishment }: DashboardWelcomeHeader
       <div className='flex items-start justify-between gap-[24px] flex-wrap'>
         {/* Greeting */}
         <div className='flex-1 min-w-[280px]'>
-          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
+          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-sm'>
             {dateLabel}
           </div>
           <h1 className='font-display text-3xl md:text-4xl lg:text-5xl text-primary-500 leading-[1.05]'>
             {t('greeting', { name: user?.firstName ?? 'Merchant' })}
           </h1>
-          <p className='mt-3 text-primary-500/70 text-base md:text-lg max-w-2xl'>
+          <p className='mt-md text-primary-500/70 text-base md:text-lg max-w-2xl'>
             {t('impactStatement', { trees: treesEquivalent })}
           </p>
         </div>
@@ -192,7 +192,7 @@ export function DashboardWelcomeHeader({ establishment }: DashboardWelcomeHeader
 
       {/* Monthly Green Goal */}
       <div>
-        <div className='flex items-center justify-between text-xs mb-2'>
+        <div className='flex items-center justify-between text-xs mb-sm'>
           <span className='text-primary-500/70'>
             Monthly Green Goal ·{' '}
             <span className='font-medium text-primary-500'>

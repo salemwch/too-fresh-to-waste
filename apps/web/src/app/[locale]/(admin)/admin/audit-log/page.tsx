@@ -79,23 +79,23 @@ function AuditDetailDrawer({
       <SheetContent className='w-full overflow-y-auto sm:max-w-lg'>
         <SheetTitle className='sr-only'>Audit Entry Details</SheetTitle>
         <div className='space-y-0'>
-          <div className='-mx-6 -mt-6 mb-0 border-b border-border/60 bg-muted/20 px-6 pb-5 pt-5 pe-14'>
-            <div className='flex items-start gap-3'>
-              <div className='rounded-lg p-2 bg-muted'>
+          <div className='-mx-2xl -mt-2xl mb-0 border-b border-border/60 bg-muted/20 px-2xl pb-xl pt-xl pe-14'>
+            <div className='flex items-start gap-md'>
+              <div className='rounded-lg p-sm bg-muted'>
                 <ActionIcon className='size-5 text-foreground' />
               </div>
               <div>
                 <p className='text-base font-semibold capitalize'>
                   {entry.action.replace(/_/g, ' ')}
                 </p>
-                <p className='mt-0.5 text-xs text-muted-foreground'>
+                <p className='mt-xxs text-xs text-muted-foreground'>
                   {new Date(entry.timestamp).toLocaleString('en-GB')}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className='space-y-5 py-5'>
+          <div className='space-y-xl py-xl'>
             <section className='space-y-2.5'>
               <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 Event Info
@@ -131,11 +131,11 @@ function AuditDetailDrawer({
             {entry.reason && (
               <>
                 <Separator />
-                <section className='space-y-2'>
+                <section className='space-y-sm'>
                   <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                     Reason
                   </h3>
-                  <p className='text-xs text-foreground rounded-lg border border-border/60 bg-muted/20 p-3'>
+                  <p className='text-xs text-foreground rounded-lg border border-border/60 bg-muted/20 p-md'>
                     {entry.reason}
                   </p>
                 </section>
@@ -145,22 +145,22 @@ function AuditDetailDrawer({
             {(entry.previousValue || entry.newValue) && (
               <>
                 <Separator />
-                <section className='space-y-2'>
+                <section className='space-y-sm'>
                   <h3 className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                     Changes
                   </h3>
                   {entry.previousValue && (
-                    <div className='space-y-1'>
+                    <div className='space-y-xs'>
                       <p className='text-[10px] font-medium text-muted-foreground'>Before:</p>
-                      <pre className='text-[11px] rounded-lg border border-border/60 bg-muted/20 p-2 overflow-x-auto'>
+                      <pre className='text-[11px] rounded-lg border border-border/60 bg-muted/20 p-sm overflow-x-auto'>
                         {JSON.stringify(entry.previousValue, null, 2)}
                       </pre>
                     </div>
                   )}
                   {entry.newValue && (
-                    <div className='space-y-1'>
+                    <div className='space-y-xs'>
                       <p className='text-[10px] font-medium text-muted-foreground'>After:</p>
-                      <pre className='text-[11px] rounded-lg border border-border/60 bg-muted/20 p-2 overflow-x-auto'>
+                      <pre className='text-[11px] rounded-lg border border-border/60 bg-muted/20 p-sm overflow-x-auto'>
                         {JSON.stringify(entry.newValue, null, 2)}
                       </pre>
                     </div>
@@ -296,7 +296,7 @@ function AuditLogContent() {
       render: e => {
         const Icon = getActionCategoryIcon(e.action);
         return (
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center gap-sm'>
             <Icon className='size-3.5 text-muted-foreground shrink-0' />
             <span className='text-xs capitalize'>{e.action.replace(/_/g, ' ')}</span>
           </div>
@@ -326,7 +326,7 @@ function AuditLogContent() {
         return (
           <span
             className={cn(
-              'inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize',
+              'inline-flex rounded-full border px-sm py-xxs text-[10px] font-semibold capitalize',
               styles[cat],
             )}
           >
@@ -353,7 +353,7 @@ function AuditLogContent() {
   ];
 
   return (
-    <div className='space-y-5'>
+    <div className='space-y-xl'>
       <AdminModuleHeader
         title={t('title')}
         subtitle={t('subtitle')}
@@ -366,7 +366,7 @@ function AuditLogContent() {
       <Card className='border-border/60'>
         <CardContent className='p-0'>
           <AdminTabNav tabs={tabs} />
-          <div className='p-4'>
+          <div className='p-lg'>
             <AdminDataTable
               columns={columns}
               data={logs}
@@ -399,9 +399,9 @@ export default function AdminAuditLogPage() {
   return (
     <Suspense
       fallback={
-        <div className='space-y-5'>
+        <div className='space-y-xl'>
           <Skeleton className='h-16 rounded-lg' />
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-md'>
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className='h-24 rounded-lg' />
             ))}

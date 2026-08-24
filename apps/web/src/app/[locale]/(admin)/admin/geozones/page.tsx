@@ -67,7 +67,7 @@ export default function GeozonesPage() {
   const { data: stats } = useGeozoneStats();
 
   return (
-    <div className='space-y-6 p-6'>
+    <div className='space-y-2xl p-2xl'>
       <div className='flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-semibold'>{t('title')}</h1>
@@ -78,10 +78,10 @@ export default function GeozonesPage() {
 
       {/* Stats */}
       {stats && (
-        <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
+        <div className='grid grid-cols-2 md:grid-cols-3 gap-lg'>
           <Card>
-            <CardContent className='flex items-center gap-3 p-4'>
-              <div className='rounded-md bg-primary/10 p-2'>
+            <CardContent className='flex items-center gap-md p-lg'>
+              <div className='rounded-md bg-primary/10 p-sm'>
                 <MapPin className='size-5 text-primary' />
               </div>
               <div>
@@ -91,8 +91,8 @@ export default function GeozonesPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className='flex items-center gap-3 p-4'>
-              <div className='rounded-md bg-green-500/10 p-2'>
+            <CardContent className='flex items-center gap-md p-lg'>
+              <div className='rounded-md bg-green-500/10 p-sm'>
                 <MapPin className='size-5 text-green-600' />
               </div>
               <div>
@@ -102,8 +102,8 @@ export default function GeozonesPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className='flex items-center gap-3 p-4'>
-              <div className='rounded-md bg-blue-500/10 p-2'>
+            <CardContent className='flex items-center gap-md p-lg'>
+              <div className='rounded-md bg-blue-500/10 p-sm'>
                 <Building2 className='size-5 text-blue-600' />
               </div>
               <div>
@@ -118,7 +118,7 @@ export default function GeozonesPage() {
       )}
 
       {/* Filters */}
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-sm'>
         <Input
           placeholder={t('searchPlaceholder')}
           value={search}
@@ -142,13 +142,13 @@ export default function GeozonesPage() {
       {isLoading ? (
         <GeozoneSkeleton />
       ) : !zones || zones.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-16 gap-3 text-center'>
+        <div className='flex flex-col items-center justify-center py-4xl gap-md text-center'>
           <MapPin className='size-12 text-muted-foreground' />
           <h3 className='text-md font-semibold'>{t('noZones')}</h3>
           <p className='text-sm text-muted-foreground max-w-xs'>{t('noZonesDesc')}</p>
         </div>
       ) : (
-        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        <div className='grid gap-lg md:grid-cols-2 lg:grid-cols-3'>
           {zones.map(zone => (
             <GeozoneCard key={zone._id} zone={zone} />
           ))}
@@ -172,7 +172,7 @@ function GeozoneCard({ zone }: { zone: GeozoneRow }) {
   return (
     <>
       <Card>
-        <CardContent className='p-4 space-y-3'>
+        <CardContent className='p-lg space-y-md'>
           <div className='flex items-start justify-between'>
             <div>
               <h3 className='text-sm font-medium'>{zone.displayName}</h3>
@@ -189,7 +189,7 @@ function GeozoneCard({ zone }: { zone: GeozoneRow }) {
           {zone.description && (
             <p className='text-xs text-muted-foreground line-clamp-2'>{zone.description}</p>
           )}
-          <div className='grid grid-cols-2 gap-2 text-xs'>
+          <div className='grid grid-cols-2 gap-sm text-xs'>
             <div>
               <span className='text-muted-foreground'>{t('searchRadius')}</span>
               <p className='font-medium'>{(zone.defaultSearchRadius / 1000).toFixed(1)} km</p>
@@ -199,7 +199,7 @@ function GeozoneCard({ zone }: { zone: GeozoneRow }) {
               <p className='font-medium'>{zone.establishmentCount}</p>
             </div>
           </div>
-          <div className='flex justify-end gap-2'>
+          <div className='flex justify-end gap-sm'>
             <Button size='sm' variant='outline' onClick={toggleStatus}>
               {zone.status === 'active' ? t('deactivate') : t('activate')}
             </Button>
@@ -211,7 +211,7 @@ function GeozoneCard({ zone }: { zone: GeozoneRow }) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end'>
                 <DropdownMenuItem onClick={() => setDeleteOpen(true)} className='text-destructive'>
-                  <Trash2 className='size-4 me-2' />
+                  <Trash2 className='size-4 me-sm' />
                   {t('delete')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -276,8 +276,8 @@ function CreateGeozoneDialog() {
           <DialogTitle>{t('createDialog.title')}</DialogTitle>
           <DialogDescription>{t('createDialog.desc')}</DialogDescription>
         </DialogHeader>
-        <div className='space-y-3 py-2'>
-          <div className='space-y-1'>
+        <div className='space-y-md py-sm'>
+          <div className='space-y-xs'>
             <Label className='text-xs'>{t('createDialog.name')}</Label>
             <Input
               value={name}
@@ -286,7 +286,7 @@ function CreateGeozoneDialog() {
               className='h-9 text-sm'
             />
           </div>
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <Label className='text-xs'>{t('createDialog.displayName')}</Label>
             <Input
               value={displayName}
@@ -295,8 +295,8 @@ function CreateGeozoneDialog() {
               className='h-9 text-sm'
             />
           </div>
-          <div className='grid grid-cols-2 gap-3'>
-            <div className='space-y-1'>
+          <div className='grid grid-cols-2 gap-md'>
+            <div className='space-y-xs'>
               <Label className='text-xs'>{t('createDialog.latitude')}</Label>
               <Input
                 type='number'
@@ -306,7 +306,7 @@ function CreateGeozoneDialog() {
                 className='h-9 text-sm'
               />
             </div>
-            <div className='space-y-1'>
+            <div className='space-y-xs'>
               <Label className='text-xs'>{t('createDialog.longitude')}</Label>
               <Input
                 type='number'
@@ -333,10 +333,10 @@ function CreateGeozoneDialog() {
 
 function GeozoneSkeleton() {
   return (
-    <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+    <div className='grid gap-lg md:grid-cols-2 lg:grid-cols-3'>
       {Array.from({ length: 4 }).map((_, i) => (
         <Card key={i}>
-          <CardContent className='p-4 space-y-3'>
+          <CardContent className='p-lg space-y-md'>
             <Skeleton className='h-5 w-32' />
             <Skeleton className='h-4 w-full' />
             <Skeleton className='h-4 w-20' />

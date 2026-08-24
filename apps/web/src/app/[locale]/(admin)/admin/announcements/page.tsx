@@ -76,7 +76,7 @@ export default function AnnouncementsPage() {
   const { data: announcements, isLoading } = useAnnouncements(params);
 
   return (
-    <div className='space-y-6 p-6'>
+    <div className='space-y-2xl p-2xl'>
       <div className='flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-semibold'>{t('title')}</h1>
@@ -85,7 +85,7 @@ export default function AnnouncementsPage() {
         <CreateAnnouncementDialog />
       </div>
 
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-sm'>
         <Input
           placeholder={t('searchPlaceholder')}
           value={search}
@@ -110,13 +110,13 @@ export default function AnnouncementsPage() {
       {isLoading ? (
         <AnnouncementSkeleton />
       ) : !announcements || announcements.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-16 gap-3 text-center'>
+        <div className='flex flex-col items-center justify-center py-4xl gap-md text-center'>
           <Megaphone className='size-12 text-muted-foreground' />
           <h3 className='text-md font-semibold'>{t('noAnnouncements')}</h3>
           <p className='text-sm text-muted-foreground max-w-xs'>{t('noAnnouncementsDesc')}</p>
         </div>
       ) : (
-        <div className='grid gap-4'>
+        <div className='grid gap-lg'>
           {announcements.map(item => (
             <AnnouncementCard key={item._id} item={item} />
           ))}
@@ -135,15 +135,15 @@ function AnnouncementCard({ item }: { item: AnnouncementRow }) {
 
   return (
     <>
-      <div className='rounded-md border p-4 flex items-start justify-between gap-4'>
+      <div className='rounded-md border p-lg flex items-start justify-between gap-lg'>
         <div className='min-w-0 flex-1'>
-          <div className='flex items-center gap-2 mb-1'>
+          <div className='flex items-center gap-sm mb-xs'>
             <h3 className='text-sm font-medium truncate'>{item.title}</h3>
             <Badge className={`text-xs ${TYPE_COLORS[item.type]}`}>{item.type}</Badge>
             <Badge className={`text-xs ${STATUS_COLORS[item.status]}`}>{item.status}</Badge>
           </div>
           <p className='text-xs text-muted-foreground line-clamp-2'>{item.content}</p>
-          <div className='flex items-center gap-3 mt-2 text-xs text-muted-foreground'>
+          <div className='flex items-center gap-md mt-sm text-xs text-muted-foreground'>
             <span>
               {t('target')}: {item.target}
             </span>
@@ -168,18 +168,18 @@ function AnnouncementCard({ item }: { item: AnnouncementRow }) {
           <DropdownMenuContent align='end'>
             {item.status === 'draft' && (
               <DropdownMenuItem onClick={() => publish.mutate(item._id)}>
-                <Send className='size-4 me-2' />
+                <Send className='size-4 me-sm' />
                 {t('publish')}
               </DropdownMenuItem>
             )}
             {item.status === 'active' && (
               <DropdownMenuItem onClick={() => archive.mutate(item._id)}>
-                <Archive className='size-4 me-2' />
+                <Archive className='size-4 me-sm' />
                 {t('archive')}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={() => setDeleteOpen(true)} className='text-destructive'>
-              <Trash2 className='size-4 me-2' />
+              <Trash2 className='size-4 me-sm' />
               {t('delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -235,20 +235,20 @@ function CreateAnnouncementDialog() {
           <DialogTitle>{t('createDialog.title')}</DialogTitle>
           <DialogDescription>{t('createDialog.desc')}</DialogDescription>
         </DialogHeader>
-        <div className='space-y-3 py-2'>
-          <div className='space-y-1'>
+        <div className='space-y-md py-sm'>
+          <div className='space-y-xs'>
             <Label className='text-xs'>{t('createDialog.titleLabel')}</Label>
             <Input value={title} onChange={e => setTitle(e.target.value)} className='h-9 text-sm' />
           </div>
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <Label className='text-xs'>{t('createDialog.content')}</Label>
             <textarea
-              className='w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[80px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+              className='w-full rounded-md border border-input bg-background px-md py-sm text-sm min-h-[80px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
               value={content}
               onChange={e => setContent(e.target.value)}
             />
           </div>
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <Label className='text-xs'>{t('createDialog.type')}</Label>
             <Select value={type} onValueChange={v => setType(v as AnnouncementType)}>
               <SelectTrigger className='h-9 text-sm'>
@@ -279,9 +279,9 @@ function CreateAnnouncementDialog() {
 
 function AnnouncementSkeleton() {
   return (
-    <div className='space-y-4'>
+    <div className='space-y-lg'>
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className='rounded-md border p-4 space-y-2'>
+        <div key={i} className='rounded-md border p-lg space-y-sm'>
           <Skeleton className='h-5 w-48' />
           <Skeleton className='h-4 w-full' />
           <Skeleton className='h-3 w-32' />

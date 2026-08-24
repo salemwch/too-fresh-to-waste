@@ -63,11 +63,11 @@ const STATUS_STYLES: Record<string, string> = {
 
 function ItemListSkeleton() {
   return (
-    <div className='space-y-3'>
+    <div className='space-y-md'>
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className='glass rounded-xl p-4 shadow-soft'>
+        <div key={i} className='glass rounded-xl p-lg shadow-soft'>
           <div className='flex items-center justify-between'>
-            <div className='space-y-2'>
+            <div className='space-y-sm'>
               <Skeleton className='h-5 w-48' />
               <Skeleton className='h-4 w-32' />
             </div>
@@ -81,10 +81,10 @@ function ItemListSkeleton() {
 
 function AnalyticsSkeleton() {
   return (
-    <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+    <div className='grid grid-cols-2 md:grid-cols-4 gap-lg'>
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className='glass rounded-2xl p-[24px] shadow-soft'>
-          <Skeleton className='h-4 w-24 mb-2' />
+          <Skeleton className='h-4 w-24 mb-sm' />
           <Skeleton className='h-8 w-16' />
         </div>
       ))}
@@ -97,7 +97,7 @@ function AnalyticsSkeleton() {
 function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
-      <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+      <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
         <AlertCircle className='size-12 text-muted-foreground' />
         <p className='text-sm text-muted-foreground'>{message}</p>
         {onRetry && (
@@ -181,8 +181,8 @@ function StockUpdateDialog({
             {item ? ` — ${item.name}` : ''}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          <div className='space-y-2'>
+        <form onSubmit={handleSubmit} className='space-y-lg'>
+          <div className='space-y-sm'>
             <Label>{t('quantity')}</Label>
             <Input
               type='number'
@@ -192,7 +192,7 @@ function StockUpdateDialog({
               min={0}
             />
           </div>
-          <div className='space-y-2'>
+          <div className='space-y-sm'>
             <Label>{t('reason')}</Label>
             <Select value={reason} onValueChange={v => setReason(v as StockUpdateReason)}>
               <SelectTrigger>
@@ -207,7 +207,7 @@ function StockUpdateDialog({
               </SelectContent>
             </Select>
           </div>
-          <div className='space-y-2'>
+          <div className='space-y-sm'>
             <Label>{t('notes')}</Label>
             <Input value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
@@ -246,11 +246,11 @@ function InventoryItemCard({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className='glass rounded-xl p-4 shadow-soft hover:shadow-md transition-shadow'
+      className='glass rounded-xl p-lg shadow-soft hover:shadow-md transition-shadow'
     >
       <div className='flex items-start justify-between'>
         <div className='flex-1 min-w-0'>
-          <div className='flex items-center gap-2 mb-1'>
+          <div className='flex items-center gap-sm mb-xs'>
             <h3 className='text-sm font-semibold truncate'>{item.name}</h3>
             <Badge
               variant='outline'
@@ -263,12 +263,12 @@ function InventoryItemCard({
                 variant='outline'
                 className='text-xs shrink-0 bg-amber-500/10 text-amber-600 border-amber-200'
               >
-                <Clock className='size-3 me-1' />
+                <Clock className='size-3 me-xs' />
                 {daysUntilExpiry}d
               </Badge>
             )}
           </div>
-          <div className='flex items-center gap-4 text-xs text-muted-foreground mt-1'>
+          <div className='flex items-center gap-lg text-xs text-muted-foreground mt-xs'>
             <span>
               {t('item.quantity')}:{' '}
               <span className='font-medium text-foreground'>{item.availableStock}</span>
@@ -285,7 +285,7 @@ function InventoryItemCard({
               {t('item.expiresAt')}: {new Date(item.expiryDate).toLocaleDateString()}
             </span>
           </div>
-          <div className='flex items-center gap-2 mt-2'>
+          <div className='flex items-center gap-sm mt-sm'>
             <span className='text-xs text-muted-foreground line-through'>
               {(item.originalPrice ?? 0).toFixed(2)} TND
             </span>
@@ -298,9 +298,9 @@ function InventoryItemCard({
           variant='outline'
           size='sm'
           onClick={() => onUpdateStock(item)}
-          className='shrink-0 ms-4'
+          className='shrink-0 ms-lg'
         >
-          <ArrowUpDown className='size-4 me-1' />
+          <ArrowUpDown className='size-4 me-xs' />
           {t('item.updateStock')}
         </Button>
       </div>
@@ -347,17 +347,17 @@ function ItemsTab() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className='space-y-4'
+      className='space-y-lg'
     >
       {/* Filters */}
-      <div className='flex flex-wrap gap-2'>
+      <div className='flex flex-wrap gap-sm'>
         <div className='relative flex-1 min-w-[160px]'>
-          <Search className='absolute start-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground' />
+          <Search className='absolute start-2.5 top-xs/2 -translate-y-xs/2 size-3.5 text-muted-foreground' />
           <Input
             placeholder={t('filters.searchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className='ps-8 h-8 text-xs'
+            className='ps-4xl h-8 text-xs'
           />
         </div>
         <Select value={filters.status || 'all'} onValueChange={handleStatusFilter}>
@@ -377,14 +377,14 @@ function ItemsTab() {
       {/* Item list */}
       {filteredItems.length === 0 ? (
         <div className='glass rounded-2xl p-[24px] shadow-soft'>
-          <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+          <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
             <Package className='size-12 text-muted-foreground' />
             <h3 className='text-md font-semibold'>{t('empty.title')}</h3>
             <p className='text-sm text-muted-foreground max-w-xs'>{t('empty.description')}</p>
           </div>
         </div>
       ) : (
-        <div className='space-y-3'>
+        <div className='space-y-md'>
           {filteredItems.map(item => (
             <InventoryItemCard key={item.id} item={item} onUpdateStock={handleUpdateStock} />
           ))}
@@ -393,7 +393,7 @@ function ItemsTab() {
 
       {/* Pagination */}
       {data?.meta && data.meta.totalPages > 1 && (
-        <div className='flex items-center justify-center gap-2 pt-4'>
+        <div className='flex items-center justify-center gap-sm pt-lg'>
           <Button
             variant='outline'
             size='sm'
@@ -445,7 +445,7 @@ function AlertsTab() {
 
   if (isLoading) {
     return (
-      <div className='space-y-3'>
+      <div className='space-y-md'>
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className='h-16 w-full rounded-xl' />
         ))}
@@ -462,7 +462,7 @@ function AlertsTab() {
         animate={{ opacity: 1, y: 0 }}
         className='glass rounded-2xl p-[24px] shadow-soft'
       >
-        <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+        <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
           <AlertTriangle className='size-12 text-muted-foreground' />
           <h3 className='text-md font-semibold'>{t('noAlerts')}</h3>
         </div>
@@ -475,23 +475,23 @@ function AlertsTab() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className='space-y-3'
+      className='space-y-md'
     >
       {alerts.map(alert => {
         const Icon = ALERT_ICONS[alert.type] || AlertTriangle;
         return (
           <div
             key={alert.id}
-            className={`rounded-xl border p-4 ${ALERT_STYLES[alert.severity] || ''}`}
+            className={`rounded-xl border p-lg ${ALERT_STYLES[alert.severity] || ''}`}
           >
-            <div className='flex items-start gap-3'>
+            <div className='flex items-start gap-md'>
               <Icon
-                className={`size-5 shrink-0 mt-0.5 ${alert.severity === 'critical' ? 'text-destructive' : 'text-amber-500'}`}
+                className={`size-5 shrink-0 mt-xxs ${alert.severity === 'critical' ? 'text-destructive' : 'text-amber-500'}`}
               />
               <div className='flex-1 min-w-0'>
                 <p className='text-sm font-medium'>{alert.itemName}</p>
-                <p className='text-xs text-muted-foreground mt-0.5'>{alert.message}</p>
-                <p className='text-xs text-muted-foreground mt-1'>
+                <p className='text-xs text-muted-foreground mt-xxs'>{alert.message}</p>
+                <p className='text-xs text-muted-foreground mt-xs'>
                   {new Date(alert.createdAt).toLocaleDateString()}
                 </p>
               </div>
@@ -548,7 +548,7 @@ function AnalyticsTab() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-md'>
         {metrics.map((metric, i) => {
           const Icon = metric.icon;
           return (
@@ -557,15 +557,15 @@ function AnalyticsTab() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.08, duration: 0.3 }}
-              className='glass rounded-xl p-4 shadow-soft relative overflow-hidden'
+              className='glass rounded-xl p-lg shadow-soft relative overflow-hidden'
             >
-              <div className='absolute -top-4 -end-4 w-16 h-16 rounded-full bg-brand-coral/10 blur-2xl' />
+              <div className='absolute -top-lg -end-lg w-16 h-16 rounded-full bg-brand-coral/10 blur-2xl' />
               <div className='relative'>
-                <div className='h-8 w-8 rounded-lg bg-primary-500/[0.08] flex items-center justify-center mb-2'>
+                <div className='h-8 w-8 rounded-lg bg-primary-500/[0.08] flex items-center justify-center mb-sm'>
                   <Icon className='size-4 text-primary-500' />
                 </div>
                 <p className='text-[11px] text-muted-foreground'>{metric.label}</p>
-                <p className='font-display text-lg text-primary-500 font-bold mt-0.5'>
+                <p className='font-display text-lg text-primary-500 font-bold mt-xxs'>
                   {metric.value}
                 </p>
               </div>
@@ -575,9 +575,9 @@ function AnalyticsTab() {
       </div>
 
       {/* Status breakdown */}
-      <div className='glass rounded-2xl p-[24px] shadow-soft mt-6'>
-        <h3 className='font-semibold text-sm mb-4'>{t('stockHistory')}</h3>
-        <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
+      <div className='glass rounded-2xl p-[24px] shadow-soft mt-2xl'>
+        <h3 className='font-semibold text-sm mb-lg'>{t('stockHistory')}</h3>
+        <div className='grid grid-cols-2 sm:grid-cols-4 gap-lg'>
           {[
             { label: 'Available', value: analytics.activeItems, color: 'text-emerald-600' },
             { label: 'Low Stock', value: analytics.lowStockItems, color: 'text-amber-600' },
@@ -586,7 +586,7 @@ function AnalyticsTab() {
           ].map(item => (
             <div key={item.label} className='text-center'>
               <p className={`font-display text-2xl font-bold ${item.color}`}>{item.value}</p>
-              <p className='text-xs text-muted-foreground mt-1'>{item.label}</p>
+              <p className='text-xs text-muted-foreground mt-xs'>{item.label}</p>
             </div>
           ))}
         </div>
@@ -601,7 +601,7 @@ export function InventoryPage() {
   const t = useTranslations('dashboard.inventory');
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
@@ -611,21 +611,21 @@ export function InventoryPage() {
         <h1 className='font-display text-3xl md:text-4xl text-primary-500 font-bold'>
           {t('title')}
         </h1>
-        <p className='text-sm text-muted-foreground mt-1'>{t('subtitle')}</p>
+        <p className='text-sm text-muted-foreground mt-xs'>{t('subtitle')}</p>
       </motion.div>
 
       {/* Tabs */}
       <Tabs defaultValue='items' className='w-full'>
-        <TabsList className='glass shadow-soft mb-4 h-9'>
-          <TabsTrigger value='items' className='gap-1.5 text-xs px-3 h-7'>
+        <TabsList className='glass shadow-soft mb-lg h-9'>
+          <TabsTrigger value='items' className='gap-1.5 text-xs px-md h-7'>
             <Package className='size-3.5' />
             {t('tabs.items')}
           </TabsTrigger>
-          <TabsTrigger value='alerts' className='gap-1.5 text-xs px-3 h-7'>
+          <TabsTrigger value='alerts' className='gap-1.5 text-xs px-md h-7'>
             <AlertTriangle className='size-3.5' />
             {t('tabs.alerts')}
           </TabsTrigger>
-          <TabsTrigger value='analytics' className='gap-1.5 text-xs px-3 h-7'>
+          <TabsTrigger value='analytics' className='gap-1.5 text-xs px-md h-7'>
             <BarChart3 className='size-3.5' />
             {t('tabs.analytics')}
           </TabsTrigger>

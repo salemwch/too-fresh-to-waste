@@ -20,7 +20,7 @@ export function TrialStatusBanner() {
     <button
       type='button'
       onClick={() => setModalOpen(true)}
-      className='mt-2 inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+      className='mt-sm inline-flex items-center gap-1.5 rounded-md bg-primary px-lg py-sm text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90'
     >
       <CreditCard className='size-3.5' />
       {t('choosePlan')}
@@ -40,12 +40,12 @@ export function TrialStatusBanner() {
       <>
         <div
           role='alert'
-          className='flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm'
+          className='flex items-start gap-md rounded-lg border border-destructive/30 bg-destructive/10 px-lg py-md text-sm'
         >
-          <AlertCircle className='mt-0.5 size-5 shrink-0 text-destructive' aria-hidden='true' />
+          <AlertCircle className='mt-xxs size-5 shrink-0 text-destructive' aria-hidden='true' />
           <div className='flex-1'>
             <p className='font-semibold text-destructive'>{t('expired')}</p>
-            <p className='mt-0.5 text-destructive/80'>{t('expiredDescription')}</p>
+            <p className='mt-xxs text-destructive/80'>{t('expiredDescription')}</p>
             {subscribeButton}
           </div>
         </div>
@@ -72,12 +72,12 @@ export function TrialStatusBanner() {
       <>
         <div
           role='status'
-          className='flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm'
+          className='flex items-start gap-md rounded-lg border border-warning/30 bg-warning/10 px-lg py-md text-sm'
         >
-          <Clock className='mt-0.5 size-5 shrink-0 text-warning' aria-hidden='true' />
+          <Clock className='mt-xxs size-5 shrink-0 text-warning' aria-hidden='true' />
           <div className='flex-1'>
             <p className='font-semibold text-warning'>{t('expiresIn', { days: daysRemaining })}</p>
-            <p className='mt-0.5 text-warning/80'>{t('expiresOn', { date: formattedDate })}</p>
+            <p className='mt-xxs text-warning/80'>{t('expiresOn', { date: formattedDate })}</p>
             {subscribeButton}
           </div>
         </div>
@@ -107,12 +107,12 @@ export function TrialStatusBanner() {
     <>
       <div
         role='status'
-        className='flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm'
+        className='flex items-start gap-md rounded-lg border border-warning/30 bg-warning/10 px-lg py-md text-sm'
       >
-        <Clock className='mt-0.5 size-5 shrink-0 text-warning' aria-hidden='true' />
+        <Clock className='mt-xxs size-5 shrink-0 text-warning' aria-hidden='true' />
         <div className='flex-1'>
           <p className='font-semibold text-warning'>{t('trialEndsIn', { days: daysRemaining })}</p>
-          <p className='mt-0.5 text-warning/80'>{t('trialEndsOn', { date: formattedDate })}</p>
+          <p className='mt-xxs text-warning/80'>{t('trialEndsOn', { date: formattedDate })}</p>
           {subscribeButton}
         </div>
       </div>

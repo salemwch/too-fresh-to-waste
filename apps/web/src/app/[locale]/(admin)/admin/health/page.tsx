@@ -96,7 +96,7 @@ function OverallBanner({
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-xl border px-5 py-4',
+        'flex items-center gap-md rounded-xl border px-xl py-lg',
         isOk ? 'border-[#2E7D32]/20 bg-[#2E7D32]/5' : 'border-destructive/20 bg-destructive/5',
       )}
     >
@@ -128,7 +128,7 @@ function ServiceCard({
   return (
     <div
       className={cn(
-        'flex items-center gap-4 rounded-xl border p-4 transition-all duration-300',
+        'flex items-center gap-lg rounded-xl border p-lg transition-all duration-300',
         statusBg(status),
       )}
     >
@@ -137,7 +137,7 @@ function ServiceCard({
       </div>
       <div className='flex-1 min-w-0'>
         <p className='text-sm font-medium'>{label}</p>
-        <div className='mt-1'>{statusBadge(status, statusLabel)}</div>
+        <div className='mt-xs'>{statusBadge(status, statusLabel)}</div>
       </div>
       <StatusIcon status={status} />
     </div>
@@ -148,7 +148,7 @@ function ServiceCard({
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className='flex items-center justify-between gap-3 py-2.5'>
+    <div className='flex items-center justify-between gap-md py-2.5'>
       <span className='text-sm text-muted-foreground'>{label}</span>
       <span className='text-sm font-medium tabular-nums'>{value}</span>
     </div>
@@ -159,9 +159,9 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function HealthSkeleton() {
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       <Skeleton className='h-14 w-full rounded-xl' />
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid gap-lg sm:grid-cols-2 lg:grid-cols-4'>
         {[...Array(4)].map((_, i) => (
           <Skeleton key={i} className='h-20 rounded-xl' />
         ))}
@@ -206,14 +206,14 @@ export default function AdminHealthPage() {
     : '—';
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       {/* Header */}
-      <div className='flex items-start justify-between gap-4'>
+      <div className='flex items-start justify-between gap-lg'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
         </div>
-        <div className='flex items-center gap-2 shrink-0'>
+        <div className='flex items-center gap-sm shrink-0'>
           <span className='hidden text-xs text-muted-foreground sm:block'>{t('autoRefresh')}</span>
           <Button
             variant='outline'
@@ -236,18 +236,18 @@ export default function AdminHealthPage() {
           <OverallBanner status={overallStatus} t={t} />
 
           {/* Service cards */}
-          <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='grid gap-md sm:grid-cols-2 lg:grid-cols-4'>
             {Object.entries(indicators).map(([name, status]) => (
               <ServiceCard key={name} name={name} status={status} t={t} />
             ))}
           </div>
 
           {/* Two-column: liveness + meta */}
-          <div className='grid gap-4 lg:grid-cols-2'>
+          <div className='grid gap-lg lg:grid-cols-2'>
             {/* Instance info */}
             <Card className='border-border/60'>
-              <CardHeader className='pb-2'>
-                <div className='flex items-center gap-2'>
+              <CardHeader className='pb-sm'>
+                <div className='flex items-center gap-sm'>
                   <Server className='size-4 text-muted-foreground' />
                   <CardTitle className='text-sm font-semibold'>{t('liveness.title')}</CardTitle>
                 </div>
@@ -287,8 +287,8 @@ export default function AdminHealthPage() {
 
             {/* Check metadata */}
             <Card className='border-border/60'>
-              <CardHeader className='pb-2'>
-                <div className='flex items-center gap-2'>
+              <CardHeader className='pb-sm'>
+                <div className='flex items-center gap-sm'>
                   <CheckCircle2 className='size-4 text-muted-foreground' />
                   <CardTitle className='text-sm font-semibold'>Check Summary</CardTitle>
                 </div>
@@ -329,7 +329,7 @@ export default function AdminHealthPage() {
 
           {/* Services detail list */}
           <Card className='border-border/60'>
-            <CardHeader className='pb-3'>
+            <CardHeader className='pb-md'>
               <CardTitle className='text-sm font-semibold'>Service Details</CardTitle>
             </CardHeader>
             <CardContent>
@@ -343,12 +343,12 @@ export default function AdminHealthPage() {
                     fallback: status,
                   });
                   return (
-                    <div key={name} className='flex items-center gap-4 py-3'>
+                    <div key={name} className='flex items-center gap-lg py-md'>
                       <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted'>
                         <Icon className='size-4 text-muted-foreground' />
                       </div>
                       <span className='flex-1 text-sm font-medium'>{label}</span>
-                      <div className='flex items-center gap-2'>
+                      <div className='flex items-center gap-sm'>
                         {statusBadge(status, statusLabel)}
                         <StatusIcon status={status} />
                       </div>

@@ -36,7 +36,7 @@ export function AdminKpiRow({ items, loading = false, columns = 4 }: AdminKpiRow
   }
 
   return (
-    <div className={`grid gap-3 ${GRID_COLS[columns]}`}>
+    <div className={`grid gap-md ${GRID_COLS[columns]}`}>
       {items.map(kpi => (
         <AdminStatCard
           key={kpi.label}

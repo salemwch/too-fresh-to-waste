@@ -130,13 +130,13 @@ export function CycleFormDialog({
         </DialogHeader>
 
         {isLocked && (
-          <p className='rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning'>
+          <p className='rounded-lg border border-warning/30 bg-warning/10 px-md py-sm text-xs text-warning'>
             This cycle is <span className='font-semibold'>{editingCycle?.status}</span> — most
             fields are read-only. Only the end date and recipient count can be changed.
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className='space-y-4'>
+        <form onSubmit={handleSubmit} className='space-y-lg'>
           {/* Name */}
           <div className='space-y-1.5'>
             <Label className='text-xs font-medium'>Cycle Name *</Label>
@@ -151,7 +151,7 @@ export function CycleFormDialog({
           </div>
 
           {/* Dates */}
-          <div className='grid grid-cols-2 gap-4'>
+          <div className='grid grid-cols-2 gap-lg'>
             <div className='space-y-1.5'>
               <Label className='text-xs font-medium'>Start Date *</Label>
               <Input
@@ -177,7 +177,7 @@ export function CycleFormDialog({
           </div>
 
           {/* Numeric fields */}
-          <div className='grid grid-cols-3 gap-4'>
+          <div className='grid grid-cols-3 gap-lg'>
             <div className='space-y-1.5'>
               <Label className='text-xs font-medium'>Community Goal *</Label>
               <Input
@@ -224,16 +224,16 @@ export function CycleFormDialog({
           <PrizeBuilder prizes={prizes} onChange={setPrizes} disabled={isLocked} />
 
           {/* Footer */}
-          <div className='flex justify-end gap-2 pt-2 border-t border-border/60'>
+          <div className='flex justify-end gap-sm pt-sm border-t border-border/60'>
             <Button
               type='button'
               variant='outline'
               onClick={() => onOpenChange(false)}
-              className='h-8 px-4 text-xs'
+              className='h-8 px-lg text-xs'
             >
               Cancel
             </Button>
-            <Button type='submit' disabled={isSubmitting} className='h-8 px-4 text-xs'>
+            <Button type='submit' disabled={isSubmitting} className='h-8 px-lg text-xs'>
               {isSubmitting ? 'Saving…' : isEdit ? 'Update Cycle' : 'Create Cycle'}
             </Button>
           </div>

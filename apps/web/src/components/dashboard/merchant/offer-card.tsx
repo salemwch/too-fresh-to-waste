@@ -93,7 +93,7 @@ export function OfferCard({
 
   // ── Shared button styles ────────────────────────────────────────────────
   const btn =
-    'inline-flex items-center gap-1.5 h-6 px-3 rounded-full text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed';
+    'inline-flex items-center gap-1.5 h-6 px-md rounded-full text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed';
   const prim = 'bg-primary text-white hover:opacity-90 active:scale-[0.97]';
   const sec =
     'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-[0.97]';
@@ -228,7 +228,7 @@ export function OfferCard({
     >
       {/* ── Draft banner ── */}
       {isDraft && (
-        <div className='flex items-center gap-1.5 px-4 py-1.5 bg-red-50 border-b border-dashed border-red-200'>
+        <div className='flex items-center gap-1.5 px-lg py-1.5 bg-red-50 border-b border-dashed border-red-200'>
           <AlertCircle className='h-3 w-3 text-red-500 shrink-0' />
           <span className='text-[11px] font-semibold text-red-600'>
             Not published — invisible to customers
@@ -237,7 +237,7 @@ export function OfferCard({
       )}
 
       {/* ── Card body ── */}
-      <div className='flex gap-4 p-4'>
+      <div className='flex gap-lg p-lg'>
         {/* Image */}
         <div className='w-[72px] h-[72px] shrink-0 rounded-lg overflow-hidden border border-slate-200 bg-slate-100'>
           {offer.image && !imgError ? (
@@ -260,11 +260,11 @@ export function OfferCard({
         {/* Content */}
         <div className='flex-1 min-w-0'>
           {/* Row 1 — Title + status badge */}
-          <div className='flex items-start justify-between gap-2 min-w-0'>
+          <div className='flex items-start justify-between gap-sm min-w-0'>
             <p className='text-sm font-bold text-slate-900 leading-tight truncate'>{offer.title}</p>
             <span
               className={cn(
-                'shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border',
+                'shrink-0 flex items-center gap-xs px-sm py-xxs rounded-full text-[10px] font-bold border',
                 cfg.badge,
               )}
             >
@@ -274,20 +274,20 @@ export function OfferCard({
           </div>
 
           {/* Row 2 — Type · pickup */}
-          <p className='text-xs text-slate-500 mt-0.5 truncate'>
+          <p className='text-xs text-slate-500 mt-xxs truncate'>
             {TYPE_LABELS[offer.type] ?? offer.type}
             {pickup && <> &middot; {pickup}</>}
           </p>
 
           {/* Row 3 — Pricing + bags left */}
-          <div className='flex items-center gap-2 mt-1.5 flex-wrap'>
-            <span className='font-display font-bold text-sm text-white bg-primary-500 px-2.5 py-0.5 rounded-full tabular-nums'>
+          <div className='flex items-center gap-sm mt-1.5 flex-wrap'>
+            <span className='font-display font-bold text-sm text-white bg-primary-500 px-2.5 py-xxs rounded-full tabular-nums'>
               {fmt(offer.pricing.discountedPrice)}
             </span>
             <span className='text-xs text-slate-400 line-through tabular-nums'>
               {fmt(offer.pricing.originalPrice)}
             </span>
-            <span className='px-2 py-0.5 rounded-full bg-primary-500/10 text-[11px] font-bold text-primary-500 border border-primary-500/20'>
+            <span className='px-sm py-xxs rounded-full bg-primary-500/10 text-[11px] font-bold text-primary-500 border border-primary-500/20'>
               -{offer.pricing.discountPercentage}%
             </span>
             {offer.soldQuantity != null && offer.totalQuantity != null ? (
@@ -300,7 +300,7 @@ export function OfferCard({
               </span>
             )}
             {offer.ctaState === 'low_stock' && (
-              <span className='px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200'>
+              <span className='px-1.5 py-xxs rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200'>
                 Low Stock
               </span>
             )}
@@ -308,7 +308,7 @@ export function OfferCard({
 
           {/* Row 4 — Revenue */}
           {revenue !== null && (
-            <div className='mt-1'>
+            <div className='mt-xs'>
               <span className='text-xs font-semibold text-emerald-700 tabular-nums'>
                 💰 {fmt(revenue)} earned
               </span>
@@ -331,15 +331,15 @@ export function OfferCard({
       </div>
 
       {/* ── Action bar ── */}
-      <div className='flex items-center gap-2 px-4 py-2.5 border-t border-slate-100 bg-slate-50/60 flex-wrap'>
+      <div className='flex items-center gap-sm px-lg py-2.5 border-t border-slate-100 bg-slate-50/60 flex-wrap'>
         <Actions />
       </div>
 
       {/* ── Inline delete confirm ── */}
       {confirmDelete && (
-        <div className='flex items-center justify-between gap-3 px-4 py-3 bg-red-50 border-t border-red-200'>
+        <div className='flex items-center justify-between gap-md px-lg py-md bg-red-50 border-t border-red-200'>
           <p className='text-xs text-red-700 font-medium'>Delete this offer permanently?</p>
-          <div className='flex gap-2'>
+          <div className='flex gap-sm'>
             <button
               type='button'
               onClick={() => setConfirmDelete(false)}
@@ -353,7 +353,7 @@ export function OfferCard({
                 setConfirmDelete(false);
                 onDelete();
               }}
-              className='inline-flex items-center h-6 px-3 rounded-full text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors'
+              className='inline-flex items-center h-6 px-md rounded-full text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors'
             >
               Yes, delete
             </button>
@@ -363,11 +363,11 @@ export function OfferCard({
 
       {/* ── Inline stop-sales confirm ── */}
       {confirmCancel && (
-        <div className='flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border-t border-amber-200'>
+        <div className='flex items-center justify-between gap-md px-lg py-md bg-amber-50 border-t border-amber-200'>
           <p className='text-xs text-amber-800 font-medium'>
             Stop this active offer? Customers won&apos;t see it anymore.
           </p>
-          <div className='flex gap-2'>
+          <div className='flex gap-sm'>
             <button
               type='button'
               onClick={() => setConfirmCancel(false)}
@@ -381,7 +381,7 @@ export function OfferCard({
                 setConfirmCancel(false);
                 onCancelOffer();
               }}
-              className='inline-flex items-center h-6 px-3 rounded-full text-[11px] font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors'
+              className='inline-flex items-center h-6 px-md rounded-full text-[11px] font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors'
             >
               Stop sales
             </button>

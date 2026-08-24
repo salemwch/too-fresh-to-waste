@@ -161,13 +161,13 @@ export default function MerchantProfilePage() {
 
   return (
     <div className='max-w-md'>
-      <div className='mb-5'>
+      <div className='mb-xl'>
         <h1 className='font-display text-lg font-semibold text-slate-900'>{t('title')}</h1>
-        <p className='text-xs text-slate-500 mt-0.5'>{t('description')}</p>
+        <p className='text-xs text-slate-500 mt-xxs'>{t('description')}</p>
       </div>
 
       {/* ── Profile photo ─────────────────────────────────────────────────── */}
-      <div className='mb-5 flex items-center gap-4'>
+      <div className='mb-xl flex items-center gap-lg'>
         <button
           type='button'
           onClick={() => fileInputRef.current?.click()}
@@ -211,7 +211,7 @@ export default function MerchantProfilePage() {
           >
             {isUploading ? t('uploading') : t('changePhoto')}
           </button>
-          <p className='mt-0.5 text-[11px] text-slate-400'>{t('avatarHint')}</p>
+          <p className='mt-xxs text-[11px] text-slate-400'>{t('avatarHint')}</p>
         </div>
 
         <input
@@ -226,128 +226,128 @@ export default function MerchantProfilePage() {
 
       {/* Avatar feedback */}
       {avatarError && (
-        <div className='mb-3 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive'>
+        <div className='mb-md flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-sm text-xs text-destructive'>
           <AlertCircle className='h-3.5 w-3.5 shrink-0' />
           <span>{avatarError}</span>
         </div>
       )}
       {avatarSuccess && (
-        <div className='mb-3 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700'>
+        <div className='mb-md flex items-center gap-sm rounded-lg border border-green-200 bg-green-50 px-md py-sm text-xs text-green-700'>
           <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
           <span>{t('avatarSuccess')}</span>
         </div>
       )}
 
       {/* ── Profile fields form ────────────────────────────────────────────── */}
-      <form onSubmit={handleSubmit} className='space-y-3'>
+      <form onSubmit={handleSubmit} className='space-y-md'>
         {/* First Name */}
-        <div className='space-y-1'>
+        <div className='space-y-xs'>
           <Label htmlFor='firstName' className='text-xs font-medium text-slate-700'>
             {t('firstName')}
           </Label>
           <div className='relative'>
-            <User className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+            <User className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
             <Input
               id='firstName'
               value={firstName}
               onChange={e => setFirstName(e.target.value)}
               required
               disabled={isLoading}
-              className='h-[36px] pl-8 text-sm'
+              className='h-[36px] pl-4xl text-sm'
             />
           </div>
         </div>
 
         {/* Last Name */}
-        <div className='space-y-1'>
+        <div className='space-y-xs'>
           <Label htmlFor='lastName' className='text-xs font-medium text-slate-700'>
             {t('lastName')}
           </Label>
           <div className='relative'>
-            <User className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+            <User className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
             <Input
               id='lastName'
               value={lastName}
               onChange={e => setLastName(e.target.value)}
               required
               disabled={isLoading}
-              className='h-[36px] pl-8 text-sm'
+              className='h-[36px] pl-4xl text-sm'
             />
           </div>
         </div>
 
         {/* Email — read only */}
-        <div className='space-y-1'>
+        <div className='space-y-xs'>
           <Label htmlFor='email' className='text-xs font-medium text-slate-700'>
             {t('email')}
           </Label>
           <div className='relative'>
-            <Mail className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+            <Mail className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
             <Input
               id='email'
               type='email'
               value={user?.email ?? ''}
               readOnly
               disabled
-              className='h-[36px] pl-8 text-sm bg-slate-50 text-slate-500 cursor-not-allowed'
+              className='h-[36px] pl-4xl text-sm bg-slate-50 text-slate-500 cursor-not-allowed'
             />
           </div>
           <p className='text-[11px] text-slate-400'>{t('emailReadOnly')}</p>
         </div>
 
         {/* Phone */}
-        <div className='space-y-1'>
+        <div className='space-y-xs'>
           <Label htmlFor='phone' className='text-xs font-medium text-slate-700'>
             {t('phone')}
           </Label>
           <div className='relative'>
-            <Phone className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+            <Phone className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
             <Input
               id='phone'
               type='tel'
               value={phone}
               onChange={e => setPhone(e.target.value)}
               disabled={isLoading}
-              className='h-[36px] pl-8 text-sm'
+              className='h-[36px] pl-4xl text-sm'
             />
           </div>
         </div>
 
         {/* Form feedback */}
         {error && (
-          <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive'>
+          <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-sm text-xs text-destructive'>
             <AlertCircle className='h-3.5 w-3.5 shrink-0' />
             <span>{error}</span>
           </div>
         )}
         {success && (
-          <div className='flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700'>
+          <div className='flex items-center gap-sm rounded-lg border border-green-200 bg-green-50 px-md py-sm text-xs text-green-700'>
             <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
             <span>{t('success')}</span>
           </div>
         )}
 
-        <Button type='submit' disabled={isLoading} className='mt-1 h-[36px] px-4 text-sm'>
+        <Button type='submit' disabled={isLoading} className='mt-xs h-[36px] px-lg text-sm'>
           {isLoading && <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />}
           {isLoading ? t('saving') : t('saveChanges')}
         </Button>
       </form>
 
       {/* ── Change password ───────────────────────────────────────────────── */}
-      <div className='mt-6 pt-5 border-t border-slate-100'>
-        <div className='flex items-center gap-2 mb-3'>
+      <div className='mt-2xl pt-xl border-t border-slate-100'>
+        <div className='flex items-center gap-sm mb-md'>
           <Lock className='h-3.5 w-3.5 text-slate-400' />
           <span className='text-xs font-medium text-slate-700'>{t('changePassword')}</span>
         </div>
 
-        <form onSubmit={handlePasswordSubmit} className='space-y-3'>
+        <form onSubmit={handlePasswordSubmit} className='space-y-md'>
           {/* Current password */}
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <Label htmlFor='currentPw' className='text-xs font-medium text-slate-700'>
               {t('currentPassword')}
             </Label>
             <div className='relative'>
-              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+              <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
               <Input
                 id='currentPw'
                 type={showCurrent ? 'text' : 'password'}
@@ -355,13 +355,13 @@ export default function MerchantProfilePage() {
                 onChange={e => setCurrentPw(e.target.value)}
                 required
                 disabled={pwLoading}
-                className='h-[36px] pl-8 pr-9 text-sm'
+                className='h-[36px] pl-4xl pr-5xl text-sm'
                 autoComplete='current-password'
               />
               <button
                 type='button'
                 onClick={() => setShowCurrent(v => !v)}
-                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+                className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
                 aria-label={showCurrent ? t('hidePassword') : t('showPassword')}
               >
                 {showCurrent ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
@@ -370,12 +370,12 @@ export default function MerchantProfilePage() {
           </div>
 
           {/* New password */}
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <Label htmlFor='newPassword' className='text-xs font-medium text-slate-700'>
               {t('newPassword')}
             </Label>
             <div className='relative'>
-              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+              <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
               <Input
                 id='newPassword'
                 type={showNew ? 'text' : 'password'}
@@ -383,13 +383,13 @@ export default function MerchantProfilePage() {
                 onChange={e => setNewPassword(e.target.value)}
                 required
                 disabled={pwLoading}
-                className='h-[36px] pl-8 pr-9 text-sm'
+                className='h-[36px] pl-4xl pr-5xl text-sm'
                 autoComplete='new-password'
               />
               <button
                 type='button'
                 onClick={() => setShowNew(v => !v)}
-                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+                className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
                 aria-label={showNew ? t('hidePassword') : t('showPassword')}
               >
                 {showNew ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
@@ -398,12 +398,12 @@ export default function MerchantProfilePage() {
           </div>
 
           {/* Confirm password */}
-          <div className='space-y-1'>
+          <div className='space-y-xs'>
             <Label htmlFor='confirmPassword' className='text-xs font-medium text-slate-700'>
               {t('confirmPassword')}
             </Label>
             <div className='relative'>
-              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
+              <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
               <Input
                 id='confirmPassword'
                 type={showConfirm ? 'text' : 'password'}
@@ -411,13 +411,13 @@ export default function MerchantProfilePage() {
                 onChange={e => setConfirmPassword(e.target.value)}
                 required
                 disabled={pwLoading}
-                className='h-[36px] pl-8 pr-9 text-sm'
+                className='h-[36px] pl-4xl pr-5xl text-sm'
                 autoComplete='new-password'
               />
               <button
                 type='button'
                 onClick={() => setShowConfirm(v => !v)}
-                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
+                className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
                 aria-label={showConfirm ? t('hidePassword') : t('showPassword')}
               >
                 {showConfirm ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
@@ -429,19 +429,19 @@ export default function MerchantProfilePage() {
 
           {/* Feedback */}
           {pwError && (
-            <div className='flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive'>
+            <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-sm text-xs text-destructive'>
               <AlertCircle className='h-3.5 w-3.5 shrink-0' />
               <span>{pwError}</span>
             </div>
           )}
           {pwSuccess && (
-            <div className='flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700'>
+            <div className='flex items-center gap-sm rounded-lg border border-green-200 bg-green-50 px-md py-sm text-xs text-green-700'>
               <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
               <span>{t('passwordSuccess')}</span>
             </div>
           )}
 
-          <Button type='submit' disabled={pwLoading} className='h-[36px] px-4 text-sm'>
+          <Button type='submit' disabled={pwLoading} className='h-[36px] px-lg text-sm'>
             {pwLoading && <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />}
             {pwLoading ? t('updatingPassword') : t('updatePassword')}
           </Button>
@@ -449,8 +449,8 @@ export default function MerchantProfilePage() {
       </div>
 
       {/* ── Leaderboard preference ─────────────────────────────────────────── */}
-      <div className='mt-6 pt-5 border-t border-slate-100'>
-        <div className='flex items-center gap-2 mb-3'>
+      <div className='mt-2xl pt-xl border-t border-slate-100'>
+        <div className='flex items-center gap-sm mb-md'>
           <Trophy className='h-3.5 w-3.5 text-slate-400' />
           <span className='text-xs font-medium text-slate-700'>Leaderboard</span>
         </div>
@@ -458,11 +458,11 @@ export default function MerchantProfilePage() {
           type='button'
           onClick={handleLeaderboardToggle}
           disabled={user?.leaderboardAnonymous === null || user?.leaderboardAnonymous === undefined}
-          className='w-full flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-left hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+          className='w-full flex items-center justify-between gap-md rounded-lg border border-slate-200 bg-slate-50 px-md py-2.5 text-left hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
         >
           <div>
             <div className='text-xs font-medium text-slate-800'>Show my real name and photo</div>
-            <div className='text-[11px] text-slate-400 mt-0.5'>
+            <div className='text-[11px] text-slate-400 mt-xxs'>
               Appears in the merchant rankings leaderboard
             </div>
           </div>

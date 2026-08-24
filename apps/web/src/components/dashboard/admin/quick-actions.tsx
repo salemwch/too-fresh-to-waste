@@ -62,7 +62,7 @@ export function QuickActions({
   ];
 
   return (
-    <div className='grid grid-cols-2 gap-2'>
+    <div className='grid grid-cols-2 gap-sm'>
       {actions.map(action => {
         const Icon = action.icon;
         return (
@@ -70,12 +70,12 @@ export function QuickActions({
             key={action.href}
             href={action.href}
             className={cn(
-              'relative flex flex-col items-center gap-2 rounded-lg border p-3 text-center transition-colors',
+              'relative flex flex-col items-center gap-sm rounded-lg border p-md text-center transition-colors',
               action.bgColor,
             )}
           >
             {action.badge !== undefined && (
-              <span className='absolute end-2 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white tabular-nums'>
+              <span className='absolute end-sm top-sm flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-xs text-[10px] font-bold text-white tabular-nums'>
                 {action.badge > 99 ? '99+' : action.badge}
               </span>
             )}

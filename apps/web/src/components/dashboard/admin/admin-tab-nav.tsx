@@ -42,7 +42,7 @@ export function AdminTabNav({ tabs, paramName = 'tab' }: AdminTabNavProps) {
               href={href}
               {...(isActive ? { 'aria-current': 'page' as const } : {})}
               className={cn(
-                'relative px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap',
+                'relative px-lg py-2.5 text-sm font-medium transition-colors whitespace-nowrap',
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
               )}
             >
@@ -51,7 +51,7 @@ export function AdminTabNav({ tabs, paramName = 'tab' }: AdminTabNavProps) {
                 {tab.badge !== undefined && tab.badge > 0 && (
                   <span
                     className={cn(
-                      'min-w-[18px] h-[18px] rounded-full text-[10px] flex items-center justify-center font-medium px-1',
+                      'min-w-[18px] h-[18px] rounded-full text-[10px] flex items-center justify-center font-medium px-xs',
                       isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
                     )}
                   >

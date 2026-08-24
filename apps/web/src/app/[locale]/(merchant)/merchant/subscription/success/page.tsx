@@ -30,7 +30,7 @@ export default function SubscriptionSuccessPage() {
 
   if (status === 'verifying') {
     return (
-      <div className='flex min-h-[60vh] flex-col items-center justify-center gap-4'>
+      <div className='flex min-h-[60vh] flex-col items-center justify-center gap-lg'>
         <Loader2 className='size-10 animate-spin text-primary' />
         <p className='text-muted-foreground'>Verifying your payment...</p>
       </div>
@@ -38,7 +38,7 @@ export default function SubscriptionSuccessPage() {
   }
 
   return (
-    <div className='flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center'>
+    <div className='flex min-h-[60vh] flex-col items-center justify-center gap-lg text-center'>
       <CheckCircle className='size-16 text-green-600' />
       <h1 className='text-2xl font-bold'>Subscription Activated!</h1>
       <p className='max-w-md text-muted-foreground'>
@@ -47,7 +47,7 @@ export default function SubscriptionSuccessPage() {
       </p>
       <button
         onClick={() => router.push('/merchant/dashboard')}
-        className='mt-4 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+        className='mt-lg rounded-md bg-primary px-2xl py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
       >
         Go to Dashboard
       </button>

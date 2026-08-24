@@ -75,7 +75,7 @@ function StatusBadge({
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${variants[status] ?? variants.active}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-xxs text-xs font-semibold ${variants[status] ?? variants.active}`}
     >
       {t(`status.${status}`)}
     </span>
@@ -97,14 +97,14 @@ function KpiCard({
 }) {
   return (
     <Card className='border-border/60'>
-      <CardContent className='p-5'>
+      <CardContent className='p-xl'>
         <div className='flex items-start justify-between'>
           <div>
             <p className='text-xs font-medium text-muted-foreground'>{label}</p>
-            <p className='mt-1 text-2xl font-bold tracking-tight'>{value}</p>
-            {sub && <p className='mt-0.5 text-xs text-muted-foreground'>{sub}</p>}
+            <p className='mt-xs text-2xl font-bold tracking-tight'>{value}</p>
+            {sub && <p className='mt-xxs text-xs text-muted-foreground'>{sub}</p>}
           </div>
-          <div className='rounded-lg bg-primary-500/10 p-2'>
+          <div className='rounded-lg bg-primary-500/10 p-sm'>
             <Icon className='size-4 text-primary-500' />
           </div>
         </div>
@@ -227,7 +227,7 @@ export default function AdminDonationPoolPage() {
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center py-24'>
+      <div className='flex items-center justify-center py-6xl'>
         <Loader2 className='size-6 animate-spin text-muted-foreground' />
       </div>
     );
@@ -236,14 +236,14 @@ export default function AdminDonationPoolPage() {
   const progressPct = pool?.progressPercentage ?? 0;
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2xl'>
       {/* Header */}
-      <div className='flex items-start justify-between gap-4'>
+      <div className='flex items-start justify-between gap-lg'>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('description')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('description')}</p>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-sm'>
           {pool && <StatusBadge status={pool.status} t={t} />}
           {pool && (
             <span className='text-xs text-muted-foreground'>
@@ -270,7 +270,7 @@ export default function AdminDonationPoolPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid gap-lg sm:grid-cols-2 lg:grid-cols-4'>
         <KpiCard
           label={t('raised')}
           value={`${(pool?.totalDonations ?? 0).toFixed(2)} TND`}
@@ -292,8 +292,8 @@ export default function AdminDonationPoolPage() {
 
       {/* Progress bar */}
       <Card className='border-border/60'>
-        <CardContent className='p-5'>
-          <div className='flex items-center justify-between mb-2'>
+        <CardContent className='p-xl'>
+          <div className='flex items-center justify-between mb-sm'>
             <span className='text-sm font-medium'>{t('progress')}</span>
             <span className='text-sm font-semibold tabular-nums'>{progressPct.toFixed(1)}%</span>
           </div>
@@ -303,17 +303,17 @@ export default function AdminDonationPoolPage() {
               style={{ width: `${Math.min(progressPct, 100)}%` }}
             />
           </div>
-          <div className='mt-2 flex justify-between text-xs text-muted-foreground'>
+          <div className='mt-sm flex justify-between text-xs text-muted-foreground'>
             <span>{(pool?.totalDonations ?? 0).toFixed(2)} TND raised</span>
             <span>{(pool?.targetAmount ?? 0).toFixed(0)} TND goal</span>
           </div>
           {pool?.activeGoalCategory && (
-            <p className='mt-2 text-xs text-muted-foreground'>
+            <p className='mt-sm text-xs text-muted-foreground'>
               {t('currentCategory')}: {t(`settings.categories.${pool.activeGoalCategory}`)}
             </p>
           )}
           {pool?.targetDate && (
-            <p className='mt-1 text-xs text-muted-foreground'>
+            <p className='mt-xs text-xs text-muted-foreground'>
               Deadline: {new Date(pool.targetDate).toLocaleDateString()}
             </p>
           )}
@@ -326,7 +326,7 @@ export default function AdminDonationPoolPage() {
           <CardTitle className='text-sm'>{t('settings.title')}</CardTitle>
           <CardDescription className='text-xs'>{t('settings.description')}</CardDescription>
         </CardHeader>
-        <CardContent className='space-y-5'>
+        <CardContent className='space-y-xl'>
           {/* Target Amount */}
           <div className='space-y-1.5'>
             <Label className='text-xs font-medium'>{t('settings.targetAmount')}</Label>
@@ -385,7 +385,7 @@ export default function AdminDonationPoolPage() {
           {/* Target Date */}
           <div className='space-y-1.5'>
             <Label className='text-xs font-medium'>{t('settings.targetDate')}</Label>
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-sm'>
               <Input
                 type='date'
                 value={targetDate}
@@ -396,7 +396,7 @@ export default function AdminDonationPoolPage() {
                 <button
                   type='button'
                   onClick={() => setTargetDate('')}
-                  className='inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors'
+                  className='inline-flex items-center gap-xs text-xs text-muted-foreground hover:text-foreground transition-colors'
                 >
                   <CalendarX className='size-3.5' />
                   {t('settings.clearDate')}
@@ -409,10 +409,10 @@ export default function AdminDonationPoolPage() {
           <Separator />
 
           {/* Category Pricing */}
-          <div className='space-y-3'>
+          <div className='space-y-md'>
             <div>
               <Label className='text-xs font-medium'>{t('settings.categoryPricing')}</Label>
-              <p className='text-xs text-muted-foreground mt-0.5'>
+              <p className='text-xs text-muted-foreground mt-xxs'>
                 {t('settings.categoryPricingHint')}
               </p>
             </div>
@@ -420,16 +420,16 @@ export default function AdminDonationPoolPage() {
               <table className='w-full text-xs'>
                 <thead>
                   <tr className='bg-muted/50'>
-                    <th className='text-start px-3 py-2 font-medium text-muted-foreground'>
+                    <th className='text-start px-md py-sm font-medium text-muted-foreground'>
                       {t('settings.goalCategory')}
                     </th>
-                    <th className='text-start px-3 py-2 font-medium text-muted-foreground'>
+                    <th className='text-start px-md py-sm font-medium text-muted-foreground'>
                       {t('settings.itemPrice')}
                     </th>
-                    <th className='text-start px-3 py-2 font-medium text-muted-foreground'>
+                    <th className='text-start px-md py-sm font-medium text-muted-foreground'>
                       {t('settings.targetCount')}
                     </th>
-                    <th className='text-end px-3 py-2 font-medium text-muted-foreground'>
+                    <th className='text-end px-md py-sm font-medium text-muted-foreground'>
                       {t('settings.computedTarget')}
                     </th>
                   </tr>
@@ -440,15 +440,15 @@ export default function AdminDonationPoolPage() {
                     const total = (Number(p.itemPrice) || 0) * (Number(p.targetCount) || 0);
                     return (
                       <tr key={cat} className='border-t border-border/40'>
-                        <td className='px-3 py-2 font-medium'>
+                        <td className='px-md py-sm font-medium'>
                           {t(`settings.categories.${cat}`)}
                           {cat === activeGoalCategory && (
-                            <span className='ms-1.5 inline-flex items-center rounded-full bg-primary-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary-500'>
+                            <span className='ms-1.5 inline-flex items-center rounded-full bg-primary-500/10 px-1.5 py-xxs text-[10px] font-semibold text-primary-500'>
                               ACTIVE
                             </span>
                           )}
                         </td>
-                        <td className='px-3 py-2'>
+                        <td className='px-md py-sm'>
                           <Input
                             type='number'
                             min={0.1}
@@ -458,7 +458,7 @@ export default function AdminDonationPoolPage() {
                             className='h-6 text-xs w-24'
                           />
                         </td>
-                        <td className='px-3 py-2'>
+                        <td className='px-md py-sm'>
                           <Input
                             type='number'
                             min={1}
@@ -468,7 +468,7 @@ export default function AdminDonationPoolPage() {
                             className='h-6 text-xs w-24'
                           />
                         </td>
-                        <td className='px-3 py-2 text-end tabular-nums font-medium'>
+                        <td className='px-md py-sm text-end tabular-nums font-medium'>
                           {total.toLocaleString()} TND
                         </td>
                       </tr>
@@ -491,7 +491,7 @@ export default function AdminDonationPoolPage() {
               size='sm'
               onClick={handleSave}
               disabled={!isDirty || updatePool.isPending}
-              className='h-7 px-3 text-xs'
+              className='h-7 px-md text-xs'
             >
               {updatePool.isPending ? (
                 <>
@@ -512,7 +512,7 @@ export default function AdminDonationPoolPage() {
       {/* Danger Zone */}
       <Card className='border-destructive/40'>
         <CardHeader>
-          <CardTitle className='flex items-center gap-2 text-sm text-destructive'>
+          <CardTitle className='flex items-center gap-sm text-sm text-destructive'>
             <AlertTriangle className='size-4' />
             {t('reset.title')}
           </CardTitle>
@@ -522,7 +522,7 @@ export default function AdminDonationPoolPage() {
           <Button
             variant='outline'
             size='sm'
-            className='h-7 px-3 text-xs border-destructive/40 text-destructive hover:bg-destructive/5'
+            className='h-7 px-md text-xs border-destructive/40 text-destructive hover:bg-destructive/5'
             onClick={() => setResetDialog(true)}
           >
             <HeartHandshake className='me-1.5 size-3.5' />
@@ -535,13 +535,13 @@ export default function AdminDonationPoolPage() {
       {pool?.status === 'season_complete' && (
         <Card className='border-amber-300/60 bg-amber-50/30'>
           <CardHeader>
-            <CardTitle className='flex items-center gap-2 text-sm text-amber-700'>
+            <CardTitle className='flex items-center gap-sm text-sm text-amber-700'>
               <Sparkles className='size-4' />
               {t('startNewSeason')}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Button size='sm' className='h-7 px-3 text-xs' onClick={() => setSeasonDialog(true)}>
+            <Button size='sm' className='h-7 px-md text-xs' onClick={() => setSeasonDialog(true)}>
               <Sparkles className='me-1.5 size-3.5' />
               {t('startNewSeason')}
             </Button>

@@ -77,16 +77,16 @@ function UnlockDialog({
           <DialogDescription>
             {t('lockedAccounts.unlockDesc')}
             {target && (
-              <span className='block mt-1 font-medium text-foreground'>{target.email}</span>
+              <span className='block mt-xs font-medium text-foreground'>{target.email}</span>
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className='space-y-3 pt-2'>
+        <div className='space-y-md pt-sm'>
           {/* Failed login details */}
           {infoLoading ? (
             <Skeleton className='h-16 rounded-lg' />
           ) : loginInfo ? (
-            <div className='rounded-lg border border-border/60 bg-muted/20 p-3 space-y-1.5'>
+            <div className='rounded-lg border border-border/60 bg-muted/20 p-md space-y-1.5'>
               <div className='flex items-center justify-between text-xs'>
                 <span className='text-muted-foreground'>
                   {t('lockedAccounts.failedAttemptsDetail')}
@@ -127,7 +127,7 @@ function UnlockDialog({
               placeholder={t('lockedAccounts.unlockReasonPlaceholder')}
             />
           </div>
-          <div className='flex gap-3 pt-1'>
+          <div className='flex gap-md pt-xs'>
             <Button variant='outline' className='flex-1' onClick={onClose}>
               Cancel
             </Button>
@@ -222,14 +222,14 @@ export default function SecurityPage() {
   }, [clearMutation, t]);
 
   return (
-    <div className='space-y-6 p-6'>
+    <div className='space-y-2xl p-2xl'>
       {/* Header */}
       <div className='flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-semibold'>{t('title')}</h1>
           <p className='text-sm text-muted-foreground'>{t('subtitle')}</p>
         </div>
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-md'>
           <Select value={String(periodDays)} onValueChange={v => setPeriodDays(Number(v))}>
             <SelectTrigger className='w-[130px]'>
               <SelectValue />
@@ -248,7 +248,7 @@ export default function SecurityPage() {
             onClick={() => setShowClearConfirm(true)}
             className='text-destructive border-destructive/30 hover:bg-destructive/5'
           >
-            <ShieldAlert className='size-4 me-2' />
+            <ShieldAlert className='size-4 me-sm' />
             {t('actions.clearIpBlocks')}
           </Button>
         </div>
@@ -258,25 +258,25 @@ export default function SecurityPage() {
       <AdminKpiRow items={kpiItems} loading={statsLoading} />
 
       {/* Locked Accounts */}
-      <div className='space-y-3'>
+      <div className='space-y-md'>
         <h2 className='text-lg font-semibold'>{t('lockedAccounts.title')}</h2>
         <div className='overflow-x-auto rounded-lg border border-border/60'>
           <table className='w-full text-sm'>
             <thead>
               <tr className='border-b border-border/60 bg-muted/40'>
-                <th className='px-4 py-2.5 text-start text-xs font-medium text-muted-foreground'>
+                <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground'>
                   {t('lockedAccounts.columns.user')}
                 </th>
-                <th className='px-4 py-2.5 text-start text-xs font-medium text-muted-foreground hidden md:table-cell'>
+                <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground hidden md:table-cell'>
                   {t('lockedAccounts.columns.role')}
                 </th>
-                <th className='px-4 py-2.5 text-center text-xs font-medium text-muted-foreground'>
+                <th className='px-lg py-2.5 text-center text-xs font-medium text-muted-foreground'>
                   {t('lockedAccounts.columns.failedAttempts')}
                 </th>
-                <th className='px-4 py-2.5 text-start text-xs font-medium text-muted-foreground hidden lg:table-cell'>
+                <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground hidden lg:table-cell'>
                   {t('lockedAccounts.columns.lockedUntil')}
                 </th>
-                <th className='px-4 py-2.5 text-end text-xs font-medium text-muted-foreground'>
+                <th className='px-lg py-2.5 text-end text-xs font-medium text-muted-foreground'>
                   {t('lockedAccounts.columns.actions')}
                 </th>
               </tr>
@@ -285,27 +285,27 @@ export default function SecurityPage() {
               {lockedLoading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className='border-b border-border/40'>
-                    <td className='px-4 py-3'>
+                    <td className='px-lg py-md'>
                       <Skeleton className='h-4 w-40 rounded' />
                     </td>
-                    <td className='px-4 py-3 hidden md:table-cell'>
+                    <td className='px-lg py-md hidden md:table-cell'>
                       <Skeleton className='h-4 w-16 rounded' />
                     </td>
-                    <td className='px-4 py-3'>
+                    <td className='px-lg py-md'>
                       <Skeleton className='h-4 w-8 mx-auto rounded' />
                     </td>
-                    <td className='px-4 py-3 hidden lg:table-cell'>
+                    <td className='px-lg py-md hidden lg:table-cell'>
                       <Skeleton className='h-4 w-32 rounded' />
                     </td>
-                    <td className='px-4 py-3'>
+                    <td className='px-lg py-md'>
                       <Skeleton className='h-7 w-16 rounded ms-auto' />
                     </td>
                   </tr>
                 ))
               ) : accounts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className='py-12 text-center'>
-                    <div className='flex flex-col items-center gap-2'>
+                  <td colSpan={5} className='py-3xl text-center'>
+                    <div className='flex flex-col items-center gap-sm'>
                       <Unlock className='size-10 text-muted-foreground/40' />
                       <p className='text-sm font-medium text-muted-foreground'>
                         {t('lockedAccounts.empty')}
@@ -319,7 +319,7 @@ export default function SecurityPage() {
               ) : (
                 accounts.map(account => (
                   <tr key={account._id} className='border-b border-border/40 hover:bg-muted/20'>
-                    <td className='px-4 py-3'>
+                    <td className='px-lg py-md'>
                       <div>
                         <p className='font-medium text-foreground'>
                           {account.firstName} {account.lastName}
@@ -327,20 +327,20 @@ export default function SecurityPage() {
                         <p className='text-xs text-muted-foreground'>{account.email}</p>
                       </div>
                     </td>
-                    <td className='px-4 py-3 hidden md:table-cell'>
-                      <span className='inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium capitalize'>
+                    <td className='px-lg py-md hidden md:table-cell'>
+                      <span className='inline-flex items-center rounded-full bg-muted px-sm py-xxs text-xs font-medium capitalize'>
                         {account.role}
                       </span>
                     </td>
-                    <td className='px-4 py-3 text-center'>
-                      <span className='inline-flex items-center justify-center rounded-full bg-destructive/10 text-destructive px-2 py-0.5 text-xs font-bold tabular-nums'>
+                    <td className='px-lg py-md text-center'>
+                      <span className='inline-flex items-center justify-center rounded-full bg-destructive/10 text-destructive px-sm py-xxs text-xs font-bold tabular-nums'>
                         {account.failedLoginAttempts}
                       </span>
                     </td>
-                    <td className='px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground tabular-nums'>
+                    <td className='px-lg py-md hidden lg:table-cell text-xs text-muted-foreground tabular-nums'>
                       {new Date(account.accountLockedUntil).toLocaleString()}
                     </td>
-                    <td className='px-4 py-3 text-end'>
+                    <td className='px-lg py-md text-end'>
                       <Button
                         variant='outline'
                         size='sm'
@@ -359,7 +359,7 @@ export default function SecurityPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className='flex items-center justify-center gap-2 pt-2'>
+          <div className='flex items-center justify-center gap-sm pt-sm'>
             <Button
               variant='outline'
               size='sm'

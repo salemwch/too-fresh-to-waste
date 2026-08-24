@@ -63,7 +63,7 @@ export default function Newsletter() {
     // No role='region': a <section> with an accessible name already exposes
     // one, so declaring it again was redundant.
     <section
-      className='w-full bg-[#f9f3f0] px-4 sm:px-8 lg:px-12 text-center py-12 sm:py-16 lg:py-20 flex flex-col items-center justify-center'
+      className='w-full bg-[#f9f3f0] px-lg sm:px-4xl lg:px-3xl text-center py-3xl sm:py-4xl lg:py-5xl flex flex-col items-center justify-center'
       aria-labelledby='newsletter-heading'
     >
       {/* Label */}
@@ -72,7 +72,7 @@ export default function Newsletter() {
       {/* Heading */}
       <h2
         id='newsletter-heading'
-        className='max-w-3xl font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight mt-2 px-4 text-primary-500'
+        className='max-w-3xl font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight mt-sm px-lg text-primary-500'
       >
         {t('heading')}
       </h2>
@@ -80,14 +80,14 @@ export default function Newsletter() {
       {/* Subscription Form */}
       <form
         onSubmit={handleSubmit}
-        className='flex flex-col sm:flex-row items-center justify-center mt-8 sm:mt-10 w-full max-w-md gap-3 sm:gap-0'
+        className='flex flex-col sm:flex-row items-center justify-center mt-4xl sm:mt-6xl w-full max-w-md gap-md sm:gap-0'
       >
         <div className='flex items-center justify-center sm:border sm:border-slate-400 focus-within:outline focus-within:outline-2 focus-within:outline-primary-500 text-sm rounded-full h-12 sm:h-14 w-full'>
           <input
             type='email'
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className='bg-white sm:bg-transparent border border-slate-400 sm:border-0 outline-none rounded-full px-4 sm:px-4 h-full flex-1 text-slate-900 placeholder:text-slate-500 w-full focus:outline-primary-500 focus:outline focus:outline-2 sm:focus:outline-0'
+            className='bg-white sm:bg-transparent border border-slate-400 sm:border-0 outline-none rounded-full px-lg sm:px-lg h-full flex-1 text-slate-900 placeholder:text-slate-500 w-full focus:outline-primary-500 focus:outline focus:outline-2 sm:focus:outline-0'
             placeholder={t('placeholder')}
             aria-label={t('placeholder')}
             required
@@ -96,7 +96,7 @@ export default function Newsletter() {
           <button
             type='submit'
             disabled={isSubmitting}
-            className='hidden sm:flex bg-primary-500 text-white rounded-full h-11 mr-1 px-6 lg:px-8 items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500'
+            className='hidden sm:flex bg-primary-500 text-white rounded-full h-11 mr-xs px-2xl lg:px-4xl items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500'
             aria-label={t('button')}
           >
             {isSubmitting ? t('submitting') : t('button')}
@@ -107,7 +107,7 @@ export default function Newsletter() {
         <button
           type='submit'
           disabled={isSubmitting}
-          className='sm:hidden bg-primary-500 text-white rounded-full h-12 px-8 flex items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500 w-full'
+          className='sm:hidden bg-primary-500 text-white rounded-full h-12 px-4xl flex items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500 w-full'
           aria-label={t('button')}
         >
           {isSubmitting ? t('submitting') : t('button')}
@@ -117,7 +117,7 @@ export default function Newsletter() {
       {/* Status Message */}
       {message && (
         <div
-          className={`mt-4 text-sm ${
+          className={`mt-lg text-sm ${
             message.type === 'success' ? 'text-green-600' : 'text-red-600'
           }`}
           role={message.type === 'error' ? 'alert' : 'status'}
@@ -128,7 +128,7 @@ export default function Newsletter() {
       )}
 
       {/* Privacy Note */}
-      <p className='text-slate-600 text-xs sm:text-sm mt-4 max-w-md'>{t('privacy')}</p>
+      <p className='text-slate-600 text-xs sm:text-sm mt-lg max-w-md'>{t('privacy')}</p>
     </section>
   );
 }

@@ -53,7 +53,7 @@ import { REPORT_REASONS } from '@/types/reviews';
 
 function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
-    <div className='flex items-center gap-0.5'>
+    <div className='flex items-center gap-xxs'>
       {[1, 2, 3, 4, 5].map(i => (
         <Star
           key={i}
@@ -78,11 +78,11 @@ function StatsHeader({
 }) {
   if (isLoading) {
     return (
-      <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+      <div className='grid grid-cols-1 sm:grid-cols-3 gap-md'>
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className='glass rounded-xl p-4 shadow-soft h-[100px] animate-pulse bg-white/30'
+            className='glass rounded-xl p-lg shadow-soft h-[100px] animate-pulse bg-white/30'
           />
         ))}
       </div>
@@ -112,7 +112,7 @@ function StatsHeader({
   ];
 
   return (
-    <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+    <div className='grid grid-cols-1 sm:grid-cols-3 gap-md'>
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
@@ -121,12 +121,12 @@ function StatsHeader({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.06, duration: 0.5, ease: 'easeOut' }}
-            className='glass rounded-xl p-4 shadow-soft relative overflow-hidden group'
+            className='glass rounded-xl p-lg shadow-soft relative overflow-hidden group'
           >
-            <div className='absolute -top-6 -end-6 h-20 w-20 rounded-full bg-brand-coral/10 blur-2xl group-hover:bg-brand-coral/20 transition-colors pointer-events-none' />
+            <div className='absolute -top-2xl -end-2xl h-20 w-20 rounded-full bg-brand-coral/10 blur-2xl group-hover:bg-brand-coral/20 transition-colors pointer-events-none' />
 
             <div className='relative'>
-              <div className='flex items-center gap-2 mb-2'>
+              <div className='flex items-center gap-sm mb-sm'>
                 <div className='h-7 w-7 rounded-md bg-primary-500/[0.08] grid place-items-center text-primary-500'>
                   <Icon size={14} />
                 </div>
@@ -141,10 +141,10 @@ function StatsHeader({
                 </div>
               ) : null}
 
-              {stat.extra && <div className='mt-1'>{stat.extra}</div>}
+              {stat.extra && <div className='mt-xs'>{stat.extra}</div>}
 
               {stat.distribution && (
-                <div className='space-y-1.5 mt-1'>
+                <div className='space-y-1.5 mt-xs'>
                   {[5, 4, 3, 2, 1].map(rating => {
                     const count = stat.distribution?.[String(rating)] ?? 0;
                     const total = Object.values(stat.distribution ?? {}).reduce(
@@ -153,7 +153,7 @@ function StatsHeader({
                     );
                     const pct = total > 0 ? (count / total) * 100 : 0;
                     return (
-                      <div key={rating} className='flex items-center gap-2'>
+                      <div key={rating} className='flex items-center gap-sm'>
                         <span className='text-[10px] font-medium text-primary-500/60 w-3'>
                           {rating}
                         </span>
@@ -190,7 +190,7 @@ function FiltersBar({
   const establishmentsQuery = useMyEstablishments();
 
   return (
-    <div className='flex items-center gap-2 flex-wrap'>
+    <div className='flex items-center gap-sm flex-wrap'>
       {/* Rating filter */}
       <Select
         value={filters.rating ? String(filters.rating) : 'all'}
@@ -259,16 +259,16 @@ function ReviewCard({
       animate={{ opacity: 1, y: 0 }}
       className='glass rounded-2xl p-[24px] shadow-soft relative overflow-hidden group'
     >
-      <div className='absolute -top-10 -end-10 h-32 w-32 rounded-full bg-brand-coral/5 blur-2xl pointer-events-none' />
+      <div className='absolute -top-6xl -end-6xl h-32 w-32 rounded-full bg-brand-coral/5 blur-2xl pointer-events-none' />
 
       <div className='relative'>
         {/* Header: rating + date + actions */}
-        <div className='flex items-start justify-between gap-3'>
+        <div className='flex items-start justify-between gap-md'>
           <div className='flex-1 min-w-0'>
-            <div className='flex items-center gap-2 mb-1'>
+            <div className='flex items-center gap-sm mb-xs'>
               <StarRating rating={review.overallRating} />
               {review.isVerifiedPurchase && (
-                <span className='inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full'>
+                <span className='inline-flex items-center gap-xs text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-xxs rounded-full'>
                   <CheckCircle2 size={10} />
                   {t('card.verifiedPurchase')}
                 </span>
@@ -287,7 +287,7 @@ function ReviewCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>
               <DropdownMenuItem onClick={() => onReport(review)}>
-                <Flag size={14} className='me-2' />
+                <Flag size={14} className='me-sm' />
                 {t('card.report')}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -295,15 +295,15 @@ function ReviewCard({
         </div>
 
         {/* Comment */}
-        <p className='mt-3 text-sm text-primary-500/80 leading-relaxed'>{review.comment}</p>
+        <p className='mt-md text-sm text-primary-500/80 leading-relaxed'>{review.comment}</p>
 
         {/* Tags */}
         {review.tags.length > 0 && (
-          <div className='flex flex-wrap gap-1.5 mt-3'>
+          <div className='flex flex-wrap gap-1.5 mt-md'>
             {review.tags.map(tag => (
               <span
                 key={tag}
-                className='text-[10px] font-medium text-primary-500/60 bg-primary-500/[0.06] px-2 py-0.5 rounded-full'
+                className='text-[10px] font-medium text-primary-500/60 bg-primary-500/[0.06] px-sm py-xxs rounded-full'
               >
                 {tag}
               </span>
@@ -356,7 +356,7 @@ function ReportDialog({
           <DialogTitle>{t('reportDialog.title')}</DialogTitle>
         </DialogHeader>
 
-        <div className='space-y-4'>
+        <div className='space-y-lg'>
           <div>
             <label className='text-sm font-medium text-primary-500 mb-1.5 block'>
               {t('reportDialog.reasonLabel')}
@@ -411,8 +411,8 @@ function TrendingKeywordsPanel({ t }: { t: ReturnType<typeof useTranslations> })
   if (keywordsQuery.isLoading) {
     return (
       <div className='glass rounded-2xl p-[24px] shadow-soft'>
-        <div className='h-5 w-36 bg-white/30 animate-pulse rounded mb-4' />
-        <div className='flex gap-2 flex-wrap'>
+        <div className='h-5 w-36 bg-white/30 animate-pulse rounded mb-lg' />
+        <div className='flex gap-sm flex-wrap'>
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className='h-7 w-20 bg-white/30 animate-pulse rounded-full' />
           ))}
@@ -431,7 +431,7 @@ function TrendingKeywordsPanel({ t }: { t: ReturnType<typeof useTranslations> })
       transition={{ delay: 0.3, duration: 0.5 }}
       className='glass rounded-2xl p-[24px] shadow-soft'
     >
-      <div className='flex items-center gap-2 mb-[16px]'>
+      <div className='flex items-center gap-sm mb-[16px]'>
         <TrendingUp size={16} className='text-primary-500' />
         <div>
           <h3 className='font-display text-lg text-primary-500'>{t('trendingKeywords.title')}</h3>
@@ -439,14 +439,14 @@ function TrendingKeywordsPanel({ t }: { t: ReturnType<typeof useTranslations> })
         </div>
       </div>
 
-      <div className='flex gap-2 flex-wrap'>
+      <div className='flex gap-sm flex-wrap'>
         {keywords.map((kw, i) => (
           <motion.span
             key={kw.keyword}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 + i * 0.04 }}
-            className='inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/[0.06] text-xs font-medium text-primary-500'
+            className='inline-flex items-center gap-1.5 px-md py-1.5 rounded-full bg-primary-500/[0.06] text-xs font-medium text-primary-500'
           >
             {kw.keyword}
             <span className='text-[10px] text-primary-500/40'>{kw.count}</span>
@@ -473,11 +473,11 @@ function Pagination({
   if (totalPages <= 1) return null;
 
   return (
-    <div className='flex items-center justify-center gap-4'>
+    <div className='flex items-center justify-center gap-lg'>
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
-        className='flex items-center gap-1 text-xs font-medium text-primary-500 disabled:text-primary-500/30 transition-colors'
+        className='flex items-center gap-xs text-xs font-medium text-primary-500 disabled:text-primary-500/30 transition-colors'
       >
         <ChevronLeft size={14} />
         {t('pagination.previous')}
@@ -488,7 +488,7 @@ function Pagination({
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages}
-        className='flex items-center gap-1 text-xs font-medium text-primary-500 disabled:text-primary-500/30 transition-colors'
+        className='flex items-center gap-xs text-xs font-medium text-primary-500 disabled:text-primary-500/30 transition-colors'
       >
         {t('pagination.next')}
         <ChevronRight size={14} />
@@ -504,7 +504,7 @@ function ErrorState({ message }: { message: string }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className='flex items-center gap-3 rounded-xl bg-brand-coral/10 border border-brand-coral/20 p-[16px]'
+      className='flex items-center gap-md rounded-xl bg-brand-coral/10 border border-brand-coral/20 p-[16px]'
     >
       <AlertCircle size={18} className='text-brand-coral shrink-0' />
       <p className='text-sm text-brand-coral'>{message}</p>
@@ -516,7 +516,7 @@ function ErrorState({ message }: { message: string }) {
 
 function EmptyState({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
-    <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+    <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
       <div className='h-16 w-16 rounded-2xl bg-primary-500/[0.06] grid place-items-center'>
         <MessageSquare size={28} className='text-primary-500/30' />
       </div>
@@ -570,7 +570,7 @@ export function ReviewsPage() {
       {/* Header */}
       <div className='flex flex-col sm:flex-row sm:items-start justify-between gap-[16px]'>
         <div>
-          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-2'>
+          <div className='text-xs uppercase tracking-[0.18em] text-primary-500/60 mb-sm'>
             {t('subtitle')}
           </div>
           <h1 className='font-display text-3xl md:text-4xl text-primary-500'>{t('title')}</h1>

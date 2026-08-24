@@ -67,7 +67,7 @@ function WinnersSection({ cycleId }: { cycleId: string | null }) {
 
   if (!cycleId) {
     return (
-      <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+      <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
         <Trophy className='size-12 text-muted-foreground' />
         <h3 className='text-md font-semibold'>{t('noCompletedCycle')}</h3>
         <p className='text-sm text-muted-foreground max-w-xs'>{t('noCompletedCycleDesc')}</p>
@@ -77,7 +77,7 @@ function WinnersSection({ cycleId }: { cycleId: string | null }) {
 
   if (isLoading) {
     return (
-      <div className='space-y-3'>
+      <div className='space-y-md'>
         {[...Array(3)].map((_, i) => (
           <Skeleton key={i} className='h-16 rounded-lg' />
         ))}
@@ -87,7 +87,7 @@ function WinnersSection({ cycleId }: { cycleId: string | null }) {
 
   if (!winners || winners.length === 0) {
     return (
-      <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+      <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
         <Trophy className='size-12 text-muted-foreground' />
         <h3 className='text-md font-semibold'>{t('noWinners')}</h3>
         <p className='text-sm text-muted-foreground max-w-xs'>{t('noWinnersDesc')}</p>
@@ -96,11 +96,11 @@ function WinnersSection({ cycleId }: { cycleId: string | null }) {
   }
 
   return (
-    <div className='space-y-2'>
+    <div className='space-y-sm'>
       {winners.map(winner => (
         <div
           key={winner.userId}
-          className='flex items-center gap-3 rounded-lg border border-border/60 p-3'
+          className='flex items-center gap-md rounded-lg border border-border/60 p-md'
         >
           <div className='flex items-center justify-center w-8'>{getRankIcon(winner.rank)}</div>
           <Avatar className='size-9'>
@@ -121,7 +121,7 @@ function WinnersSection({ cycleId }: { cycleId: string | null }) {
             {winner.hasClaimed ? (
               <Badge
                 variant='outline'
-                className={cn('text-[10px] mt-0.5', getClaimStatusStyle(winner.claimStatus))}
+                className={cn('text-[10px] mt-xxs', getClaimStatusStyle(winner.claimStatus))}
               >
                 {winner.claimStatus}
               </Badge>
@@ -163,9 +163,9 @@ function PrizeClaimsSection() {
   });
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-lg'>
       {/* Filters */}
-      <div className='flex flex-wrap gap-2'>
+      <div className='flex flex-wrap gap-sm'>
         {['', 'pending', 'verified', 'delivered', 'rejected'].map(s => (
           <Button
             key={s}
@@ -184,25 +184,25 @@ function PrizeClaimsSection() {
 
       {/* Claims list */}
       {isLoading ? (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className='h-14 rounded-lg' />
           ))}
         </div>
       ) : claims.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-10 gap-3 text-center'>
+        <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
           <Package className='size-12 text-muted-foreground' />
           <h3 className='text-md font-semibold'>{t('noClaims')}</h3>
           <p className='text-sm text-muted-foreground max-w-xs'>{t('noClaimsDesc')}</p>
         </div>
       ) : (
-        <div className='space-y-2'>
+        <div className='space-y-sm'>
           {claims.map(claim => (
             <div
               key={claim._id}
               role='button'
               tabIndex={0}
-              className='flex items-center gap-3 rounded-lg border border-border/60 p-3 cursor-pointer hover:bg-muted/30 transition-colors'
+              className='flex items-center gap-md rounded-lg border border-border/60 p-md cursor-pointer hover:bg-muted/30 transition-colors'
               onClick={() => setSelectedClaim(claim)}
               onKeyDown={activateOnKey(() => setSelectedClaim(claim))}
             >
@@ -219,7 +219,7 @@ function PrizeClaimsSection() {
                   {t('rank')} #{claim.rank} · {claim.source} · {claim.prizeType}
                 </p>
               </div>
-              <div className='flex items-center gap-2'>
+              <div className='flex items-center gap-sm'>
                 <Badge
                   variant='outline'
                   className={cn('text-[10px]', getClaimStatusStyle(claim.status))}
@@ -235,7 +235,7 @@ function PrizeClaimsSection() {
 
       {/* Pagination */}
       {meta && meta.totalPages > 1 && (
-        <div className='flex justify-center gap-2 pt-2'>
+        <div className='flex justify-center gap-sm pt-sm'>
           <Button
             size='sm'
             variant='outline'
@@ -265,15 +265,15 @@ function PrizeClaimsSection() {
         <SheetContent className='w-full overflow-y-auto sm:max-w-md'>
           <SheetTitle className='sr-only'>{t('claimDetails')}</SheetTitle>
           {selectedClaim && (
-            <div className='space-y-5'>
-              <div className='space-y-2'>
+            <div className='space-y-xl'>
+              <div className='space-y-sm'>
                 <h3 className='text-sm font-semibold'>{getUserName(selectedClaim.userId)}</h3>
                 <p className='text-xs text-muted-foreground'>
                   {getUserEmail(selectedClaim.userId)}
                 </p>
               </div>
               <Separator />
-              <div className='grid grid-cols-2 gap-3 text-xs'>
+              <div className='grid grid-cols-2 gap-md text-xs'>
                 <div>
                   <span className='text-muted-foreground'>{t('rank')}</span>
                   <p className='font-semibold'>#{selectedClaim.rank}</p>
@@ -306,7 +306,7 @@ function PrizeClaimsSection() {
                 )}
               </div>
               <Separator />
-              <div className='space-y-2'>
+              <div className='space-y-sm'>
                 <p className='text-xs font-medium'>{t('currentStatus')}</p>
                 <Badge
                   variant='outline'
@@ -316,7 +316,7 @@ function PrizeClaimsSection() {
                 </Badge>
               </div>
               {selectedClaim.status === 'pending' && (
-                <div className='flex gap-2'>
+                <div className='flex gap-sm'>
                   <Button
                     size='sm'
                     variant='outline'
@@ -329,7 +329,7 @@ function PrizeClaimsSection() {
                       })
                     }
                   >
-                    <CheckCircle2 className='me-1 size-3' /> {t('verify')}
+                    <CheckCircle2 className='me-xs size-3' /> {t('verify')}
                   </Button>
                   <Button
                     size='sm'
@@ -343,7 +343,7 @@ function PrizeClaimsSection() {
                       })
                     }
                   >
-                    <XCircle className='me-1 size-3' /> {t('reject')}
+                    <XCircle className='me-xs size-3' /> {t('reject')}
                   </Button>
                 </div>
               )}
@@ -359,7 +359,7 @@ function PrizeClaimsSection() {
                     })
                   }
                 >
-                  <Package className='me-1 size-3' /> {t('markDelivered')}
+                  <Package className='me-xs size-3' /> {t('markDelivered')}
                 </Button>
               )}
             </div>
@@ -388,22 +388,22 @@ export default function VotingWinnersPage() {
   const activeCycleId = selectedCycleId ?? completedCycle?._id ?? null;
 
   return (
-    <div className='space-y-5'>
-      <div className='flex items-center gap-3'>
+    <div className='space-y-xl'>
+      <div className='flex items-center gap-md'>
         <Link href='/admin/voting'>
-          <Button size='sm' variant='ghost' className='h-7 px-2 text-xs'>
-            <ArrowLeft className='me-1 size-3.5' />
+          <Button size='sm' variant='ghost' className='h-7 px-sm text-xs'>
+            <ArrowLeft className='me-xs size-3.5' />
             Cycles
           </Button>
         </Link>
         <div>
           <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
-          <p className='mt-0.5 text-sm text-muted-foreground'>{t('subtitle')}</p>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('subtitle')}</p>
         </div>
       </div>
 
       {/* Tab buttons */}
-      <div className='flex gap-2 border-b border-border pb-2'>
+      <div className='flex gap-sm border-b border-border pb-sm'>
         <Button
           size='sm'
           variant={tab === 'winners' ? 'default' : 'ghost'}
@@ -426,7 +426,7 @@ export default function VotingWinnersPage() {
 
       {/* Cycle selector for winners tab */}
       {tab === 'winners' && cycles.filter(c => c.status === 'COMPLETED').length > 1 && (
-        <div className='flex flex-wrap gap-2'>
+        <div className='flex flex-wrap gap-sm'>
           {cycles
             .filter(c => c.status === 'COMPLETED')
             .map(c => (
@@ -444,7 +444,7 @@ export default function VotingWinnersPage() {
       )}
 
       <Card className='border-border/60'>
-        <CardHeader className='pb-3'>
+        <CardHeader className='pb-md'>
           <CardTitle className='text-sm'>
             {tab === 'winners' ? t('tabs.winners') : t('tabs.claims')}
           </CardTitle>

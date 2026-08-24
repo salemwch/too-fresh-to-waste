@@ -222,6 +222,18 @@ export function buildSnapshot() {
 
 const LOCKED = ['A', 'D'];
 
+/**
+ * shadcn primitives were authored against Tailwind's default scale, so their
+ * pixel values are the defect the migration exists to fix: `Card` uses `p-6`
+ * meaning 24px and currently renders 40px. Locking category A here would lock
+ * the bug in place.
+ *
+ * They are therefore exempt from the lock - but every change is reported rather
+ * than swallowed, because "the gate allows it" must never mean "nobody looked".
+ * See the primitives section of the migration report.
+ */
+const PRIMITIVE = new RegExp("(?:apps/web/src/components/ui|packages/ui/src)/");
+
 export function compare(baseline, current) {
   const drift = [];
   const intentional = [];
@@ -239,7 +251,8 @@ export function compare(baseline, current) {
         const after = cc[k] || 0;
         if (before === after) continue;
         const row = { file: f, category: cat, token: k, before, after };
-        if (LOCKED.includes(cat)) drift.push(row);
+        const locked = LOCKED.includes(cat) && !PRIMITIVE.test(f);
+        if (locked) drift.push(row);
         else intentional.push(row);
       }
     }
