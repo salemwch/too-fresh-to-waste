@@ -60,6 +60,8 @@ const MATRIX: ProjectMeta[] = [
 
 export default defineConfig({
   testDir: './tests/visual',
+  // audit.spec.ts is a manual capture rig, never part of a regression run.
+  testIgnore: process.env.VISUAL_AUDIT === '1' ? [] : ['**/audit.spec.ts', '**/a11y-probe.spec.ts', '**/probe-detail.spec.ts'],
   outputDir: './tests/visual/.output',
   snapshotPathTemplate: '{testDir}/__screenshots__/{projectName}/{testFilePath}/{arg}{ext}',
 
