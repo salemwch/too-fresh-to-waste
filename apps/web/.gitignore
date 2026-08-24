@@ -46,3 +46,8 @@ next-env.d.ts
 # Misc
 .turbo
 .eslintcache
+
+# Playwright visual regression artifacts (baselines ARE committed)
+/tests/visual/.output/
+/playwright-report/
+/test-results/

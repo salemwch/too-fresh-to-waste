@@ -19,7 +19,12 @@
     "check:seo": "pnpm check:canonical && pnpm check:translations",
     "check:spacing": "node scripts/spacing-snapshot.mjs",
     "snapshot:spacing": "node scripts/spacing-snapshot.mjs --write",
-    "check:design": "pnpm check:spacing && pnpm check:opacity"
+    "check:design": "pnpm check:spacing && pnpm check:opacity",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:report": "playwright show-report",
+    "test:visual:ui": "playwright test --ui",
+    "test:visual:install": "playwright install chromium"
   },
   "dependencies": {
     "@foodwaste/shared": "workspace:*",
@@ -64,6 +69,7 @@
   "devDependencies": {
     "@foodwaste/jest-config": "workspace:*",
     "@foodwaste/tsconfig": "workspace:*",
+    "@playwright/test": "1.62.1",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
