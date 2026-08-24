@@ -30,21 +30,30 @@ export const test = base.extend<VisualFixtures>({
 
   visualPage: async ({ page, theme }, use) => {
     /*
-     * Seeded before any document script runs, so the app's first render already
-     * has consent recorded and the theme resolved. `foodwaste-theme` is the key
-     * ThemeProvider reads; `cookie-consent` is the key CookieConsent reads.
+     * The theme is a cookie, read by the pre-paint script in <head> before the
+     * body renders (lib/theme-script.ts). It must therefore be set on the
+     * context *before navigation* - an addInitScript would still land before
+     * page scripts, but addCookies is the guarantee.
+     *
+     * Cookie consent is still localStorage, which CookieConsent reads in an
+     * effect, so seeding it via addInitScript is early enough.
      */
-    await page.addInitScript(
-      ({ themeValue }) => {
-        try {
-          window.localStorage.setItem('foodwaste-theme', themeValue);
-          window.localStorage.setItem('cookie-consent', 'accepted');
-        } catch {
-          // Storage unavailable - the run is still valid, just less stable.
-        }
+    await page.context().addCookies([
+      {
+        name: 'foodwaste-theme',
+        value: theme,
+        url: 'http://127.0.0.1:3111',
+        sameSite: 'Lax',
       },
-      { themeValue: theme },
-    );
+    ]);
+
+    await page.addInitScript(() => {
+      try {
+        window.localStorage.setItem('cookie-consent', 'accepted');
+      } catch {
+        // Storage unavailable - the run is still valid, just less stable.
+      }
+    });
 
     // Freeze time so anything date-derived renders the same on every run.
     await page.clock.install({ time: FROZEN_NOW });
@@ -88,9 +97,7 @@ export async function settle(page: Page): Promise<void> {
     await document.fonts.ready;
   });
   // One rAF so any layout triggered by the font swap has been committed.
-  await page.evaluate(
-    () => new Promise<void>(resolve => requestAnimationFrame(() => resolve())),
-  );
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
 }
 
 /** Locale-prefixed path, matching next-intl's routing. */

@@ -34,6 +34,15 @@ test.describe('shared components', () => {
     });
   }
 
+  test('select, open menu with a selection', async ({ visualPage }) => {
+    // The check indicator only renders for a selected item, and its offset is
+    // paired with the item's inline padding on a different element - a pair
+    // that can only go wrong in RTL.
+    await visualPage.locator('#vh-select-selected').click();
+    await expect(visualPage.getByRole('listbox')).toBeVisible();
+    await expect(visualPage).toHaveScreenshot('select-open-selected.png');
+  });
+
   test('select, open menu', async ({ visualPage }) => {
     await visualPage.locator('[data-visual-select]').click();
     // The menu is portalled to the body, so screenshot the viewport, not the
@@ -55,9 +64,7 @@ test.describe('shared components', () => {
     // silently, because nothing else renders differently.
     const button = visualPage.locator('[data-visual="button"] button').first();
     await button.focus();
-    await expect(visualPage.locator('[data-visual="button"]')).toHaveScreenshot(
-      'button-focus.png',
-    );
+    await expect(visualPage.locator('[data-visual="button"]')).toHaveScreenshot('button-focus.png');
   });
 
   test('input, focus ring', async ({ visualPage }) => {

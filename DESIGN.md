@@ -1658,7 +1658,16 @@ Web must migrate, which also means `--radius` moves from `0.5rem` to `0.75rem`
 so `rounded-lg` resolves to 12px. This is a visible change to every card and
 button. Sequence it **after** E5 to keep visual diffs readable.
 
-**E7. `.glass` is defined as a general dashboard utility.** `OPEN`
+**E7. `.glass` is defined as a general dashboard utility.** `OPEN` (needs a
+design decision) Re-verified 2026-08-24: **76 usages**, all merchant dashboard
+cards, in the shape `class='glass rounded-2xl p-[24px] shadow-soft'` -
+`impact-cards`, `analytics-page`, `inventory-page`, `campaign-side-panel`,
+`leaderboard`, `esg`, `community`.
+
+**Not actioned deliberately.** Removing `backdrop-filter` is not a refactor, it
+changes what 76 cards look like, and those routes sit behind auth so no
+screenshot baseline could prove the outcome. This needs a design call between
+accepting the repaint cost and restyling the dashboard.
 `backdrop-filter: blur(20px) saturate(140%)` in `globals.css`. Per §7.5 it is
 permitted only on the fixed header and modal overlays. Current usage on
 scrolling dashboard surfaces is a performance defect.
@@ -1719,12 +1728,65 @@ decision about whether `accent-300` is a tint or a second coral. Not actioned.
 _Found while verifying this document against source, after
 `DESIGN_AUDIT_REPORT.md` was written; recorded there as V19._
 
+**E19. `ThemeProvider` persisted to `localStorage`.** `RESOLVED 2026-08-24` The
+theme now lives in a first-party cookie (`foodwaste-theme`, `SameSite=Lax`, one
+year) and is applied by a small script in `<head>` that runs before first paint,
+so dark-mode users no longer get a white flash on every navigation.
+
+The cookie is deliberately **not** read server-side: `app/[locale]/layout.tsx`
+is statically generated and `next/headers` would force every route to render
+dynamically. The pre-paint script achieves the same result without that cost.
+See `lib/theme-script.ts`.
+
+**E20. Mobile exports a 26-colour unconstrained palette.** `CONSTRAINED`
+`harmonious` (12), `categories` (8) and `dietary` (6) are exported from
+`apps/mobile/src/design-system/tokens/colors.ts` with no usage limit, against
+§2.9's "at most two emphasis colours".
+
+**Constraint, effective now:** these three groups are for **data marks and
+category identity only** - chart series, category chips, dietary badges. Never a
+surface, a CTA, a border, or body text. Any other use is a §20 governance event.
+Pruning unused members is a follow-up, not a blocker.
+
+**E21. Physical text alignment on `<body>` is deliberate.** `ACCEPTED` `<body>`
+carries `isRTL ? 'text-right' : 'text-left'`, which looks like exactly the
+physical value §10.1 bans. It is kept on purpose.
+
+`text-align: start` is **not** equivalent for inline-level boxes: substituting
+it moved every `inline-flex` child - Radix's `TabsList` among them - to the
+wrong edge in Arabic. The RTL screenshot baselines caught it, it was reverted,
+and it is recorded here so nobody re-attempts the swap. This is the documented
+justification §10.2 requires.
+
+**E22. Radix menus do not mirror without a `DirectionProvider`.** `OPEN`
+Converting `SelectItem`'s padding and its check indicator to logical values
+(`ps-8`, `start-2`) is correct but currently **inert**: Radix renders portalled
+content in its own LTR direction context unless the tree is wrapped in
+`<DirectionProvider dir="rtl">`. The baseline
+`__screenshots__/desktop-light-ar/components.spec.ts/select-open-selected.png`
+shows the check on the left with left-aligned items inside an otherwise correct
+RTL page.
+
+Fixing it means wrapping every Radix consumer, touching Select, DropdownMenu,
+Dialog, Tabs and Tooltip together. Out of scope for the V9 pass, which was
+defined as a mechanical logical-property substitution.
+
+> **Numbering note.** E17 and E18 are out of sequence, and the original E16
+> (theme persistence) and E18 (mobile palette) were overwritten by a later edit
+> that reused those numbers. They are restored above as E19 and E20 rather than
+> renumbered, because §19 is append-only and renumbering would break every
+> existing reference.
+
 **E17. Visual coverage has not been performed.** `OPEN` No route has been opened
 in a browser as part of authoring this document. All values are static analysis
 plus computed contrast plus compiled-CSS measurement. **No claim in this
 document about how a rendered screen looks has been visually verified.** A
 per-route pass at 360/768/1280, in three locales and both themes, is
 outstanding.
+
+**Update 2026-08-24.** Partly superseded. All 22 public routes have now been
+opened in a real browser and reviewed - see `UX_VISUAL_AUDIT.md`. The 45
+authenticated routes remain unopened, so the claim still holds for those.
 
 ---
 

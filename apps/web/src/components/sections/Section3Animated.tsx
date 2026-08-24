@@ -40,7 +40,7 @@ export default function Section3Animated() {
         {/* Desktop: Bag with Left and Right Text - Grid Layout */}
         <div className='hidden xl:grid grid-cols-3 gap-x-4xl lg:gap-x-6xl gap-y-lg lg:gap-y-2xl pb-4xl items-center justify-items-center max-w-[1400px] mx-auto'>
           {/* Row 1, Col 1: Enjoy Good Food - 75% OFF */}
-          <div className='flex flex-col items-end text-right w-[320px] self-end'>
+          <div className='flex flex-col items-end text-end w-[320px] self-end'>
             <Image
               src='/images/low-price.png'
               alt='Low Price'
@@ -71,7 +71,7 @@ export default function Section3Animated() {
           </div>
 
           {/* Row 1, Col 3: Help Others Live */}
-          <div className='flex flex-col items-start text-left w-[320px] self-end'>
+          <div className='flex flex-col items-start text-start w-[320px] self-end'>
             <Image
               src='/icons/share.png'
               alt='Help Others'
@@ -89,7 +89,7 @@ export default function Section3Animated() {
           </div>
 
           {/* Row 2, Col 1: Get Rewards */}
-          <div className='flex flex-col items-end text-right w-[320px]'>
+          <div className='flex flex-col items-end text-end w-[320px]'>
             {/* A trophy rather than a gift box: this benefit is about winning
                 the Big Prize, and a wrapped present read as a giveaway. Drawn
                 rather than a raster asset so it stays sharp at any density. */}
@@ -107,7 +107,7 @@ export default function Section3Animated() {
           </div>
 
           {/* Row 2, Col 3: Help the Planet */}
-          <div className='flex flex-col items-start text-left w-[320px]'>
+          <div className='flex flex-col items-start text-start w-[320px]'>
             <Image
               src='/images/help.png'
               alt='Help Planet'

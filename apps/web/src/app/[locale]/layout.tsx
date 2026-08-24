@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { locales, type Locale, getLocaleConfig } from '@/i18n/config';
+import { themeInitScript } from '@/lib/theme-script';
 import { seoConfig, getLocaleSeoMetadata, getCanonicalUrl } from '@/config/seo.config';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -240,6 +241,18 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       data-scroll-behavior='smooth'
     >
       <head>
+        {/*
+          Applies the persisted theme class before first paint. A useEffect in
+          ThemeProvider runs after paint, so a dark-mode user would see a white
+          flash on every navigation. Reading the cookie server-side here would
+          force this statically-generated layout to render dynamically for every
+          route, so the class is set by this inline snippet instead.
+          See lib/theme-script.ts and DESIGN.md 19-E16.
+        */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
         {/* next/font/google self-hosts all fonts at build time — no runtime
             fetch to fonts.googleapis.com or fonts.gstatic.com is needed.
             Preconnect hints to those origins were removed to avoid opening
@@ -253,6 +266,14 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         style used to repeat the same stack here and silently win over the
         class, so the file gave two answers to one question. The Arabic-first
         ordering for RTL now lives in globals.css.
+      */}
+      {/*
+        Deliberately physical, and deliberately branched on direction.
+        `text-align: start` is NOT equivalent here: it does not place an
+        inline-level box (Radix's inline-flex TabsList, for one) on the same
+        edge that `text-align: right` does under dir=rtl. Swapping to a logical
+        value moved every inline-flex child to the wrong side in Arabic, which
+        the RTL screenshot baselines caught. Left as-is; see DESIGN.md 19-E20.
       */}
       <body className={`font-sans antialiased ${isRTL ? 'text-right' : 'text-left'}`}>
         {/* Google Analytics 4 */}

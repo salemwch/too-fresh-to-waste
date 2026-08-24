@@ -44,7 +44,7 @@ function AdminHeader({ navGroups }: { navGroups: NavGroup[] }) {
           <input
             type='text'
             placeholder={t('search')}
-            className='w-full bg-slate-50 border border-slate-200 rounded-md pl-4xl pr-md py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all'
+            className='w-full bg-slate-50 border border-slate-200 rounded-md ps-4xl pe-md py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all'
           />
         </div>
       </div>
@@ -52,7 +52,7 @@ function AdminHeader({ navGroups }: { navGroups: NavGroup[] }) {
       <div className='flex items-center gap-1.5'>
         <LanguageSwitcherCompact className='w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-100 transition-colors text-slate-600' />
         <NotificationBell />
-        <div className='hidden sm:flex items-center pl-sm border-l border-slate-200'>
+        <div className='hidden sm:flex items-center ps-sm border-l border-slate-200'>
           <UserNav />
         </div>
       </div>

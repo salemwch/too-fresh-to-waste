@@ -281,7 +281,7 @@ function LoginFormInner() {
                   id='email'
                   type='email'
                   placeholder={t('emailPlaceholder')}
-                  className='h-11 rounded-xl border-input bg-secondary/50 pl-3xl text-sm sm:h-12'
+                  className='h-11 rounded-xl border-input bg-secondary/50 ps-3xl text-sm sm:h-12'
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
@@ -302,7 +302,7 @@ function LoginFormInner() {
                 <Input
                   id='password'
                   type={showPassword ? 'text' : 'password'}
-                  className='h-11 rounded-xl border-input bg-secondary/50 pl-3xl pr-6xl text-sm sm:h-12'
+                  className='h-11 rounded-xl border-input bg-secondary/50 ps-3xl pe-6xl text-sm sm:h-12'
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
@@ -345,7 +345,7 @@ function LoginFormInner() {
               className='h-11 w-full rounded-xl text-sm font-semibold sm:h-12'
               disabled={isSubmitting}
             >
-              {isSubmitting && <Loader2 className='mr-sm h-4 w-4 animate-spin' />}
+              {isSubmitting && <Loader2 className='me-sm h-4 w-4 animate-spin' />}
               {t('loginButton')}
             </Button>
 

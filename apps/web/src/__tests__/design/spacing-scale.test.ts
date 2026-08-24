@@ -95,6 +95,32 @@ describe('comparison logic', () => {
     expect(intentional).toHaveLength(2);
   });
 
+  it('does not flag a physical-to-logical rename at the same pixel', () => {
+    // pl-4 and ps-4 emit an identical box in LTR; only the bound edge differs.
+    const { drift, intentional } = compare(
+      { 'a.tsx': { A: { 'pl:16': 1, 'mr:8': 2 } } },
+      { 'a.tsx': { A: { 'ps:16': 1, 'me:8': 2 } } },
+    );
+    expect(drift).toEqual([]);
+    expect(intentional).toEqual([]);
+  });
+
+  it('still flags a genuine side swap', () => {
+    const { drift } = compare(
+      { 'a.tsx': { A: { 'pl:16': 1 } } },
+      { 'a.tsx': { A: { 'pr:16': 1 } } },
+    );
+    expect(drift).toHaveLength(2); // ps:16 gone, pe:16 appeared
+  });
+
+  it('still flags a size change on a renamed edge', () => {
+    const { drift } = compare(
+      { 'a.tsx': { A: { 'pl:16': 1 } } },
+      { 'a.tsx': { A: { 'ps:24': 1 } } },
+    );
+    expect(drift).toHaveLength(2);
+  });
+
   it('reports nothing when the tree is unchanged', () => {
     const snap = { 'a.tsx': { A: { 'p:16': 2 }, D: { 'top:8': 1 } } };
     expect(compare(snap, snap)).toEqual({ drift: [], intentional: [] });

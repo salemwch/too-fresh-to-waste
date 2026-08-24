@@ -801,7 +801,7 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                   <Icon className='mt-xxs size-3.5 shrink-0 text-muted-foreground' />
                   <div className='flex flex-1 items-start justify-between gap-sm text-xs'>
                     <span className='text-muted-foreground'>{label}</span>
-                    <span className='text-right font-medium capitalize'>{value}</span>
+                    <span className='text-end font-medium capitalize'>{value}</span>
                   </div>
                 </div>
               ))}

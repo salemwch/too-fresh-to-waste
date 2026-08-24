@@ -159,7 +159,7 @@ export default function Footer() {
       <div className='grid min-[1200px]:grid-cols-3 gap-2xl lg:gap-4xl max-w-full'>
         {/* Company Info Section */}
         <div className='min-[1200px]:max-w-sm w-full'>
-          <div className='pr-sm'>
+          <div className='pe-sm'>
             <p className='text-white/80 leading-relaxed text-sm'>{t('description')}</p>
             <p className='text-white/80 leading-relaxed text-sm mt-1.5'>{t('tagline')}</p>
           </div>

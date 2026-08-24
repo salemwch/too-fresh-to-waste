@@ -127,7 +127,7 @@ export function OfferCard({
           <button
             type='button'
             onClick={() => setConfirmDelete(true)}
-            className={cn(btn, dang, 'ml-auto')}
+            className={cn(btn, dang, 'ms-auto')}
             aria-label='Delete offer'
           >
             <Trash2 className='h-3 w-3' />
@@ -161,7 +161,7 @@ export function OfferCard({
           <button
             type='button'
             onClick={() => setConfirmDelete(true)}
-            className={cn(btn, dang, 'ml-auto')}
+            className={cn(btn, dang, 'ms-auto')}
             aria-label='Delete offer'
           >
             <Trash2 className='h-3 w-3' />
@@ -184,7 +184,7 @@ export function OfferCard({
           <button
             type='button'
             onClick={() => setConfirmDelete(true)}
-            className={cn(btn, dang, 'ml-auto')}
+            className={cn(btn, dang, 'ms-auto')}
             aria-label='Delete offer'
           >
             <Trash2 className='h-3 w-3' />
@@ -203,7 +203,7 @@ export function OfferCard({
           <button
             type='button'
             onClick={() => setConfirmDelete(true)}
-            className={cn(btn, dang, 'ml-auto')}
+            className={cn(btn, dang, 'ms-auto')}
             aria-label='Delete offer'
           >
             <Trash2 className='h-3 w-3' />

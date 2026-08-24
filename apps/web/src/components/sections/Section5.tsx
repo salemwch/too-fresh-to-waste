@@ -79,7 +79,7 @@ export default function Section5() {
                     <h3>
                       <button
                         type='button'
-                        className='flex items-center justify-between gap-lg w-full py-lg text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                        className='flex items-center justify-between gap-lg w-full py-lg text-start cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                         onClick={() => toggleFAQ(index)}
                         aria-expanded={isExpanded ? 'true' : 'false'}
                         aria-controls={`faq-answer-${faq.id}`}
@@ -165,7 +165,7 @@ export default function Section5() {
             </div>
 
             {/* CTA Button (Optional) */}
-            <div className='mt-4xl text-center md:text-left'>
+            <div className='mt-4xl text-center md:text-start'>
               <a
                 href='mailto:support@toofreshtoowaste.com?subject=Support Inquiry - Too Fresh To Waste'
                 className='inline-block px-2xl py-md bg-primary-500 text-white rounded-full font-bold text-sm md:text-base transition-all duration-300 hover:bg-primary-600 hover:scale-105 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'

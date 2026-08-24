@@ -96,7 +96,7 @@ export default function Newsletter() {
           <button
             type='submit'
             disabled={isSubmitting}
-            className='hidden sm:flex bg-primary-500 text-white rounded-full h-11 mr-xs px-2xl lg:px-4xl items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500'
+            className='hidden sm:flex bg-primary-500 text-white rounded-full h-11 me-xs px-2xl lg:px-4xl items-center justify-center font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-primary-500'
             aria-label={t('button')}
           >
             {isSubmitting ? t('submitting') : t('button')}

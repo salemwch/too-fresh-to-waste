@@ -267,7 +267,7 @@ function MarqueeStrip() {
         {[0, 1].map(copy => (
           <div key={copy} className='flex items-center flex-shrink-0'>
             {items.map(item => (
-              <div key={item} className='flex items-center gap-6xl pr-6xl flex-shrink-0'>
+              <div key={item} className='flex items-center gap-6xl pe-6xl flex-shrink-0'>
                 <span className='text-[#0A1C1E] text-[1.05rem] italic flex-shrink-0' style={SERIF}>
                   {item}
                 </span>

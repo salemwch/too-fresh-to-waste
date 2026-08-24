@@ -270,7 +270,7 @@ export function BusinessSearchAutocomplete({
         <Input
           type='search'
           placeholder={t('searchPlaceholder')}
-          className='h-11 rounded-xl border-input bg-secondary/50 pl-3xl pr-6xl text-sm sm:h-12 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&:-webkit-autofill]:bg-secondary/50 [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_hsl(var(--secondary)/0.5)]'
+          className='h-11 rounded-xl border-input bg-secondary/50 ps-3xl pe-6xl text-sm sm:h-12 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&:-webkit-autofill]:bg-secondary/50 [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_hsl(var(--secondary)/0.5)]'
           value={query}
           onChange={e => handleInputChange(e.target.value)}
           onFocus={() => {
@@ -330,7 +330,7 @@ export function BusinessSearchAutocomplete({
                   <button
                     type='button'
                     onClick={() => handleSelect(suggestion)}
-                    className='flex w-full items-start gap-md px-lg py-md text-left transition-colors hover:bg-secondary/50'
+                    className='flex w-full items-start gap-md px-lg py-md text-start transition-colors hover:bg-secondary/50'
                   >
                     <MapPin className='mt-xxs h-4 w-4 shrink-0 text-muted-foreground' />
                     <div className='min-w-0'>

@@ -224,7 +224,7 @@ const mdxComponents = {
   ),
   th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
     <th
-      className='text-left px-lg py-sm bg-brand-deep text-brand-cream text-xs uppercase tracking-wider font-medium'
+      className='text-start px-lg py-sm bg-brand-deep text-brand-cream text-xs uppercase tracking-wider font-medium'
       {...props}
     />
   ),

@@ -219,7 +219,7 @@ export function ResetPasswordForm() {
                     <Input
                       id='password'
                       type={showPassword ? 'text' : 'password'}
-                      className='h-11 rounded-xl border-input bg-secondary/50 pl-3xl pr-6xl text-sm sm:h-12'
+                      className='h-11 rounded-xl border-input bg-secondary/50 ps-3xl pe-6xl text-sm sm:h-12'
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       required
@@ -253,7 +253,7 @@ export function ResetPasswordForm() {
                     <Input
                       id='confirmPassword'
                       type={showConfirm ? 'text' : 'password'}
-                      className='h-11 rounded-xl border-input bg-secondary/50 pl-3xl pr-6xl text-sm sm:h-12'
+                      className='h-11 rounded-xl border-input bg-secondary/50 ps-3xl pe-6xl text-sm sm:h-12'
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
                       required
@@ -286,7 +286,7 @@ export function ResetPasswordForm() {
                   className='h-11 w-full rounded-xl text-sm font-semibold sm:h-12'
                   disabled={isLoading}
                 >
-                  {isLoading && <Loader2 className='mr-sm h-4 w-4 animate-spin' />}
+                  {isLoading && <Loader2 className='me-sm h-4 w-4 animate-spin' />}
                   {t('resetPasswordButton')}
                 </Button>
 

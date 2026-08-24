@@ -371,7 +371,7 @@ function MerchantSignupInner() {
         onClick={handleResend}
         disabled={isResending || cooldown > 0}
       >
-        {isResending && <Loader2 className='mr-sm h-4 w-4 animate-spin' />}
+        {isResending && <Loader2 className='me-sm h-4 w-4 animate-spin' />}
         {cooldown > 0 ? t('resendCooldown', { seconds: cooldown }) : t('resendEmail')}
       </Button>
       {resendFeedback && (
@@ -616,7 +616,7 @@ function MerchantSignupInner() {
                 className='h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12'
                 onClick={handleBack}
               >
-                <ArrowLeft className='mr-sm h-4 w-4' />
+                <ArrowLeft className='me-sm h-4 w-4' />
                 {t('back')}
               </Button>
               <Button
@@ -685,7 +685,7 @@ function MerchantSignupInner() {
                   id='password'
                   type={showPassword ? 'text' : 'password'}
                   placeholder={t('passwordPlaceholder')}
-                  className='h-11 rounded-xl border-input bg-secondary/50 pl-3xl pr-6xl text-sm sm:h-12'
+                  className='h-11 rounded-xl border-input bg-secondary/50 ps-3xl pe-6xl text-sm sm:h-12'
                   value={formData.password}
                   onChange={e => updateField('password', e.target.value)}
                   maxLength={PASSWORD_MAX_LENGTH}
@@ -715,7 +715,7 @@ function MerchantSignupInner() {
                 className='h-11 flex-1 rounded-xl text-sm font-semibold sm:h-12'
                 onClick={handleBack}
               >
-                <ArrowLeft className='mr-sm h-4 w-4' />
+                <ArrowLeft className='me-sm h-4 w-4' />
                 {t('back')}
               </Button>
               <Button

@@ -131,7 +131,7 @@ function EsgContent() {
                 : '—'}
             </div>
           </div>
-          <div className='ml-auto text-right'>
+          <div className='ms-auto text-end'>
             <div className='text-xs text-primary-500/60'>{t('bagsSavedTotal')}</div>
             <div className='font-display text-2xl text-primary-500'>
               {fmt(tier?.bagsSaved ?? 0)}

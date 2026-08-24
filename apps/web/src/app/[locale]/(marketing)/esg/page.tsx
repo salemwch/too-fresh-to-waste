@@ -712,7 +712,7 @@ export default async function ESGPage({ params }: PageProps) {
             </div>
 
             {/* Flag + context */}
-            <div className='mt-6xl bg-white/10 border border-white/15 rounded-3xl p-3xl lg:p-4xl flex flex-col lg:flex-row items-center gap-2xl text-center lg:text-left'>
+            <div className='mt-6xl bg-white/10 border border-white/15 rounded-3xl p-3xl lg:p-4xl flex flex-col lg:flex-row items-center gap-2xl text-center lg:text-start'>
               <div className='text-6xl shrink-0'>🇹🇳</div>
               <div>
                 <p className='font-heading text-xl lg:text-2xl font-bold text-white mb-sm'>

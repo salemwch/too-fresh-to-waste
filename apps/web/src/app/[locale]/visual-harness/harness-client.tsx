@@ -52,6 +52,24 @@ export function VisualHarnessClient({ arabicSample }: Readonly<{ arabicSample: s
             </Select>
           </div>
           <div className='space-y-sm'>
+            {/*
+              A selected item, so the check indicator actually renders. Its
+              offset is paired with the item's inline padding, and the two live
+              on different elements - the pair is only visible in RTL, and only
+              when something is selected.
+            */}
+            <Label htmlFor='vh-select-selected'>Selected</Label>
+            <Select defaultValue='grocery'>
+              <SelectTrigger id='vh-select-selected'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='bakery'>Bakery</SelectItem>
+                <SelectItem value='grocery'>Grocery</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className='space-y-sm'>
             <Label htmlFor='vh-select-disabled'>Disabled</Label>
             <Select disabled>
               <SelectTrigger id='vh-select-disabled'>

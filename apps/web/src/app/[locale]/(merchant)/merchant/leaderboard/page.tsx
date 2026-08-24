@@ -65,7 +65,7 @@ function PrivacyChoiceDialog({
           <button
             onClick={() => onChoose(false)}
             disabled={isPending}
-            className='flex items-center gap-lg p-lg rounded-xl border border-primary-500/10 hover:border-primary-500/30 hover:bg-primary-500/[0.03] transition-colors text-left disabled:opacity-50'
+            className='flex items-center gap-lg p-lg rounded-xl border border-primary-500/10 hover:border-primary-500/30 hover:bg-primary-500/[0.03] transition-colors text-start disabled:opacity-50'
           >
             <div className='h-10 w-10 rounded-full bg-primary-500/10 grid place-items-center shrink-0'>
               <Eye size={18} className='text-primary-500' />
@@ -81,7 +81,7 @@ function PrivacyChoiceDialog({
           <button
             onClick={() => onChoose(true)}
             disabled={isPending}
-            className='flex items-center gap-lg p-lg rounded-xl border border-primary-500/10 hover:border-primary-500/30 hover:bg-primary-500/[0.03] transition-colors text-left disabled:opacity-50'
+            className='flex items-center gap-lg p-lg rounded-xl border border-primary-500/10 hover:border-primary-500/30 hover:bg-primary-500/[0.03] transition-colors text-start disabled:opacity-50'
           >
             <div className='h-10 w-10 rounded-full bg-primary-500/10 grid place-items-center shrink-0'>
               <EyeOff size={18} className='text-primary-500' />
@@ -141,14 +141,14 @@ function LeaderboardRow({
         <div className='text-[13px] font-medium text-primary-500 truncate'>
           {entry.displayName}
           {isMe && (
-            <span className='ml-sm text-[10px] text-brand-coral font-semibold uppercase tracking-wide'>
+            <span className='ms-sm text-[10px] text-brand-coral font-semibold uppercase tracking-wide'>
               You
             </span>
           )}
         </div>
       </div>
 
-      <div className='text-right shrink-0'>
+      <div className='text-end shrink-0'>
         <div className='text-[14px] font-semibold text-primary-500 tabular-nums'>
           {entry.mealsSaved}
         </div>

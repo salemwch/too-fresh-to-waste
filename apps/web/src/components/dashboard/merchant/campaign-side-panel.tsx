@@ -48,7 +48,7 @@ export function CampaignSidePanel({
           <div className='h-[30px] w-[30px] rounded-lg bg-brand-coral grid place-items-center shrink-0'>
             <Megaphone size={13} className='text-white' />
           </div>
-          <div className='text-left'>
+          <div className='text-start'>
             <div className='text-[10px] opacity-70'>{t('quickAction')}</div>
             <div className='font-medium text-[12px]'>{t('launchCampaign')}</div>
           </div>

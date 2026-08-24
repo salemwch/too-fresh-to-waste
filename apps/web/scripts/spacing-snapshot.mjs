@@ -235,6 +235,29 @@ export function buildSnapshot() {
 const LOCKED = ['A', 'D'];
 
 /**
+ * Physical and logical edges are the same measurement under a different name.
+ *
+ * `pl-4` and `ps-4` emit an identical box in LTR; the difference is only which
+ * edge they bind to when direction flips. This gate exists to answer "did the
+ * rendered pixel change", so migrating a physical utility to its logical
+ * equivalent must not read as drift - while a genuine side swap (start -> end)
+ * still must.
+ *
+ * Canonicalising to the logical name on both sides of the comparison keeps the
+ * committed baseline valid across the V9 migration, which is what proves that
+ * nothing *else* moved in the same pass.
+ */
+const EDGE_ALIAS = { pl: 'ps', pr: 'pe', ml: 'ms', mr: 'me', left: 'start', right: 'end' };
+
+const canonical = bucket =>
+  Object.entries(bucket).reduce((acc, [token, n]) => {
+    const [prefix, px] = token.split(':');
+    const key = `${EDGE_ALIAS[prefix] ?? prefix}:${px}`;
+    acc[key] = (acc[key] || 0) + n;
+    return acc;
+  }, {});
+
+/**
  * shadcn primitives were authored against Tailwind's default scale, so their
  * pixel values are the defect the migration exists to fix: `Card` uses `p-6`
  * meaning 24px and currently renders 40px. Locking category A here would lock
@@ -255,8 +278,8 @@ export function compare(baseline, current) {
     const b = baseline[f] || {};
     const c = current[f] || {};
     for (const cat of ['A', 'B', 'C', 'D']) {
-      const bb = b[cat] || {};
-      const cc = c[cat] || {};
+      const bb = canonical(b[cat] || {});
+      const cc = canonical(c[cat] || {});
       const keys = new Set([...Object.keys(bb), ...Object.keys(cc)]);
       for (const k of [...keys].sort()) {
         const before = bb[k] || 0;

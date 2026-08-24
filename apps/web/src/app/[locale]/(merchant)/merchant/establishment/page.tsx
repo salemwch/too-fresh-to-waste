@@ -640,7 +640,7 @@ export default function MerchantEstablishmentPage() {
       <Button type='submit' size='sm' className='text-xs px-md' disabled={isSaving}>
         {isSaving ? (
           <>
-            <Loader2 className='mr-xs h-3 w-3 animate-spin' />
+            <Loader2 className='me-xs h-3 w-3 animate-spin' />
             {t('saving')}
           </>
         ) : (
@@ -857,12 +857,12 @@ export default function MerchantEstablishmentPage() {
               >
                 {isUploadingPhotos ? (
                   <>
-                    <Loader2 className='mr-xs h-3 w-3 animate-spin' />
+                    <Loader2 className='me-xs h-3 w-3 animate-spin' />
                     {t('uploading')}
                   </>
                 ) : (
                   <>
-                    <Camera className='mr-xs h-3 w-3' />
+                    <Camera className='me-xs h-3 w-3' />
                     {t('uploadPhotos')}
                   </>
                 )}
@@ -1053,7 +1053,7 @@ export default function MerchantEstablishmentPage() {
                       value={phoneNumber}
                       onChange={e => setPhoneNumber(e.target.value)}
                       placeholder='+216 XX XXX XXX'
-                      className='h-7 rounded-lg pl-4xl text-xs'
+                      className='h-7 rounded-lg ps-4xl text-xs'
                     />
                   </div>
                 </div>
@@ -1072,7 +1072,7 @@ export default function MerchantEstablishmentPage() {
                       value={website}
                       onChange={e => setWebsite(e.target.value)}
                       placeholder={t('websitePlaceholder')}
-                      className='h-7 rounded-lg pl-4xl text-xs'
+                      className='h-7 rounded-lg ps-4xl text-xs'
                     />
                   </div>
                 </div>
@@ -1092,7 +1092,7 @@ export default function MerchantEstablishmentPage() {
                     type='email'
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className='h-7 rounded-lg pl-4xl text-xs'
+                    className='h-7 rounded-lg ps-4xl text-xs'
                   />
                 </div>
               </div>
@@ -1108,7 +1108,7 @@ export default function MerchantEstablishmentPage() {
                     </span>
                     <div className='relative'>
                       <MapPin className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
-                      <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-4xl pr-md flex items-center text-xs text-slate-600 truncate'>
+                      <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 ps-4xl pe-md flex items-center text-xs text-slate-600 truncate'>
                         {establishment.address.street ?? '—'}
                       </div>
                     </div>
@@ -1120,7 +1120,7 @@ export default function MerchantEstablishmentPage() {
                       </span>
                       <div className='relative'>
                         <MapPin className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
-                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-4xl pr-md flex items-center text-xs text-slate-600'>
+                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 ps-4xl pe-md flex items-center text-xs text-slate-600'>
                           {establishment.address.city ?? '—'}
                         </div>
                       </div>
@@ -1131,7 +1131,7 @@ export default function MerchantEstablishmentPage() {
                       </span>
                       <div className='relative'>
                         <Hash className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
-                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 pl-4xl pr-md flex items-center text-xs text-slate-600'>
+                        <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 ps-4xl pe-md flex items-center text-xs text-slate-600'>
                           {establishment.address.postalCode ?? '—'}
                         </div>
                       </div>

@@ -36,7 +36,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           <div className='flex h-14 shrink-0 items-center gap-md border-b bg-card px-lg'>
             <Skeleton className='h-7 w-7 rounded-md lg:hidden' />
             <Skeleton className='h-5 w-40' />
-            <div className='ml-auto flex items-center gap-md'>
+            <div className='ms-auto flex items-center gap-md'>
               <Skeleton className='h-8 w-8 rounded-full' />
             </div>
           </div>

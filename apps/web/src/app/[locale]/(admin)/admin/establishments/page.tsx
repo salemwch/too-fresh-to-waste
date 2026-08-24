@@ -553,7 +553,7 @@ export default function AdminEstablishmentsPage() {
                     ].map(row => (
                       <div key={row.label} className='flex justify-between gap-lg'>
                         <span className='text-xs text-muted-foreground'>{row.label}</span>
-                        <span className='text-right text-xs font-medium'>{row.value}</span>
+                        <span className='text-end text-xs font-medium'>{row.value}</span>
                       </div>
                     ))}
                   </div>

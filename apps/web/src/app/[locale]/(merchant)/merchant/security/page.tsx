@@ -67,7 +67,7 @@ export default function MerchantSecurityPage() {
               required
               disabled={isLoading}
               autoComplete='current-password'
-              className='h-[36px] pl-4xl pr-5xl text-sm'
+              className='h-[36px] ps-4xl pe-5xl text-sm'
             />
             <button
               type='button'
@@ -96,7 +96,7 @@ export default function MerchantSecurityPage() {
               required
               disabled={isLoading}
               autoComplete='new-password'
-              className='h-[36px] pl-4xl pr-5xl text-sm'
+              className='h-[36px] ps-4xl pe-5xl text-sm'
             />
             <button
               type='button'
@@ -126,7 +126,7 @@ export default function MerchantSecurityPage() {
               required
               disabled={isLoading}
               autoComplete='new-password'
-              className='h-[36px] pl-4xl pr-5xl text-sm'
+              className='h-[36px] ps-4xl pe-5xl text-sm'
             />
             <button
               type='button'
@@ -155,7 +155,7 @@ export default function MerchantSecurityPage() {
         )}
 
         <Button type='submit' disabled={isLoading} className='mt-xs h-[36px] px-lg text-sm'>
-          {isLoading && <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />}
+          {isLoading && <Loader2 className='me-1.5 h-3.5 w-3.5 animate-spin' />}
           {isLoading ? t('updating') : t('updatePassword')}
         </Button>
       </form>

@@ -40,7 +40,7 @@ export function UserNav() {
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className='hidden lg:block text-left'>
+          <div className='hidden lg:block text-start'>
             <p className='text-[11px] font-medium text-slate-900 leading-tight'>
               {user.firstName} {user.lastName}
             </p>

@@ -2,7 +2,7 @@
 
 import { createContext, useEffect, useState, useCallback } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+import { readThemeCookie, writeThemeCookie, type Theme } from '@/lib/theme-script';
 
 interface ThemeContextValue {
   theme: Theme;
@@ -11,8 +11,6 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
-
-const STORAGE_KEY = 'foodwaste-theme';
 
 function getSystemTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') return 'light';
@@ -35,27 +33,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = useCallback(
     (newTheme: Theme) => {
       setThemeState(newTheme);
-      try {
-        localStorage.setItem(STORAGE_KEY, newTheme);
-      } catch {
-        // Storage not available
-      }
+      writeThemeCookie(newTheme);
       applyTheme(newTheme);
     },
     [applyTheme],
   );
 
-  // Initialize theme from storage on mount
+  /*
+   * Sync React state with what the pre-paint script already applied.
+   *
+   * The class is on <html> before this runs (see lib/theme-script.ts), so this
+   * effect only reconciles state - it must not re-apply a default, or a dark
+   * user would flash to light on every mount.
+   */
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-      const initial = stored ?? 'light';
-      setThemeState(initial);
-      applyTheme(initial);
-    } catch {
-      applyTheme('light');
-    }
-  }, [applyTheme]);
+    const stored = readThemeCookie() ?? 'light';
+    setThemeState(stored);
+    setResolvedTheme(stored === 'system' ? getSystemTheme() : stored);
+  }, []);
 
   // Listen for system theme changes
   useEffect(() => {

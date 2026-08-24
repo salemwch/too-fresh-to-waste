@@ -518,7 +518,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                         </p>
                       </div>
                       <div className='h-8 w-px bg-primary-500/10' aria-hidden='true' />
-                      <div className='text-right'>
+                      <div className='text-end'>
                         <p className='text-xs text-primary-500/75 mb-xs'>
                           {t('wallet.card.payLabel')}
                         </p>

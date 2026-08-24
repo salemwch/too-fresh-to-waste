@@ -78,7 +78,7 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
           {t('noData')}
         </div>
       ) : (
-        <div className='h-64 -ml-sm'>
+        <div className='h-64 -ms-sm'>
           <ResponsiveContainer width='100%' height='100%'>
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>

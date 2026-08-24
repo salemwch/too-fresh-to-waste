@@ -821,7 +821,7 @@ export function MerchantOffersView() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className='w-full h-7 rounded-full border border-slate-200 bg-white pl-4xl pr-4xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50'
+              className='w-full h-7 rounded-full border border-slate-200 bg-white ps-4xl pe-4xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50'
             />
             {search && (
               <button

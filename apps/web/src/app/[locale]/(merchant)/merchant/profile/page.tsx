@@ -253,7 +253,7 @@ export default function MerchantProfilePage() {
               onChange={e => setFirstName(e.target.value)}
               required
               disabled={isLoading}
-              className='h-[36px] pl-4xl text-sm'
+              className='h-[36px] ps-4xl text-sm'
             />
           </div>
         </div>
@@ -271,7 +271,7 @@ export default function MerchantProfilePage() {
               onChange={e => setLastName(e.target.value)}
               required
               disabled={isLoading}
-              className='h-[36px] pl-4xl text-sm'
+              className='h-[36px] ps-4xl text-sm'
             />
           </div>
         </div>
@@ -289,7 +289,7 @@ export default function MerchantProfilePage() {
               value={user?.email ?? ''}
               readOnly
               disabled
-              className='h-[36px] pl-4xl text-sm bg-slate-50 text-slate-500 cursor-not-allowed'
+              className='h-[36px] ps-4xl text-sm bg-slate-50 text-slate-500 cursor-not-allowed'
             />
           </div>
           <p className='text-[11px] text-slate-400'>{t('emailReadOnly')}</p>
@@ -308,7 +308,7 @@ export default function MerchantProfilePage() {
               value={phone}
               onChange={e => setPhone(e.target.value)}
               disabled={isLoading}
-              className='h-[36px] pl-4xl text-sm'
+              className='h-[36px] ps-4xl text-sm'
             />
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function MerchantProfilePage() {
         )}
 
         <Button type='submit' disabled={isLoading} className='mt-xs h-[36px] px-lg text-sm'>
-          {isLoading && <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />}
+          {isLoading && <Loader2 className='me-1.5 h-3.5 w-3.5 animate-spin' />}
           {isLoading ? t('saving') : t('saveChanges')}
         </Button>
       </form>
@@ -355,7 +355,7 @@ export default function MerchantProfilePage() {
                 onChange={e => setCurrentPw(e.target.value)}
                 required
                 disabled={pwLoading}
-                className='h-[36px] pl-4xl pr-5xl text-sm'
+                className='h-[36px] ps-4xl pe-5xl text-sm'
                 autoComplete='current-password'
               />
               <button
@@ -383,7 +383,7 @@ export default function MerchantProfilePage() {
                 onChange={e => setNewPassword(e.target.value)}
                 required
                 disabled={pwLoading}
-                className='h-[36px] pl-4xl pr-5xl text-sm'
+                className='h-[36px] ps-4xl pe-5xl text-sm'
                 autoComplete='new-password'
               />
               <button
@@ -411,7 +411,7 @@ export default function MerchantProfilePage() {
                 onChange={e => setConfirmPassword(e.target.value)}
                 required
                 disabled={pwLoading}
-                className='h-[36px] pl-4xl pr-5xl text-sm'
+                className='h-[36px] ps-4xl pe-5xl text-sm'
                 autoComplete='new-password'
               />
               <button
@@ -442,7 +442,7 @@ export default function MerchantProfilePage() {
           )}
 
           <Button type='submit' disabled={pwLoading} className='h-[36px] px-lg text-sm'>
-            {pwLoading && <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />}
+            {pwLoading && <Loader2 className='me-1.5 h-3.5 w-3.5 animate-spin' />}
             {pwLoading ? t('updatingPassword') : t('updatePassword')}
           </Button>
         </form>
@@ -458,7 +458,7 @@ export default function MerchantProfilePage() {
           type='button'
           onClick={handleLeaderboardToggle}
           disabled={user?.leaderboardAnonymous === null || user?.leaderboardAnonymous === undefined}
-          className='w-full flex items-center justify-between gap-md rounded-lg border border-slate-200 bg-slate-50 px-md py-2.5 text-left hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+          className='w-full flex items-center justify-between gap-md rounded-lg border border-slate-200 bg-slate-50 px-md py-2.5 text-start hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
         >
           <div>
             <div className='text-xs font-medium text-slate-800'>Show my real name and photo</div>

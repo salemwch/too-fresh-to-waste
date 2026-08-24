@@ -95,7 +95,7 @@ export function NotificationBell() {
                   key={n.id}
                   onClick={() => handleNotificationClick(n)}
                   className={cn(
-                    'w-full text-left flex items-start gap-md px-md py-2.5 transition-colors hover:bg-slate-50',
+                    'w-full text-start flex items-start gap-md px-md py-2.5 transition-colors hover:bg-slate-50',
                     !n.read && 'bg-primary-50',
                   )}
                 >

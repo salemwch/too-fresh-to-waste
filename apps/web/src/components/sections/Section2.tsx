@@ -30,7 +30,7 @@ export default function Section2() {
         >
           {t('title')}
           <span
-            className='inline-block ml-sm text-4xl md:text-5xl lg:text-6xl'
+            className='inline-block ms-sm text-4xl md:text-5xl lg:text-6xl'
             role='img'
             aria-label='rewards'
           >

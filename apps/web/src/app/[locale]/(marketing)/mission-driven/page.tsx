@@ -256,7 +256,7 @@ export default function MissionDrivenPage() {
             </div>
 
             {/* Pull quote */}
-            <div className='mt-3xl border-l-4 border-brand-green pl-3xl'>
+            <div className='mt-3xl border-l-4 border-brand-green ps-3xl'>
               <p className='font-heading text-xl lg:text-2xl font-bold text-primary-500 italic leading-snug'>
                 &ldquo;{t('origin.quote')}&rdquo;
               </p>

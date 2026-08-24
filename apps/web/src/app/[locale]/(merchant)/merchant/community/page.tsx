@@ -149,7 +149,7 @@ export default function CommunityPage() {
               Cycle #{community?.cycleNumber ?? '—'}
             </div>
           </div>
-          <div className='ml-auto'>
+          <div className='ms-auto'>
             <span
               className='text-[10px] px-2.5 py-xs rounded-full font-medium capitalize'
               style={{
