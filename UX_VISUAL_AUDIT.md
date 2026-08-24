@@ -17,6 +17,10 @@ findings come from those renders and from DOM probes against the same pages.
 | `desktop-light-ar` | 16 / 22         | RTL                              |
 | `tablet-light-en`  | 11 / 22         | partial, 768px                   |
 | `desktop-light-fr` | 7 / 22          | partial                          |
+| `mobile-light-ar`  | 8 / 22          | partial, 360px RTL               |
+
+The partial cells are capture timeouts on very long full-page screenshots, not
+route failures; each of those routes rendered fine in another cell.
 
 Full-page screenshots at 360 / 768 / 1280, plus a DOM accessibility probe run
 against all 22 routes at 1280.
@@ -36,7 +40,7 @@ only, the report says which.
 | ------ | ----- | -------------------------- |
 | **P0** | 3     | Broken / blocks production |
 | **P1** | 11    | Important UX or visual     |
-| **P2** | 8     | Polish / consistency       |
+| **P2** | 9     | Polish / consistency       |
 
 Two things are worth saying before the list.
 
@@ -155,8 +159,13 @@ sitting inside it. Consistent across viewports, so it is not a breakpoint issue.
 bo..", "Strategic gr.."). The card is too narrow for its label at every width
 tested.
 
-Not reproduced in Arabic, where the labels are shorter and fit - so this is a
-Latin-locale issue and will be worse in French.
+**Correction.** An earlier draft of this audit predicted French would be worse.
+It is not. Checked against the French capture: "Hausse du CA" and "Magasins
+inscrits" both fit; only "Croissance strat.." truncates. So French truncates one
+label of three where English truncates two.
+
+Arabic does not truncate at all, at 1280 or 360 - the labels fit. The defect is
+Latin-locale-specific and worst in English.
 
 **Routes:** `/login`, `/forgot-password`.
 
@@ -169,20 +178,28 @@ points right.
 The password eye icon also stays on the right edge in RTL, i.e. it does not
 mirror to the trailing side.
 
+Confirmed at **both 1280 and 360** in Arabic, so it is not a breakpoint effect.
+Everything else on the page mirrors correctly - nav, panel order, text
+alignment, form labels - which makes these two the exceptions rather than a
+general RTL failure.
+
 ### P1-7. Locale variants make different factual claims
 
-**Observed** on `/login`:
+**Observed** on `/login` in all three locales:
 
-- English hero body: "Turn your surplus into your greatest competitive
-  advantage! Join the movement..."
-- Arabic hero body: "انضم إلى أكثر من 2,000 متجر" - "join **more than 2,000
-  stores**".
+| Locale | Hero body claim                                    | Stat card            |
+| ------ | -------------------------------------------------- | -------------------- |
+| en     | "Join the movement and start scaling with purpose" | 2+ Stores joined     |
+| fr     | "Rejoignez plus de **2 000 magasins**"             | 2+ Magasins inscrits |
+| ar     | "انضم إلى أكثر من **2,000 متجر**"                  | +2 متجر انضم         |
 
-Both pages carry the same stat card reading **"2+ / Stores joined"**. So the
-Arabic page claims 2,000 stores directly above a stat saying 2.
+**French and Arabic both claim 2,000+ stores directly above a stat card reading
+2+.** English is the outlier that omits the claim, so this is not a translation
+slip in one locale - it is the English copy that diverges.
 
-The testimonials also differ: English attributes a quote to "Industry Standard";
-Arabic attributes one to "سارة ك." at "Green Grocers".
+The testimonial diverges the same way. English quotes "Industry Standard";
+French and Arabic both quote **"Sarah K., Green Grocers Amsterdam"** - an
+Amsterdam business, on a product whose market is Tunisia.
 
 ### P1-8. Embedded app screenshots are English in every locale
 
@@ -274,7 +291,17 @@ language pill and Login. The Login control stacks its label under its icon while
 every other nav item is a single text baseline, so it sits visually lower than
 the rest of the row.
 
-### P2-8. `/locations` grid ends ragged
+### P2-8. French heading wrap orphans the badge
+
+**Observed** on `/fr/login` at 1280: "Connectez-vous à votre compte" wraps to
+two lines, and the blue badge that sits inline after the heading in English is
+pushed to the far right of the first line, vertically detached from the text it
+belongs to. English fits on one line and does not show this.
+
+The badge itself is questionable regardless (see P2-1 on placeholder-looking
+ornament), but the wrap is a French-specific layout break.
+
+### P2-9. `/locations` grid ends ragged
 
 Seven city cards in a three-column grid leave one card alone on the final row
 with two empty cells and no visual resolution.
