@@ -648,7 +648,7 @@ function MerchantSignupInner() {
             <div className='space-y-2'>
               <Label htmlFor='phone'>{t('phoneLabel')}</Label>
               <div
-                className={`flex h-11 overflow-hidden rounded-xl border bg-secondary/50 sm:h-12 ${phoneError ? 'border-destructive' : 'border-input'}`}
+                className={`flex h-11 overflow-hidden rounded-xl border bg-secondary/50 sm:h-12 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${phoneError ? 'border-destructive' : 'border-input'}`}
               >
                 <span className='flex items-center border-e border-input bg-muted px-3 text-sm font-medium text-muted-foreground select-none'>
                   +216

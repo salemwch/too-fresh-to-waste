@@ -178,6 +178,16 @@ export default function Header() {
   const buttonBorderClass = isScrolledState
     ? 'border-primary-500 text-primary-500'
     : 'border-white text-white';
+  /*
+   * The focus ring sits outside the element, on the page ground, so it must
+   * contrast with the header background rather than with the control. On the
+   * cream ground that is the teal; on the teal ground it is white. Measured:
+   * teal on cream 9.67, white on teal 10.63 - both clear the 3:1 that WCAG
+   * 1.4.11 requires for a focus indicator.
+   */
+  const focusRingClass = isScrolledState
+    ? 'focus-visible:ring-primary-500'
+    : 'focus-visible:ring-white';
   const headerShadow = isScrolledState
     ? '0 4px 6px -1px rgba(0, 37, 32, 0.5), 0 2px 4px -2px rgba(0, 37, 32, 0.3)'
     : 'none';
@@ -227,7 +237,7 @@ export default function Header() {
                   >
                     <Link
                       href={item.href}
-                      className={`text-[10px] lg:text-xs xl:text-sm font-bold tracking-tighter lg:tracking-tight xl:tracking-wide transition-colors duration-200 hover:opacity-75 whitespace-nowrap outline-none flex items-center gap-1 ${linkColorClass}`}
+                      className={`text-[10px] lg:text-xs xl:text-sm font-bold tracking-tighter lg:tracking-tight xl:tracking-wide transition-colors duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent flex items-center gap-1 ${linkColorClass}`}
                       aria-label={item.label}
                     >
                       {item.label}
@@ -289,7 +299,7 @@ export default function Header() {
                 <button
                   type='button'
                   onClick={openLaunchModal}
-                  className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none ${
+                  className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
                     isScrolledState ? 'bg-primary-500 text-white' : 'bg-white text-primary-500'
                   }`}
                   aria-label={t('cta.downloadApp')}
@@ -303,18 +313,18 @@ export default function Header() {
                 </span>
                 <Link
                   href='/merchant-signup'
-                  className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${linkColorClass}`}
+                  className={`px-2.5 xl:px-3 py-2 rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
                   aria-label={t('cta.businessSignup')}
                 >
                   {t('cta.businessSignupShort')}
                 </Link>
                 <LanguageSwitcher
                   showIcon={false}
-                  buttonClassName={`flex items-center gap-2 px-2.5 xl:px-3 py-2 rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  buttonClassName={`flex items-center gap-2 px-2.5 xl:px-3 py-2 rounded-full border-[0.5px] font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-75 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                 />
                 <Link
                   href='/login'
-                  className={`flex flex-col items-center gap-0.5 shrink-0 transition-all duration-200 hover:opacity-75 outline-none ${linkColorClass}`}
+                  className={`flex flex-col items-center gap-0.5 shrink-0 transition-all duration-200 hover:opacity-75 outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
                   aria-label={t('cta.login')}
                 >
                   <Image
@@ -436,7 +446,7 @@ export default function Header() {
                   return (
                     <div key={item.label}>
                       <button
-                        className={`w-full flex items-center justify-between px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none ${linkColorClass}`}
+                        className={`w-full flex items-center justify-between px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
                         onClick={() => setOpenMobileAccordion(isAccordionOpen ? null : item.label)}
                         aria-expanded={isAccordionOpen}
                       >
@@ -492,7 +502,7 @@ export default function Header() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className={`flex items-center gap-1 px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none ${linkColorClass}`}
+                    className={`flex items-center gap-1 px-4 py-3 text-base font-semibold tracking-wide transition-colors duration-200 hover:bg-white/10 rounded-lg outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${linkColorClass}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                     role='menuitem'
                   >
@@ -511,14 +521,14 @@ export default function Header() {
                     setIsMobileMenuOpen(false);
                     openLaunchModal();
                   }}
-                  className={`block w-full text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`block w-full text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                   role='menuitem'
                 >
                   {t('cta.downloadApp')}
                 </button>
                 <Link
                   href='/merchant-signup'
-                  className={`block text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`block text-center px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >
@@ -526,7 +536,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href='/login'
-                  className={`flex items-center justify-center gap-2 px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none ${buttonBorderClass}`}
+                  className={`flex items-center justify-center gap-2 px-6 py-3 border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   role='menuitem'
                 >

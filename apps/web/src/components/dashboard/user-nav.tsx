@@ -29,7 +29,7 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className='flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-slate-100 transition-colors outline-none'>
+        <button className='flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'>
           <Avatar className='h-7 w-7 rounded-md flex-shrink-0'>
             <AvatarImage
               src={resolveProfileImage(user.profileImage)}

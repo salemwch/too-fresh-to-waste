@@ -198,13 +198,13 @@ function HeroSection({ locale }: { locale: Locale }) {
           <div className='mt-8 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center lg:justify-start'>
             <Link
               href='/merchant-signup'
-              className='bg-secondary text-primary-500 hover:bg-white rounded-full px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap outline-none transition-all duration-300 hover:scale-105 sm:text-base'
+              className='bg-secondary text-primary-500 hover:bg-white rounded-full px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500 transition-all duration-300 hover:scale-105 sm:text-base'
               aria-label={t('cta.merchant')}
             >
               {t('cta.merchant')}
             </Link>
             <AppDownloadButton
-              className='hover:text-primary-500 rounded-full border-[0.5px] border-white px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap text-white outline-none transition-all duration-300 hover:scale-105 hover:bg-white sm:text-base'
+              className='hover:text-primary-500 rounded-full border-[0.5px] border-white px-7 py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap text-white outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500 transition-all duration-300 hover:scale-105 hover:bg-white sm:text-base'
               aria-label={t('cta.download')}
             >
               {t('cta.download')}

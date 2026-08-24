@@ -33,19 +33,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 180 50% 6%;
     --popover-foreground: 0 0% 98%;
-    --primary: 186 41% 20%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 186 40% 52%;
+    --primary-foreground: 188 40% 11%;
     --secondary: 41 47% 56%;
     --secondary-foreground: 180 100% 3%;
-    --accent: 4 90% 62%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 5 100% 80%;
+    --accent-foreground: 180 100% 3%;
     --muted: 180 10% 15%;
     --muted-foreground: 174 8% 55%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 69% 67%;
+    --destructive-foreground: 180 100% 3%;
     --border: 180 10% 15%;
     --input: 180 10% 15%;
-    --ring: 186 41% 20%;
+    --ring: 186 40% 52%;
   }
 
   html {
@@ -59,7 +59,7 @@
   }
 
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-background text-foreground;
     /* Prevent horizontal overscroll bounce */
     overscroll-behavior-x: none;
     /* Ensure body takes full width without overflow */

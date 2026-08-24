@@ -1207,7 +1207,7 @@ export default function MerchantEstablishmentPage() {
                     >
                       <label
                         htmlFor={`${day}-open`}
-                        className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
+                        className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
                       >
                         <input
                           id={`${day}-open`}
@@ -1222,7 +1222,7 @@ export default function MerchantEstablishmentPage() {
                       <span className='text-slate-400 font-medium select-none'>—</span>
                       <label
                         htmlFor={`${day}-close`}
-                        className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
+                        className={`flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${isOpen ? 'cursor-text' : 'cursor-not-allowed'}`}
                       >
                         <input
                           id={`${day}-close`}

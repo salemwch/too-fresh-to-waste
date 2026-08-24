@@ -1,22 +1,31 @@
 # UI/UX Design Standards
 
+> **[`DESIGN.md`](../../DESIGN.md) is the single source of truth.** Where this
+> file disagrees with it, `DESIGN.md` wins. This file is a quick reference for
+> the web app; `DESIGN.md` §21 records every contradiction found between the two
+> and how it was resolved.
+>
+> Known gaps still open here: the spacing block below documents the **current
+> overridden** Tailwind scale (see `DESIGN.md` §19-E5), and the radius block
+> documents web's scale, which `DESIGN.md` §6.1 unifies onto mobile's (§19-E6).
+
 ## Design System Reference
 
 ### Colors
 
-| Token                                 | Hex          | Usage                       |
-| ------------------------------------- | ------------ | --------------------------- |
-| `primary-500` / `hsl(var(--primary))` | #1E4448      | Brand primary, CTAs, links  |
-| `accent-500` / `hsl(var(--accent))`   | #F55449      | Danger, highlights, badges  |
-| `secondary` / `hsl(var(--secondary))` | #FFA000      | Warnings, secondary actions |
-| `hsl(var(--background))`              | white / dark | Page background             |
-| `hsl(var(--card))`                    | white / dark | Card backgrounds            |
-| `hsl(var(--muted))`                   | gray-100     | Subtle backgrounds          |
-| `hsl(var(--muted-foreground))`        | gray-500     | Placeholder text            |
-| `hsl(var(--border))`                  | gray-200     | Dividers, input borders     |
-| `success`                             | #2E7D32      | Confirmed, paid             |
-| `error`                               | #D32F2F      | Errors, destructive         |
-| `warning`                             | #F57C00      | Pending, expiring           |
+| Token                                 | Hex          | Usage                         |
+| ------------------------------------- | ------------ | ----------------------------- |
+| `primary-500` / `hsl(var(--primary))` | #1E4448      | Brand primary, CTAs, links    |
+| `accent-500` / `hsl(var(--accent))`   | #F55449      | Danger, highlights, badges    |
+| `secondary` / `hsl(var(--secondary))` | #C4A25A      | Gold. Dark-ground accent only |
+| `hsl(var(--background))`              | white / dark | Page background               |
+| `hsl(var(--card))`                    | white / dark | Card backgrounds              |
+| `hsl(var(--muted))`                   | gray-100     | Subtle backgrounds            |
+| `hsl(var(--muted-foreground))`        | gray-500     | Placeholder text              |
+| `hsl(var(--border))`                  | gray-200     | Dividers, input borders       |
+| `success`                             | #2E7D32      | Confirmed, paid               |
+| `error`                               | #D32F2F      | Errors, destructive           |
+| `warning`                             | #F57C00      | Pending, expiring             |
 
 **Rule**: Never use raw hex values in components. Use Tailwind tokens or CSS
 variables.
@@ -37,10 +46,12 @@ text-lg = 18px   |  text-xl = 20px  |  text-2xl = 24px   |  text-3xl = 28px
 text-4xl = 32px  |  text-5xl = 36px |  text-6xl = 42px   |  text-7xl = 48px
 ```
 
-- Body: `font-sans` (Inter)
-- Headings/brand: `font-heading` (Playfair Display) - the only display face on
+- Body: `font-sans` (Quicksand)
+- Headings/brand: `font-heading` (Comfortaa) - the only display face on
   marketing. See "One accent, one display face" below.
 - Mono: `font-mono`
+- Arabic: `Noto Sans Arabic` sits in both stacks, so Arabic resolves per
+  character with no locale conditional.
 
 ### Border Radius
 
@@ -71,9 +82,15 @@ import { Badge } from '@/components/ui/badge';
 
 The `cn()` utility lives at `@/lib/utils`.
 
-**Available components**: button, card, badge, input, label, select, separator,
-skeleton, avatar, progress, dialog, dropdown-menu, tabs, sheet, alert, tooltip,
-table, command, popover.
+**Available in `apps/web/src/components/ui/`**: alert, badge, button, card,
+dialog, dropdown-menu, input, label, select, separator, skeleton, tabs,
+textarea.
+
+**Available in `packages/ui/src/components/` only**: avatar, sheet, sonner,
+tooltip. Importing these from `@/components/ui/...` fails - use `@foodwaste/ui`.
+
+**Do not exist anywhere** (previously listed here in error): `progress`,
+`table`, `command`, `popover`. Build or install them before use.
 
 ---
 
@@ -129,15 +146,20 @@ reserved for destructive and error states.
 
 ### One accent, one display face
 
-Gold (`secondary`, #FFA000) is the only accent. Coral (`accent-500`) is reserved
+Gold (`secondary`, #C4A25A) is the only accent. Coral (`accent-500`) is reserved
 for destructive and error states, never decoration - two accents made the
 rollout map read as a different product from the rest of the site.
 
-`font-heading` resolves to Playfair Display and is the only display face on
-marketing. It previously named Korolev, which is licensed and was never loaded,
-so those headings silently rendered in Verdana. If a heading font is named it
-must be in the `next/font` imports or have an `@font-face`; check before adding
-one.
+`font-heading` resolves to **Comfortaa** and is the only display face on
+marketing; `font-sans` is **Quicksand**. Both are rounded geometric sans, so
+headings and body sit in one family of shapes. `font-display` and
+`font-playfair` are kept as aliases of `font-heading` so existing dashboard
+usages resolve; do not use them in new code.
+
+Two earlier names are recorded because both failed silently: `Korolev` is
+licensed and was never loaded, and `Playfair Display` was named here long after
+the code moved to Comfortaa. If a heading font is named it must be in the
+`next/font` imports or have an `@font-face`; check before adding one.
 
 ## i18n & RTL (Arabic)
 
@@ -151,14 +173,12 @@ one.
 
 ### Status Badges
 
-```tsx
-// Order status colors
-PENDING → bg-warning/10 text-warning border-warning
-CONFIRMED → bg-primary/10 text-primary border-primary
-COMPLETED → bg-success/10 text-success border-success
-CANCELLED → bg-destructive/10 text-destructive border-destructive
-EXPIRED → bg-muted text-muted-foreground border-border
-```
+**The `bg-X/10 text-X` tint pattern fails WCAG AA for 7 of 8 status colours**
+(measured: warning 2.45, secondary 2.25, info 2.82, accent 3.01, destructive
+3.31, error 4.28, success 4.49; only primary passes at 8.95).
+
+Use the solid-fill pattern in `DESIGN.md` §2.5, which covers **both** order
+chains and passes at every step.
 
 ### Loading States
 

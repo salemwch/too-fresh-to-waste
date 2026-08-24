@@ -457,10 +457,17 @@ see `.claude/rules/work-state.md`.
 1. Never enable `@nestjs/swagger` CLI plugin in `nest-cli.json`.
 2. Never use `AbortController` for fire-and-forget POST hooks.
 3. Never store tokens outside HttpOnly cookies (web) or Keychain (mobile).
-4. Never use raw hex values — use Tailwind tokens or CSS variables.
+4. Never use raw hex values - use Tailwind tokens or CSS variables. The only
+   accepted exceptions are listed in `DESIGN.md` §19-E11.
 5. Never use relative imports to workspace packages in the backend.
 6. Never pass `val | undefined` to optional props
    (`exactOptionalPropertyTypes`). Use conditional spread.
+7. Never invent a design value. Colour, spacing, radius, shadow, duration and
+   component sizes all come from `DESIGN.md`. A value that does not exist there
+   is a §20 governance event, not a local decision.
+8. Never overload Tailwind's numeric spacing keys with a semantic scale. See
+   `DESIGN.md` §4.2 and `DESIGN_AUDIT_REPORT.md` Part 1 for why.
+9. Never ship a screen without its empty, loading and error states.
 
 ---
 
@@ -482,9 +489,50 @@ expiresAt?: Date | undefined;
 
 ---
 
-## Web Layout Rules
+## Frontend Design System - DESIGN.md is binding
 
-Dashboard layouts: `fixed inset-0` (not `h-screen`) on outermost wrapper.
+**All UI work is governed by [`DESIGN.md`](./DESIGN.md).** Read it before
+writing any component, screen, or style. It is the single source of truth for
+colour, typography, spacing, sizing, radius, elevation, motion, states,
+responsive behaviour, RTL, accessibility, component anatomy, and UX behaviour.
+
+**Before any UI task:**
+
+1. Read `DESIGN.md` §14 (UX Standards) for a screen, or §13 (Component
+   Standards) for a component.
+2. Use only approved tokens. Never invent a colour, spacing, radius or shadow
+   value.
+3. Check §19 (Known Exceptions) - several rules describe a target the code has
+   not reached yet, and §19 says which.
+
+**Before reporting any UI work complete**, run the §18 Pre-Completion
+Self-Review in full. It covers visual, UX, engineering, accessibility and
+localization (en / fr / ar + RTL). This is mandatory, not advisory.
+
+**Introducing a new design decision** (a new token value, component, variant, or
+interaction pattern) is a governance event. Follow §20: decide whether it
+belongs in the system, update the token/component rule and `DESIGN.md`
+**first**, then implement. Never ship a reusable decision only inside one page.
+
+**Deliberate deviations go in §19 Known Exceptions.** An undocumented deviation
+is a defect.
+
+Current gap analysis, with evidence and effort estimates:
+[`DESIGN_AUDIT_REPORT.md`](./DESIGN_AUDIT_REPORT.md). Three P0 findings are
+open; `DESIGN.md` §19-E1 (dark mode cannot render) and §19-E5 (Tailwind numeric
+spacing keys are overridden, so `p-4` is 24px and the default `<Button>` renders
+96px tall) are the ones that affect everyday work.
+
+> **Note on `.claude/rules/ui-ux.md`:** it is stale on fonts, the component
+> list, the `secondary` value, and the status-badge pattern. Where it disagrees
+> with `DESIGN.md`, `DESIGN.md` wins. See `DESIGN.md` §21 for each contradiction
+> and its resolution.
+
+### Web layout
+
+Dashboard layouts: `fixed inset-0` (not `h-screen`) on the outermost wrapper.
+`min-h-0` is required on both the flex row and the `main`, or the scroll
+container never forms.
 
 ```tsx
 <div className='fixed inset-0 flex flex-col bg-background'>
