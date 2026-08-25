@@ -32,6 +32,9 @@ import { Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
 
 import type { PrizeClaimResponse } from '@foodwaste/shared';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ─── Color constants (leaderboard-specific, mirrors LeaderboardScreen) ───────
 const PRIMARY = colorTokens.base.primary[500];
@@ -228,7 +231,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: sp[3],
     maxHeight: '85%',
   },
   modalScrollContent: {
@@ -241,17 +244,17 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: BORDER,
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
 
   // ── Trophy / icon area ──
   trophyEmoji: {
     fontSize: 56,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   iconWrapper: {
-    marginBottom: 12,
+    marginBottom: sp[3],
     alignItems: 'center',
   },
 
@@ -300,7 +303,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: 16,
     paddingVertical: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     marginBottom: 16,
     alignSelf: 'stretch',
   },
@@ -322,7 +325,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: TEXT_SECONDARY,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
 
   // ── Status badge ──
@@ -348,7 +351,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    marginBottom: 12,
+    marginBottom: sp[3],
     alignSelf: 'stretch',
   },
   errorText: {

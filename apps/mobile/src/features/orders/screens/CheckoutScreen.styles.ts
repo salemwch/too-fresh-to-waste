@@ -13,6 +13,9 @@
 import { Platform, StyleSheet } from 'react-native';
 
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const SCREEN_BACKGROUND = '#F8FAFC';
 const SURFACE = '#FFFFFF';
@@ -61,7 +64,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 13,
     borderRadius: 24,
-    padding: 20,
+    padding: sp[5],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -168,7 +171,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    marginHorizontal: 20,
+    marginHorizontal: sp[5],
     marginTop: 8,
   },
   pickupOnlyWarningText: {
@@ -187,7 +190,7 @@ export const styles = StyleSheet.create({
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   priceLabel: {
     fontSize: 15,
@@ -203,7 +206,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: SUCCESS_TINT,
     borderRadius: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 8,
     marginVertical: 8,
   },
@@ -217,7 +220,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: 16,
-    marginTop: 12,
+    marginTop: sp[3],
     borderTopWidth: 2,
     borderTopColor: BORDER_SUBTLE,
     borderStyle: 'dashed',
@@ -238,7 +241,7 @@ export const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: BORDER_SUBTLE,
-    marginVertical: 12,
+    marginVertical: sp[3],
   },
 
   // Error Banner
@@ -248,7 +251,7 @@ export const styles = StyleSheet.create({
     backgroundColor: ERROR_SURFACE,
     borderRadius: 12,
     padding: 14,
-    marginBottom: 20,
+    marginBottom: sp[5],
     borderStartWidth: 4,
     borderStartColor: ERROR_BORDER,
   },
@@ -263,7 +266,7 @@ export const styles = StyleSheet.create({
   // Buttons
   confirmButtonWrapper: {
     marginTop: 8,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   confirmButton: {
     flexDirection: 'row',
@@ -316,7 +319,7 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: TEXT_SECONDARY,
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 8,
     backgroundColor: SURFACE,
   },
@@ -346,7 +349,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 8,
     backgroundColor: SUCCESS_SURFACE,
   },

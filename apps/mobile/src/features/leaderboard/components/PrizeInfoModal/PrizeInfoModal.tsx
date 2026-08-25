@@ -26,6 +26,9 @@ import {
 import { DEFAULT_PRIZE_RANKS, firstDiscountRank } from '../../utils/prizeTiers';
 
 import type { GrandPrizePresentation, PrizeRow } from '../../utils/prizePresentation';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 /** Minimum bottom padding when the device has no home indicator. */
 const MIN_BOTTOM_PAD = 24;
@@ -41,7 +44,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: sp[3],
     maxHeight: '85%',
   },
   scrollContent: { paddingBottom: 16 },
@@ -51,13 +54,13 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: HANDLE_GREY,
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
     color: TEXT_PRIMARY,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   goalRow: {
     flexDirection: 'row',
@@ -99,7 +102,7 @@ const styles = StyleSheet.create({
   tierTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 2 },
   tierRank: { fontSize: 12, color: PRIMARY, fontWeight: '600', marginBottom: 4 },
   tierDesc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 19 },
-  note: { fontSize: 13, color: TEXT_TERTIARY, lineHeight: 19, marginBottom: 12 },
+  note: { fontSize: 13, color: TEXT_TERTIARY, lineHeight: 19, marginBottom: sp[3] },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
@@ -109,7 +112,7 @@ const styles = StyleSheet.create({
   prizeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: sp[3],
     paddingVertical: 8,
   },
   prizeEmoji: { fontSize: 20, width: 26, textAlign: 'center' },

@@ -10,6 +10,9 @@ import { View, StyleSheet, Pressable } from 'react-native';
 
 import { Card, Icon, Text } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface EarnMethod {
   icon: string;
@@ -145,13 +148,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    marginBottom: 12,
+    marginBottom: sp[3],
     paddingHorizontal: 4,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: sp[3],
   },
   cardWrapper: {
     width: '47%',

@@ -7,6 +7,9 @@ import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface SkeletonImpactBannerProps {
   testID?: string;
@@ -63,7 +66,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   textContainer: {
     flex: 1,

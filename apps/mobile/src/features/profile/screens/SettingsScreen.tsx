@@ -30,6 +30,9 @@ import { notificationPreferencesService } from '../services/notificationPreferen
 import type { NotificationPreferences } from '../services/notificationPreferencesService';
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Settings'>;
 
@@ -335,7 +338,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    padding: 20,
+    padding: sp[5],
   },
   sectionTitle: {
     marginBottom: 8,
@@ -352,7 +355,7 @@ const styles = StyleSheet.create({
   },
   rowText: {
     flex: 1,
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   rowSubtitle: {
     marginTop: 2,

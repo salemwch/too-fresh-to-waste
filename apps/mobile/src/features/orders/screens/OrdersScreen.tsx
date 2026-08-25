@@ -34,6 +34,9 @@ import { useOrders, usePrefetchOrder } from '../hooks/useOrders';
 
 import type { Order } from '../types/order.types';
 import type { OrdersScreenNavigationProp } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     gap: 10,
     borderBottomWidth: 1,
     borderBottomColor: TAB_BORDER,
@@ -438,7 +441,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: WHITE,
     borderRadius: 16,
-    padding: 20,
+    padding: sp[5],
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -458,7 +461,7 @@ const styles = StyleSheet.create({
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   stepDot: {
     width: 28,
@@ -467,7 +470,7 @@ const styles = StyleSheet.create({
     backgroundColor: STEP_BACKGROUND,
     alignItems: 'center',
     justifyContent: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   stepNum: {
     fontSize: 13,

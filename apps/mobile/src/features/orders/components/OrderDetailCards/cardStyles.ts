@@ -8,6 +8,9 @@
  */
 
 import { StyleSheet } from 'react-native';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 /** Hairline between rows and sections. */
 const DIVIDER_COLOR = '#e5e7eb';
@@ -15,10 +18,10 @@ const DIVIDER_COLOR = '#e5e7eb';
 export const cardStyles = StyleSheet.create({
   card: {
     padding: 16,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   sectionTitle: {
-    marginBottom: 12,
+    marginBottom: sp[3],
     letterSpacing: 0.8,
   },
   divider: {

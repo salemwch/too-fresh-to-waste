@@ -10,6 +10,9 @@ import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/ato
 import { useTheme } from '@/design-system/providers';
 
 import type { StyleProp, ViewStyle } from 'react-native';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const CARD_SHADOW = '#000';
 
@@ -138,7 +141,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   card: {
-    padding: 20,
+    padding: sp[5],
     marginBottom: 16,
     borderRadius: 16,
     shadowColor: CARD_SHADOW,
@@ -152,7 +155,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   changePhotoBtn: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -163,7 +166,7 @@ const styles = StyleSheet.create({
     marginStart: 8,
   },
   inputWrapper: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   inputBox: {
     marginTop: 6,
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: sp[3],
   },
   halfWidth: {
     flex: 1,
@@ -180,6 +183,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cancelBtn: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
 });

@@ -24,12 +24,15 @@ import { DEFAULT_PRIZE_RANKS, firstDiscountRank } from '../../utils/prizeTiers';
 
 import type { GrandPrizePresentation } from '../../utils/prizePresentation';
 import type { RowTier } from '../../utils/prizeTiers';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const styles = StyleSheet.create({
   block: {
     flexDirection: 'row',
     gap: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     marginBottom: 8,
   },
   card: {

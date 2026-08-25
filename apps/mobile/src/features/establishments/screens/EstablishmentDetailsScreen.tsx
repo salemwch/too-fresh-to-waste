@@ -13,6 +13,9 @@ import { useTheme } from '@/design-system/providers';
 import type { MainStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 type EstablishmentDetailsScreenNavigationProp = NativeStackNavigationProp<
   MainStackParamList,
@@ -90,7 +93,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    padding: 20,
+    padding: sp[5],
   },
   header: {
     flexDirection: 'row',
@@ -109,6 +112,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   button: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
 });

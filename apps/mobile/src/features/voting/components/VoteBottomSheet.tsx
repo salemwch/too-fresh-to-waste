@@ -29,6 +29,9 @@ import { colorTokens } from '@/design-system/tokens/colors';
 
 import { useVoteMutation } from '../hooks/useVoting';
 import type { PrizeOption } from '../types/voting.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ---------------------------------------------------------------------------
 // Color constants (follow VotingCard pattern — no raw hex except #FFFFFF)
@@ -254,7 +257,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingTop: sp[5],
     paddingBottom: 32,
     maxHeight: '85%',
     ...Platform.select({
@@ -296,8 +299,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 12,
-    padding: 12,
-    gap: 12,
+    padding: sp[3],
+    gap: sp[3],
     backgroundColor: SURFACE_CARD,
   },
   prizeCardSelected: {

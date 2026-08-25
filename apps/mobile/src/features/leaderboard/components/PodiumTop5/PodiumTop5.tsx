@@ -23,6 +23,9 @@ import {
 } from '../../constants/palette';
 
 import type { LeaderboardEntry } from '../../types/leaderboard.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 /** Visual left-to-right order, not ranking order. */
 const PODIUM_ORDER = [5, 3, 1, 2, 4] as const;
@@ -41,7 +44,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingTop: 24,
-    paddingBottom: 20,
+    paddingBottom: sp[5],
     gap: 6,
   },
   item: {

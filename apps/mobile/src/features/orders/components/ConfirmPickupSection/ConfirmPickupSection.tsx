@@ -23,6 +23,9 @@ import { getPickupErrorKey } from '../../utils/orderStatus';
 
 import type { InlinePickupError } from '../../utils/orderStatus';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 /** Pickup codes are always six digits — the input cap and the submit gate. */
 const PICKUP_CODE_LENGTH = 6;
@@ -48,7 +51,7 @@ const styles = StyleSheet.create({
   expiredRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: sp[3],
     paddingVertical: 4,
   },
   expiredTextContainer: {
@@ -56,7 +59,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   confirmHint: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   codeInput: {
     height: 56,

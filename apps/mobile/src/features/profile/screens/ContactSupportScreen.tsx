@@ -5,6 +5,9 @@ import { View, StyleSheet, ScrollView, Linking, Pressable } from 'react-native';
 import { Text, Card, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { showAlert } from '@/utils/alert';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const SUPPORT_EMAIL = 'support@toofreshtowaste.com';
 
@@ -109,19 +112,19 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: sp[5],
     marginTop: 8,
   },
   title: { marginBottom: 8 },
   subtitle: { marginBottom: 32, maxWidth: 300 },
   card: {
     width: '100%',
-    padding: 20,
+    padding: sp[5],
     borderWidth: 1,
     borderRadius: 16,
     marginBottom: 16,
   },
-  cardRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 20, gap: 14 },
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: sp[5], gap: 14 },
   cardIconWrapper: {
     width: 44,
     height: 44,

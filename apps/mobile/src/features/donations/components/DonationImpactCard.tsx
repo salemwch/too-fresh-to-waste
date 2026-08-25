@@ -6,6 +6,9 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Text, Icon } from '@/design-system/components/atoms';
 
 import { useDonationStats } from '../hooks/useDonations';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const WHITE = '#FFFFFF';
 const WHITE_70 = 'rgba(255,255,255,0.7)';
@@ -60,7 +63,7 @@ const DonationImpactCardComponent: React.FC<DonationImpactCardProps> = ({ onPres
 const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingVertical: 18,
     marginBottom: 16,
     flexDirection: 'row',
@@ -97,7 +100,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chevron: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
 });
 

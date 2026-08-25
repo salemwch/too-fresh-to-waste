@@ -53,6 +53,9 @@ import type { OrdersStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 type InlinePickupError = PickupErrorCode | 'INVALID_CODE';
 
@@ -415,7 +418,7 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   retryButton: {
-    marginTop: 20,
+    marginTop: sp[5],
   },
   goBackButton: {
     marginTop: 8,
@@ -430,7 +433,7 @@ const styles = StyleSheet.create({
   // Cards
   card: {
     padding: 16,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
 
   // Item rows
@@ -456,7 +459,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   payNowButton: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
 
   // Expired state

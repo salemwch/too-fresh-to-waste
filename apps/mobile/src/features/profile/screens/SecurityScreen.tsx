@@ -18,6 +18,9 @@ import { userService } from '@/features/profile/services/userService';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -357,7 +360,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    padding: 20,
+    padding: sp[5],
   },
   sectionTitle: {
     marginBottom: 4,
@@ -372,7 +375,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 16,
     marginBottom: 24,
-    gap: 12,
+    gap: sp[3],
   },
   oauthInfoContent: {
     flex: 1,
@@ -388,7 +391,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 8,
-    padding: 12,
+    padding: sp[3],
     marginBottom: 16,
     gap: 8,
   },
@@ -400,7 +403,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     borderRadius: 8,
     borderWidth: 1,
-    padding: 12,
+    padding: sp[3],
     marginBottom: 16,
     gap: 8,
   },
@@ -409,6 +412,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   saveButton: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
 });

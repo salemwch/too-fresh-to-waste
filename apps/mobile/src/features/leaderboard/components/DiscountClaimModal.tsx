@@ -34,6 +34,9 @@ import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/ser
 import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 
 import type { PrizeClaimResponse } from '@foodwaste/shared';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ─── Color constants (mirrors LeaderboardScreen / WinnerCelebrationModal) ────
 const PRIMARY = colorTokens.base.primary[500];
@@ -458,7 +461,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: sp[3],
     maxHeight: '85%',
   },
   modalHandle: {
@@ -491,8 +494,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER,
     backgroundColor: '#F9FAFB',
-    paddingHorizontal: 12,
-    marginBottom: 12,
+    paddingHorizontal: sp[3],
+    marginBottom: sp[3],
     gap: 8,
   },
   searchInput: {
@@ -518,7 +521,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE,
     borderWidth: 1,
     borderColor: BORDER,
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     marginBottom: 10,
   },
   estRowSelected: {
@@ -542,7 +545,7 @@ const styles = StyleSheet.create({
   },
   estInfo: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
   },
   estName: {
     fontSize: 15,
@@ -595,7 +598,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 14,
     backgroundColor: '#F9FAFB',
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     marginBottom: 10,
   },
   skeletonAvatar: {
@@ -605,7 +608,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
   },
   skeletonTextGroup: {
-    marginStart: 12,
+    marginStart: sp[3],
     gap: 6,
   },
   skeletonName: {
@@ -626,7 +629,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
-    gap: 12,
+    gap: sp[3],
   },
   emptyHeading: {
     fontSize: 16,
@@ -649,7 +652,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: 16,
     paddingVertical: 28,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     marginTop: 8,
   },
   voucherIconCircle: {
@@ -681,7 +684,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     paddingHorizontal: 24,
     marginBottom: 16,
   },
@@ -702,7 +705,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: TEXT_SECONDARY,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   statusBadge: {
     borderRadius: 20,
@@ -730,7 +733,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   errorText: {
     flex: 1,
@@ -744,7 +747,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY,
     borderRadius: 14,
     paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     alignItems: 'center',
     marginBottom: 8,
   },

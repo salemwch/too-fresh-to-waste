@@ -21,6 +21,9 @@ import {
 
 import type { FilterState } from '../types/filter.types';
 import type { EstablishmentType } from '@/features/offers/types/offer.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ============================================================================
 // Props
@@ -176,7 +179,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
+    paddingVertical: sp[3],
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -185,7 +188,7 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingStart: 12,
+    paddingStart: sp[3],
     paddingEnd: 8,
     paddingVertical: 8,
     borderRadius: 20,
@@ -203,7 +206,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   clearAllButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,

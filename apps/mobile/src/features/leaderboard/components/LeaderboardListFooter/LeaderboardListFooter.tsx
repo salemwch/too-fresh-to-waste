@@ -17,6 +17,9 @@ import { NeighborhoodSection } from '../NeighborhoodSection';
 import { CHAMPION_GOLD, GOLD_06, GOLD_15 } from '../../constants/palette';
 
 import type { LeaderboardNeighborhoodEntry } from '../../types/leaderboard.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const styles = StyleSheet.create({
   loadMoreSpinner: { alignItems: 'center', paddingVertical: 16 },
@@ -25,7 +28,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     marginHorizontal: 16,
     marginTop: 8,
     marginBottom: 16,

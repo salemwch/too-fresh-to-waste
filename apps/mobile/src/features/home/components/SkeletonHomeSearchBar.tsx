@@ -11,6 +11,9 @@ import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface SkeletonHomeSearchBarProps {
   testID?: string;
@@ -43,7 +46,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    gap: 12,
+    gap: sp[3],
   },
   searchInputWrapper: {
     flex: 1,

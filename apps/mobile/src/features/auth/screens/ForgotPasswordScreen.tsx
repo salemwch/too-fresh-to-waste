@@ -16,6 +16,9 @@ import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/utils/valid
 import { authService } from '../services/authService';
 
 import type { ForgotPasswordScreenNavigationProp } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface ForgotPasswordScreenProps {
   navigation: ForgotPasswordScreenNavigationProp;
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   successTitle: {
     marginBottom: 16,
@@ -315,7 +318,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   resendButton: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   backButton: {
     marginTop: 8,

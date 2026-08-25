@@ -14,6 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { Logger } from '@/utils/logger';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const DEEP_LINK_SCHEME = 'toofreshtowaste://';
 
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderBottomWidth: 1,
     borderBottomColor: BORDER_SUBTLE,
     backgroundColor: SURFACE,
@@ -216,7 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE,
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: sp[3],
     fontSize: 15,
     color: TEXT_SECONDARY,
   },
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    gap: 12,
+    gap: sp[3],
   },
   errorTitle: {
     fontSize: 17,
@@ -241,7 +244,7 @@ const styles = StyleSheet.create({
   retryButton: {
     marginTop: 8,
     paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderRadius: 12,
     backgroundColor: BRAND_PRIMARY,
   },

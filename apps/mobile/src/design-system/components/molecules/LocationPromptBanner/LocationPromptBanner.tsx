@@ -13,6 +13,9 @@ import { useTheme } from '../../../providers';
 import { Text, Button, Card, Icon } from '../../atoms';
 
 import type { LocationPromptBannerProps } from './LocationPromptBanner.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 export const LocationPromptBanner = memo<LocationPromptBannerProps>(
   ({ onEnable, onDismiss, variant = 'expanded', isLoading = false, style, testID }) => {
@@ -141,7 +144,7 @@ const styles = StyleSheet.create({
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 8,
     borderRadius: 8,
     marginBottom: 16,
@@ -176,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   textContainer: {
     flex: 1,

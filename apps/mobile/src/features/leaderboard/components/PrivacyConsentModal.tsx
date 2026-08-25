@@ -26,6 +26,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colorTokens } from '@/design-system/tokens/colors';
 
 import { useLeaderboardConsent } from '../hooks/useLeaderboardConsent';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const PRIMARY = colorTokens.base.primary[500];
 const SURFACE = '#FFFFFF';
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: sp[3],
     maxHeight: '70%',
     ...Platform.select({
       ios: {
@@ -166,7 +169,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: sp[5],
   },
   icon: {
     fontSize: 48,
@@ -177,7 +180,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: TEXT_PRIMARY,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   body: {
     fontSize: 15,

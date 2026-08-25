@@ -36,6 +36,9 @@ import {
 } from '../types/order.types';
 
 import type { Order } from '../types/order.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const NO_ITEMS: readonly never[] = Object.freeze([]);
 
@@ -336,7 +339,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: sp[3],
     position: 'relative',
     ...Platform.select({
       ios: {
@@ -396,7 +399,7 @@ const styles = StyleSheet.create({
   },
   infoColumn: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
     justifyContent: 'center',
   },
   offerTitle: {
@@ -422,7 +425,7 @@ const styles = StyleSheet.create({
   pickupRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   pickupText: {
     fontSize: 13,
@@ -461,7 +464,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderWidth: 0.8,
     borderColor: BORDER,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
 
   // Bottom row

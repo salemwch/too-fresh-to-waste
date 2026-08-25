@@ -48,6 +48,9 @@ import { showSuccessToast } from '@/utils/toast';
 
 import type { EditProfileScreenNavigationProp } from '@/navigation/types';
 import type { InferType } from 'yup';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface EditProfileScreenProps {
   navigation: EditProfileScreenNavigationProp;
@@ -675,7 +678,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   card: {
-    padding: 20,
+    padding: sp[5],
     marginBottom: 16,
   },
   avatarSection: {
@@ -688,7 +691,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    marginTop: 12,
+    marginTop: sp[3],
   },
   changePhotoText: {
     marginStart: 4,
@@ -710,7 +713,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: sp[3],
   },
   halfWidth: {
     flex: 1,
@@ -720,7 +723,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     borderWidth: 1,
-    padding: 12,
+    padding: sp[3],
     marginTop: 8,
     gap: 8,
   },
@@ -728,14 +731,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveButton: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
 
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginTop: 16,
-    padding: 12,
+    padding: sp[3],
     borderRadius: 8,
     backgroundColor: 'rgba(0, 122, 255, 0.05)', // Light blue background for info box
   },

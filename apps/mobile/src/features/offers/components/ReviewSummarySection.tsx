@@ -10,6 +10,9 @@ import { useTheme } from '@/design-system/providers';
 import { Freshness } from '@/lib/react-query/freshness';
 
 import { reviewsService } from '../services/reviewsService';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ─── Highlight config ────────────────────────────────────────────────────────
 
@@ -111,10 +114,10 @@ export const ReviewSummarySection: React.FC<Props> = ({ establishmentId }) => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
   },
   title: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   ratingRow: {
     flexDirection: 'row',
@@ -132,7 +135,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#e5e7eb',
-    marginVertical: 12,
+    marginVertical: sp[3],
   },
   highlightsTitle: {
     marginBottom: 10,
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
   highlightRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: sp[3],
     marginBottom: 10,
   },
   iconCircle: {

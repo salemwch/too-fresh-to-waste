@@ -10,6 +10,9 @@ import { Card, Icon, Text } from '@/design-system/components/atoms';
 
 import type { PointTransaction } from '../types/loyalty.types';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const NO_TRANSACTIONS: readonly PointTransaction[] = Object.freeze([]);
 
@@ -144,7 +147,7 @@ RecentActivityListComponent.displayName = 'RecentActivityList';
 
 const styles = StyleSheet.create({
   card: {
-    padding: 20,
+    padding: sp[5],
     borderRadius: 16,
     marginBottom: 16,
   },
@@ -158,7 +161,7 @@ const styles = StyleSheet.create({
   },
   txInfo: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
     marginEnd: 8,
   },
   divider: {

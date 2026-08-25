@@ -11,6 +11,9 @@ import { textAlignEnd } from '@/utils/rtl';
 import { useDonationStats } from '../hooks/useDonations';
 
 import type { DonationGoalCategory } from '@foodwaste/shared';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const CATEGORY_CONFIG: Record<
   DonationGoalCategory,
@@ -239,7 +242,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroBanner: {
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingTop: 24,
     paddingBottom: 24,
     alignItems: 'center',
@@ -248,21 +251,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: WHITE,
-    marginTop: 12,
+    marginTop: sp[3],
     lineHeight: 32,
   },
   heroSubtitle: {
     fontSize: 14,
     color: WHITE_60,
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   statItem: {
     alignItems: 'center',
@@ -324,13 +327,13 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   categoriesList: {
-    gap: 12,
+    gap: sp[3],
   },
   categoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 12,
+    gap: sp[3],
+    padding: sp[3],
     borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.03)',
   },
@@ -394,7 +397,7 @@ const styles = StyleSheet.create({
   causeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: sp[3],
     marginHorizontal: 16,
     padding: 14,
     borderRadius: 12,

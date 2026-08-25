@@ -4,6 +4,9 @@ import { View, StyleSheet, Modal, Linking } from 'react-native';
 
 import { useTheme } from '@/design-system/providers';
 import { Button, Text, Icon } from '@/design-system/components/atoms';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface ForceUpdateModalProps {
   visible: boolean;
@@ -87,10 +90,10 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   title: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   description: {
     marginBottom: 28,

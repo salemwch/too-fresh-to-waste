@@ -18,6 +18,9 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 
 import { Icon } from '@/design-system/components/atoms/Icon/Icon';
 import { useTheme } from '@/design-system/providers';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface OfflineBannerProps {
   /** Whether banner is visible */
@@ -120,7 +123,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingTop: 40, // Status bar safe area
-    paddingBottom: 12,
+    paddingBottom: sp[3],
     paddingHorizontal: 16,
     zIndex: 9999,
     shadowOffset: { width: 0, height: 2 },

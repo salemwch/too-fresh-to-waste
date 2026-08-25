@@ -16,6 +16,9 @@ import { textAlignEnd } from '@/utils/rtl';
 
 import { SkeletonImpactBanner } from './SkeletonImpactBanner';
 import heartInHandsImg from '../../../assets/images/heart-in-hands.png';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 interface ImpactBannerProps {
   onExpand?: () => void;
 }
@@ -167,7 +170,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    marginEnd: 12,
+    marginEnd: sp[3],
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -194,7 +197,7 @@ const styles = StyleSheet.create({
     marginStart: 8,
   },
   expandedContent: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   divider: {
     height: 1,
@@ -208,7 +211,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   statLabel: {
     fontSize: 14,
@@ -248,7 +251,7 @@ const styles = StyleSheet.create({
   causeContainer: {
     backgroundColor: COLORS.surfaceMuted,
     borderRadius: 8,
-    padding: 12,
+    padding: sp[3],
   },
   causeLabel: {
     fontSize: 12,

@@ -7,6 +7,9 @@ import { getOptimizedImageUrl, IMAGE_PRESETS } from '@/utils/imageTransform';
 
 import type { LeaderboardNeighborhoodEntry } from '../types/leaderboard.types';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const PRIMARY_DARK = colorTokens.base.primary[500];
 const CHAMPION_GOLD = '#c4a25a';
@@ -101,7 +104,7 @@ export const NeighborhoodSection = memo(NeighborhoodSectionComponent);
 const styles = StyleSheet.create({
   container: {
     marginTop: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingBottom: 24,
   },
   divider: {
@@ -129,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: SURFACE,
     borderRadius: 14,
-    padding: 12,
+    padding: sp[3],
     marginBottom: 8,
     borderWidth: 1,
     borderColor: BORDER,

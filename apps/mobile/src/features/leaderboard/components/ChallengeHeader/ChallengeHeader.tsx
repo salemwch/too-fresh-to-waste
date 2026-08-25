@@ -14,12 +14,15 @@ import { Icon } from '@/design-system/components/atoms';
 import { ChallengeCountdown } from '../ChallengeCountdown';
 
 import { TEXT_25, TEXT_30, TEXT_40, TEXT_WHITE, WHITE_05 } from '../../constants/palette';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const styles = StyleSheet.create({
   block: {
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingTop: 16,
-    paddingBottom: 20,
+    paddingBottom: sp[5],
   },
   top: {
     flexDirection: 'row',

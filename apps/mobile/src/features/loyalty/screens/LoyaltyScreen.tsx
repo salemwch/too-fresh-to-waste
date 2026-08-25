@@ -25,6 +25,9 @@ import { useLoyalty } from '../hooks/useLoyalty';
 import { ReferralBottomSheet } from '../components/ReferralBottomSheet';
 import { VotingCard } from '../../voting/components/VotingCard';
 import { useActiveVotingCycle } from '../../voting/hooks/useVoting';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 export const LoyaltyScreen: React.FC = () => {
   const theme = useTheme();
@@ -65,7 +68,9 @@ export const LoyaltyScreen: React.FC = () => {
           size='sm'
           color='primary'
           style={styles.retryText}
-          onPress={() => { void refetch(); }}
+          onPress={() => {
+            void refetch();
+          }}
         >
           Tap to retry
         </Text>
@@ -83,7 +88,9 @@ export const LoyaltyScreen: React.FC = () => {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={() => { void handleRefresh(); }}
+            onRefresh={() => {
+              void handleRefresh();
+            }}
             tintColor={theme.colors.primary}
             colors={[theme.colors.primary]}
           />
@@ -138,7 +145,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   errorText: {
-    marginTop: 12,
+    marginTop: sp[3],
     textAlign: 'center',
   },
   retryText: {

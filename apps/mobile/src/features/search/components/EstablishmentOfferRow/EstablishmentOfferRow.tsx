@@ -19,13 +19,16 @@ import { nearbyOfferToListItem } from '../../utils/offerMappers';
 
 import type { EstablishmentGroup } from '../../utils/groupOffers';
 import type { NearbyOffer, ProximitySearchResult } from '@/features/offers/hooks';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const CARD_WIDTH = 260;
 
 const styles = StyleSheet.create({
   section: {
     marginBottom: 8,
-    paddingBottom: 12,
+    paddingBottom: sp[3],
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#e0e0e0',
   },
@@ -45,7 +48,7 @@ const styles = StyleSheet.create({
   },
   offerCard: {
     width: CARD_WIDTH,
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
 });
 

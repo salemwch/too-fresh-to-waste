@@ -11,6 +11,9 @@ import { Icon, Text } from '@/design-system/components/atoms';
 import { BADGE_METADATA, ALL_BADGE_TYPES, type BadgeMetadata } from '../constants/badges';
 
 import type { Badge, BadgeType } from '../types/loyalty.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const NO_BADGES: readonly Badge[] = Object.freeze([]);
 
@@ -140,7 +143,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
     paddingHorizontal: 4,
   },
   listContent: {

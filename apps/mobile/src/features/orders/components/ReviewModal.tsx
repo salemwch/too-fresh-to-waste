@@ -16,6 +16,9 @@ import { showSuccessToast } from '@/utils/toast';
 import { ReviewType } from '@foodwaste/shared';
 
 import type { CreateReviewRequest } from '@foodwaste/shared';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ─── Highlight options ────────────────────────────────────────────────────────
 
@@ -294,13 +297,13 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: sp[5],
+    paddingTop: sp[5],
     paddingBottom: 36,
     maxHeight: '85%',
   },
   header: {
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   closeBtn: {
     position: 'absolute',
@@ -309,19 +312,19 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   sectionLabel: {
-    marginBottom: 12,
+    marginBottom: sp[3],
     marginTop: 4,
   },
   starsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   chipsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   chip: {
     flexDirection: 'row',
@@ -329,7 +332,7 @@ const styles = StyleSheet.create({
     gap: 6,
     borderWidth: 1.5,
     borderRadius: 20,
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 8,
   },
   errorRow: {

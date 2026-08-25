@@ -52,6 +52,9 @@ import { DEFAULT_PRIZE_RANKS, getRowTier } from '../utils/prizeTiers';
 
 import type { LeaderboardEntry, LeaderboardNeighborhoodEntry } from '../types/leaderboard.types';
 import type { MainStackNavigationProp } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 /**
  * Frozen empty fallback. An inline empty array would hand
@@ -402,8 +405,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    paddingHorizontal: sp[5],
+    marginBottom: sp[3],
     marginTop: 4,
   },
   listTitle: { fontSize: 15, fontWeight: '700', color: TEXT_85 },
@@ -418,7 +421,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     marginHorizontal: 16,
     marginTop: 8,
     marginBottom: 16,

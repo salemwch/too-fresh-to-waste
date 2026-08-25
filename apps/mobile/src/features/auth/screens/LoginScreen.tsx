@@ -39,6 +39,9 @@ import { loginAsync, clearError, selectAuthIsLoading, selectAuthError } from '..
 
 import type { LoginScreenNavigationProp } from '@/navigation/types';
 import type { TextInput } from 'react-native';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface LoginScreenProps {
   navigation: LoginScreenNavigationProp;
@@ -782,7 +785,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorBanner: {
-    padding: 12,
+    padding: sp[3],
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
@@ -796,8 +799,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   resendSection: {
-    marginTop: 12,
-    paddingTop: 12,
+    marginTop: sp[3],
+    paddingTop: sp[3],
     borderTopWidth: 1,
     alignItems: 'center',
   },
@@ -811,7 +814,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    padding: 12,
+    padding: sp[3],
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
@@ -826,7 +829,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: sp[3],
     marginBottom: 24,
   },
   rememberMeContainer: {
@@ -876,7 +879,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: sp[3],
   },
   verificationLinkText: {
     textDecorationLine: 'underline',

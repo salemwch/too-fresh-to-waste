@@ -557,9 +557,32 @@ Both are legitimate. What is not legitimate is redefining `4` to mean something
 other than 16px, because every shadcn primitive, every copied snippet and every
 developer's muscle memory assumes the default.
 
-**Until the migration in §19-E5 lands, the numeric keys in `apps/web` do not
-mean what they say.** Consult `DESIGN_AUDIT_REPORT.md` Part 1.2 before writing
-any numeric spacing class in web code.
+§19-E5 is `RESOLVED`: the numeric keys in `apps/web` now mean what they say.
+Verified by resolving the config rather than by reading it - `p-3` is `0.75rem`
+(12px) and `p-5` is `1.25rem` (20px), with the named tokens sitting alongside
+them untouched.
+
+#### Mobile carries the same two numeric steps
+
+Mobile has no Tailwind, so its scale is a plain object and the numeric keys have
+to be declared. `spacingTokens.base` therefore holds `3: 12` and `5: 20`
+alongside the named tokens, and they mean exactly what the web keys of the same
+name mean - `n x 4px`.
+
+```ts
+const { base: sp } = spacingTokens;
+paddingHorizontal: sp[3]; // 12px, the same value as web's p-3
+```
+
+This was decision **MD1** (`MOBILE_DESIGN_DECISION_BRIEF.md`), approved
+2026-08-25. 12px and 20px were already the two most-used spacing values in the
+mobile app - 323 literals between them - so the scale was what needed to change,
+not the usage.
+
+**They are sub-steps, not peers.** Reach for a named token when either would do;
+the numeric keys exist for the gaps the named scale deliberately leaves. Adding
+them to the named table in §4.1 was rejected precisely to keep that table
+identical on both platforms.
 
 ### 4.3 Arbitrary values
 
@@ -1778,6 +1801,31 @@ right-aligned with the check on the right, the trigger chevron mirrors, and
 > desktop appeared unfixed while mobile and tablet mirrored. Deleting the
 > baselines and regenerating showed all three correct. When an RTL result looks
 > inconsistent across viewports, regenerate before theorising.
+
+**E23. Migrated mobile files mix spacing tokens with raw on-scale literals.**
+`OPEN` MD1 converted every raw `12` and `20` in a padding, margin or gap
+position to `sp[3]` / `sp[5]` - 323 sites across 86 files. It did **not** touch
+the 817 literals that were already on the scale, because that was outside the
+approved scope.
+
+The visible consequence is that a migrated `StyleSheet` now reads:
+
+```ts
+marginHorizontal: 16,      // still a raw literal
+marginBottom: sp[3],       // migrated
+paddingHorizontal: 14,     // off-grid, deliberately untouched
+```
+
+This is worse to read than either end state, and it is recorded here rather than
+hidden because it is the honest cost of a scoped migration. It is not a defect
+in the values - all 86 files were proved to reproduce their originals byte for
+byte under inverse substitution - only in the consistency of expression.
+
+Clearing it is audit finding **M1** (raw values instead of tokens), which is a
+separate, larger migration over the on-scale literals. Until M1 lands, prefer a
+token in new code and do not "tidy" a neighbouring literal while passing
+through: a mixed file is expected, and an unreviewed drive-by change to a
+rendered value is not.
 
 > **Numbering note.** E17 and E18 are out of sequence, and the original E16
 > (theme persistence) and E18 (mobile palette) were overwritten by a later edit

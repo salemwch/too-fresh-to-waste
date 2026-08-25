@@ -26,6 +26,9 @@ import { FavoriteType } from '../types';
 import type { FavoritesResponse } from '../types';
 import type { Offer, OfferListItem } from '@/features/offers/types';
 import type { FavoritesScreenNavigationProp } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface FavoritesScreenProps {
   navigation: FavoritesScreenNavigationProp;
@@ -459,7 +462,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   filterSection: {
-    marginTop: 20,
+    marginTop: sp[5],
     marginBottom: 16,
   },
   filterScroll: {
@@ -520,7 +523,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: COLORS.textPrimary,
-    marginBottom: 12,
+    marginBottom: sp[3],
     textAlign: 'center',
   },
   emptyDescription: {
@@ -582,7 +585,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surfaceAccent,
     alignItems: 'center',
     justifyContent: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   tipContent: {
     flex: 1,
@@ -621,7 +624,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   errorTitle: {
-    marginTop: 12,
+    marginTop: sp[3],
     color: COLORS.textPrimary,
   },
   errorSubtext: {

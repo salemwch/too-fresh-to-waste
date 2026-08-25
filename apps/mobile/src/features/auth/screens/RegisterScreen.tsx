@@ -35,6 +35,9 @@ import type { RegisterRequest, RegisterResponse } from '../types';
 import type { RegisterScreenNavigationProp } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { AuthStackParamList } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface RegisterScreenProps {
   navigation: RegisterScreenNavigationProp;
@@ -556,7 +559,7 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: sp[3],
     borderRadius: 8,
     marginBottom: 16,
     borderStartWidth: 4,
@@ -570,7 +573,7 @@ const styles = StyleSheet.create({
   },
   nameRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: sp[3],
     marginBottom: 16,
   },
   nameField: {

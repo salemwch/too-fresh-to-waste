@@ -10,6 +10,9 @@ import { View, StyleSheet, Modal, Pressable } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Button, Text, Icon } from '../../atoms';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface AccountLockedModalProps {
   visible: boolean;
@@ -294,10 +297,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   title: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   description: {
     marginBottom: 24,
@@ -310,7 +313,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 24,
-    gap: 12,
+    gap: sp[3],
   },
   timerTextContainer: {
     flex: 1,
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   suggestionsTitle: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   suggestionItem: {
     flexDirection: 'row',
@@ -332,7 +335,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   buttonContainer: {
-    gap: 12,
+    gap: sp[3],
   },
   resetButton: {
     // Additional styles if needed

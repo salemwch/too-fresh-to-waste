@@ -17,6 +17,9 @@ import { useTheme } from '@/design-system/providers';
 
 import type { NearbyEstablishment, ProximitySearchResult } from '@/features/offers/hooks';
 import type { ILocationResult } from '@/types/location.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 /** Both lists are capped so the dropdown cannot cover the whole map. */
 const MAX_ITEMS_PER_SECTION = 4;
@@ -37,7 +40,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: sp[3],
     paddingBottom: 8,
   },
   loading: {
@@ -64,7 +67,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   itemLast: {
@@ -76,7 +79,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   itemText: {
     flex: 1,

@@ -13,6 +13,9 @@ import { Card } from '../../atoms/Card';
 import { ShimmerBlock, useShimmerAnimation } from '../../atoms/ShimmerBlock';
 
 import type { StyleProp, ViewStyle } from 'react-native';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface SkeletonOfferCardProps {
   imageAspectRatio?: number;
@@ -181,7 +184,7 @@ const createStyles = (
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      marginBottom: 12,
+      marginBottom: sp[3],
     },
     pickupTimeSkeleton: {
       width: 120,

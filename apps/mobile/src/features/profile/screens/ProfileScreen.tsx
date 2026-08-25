@@ -39,6 +39,9 @@ import { Logger } from '@/utils/logger';
 
 import type { TierName } from '@/features/loyalty/types/loyalty.types';
 import type { ProfileScreenNavigationProp } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface ProfileScreenProps {
   navigation: ProfileScreenNavigationProp;
@@ -632,13 +635,13 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   profileCard: {
-    padding: 20,
+    padding: sp[5],
     marginBottom: 16,
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   profileInfo: {
     flex: 1,
@@ -650,7 +653,7 @@ const styles = StyleSheet.create({
   },
   loyaltyCard: {
     borderRadius: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingVertical: 18,
     marginBottom: 16,
     flexDirection: 'row',
@@ -698,11 +701,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loyaltyChevron: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   leaderboardCard: {
     borderRadius: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingVertical: 18,
     marginBottom: 16,
     flexDirection: 'row',
@@ -739,7 +742,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   leaderboardChevron: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   menuCard: {
     padding: 16,
@@ -755,7 +758,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderBottomWidth: 1,
   },
   menuItemDisabled: {
@@ -767,7 +770,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuItemLabel: {
-    marginStart: 12,
+    marginStart: sp[3],
   },
   menuItemRight: {
     flexDirection: 'row',
@@ -790,7 +793,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: SOCIAL_ICON_GAP,
-    marginTop: 12,
+    marginTop: sp[3],
     paddingVertical: 4,
   },
   socialIcon: {

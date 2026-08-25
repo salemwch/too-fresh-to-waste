@@ -12,6 +12,9 @@ import i18n from '@/i18n';
 
 import type { ToastConfig, ToastConfigParams } from 'react-native-toast-message';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 type ToastRenderProps = ToastConfigParams<unknown>;
 
@@ -107,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: TOAST_COLORS.surface,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderRadius: 12,
     borderStartWidth: 4,
     shadowColor: TOAST_COLORS.shadow,
@@ -131,7 +134,7 @@ const styles = StyleSheet.create({
     borderStartColor: TOAST_COLORS.warning,
   },
   iconContainer: {
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   textContainer: {
     flex: 1,

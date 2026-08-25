@@ -2,6 +2,9 @@ import React, { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const BG_DARK = '#0a1e20';
 const SHIMMER_BASE = 'rgba(255,255,255,0.04)';
@@ -79,9 +82,9 @@ const styles = StyleSheet.create({
 
   // Block 1: Header
   headerBlock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingTop: 16,
-    paddingBottom: 20,
+    paddingBottom: sp[5],
   },
   headerTop: {
     flexDirection: 'row',
@@ -119,7 +122,7 @@ const styles = StyleSheet.create({
   prizesBlock: {
     flexDirection: 'row',
     gap: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     marginBottom: 8,
   },
   prizeCard: {
@@ -137,7 +140,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingTop: 24,
-    paddingBottom: 20,
+    paddingBottom: sp[5],
     gap: 6,
   },
   podiumLarge: { width: 68, height: 110, borderRadius: 14 },
@@ -149,8 +152,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    paddingHorizontal: sp[5],
+    marginBottom: sp[3],
     marginTop: 4,
   },
   listTitleBar: { width: 80, height: 15, borderRadius: 6 },

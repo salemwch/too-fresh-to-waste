@@ -7,6 +7,9 @@ import React from 'react';
 import { View, StyleSheet, ScrollView, Platform } from 'react-native';
 
 import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const SURFACE_SUBTLE = '#F8FAFC';
 const SURFACE = '#FFFFFF';
@@ -185,7 +188,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: -16,
     borderRadius: 24,
-    padding: 20,
+    padding: sp[5],
     ...Platform.select({
       ios: {
         shadowColor: SHADOW,
@@ -219,14 +222,14 @@ const styles = StyleSheet.create({
   },
   offerDetails: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
   },
   quantitySection: {
     marginTop: 16,
     marginBottom: 16,
   },
   quantityLabelRow: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   quantityStepper: {
     flexDirection: 'row',
@@ -237,7 +240,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
   },
   divider: {
     height: 1,
@@ -273,11 +276,11 @@ const styles = StyleSheet.create({
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   totalRow: {
     paddingTop: 16,
-    marginTop: 12,
+    marginTop: sp[3],
     borderTopWidth: 2,
     borderTopColor: BORDER,
     borderStyle: 'dashed',
@@ -302,14 +305,14 @@ const styles = StyleSheet.create({
   },
   paymentMethodDetails: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
   },
   secondaryActionSpacing: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   confirmButtonWrapper: {
     marginTop: 8,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   trustBadge: {
     alignItems: 'center',

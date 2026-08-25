@@ -21,6 +21,9 @@ import { FavoriteOfferCard } from '@/features/favorites';
 import { nearbyOfferToListItem } from '../../utils/offerMappers';
 
 import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
@@ -240,11 +243,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
   },
   headerText: {
     flex: 1,
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   closeButton: {
     width: 32,
@@ -271,10 +274,10 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   emptyText: {
-    marginTop: 12,
+    marginTop: sp[3],
     textAlign: 'center',
   },
 });

@@ -25,6 +25,9 @@ import { useTheme } from '../../../providers';
 import { Text, Button, Icon, Input } from '../../atoms';
 
 import type { ManualLocationModalProps, ManualLocationResult } from './ManualLocationModal.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 export const ManualLocationModal = memo<ManualLocationModalProps>(
   ({ visible, onClose, onLocationSelect, initialQuery = '', style, testID }) => {
@@ -258,12 +261,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderBottomWidth: 1,
   },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
   },
   listContent: {
     paddingBottom: 8,
@@ -272,11 +275,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   resultIcon: {
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   resultTextContainer: {
     flex: 1,
@@ -295,7 +298,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderTopWidth: 1,
   },
   cancelButton: {

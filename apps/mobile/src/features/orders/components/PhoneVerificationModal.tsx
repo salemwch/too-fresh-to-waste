@@ -27,6 +27,9 @@ import { useAppSelector, useAppDispatch } from '@/hooks';
 import { apiClient } from '@/services/apiClient';
 import { Logger } from '@/utils/logger';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const COUNTRY_PREFIX = '+216';
@@ -332,7 +335,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: ERROR,
     fontSize: 14,
-    marginBottom: 12,
+    marginBottom: sp[3],
     textAlign: 'center',
   },
 });

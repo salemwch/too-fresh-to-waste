@@ -23,6 +23,9 @@ import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
 import { ManualLocationModal } from '../ManualLocationModal';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ============================================================================
 // Constants
@@ -295,7 +298,7 @@ const styles = StyleSheet.create({
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: sp[3],
     marginBottom: 16,
     borderRadius: 8,
   },
@@ -304,7 +307,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionsContainer: {
-    gap: 12,
+    gap: sp[3],
   },
   optionButton: {
     flexDirection: 'row',
@@ -320,7 +323,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   optionTextContainer: {
     flex: 1,
@@ -335,7 +338,7 @@ const styles = StyleSheet.create({
     height: 1,
   },
   dividerText: {
-    marginHorizontal: 12,
+    marginHorizontal: sp[3],
   },
   searchButton: {
     flexDirection: 'row',
@@ -344,14 +347,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   searchPlaceholder: {
-    marginStart: 12,
+    marginStart: sp[3],
     flex: 1,
   },
   loadingContainer: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: sp[5],
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
 });

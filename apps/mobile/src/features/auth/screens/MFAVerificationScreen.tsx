@@ -26,6 +26,9 @@ import type {
   MFAVerificationScreenNavigationProp,
   MFAVerificationRouteProp,
 } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface MFAVerificationScreenProps {
   navigation: MFAVerificationScreenNavigationProp;
@@ -369,14 +372,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   description: {
     marginBottom: 32,
     lineHeight: 22,
   },
   errorBanner: {
-    padding: 12,
+    padding: sp[3],
     borderRadius: 8,
     marginBottom: 24,
   },
@@ -415,7 +418,7 @@ const styles = StyleSheet.create({
   },
   helpTextContainer: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
   },
   helpTitle: {
     marginBottom: 8,

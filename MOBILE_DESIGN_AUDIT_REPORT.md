@@ -226,6 +226,18 @@ go.
 
 ### M10. 491 off-grid spacing values - and a probable gap in the scale
 
+> **PARTLY RESOLVED 2026-08-25 by MD1 = Option A.** The 12px and 20px steps were
+> added to the scale as numeric sub-steps `sp[3]` and `sp[5]`, mirroring web,
+> and all 323 of their usages were migrated with zero rendered change (proved by
+> inverse substitution over all 86 changed files, and by 78 unchanged
+> baselines). **The remaining off-grid values below are untouched and M10 stays
+> open for them.** See `MOBILE_DESIGN_DECISION_BRIEF.md` and DESIGN.md §4.2.
+>
+> **Correction to the counts in this entry.** "211 times and 85 times" measured
+> `padding*`/`margin*` only. Including `gap`/`rowGap`/`columnGap` the true
+> figure is **323 across 86 files**, not 296. The conclusion was right; the
+> method was too narrow.
+
 **12px appears 211 times and 20px 85 times.** Neither exists in the mobile
 spacing scale (`xxs 2, xs 4, sm 8, md 16, lg 24, xl 32 …`), yet together they
 account for 60% of all off-grid values. Web's scale _does_ provide both (numeric
@@ -347,6 +359,12 @@ way to choose). A user on a dark device today gets a partially dark app.
 **MD1. Should the mobile spacing scale gain 12px and 20px?** 296 uses say the
 8→16→24 progression is too coarse. Web provides both. Adding them legitimises
 existing code; refusing them makes M10 a real migration. _Design decision._
+
+> **DECIDED 2026-08-25: Option A - add both.** Implemented as numeric sub-steps
+> `sp[3]` = 12px and `sp[5]` = 20px, matching web's `p-3`/`p-5`, leaving the
+> named table in DESIGN.md §4.1 identical across platforms. 323 sites migrated
+> (not 296 - the original count omitted `gap`). No rendered value changed. The
+> residual mixed expression inside migrated files is DESIGN.md §19-E23.
 
 **MD2. What happens to the foreign grey palette (M2)?** Map 172 literals to
 existing tokens (changes appearance slightly) or promote the values into the

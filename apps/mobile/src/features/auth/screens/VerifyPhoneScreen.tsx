@@ -29,6 +29,9 @@ import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
 
 import type { VerifyPhoneScreenProps } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 export const VerifyPhoneScreen: React.FC<VerifyPhoneScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
@@ -561,7 +564,7 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   subtitle: {
     textAlign: 'center',
@@ -582,7 +585,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonContainer: {
-    gap: 12,
+    gap: sp[3],
     marginBottom: 24,
   },
   button: {
@@ -605,7 +608,7 @@ const styles = StyleSheet.create({
   helpContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: sp[3],
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderRadius: 12,

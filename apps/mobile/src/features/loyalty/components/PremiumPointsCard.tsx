@@ -16,6 +16,9 @@ import { AnimatedCounter } from './AnimatedCounter';
 
 import type { TierName } from '../types/loyalty.types';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 /** Teal gradient matching the app's --gradient-teal CSS variable */
 const HERO_GRADIENT: [string, string] = ['#005251', '#2DB89B'];
@@ -208,14 +211,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   nameColumn: {
-    marginStart: 12,
+    marginStart: sp[3],
   },
   userName: {
     color: INVERSE_TEXT,
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
   tierBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 6,
     borderRadius: 20,
   },
@@ -243,7 +246,7 @@ const styles = StyleSheet.create({
   },
   pointsSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   pointsSubtitle: {
     color: INVERSE_TEXT,

@@ -62,6 +62,9 @@ import {
 import { regionFor } from '../utils/mapRegion';
 
 import type { SearchScreenNavigationProp } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ============================================================================
 // Constants
@@ -687,7 +690,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: sp[3],
     zIndex: 100,
   },
   searchRow: {
@@ -726,7 +729,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: sp[3],
   },
   listContent: {
     flexGrow: 1,
@@ -749,7 +752,7 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   emptyTitle: {
     marginBottom: 8,

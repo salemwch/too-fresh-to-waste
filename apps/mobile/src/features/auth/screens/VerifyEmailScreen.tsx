@@ -16,6 +16,9 @@ import { authService } from '../services/authService';
 import { verifyEmailAsync } from '../store/authSlice';
 
 import type { VerifyEmailScreenNavigationProp, VerifyEmailRouteProp } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface VerifyEmailScreenProps {
   navigation: VerifyEmailScreenNavigationProp;
@@ -358,7 +361,11 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 size={16}
                 color={theme.colors.error}
               />
-              <Text variant='body' size='sm' style={[styles.inlineErrorText, { color: theme.colors.error }]}>
+              <Text
+                variant='body'
+                size='sm'
+                style={[styles.inlineErrorText, { color: theme.colors.error }]}
+              >
                 {inlineError}
               </Text>
             </View>
@@ -439,7 +446,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   verifiedButton: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   actionButtonSpacing: {
     marginTop: 24,
@@ -461,7 +468,7 @@ const styles = StyleSheet.create({
   },
   helpTextContainer: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
   },
   helpTitle: {
     marginBottom: 8,
@@ -477,7 +484,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     borderWidth: 1,
-    padding: 12,
+    padding: sp[3],
     marginBottom: 16,
     gap: 8,
   },

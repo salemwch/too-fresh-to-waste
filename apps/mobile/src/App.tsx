@@ -29,6 +29,9 @@ import { toastConfig } from '@/utils/toast';
 
 import type { ErrorInfo, ReactNode } from 'react';
 import type { RootState } from '@/store';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ─── Global Error Boundary ──────────────────────────────────────────────────
 interface GlobalErrorBoundaryState {
@@ -67,7 +70,7 @@ const crashStyles = StyleSheet.create({
   button: {
     backgroundColor: colorTokens.base.primary[500],
     paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderRadius: 8,
   },
   buttonLabel: {

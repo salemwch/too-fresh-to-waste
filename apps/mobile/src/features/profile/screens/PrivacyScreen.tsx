@@ -20,6 +20,9 @@ import { showAlert } from '@/utils/alert';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 type PrivacyScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Privacy'>;
 
@@ -79,7 +82,9 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
             </Text>
             <Pressable
               style={[styles.settingRow, { borderColor: BORDER }]}
-              onPress={() => { void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy'); }}
+              onPress={() => {
+                void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy');
+              }}
               accessibilityRole='link'
               accessibilityLabel={t('profile.a11yViewPrivacyPolicy')}
               accessibilityHint={t('common.a11yOpenLinkHint')}
@@ -177,12 +182,12 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { padding: 16 },
-  card: { padding: 20 },
+  card: { padding: sp[5] },
   title: { marginBottom: 24 },
 
   // ── Leaderboard section ──
   section: { marginBottom: 24 },
-  sectionTitle: { marginBottom: 12 },
+  sectionTitle: { marginBottom: sp[3] },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -195,7 +200,7 @@ const styles = StyleSheet.create({
   settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: sp[3],
     flex: 1,
   },
   settingRowTop: { marginTop: 8 },
@@ -208,6 +213,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: DANGER_BORDER,
   },
-  dangerTitle: { marginBottom: 12 },
-  button: { marginTop: 12 },
+  dangerTitle: { marginBottom: sp[3] },
+  button: { marginTop: sp[3] },
 });

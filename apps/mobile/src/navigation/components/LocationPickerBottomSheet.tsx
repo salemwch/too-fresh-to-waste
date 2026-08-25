@@ -31,6 +31,9 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ============================================================================
 // Types
@@ -561,7 +564,7 @@ const styles = StyleSheet.create({
   container: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingBottom: 20,
+    paddingBottom: sp[5],
     minHeight: '60%', // âœ… Ensures visible content
     maxHeight: '80%',
     shadowOffset: { width: 0, height: -2 },
@@ -571,7 +574,7 @@ const styles = StyleSheet.create({
   },
   dragHandleContainer: {
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: sp[3],
     paddingBottom: 8,
   },
   dragHandle: {
@@ -583,9 +586,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingBottom: 32,
-    gap: 20,
+    gap: sp[5],
   },
   searchContainer: {
     flexDirection: 'row',
@@ -593,7 +596,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     height: 56,
     paddingHorizontal: 16,
-    gap: 12,
+    gap: sp[3],
   },
   searchInput: {
     flex: 1,
@@ -626,13 +629,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: sp[3],
     marginStart: 4,
   },
   recentItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: sp[3],
     borderRadius: 12,
     marginBottom: 4,
     gap: 16,
@@ -641,7 +644,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: 12,
+    gap: sp[3],
   },
   locationIconWrapper: {
     width: 32,
@@ -670,7 +673,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     textAlign: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingVertical: 16,
   },
   emptySubtext: {

@@ -25,6 +25,9 @@ import type {
   MapEstablishment,
   MapOfferSummary,
 } from '@/features/offers/hooks';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
@@ -316,13 +319,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
   },
   headerImage: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   headerInitialWrap: {
     justifyContent: 'center',
@@ -330,7 +333,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   ratingRow: {
     flexDirection: 'row',
@@ -379,14 +382,14 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   emptyTitle: {
     marginBottom: 4,
   },
   notifyButton: {
     marginTop: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,

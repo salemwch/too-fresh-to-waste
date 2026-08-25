@@ -7,6 +7,9 @@ import React, { memo } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const SHIMMER_BASE = '#F1F5F9';
 const SURFACE = '#FFFFFF';
@@ -52,7 +55,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: sp[3],
     position: 'relative',
     overflow: 'hidden',
     ...Platform.select({
@@ -86,7 +89,7 @@ const styles = StyleSheet.create({
   },
   infoColumn: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
     justifyContent: 'center',
     gap: 6,
   },
@@ -109,12 +112,12 @@ const styles = StyleSheet.create({
     width: '65%',
     height: 14,
     borderRadius: 4,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   divider: {
     height: 1,
     backgroundColor: SHIMMER_BASE,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   bottomRow: {
     flexDirection: 'row',

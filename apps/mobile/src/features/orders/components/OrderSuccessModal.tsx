@@ -33,6 +33,9 @@ import { getEstablishmentName } from '../types/order.types';
 import { getPickupErrorKey, type InlinePickupError } from '../utils/orderStatus';
 
 import type { Order } from '../types/order.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface PickupState {
   orderId: string | null;
@@ -371,7 +374,7 @@ const styles = StyleSheet.create({
     backgroundColor: OVERLAY,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: sp[5],
   },
   modalContainer: {
     width: '100%',
@@ -409,7 +412,7 @@ const styles = StyleSheet.create({
 
   // Content
   content: {
-    padding: 20,
+    padding: sp[5],
   },
 
   // Order Number — compact inline row
@@ -457,7 +460,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   itemQuantity: {
     fontSize: 14,
@@ -502,7 +505,7 @@ const styles = StyleSheet.create({
   pickupInfo: {
     backgroundColor: SURFACE_SUBTLE,
     borderRadius: 12,
-    padding: 12,
+    padding: sp[3],
     gap: 8,
     borderWidth: 1,
     borderColor: BORDER,
@@ -562,10 +565,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   confirmPickupButton: {
-    marginTop: 12,
+    marginTop: sp[3],
     backgroundColor: PRIMARY,
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     alignItems: 'center',
   },
   confirmPickupButtonDisabled: {
@@ -619,13 +622,13 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: BORDER,
-    marginVertical: 12,
+    marginVertical: sp[3],
   },
 
   // Footer
   footer: {
     padding: 16,
-    paddingTop: 12,
+    paddingTop: sp[3],
     borderTopWidth: 1,
     borderTopColor: SURFACE_MUTED,
   },

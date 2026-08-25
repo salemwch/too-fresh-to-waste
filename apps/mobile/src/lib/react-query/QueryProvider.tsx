@@ -24,6 +24,9 @@ import { queryClient } from './queryClient';
 
 import type { ErrorInfo, ReactNode } from 'react';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const ERROR_BACKGROUND = colorTokens.light.background;
 const ERROR_TITLE = colorTokens.base.error[500];
@@ -196,14 +199,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: sp[5],
     backgroundColor: ERROR_BACKGROUND,
   },
   errorTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: ERROR_TITLE,
-    marginBottom: 12,
+    marginBottom: sp[3],
     textAlign: 'center',
   },
   errorMessage: {
@@ -211,12 +214,12 @@ const styles = StyleSheet.create({
     color: ERROR_MESSAGE,
     textAlign: 'center',
     marginBottom: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
   },
   retryButton: {
     backgroundColor: RETRY_BUTTON,
     paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingVertical: sp[3],
     borderRadius: 8,
   },
   retryButtonText: {

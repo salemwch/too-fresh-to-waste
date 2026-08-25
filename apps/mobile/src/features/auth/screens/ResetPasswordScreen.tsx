@@ -32,6 +32,9 @@ import { resetPasswordSchema, type ResetPasswordFormData } from '@/utils/validat
 import { authService } from '../services/authService';
 
 import type { ResetPasswordScreenProps } from '@/navigation/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 /**
  * ResetPasswordScreen Component
@@ -541,7 +544,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   subtitle: {
     marginBottom: 24,
@@ -550,7 +553,7 @@ const styles = StyleSheet.create({
   emailContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: sp[3],
     borderRadius: 8,
     marginBottom: 24,
     borderWidth: 1,
@@ -565,7 +568,7 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: sp[3],
     borderRadius: 8,
     marginBottom: 16,
   },
@@ -587,7 +590,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   linkButton: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   backButton: {
     marginTop: 8,
@@ -630,7 +633,7 @@ const styles = StyleSheet.create({
   },
   securityNoteText: {
     flex: 1,
-    marginStart: 12,
+    marginStart: sp[3],
     lineHeight: 20,
   },
   successButton: {

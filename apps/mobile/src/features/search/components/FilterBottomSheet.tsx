@@ -32,6 +32,9 @@ import {
 
 import type { FilterState } from '../types/filter.types';
 import type { EstablishmentType, OfferType } from '@/features/offers/types/offer.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const WHITE = '#FFFFFF';
@@ -334,7 +337,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingVertical: 16,
     borderBottomWidth: 1,
   },
@@ -356,11 +359,11 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   section: {
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingTop: 24,
   },
   sectionTitle: {
-    marginBottom: 12,
+    marginBottom: sp[3],
     fontWeight: '600',
   },
   radioGroup: {
@@ -424,7 +427,7 @@ const styles = StyleSheet.create({
     color: WHITE,
   },
   footer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingTop: 16,
     paddingBottom: 24,
     borderTopWidth: 1,

@@ -6,13 +6,32 @@
 // Base spacing unit - 8pt grid system
 const SPACING_UNIT = 8;
 
-// Core spacing scale
+/**
+ * Core spacing scale.
+ *
+ * Two kinds of key live here, and the distinction is deliberate (DESIGN.md 4.2):
+ *
+ * - **Named keys** (`xxs`..`6xl`) carry the semantic rhythm. Proximity encodes
+ *   relationship, so these are the ones to reach for by default. The table in
+ *   DESIGN.md 4.1 is shared with web and must stay identical on both sides.
+ * - **Numeric keys** (`3`, `5`) are the fine-grained steps the named scale does
+ *   not cover, and they mean exactly what Tailwind's numeric keys mean on web:
+ *   `n x 4px`. `sp[3]` here is `p-3` there, both 12px.
+ *
+ * The numeric steps were added for MD1 (see MOBILE_DESIGN_DECISION_BRIEF.md).
+ * 12px and 20px were already the two most-used spacing values in the app - 297
+ * literals between them, 61% of all off-grid spacing - so the scale was the
+ * thing that was wrong, not the usage. They are sub-steps, not peers of the
+ * named tokens: prefer `md` over `[3]` when either would do.
+ */
 const spacing = {
   0: 0,
   xxs: SPACING_UNIT * 0.25, // 2px - Extra extra small (minimal gaps, Badge padding)
   xs: SPACING_UNIT * 0.5, // 4px
   sm: SPACING_UNIT * 1, // 8px
+  3: SPACING_UNIT * 1.5, // 12px - sub-step between sm and md (web: p-3)
   md: SPACING_UNIT * 2, // 16px
+  5: SPACING_UNIT * 2.5, // 20px - sub-step between md and lg (web: p-5)
   lg: SPACING_UNIT * 3, // 24px
   xl: SPACING_UNIT * 4, // 32px
   '2xl': SPACING_UNIT * 5, // 40px

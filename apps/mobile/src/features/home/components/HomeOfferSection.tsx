@@ -25,6 +25,9 @@ import { HOME_UI_CONFIG } from '../constants/homeConstants';
 
 import type { MascotVariant } from '@/design-system/components/organisms/OfferCard/OfferCard.types';
 import type { OfferListItem } from '@/features/offers/types/offer.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ============================================================================
 // Types
@@ -368,7 +371,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   offerCardItem: {
-    marginEnd: 12,
+    marginEnd: sp[3],
     marginVertical: 3,
   },
   placeholderCard: {
@@ -380,6 +383,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   retryButton: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
 });

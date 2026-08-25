@@ -38,6 +38,9 @@ import {
 import { WinnerCelebrationModal } from '@/features/leaderboard/components/WinnerCelebrationModal';
 import { VoteBottomSheet } from './VoteBottomSheet';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // Colors from design system
 const PRIMARY_500 = colorTokens.base.primary[500];
@@ -543,7 +546,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
+    padding: sp[5],
     position: 'relative',
     overflow: 'hidden',
   },
@@ -583,7 +586,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: PRIMARY_50,
     overflow: 'hidden',
-    marginTop: 12,
+    marginTop: sp[3],
   },
   progressFill: {
     height: '100%',
@@ -598,7 +601,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     alignItems: 'center',
     alignSelf: 'flex-start',
-    marginTop: 12,
+    marginTop: sp[3],
     ...Platform.select({
       ios: {
         shadowColor: ACCENT_500,

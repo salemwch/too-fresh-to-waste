@@ -28,6 +28,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Icon, Input } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { useLocationSearch, type GeocodeResult } from '@/features/offers/hooks';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MODAL_HEIGHT = SCREEN_HEIGHT * 0.65;
@@ -441,7 +444,7 @@ const styles = StyleSheet.create({
   },
   dragHandleContainer: {
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: sp[3],
     paddingBottom: 8,
   },
   dragHandle: {
@@ -453,17 +456,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingBottom: 16,
   },
   section: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: sp[5],
+    paddingVertical: sp[3],
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   sectionIconContainer: {
     width: 36,
@@ -471,7 +474,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   sliderContainer: {
     paddingHorizontal: 4,
@@ -506,7 +509,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    marginHorizontal: 20,
+    marginHorizontal: sp[5],
   },
   searchInput: {
     marginTop: 4,
@@ -522,8 +525,8 @@ const styles = StyleSheet.create({
   searchResultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: sp[3],
+    paddingVertical: sp[3],
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   searchResultIcon: {
@@ -532,7 +535,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   searchResultText: {
     flex: 1,

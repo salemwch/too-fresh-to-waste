@@ -8,6 +8,9 @@ import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { useTheme } from '@/design-system/providers';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const SkeletonLoyaltyScreenComponent: React.FC = () => {
   const theme = useTheme();
@@ -72,7 +75,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   statPill: {
     flex: 1,
@@ -83,13 +86,13 @@ const styles = StyleSheet.create({
     width: 140,
     height: 20,
     borderRadius: 6,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   earnGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 20,
+    gap: sp[3],
+    marginBottom: sp[5],
   },
   earnCell: {
     width: '47%',
@@ -98,8 +101,8 @@ const styles = StyleSheet.create({
   },
   badgesRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
+    gap: sp[3],
+    marginBottom: sp[5],
   },
   badgeCircle: {
     width: 56,

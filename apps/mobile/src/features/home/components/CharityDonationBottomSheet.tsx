@@ -24,6 +24,9 @@ import type { MonthlyGoalCauseType } from '@foodwaste/shared';
 import { colorTokens } from '@/design-system/tokens/colors';
 
 import { useMonthlyBagGoal } from '../hooks/useMonthlyBagGoal';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ─── Animation constants ──────────────────────────────────────────────────────
 
@@ -339,7 +342,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
     borderRadius: 2,
     alignSelf: 'center',
-    marginTop: 12,
+    marginTop: sp[3],
     marginBottom: 4,
   },
   scrollContent: {
@@ -373,12 +376,12 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 21,
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   divider: {
     height: 1,
     backgroundColor: '#F3F4F6',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   sectionLabel: {
     fontSize: 11,
@@ -394,7 +397,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: sp[5],
   },
   stepRow: {
     flexDirection: 'row',
@@ -424,8 +427,8 @@ const styles = StyleSheet.create({
   },
   // Destinations list
   destinationsList: {
-    gap: 12,
-    marginBottom: 20,
+    gap: sp[3],
+    marginBottom: sp[5],
   },
   destinationRow: {
     flexDirection: 'row',

@@ -3,6 +3,9 @@ import { View, StyleSheet } from 'react-native';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface SkeletonMonthlyBagGoalProps {
   testID?: string;
@@ -60,7 +63,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   textContainer: {
     flex: 1,

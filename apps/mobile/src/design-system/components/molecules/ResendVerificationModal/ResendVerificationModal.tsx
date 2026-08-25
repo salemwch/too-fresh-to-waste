@@ -21,6 +21,9 @@ import * as yup from 'yup';
 
 import { Button, Input, Text, Card, Icon, EnteringView } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface ResendVerificationModalProps {
   visible: boolean;
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
   },
   backdrop: {
     position: 'absolute',
@@ -328,7 +331,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    padding: 12,
+    padding: sp[3],
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
@@ -338,7 +341,7 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     marginTop: 8,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   cancelButton: {
     marginBottom: 16,

@@ -27,6 +27,9 @@ import { hasActiveFilters, countActiveFilters } from '@/features/search/types/fi
 
 import type { EstablishmentType } from '@/features/offers/types/offer.types';
 import type { FilterState } from '@/features/search/types/filter.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // ============================================================================
 // Types
@@ -236,7 +239,7 @@ const styles = StyleSheet.create({
 
   // Search icon on the left
   searchIcon: {
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
 
   // Search input takes remaining space
@@ -253,7 +256,7 @@ const styles = StyleSheet.create({
     width: 1,
     height: 24,
     backgroundColor: COLORS.border,
-    marginHorizontal: 12,
+    marginHorizontal: sp[3],
   },
 
   // Filter button integrated on the right
@@ -296,7 +299,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
     backgroundColor: COLORS.surfaceAccent,
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 6,
     borderRadius: 16,
     gap: 6,

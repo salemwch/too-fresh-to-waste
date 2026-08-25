@@ -17,6 +17,9 @@ import { colorTokens } from '@/design-system/tokens/colors';
 
 import { SkeletonMonthlyBagGoal } from './SkeletonMonthlyBagGoal';
 import surpriseBoxImg from '../../../assets/images/surprise-box.png';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const COLORS = {
   brand: colorTokens.base.primary[500],
@@ -222,7 +225,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
   },
   icon: {
     width: 28,
@@ -249,7 +252,7 @@ const styles = StyleSheet.create({
 
   // ── Expanded content ──
   expandedContent: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   divider: {
     height: 1,
@@ -265,7 +268,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   eyebrowDot: {
     width: 6,
@@ -328,7 +331,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   challengeName: {
     flex: 1,

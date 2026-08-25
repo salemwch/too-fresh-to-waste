@@ -57,6 +57,9 @@ import { FloatingVoteTab } from '@/features/voting/components/FloatingVoteTab';
 
 import type { HomeScreenNavigationProp } from '@/navigation/types';
 import type { RootState } from '@/types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 // New imports for refactored structure
 
@@ -114,7 +117,7 @@ const headerRightStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginEnd: 12,
+    marginEnd: sp[3],
     paddingTop: 8,
     paddingBottom: 4,
   },
@@ -755,6 +758,6 @@ const styles = StyleSheet.create({
   },
   bannerWrapper: {
     paddingHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
 });

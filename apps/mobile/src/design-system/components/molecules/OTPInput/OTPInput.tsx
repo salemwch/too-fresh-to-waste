@@ -17,6 +17,9 @@ import {
 } from 'react-native';
 
 import { useTheme } from '@/design-system/providers';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface OTPInputProps {
   length?: number;
@@ -204,7 +207,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
+    gap: sp[3],
   },
   inputContainer: {
     width: 48,

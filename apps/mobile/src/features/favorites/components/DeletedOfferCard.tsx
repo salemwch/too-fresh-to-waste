@@ -10,6 +10,9 @@ import { View, StyleSheet, Pressable, type StyleProp, type ViewStyle } from 'rea
 
 import { Text } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface DeletedOfferCardProps {
   onRemove: () => void;
@@ -56,7 +59,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   iconContainer: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   title: {
     fontSize: 16,

@@ -17,6 +17,9 @@ import {
   Pressable,
 } from 'react-native';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 interface ImpactMomentProps {
   visible: boolean;
@@ -250,7 +253,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: COLORS.surfaceMuted,
     borderRadius: 16,
-    padding: 20,
+    padding: sp[5],
     alignItems: 'center',
   },
   statsLabel: {
@@ -262,7 +265,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.textPrimary,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   mealsText: {
     fontSize: 16,
@@ -270,7 +273,7 @@ const styles = StyleSheet.create({
     color: COLORS.success,
   },
   dismissButton: {
-    marginTop: 20,
+    marginTop: sp[5],
     alignSelf: 'stretch',
     paddingVertical: 13,
     borderRadius: 14,

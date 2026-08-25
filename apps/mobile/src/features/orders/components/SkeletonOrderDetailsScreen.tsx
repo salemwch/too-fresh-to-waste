@@ -7,6 +7,9 @@ import React from 'react';
 import { View, StyleSheet, ScrollView, Platform } from 'react-native';
 
 import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const SCREEN_BACKGROUND = '#F8FAFC';
 const SURFACE = '#FFFFFF';
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE,
     borderRadius: 8,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: sp[3],
     overflow: 'hidden',
     ...Platform.select({
       ios: {
@@ -203,7 +206,7 @@ const styles = StyleSheet.create({
     }),
   },
   sectionTitle: {
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   subheader: {
     marginTop: 4,
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
   },
   confirmationHint: {
     marginTop: 5,
-    marginBottom: 12,
+    marginBottom: sp[3],
   },
   confirmButton: {
     marginTop: 16,

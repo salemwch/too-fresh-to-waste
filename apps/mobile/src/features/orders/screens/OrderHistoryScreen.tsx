@@ -11,6 +11,9 @@ import { useTheme } from '@/design-system/providers';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 type OrderHistoryScreenNavigationProp = NativeStackNavigationProp<
   MainStackParamList,
@@ -82,7 +85,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    padding: 20,
+    padding: sp[5],
   },
   title: {
     marginBottom: 24,

@@ -8,6 +8,9 @@
 import { Dimensions, Platform, StyleSheet } from 'react-native';
 
 import { colorTokens } from '@/design-system/tokens/colors';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -32,7 +35,7 @@ const SUCCESS_BORDER = '#a7f3d0';
 export const styles = StyleSheet.create({
   container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  retryButton: { marginTop: 20 },
+  retryButton: { marginTop: sp[5] },
   scrollContent: { paddingBottom: 0 },
   headerContainer: { height: 280, width: '100%', position: 'relative' },
   headerImage: { width: '100%', height: '100%', resizeMode: 'cover' },
@@ -98,10 +101,10 @@ export const styles = StyleSheet.create({
   },
   headerTitleText: { color: WHITE },
   headerSubtitleText: { color: SURFACE_MUTED },
-  contentContainer: { paddingHorizontal: 20, paddingTop: 24 },
+  contentContainer: { paddingHorizontal: sp[5], paddingTop: 24 },
   itemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   itemTitleRow: { flexDirection: 'row', alignItems: 'center' },
-  offerTypeText: { marginStart: 12 },
+  offerTypeText: { marginStart: sp[3] },
   priceContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   oldPrice: { textDecorationLine: 'line-through' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 },
@@ -142,7 +145,7 @@ export const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: SURFACE_SUBTLE, marginVertical: 24 },
   section: { marginVertical: 8 },
   accordionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  accordionContent: { marginTop: 12 },
+  accordionContent: { marginTop: sp[3] },
   nutritionSection: { marginBottom: 0 },
   descriptionText: { lineHeight: 22 },
   nutritionHeading: { color: TEXT_PRIMARY },
@@ -156,7 +159,7 @@ export const styles = StyleSheet.create({
   },
   dietaryTag: {
     backgroundColor: SURFACE_SOFT,
-    paddingHorizontal: 12,
+    paddingHorizontal: sp[3],
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
@@ -202,7 +205,7 @@ export const styles = StyleSheet.create({
     elevation: 8,
   },
   modalHeader: {
-    padding: 20,
+    padding: sp[5],
     paddingBottom: 16,
     alignItems: 'center',
   },
@@ -237,12 +240,12 @@ export const styles = StyleSheet.create({
   },
   reserveButtonSpacing: { marginTop: 24 },
   termsContainer: {
-    marginTop: 20,
+    marginTop: sp[5],
     marginBottom: 8,
     paddingHorizontal: 16,
   },
   termsText: { lineHeight: 18 },
   termsLink: { textDecorationLine: 'underline' },
-  modalDivider: { height: 1, backgroundColor: SURFACE_MUTED, marginVertical: 20 },
+  modalDivider: { height: 1, backgroundColor: SURFACE_MUTED, marginVertical: sp[5] },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

@@ -9,6 +9,9 @@ import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 
 import { SkeletonBase } from '@/components/Loading/SkeletonBase';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp } = spacingTokens;
 
 const SURFACE = '#fff';
 const SURFACE_MUTED = '#f3f4f6';
@@ -136,7 +139,7 @@ const styles = StyleSheet.create({
     insetInlineEnd: 20,
   },
   contentContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: sp[5],
     paddingTop: 24,
   },
   itemHeader: {
@@ -190,13 +193,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   accordionContent: {
-    marginTop: 12,
+    marginTop: sp[3],
   },
   headerTitleSpacing: {
     marginBottom: 8,
   },
   itemTitleSpacing: {
-    marginStart: 12,
+    marginStart: sp[3],
   },
   priceSpacing: {
     marginEnd: 8,
