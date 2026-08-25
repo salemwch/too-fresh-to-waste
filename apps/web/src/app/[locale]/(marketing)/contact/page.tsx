@@ -42,7 +42,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
         ]}
       />
       <Header />
-      <main className='min-h-screen bg-[#f9f3f0]'>
+      <main className='min-h-screen bg-brand-cream'>
         {/* Hero */}
         <section className='bg-primary-500 pt-32 pb-4xl px-lg'>
           <div className='max-w-4xl mx-auto text-center'>

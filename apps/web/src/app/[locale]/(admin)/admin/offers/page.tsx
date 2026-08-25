@@ -89,7 +89,7 @@ function fmtDiscount(v: number) {
 }
 
 function pickupRateColor(rate: number) {
-  if (rate >= 0.7) return 'text-[#2E7D32]';
+  if (rate >= 0.7) return 'text-success';
   if (rate >= 0.4) return 'text-warning';
   return 'text-destructive';
 }

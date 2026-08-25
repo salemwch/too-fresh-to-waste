@@ -77,15 +77,14 @@ function formatLastActivity(iso: string | undefined): { label: string; dot: stri
   const minutes = Math.floor(diff / 60_000);
   const hours = Math.floor(diff / 3_600_000);
   const days = Math.floor(diff / 86_400_000);
-  if (minutes < 60)
-    return { label: `${minutes}m ago`, dot: 'bg-[#2E7D32]', text: 'text-[#2E7D32]' };
-  if (hours < 24) return { label: `${hours}h ago`, dot: 'bg-[#2E7D32]', text: 'text-[#2E7D32]' };
+  if (minutes < 60) return { label: `${minutes}m ago`, dot: 'bg-success', text: 'text-success' };
+  if (hours < 24) return { label: `${hours}h ago`, dot: 'bg-success', text: 'text-success' };
   if (days === 1) return { label: 'Yesterday', dot: 'bg-emerald-400', text: 'text-foreground' };
   if (days < 7) return { label: `${days}d ago`, dot: 'bg-emerald-400', text: 'text-foreground' };
   if (days < 30)
     return { label: `${days}d ago`, dot: 'bg-amber-400', text: 'text-muted-foreground' };
   if (days < 90)
-    return { label: `${Math.floor(days / 30)}mo ago`, dot: 'bg-[#F57C00]', text: 'text-[#F57C00]' };
+    return { label: `${Math.floor(days / 30)}mo ago`, dot: 'bg-warning', text: 'text-warning' };
   return {
     label: `${Math.floor(days / 30)}mo ago`,
     dot: 'bg-destructive/70',
@@ -755,12 +754,12 @@ export default function AdminEstablishmentsPage() {
                           {
                             label: 'Completed',
                             value: (estStats.completedOrders ?? 0).toLocaleString(),
-                            color: 'text-[#2E7D32]',
+                            color: 'text-success',
                           },
                           {
                             label: 'Completion Rate',
                             value: `${Math.round((estStats.orderCompletionRate ?? 0) * 100)}%`,
-                            color: 'text-[#2E7D32]',
+                            color: 'text-success',
                           },
                           {
                             label: 'Total Revenue',

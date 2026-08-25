@@ -30,7 +30,7 @@ export default function Section5() {
   return (
     <section
       id='faq'
-      className='bg-[#f9f3f0] flex justify-center items-center py-3xl md:py-4xl px-lg relative'
+      className='bg-brand-cream flex justify-center items-center py-3xl md:py-4xl px-lg relative'
       aria-labelledby='faq-heading'
     >
       <div className='max-w-6xl mx-auto w-full'>

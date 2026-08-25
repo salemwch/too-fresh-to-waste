@@ -74,12 +74,12 @@ function HealthDot({ status }: { status: 'ok' | 'error' | 'shutting_down' | unde
   return (
     <span className='relative flex size-2'>
       {status === 'ok' && (
-        <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2E7D32] opacity-60' />
+        <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60' />
       )}
       <span
         className={cn(
           'relative inline-flex size-2 rounded-full',
-          status === 'ok' ? 'bg-[#2E7D32]' : 'bg-destructive',
+          status === 'ok' ? 'bg-success' : 'bg-destructive',
         )}
       />
     </span>
@@ -110,7 +110,7 @@ function HealthWidget() {
             <div className='flex items-center gap-1.5'>
               <HealthDot status={health?.status} />
               <span
-                className={cn('text-xs font-medium', allUp ? 'text-[#2E7D32]' : 'text-destructive')}
+                className={cn('text-xs font-medium', allUp ? 'text-success' : 'text-destructive')}
               >
                 {allUp ? 'All systems go' : anyDown ? 'Degraded' : 'Checking…'}
               </span>
@@ -123,7 +123,7 @@ function HealthWidget() {
             {Object.entries(indicators).map(([name, ind]) => (
               <div key={name} className='flex items-center gap-1.5'>
                 {ind.status === 'up' ? (
-                  <CheckCircle2 className='size-3 text-[#2E7D32]' />
+                  <CheckCircle2 className='size-3 text-success' />
                 ) : (
                   <XCircle className='size-3 text-destructive' />
                 )}
@@ -349,7 +349,7 @@ function OfferPerformanceCard() {
                 <p className='text-[10px] text-muted-foreground'>Active</p>
               </div>
               <div>
-                <p className='text-base font-bold tabular-nums text-[#2E7D32]'>
+                <p className='text-base font-bold tabular-nums text-success'>
                   {fmtPct(stats?.platformPickupRate ?? 0)}
                 </p>
                 <p className='text-[10px] text-muted-foreground'>Pickup rate</p>

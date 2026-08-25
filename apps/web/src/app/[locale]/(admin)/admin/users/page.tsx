@@ -93,15 +93,14 @@ function formatLastActivity(iso: string | undefined): { label: string; dot: stri
   const hours = Math.floor(diff / 3_600_000);
   const days = Math.floor(diff / 86_400_000);
 
-  if (minutes < 60)
-    return { label: `${minutes}m ago`, dot: 'bg-[#2E7D32]', text: 'text-[#2E7D32]' };
-  if (hours < 24) return { label: `${hours}h ago`, dot: 'bg-[#2E7D32]', text: 'text-[#2E7D32]' };
+  if (minutes < 60) return { label: `${minutes}m ago`, dot: 'bg-success', text: 'text-success' };
+  if (hours < 24) return { label: `${hours}h ago`, dot: 'bg-success', text: 'text-success' };
   if (days === 1) return { label: 'Yesterday', dot: 'bg-emerald-400', text: 'text-foreground' };
   if (days < 7) return { label: `${days}d ago`, dot: 'bg-emerald-400', text: 'text-foreground' };
   if (days < 30)
     return { label: `${days}d ago`, dot: 'bg-amber-400', text: 'text-muted-foreground' };
   if (days < 90)
-    return { label: `${Math.floor(days / 30)}mo ago`, dot: 'bg-[#F57C00]', text: 'text-[#F57C00]' };
+    return { label: `${Math.floor(days / 30)}mo ago`, dot: 'bg-warning', text: 'text-warning' };
   return {
     label: `${Math.floor(days / 30)}mo ago`,
     dot: 'bg-destructive/70',
@@ -140,7 +139,7 @@ function InfoRow({
 
 function VerifiedBadge({ ok }: { ok: boolean }) {
   return ok ? (
-    <CheckCircle2 className='size-3.5 shrink-0 text-[#2E7D32]' />
+    <CheckCircle2 className='size-3.5 shrink-0 text-success' />
   ) : (
     <XCircle className='size-3.5 shrink-0 text-muted-foreground/50' />
   );
@@ -158,13 +157,13 @@ function VerificationCard({
   return (
     <div
       className={`flex items-center gap-2.5 rounded-lg border p-md ${
-        ok ? 'border-[#2E7D32]/20 bg-[#2E7D32]/5' : 'border-border/60 bg-muted/20'
+        ok ? 'border-success/20 bg-success/5' : 'border-border/60 bg-muted/20'
       }`}
     >
-      <Icon className={`size-4 shrink-0 ${ok ? 'text-[#2E7D32]' : 'text-muted-foreground'}`} />
+      <Icon className={`size-4 shrink-0 ${ok ? 'text-success' : 'text-muted-foreground'}`} />
       <div>
         <p className='text-xs font-medium'>{label}</p>
-        <p className={`text-[10px] ${ok ? 'text-[#2E7D32]' : 'text-muted-foreground'}`}>
+        <p className={`text-[10px] ${ok ? 'text-success' : 'text-muted-foreground'}`}>
           {ok ? 'Verified' : 'Not verified'}
         </p>
       </div>
@@ -751,8 +750,8 @@ export default function AdminUsersPage() {
                               userActivity.metrics.riskScore > 60
                                 ? 'text-destructive'
                                 : userActivity.metrics.riskScore > 30
-                                  ? 'text-[#F57C00]'
-                                  : 'text-[#2E7D32]'
+                                  ? 'text-warning'
+                                  : 'text-success'
                             }`}
                           >
                             {userActivity.metrics.riskScore}

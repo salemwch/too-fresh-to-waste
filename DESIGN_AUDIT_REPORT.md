@@ -21,7 +21,7 @@ same day migrated V1; see
 | V2  | **FIXED**            | body -> `bg-background text-foreground`             |
 | V3  | **FIXED**            | 7 `.dark` tokens repointed; `:root` untouched       |
 | V4  | **FIXED**            | input/textarea/select -> `text-md md:text-base`     |
-| V5  | PARTIAL              | 1 near-miss fixed; rest need design calls           |
+| V5  | **PARTIAL**          | 48 exact-token class renames; 43 need decisions     |
 | V6  | OPEN                 | Needs a product decision                            |
 | V7  | **FIXED**            | 1 real near-miss; other 2 are the Instagram logo    |
 | V8  | **FIXED** (18 sites) | Count corrected from 20 - see the V8 entry          |
@@ -31,11 +31,11 @@ same day migrated V1; see
 | V12 | **FIXED**            | `ui-ux.md` component list corrected                 |
 | V13 | **FIXED**            | `ui-ux.md` `secondary` -> `#C4A25A` (2 places)      |
 | V14 | FIXED (earlier)      | `DESIGN.md` rewritten                               |
-| V15 | OPEN                 | Sequenced after V1                                  |
+| V15 | OPEN                 | Impact documented; needs approval (D6)              |
 | V16 | **FIXED**            | Cookie + pre-paint script; flash gone               |
-| V17 | OPEN                 | 76 usages verified; needs a design decision         |
+| V17 | OPEN                 | 76 usages verified; needs a design decision (D4)    |
 | V18 | **CONSTRAINED**      | Usage limit documented, DESIGN.md 19-E20            |
-| V19 | OPEN                 | Needs a brand decision                              |
+| V19 | OPEN                 | Accent ramp divergence; needs a brand decision (D5) |
 
 **Verification after pass 1:** `type-check` clean; `lint` clean (pre-existing
 warnings only, none on touched lines); **840/840 tests pass**; production build
@@ -775,26 +775,26 @@ effort. "Screenshot" is omitted throughout for the reason given in the summary.
 
 ## Part 3 - Ranking and sequencing
 
-| ID  | Title                         | Rank                                             | Risk   | Effort |
-| --- | ----------------------------- | ------------------------------------------------ | ------ | ------ |
-| V1  | Spacing scale collision       | P0                                               | HIGH   | 4-6 d  |
-| V2  | Dark mode body override       | P0                                               | LOW    | 15 min |
-| V3  | Identical light/dark tokens   | P0                                               | LOW    | 30 min |
-| V4  | iOS input zoom                | P1                                               | LOW    | 30 min |
-| V5  | PARTIAL                       | 1 near-miss fixed; rest need design calls        |
-| V6  | OPEN                          | Needs a product decision                         |
-| V7  | **FIXED**                     | 1 real near-miss; other 2 are the Instagram logo |
-| V8  | 20 missing focus indicators   | P1                                               | LOW    | 2-3 h  |
-| V9  | **PARTIAL**                   | 106 converted; left-/right- offsets still open   |
-| V10 | **CLOSED (public)**           | 0 unnamed in rendered DOM; dashboards unverified |
-| V11 | Rule file: wrong fonts        | P2                                               | NONE   | 30 min |
-| V12 | Rule file: phantom components | P2                                               | NONE   | 15 min |
-| V13 | `secondary` ambiguity         | P2                                               | LOW    | 15 min |
-| V14 | Stale DESIGN.md               | P2                                               | NONE   | done   |
-| V15 | Radius transposition          | P2                                               | MEDIUM | 0.5 d  |
-| V16 | **FIXED**                     | Cookie + pre-paint script; flash gone            |
-| V17 | OPEN                          | 76 usages verified; needs a design decision      |
-| V18 | **CONSTRAINED**               | Usage limit documented, DESIGN.md 19-E20         |
+| ID  | Title                         | Rank | Risk   | Effort |
+| --- | ----------------------------- | ---- | ------ | ------ |
+| V1  | Spacing scale collision       | P0   | HIGH   | 4-6 d  |
+| V2  | Dark mode body override       | P0   | LOW    | 15 min |
+| V3  | Identical light/dark tokens   | P0   | LOW    | 30 min |
+| V4  | iOS input zoom                | P1   | LOW    | 30 min |
+| V5  | Raw hex / arbitrary colours   | P1   | MEDIUM | 2-3 d  |
+| V6  | parcless-bag parallel palette | P1   | MEDIUM | 0.5 d  |
+| V7  | Off-brand / near-miss colours | P1   | LOW    | 1 h    |
+| V8  | 20 missing focus indicators   | P1   | LOW    | 2-3 h  |
+| V9  | RTL physical directionals     | P1   | MEDIUM | 2 d    |
+| V10 | Icon-button labels            | P1   | LOW    | 1-2 d  |
+| V11 | Rule file: wrong fonts        | P2   | NONE   | 30 min |
+| V12 | Rule file: phantom components | P2   | NONE   | 15 min |
+| V13 | `secondary` ambiguity         | P2   | LOW    | 15 min |
+| V14 | Stale DESIGN.md               | P2   | NONE   | done   |
+| V15 | Radius transposition          | P2   | MEDIUM | 0.5 d  |
+| V16 | localStorage theme            | P2   | LOW    | 2-3 h  |
+| V17 | `.glass` overuse              | P2   | LOW    | 1 h    |
+| V18 | Unconstrained mobile palette  | P2   | LOW    | 0.5 d  |
 
 ## Recommended PR sequence
 

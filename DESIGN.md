@@ -1758,18 +1758,26 @@ wrong edge in Arabic. The RTL screenshot baselines caught it, it was reverted,
 and it is recorded here so nobody re-attempts the swap. This is the documented
 justification §10.2 requires.
 
-**E22. Radix menus do not mirror without a `DirectionProvider`.** `OPEN`
-Converting `SelectItem`'s padding and its check indicator to logical values
-(`ps-8`, `start-2`) is correct but currently **inert**: Radix renders portalled
-content in its own LTR direction context unless the tree is wrapped in
-`<DirectionProvider dir="rtl">`. The baseline
-`__screenshots__/desktop-light-ar/components.spec.ts/select-open-selected.png`
-shows the check on the left with left-aligned items inside an otherwise correct
-RTL page.
+**E22. Radix menus need a `DirectionProvider`.** `RESOLVED 2026-08-25` Radix
+resolves reading direction from its own React context, not from the `dir`
+attribute on `<html>`, and it portals menu content onto `document.body`. Without
+a provider it defaulted to LTR, so Select and DropdownMenu content laid out
+left-to-right inside an otherwise correct RTL page - the check indicator sat on
+the opposite edge from the padding reserved for it.
 
-Fixing it means wrapping every Radix consumer, touching Select, DropdownMenu,
-Dialog, Tabs and Tooltip together. Out of scope for the V9 pass, which was
-defined as a mechanical logical-property substitution.
+Fixed by wrapping the provider tree in
+`<DirectionProvider dir={locale.direction}>` (`app-providers.tsx`), threaded
+from the server layout. `@radix-ui/react-direction` is now a direct pinned
+dependency (1.1.2) rather than relied on transitively.
+
+Verified in the RTL baselines at all three viewports: Select items are
+right-aligned with the check on the right, the trigger chevron mirrors, and
+`TabsList` reverses so the active tab is rightmost. No LTR baseline moved.
+
+> A stale screenshot baseline made this look viewport-dependent mid-diagnosis -
+> desktop appeared unfixed while mobile and tablet mirrored. Deleting the
+> baselines and regenerating showed all three correct. When an RTL result looks
+> inconsistent across viewports, regenerate before theorising.
 
 > **Numbering note.** E17 and E18 are out of sequence, and the original E16
 > (theme persistence) and E18 (mobile palette) were overwritten by a later edit

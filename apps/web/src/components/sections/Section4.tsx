@@ -60,7 +60,7 @@ export default function Section4() {
         </h2>
 
         {/* Description */}
-        <p className='text-[#f9f3f0]/70 text-base leading-normal mb-2xl'>{t('description')}</p>
+        <p className='text-brand-cream/70 text-base leading-normal mb-2xl'>{t('description')}</p>
 
         {/* Grid Layout */}
         <div className='steps-grid'>

@@ -286,7 +286,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
         <NextIntlClientProvider messages={{}}>
           <ChunkErrorBoundary>
-            <AppProviders>{children}</AppProviders>
+            <AppProviders dir={currentLocaleConfig.direction}>{children}</AppProviders>
           </ChunkErrorBoundary>
         </NextIntlClientProvider>
         <CookieConsentWrapper />

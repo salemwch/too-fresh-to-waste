@@ -108,25 +108,29 @@ baselines would show exactly what moves. It is listed as a decision rather than
 a task because "every corner in the product changes" deserves a yes before the
 work, not after.
 
+**Exact impact if approved.** Web `borderRadius` changes `md` 12->8, `lg` 8->12,
+`xl` 20->16, `2xl` 24->20, and `--radius` moves `0.5rem`->`0.75rem`. Every
+shadcn primitive is affected: `Button`/`Input`/`Select`/`Tabs` use `rounded-md`,
+`Card` uses `rounded-lg`, `Dialog` uses `rounded-xl`. So every button, input,
+select, tab strip, card and modal in the product changes corner radius, on
+public and authenticated routes alike.
+
+**Verifiable.** All 240 baselines would move; the diff would show exactly what
+changes on the 22 public routes. The 45 authenticated routes would change with
+no baseline to check them against.
+
 **Not actioned. Ready to execute on approval.**
 
 ---
 
-## D7. Radix menus need a `DirectionProvider` (§19-E22)
+## D7. RESOLVED - Radix `DirectionProvider` (§19-E22)
 
-**Verified**, and now visible in a baseline. Converting `SelectItem`'s padding
-and check indicator to logical values is correct but **inert**: Radix renders
-portalled content in its own LTR context unless the tree is wrapped in
-`<DirectionProvider dir="rtl">`.
-
-`select-open-selected.png` (Arabic) shows the check on the left with
-left-aligned items inside an otherwise correct RTL page.
-
-Not a brand decision - a scope one. It touches Select, DropdownMenu, Dialog,
-Tabs and Tooltip together, and was outside the V9 pass, which was defined as a
-mechanical logical-property substitution.
-
-**Not actioned. Smallest genuinely valuable next RTL task.**
+Investigated and fixed 2026-08-25. Not a product decision after all: Radix
+resolves direction from its own context, so
+`<DirectionProvider dir={locale.direction}>` in `app-providers.tsx` was the
+whole fix. Verified in the RTL baselines at all three viewports - Select check
+indicator, trigger chevron and `TabsList` order all mirror correctly, with no
+LTR baseline moved. See `DESIGN.md` §19-E22.
 
 ---
 

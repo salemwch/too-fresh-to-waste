@@ -177,7 +177,7 @@ export default function Header() {
 
   const isScrolledState = hasMounted ? isScrolled : false;
 
-  const headerBgClass = isScrolledState ? 'bg-[#f9f3f0]' : 'bg-primary-500';
+  const headerBgClass = isScrolledState ? 'bg-brand-cream' : 'bg-primary-500';
   const linkColorClass = isScrolledState ? 'text-primary-500' : 'text-white';
   const buttonBorderClass = isScrolledState
     ? 'border-primary-500 text-primary-500'
@@ -436,7 +436,7 @@ export default function Header() {
           <div
             id='mobile-menu'
             className={`absolute top-14 left-0 right-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto shadow-xl ${
-              isScrolledState ? 'bg-[#f9f3f0]' : 'bg-primary-500'
+              isScrolledState ? 'bg-brand-cream' : 'bg-primary-500'
             }`}
             onClick={e => e.stopPropagation()}
             onKeyDown={e => e.stopPropagation()}

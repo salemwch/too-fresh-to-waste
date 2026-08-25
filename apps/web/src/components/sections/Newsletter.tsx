@@ -63,7 +63,7 @@ export default function Newsletter() {
     // No role='region': a <section> with an accessible name already exposes
     // one, so declaring it again was redundant.
     <section
-      className='w-full bg-[#f9f3f0] px-lg sm:px-4xl lg:px-3xl text-center py-3xl sm:py-4xl lg:py-5xl flex flex-col items-center justify-center'
+      className='w-full bg-brand-cream px-lg sm:px-4xl lg:px-3xl text-center py-3xl sm:py-4xl lg:py-5xl flex flex-col items-center justify-center'
       aria-labelledby='newsletter-heading'
     >
       {/* Label */}

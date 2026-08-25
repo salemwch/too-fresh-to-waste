@@ -42,20 +42,20 @@ const SERVICE_ICONS: Record<string, React.ElementType> = {
 };
 
 function StatusIcon({ status }: { status: HealthStatus }) {
-  if (status === 'up') return <CheckCircle2 className='size-5 text-[#2E7D32]' />;
+  if (status === 'up') return <CheckCircle2 className='size-5 text-success' />;
   if (status === 'down') return <XCircle className='size-5 text-destructive' />;
   return <AlertCircle className='size-5 text-warning' />;
 }
 
 function statusBg(status: HealthStatus) {
-  if (status === 'up') return 'border-[#2E7D32]/20 bg-[#2E7D32]/5';
+  if (status === 'up') return 'border-success/20 bg-success/5';
   if (status === 'down') return 'border-destructive/20 bg-destructive/5';
   return 'border-warning/20 bg-warning/5';
 }
 
 function statusBadge(status: HealthStatus, label: string) {
   if (status === 'up')
-    return <Badge className='border-[#2E7D32]/30 bg-[#2E7D32]/10 text-[#2E7D32]'>{label}</Badge>;
+    return <Badge className='border-success/30 bg-success/10 text-success'>{label}</Badge>;
   if (status === 'down')
     return (
       <Badge className='border-destructive/30 bg-destructive/10 text-destructive'>{label}</Badge>
@@ -69,12 +69,12 @@ function PulseDot({ status }: { status: HealthStatus }) {
   return (
     <span className='relative flex size-3'>
       {status === 'up' && (
-        <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2E7D32] opacity-50' />
+        <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-50' />
       )}
       <span
         className={cn(
           'relative inline-flex size-3 rounded-full',
-          status === 'up' && 'bg-[#2E7D32]',
+          status === 'up' && 'bg-success',
           status === 'down' && 'bg-destructive',
           status === 'unknown' && 'bg-warning',
         )}
@@ -97,12 +97,12 @@ function OverallBanner({
     <div
       className={cn(
         'flex items-center gap-md rounded-xl border px-xl py-lg',
-        isOk ? 'border-[#2E7D32]/20 bg-[#2E7D32]/5' : 'border-destructive/20 bg-destructive/5',
+        isOk ? 'border-success/20 bg-success/5' : 'border-destructive/20 bg-destructive/5',
       )}
     >
       <PulseDot status={isOk ? 'up' : 'down'} />
       <div>
-        <p className={cn('text-sm font-semibold', isOk ? 'text-[#2E7D32]' : 'text-destructive')}>
+        <p className={cn('text-sm font-semibold', isOk ? 'text-success' : 'text-destructive')}>
           {isOk ? t('overall.healthy') : t('overall.down')}
         </p>
       </div>
@@ -302,7 +302,7 @@ export default function AdminHealthPage() {
                   <InfoRow
                     label='Passing'
                     value={
-                      <span className='font-semibold text-[#2E7D32]'>
+                      <span className='font-semibold text-success'>
                         {Object.values(indicators).filter(s => s === 'up').length}
                       </span>
                     }

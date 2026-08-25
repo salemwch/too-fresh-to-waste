@@ -19,7 +19,7 @@ export default function Section2() {
   return (
     <section
       id='app'
-      className='bg-[#f9f3f0] pt-4xl md:pt-3xl lg:pt-4xl pb-lg md:pb-2xl lg:pb-4xl px-lg'
+      className='bg-brand-cream pt-4xl md:pt-3xl lg:pt-4xl pb-lg md:pb-2xl lg:pb-4xl px-lg'
       aria-labelledby='app-heading'
     >
       <div className='container mx-auto max-w-6xl'>

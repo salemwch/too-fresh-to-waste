@@ -18,7 +18,7 @@ export default function Section3Animated() {
   const t = useTranslations('section3');
 
   return (
-    <section id='features' className='bg-[#f9f3f0] md:pb-3xl' aria-labelledby='features-heading'>
+    <section id='features' className='bg-brand-cream md:pb-3xl' aria-labelledby='features-heading'>
       <div className='container mx-auto max-w-7xl'>
         {/* Title Section */}
         <div className='text-center mb-xs'>
@@ -29,7 +29,7 @@ export default function Section3Animated() {
           >
             {t('titleLine1')}
             <span
-              className='text-[#ff7973] text-4xl md:text-5xl lg:text-6xl block'
+              className='text-brand-coral text-4xl md:text-5xl lg:text-6xl block'
               style={{ fontWeight: 999 }}
             >
               {t('titleLine2')}
