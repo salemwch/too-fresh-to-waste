@@ -18,6 +18,7 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   InteractionManager,
   View,
@@ -77,6 +78,7 @@ const isPersistedNavigationState = (value: unknown): value is InitialState => {
  */
 export const RootNavigator: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [isAppReady, setIsAppReady] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
@@ -146,7 +148,13 @@ export const RootNavigator: React.FC = () => {
 
   // Determine banner visibility and message
   const showBanner = isDeviceOffline || networkErrorMessage !== null;
-  const bannerMessage = isDeviceOffline ? 'No internet connection' : (networkErrorMessage ?? '');
+  /*
+   * Device-offline copy is translated; an API network error already arrives as
+   * a user-facing string from the layer that produced it.
+   */
+  const bannerMessage = isDeviceOffline
+    ? t('common.noInternetConnection')
+    : (networkErrorMessage ?? '');
 
   /**
    * PRODUCTION: Restore Navigation State on App Launch

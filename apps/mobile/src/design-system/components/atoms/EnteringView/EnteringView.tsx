@@ -27,6 +27,8 @@
 import React, { useEffect, useState } from 'react';
 import { Animated, Easing } from 'react-native';
 
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+
 import type { StyleProp, ViewStyle } from 'react-native';
 
 type EnteringAnimation = 'fadeIn' | 'fadeInUp' | 'fadeInDown' | 'zoomIn';
@@ -55,11 +57,25 @@ export const EnteringView: React.FC<EnteringViewProps> = ({
   style,
   testID,
 }) => {
+  const reduceMotion = useReducedMotion();
+
+  /*
+   * Starts at the final value when reduced motion is on, so the view is simply
+   * present rather than fading or sliding in. An entrance animation has no
+   * information to convey - it is pure decoration - so removing it costs
+   * nothing, which is exactly the case DESIGN.md 8.3 rule 3 covers.
+   */
   // useState initialiser (not useRef) matches useShimmerAnimation's pattern and
   // guarantees the Animated.Value is constructed exactly once.
-  const [progress] = useState(() => new Animated.Value(0));
+  const [progress] = useState(() => new Animated.Value(reduceMotion ? 1 : 0));
 
   useEffect(() => {
+    if (reduceMotion) {
+      // Covers the preference being switched on while this view is mounted.
+      progress.setValue(1);
+      return undefined;
+    }
+
     const timing = Animated.timing(progress, {
       toValue: 1,
       duration,
@@ -71,7 +87,7 @@ export const EnteringView: React.FC<EnteringViewProps> = ({
     timing.start();
     // Stop on unmount so a delayed animation cannot fire against a torn-down view.
     return () => timing.stop();
-  }, [progress, duration, delay]);
+  }, [progress, duration, delay, reduceMotion]);
 
   // Built inline rather than memoised: interpolate() returns a new node either
   // way, and these views mount once and are never re-rendered by this component.

@@ -18,3 +18,4 @@ export { usePasswordRules } from './usePasswordRules';
 // export { useDebounce } from './useDebounce';
 // export { useThrottle } from './useThrottle';
 // export { useAsync } from './useAsync';
+export { useReducedMotion } from './useReducedMotion';

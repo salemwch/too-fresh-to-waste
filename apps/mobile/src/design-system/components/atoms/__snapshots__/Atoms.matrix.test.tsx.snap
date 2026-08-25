@@ -1,0 +1,559 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Badge / default large-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#EEEEEE",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / default small-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#EEEEEE",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / default standard-dark-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#383838",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / default standard-light-ar 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#EEEEEE",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / default standard-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#EEEEEE",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / default standard-light-fr 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#EEEEEE",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / error large-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#D32F2F",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / error small-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#D32F2F",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / error standard-dark-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#E57373",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / error standard-light-ar 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#D32F2F",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / error standard-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#D32F2F",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / error standard-light-fr 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#D32F2F",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / success large-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / success small-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / success standard-dark-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#81C784",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / success standard-light-ar 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / success standard-light-en 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Badge / success standard-light-fr 1`] = `
+{
+  "badge": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 9999,
+    "flexDirection": "row",
+    "minHeight": 24,
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+}
+`;
+
+exports[`Card / default large-light-en 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / default small-light-en 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / default standard-dark-en 1`] = `
+{
+  "card": {
+    "backgroundColor": "#1E1E1E",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / default standard-light-ar 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / default standard-light-en 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / default standard-light-fr 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / elevated large-light-en 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / elevated small-light-en 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / elevated standard-dark-en 1`] = `
+{
+  "card": {
+    "backgroundColor": "#1E1E1E",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / elevated standard-light-ar 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / elevated standard-light-en 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Card / elevated standard-light-fr 1`] = `
+{
+  "card": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 8,
+    "borderWidth": 0,
+    "padding": 16,
+  },
+}
+`;
+
+exports[`Input / default large-light-en 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / default small-light-en 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / default standard-dark-en 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / default standard-light-ar 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / default standard-light-en 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / default standard-light-fr 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / error large-light-en 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / error small-light-en 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / error standard-dark-en 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / error standard-light-ar 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / error standard-light-en 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;
+
+exports[`Input / error standard-light-fr 1`] = `
+{
+  "input": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "400",
+    "height": "100%",
+    "lineHeight": 21,
+    "margin": 0,
+    "minWidth": 0,
+    "paddingHorizontal": 0,
+    "paddingVertical": 0,
+  },
+}
+`;

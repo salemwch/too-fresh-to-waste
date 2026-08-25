@@ -518,7 +518,9 @@
     "statusOutForDelivery": "En cours de livraison",
     "statusDelivered": "Livrée",
     "statusUnknown": "En traitement",
-    "pickupFailed": "Le retrait n'a pas pu être confirmé. Veuillez réessayer."
+    "pickupFailed": "Le retrait n'a pas pu être confirmé. Veuillez réessayer.",
+    "failedToLoad": "Échec du chargement des commandes",
+    "failedMessage": "Une erreur s'est produite. Veuillez réessayer."
   },
   "checkout": {
     "fulfillmentMethod": "Recevoir la commande",

@@ -518,7 +518,9 @@
     "statusOutForDelivery": "Out for Delivery",
     "statusDelivered": "Delivered",
     "statusUnknown": "Processing",
-    "pickupFailed": "Pickup could not be confirmed. Please try again."
+    "pickupFailed": "Pickup could not be confirmed. Please try again.",
+    "failedToLoad": "Failed to Load Orders",
+    "failedMessage": "Something went wrong. Please try again."
   },
   "checkout": {
     "fulfillmentMethod": "Receive Order",

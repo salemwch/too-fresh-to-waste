@@ -518,7 +518,9 @@
     "statusOutForDelivery": "قيد التوصيل",
     "statusDelivered": "تم التوصيل",
     "statusUnknown": "قيد المعالجة",
-    "pickupFailed": "تعذّر تأكيد الاستلام. يرجى المحاولة مرة أخرى."
+    "pickupFailed": "تعذّر تأكيد الاستلام. يرجى المحاولة مرة أخرى.",
+    "failedToLoad": "فشل تحميل الطلبات",
+    "failedMessage": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
   },
   "checkout": {
     "fulfillmentMethod": "استلام الطلب",

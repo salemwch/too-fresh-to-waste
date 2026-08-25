@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OrdersScreen states empty empty small-light-en 1`] = `{}`;
+
+exports[`OrdersScreen states empty empty standard-dark-en 1`] = `{}`;
+
+exports[`OrdersScreen states empty empty standard-light-ar 1`] = `{}`;
+
+exports[`OrdersScreen states empty empty standard-light-en 1`] = `{}`;
+
+exports[`OrdersScreen states error error small-light-en 1`] = `
+{
+  "orders-error-retry": {
+    "backgroundColor": "#1E4448",
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "minHeight": 40,
+    "opacity": 1,
+    "paddingHorizontal": 24,
+    "paddingVertical": 16,
+  },
+  "orders-error-state": {
+    "paddingBottom": 40,
+    "paddingHorizontal": 32,
+  },
+}
+`;
+
+exports[`OrdersScreen states error error standard-dark-en 1`] = `
+{
+  "orders-error-retry": {
+    "backgroundColor": "#54ACB5",
+    "borderColor": "#54ACB5",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "minHeight": 40,
+    "opacity": 1,
+    "paddingHorizontal": 24,
+    "paddingVertical": 16,
+  },
+  "orders-error-state": {
+    "paddingBottom": 40,
+    "paddingHorizontal": 32,
+  },
+}
+`;
+
+exports[`OrdersScreen states error error standard-light-ar 1`] = `
+{
+  "orders-error-retry": {
+    "backgroundColor": "#1E4448",
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "minHeight": 40,
+    "opacity": 1,
+    "paddingHorizontal": 24,
+    "paddingVertical": 16,
+  },
+  "orders-error-state": {
+    "paddingBottom": 40,
+    "paddingHorizontal": 32,
+  },
+}
+`;
+
+exports[`OrdersScreen states error error standard-light-en 1`] = `
+{
+  "orders-error-retry": {
+    "backgroundColor": "#1E4448",
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "minHeight": 40,
+    "opacity": 1,
+    "paddingHorizontal": 24,
+    "paddingVertical": 16,
+  },
+  "orders-error-state": {
+    "paddingBottom": 40,
+    "paddingHorizontal": 32,
+  },
+}
+`;
+
+exports[`OrdersScreen states loading loading small-light-en 1`] = `{}`;
+
+exports[`OrdersScreen states loading loading standard-dark-en 1`] = `{}`;
+
+exports[`OrdersScreen states loading loading standard-light-ar 1`] = `{}`;
+
+exports[`OrdersScreen states loading loading standard-light-en 1`] = `{}`;

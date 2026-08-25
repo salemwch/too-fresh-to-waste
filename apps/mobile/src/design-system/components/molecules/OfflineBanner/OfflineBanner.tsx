@@ -23,6 +23,21 @@ interface OfflineBannerProps {
   /** Whether banner is visible */
   visible: boolean;
 
+  /**
+   * Accessible name. Defaults to `message`, which callers are expected to
+   * pass already translated - this component does no lookup of its own.
+   */
+  accessibilityLabel?: string;
+
+  /**
+   * Announced after the label. Defaults to nothing, which is correct for a
+   * passive status banner: there is no action for the user to take.
+   */
+  accessibilityHint?: string;
+
+  /** @default 'offline-banner' */
+  testID?: string;
+
   /** Message to display */
   message?: string;
 
@@ -42,6 +57,9 @@ interface OfflineBannerProps {
 export const OfflineBanner: React.FC<OfflineBannerProps> = ({
   visible,
   message = "You're offline. Trying to reconnect…",
+  accessibilityLabel,
+  accessibilityHint,
+  testID = 'offline-banner',
   onRetry: _onRetry,
   autoDismiss: _autoDismiss = true,
 }) => {
@@ -81,6 +99,11 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({
           transform: [{ translateY: slideAnim }],
         },
       ]}
+      testID={testID}
+      accessibilityRole='alert'
+      accessibilityLiveRegion='polite'
+      accessibilityLabel={accessibilityLabel ?? message}
+      accessibilityHint={accessibilityHint ?? ''}
     >
       <View style={styles.content}>
         <Icon name='warning' size={18} color={theme.colors.onError} />

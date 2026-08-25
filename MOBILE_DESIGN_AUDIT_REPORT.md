@@ -380,6 +380,43 @@ Nothing below is claimed either way in this report.
 
 ---
 
+## Corrections found while implementing Phase 1
+
+Two findings were wrong, and one target did not exist. Left visible rather than
+edited away.
+
+**M6 said "5 files use react-native-reanimated".** They do not.
+`react-native-reanimated` is **not a dependency and is imported nowhere** - it
+was removed and replaced by the `EnteringView` atom built on RN's own
+`Animated`. The five hits were doc-comment and test references to the library
+that had been removed. The real animation surface is `Animated` across 33 files,
+so reduced motion was integrated at `EnteringView`, the shared entrance
+primitive.
+
+**M7 recommended keeping the design-system OfflineBanner.** Verification only
+half-supported that. The design-system molecule had **no `accessibilityRole`, no
+`accessibilityLabel` and no `testID`**, and `RootNavigator` passed it a
+hardcoded English string; the `components/Errors` version it was replacing had
+`role='alert'`, a translated label and a testID. Keeping the molecule was still
+right - `RootNavigator` already tracks both device connectivity _and_ API
+network errors, where the other covered only the first - but it had to gain the
+accessibility and localisation the deleted one provided, or the consolidation
+would have been a regression.
+
+**M14's second target is dead code.** `OrderHistoryScreen` has no data fetching
+at all - `// TODO: Fetch order history`, a fake one-second refresh, hardcoded
+English copy - and **nothing navigates to it**. It is registered in `MainStack`
+and unreachable; the real order history is `OrdersScreen`'s "history" tab. An
+error state was therefore not added to it, because there is no request that can
+fail. The `OrdersScreen` fix covers both tabs.
+
+**New finding - M15 (P2): `OrderHistoryScreen` is an unreachable stub.**
+Registered, never navigated to, unimplemented, and its copy is not localised.
+Either delete it or finish it; leaving a registered stub invites someone to
+route to it. Not actioned - deciding which is a product call.
+
+---
+
 ## Recommended implementation order
 
 1. **M9 - build the mobile visual harness.** Everything else is unsafe without

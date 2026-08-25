@@ -10,7 +10,6 @@ import Toast from 'react-native-toast-message';
 import { Provider as ReduxProvider, useSelector } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
-import { OfflineBanner } from '@/components/Errors';
 import { ForceUpdateModal } from '@/components/ForceUpdateModal';
 import { SoftUpdateBanner } from '@/components/SoftUpdateBanner';
 import { environment, validateEnvironmentConfig } from '@/config/environment';
@@ -324,7 +323,6 @@ function AppContent(): React.JSX.Element {
 
   return (
     <>
-      <OfflineBanner />
       <SoftUpdateBanner
         visible={versionCheck.updateType === 'soft' && !versionCheck.dismissed}
         updateUrl={versionCheck.updateUrl}

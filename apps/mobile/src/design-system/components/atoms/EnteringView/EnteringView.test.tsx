@@ -11,11 +11,17 @@ import { render, screen, act } from '@testing-library/react-native';
 import React from 'react';
 import { Animated, Text } from 'react-native';
 
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+
 import { EnteringView } from './EnteringView';
+
+jest.mock('@/hooks/useReducedMotion', () => ({ useReducedMotion: jest.fn(() => false) }));
+const mockReducedMotion = useReducedMotion as jest.MockedFunction<typeof useReducedMotion>;
 
 describe('EnteringView', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    mockReducedMotion.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -141,6 +147,54 @@ describe('EnteringView', () => {
       // after the entrance resolves — a stuck-at-zero opacity would be invisible
       // to users but still "rendered", so this pairs with the config check above.
       expect(screen.getByText('Hello')).toBeTruthy();
+    });
+  });
+
+  /*
+   * An entrance animation carries no information, so under reduced motion the
+   * view should simply be present. The important half of this suite is the
+   * other one: with the preference off, nothing about the existing behaviour
+   * may change.
+   */
+  describe('Reduced motion', () => {
+    it('starts fully visible and never animates when the preference is on', () => {
+      mockReducedMotion.mockReturnValue(true);
+      const timing = jest.spyOn(Animated, 'timing');
+
+      render(
+        <EnteringView animation='fadeInUp' testID='reduced'>
+          <Text>Hello</Text>
+        </EnteringView>,
+      );
+
+      expect(timing).not.toHaveBeenCalled();
+      expect(screen.getByText('Hello')).toBeTruthy();
+    });
+
+    it('still animates when the preference is off', () => {
+      mockReducedMotion.mockReturnValue(false);
+      const timing = jest.spyOn(Animated, 'timing');
+
+      render(
+        <EnteringView animation='fadeInUp' testID='normal'>
+          <Text>Hello</Text>
+        </EnteringView>,
+      );
+
+      expect(timing).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders children under reduced motion for every variant', () => {
+      mockReducedMotion.mockReturnValue(true);
+      for (const animation of ['fadeIn', 'fadeInUp', 'fadeInDown', 'zoomIn'] as const) {
+        const { unmount } = render(
+          <EnteringView animation={animation}>
+            <Text>{animation}</Text>
+          </EnteringView>,
+        );
+        expect(screen.getByText(animation)).toBeTruthy();
+        unmount();
+      }
     });
   });
 });

@@ -74,6 +74,33 @@ const SkeletonList: React.FC = () => (
 // Empty state
 // ---------------------------------------------------------------------------
 
+/**
+ * Shown when the orders request fails.
+ *
+ * Follows the same shape as the error card on FavoritesScreen: icon, what went
+ * wrong, what to do, and a retry. The point of a distinct state is that a user
+ * whose request failed must not be told they have no orders.
+ */
+const OrdersErrorState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => {
+  const { t } = useTranslation();
+
+  return (
+    <View style={styles.emptyState} testID='orders-error-state'>
+      <Icon
+        name='alert-circle-outline'
+        family='Ionicons'
+        size={48}
+        color={colorTokens.base.error[500]}
+      />
+      <Text style={styles.emptyTitle}>{t('orders.failedToLoad')}</Text>
+      <Text style={styles.emptySubtitle}>{t('orders.failedMessage')}</Text>
+      <Button variant='primary' size='md' onPress={onRetry} testID='orders-error-retry'>
+        {t('common.tryAgain')}
+      </Button>
+    </View>
+  );
+};
+
 interface EmptyStateProps {
   tab: TabKey;
   onBrowse: () => void;
@@ -197,6 +224,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
     refetch,
     loadMore,
     isFetchingNextPage,
+    error,
   } = useOrders();
   const prefetchOrder = usePrefetchOrder();
 
@@ -261,6 +289,14 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
       {/* ── Content ── */}
       {isLoading ? (
         <SkeletonList />
+      ) : error ? (
+        /*
+         * Checked before the empty case on purpose. A failed fetch leaves
+         * `currentOrders` empty, so without this branch a network error renders
+         * as "you have no orders" - the user is told a falsehood about their
+         * own data and given no way to retry.
+         */
+        <OrdersErrorState onRetry={handleRefresh} />
       ) : currentOrders.length === 0 ? (
         <EmptyState tab={selectedTab} onBrowse={handleBrowseOffers} />
       ) : (
