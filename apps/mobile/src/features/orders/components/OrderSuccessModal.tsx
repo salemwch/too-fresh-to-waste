@@ -49,7 +49,7 @@ const OVERLAY = 'rgba(0, 0, 0, 0.65)';
 const SHADOW = '#000';
 const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const TEXT_MUTED = colorTokens.base.neutral[700];
-const TEXT_SECONDARY = '#64748B';
+const TEXT_SECONDARY = colorTokens.base.neutral[700];
 const TEXT_TERTIARY = colorTokens.base.neutral[500];
 const BORDER = colorTokens.base.neutral[200];
 const SURFACE_MUTED = colorTokens.base.neutral[100];
@@ -225,7 +225,12 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   <View style={styles.section}>
                     <View style={styles.pickupInfo}>
                       <View style={styles.pickupRow}>
-                        <Icon name='calendar' family='Ionicons' size={16} color='#64748B' />
+                        <Icon
+                          name='calendar'
+                          family='Ionicons'
+                          size={16}
+                          color={colorTokens.base.neutral[700]}
+                        />
                         <Text style={styles.pickupText}>
                           {order.pickupDetails?.scheduledDate
                             ? new Date(order.pickupDetails.scheduledDate).toLocaleDateString(
@@ -240,14 +245,24 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                         </Text>
                       </View>
                       <View style={styles.pickupRow}>
-                        <Icon name='time' family='Ionicons' size={16} color='#64748B' />
+                        <Icon
+                          name='time'
+                          family='Ionicons'
+                          size={16}
+                          color={colorTokens.base.neutral[700]}
+                        />
                         <Text style={styles.pickupText}>
                           {order.pickupDetails?.timeSlot?.startTime ?? '—'} -{' '}
                           {order.pickupDetails?.timeSlot?.endTime ?? '—'}
                         </Text>
                       </View>
                       <View style={styles.pickupRow}>
-                        <Icon name='location' family='Ionicons' size={16} color='#64748B' />
+                        <Icon
+                          name='location'
+                          family='Ionicons'
+                          size={16}
+                          color={colorTokens.base.neutral[700]}
+                        />
                         <Text style={styles.pickupText} numberOfLines={1}>
                           {getEstablishmentName(order)}
                         </Text>

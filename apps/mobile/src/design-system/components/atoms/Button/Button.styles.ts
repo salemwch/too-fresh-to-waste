@@ -59,16 +59,16 @@ export const createButtonStyles = (
   // Variant styles
   const variantStyles = {
     primary: {
-      backgroundColor: disabled ? colors.base.neutral[300] : colors.primary,
-      borderColor: disabled ? colors.base.neutral[300] : colors.primary,
+      backgroundColor: disabled ? colors.surfaceContainer : colors.primary,
+      borderColor: disabled ? colors.outline : colors.primary,
     },
     secondary: {
-      backgroundColor: disabled ? colors.base.neutral[100] : colors.secondary,
-      borderColor: disabled ? colors.base.neutral[300] : colors.secondary,
+      backgroundColor: disabled ? colors.surfaceVariant : colors.secondary,
+      borderColor: disabled ? colors.outline : colors.secondary,
     },
     tertiary: {
-      backgroundColor: disabled ? colors.base.neutral[100] : colors.surface,
-      borderColor: disabled ? colors.base.neutral[300] : colors.outline,
+      backgroundColor: disabled ? colors.surfaceVariant : colors.surface,
+      borderColor: disabled ? colors.outline : colors.outline,
     },
     ghost: {
       backgroundColor: 'transparent',
@@ -77,16 +77,16 @@ export const createButtonStyles = (
     },
     outline: {
       backgroundColor: 'transparent',
-      borderColor: disabled ? colors.base.neutral[300] : colors.primary,
+      borderColor: disabled ? colors.outline : colors.primary,
       ...shadows.none,
     },
     danger: {
-      backgroundColor: disabled ? colors.base.neutral[300] : colors.error,
-      borderColor: disabled ? colors.base.neutral[300] : colors.error,
+      backgroundColor: disabled ? colors.surfaceContainer : colors.error,
+      borderColor: disabled ? colors.outline : colors.error,
     },
     success: {
-      backgroundColor: disabled ? colors.base.neutral[300] : colors.success,
-      borderColor: disabled ? colors.base.neutral[300] : colors.success,
+      backgroundColor: disabled ? colors.surfaceContainer : colors.success,
+      borderColor: disabled ? colors.outline : colors.success,
     },
     text: {
       backgroundColor: 'transparent',

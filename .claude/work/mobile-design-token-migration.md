@@ -53,9 +53,10 @@ changes they exist to catch.
       _Acceptance met:_ **870 colour changes, every one in a dark cell; 0 in a
       light cell.** The dark baselines now differ from the light ones, which is
       the criterion Phase 3 recorded as data.
-- [ ] **Phase 6 - dark-mode prep.** Every theme-blind screen fixed; full gate +
-      production build + device audit. _Acceptance:_ all pass **before** any
-      change to the mount default.
+- [~] **Phase 6 - dark-mode prep.** 6.1-6.4 done; **6.5 (device audit) not done
+  and 6.6 (default -> auto) therefore blocked.** Every baselined surface now
+  renders differently in dark, asserted by `darkModeCoverage.test.ts`.
+  Production bundle builds.
 - [ ] **Migration report.** Counts before/after, baseline changes, regressions
       caught, unresolved a11y findings, remaining work.
 
@@ -302,6 +303,94 @@ verified before regenerating.** Running the driver suites after wiring
 baselines x 3 dark cells); all 110 light-cell baselines passed byte-identical.
 Counted across the whole phase: 870 colour changes in dark cells, **0 in
 light**.
+
+**2026-08-26 (6.1) - light `onSurfaceVariant` moved from neutral[600] to
+neutral[700].** Only two roles bind to neutral[600]: light `onSurfaceVariant`
+and dark `outline`. They are different roles and only the first is a text
+colour, so only the first moved - dark `outline` passes non-text 3.0 on every
+dark surface (3.03-4.07) and is untouched.
+
+neutral[700] passes AA on all four light surfaces (5.34-6.19) and was unused by
+any light role, so the light text ramp is now contiguous: onBackground 900,
+onSurface 800, onSurfaceVariant 700. The cost is that primary/secondary
+separation narrows from 2.18 to 1.62; accepted, because colour is not the only
+carrier of that hierarchy and the alternative was failing AA app-wide.
+
+Verified: 470 baseline values changed, every one `#757575 -> #616161`, all in
+light cells, 0 unexplained.
+
+**2026-08-26 (6.1) - the 37 held grey mappings followed the token, not the
+nearest-token rule.** MD2 blocked `#64748B` and `#6B7280` because their nearest
+token, neutral[600], gave 4.41. With light `onSurfaceVariant` now at
+neutral[700] they map there instead: 5.92 on the same background, against 4.55
+and 4.62 before.
+
+This deliberately abandons nearest-token (46 and 37 away, versus 28 and 15).
+Nearest-token was the right rule while every candidate passed; here it selected
+a failing value, so the semantic role wins over proximity.
+`foreignGreyPalette.test.ts` now has an empty exception list and forbids the
+whole ramp.
+
+**2026-08-26 (6.1) - contrast is now a test, not a report.**
+`themeContrast.test.ts` asserts every foreground role against every surface the
+app composes it with, in both themes, plus a self-check of the WCAG helper
+against known reference values. Every contrast finding in this migration was
+previously found by hand, one pair at a time, and the same pair kept reappearing
+from different directions.
+
+**2026-08-26 (6.1) - two token-level failures found by that test are NOT fixed,
+and are pinned rather than skipped.**
+
+- **M17, light `outline`.** neutral[300] is 1.14-1.26 against the light
+  surfaces, against a 3.0 target for a control boundary. Even neutral[500] only
+  reaches 2.57, so closing it means neutral[600] and visibly redrawing every
+  border in the app.
+- **M18, status containers.** Four of eight `on*Container`/`*Container` pairs
+  fail AA - all four in dark, plus warning and info in light. This is the same
+  defect `.claude/rules/ui-ux.md` already records on web, and DESIGN.md 2.5
+  already prescribes the solid-fill replacement.
+
+Both are asserted against a table of today's measured reality, so the values
+cannot silently worsen and the gap stays visible in the expected values. Fixing
+either is a design change, not a token migration.
+
+**2026-08-26 (6.3) - correction: M4's list of eight was neither complete nor
+entirely correct.**
+
+Wrong on two entries. `LeaderboardScreen` is **deliberately** theme-fixed - its
+palette file says so in its own header ("always renders on a dark gold-accented
+surface") - and `WelcomeScreen` is a full-bleed brand-primary splash whose
+`c.primary` in dark would become light teal, i.e. worse. Neither is a defect.
+
+Incomplete in the direction that matters more: it listed only _screens_.
+`darkModeCoverage.test.ts` - which reads baselines rather than source -
+immediately found `OrderCard` and the `Button` disabled variant rendering
+identically in both themes. OrderCard is the most-seen card in the product and
+was in nobody's list, because the audit was looking for screens.
+
+**2026-08-26 (6.3) - Checkout gives up pure white to gain a dark mode.** No
+theme role has a light value of `#FFFFFF`, so a ground/card pair that survives
+into dark has to move one of the two. Ground
+`#FAFAFA -> c.surfaceVariant #F5F5F5` and card `#FFFFFF -> c.surface #FAFAFA`:
+both 5 points in RGB, imperceptible, and it matches the convention the driver
+flow already set rather than inventing a second one. A white card on a dark
+screen is not imperceptible.
+
+**2026-08-26 (6.3) - status tints stay literal in Checkout and OrderCard.** The
+obvious migration is `SUCCESS_SURFACE -> c.successContainer` and so on.
+Measured, that trades a hardcoded palette for a tokenised one that is worse
+(M18). `SUCCESS_TEXT` on `SUCCESS_SURFACE` is already 3.6 and fails; that is
+pre-existing and is not changed here either. These values are light-only, so
+both surfaces are theme-aware while their badges are not yet - recorded rather
+than papered over.
+
+**2026-08-26 (6.4/6.5) - coverage was widened by generalising the gate, not by
+writing twelve more suites.** `darkModeCoverage.test.ts` asserts that _every_
+committed baseline differs between light and dark, with a named, empty exemption
+list. That catches a theme-blind surface the moment it gains a baseline, which
+the brief's enumerated list cannot. The screens named in 6.4 that have no
+baseline yet (Home, Search, Favorites, Profile, Settings, Loyalty, Leaderboard,
+modals) are **still uncovered** and are listed as remaining work.
 
 ## Open questions
 

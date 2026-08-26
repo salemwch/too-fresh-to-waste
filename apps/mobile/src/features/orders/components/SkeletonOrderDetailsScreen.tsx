@@ -9,15 +9,12 @@ import { View, StyleSheet, ScrollView, Platform } from 'react-native';
 import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
-import { colorTokens } from '@/design-system/tokens/colors';
+import { createThemedStyles, type ThemePalette } from '@/design-system/hooks/createThemedStyles';
 
 const { base: sp } = spacingTokens;
 
-const SCREEN_BACKGROUND = colorTokens.base.neutral[50];
-const SURFACE = '#FFFFFF';
-const DIVIDER = colorTokens.base.neutral[200];
-
 export const SkeletonOrderDetailsScreen: React.FC = () => {
+  const styles = useStyles();
   const anim = useShimmerAnimation('pulse');
 
   return (
@@ -174,83 +171,89 @@ export const SkeletonOrderDetailsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: SCREEN_BACKGROUND,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  card: {
-    backgroundColor: SURFACE,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: sp[3],
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  sectionTitle: {
-    marginBottom: sp[3],
-  },
-  subheader: {
-    marginTop: 4,
-  },
-  itemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  itemLeft: {
-    flex: 1,
-  },
-  itemMeta: {
-    marginTop: 4,
-  },
-  pricingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  pickupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  pickupDetail: {
-    marginStart: 10,
-  },
-  confirmationHint: {
-    marginTop: 5,
-    marginBottom: sp[3],
-  },
-  confirmButton: {
-    marginTop: 16,
-  },
-  footerAction: {
-    marginTop: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: DIVIDER,
-    marginVertical: 8,
-  },
+const useStyles = createThemedStyles((c: ThemePalette) => {
+  const SCREEN_BACKGROUND = c.surfaceVariant;
+  const SURFACE = c.surface;
+  const DIVIDER = c.outlineVariant;
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: SCREEN_BACKGROUND,
+    },
+    scrollContent: {
+      padding: 16,
+      paddingBottom: 32,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    card: {
+      backgroundColor: SURFACE,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: sp[3],
+      overflow: 'hidden',
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3,
+        },
+        android: {
+          elevation: 2,
+        },
+      }),
+    },
+    sectionTitle: {
+      marginBottom: sp[3],
+    },
+    subheader: {
+      marginTop: 4,
+    },
+    itemRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 6,
+    },
+    itemLeft: {
+      flex: 1,
+    },
+    itemMeta: {
+      marginTop: 4,
+    },
+    pricingRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 4,
+    },
+    pickupRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 4,
+    },
+    pickupDetail: {
+      marginStart: 10,
+    },
+    confirmationHint: {
+      marginTop: 5,
+      marginBottom: sp[3],
+    },
+    confirmButton: {
+      marginTop: 16,
+    },
+    footerAction: {
+      marginTop: 8,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: DIVIDER,
+      marginVertical: 8,
+    },
+  });
 });

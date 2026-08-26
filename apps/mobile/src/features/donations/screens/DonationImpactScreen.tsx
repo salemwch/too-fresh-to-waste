@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
   },
   categoryCount: {
-    color: '#6B7280',
+    color: colorTokens.base.neutral[700],
   },
   progressTrack: {
     height: 6,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   percentText: {
-    color: '#6B7280',
+    color: colorTokens.base.neutral[700],
     marginTop: 3,
     textAlign: textAlignEnd(),
   },

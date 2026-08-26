@@ -63,7 +63,7 @@ const COLORS = {
   surfaceAccent: '#D1FAE5',
   border: colorTokens.base.neutral[200],
   textPrimary: colorTokens.base.neutral[900],
-  textSecondary: '#64748B',
+  textSecondary: colorTokens.base.neutral[700],
   textInverse: '#FFFFFF',
   textPlaceholder: colorTokens.base.neutral[500],
   shadow: '#000',

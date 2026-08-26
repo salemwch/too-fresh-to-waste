@@ -6,7 +6,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated large-light-en 
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -51,7 +51,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated large-light-en 
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -67,7 +67,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated large-light-en 
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -84,7 +84,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated large-light-en 
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -101,7 +101,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated large-light-en 
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -133,7 +133,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated large-light-en 
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -159,7 +159,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated large-light-en 
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -338,7 +338,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated small-light-en 
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -383,7 +383,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated small-light-en 
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -399,7 +399,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated small-light-en 
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -416,7 +416,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated small-light-en 
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -433,7 +433,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated small-light-en 
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -465,7 +465,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated small-light-en 
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -491,7 +491,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated small-light-en 
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -836,7 +836,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -881,7 +881,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -897,7 +897,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -914,7 +914,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -931,7 +931,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -963,7 +963,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -989,7 +989,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -1002,7 +1002,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -1047,7 +1047,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1063,7 +1063,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1080,7 +1080,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1097,7 +1097,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1129,7 +1129,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -1155,7 +1155,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -1168,7 +1168,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -1213,7 +1213,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1229,7 +1229,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1246,7 +1246,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1263,7 +1263,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1295,7 +1295,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -1321,7 +1321,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-light-
     "fontWeight": "600",
   },
   "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 2,
   },
@@ -1334,7 +1334,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history large-li
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -1379,7 +1379,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history large-li
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1395,7 +1395,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history large-li
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1412,7 +1412,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history large-li
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1429,7 +1429,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history large-li
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1455,7 +1455,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history large-li
     "textAlign": "center",
   },
   "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -1604,7 +1604,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history small-li
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -1649,7 +1649,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history small-li
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1665,7 +1665,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history small-li
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1682,7 +1682,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history small-li
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1699,7 +1699,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history small-li
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -1725,7 +1725,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history small-li
     "textAlign": "center",
   },
   "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -2009,7 +2009,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -2054,7 +2054,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2070,7 +2070,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2087,7 +2087,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2104,7 +2104,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2130,7 +2130,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "textAlign": "center",
   },
   "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -2144,7 +2144,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -2189,7 +2189,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2205,7 +2205,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2222,7 +2222,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2239,7 +2239,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2265,7 +2265,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "textAlign": "center",
   },
   "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -2279,7 +2279,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "backgroundColor": "#F5F5F5",
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.5,
@@ -2324,7 +2324,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2340,7 +2340,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2357,7 +2357,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "padding": 16,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2374,7 +2374,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "width": 1,
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2400,7 +2400,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
     "textAlign": "center",
   },
   "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -2578,7 +2578,7 @@ exports[`DriverEarningsScreen no earnings record yet no-earnings large-light-en 
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -2630,7 +2630,7 @@ exports[`DriverEarningsScreen no earnings record yet no-earnings small-light-en 
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -2708,7 +2708,7 @@ exports[`DriverEarningsScreen no earnings record yet no-earnings standard-light-
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -2734,7 +2734,7 @@ exports[`DriverEarningsScreen no earnings record yet no-earnings standard-light-
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",
@@ -2760,7 +2760,7 @@ exports[`DriverEarningsScreen no earnings record yet no-earnings standard-light-
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 21,
     "textAlign": "center",

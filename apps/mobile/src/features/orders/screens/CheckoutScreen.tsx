@@ -7,6 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import MapView from 'react-native-maps';
 
 import { Text, Button, Icon } from '@/design-system/components/atoms';
+import { useTheme } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { getCurrentPositionOnce } from '@/services/location/getCurrentPositionOnce';
 import { selectAuthUser, selectIsPhoneVerified } from '@/features/auth/store/authSlice';
@@ -27,8 +28,7 @@ import { SkeletonCheckoutScreen } from '../components/SkeletonCheckoutScreen';
 import { useCreateOrder } from '../hooks/useCreateOrder';
 
 import {
-  styles,
-  BRAND_PRIMARY,
+  createCheckoutStyles,
   SUCCESS_TEXT,
   WARNING_TEXT,
   ERROR_TEXT,
@@ -54,6 +54,10 @@ const DELIVERY_FEE_TND = 4;
 
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
   const { t } = useTranslation();
+  const styles = createCheckoutStyles();
+  const { colors } = useTheme();
+  /* Inline icon colours, so they follow the theme with the stylesheet. */
+  const BRAND_PRIMARY = colors.primary;
   const queryClient = useQueryClient();
   const { offerId, quantity: initialQuantity = 1 } = route.params;
 
@@ -563,7 +567,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   name='storefront'
                   family='Ionicons'
                   size={28}
-                  color={selectedFulfillment === 'pickup' ? BRAND_PRIMARY : '#64748B'}
+                  color={selectedFulfillment === 'pickup' ? BRAND_PRIMARY : colors.onSurfaceVariant}
                 />
                 <Text
                   style={[
@@ -613,7 +617,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                       ? colorTokens.base.neutral[300]
                       : selectedFulfillment === 'delivery'
                         ? BRAND_PRIMARY
-                        : '#64748B'
+                        : colors.onSurfaceVariant
                   }
                 />
                 <Text
@@ -677,7 +681,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   name='cash'
                   family='Ionicons'
                   size={28}
-                  color={selectedPayment === 'cash' ? BRAND_PRIMARY : '#64748B'}
+                  color={selectedPayment === 'cash' ? BRAND_PRIMARY : colors.onSurfaceVariant}
                 />
                 <Text
                   style={[
@@ -715,7 +719,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                     name='card'
                     family='Ionicons'
                     size={28}
-                    color={selectedPayment === 'online' ? BRAND_PRIMARY : '#64748B'}
+                    color={selectedPayment === 'online' ? BRAND_PRIMARY : colors.onSurfaceVariant}
                   />
                   <Text
                     style={[

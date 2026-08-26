@@ -35,7 +35,7 @@ const BAR_BG = colorTokens.base.neutral[200]; // neutral grey
 const SURFACE = '#FFFFFF';
 const SURFACE_MUTED = colorTokens.base.neutral[100];
 const TEXT_PRIMARY = colorTokens.base.neutral[900];
-const TEXT_SECONDARY = '#64748B';
+const TEXT_SECONDARY = colorTokens.base.neutral[700];
 const SHADOW = '#000';
 
 // ---------------------------------------------------------------------------

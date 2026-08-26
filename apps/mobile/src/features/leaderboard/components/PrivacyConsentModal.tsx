@@ -34,7 +34,7 @@ const PRIMARY = colorTokens.base.primary[500];
 const SURFACE = '#FFFFFF';
 const BORDER = colorTokens.base.neutral[200];
 const TEXT_PRIMARY = colorTokens.base.neutral[900];
-const TEXT_SECONDARY = '#6B7280';
+const TEXT_SECONDARY = colorTokens.base.neutral[700];
 const OVERLAY = 'rgba(0,0,0,0.5)';
 const INVERSE_TEXT = '#FFFFFF';
 

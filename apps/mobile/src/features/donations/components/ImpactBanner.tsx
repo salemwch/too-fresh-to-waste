@@ -27,7 +27,7 @@ const COLORS = {
   background: '#FFFFFF',
   shadow: '#000',
   textPrimary: colorTokens.base.neutral[900],
-  textSecondary: '#6B7280',
+  textSecondary: colorTokens.base.neutral[700],
   brand: colorTokens.base.primary[500],
   border: colorTokens.base.neutral[200],
   surfaceMuted: colorTokens.base.neutral[100],

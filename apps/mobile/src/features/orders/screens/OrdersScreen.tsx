@@ -50,7 +50,7 @@ interface OrdersScreenProps {
 
 const TAB_BORDER = colorTokens.base.neutral[100];
 const BRAND_PRIMARY = colorTokens.base.primary[500];
-const TEXT_SECONDARY = '#64748B';
+const TEXT_SECONDARY = colorTokens.base.neutral[700];
 const WHITE = '#FFFFFF';
 const BADGE_BACKGROUND = colorTokens.base.neutral[200];
 const BADGE_ACTIVE_BACKGROUND = 'rgba(255, 255, 255, 0.25)';

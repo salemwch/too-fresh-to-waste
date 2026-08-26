@@ -124,7 +124,7 @@ export const BADGE_METADATA: Record<BadgeType, BadgeMetadata> = {
     description: 'Wrote 5+ quality reviews',
     icon: 'chatbubble-ellipses-outline',
     iconFamily: 'Ionicons',
-    color: '#64748B',
+    color: colorTokens.base.neutral[700],
     bgColor: colorTokens.base.neutral[100],
   },
 };

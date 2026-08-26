@@ -223,7 +223,28 @@ const lightThemeColors = {
   // Text colors
   onBackground: baseColors.neutral[900],
   onSurface: baseColors.neutral[800],
-  onSurfaceVariant: baseColors.neutral[600],
+  /*
+   * neutral[700], not neutral[600].
+   *
+   * At neutral[600] #757575 this failed WCAG AA on every light surface the
+   * system defines except pure white - 4.41 on `surface`, 4.23 on
+   * `surfaceVariant`, 3.97 on `surfaceContainer`, 4.19 on the cream
+   * `background`. It is the token every screen uses for secondary text, so the
+   * failure was app-wide, and it is the same 4.41 that blocked two grey
+   * mappings in MD2 - reached from a different direction. Audit M16.
+   *
+   * neutral[700] #616161 passes on all four (5.34-6.19) and was unused by any
+   * light role, so the light text ramp is now contiguous: onBackground 900,
+   * onSurface 800, onSurfaceVariant 700.
+   *
+   * The cost is that primary/secondary separation narrows from 2.18 to 1.62.
+   * Accepted: colour is not the only carrier of that hierarchy - size and
+   * weight also separate them - and the alternative was failing AA everywhere.
+   *
+   * Dark `onSurfaceVariant` is neutral[400] and already passes at 7.43-9.97;
+   * it is unchanged.
+   */
+  onSurfaceVariant: baseColors.neutral[700],
 
   // Primary colors (Green - Sustainability, Success)
   primary: baseColors.primary[500],

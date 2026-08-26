@@ -31,7 +31,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -52,7 +52,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -238,7 +238,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -259,7 +259,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -445,7 +445,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -466,7 +466,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -652,7 +652,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -673,7 +673,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -859,7 +859,7 @@ exports[`OrdersScreen states error error small-light-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -876,7 +876,7 @@ exports[`OrdersScreen states error error small-light-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -950,7 +950,7 @@ exports[`OrdersScreen states error error standard-dark-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -967,7 +967,7 @@ exports[`OrdersScreen states error error standard-dark-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -1041,7 +1041,7 @@ exports[`OrdersScreen states error error standard-light-ar 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1058,7 +1058,7 @@ exports[`OrdersScreen states error error standard-light-ar 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -1132,7 +1132,7 @@ exports[`OrdersScreen states error error standard-light-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1149,7 +1149,7 @@ exports[`OrdersScreen states error error standard-light-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -1223,7 +1223,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1808,7 +1808,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2393,7 +2393,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2978,7 +2978,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "paddingVertical": 10,
   },
   "View[0]/View[0]/View[1]/Text[0]": {
-    "color": "#64748B",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,

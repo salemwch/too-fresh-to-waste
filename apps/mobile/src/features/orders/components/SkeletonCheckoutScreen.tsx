@@ -9,16 +9,14 @@ import { View, StyleSheet, ScrollView, Platform } from 'react-native';
 import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
-import { colorTokens } from '@/design-system/tokens/colors';
+import { createThemedStyles, type ThemePalette } from '@/design-system/hooks/createThemedStyles';
 
 const { base: sp } = spacingTokens;
 
-const SURFACE_SUBTLE = colorTokens.base.neutral[50];
-const SURFACE = '#FFFFFF';
-const BORDER = colorTokens.base.neutral[200];
 const SHADOW = '#000';
 
 export const SkeletonCheckoutScreen: React.FC = () => {
+  const styles = useStyles();
   const anim = useShimmerAnimation('pulse');
 
   return (
@@ -176,148 +174,154 @@ export const SkeletonCheckoutScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: SURFACE_SUBTLE,
-  },
-  scrollContent: {
-    paddingBottom: 32,
-    paddingTop: 16,
-  },
-  mainCard: {
-    backgroundColor: SURFACE,
-    marginHorizontal: 16,
-    marginTop: -16,
-    borderRadius: 24,
-    padding: sp[5],
-    ...Platform.select({
-      ios: {
-        shadowColor: SHADOW,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  offerDetailsCard: {
-    backgroundColor: SURFACE_SUBTLE,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-  },
-  offerImageRow: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  offerDetails: {
-    flex: 1,
-    marginStart: sp[3],
-  },
-  quantitySection: {
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  quantityLabelRow: {
-    marginBottom: sp[3],
-  },
-  quantityStepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: SURFACE,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: BORDER,
-    paddingVertical: 8,
-    paddingHorizontal: sp[3],
-  },
-  divider: {
-    height: 1,
-    backgroundColor: BORDER,
-    marginBottom: 14,
-  },
-  pickupInfo: {
-    gap: 10,
-  },
-  pickupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sectionDivider: {
-    height: 1,
-    backgroundColor: BORDER,
-    marginVertical: 24,
-  },
-  paymentMethod: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: SURFACE_SUBTLE,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-  },
-  priceBreakdown: {
-    backgroundColor: SURFACE_SUBTLE,
-    borderRadius: 16,
-    padding: 16,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: sp[3],
-  },
-  totalRow: {
-    paddingTop: 16,
-    marginTop: sp[3],
-    borderTopWidth: 2,
-    borderTopColor: BORDER,
-    borderStyle: 'dashed',
-  },
-  inlineGap8: {
-    marginStart: 8,
-  },
-  inlineGap10: {
-    marginStart: 10,
-  },
-  blockGap8: {
-    marginTop: 8,
-  },
-  blockGap6: {
-    marginTop: 6,
-  },
-  quantityMiddleGap: {
-    marginHorizontal: 24,
-  },
-  pickupRowSpaced: {
-    marginTop: 10,
-  },
-  paymentMethodDetails: {
-    flex: 1,
-    marginStart: sp[3],
-  },
-  secondaryActionSpacing: {
-    marginTop: sp[3],
-  },
-  confirmButtonWrapper: {
-    marginTop: 8,
-    marginBottom: sp[3],
-  },
-  trustBadge: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
+const useStyles = createThemedStyles((c: ThemePalette) => {
+  const SURFACE_SUBTLE = c.surfaceVariant;
+  const SURFACE = c.surface;
+  const BORDER = c.outlineVariant;
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: SURFACE_SUBTLE,
+    },
+    scrollContent: {
+      paddingBottom: 32,
+      paddingTop: 16,
+    },
+    mainCard: {
+      backgroundColor: SURFACE,
+      marginHorizontal: 16,
+      marginTop: -16,
+      borderRadius: 24,
+      padding: sp[5],
+      ...Platform.select({
+        ios: {
+          shadowColor: SHADOW,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
+        },
+        android: {
+          elevation: 4,
+        },
+      }),
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    offerDetailsCard: {
+      backgroundColor: SURFACE_SUBTLE,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: BORDER,
+    },
+    offerImageRow: {
+      flexDirection: 'row',
+      marginBottom: 16,
+    },
+    offerDetails: {
+      flex: 1,
+      marginStart: sp[3],
+    },
+    quantitySection: {
+      marginTop: 16,
+      marginBottom: 16,
+    },
+    quantityLabelRow: {
+      marginBottom: sp[3],
+    },
+    quantityStepper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: SURFACE,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: BORDER,
+      paddingVertical: 8,
+      paddingHorizontal: sp[3],
+    },
+    divider: {
+      height: 1,
+      backgroundColor: BORDER,
+      marginBottom: 14,
+    },
+    pickupInfo: {
+      gap: 10,
+    },
+    pickupRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    sectionDivider: {
+      height: 1,
+      backgroundColor: BORDER,
+      marginVertical: 24,
+    },
+    paymentMethod: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: SURFACE_SUBTLE,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: BORDER,
+    },
+    priceBreakdown: {
+      backgroundColor: SURFACE_SUBTLE,
+      borderRadius: 16,
+      padding: 16,
+    },
+    priceRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: sp[3],
+    },
+    totalRow: {
+      paddingTop: 16,
+      marginTop: sp[3],
+      borderTopWidth: 2,
+      borderTopColor: BORDER,
+      borderStyle: 'dashed',
+    },
+    inlineGap8: {
+      marginStart: 8,
+    },
+    inlineGap10: {
+      marginStart: 10,
+    },
+    blockGap8: {
+      marginTop: 8,
+    },
+    blockGap6: {
+      marginTop: 6,
+    },
+    quantityMiddleGap: {
+      marginHorizontal: 24,
+    },
+    pickupRowSpaced: {
+      marginTop: 10,
+    },
+    paymentMethodDetails: {
+      flex: 1,
+      marginStart: sp[3],
+    },
+    secondaryActionSpacing: {
+      marginTop: sp[3],
+    },
+    confirmButtonWrapper: {
+      marginTop: 8,
+      marginBottom: sp[3],
+    },
+    trustBadge: {
+      alignItems: 'center',
+      marginTop: 16,
+    },
+  });
 });

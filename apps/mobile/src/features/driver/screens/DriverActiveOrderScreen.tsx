@@ -43,7 +43,7 @@ import { typographyTokens } from '@/design-system/tokens/typography';
 
 import { useTheme } from '@/design-system/providers';
 
-import { createDriverStyles, type DriverPalette } from '../driverTheme';
+import { createThemedStyles, type ThemePalette } from '@/design-system/hooks/createThemedStyles';
 import type {
   DriverActiveOrderNavigationProp,
   DriverActiveOrderRouteProp,
@@ -539,7 +539,7 @@ const FOOTER_SHADOW = Platform.select({
   android: { elevation: 8 },
 });
 
-const useStyles = createDriverStyles((c: DriverPalette) =>
+const useStyles = createThemedStyles((c: ThemePalette) =>
   StyleSheet.create({
     container: {
       flex: 1,

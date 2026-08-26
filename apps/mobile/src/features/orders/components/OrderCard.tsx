@@ -24,6 +24,7 @@ import { View, StyleSheet, Pressable, Platform, Animated } from 'react-native';
 import FastImage from 'react-native-fast-image';
 
 import { Icon, Text } from '@/design-system/components/atoms';
+import { createThemedStyles, type ThemePalette } from '@/design-system/hooks/createThemedStyles';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { usePressGuard } from '@/hooks/usePressGuard';
 import { Logger } from '@/utils/logger';
@@ -61,26 +62,31 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
   [OrderStatus.COMPLETED]: { label: 'Completed', bg: '#D1FAE5', text: '#065F46' },
   [OrderStatus.PENDING_PAYMENT]: { label: 'Awaiting Payment', bg: '#FEF3C7', text: '#92400E' },
   [OrderStatus.CANCELLED]: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
-  [OrderStatus.EXPIRED]: { label: 'Expired', bg: colorTokens.base.neutral[100], text: '#6B7280' },
-  [OrderStatus.REFUNDED]: { label: 'Refunded', bg: colorTokens.base.neutral[100], text: '#6B7280' },
+  [OrderStatus.EXPIRED]: {
+    label: 'Expired',
+    bg: colorTokens.base.neutral[100],
+    text: colorTokens.base.neutral[700],
+  },
+  [OrderStatus.REFUNDED]: {
+    label: 'Refunded',
+    bg: colorTokens.base.neutral[100],
+    text: colorTokens.base.neutral[700],
+  },
 };
 
 const DEFAULT_STATUS: StatusConfig = {
   label: 'Unknown',
   bg: colorTokens.base.neutral[100],
-  text: '#6B7280',
+  text: colorTokens.base.neutral[700],
 };
-const SURFACE = '#FFFFFF';
-const SURFACE_MUTED = colorTokens.base.neutral[100];
-const BORDER = colorTokens.base.neutral[200];
-const TEXT_PRIMARY = colorTokens.base.neutral[900];
-const TEXT_SECONDARY = '#64748B';
-const TEXT_TERTIARY = colorTokens.base.neutral[500];
-const TEXT_MUTED = colorTokens.base.neutral[700];
+/*
+ * Status tints stay literal - audit M18. The theme's own on*Container /
+ * *Container pairs fail AA on four of eight combinations, so migrating these
+ * would swap a hardcoded palette for a measurably worse tokenised one. They are
+ * light-only, which is why this card is theme-aware and its badges are not yet.
+ */
 const SUCCESS_SOFT = '#D1FAE5';
 const SUCCESS_TEXT = '#065F46';
-const SUCCESS = colorTokens.base.success[500];
-const PRIMARY = colorTokens.base.primary[500];
 const SHADOW = '#000';
 
 // ---------------------------------------------------------------------------
@@ -166,6 +172,7 @@ export function formatPickupDate(scheduledDate: string | undefined): string {
 // ---------------------------------------------------------------------------
 
 const PulsingDot: React.FC = () => {
+  const styles = useStyles();
   const [pulseAnim] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
@@ -200,6 +207,7 @@ interface OrderCardProps {
 }
 
 export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => {
+  const styles = useStyles();
   const { t } = useTranslation();
   const rawPress = useCallback(() => onPress(order), [onPress, order]);
   const { guardedPress: handlePress } = usePressGuard(rawPress, 400);
@@ -299,7 +307,12 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
       {/* ── Pickup Time Row ── */}
       {startTime && endTime ? (
         <View style={styles.pickupRow}>
-          <Icon name='time-outline' family='Ionicons' size={16} color='#64748B' />
+          <Icon
+            name='time-outline'
+            family='Ionicons'
+            size={16}
+            color={colorTokens.base.neutral[700]}
+          />
           <Text style={styles.pickupText}>
             Pickup {pickupDateLabel}: {startTime} - {endTime}
           </Text>
@@ -348,164 +361,166 @@ OrderCard.displayName = 'OrderCard';
 // Styles
 // ---------------------------------------------------------------------------
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: SURFACE,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: sp[3],
-    position: 'relative',
-    ...Platform.select({
-      ios: {
-        overflow: 'hidden' as const,
-        shadowColor: SHADOW,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  cardPressed: {
-    opacity: 0.85,
-  },
+const useStyles = createThemedStyles((c: ThemePalette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: sp[3],
+      position: 'relative',
+      ...Platform.select({
+        ios: {
+          overflow: 'hidden' as const,
+          shadowColor: SHADOW,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
+        },
+        android: {
+          elevation: 3,
+        },
+      }),
+    },
+    cardPressed: {
+      opacity: 0.85,
+    },
 
-  // Status badge — absolute top-right
-  statusBadge: {
-    position: 'absolute',
-    top: 12,
-    insetInlineEnd: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    zIndex: 1,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+    // Status badge — absolute top-right
+    statusBadge: {
+      position: 'absolute',
+      top: 12,
+      insetInlineEnd: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 8,
+      zIndex: 1,
+    },
+    statusText: {
+      fontSize: 11,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
 
-  // Top row
-  topRow: {
-    flexDirection: 'row',
-    marginBottom: 14,
-    paddingEnd: 80, // Space for absolute status badge
-  },
-  thumbnail: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    backgroundColor: SURFACE_MUTED,
-  },
-  thumbnailPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    backgroundColor: SURFACE_MUTED,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: BORDER,
-  },
-  infoColumn: {
-    flex: 1,
-    marginStart: sp[3],
-    justifyContent: 'center',
-  },
-  offerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: TEXT_PRIMARY,
-    lineHeight: 22,
-  },
-  establishmentName: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: TEXT_SECONDARY,
-    marginTop: 2,
-  },
-  orderNumber: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: TEXT_TERTIARY,
-    marginTop: 2,
-  },
+    // Top row
+    topRow: {
+      flexDirection: 'row',
+      marginBottom: 14,
+      paddingEnd: 80, // Space for absolute status badge
+    },
+    thumbnail: {
+      width: 64,
+      height: 64,
+      borderRadius: 12,
+      backgroundColor: c.surfaceVariant,
+    },
+    thumbnailPlaceholder: {
+      width: 64,
+      height: 64,
+      borderRadius: 12,
+      backgroundColor: c.surfaceVariant,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: c.outlineVariant,
+    },
+    infoColumn: {
+      flex: 1,
+      marginStart: sp[3],
+      justifyContent: 'center',
+    },
+    offerTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: c.onBackground,
+      lineHeight: 22,
+    },
+    establishmentName: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: c.onSurfaceVariant,
+      marginTop: 2,
+    },
+    orderNumber: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colorTokens.base.neutral[500],
+      marginTop: 2,
+    },
 
-  // Pickup row
-  pickupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: sp[3],
-  },
-  pickupText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: TEXT_MUTED,
-    marginStart: 6,
-    flex: 1,
-  },
-  goNowContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: SUCCESS_SOFT,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginStart: 8,
-  },
-  goNowText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: SUCCESS_TEXT,
-    marginStart: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  pulsingDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: SUCCESS,
-  },
+    // Pickup row
+    pickupRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: sp[3],
+    },
+    pickupText: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: c.onSurfaceVariant,
+      marginStart: 6,
+      flex: 1,
+    },
+    goNowContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: SUCCESS_SOFT,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
+      marginStart: 8,
+    },
+    goNowText: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: SUCCESS_TEXT,
+      marginStart: 4,
+      textTransform: 'uppercase',
+      letterSpacing: 0.3,
+    },
+    pulsingDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: c.success,
+    },
 
-  // Dashed divider
-  dashedDivider: {
-    height: 1,
-    borderStyle: 'dashed',
-    borderWidth: 0.8,
-    borderColor: BORDER,
-    marginBottom: sp[3],
-  },
+    // Dashed divider
+    dashedDivider: {
+      height: 1,
+      borderStyle: 'dashed',
+      borderWidth: 0.8,
+      borderColor: c.outlineVariant,
+      marginBottom: sp[3],
+    },
 
-  // Bottom row
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  quantityText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: TEXT_MUTED,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  originalPrice: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: TEXT_TERTIARY,
-    textDecorationLine: 'line-through',
-  },
-  activePrice: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: PRIMARY,
-  },
-});
+    // Bottom row
+    bottomRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    quantityText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: c.onSurfaceVariant,
+    },
+    priceContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    originalPrice: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colorTokens.base.neutral[500],
+      textDecorationLine: 'line-through',
+    },
+    activePrice: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: c.primary,
+    },
+  }),
+);

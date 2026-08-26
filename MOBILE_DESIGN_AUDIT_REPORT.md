@@ -171,12 +171,27 @@ go.
 
 ### M4. Eight screens never read the theme
 
-> **PARTLY RESOLVED 2026-08-26 by MD4.** The four driver screens now read the
-> theme through `createDriverStyles`. Verified behaviourally rather than by
-> inspection: their dark baselines were byte-identical to their light ones
-> before this change and now differ, asserted by `driverDesignSystem.test.ts` ›
-> "renders differently in dark than in light". The eight consumer screens this
-> entry names are **not** fixed - that is Phase 6.
+> **RESOLVED 2026-08-26 (Phase 6.3), with two corrections to this entry.** Every
+> baselined surface in the app now renders differently in dark, asserted by
+> `darkModeCoverage.test.ts` against the committed baselines rather than against
+> the source.
+>
+> **This entry was wrong about two of its eight.** `LeaderboardScreen` is
+> deliberately theme-fixed - its palette file says so - and `WelcomeScreen` is a
+> brand-primary splash whose `primary` in dark would be _worse_. Neither is a
+> defect.
+>
+> **And it was incomplete.** It listed only screens, so it missed `OrderCard` -
+> the most-seen card in the product - and the `Button` disabled variant, both of
+> which rendered identically in both themes. The baseline-reading gate found
+> them in one run.
+>
+> Superseded detail: the four driver screens read the theme through
+> `createThemedStyles`. Verified behaviourally rather than by inspection: their
+> dark baselines were byte-identical to their light ones before this change and
+> now differ, asserted by `driverDesignSystem.test.ts` › "renders differently in
+> dark than in light". The eight consumer screens this entry names are **not**
+> fixed - that is Phase 6.
 
 - **Screens:** `ForceChangePasswordScreen`, `WelcomeScreen`,
   `DriverActiveOrderScreen`, `DriverEarningsScreen`, `DriverOrderDetailScreen`,
@@ -388,6 +403,17 @@ checked on device, not asserted as a violation.
 
 #### M16-b. The light theme's own `onSurfaceVariant` fails AA (found 2026-08-26)
 
+> **RESOLVED 2026-08-26 (Phase 6.1).** Light `onSurfaceVariant` moved to
+> `neutral[700] #616161`, which passes on all four light surfaces (5.34-6.19).
+> Dark `outline`, the only other role bound to `neutral[600]`, is a border and
+> passes non-text 3.0 everywhere, so it was left alone. The 37 grey mappings M2
+> held back followed the token to `neutral[700]` and now read 5.92 where they
+> read 4.55. `themeContrast.test.ts` gates all of it.
+>
+> **M16-a is NOT resolved.** The 29 `neutral[500]` sites - 17 of them text - are
+> still 2.68. That is a separate decision about which step decorative and
+> disabled text uses.
+
 Found while checking dark contrast for MD4, and it is the **root cause of the
 Phase 4 blocker**, not a separate coincidence. `onSurfaceVariant` is the token
 every screen in the app uses for secondary text. In the light theme it is
@@ -422,6 +448,53 @@ token pair itself, reached from a different direction.
   is a governance event (`DESIGN.md` §20) and far outside a driver-flow
   migration. It needs its own change with the full matrix as its gate.
 - **Fix type:** **product/brand decision**, then technical.
+
+### M17. Light `outline` is invisible as a control boundary
+
+Found 2026-08-26 by `themeContrast.test.ts`. Light `outline` is
+`neutral[300] #E0E0E0`:
+
+| `outline` on       | Ratio |
+| ------------------ | ----- |
+| `background` cream | 1.20  |
+| `surface`          | 1.26  |
+| `surfaceVariant`   | 1.21  |
+| `surfaceContainer` | 1.14  |
+
+WCAG 1.4.11 wants 3.0 for a boundary that identifies a control. Dark `outline`
+(`neutral[600]`) is fine at 2.54-4.07.
+
+- **Severity:** P2 for dividers, P1 for input borders - the same token does
+  both, which is part of the problem.
+- **Why it is not fixed:** even `neutral[500]` only reaches 2.57. Closing the
+  gap means `neutral[600]`, which visibly redraws every border in the app. That
+  is a design decision, not a migration.
+- **Guarded meanwhile:** `themeContrast.test.ts` pins the current floor, so the
+  value cannot quietly get worse.
+- **Fix type:** **product/brand decision**, then technical.
+
+### M18. Four of eight status-container pairs fail AA
+
+Found 2026-08-26 by `themeContrast.test.ts`.
+
+| Theme | success   | error     | warning   | info      |
+| ----- | --------- | --------- | --------- | --------- |
+| light | passes    | passes    | **fails** | **fails** |
+| dark  | **fails** | **fails** | **fails** | **fails** |
+
+This is the same defect `.claude/rules/ui-ux.md` already records for web ("the
+`bg-X/10 text-X` tint pattern fails AA for 7 of 8 status colours"), and
+`DESIGN.md` §2.5 already prescribes the solid-fill replacement.
+
+- **Consequence for Phase 6:** `CheckoutScreen` and `OrderCard` keep hardcoded
+  light-only tints for their status badges. Migrating them onto the container
+  roles would have swapped a hardcoded palette for a measurably worse tokenised
+  one, so both are theme-aware while their badges are not.
+- **Also pre-existing:** Checkout's own `SUCCESS_TEXT` on `SUCCESS_SURFACE` is
+  **3.6** and already fails. Unchanged, and part of the same decision.
+- **Recommendation:** adopt the §2.5 solid-fill badge app-wide, then delete the
+  tint constants from both files.
+- **Fix type:** **design decision**, then technical.
 
 ### M14. Two list screens have no explicit error branch
 

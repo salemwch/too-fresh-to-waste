@@ -35,15 +35,14 @@ const PALETTE_FILES = [
  * neutral ramp. The drop is 134 rather than 135 because this regex only counts
  * single-quoted literals and one migrated usage was a double-quoted JSX
  * attribute.
- *
- * Still above zero on purpose: 37 uses of #64748B and #6B7280 are deliberately
- * unmigrated - mapping them to neutral[600] would drop secondary text on the
- * *-50 screen background from 4.55/4.63 to 4.41 and fail WCAG AA. See
- * .claude/work/mobile-design-token-migration.md.
+ * 2026-08-26 (Phase 6.1): 316, after the last 37 - #64748B and #6B7280 - moved
+ * to neutral[700]. They had been held back because neutral[600] failed AA on
+ * the *-50 screen background; moving light onSurfaceVariant to neutral[700]
+ * for the same reason gave them a passing target (5.92, from 4.55/4.62).
  *
  * Lower this when you clear some. Never raise it.
  */
-const MAX_RAW_COLORS = 354;
+const MAX_RAW_COLORS = 316;
 
 const HEX_LITERAL = /'#[0-9a-fA-F]{3,8}'/gu;
 

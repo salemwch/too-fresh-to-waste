@@ -47,7 +47,7 @@ interface StatCard {
 const TEAL = colorTokens.base.primary[500];
 const SURFACE = '#FFFFFF';
 const TEXT_PRIMARY = colorTokens.base.neutral[900];
-const TEXT_SECONDARY = '#64748B';
+const TEXT_SECONDARY = colorTokens.base.neutral[700];
 const SHADOW = '#000';
 
 const ImpactStatsRowComponent: React.FC<ImpactStatsRowProps> = ({ totalBagsSaved }) => {

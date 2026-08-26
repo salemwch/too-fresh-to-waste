@@ -22,7 +22,7 @@ interface DeletedOfferCardProps {
 const COLORS = {
   surface: '#FFFFFF',
   border: colorTokens.base.neutral[200],
-  textSecondary: '#6B7280',
+  textSecondary: colorTokens.base.neutral[700],
   textMuted: colorTokens.base.neutral[500],
   dangerSurface: '#FEE2E2',
   danger: colorTokens.base.error[500],

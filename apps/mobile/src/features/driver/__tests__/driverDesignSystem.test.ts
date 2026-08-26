@@ -68,7 +68,7 @@ describe('driver flow design-system compliance (MD4)', () => {
     });
 
     it.each(SCREENS)('%s builds its styles from the theme', screen => {
-      expect(read(screen)).toContain('createDriverStyles');
+      expect(read(screen)).toContain('createThemedStyles');
     });
   });
 

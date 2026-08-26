@@ -524,7 +524,7 @@ exports[`Input / default large-light-en 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -552,7 +552,7 @@ exports[`Input / default small-light-en 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -608,7 +608,7 @@ exports[`Input / default standard-light-ar 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -636,7 +636,7 @@ exports[`Input / default standard-light-en 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -664,7 +664,7 @@ exports[`Input / default standard-light-fr 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -701,7 +701,7 @@ exports[`Input / error large-light-en 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -738,7 +738,7 @@ exports[`Input / error small-light-en 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -812,7 +812,7 @@ exports[`Input / error standard-light-ar 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -849,7 +849,7 @@ exports[`Input / error standard-light-en 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -886,7 +886,7 @@ exports[`Input / error standard-light-fr 1`] = `
     "paddingVertical": 0,
   },
   "input": {
-    "@placeholderTextColor": "#757575",
+    "@placeholderTextColor": "#616161",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",

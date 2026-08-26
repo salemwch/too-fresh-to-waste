@@ -43,7 +43,7 @@ import { typographyTokens } from '@/design-system/tokens/typography';
 
 import { useTheme } from '@/design-system/providers';
 
-import { createDriverStyles, type DriverPalette } from '../driverTheme';
+import { createThemedStyles, type ThemePalette } from '@/design-system/hooks/createThemedStyles';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -410,7 +410,7 @@ const CARD_SHADOW = Platform.select({
   android: { elevation: 2 },
 });
 
-const useStyles = createDriverStyles((c: DriverPalette) =>
+const useStyles = createThemedStyles((c: ThemePalette) =>
   StyleSheet.create({
     container: {
       flex: 1,

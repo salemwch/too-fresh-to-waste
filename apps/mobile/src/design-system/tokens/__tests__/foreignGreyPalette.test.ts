@@ -6,9 +6,14 @@
  * file is what stops the other ramp reappearing: a value from it is a design
  * decision that belongs in DESIGN.md, not a literal typed into a stylesheet.
  *
- * The two survivors are deliberate and are asserted as such - see BLOCKED below.
- * A test that only forbade the migrated values would let someone "finish the
- * job" and break WCAG AA without anything failing.
+ * RESOLVED 2026-08-26. The migration is now complete: all 172 uses are gone.
+ *
+ * The two that were held back - #64748B and #6B7280 - were blocked because
+ * their nearest token, neutral[600], gave 4.41 against the *-50 screen
+ * background and failed AA. Phase 6.1 moved light `onSurfaceVariant` to
+ * neutral[700] for the same reason, and these 37 uses followed it there: 5.92
+ * on that background, against 4.55 and 4.62 before. The BLOCKED list is empty
+ * and this file now forbids the whole ramp without exception.
  */
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -41,15 +46,13 @@ const TAILWIND_GREYS = [
 ] as const;
 
 /**
- * Not migrated, on purpose.
+ * Empty since 2026-08-26.
  *
- * Both are secondary text. Their approved target, `neutral[600] #757575`, gives
- * 4.41 against the `*-50` screen background these six files use - below the 4.5
- * AA minimum, where the current values sit at 4.55 and 4.63 and pass. Migrating
- * them would trade a consistency win for an accessibility regression, so they
- * wait on a product decision about which token secondary text should use.
+ * Kept as a named, empty list rather than deleted: it is the seam where an
+ * exception would go, and the two assertions below are written against it. If a
+ * value ever has to be held back again, adding it here is the whole change.
  */
-const BLOCKED = ['#64748B', '#6B7280'] as const;
+const BLOCKED: readonly string[] = [];
 
 const isSource = (f: string): boolean =>
   (f.endsWith('.ts') || f.endsWith('.tsx')) && !f.endsWith('.d.ts');
@@ -101,8 +104,8 @@ describe('foreign grey palette (MD2)', () => {
     expect(sourceFiles(SRC).length).toBeGreaterThan(100);
   });
 
-  it('contains no Tailwind slate or gray value outside the two blocked ones', () => {
-    const offenders = usages.filter(u => !BLOCKED.includes(u.hex as (typeof BLOCKED)[number]));
+  it('contains no Tailwind slate or gray value at all', () => {
+    const offenders = usages.filter(u => !BLOCKED.includes(u.hex));
     expect({
       count: offenders.length,
       where: offenders.map(u => `${u.file}:${u.line} ${u.hex}`),
@@ -110,19 +113,21 @@ describe('foreign grey palette (MD2)', () => {
   });
 
   /*
-   * The inverse assertion. Without it, a future pass that migrates the blocked
-   * pair - the obvious "we missed some" cleanup - would turn this file green
-   * while pushing secondary text below AA on six screens.
+   * Guards the exception seam itself. If BLOCKED is ever repopulated, the entry
+   * has to be justified in this file - and a value listed there but no longer
+   * in the source is a stale exception, which is how a documented deviation
+   * quietly becomes a lie.
    */
-  it.each(BLOCKED)('%s is still present, because migrating it would break WCAG AA', hex => {
-    expect(usages.some(u => u.hex === hex)).toBe(true);
+  it('lists no exception that has already been removed from the source', () => {
+    // A value listed as a deliberate exception but absent from the code is a
+    // stale exception, which is how a documented deviation quietly becomes a
+    // lie. Written as a loop rather than it.each because the list is empty and
+    // it.each rejects an empty table.
+    const stale = BLOCKED.filter(hex => !usages.some(u => u.hex === hex));
+    expect(stale).toEqual([]);
   });
 
-  it('keeps the blocked pair confined to the count recorded at migration time', () => {
-    // 19 + 18 on 2026-08-26. A rise means new code copied the foreign value in.
-    const counts = Object.fromEntries(
-      BLOCKED.map(hex => [hex, usages.filter(u => u.hex === hex).length]),
-    );
-    expect(counts).toEqual({ '#64748B': 19, '#6B7280': 18 });
+  it('has no exceptions left', () => {
+    expect(BLOCKED).toEqual([]);
   });
 });

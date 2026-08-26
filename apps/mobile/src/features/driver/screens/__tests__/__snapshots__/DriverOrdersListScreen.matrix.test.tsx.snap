@@ -18,7 +18,7 @@ exports[`DriverOrdersListScreen driver profile failed profile-error large-light-
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -96,7 +96,7 @@ exports[`DriverOrdersListScreen driver profile failed profile-error small-light-
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -213,7 +213,7 @@ exports[`DriverOrdersListScreen driver profile failed profile-error standard-lig
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -252,7 +252,7 @@ exports[`DriverOrdersListScreen driver profile failed profile-error standard-lig
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -291,7 +291,7 @@ exports[`DriverOrdersListScreen driver profile failed profile-error standard-lig
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -329,7 +329,7 @@ exports[`DriverOrdersListScreen driver profile loading profile-loading large-lig
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -379,7 +379,7 @@ exports[`DriverOrdersListScreen driver profile loading profile-loading small-lig
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -454,7 +454,7 @@ exports[`DriverOrdersListScreen driver profile loading profile-loading standard-
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -479,7 +479,7 @@ exports[`DriverOrdersListScreen driver profile loading profile-loading standard-
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -504,7 +504,7 @@ exports[`DriverOrdersListScreen driver profile loading profile-loading standard-
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -530,7 +530,7 @@ exports[`DriverOrdersListScreen location permission blocked permission-blocked l
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -608,7 +608,7 @@ exports[`DriverOrdersListScreen location permission blocked permission-blocked s
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -725,7 +725,7 @@ exports[`DriverOrdersListScreen location permission blocked permission-blocked s
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -764,7 +764,7 @@ exports[`DriverOrdersListScreen location permission blocked permission-blocked s
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -803,7 +803,7 @@ exports[`DriverOrdersListScreen location permission blocked permission-blocked s
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -842,7 +842,7 @@ exports[`DriverOrdersListScreen location permission denied permission-denied lar
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -920,7 +920,7 @@ exports[`DriverOrdersListScreen location permission denied permission-denied sma
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -1037,7 +1037,7 @@ exports[`DriverOrdersListScreen location permission denied permission-denied sta
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -1076,7 +1076,7 @@ exports[`DriverOrdersListScreen location permission denied permission-denied sta
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -1115,7 +1115,7 @@ exports[`DriverOrdersListScreen location permission denied permission-denied sta
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -1158,7 +1158,7 @@ exports[`DriverOrdersListScreen offline offline large-light-en 1`] = `
     "fontWeight": "700",
   },
   "View[0]/View[0]/View[0]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "borderRadius": 5,
     "height": 10,
     "width": 10,
@@ -1193,7 +1193,7 @@ exports[`DriverOrdersListScreen offline offline large-light-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -1288,7 +1288,7 @@ exports[`DriverOrdersListScreen offline offline small-light-en 1`] = `
     "fontWeight": "700",
   },
   "View[0]/View[0]/View[0]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "borderRadius": 5,
     "height": 10,
     "width": 10,
@@ -1323,7 +1323,7 @@ exports[`DriverOrdersListScreen offline offline small-light-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -1483,7 +1483,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-ar 1`] = `
     "fontWeight": "700",
   },
   "View[0]/View[0]/View[0]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "borderRadius": 5,
     "height": 10,
     "width": 10,
@@ -1518,7 +1518,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-ar 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -1548,7 +1548,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-en 1`] = `
     "fontWeight": "700",
   },
   "View[0]/View[0]/View[0]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "borderRadius": 5,
     "height": 10,
     "width": 10,
@@ -1583,7 +1583,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-en 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -1613,7 +1613,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-fr 1`] = `
     "fontWeight": "700",
   },
   "View[0]/View[0]/View[0]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "borderRadius": 5,
     "height": 10,
     "width": 10,
@@ -1648,7 +1648,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-fr 1`] = `
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -1713,7 +1713,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix large-light-en 
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -1843,7 +1843,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix small-light-en 
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -2038,7 +2038,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -2103,7 +2103,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -2168,7 +2168,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-
     "textAlign": "center",
   },
   "View[0]/View[1]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 4,
     "textAlign": "center",
@@ -2189,7 +2189,7 @@ exports[`DriverOrdersListScreen online, orders available populated large-light-e
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -2203,7 +2203,7 @@ exports[`DriverOrdersListScreen online, orders available populated large-light-e
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -2218,7 +2218,7 @@ exports[`DriverOrdersListScreen online, orders available populated large-light-e
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2253,7 +2253,7 @@ exports[`DriverOrdersListScreen online, orders available populated large-light-e
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -2267,7 +2267,7 @@ exports[`DriverOrdersListScreen online, orders available populated large-light-e
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -2282,7 +2282,7 @@ exports[`DriverOrdersListScreen online, orders available populated large-light-e
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2352,7 +2352,7 @@ exports[`DriverOrdersListScreen online, orders available populated large-light-e
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -2579,7 +2579,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-light-e
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -2593,7 +2593,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-light-e
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -2608,7 +2608,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-light-e
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2643,7 +2643,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-light-e
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -2657,7 +2657,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-light-e
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -2672,7 +2672,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-light-e
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -2742,7 +2742,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-light-e
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -3164,7 +3164,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -3178,7 +3178,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -3193,7 +3193,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -3228,7 +3228,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -3242,7 +3242,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -3257,7 +3257,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -3327,7 +3327,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -3359,7 +3359,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -3373,7 +3373,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -3388,7 +3388,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -3423,7 +3423,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -3437,7 +3437,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -3452,7 +3452,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -3522,7 +3522,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -3554,7 +3554,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -3568,7 +3568,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -3583,7 +3583,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -3618,7 +3618,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "padding": 16,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginBottom": 4,
   },
@@ -3632,7 +3632,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "500",
     "marginStart": 4,
@@ -3647,7 +3647,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "marginBottom": 2,
   },
   "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "letterSpacing": 0.4,
   },
@@ -3717,7 +3717,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -3757,7 +3757,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool large-light-en 1`]
     "textAlign": "center",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -3805,7 +3805,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool large-light-en 1`]
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -3933,7 +3933,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool small-light-en 1`]
     "textAlign": "center",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -3981,7 +3981,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool small-light-en 1`]
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -4197,7 +4197,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-ar 
     "textAlign": "center",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -4245,7 +4245,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-ar 
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -4285,7 +4285,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-en 
     "textAlign": "center",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -4333,7 +4333,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-en 
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -4373,7 +4373,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-fr 
     "textAlign": "center",
   },
   "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 14,
     "lineHeight": 22,
     "textAlign": "center",
@@ -4421,7 +4421,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-fr 
     "paddingVertical": 8,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0.5,
@@ -4485,7 +4485,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "padding": 16,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 16,
     "textAlign": "center",
@@ -4512,7 +4512,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "marginBottom": 2,
   },
   "View[0]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "lineHeight": 18,
   },
@@ -4643,7 +4643,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "padding": 16,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 16,
     "textAlign": "center",
@@ -4670,7 +4670,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "marginBottom": 2,
   },
   "View[0]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "lineHeight": 18,
   },
@@ -4880,7 +4880,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "padding": 16,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 16,
     "textAlign": "center",
@@ -4907,7 +4907,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "marginBottom": 2,
   },
   "View[0]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "lineHeight": 18,
   },
@@ -4959,7 +4959,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "padding": 16,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 16,
     "textAlign": "center",
@@ -4986,7 +4986,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "marginBottom": 2,
   },
   "View[0]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "lineHeight": 18,
   },
@@ -5038,7 +5038,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "padding": 16,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "marginTop": 16,
     "textAlign": "center",
@@ -5065,7 +5065,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
     "marginBottom": 2,
   },
   "View[0]/View[1]/View[0]/View[0]/Text[1]": {
-    "color": "#757575",
+    "color": "#616161",
     "fontSize": 12,
     "lineHeight": 18,
   },

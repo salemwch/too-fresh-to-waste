@@ -173,7 +173,7 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
 
 const BRAND_PRIMARY = colorTokens.base.primary[500];
 const TEXT_PRIMARY = colorTokens.base.neutral[900];
-const TEXT_SECONDARY = '#64748B';
+const TEXT_SECONDARY = colorTokens.base.neutral[700];
 const SURFACE = '#FFFFFF';
 const BORDER_SUBTLE = colorTokens.base.neutral[200];
 

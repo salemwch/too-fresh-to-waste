@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   },
   subline: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colorTokens.base.neutral[700],
     textAlign: 'center',
     lineHeight: 21,
     marginBottom: sp[5],
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
   progressFraction: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colorTokens.base.neutral[700],
   },
   progressTrack: {
     height: 8,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   },
   progressCaption: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colorTokens.base.neutral[700],
     textAlign: 'center',
     fontStyle: 'italic',
   },

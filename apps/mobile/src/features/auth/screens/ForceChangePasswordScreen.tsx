@@ -35,6 +35,7 @@ import { apiClient, BackendApiResponse } from '@/services/apiClient';
 import { SecureStorage } from '@/services/SecureStorage';
 import { backgroundStorage } from '@/utils/backgroundStorage';
 import { Logger } from '@/utils/logger';
+import { createThemedStyles, type ThemePalette } from '@/design-system/hooks/createThemedStyles';
 import { colorTokens } from '@/design-system/tokens/colors';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -57,6 +58,7 @@ interface ForcePasswordChangeResponseData {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ForceChangePasswordScreen() {
+  const styles = useStyles();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
@@ -171,64 +173,66 @@ export default function ForceChangePasswordScreen() {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
-  },
-  header: {
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colorTokens.base.primary[500],
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  form: {
-    gap: 0,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colorTokens.base.neutral[300],
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: 8,
-    backgroundColor: colorTokens.base.neutral[50],
-    color: colorTokens.base.neutral[900],
-  },
-  inputError: {
-    borderColor: colorTokens.base.error[500],
-  },
-  errorText: {
-    color: colorTokens.base.error[500],
-    fontSize: 12,
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: colorTokens.base.primary[500],
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+const useStyles = createThemedStyles((c: ThemePalette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    container: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      padding: 24,
+    },
+    header: {
+      marginBottom: 32,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: c.primary,
+      marginBottom: 8,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: c.onSurfaceVariant,
+      lineHeight: 20,
+    },
+    form: {
+      gap: 0,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: c.outline,
+      borderRadius: 10,
+      padding: 14,
+      fontSize: 16,
+      marginBottom: 8,
+      backgroundColor: c.surface,
+      color: c.onBackground,
+    },
+    inputError: {
+      borderColor: c.error,
+    },
+    errorText: {
+      color: c.error,
+      fontSize: 12,
+      marginBottom: 16,
+    },
+    button: {
+      backgroundColor: c.primary,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: 'center',
+      marginTop: 16,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    buttonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  }),
+);

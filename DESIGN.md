@@ -1828,8 +1828,13 @@ through: a mixed file is expected, and an unreviewed drive-by change to a
 rendered value is not.
 
 **E24. Two Tailwind greys remain raw in mobile, on accessibility grounds.**
-`OPEN` MD2 mapped 135 of 172 foreign slate/gray literals onto the neutral ramp.
-`#64748B` (19 uses) and `#6B7280` (18) were deliberately left as raw hex.
+`RESOLVED 2026-08-26` - light `onSurfaceVariant` moved to `neutral[700]`, and
+these 37 uses followed it there (5.92, from 4.55/4.62). The foreign-grey
+migration is complete and `foreignGreyPalette.test.ts` now has an empty
+exception list. Original entry kept below.
+
+~~`OPEN`~~ MD2 mapped 135 of 172 foreign slate/gray literals onto the neutral
+ramp. `#64748B` (19 uses) and `#6B7280` (18) were deliberately left as raw hex.
 
 Their nearest token is `neutral[600] #757575`. Measured against the surface each
 actually sits on rather than against white:
@@ -1856,6 +1861,36 @@ one is a brand call rather than a mapping. The same decision governs the 17
 
 Until then: do not replace these two values while passing through, and do not
 introduce them anywhere new.
+
+**E25. Status badges keep light-only tints in mobile.** `OPEN` `CheckoutScreen`,
+`CheckoutScreen.styles.ts` and `OrderCard` are theme-aware everywhere except
+their status tints, which stay as hardcoded light values.
+
+The reason is measured, not habitual: four of the eight `on*Container` /
+`*Container` pairs in the token set fail WCAG AA - all four in dark, plus
+warning and info in light - so migrating the tints onto the roles would make
+them worse. Checkout's own `SUCCESS_TEXT` on `SUCCESS_SURFACE` is already 3.6
+and fails.
+
+This is the mobile face of the web finding in `.claude/rules/ui-ux.md`, and §2.5
+of this document already prescribes the fix: a solid fill rather than a tint.
+Clearing E25 means adopting §2.5 on mobile, which is audit finding **M18**.
+
+Until then: do not add a new status tint, and do not migrate these onto
+`*Container` roles thinking it is a cleanup.
+
+**E26. Two mobile surfaces deliberately ignore the theme.** `OPEN`
+`LeaderboardScreen` renders on a fixed dark gold-accented ground, and
+`WelcomeScreen` is a full-bleed brand-primary splash with white text. Both are
+intentional: in dark, `colors.primary` resolves to `primary[300]`, a light teal,
+which would make the welcome splash _less_ legible rather than more.
+
+Audit M4 listed both as "screens that never read the theme". They are not
+defects, and they are recorded here so the next reader does not fix them.
+
+They have no visual-matrix baseline yet. When they gain one they must be added
+to the exemption list in `darkModeCoverage.test.ts`, which asserts that every
+other baseline changes between themes.
 
 > **Numbering note.** E17 and E18 are out of sequence, and the original E16
 > (theme persistence) and E18 (mobile palette) were overwritten by a later edit
