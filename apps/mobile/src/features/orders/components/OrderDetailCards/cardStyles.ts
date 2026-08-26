@@ -10,10 +10,12 @@
 import { StyleSheet } from 'react-native';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
 /** Hairline between rows and sections. */
-const DIVIDER_COLOR = '#e5e7eb';
+const DIVIDER_COLOR = colorTokens.base.neutral[200];
 
 export const cardStyles = StyleSheet.create({
   card: {

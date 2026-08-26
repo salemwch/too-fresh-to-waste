@@ -610,7 +610,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   size={28}
                   color={
                     isOutsideDeliveryZone
-                      ? '#CBD5E1'
+                      ? colorTokens.base.neutral[300]
                       : selectedFulfillment === 'delivery'
                         ? BRAND_PRIMARY
                         : '#64748B'

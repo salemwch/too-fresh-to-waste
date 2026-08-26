@@ -172,10 +172,10 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
 };
 
 const BRAND_PRIMARY = colorTokens.base.primary[500];
-const TEXT_PRIMARY = '#1F2937';
+const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const TEXT_SECONDARY = '#64748B';
 const SURFACE = '#FFFFFF';
-const BORDER_SUBTLE = '#E2E8F0';
+const BORDER_SUBTLE = colorTokens.base.neutral[200];
 
 const styles = StyleSheet.create({
   container: {
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 18,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colorTokens.base.neutral[100],
   },
   headerTitle: {
     fontSize: 17,

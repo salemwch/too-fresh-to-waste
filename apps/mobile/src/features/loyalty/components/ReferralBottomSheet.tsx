@@ -34,12 +34,12 @@ import { loyaltyService } from '../services/loyaltyService';
 // Constants (matching StreakCard palette for visual cohesion)
 // ---------------------------------------------------------------------------
 
-const SURFACE_MUTED = '#F1F5F9';
+const SURFACE_MUTED = colorTokens.base.neutral[100];
 const COPIED_BG = '#D1FAE5';
 const COPIED_FG = colorTokens.base.success[500];
 const WHATSAPP_BG = '#D4EDDA';
 const WHATSAPP_FG = '#25D366';
-const HANDLE_COLOR = '#D1D5DB';
+const HANDLE_COLOR = colorTokens.base.neutral[300];
 
 const SHARE_MESSAGE_PREFIX =
   'Join Too Fresh To Waste and help reduce food waste! Sign up with my link: ';

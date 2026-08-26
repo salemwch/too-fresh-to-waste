@@ -13,6 +13,8 @@ import { BADGE_METADATA, ALL_BADGE_TYPES, type BadgeMetadata } from '../constant
 import type { Badge, BadgeType } from '../types/loyalty.types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
 const NO_BADGES: readonly Badge[] = Object.freeze([]);
@@ -28,10 +30,10 @@ interface BadgeItem {
 }
 
 const BADGE_ITEM_WIDTH = 90;
-const LOCKED_BADGE_BACKGROUND = '#F1F5F9';
-const LOCKED_BADGE_BORDER = '#E2E8F0';
-const LOCKED_ICON_COLOR = '#CBD5E1';
-const LOCKED_TEXT_COLOR = '#94A3B8';
+const LOCKED_BADGE_BACKGROUND = colorTokens.base.neutral[100];
+const LOCKED_BADGE_BORDER = colorTokens.base.neutral[200];
+const LOCKED_ICON_COLOR = colorTokens.base.neutral[300];
+const LOCKED_TEXT_COLOR = colorTokens.base.neutral[500];
 const SURFACE = '#FFFFFF';
 
 const BadgeCell: React.FC<{ item: BadgeItem }> = ({ item }) => {

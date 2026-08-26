@@ -9,11 +9,13 @@ import { View, StyleSheet, ScrollView, Platform } from 'react-native';
 import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
-const SURFACE_SUBTLE = '#F8FAFC';
+const SURFACE_SUBTLE = colorTokens.base.neutral[50];
 const SURFACE = '#FFFFFF';
-const BORDER = '#E2E8F0';
+const BORDER = colorTokens.base.neutral[200];
 const SHADOW = '#000';
 
 export const SkeletonCheckoutScreen: React.FC = () => {

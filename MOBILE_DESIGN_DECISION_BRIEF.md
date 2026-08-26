@@ -541,3 +541,37 @@ and the corrections are recorded here rather than by rewriting the audit:
    passed. **The lesson this brief should carry into Phase 4 is that a green
    snapshot run is not evidence a baseline observed anything** - the baseline
    has to be read, and the state it claims to be in has to be asserted.
+
+6. **MD2's accessibility claim was measured against white only (found
+   2026-08-26).** §4 of the MD2 section states that "**mapping to tokens changes
+   no AA verdict** - every pair keeps its existing pass or fail status", and the
+   recommendation in §10 rests on it: "a measured, bounded visual delta and no
+   accessibility regression".
+
+   Re-measured against the surfaces each grey actually appears on, rather than
+   against white, two mappings do change the verdict:
+
+   | pair                   | before   | after    |
+   | ---------------------- | -------- | -------- |
+   | `#64748B` on `#F8FAFC` | **4.55** | **4.41** |
+   | `#6B7280` on `#F9FAFB` | **4.63** | **4.41** |
+
+   Both cross the 4.5 AA threshold for text, in six files including
+   `CheckoutScreen.styles.ts` and `OrderSuccessModal.tsx`. Those two greys - 37
+   uses - were therefore **not migrated**, and are asserted as deliberately
+   present by `foreignGreyPalette.test.ts` so a later "cleanup" cannot silently
+   complete them.
+
+   The other 135 uses migrated with no verdict change anywhere, so the
+   recommendation itself holds; the blanket phrasing of the guarantee did not.
+
+   Two smaller corrections found in the same pass:
+
+   - **There are 17 foreign greys, not 13.** The 172-use and 43-file figures are
+     both exactly right, which is how the wrong distinct-count survived.
+   - **The `#94A3B8` row names `neutral[400]`, which is not its nearest token.**
+     `neutral[400]` is at distance 49; `neutral[500]` is at 28, and 28 is the
+     distance the row itself publishes. §4 of the same section independently
+     calls `neutral[500]` the nearest token for this value. Migrated to
+     `neutral[500]`; `neutral[400]` would also have made a failing contrast pair
+     considerably worse (~1.9 against 2.68).

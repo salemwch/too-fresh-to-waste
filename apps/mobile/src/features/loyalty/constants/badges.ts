@@ -125,7 +125,7 @@ export const BADGE_METADATA: Record<BadgeType, BadgeMetadata> = {
     icon: 'chatbubble-ellipses-outline',
     iconFamily: 'Ionicons',
     color: '#64748B',
-    bgColor: '#F1F5F9',
+    bgColor: colorTokens.base.neutral[100],
   },
 };
 

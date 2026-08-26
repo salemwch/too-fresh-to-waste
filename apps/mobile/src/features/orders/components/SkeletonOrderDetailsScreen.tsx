@@ -9,11 +9,13 @@ import { View, StyleSheet, ScrollView, Platform } from 'react-native';
 import { SkeletonBox, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
-const SCREEN_BACKGROUND = '#F8FAFC';
+const SCREEN_BACKGROUND = colorTokens.base.neutral[50];
 const SURFACE = '#FFFFFF';
-const DIVIDER = '#E2E8F0';
+const DIVIDER = colorTokens.base.neutral[200];
 
 export const SkeletonOrderDetailsScreen: React.FC = () => {
   const anim = useShimmerAnimation('pulse');

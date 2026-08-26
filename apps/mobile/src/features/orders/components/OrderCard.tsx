@@ -61,18 +61,22 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
   [OrderStatus.COMPLETED]: { label: 'Completed', bg: '#D1FAE5', text: '#065F46' },
   [OrderStatus.PENDING_PAYMENT]: { label: 'Awaiting Payment', bg: '#FEF3C7', text: '#92400E' },
   [OrderStatus.CANCELLED]: { label: 'Cancelled', bg: '#FEE2E2', text: '#991B1B' },
-  [OrderStatus.EXPIRED]: { label: 'Expired', bg: '#F3F4F6', text: '#6B7280' },
-  [OrderStatus.REFUNDED]: { label: 'Refunded', bg: '#F3F4F6', text: '#6B7280' },
+  [OrderStatus.EXPIRED]: { label: 'Expired', bg: colorTokens.base.neutral[100], text: '#6B7280' },
+  [OrderStatus.REFUNDED]: { label: 'Refunded', bg: colorTokens.base.neutral[100], text: '#6B7280' },
 };
 
-const DEFAULT_STATUS: StatusConfig = { label: 'Unknown', bg: '#F3F4F6', text: '#6B7280' };
+const DEFAULT_STATUS: StatusConfig = {
+  label: 'Unknown',
+  bg: colorTokens.base.neutral[100],
+  text: '#6B7280',
+};
 const SURFACE = '#FFFFFF';
-const SURFACE_MUTED = '#F1F5F9';
-const BORDER = '#E2E8F0';
-const TEXT_PRIMARY = '#1F2937';
+const SURFACE_MUTED = colorTokens.base.neutral[100];
+const BORDER = colorTokens.base.neutral[200];
+const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const TEXT_SECONDARY = '#64748B';
-const TEXT_TERTIARY = '#94A3B8';
-const TEXT_MUTED = '#475569';
+const TEXT_TERTIARY = colorTokens.base.neutral[500];
+const TEXT_MUTED = colorTokens.base.neutral[700];
 const SUCCESS_SOFT = '#D1FAE5';
 const SUCCESS_TEXT = '#065F46';
 const SUCCESS = colorTokens.base.success[500];
@@ -271,7 +275,12 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
           />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
-            <Icon name='fast-food' family='Ionicons' size={28} color='#94A3B8' />
+            <Icon
+              name='fast-food'
+              family='Ionicons'
+              size={28}
+              color={colorTokens.base.neutral[500]}
+            />
           </View>
         )}
 
@@ -303,7 +312,12 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
         </View>
       ) : (
         <View style={styles.pickupRow}>
-          <Icon name='time-outline' family='Ionicons' size={16} color='#94A3B8' />
+          <Icon
+            name='time-outline'
+            family='Ionicons'
+            size={16}
+            color={colorTokens.base.neutral[500]}
+          />
           <Text style={styles.pickupText}>{t('orders.pickupTimePending')}</Text>
         </View>
       )}

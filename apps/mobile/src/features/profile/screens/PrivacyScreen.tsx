@@ -11,7 +11,7 @@ import { Text, Button, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 
-const BORDER = '#E5E7EB';
+const BORDER = colorTokens.base.neutral[200];
 import { deleteAccountAsync } from '@/features/auth/store/authSlice';
 import { PrivacyConsentModal } from '@/features/leaderboard/components/PrivacyConsentModal';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';

@@ -11,9 +11,12 @@ jest.mock('@/design-system/components/atoms', () => {
   return { Text: MockText, Icon: MockIcon };
 });
 
-jest.mock('@/design-system/tokens/colors', () => ({
-  colorTokens: { base: { primary: { 500: '#1E4448', 400: '#2A5D62' } } },
-}));
+/* colorTokens is deliberately NOT mocked.
+ *
+ * It is a pure constants module with no native dependency, so there was nothing
+ * to stub - and the stub only carried `base.primary`. When MD2 replaced this
+ * component's raw greys with `base.neutral` reads, the partial mock made the
+ * whole suite fail to load. A fake of a constant can only ever drift from it. */
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),

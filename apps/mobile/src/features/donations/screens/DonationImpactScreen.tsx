@@ -13,6 +13,8 @@ import { useDonationStats } from '../hooks/useDonations';
 import type { DonationGoalCategory } from '@foodwaste/shared';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
 const CATEGORY_CONFIG: Record<
@@ -364,7 +366,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   categoryLabel: {
-    color: '#1F2937',
+    color: colorTokens.base.neutral[900],
   },
   activePill: {
     backgroundColor: '#E8756A',
@@ -381,7 +383,7 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     height: 6,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colorTokens.base.neutral[200],
     borderRadius: 3,
     overflow: 'hidden',
   },

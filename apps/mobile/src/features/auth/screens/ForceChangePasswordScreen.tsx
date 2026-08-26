@@ -134,7 +134,7 @@ export default function ForceChangePasswordScreen() {
                 placeholder={t('auth.newPasswordPlaceholder')}
                 accessibilityLabel={t('auth.a11yNewPasswordInput')}
                 accessibilityHint={t('auth.a11yNewPasswordHint')}
-                placeholderTextColor='#9CA3AF'
+                placeholderTextColor={colorTokens.base.neutral[500]}
                 secureTextEntry
                 autoCapitalize='none'
                 autoCorrect={false}
@@ -200,13 +200,13 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colorTokens.base.neutral[300],
     borderRadius: 10,
     padding: 14,
     fontSize: 16,
     marginBottom: 8,
-    backgroundColor: '#F9FAFB',
-    color: '#111827',
+    backgroundColor: colorTokens.base.neutral[50],
+    color: colorTokens.base.neutral[900],
   },
   inputError: {
     borderColor: colorTokens.base.error[500],

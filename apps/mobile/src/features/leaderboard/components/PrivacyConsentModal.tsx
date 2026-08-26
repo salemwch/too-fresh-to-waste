@@ -32,8 +32,8 @@ const { base: sp } = spacingTokens;
 
 const PRIMARY = colorTokens.base.primary[500];
 const SURFACE = '#FFFFFF';
-const BORDER = '#E5E7EB';
-const TEXT_PRIMARY = '#111827';
+const BORDER = colorTokens.base.neutral[200];
+const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const TEXT_SECONDARY = '#6B7280';
 const OVERLAY = 'rgba(0,0,0,0.5)';
 const INVERSE_TEXT = '#FFFFFF';

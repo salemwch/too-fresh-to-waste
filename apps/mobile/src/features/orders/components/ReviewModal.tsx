@@ -18,6 +18,8 @@ import { ReviewType } from '@foodwaste/shared';
 import type { CreateReviewRequest } from '@foodwaste/shared';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
 // ─── Highlight options ────────────────────────────────────────────────────────
@@ -197,7 +199,7 @@ export const ReviewModal: React.FC<Props> = ({
                   <IoniconsIcon
                     name={star <= rating ? 'star' : 'star-outline'}
                     size={40}
-                    color={star <= rating ? primaryColor : '#d1d5db'}
+                    color={star <= rating ? primaryColor : colorTokens.base.neutral[300]}
                   />
                 </Pressable>
               ))}

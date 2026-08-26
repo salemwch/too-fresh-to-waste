@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   headline: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1F2937',
+    color: colorTokens.base.neutral[900],
     textAlign: 'center',
     lineHeight: 30,
     marginBottom: 8,
@@ -380,13 +380,13 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colorTokens.base.neutral[100],
     marginBottom: sp[5],
   },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#9CA3AF',
+    color: colorTokens.base.neutral[500],
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 14,
@@ -415,13 +415,13 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     fontSize: 11,
-    color: '#4B5563',
+    color: colorTokens.base.neutral[700],
     textAlign: 'center',
     lineHeight: 15,
   },
   stepArrow: {
     fontSize: 20,
-    color: '#D1D5DB',
+    color: colorTokens.base.neutral[300],
     marginHorizontal: 4,
     marginBottom: 16,
   },
@@ -444,12 +444,12 @@ const styles = StyleSheet.create({
   destinationText: {
     flex: 1,
     fontSize: 13,
-    color: '#374151',
+    color: colorTokens.base.neutral[800],
     lineHeight: 20,
   },
   destinationBold: {
     fontWeight: '700',
-    color: '#1F2937',
+    color: colorTokens.base.neutral[900],
   },
   // Progress
   progressSection: {
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: colorTokens.base.neutral[800],
   },
   progressFraction: {
     fontSize: 12,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     height: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colorTokens.base.neutral[200],
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 6,

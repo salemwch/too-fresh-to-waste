@@ -26,11 +26,11 @@ interface ImpactBannerProps {
 const COLORS = {
   background: '#FFFFFF',
   shadow: '#000',
-  textPrimary: '#1F2937',
+  textPrimary: colorTokens.base.neutral[900],
   textSecondary: '#6B7280',
   brand: colorTokens.base.primary[500],
-  border: '#E5E7EB',
-  surfaceMuted: '#F3F4F6',
+  border: colorTokens.base.neutral[200],
+  surfaceMuted: colorTokens.base.neutral[100],
 } as const;
 
 /**

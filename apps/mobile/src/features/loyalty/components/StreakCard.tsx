@@ -31,10 +31,10 @@ interface StreakCardProps {
 
 const TEAL_GRADIENT: [string, string] = [colorTokens.base.primary[500], '#2DB89B'];
 const GOLD_GRADIENT: [string, string] = ['#F5C518', '#BF7E1E'];
-const BAR_BG = '#E5E7EB'; // neutral grey
+const BAR_BG = colorTokens.base.neutral[200]; // neutral grey
 const SURFACE = '#FFFFFF';
-const SURFACE_MUTED = '#F1F5F9';
-const TEXT_PRIMARY = '#1F2937';
+const SURFACE_MUTED = colorTokens.base.neutral[100];
+const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const TEXT_SECONDARY = '#64748B';
 const SHADOW = '#000';
 

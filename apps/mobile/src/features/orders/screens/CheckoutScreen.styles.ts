@@ -17,13 +17,13 @@ import { spacingTokens } from '@/design-system/tokens/spacing';
 
 const { base: sp } = spacingTokens;
 
-const SCREEN_BACKGROUND = '#F8FAFC';
+const SCREEN_BACKGROUND = colorTokens.base.neutral[50];
 const SURFACE = '#FFFFFF';
-const TEXT_PRIMARY = '#1F2937';
+const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const TEXT_SECONDARY = '#64748B';
-const TEXT_TERTIARY = '#475569';
-const TEXT_DISABLED = '#94A3B8';
-const BORDER_SUBTLE = '#E2E8F0';
+const TEXT_TERTIARY = colorTokens.base.neutral[700];
+const TEXT_DISABLED = colorTokens.base.neutral[500];
+const BORDER_SUBTLE = colorTokens.base.neutral[200];
 export const BRAND_PRIMARY = colorTokens.base.primary[500];
 const SUCCESS_BORDER = colorTokens.base.success[500];
 const SUCCESS_SURFACE = '#F0FDF4';

@@ -44,9 +44,10 @@ changes they exist to catch.
       baselines committed and mutation-tested before Phase 4 starts. **Done:**
       350 baselines over 9 suites, none empty; the harness itself was rebuilt
       first (see decisions below).
-- [ ] **Phase 4 - MD2 greys.** 172 literals to neutral tokens via the brief's
-      13-entry map. _Acceptance:_ no second neutral family; `MAX_RAW_COLORS`
-      lowered; every baseline delta explained.
+- [x] **Phase 4 - MD2 greys.** 135 of 172 literals mapped to the neutral ramp;
+      37 blocked on contrast. _Acceptance met:_ no second neutral family;
+      `MAX_RAW_COLORS` 488 -> 354; **1,272 baseline values changed, all 1,272
+      explained by the approved mapping, 0 unexplained.**
 - [ ] **Phase 5 - MD4 driver.** 71 font sizes to type tokens, `useTheme()`
       added, RTL verified. _Acceptance:_ driver renders correctly in both
       themes.
@@ -172,13 +173,73 @@ suite.** `jest.setup.js` mocked only `trigger`, but `src/utils/haptics.ts` reads
 `OrderSuccessModal` failed at import with "Cannot read properties of undefined".
 Fixed in the shared setup rather than per-spec.
 
+**2026-08-26 - correction: there are 17 foreign greys, not 13.** The brief's MD2
+section says "13 greys from a different palette". Enumerating Tailwind's slate
+and gray ramps against the source gives **17** distinct values. The usage total
+(172) and file count (43) it publishes are both exactly right, which is how the
+wrong distinct-count survived - the numbers that mattered were checked and this
+one was not.
+
+**2026-08-26 - correction: the brief's `#94A3B8` row names the wrong token.** It
+reads "`#94A3B8` | `neutral[400]` | 30 [sic 28]". `#94A3B8` is (148,163,184);
+`neutral[400] #BDBDBD` is at distance **49**, `neutral[500] #9E9E9E` at **28**.
+The published distance of 28 is the distance to neutral[500], and §4 of the same
+document independently calls neutral[500] "the nearest token" for this value. So
+the table cell is a typo, not a deliberate override, and the row is internally
+inconsistent with its own distance column.
+
+Resolved to `neutral[500]`, which is what both the arithmetic and §4 say. It is
+also the better call on contrast: `neutral[400]` on white is ~1.9 against
+neutral[500]'s 2.68, so the typo would have made a failing pair substantially
+worse.
+
+**2026-08-26 - #64748B and #6B7280 are NOT migrated, on contrast grounds.** Both
+map to `neutral[600] #757575`. Measured against the surfaces they actually
+appear on rather than against white:
+
+| pair                   | before   | after    |
+| ---------------------- | -------- | -------- |
+| `#64748B` on `#F8FAFC` | **4.55** | **4.41** |
+| `#6B7280` on `#F9FAFB` | **4.63** | **4.41** |
+
+Both cross from passing to failing AA. Six files are affected, including
+`CheckoutScreen.styles.ts` and `OrderSuccessModal.tsx` - the checkout path. The
+phase brief says to stop a mapping that creates a new contrast failure rather
+than force it, so both greys are left as raw hex (37 uses) pending the product
+decision in audit finding M16.
+
+This falsifies a claim in the decision brief: MD2 §4 states that "**mapping to
+tokens changes no AA verdict** - every pair keeps its existing pass or fail
+status". That was measured against white only. On the `*-50` screen background
+two mappings do change the verdict.
+
+**2026-08-26 - blocked greys are asserted present, not merely absent from the
+map.** `foreignGreyPalette.test.ts` fails if a Tailwind value reappears _and_
+fails if `#64748B`/`#6B7280` disappear. Without the second assertion the obvious
+follow-up cleanup - "we missed 37" - would push six screens below AA with a
+green suite. Mutation-checked in both directions.
+
+**2026-08-26 - semantic tints are out of scope and stay raw.** An early sweep
+that filtered greys by saturation pulled in `#FEE2E2` (error surface), `#DBEAFE`
+(info), `#F0FDF4` (success), `#FCE7F3`, and the brand-teal derivatives `#0F2628`
+/ `#4B6264` / `#8FA6A9`. Mapping any of those to a neutral would have destroyed
+the semantic while passing every test. The migration is scoped to the two
+Tailwind ramps by exact value, never by "looks grey".
+
+**2026-08-26 - `colorTokens` must not be mocked.**
+`KonnectPaymentSheet.test.tsx` stubbed it with only `base.primary`, so the
+moment MD2 gave that component a `base.neutral` read the whole suite failed to
+load. It is a pure constants module with no native dependency; there was nothing
+to stub, and a fake of a constant can only drift from it. Mock deleted rather
+than extended.
+
 ## Open questions
 
-- **Non-blocking:** `#9CA3AF` (17 uses) and `#94A3B8` (11) are 2.54/2.56 on
-  white and fail WCAG AA for text; the nearest token `neutral[500]` also fails
-  at 2.68. MD2 neither causes nor fixes this. Needs its own finding and a
-  product call on which token secondary text should use. Raise in Phase 4, do
-  not fold into it.
+- **RAISED, now audit finding M16.** `#9CA3AF` and `#94A3B8` migrated to
+  `neutral[500]`, which is 2.68 on white and still fails AA. 29 `neutral[500]`
+  usages, **17 of them text a low-vision user must read**, enumerated with
+  file:line in M16. The same product decision unblocks the 37 `#64748B`/
+  `#6B7280` uses. **Blocking for Phase 6's device audit, not for Phase 5.**
 - **Non-blocking:** two hardcoded English strings ship in
   `DriverOrdersListScreen` - `'Starting up…'` and `'Requesting location…'` are
   not routed through `t()`, so an Arabic or French driver sees English at the

@@ -46,7 +46,7 @@ interface StatCard {
 
 const TEAL = colorTokens.base.primary[500];
 const SURFACE = '#FFFFFF';
-const TEXT_PRIMARY = '#1F2937';
+const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const TEXT_SECONDARY = '#64748B';
 const SHADOW = '#000';
 

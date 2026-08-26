@@ -1827,6 +1827,36 @@ token in new code and do not "tidy" a neighbouring literal while passing
 through: a mixed file is expected, and an unreviewed drive-by change to a
 rendered value is not.
 
+**E24. Two Tailwind greys remain raw in mobile, on accessibility grounds.**
+`OPEN` MD2 mapped 135 of 172 foreign slate/gray literals onto the neutral ramp.
+`#64748B` (19 uses) and `#6B7280` (18) were deliberately left as raw hex.
+
+Their nearest token is `neutral[600] #757575`. Measured against the surface each
+actually sits on rather than against white:
+
+| pair                   | today    | if migrated |
+| ---------------------- | -------- | ----------- |
+| `#64748B` on `#F8FAFC` | **4.55** | **4.41**    |
+| `#6B7280` on `#F9FAFB` | **4.63** | **4.41**    |
+
+Both cross below the 4.5 AA minimum for text, on six files including
+`CheckoutScreen.styles.ts` and `OrderSuccessModal.tsx`. Completing the migration
+would buy palette consistency with a WCAG regression on the checkout path, so it
+was stopped and reported instead.
+
+`foreignGreyPalette.test.ts` asserts these two are **still present**, not just
+that the other fifteen are gone. The obvious follow-up - "we missed 37" - would
+otherwise turn the suite green while pushing six screens below AA.
+
+Clearing it needs the product decision in audit finding **M16**: which token
+secondary text uses. `neutral[500]` is 2.68 and `neutral[600]` is 4.61, so there
+is no value in the ramp between "fails badly" and "passes narrowly", and picking
+one is a brand call rather than a mapping. The same decision governs the 17
+`neutral[500]` text usages that fail AA today.
+
+Until then: do not replace these two values while passing through, and do not
+introduce them anywhere new.
+
 > **Numbering note.** E17 and E18 are out of sequence, and the original E16
 > (theme persistence) and E18 (mobile palette) were overwritten by a later edit
 > that reused those numbers. They are restored above as E19 and E20 rather than

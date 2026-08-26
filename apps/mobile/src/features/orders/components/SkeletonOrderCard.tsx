@@ -9,14 +9,20 @@ import { View, StyleSheet, Platform } from 'react-native';
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
-const SHIMMER_BASE = '#F1F5F9';
+const SHIMMER_BASE = colorTokens.base.neutral[100];
 const SURFACE = '#FFFFFF';
 
 const SkeletonOrderCardComponent: React.FC = () => {
   const anim = useShimmerAnimation();
-  const colors: [string, string, string] = [SHIMMER_BASE, '#E2E8F0', SHIMMER_BASE];
+  const colors: [string, string, string] = [
+    SHIMMER_BASE,
+    colorTokens.base.neutral[200],
+    SHIMMER_BASE,
+  ];
 
   return (
     <View style={styles.card}>

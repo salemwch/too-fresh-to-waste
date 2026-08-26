@@ -22,7 +22,7 @@ interface RecentActivityListProps {
   limit?: number;
 }
 
-const SURFACE_MUTED = '#F1F5F9';
+const SURFACE_MUTED = colorTokens.base.neutral[100];
 
 /** Format a relative timestamp (e.g. "2 hours ago", "3 days ago") */
 export function formatRelativeTime(dateString: string): string {
@@ -65,7 +65,11 @@ const TRANSACTION_ICONS: Record<
     color: colorTokens.base.error[500],
     amountStyle: { color: colorTokens.base.error[500] },
   },
-  expired: { icon: 'time-outline', color: '#94A3B8', amountStyle: { color: '#94A3B8' } },
+  expired: {
+    icon: 'time-outline',
+    color: colorTokens.base.neutral[500],
+    amountStyle: { color: colorTokens.base.neutral[500] },
+  },
   donated: { icon: 'heart-outline', color: '#8B5CF6', amountStyle: { color: '#8B5CF6' } },
 };
 
@@ -118,7 +122,12 @@ const RecentActivityListComponent: React.FC<RecentActivityListProps> = ({
           Recent Activity
         </Text>
         <View style={styles.emptyState}>
-          <Icon name='receipt-outline' family='Ionicons' size={32} color='#CBD5E1' />
+          <Icon
+            name='receipt-outline'
+            family='Ionicons'
+            size={32}
+            color={colorTokens.base.neutral[300]}
+          />
           <Text variant='body' size='sm' color='secondary' style={styles.emptyText}>
             No activity yet. Save a bag to earn your first points!
           </Text>

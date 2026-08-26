@@ -42,10 +42,10 @@ const { base: sp } = spacingTokens;
 const PRIMARY = colorTokens.base.primary[500];
 const GOLD_TEXT = '#B45309';
 const SURFACE = '#FFFFFF';
-const BORDER = '#E5E7EB';
-const TEXT_PRIMARY = '#111827';
+const BORDER = colorTokens.base.neutral[200];
+const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const TEXT_SECONDARY = '#6B7280';
-const TEXT_TERTIARY = '#9CA3AF';
+const TEXT_TERTIARY = colorTokens.base.neutral[500];
 const OVERLAY = 'rgba(0,0,0,0.45)';
 const INVERSE_TEXT = '#FFFFFF';
 const ERROR = '#DC2626';
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: BORDER,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colorTokens.base.neutral[50],
     paddingHorizontal: sp[3],
     marginBottom: sp[3],
     gap: 8,
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 56,
     borderRadius: 14,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colorTokens.base.neutral[50],
     paddingHorizontal: sp[3],
     marginBottom: 10,
   },
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colorTokens.base.neutral[200],
   },
   skeletonTextGroup: {
     marginStart: sp[3],
@@ -615,13 +615,13 @@ const styles = StyleSheet.create({
     width: 120,
     height: 14,
     borderRadius: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colorTokens.base.neutral[200],
   },
   skeletonSub: {
     width: 80,
     height: 10,
     borderRadius: 4,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colorTokens.base.neutral[100],
   },
 
   // ── Empty state ──
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
   },
   voucherCodeBox: {
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colorTokens.base.neutral[50],
     borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 12,

@@ -11,12 +11,14 @@ import { View, StyleSheet, Platform } from 'react-native';
 import { SkeletonBase } from '@/components/Loading/SkeletonBase';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
 const SURFACE = '#fff';
-const SURFACE_MUTED = '#f3f4f6';
-const SURFACE_SUBTLE = '#f9fafb';
-const BORDER = '#e5e7eb';
+const SURFACE_MUTED = colorTokens.base.neutral[100];
+const SURFACE_SUBTLE = colorTokens.base.neutral[50];
+const BORDER = colorTokens.base.neutral[200];
 const SHADOW = '#000';
 
 export const SkeletonOfferDetails: React.FC = () => (

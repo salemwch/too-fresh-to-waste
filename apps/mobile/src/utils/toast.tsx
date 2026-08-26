@@ -25,7 +25,7 @@ const TOAST_COLORS = {
   error: colorTokens.base.error[500],
   info: '#3B82F6',
   warning: colorTokens.base.warning[500],
-  textPrimary: '#1F2937',
+  textPrimary: colorTokens.base.neutral[900],
   textSecondary: '#6B7280',
 } as const;
 

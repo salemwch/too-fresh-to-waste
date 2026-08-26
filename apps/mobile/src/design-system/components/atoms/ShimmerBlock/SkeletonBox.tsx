@@ -19,6 +19,8 @@ import { Animated } from 'react-native';
 
 import type { ViewStyle, DimensionValue } from 'react-native';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 interface SkeletonBoxProps {
   animValue: Animated.Value;
   width: DimensionValue;
@@ -34,7 +36,7 @@ export const SkeletonBox: React.FC<SkeletonBoxProps> = ({
   height,
   borderRadius = 8,
   style,
-  color = '#E2E8F0',
+  color = colorTokens.base.neutral[200],
 }) => {
   const opacity = animValue.interpolate({
     inputRange: [0, 1],

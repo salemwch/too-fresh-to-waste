@@ -25,7 +25,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -43,7 +43,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "paddingHorizontal": 32,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 20,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -68,7 +68,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "width": 112,
   },
   "View[0]/View[1]/View[0]/View[0]/Icon[0]": {
-    "@color": "#94A3B8",
+    "@color": "#9E9E9E",
     "height": 56,
     "textAlign": "center",
     "width": 56,
@@ -115,7 +115,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "width": "100%",
   },
   "View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 16,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -128,7 +128,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[1]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -155,7 +155,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[2]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -182,7 +182,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[3]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -232,7 +232,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -250,7 +250,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "paddingHorizontal": 32,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 20,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -275,7 +275,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "width": 112,
   },
   "View[0]/View[1]/View[0]/View[0]/Icon[0]": {
-    "@color": "#94A3B8",
+    "@color": "#9E9E9E",
     "height": 56,
     "textAlign": "center",
     "width": 56,
@@ -322,7 +322,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "width": "100%",
   },
   "View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 16,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -335,7 +335,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[1]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -362,7 +362,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[2]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -389,7 +389,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[3]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -439,7 +439,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -457,7 +457,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "paddingHorizontal": 32,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 20,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -482,7 +482,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "width": 112,
   },
   "View[0]/View[1]/View[0]/View[0]/Icon[0]": {
-    "@color": "#94A3B8",
+    "@color": "#9E9E9E",
     "height": 56,
     "textAlign": "center",
     "width": 56,
@@ -529,7 +529,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "width": "100%",
   },
   "View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 16,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -542,7 +542,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[1]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -569,7 +569,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[2]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -596,7 +596,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[3]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -646,7 +646,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -664,7 +664,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "paddingHorizontal": 32,
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 20,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -689,7 +689,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "width": 112,
   },
   "View[0]/View[1]/View[0]/View[0]/Icon[0]": {
-    "@color": "#94A3B8",
+    "@color": "#9E9E9E",
     "height": 56,
     "textAlign": "center",
     "width": 56,
@@ -736,7 +736,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "width": "100%",
   },
   "View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 16,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -749,7 +749,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[1]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -776,7 +776,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[2]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -803,7 +803,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "marginBottom": 12,
   },
   "View[0]/View[1]/View[4]/View[3]/Text[1]": {
-    "color": "#475569",
+    "color": "#616161",
     "fontSize": 14,
     "fontWeight": "400",
     "letterSpacing": 0,
@@ -853,7 +853,7 @@ exports[`OrdersScreen states error error small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -867,7 +867,7 @@ exports[`OrdersScreen states error error small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 20,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -944,7 +944,7 @@ exports[`OrdersScreen states error error standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -958,7 +958,7 @@ exports[`OrdersScreen states error error standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 20,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -1035,7 +1035,7 @@ exports[`OrdersScreen states error error standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -1049,7 +1049,7 @@ exports[`OrdersScreen states error error standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 20,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -1126,7 +1126,7 @@ exports[`OrdersScreen states error error standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -1140,7 +1140,7 @@ exports[`OrdersScreen states error error standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/Text[1]": {
-    "color": "#1F2937",
+    "color": "#212121",
     "fontSize": 20,
     "fontWeight": "700",
     "letterSpacing": 0,
@@ -1217,7 +1217,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -1241,7 +1241,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[0]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -1260,7 +1260,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -1277,7 +1277,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -1291,7 +1291,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -1305,7 +1305,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -1319,7 +1319,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -1334,7 +1334,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -1342,7 +1342,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[0]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -1356,7 +1356,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -1376,7 +1376,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -1395,7 +1395,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -1412,7 +1412,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -1426,7 +1426,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -1440,7 +1440,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -1454,7 +1454,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -1469,7 +1469,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -1477,7 +1477,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[1]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -1491,7 +1491,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -1511,7 +1511,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[2]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -1530,7 +1530,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[2]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -1547,7 +1547,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -1561,7 +1561,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -1575,7 +1575,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -1589,7 +1589,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -1604,7 +1604,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -1612,7 +1612,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[2]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -1626,7 +1626,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -1646,7 +1646,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[3]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -1665,7 +1665,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[3]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -1682,7 +1682,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -1696,7 +1696,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -1710,7 +1710,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -1724,7 +1724,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -1739,7 +1739,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -1747,7 +1747,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[3]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -1761,7 +1761,7 @@ exports[`OrdersScreen states loading loading small-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -1802,7 +1802,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -1826,7 +1826,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[0]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -1845,7 +1845,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -1862,7 +1862,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -1876,7 +1876,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -1890,7 +1890,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -1904,7 +1904,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -1919,7 +1919,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -1927,7 +1927,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[0]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -1941,7 +1941,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -1961,7 +1961,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -1980,7 +1980,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -1997,7 +1997,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -2011,7 +2011,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -2025,7 +2025,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -2039,7 +2039,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -2054,7 +2054,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -2062,7 +2062,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[1]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -2076,7 +2076,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -2096,7 +2096,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[2]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -2115,7 +2115,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[2]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -2132,7 +2132,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -2146,7 +2146,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -2160,7 +2160,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -2174,7 +2174,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -2189,7 +2189,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -2197,7 +2197,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[2]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -2211,7 +2211,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -2231,7 +2231,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[3]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -2250,7 +2250,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[3]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -2267,7 +2267,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -2281,7 +2281,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -2295,7 +2295,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -2309,7 +2309,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -2324,7 +2324,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -2332,7 +2332,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[3]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -2346,7 +2346,7 @@ exports[`OrdersScreen states loading loading standard-dark-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -2387,7 +2387,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -2411,7 +2411,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[0]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -2430,7 +2430,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -2447,7 +2447,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -2461,7 +2461,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -2475,7 +2475,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -2489,7 +2489,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -2504,7 +2504,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -2512,7 +2512,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[0]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -2526,7 +2526,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -2546,7 +2546,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -2565,7 +2565,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -2582,7 +2582,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -2596,7 +2596,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -2610,7 +2610,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -2624,7 +2624,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -2639,7 +2639,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -2647,7 +2647,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[1]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -2661,7 +2661,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -2681,7 +2681,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[2]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -2700,7 +2700,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[2]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -2717,7 +2717,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -2731,7 +2731,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -2745,7 +2745,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -2759,7 +2759,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -2774,7 +2774,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -2782,7 +2782,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[2]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -2796,7 +2796,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -2816,7 +2816,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[3]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -2835,7 +2835,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[3]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -2852,7 +2852,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -2866,7 +2866,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -2880,7 +2880,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -2894,7 +2894,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -2909,7 +2909,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -2917,7 +2917,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[3]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -2931,7 +2931,7 @@ exports[`OrdersScreen states loading loading standard-light-ar 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -2972,7 +2972,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "flexDirection": "row",
     "paddingVertical": 10,
@@ -2996,7 +2996,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[0]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -3015,7 +3015,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -3032,7 +3032,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -3046,7 +3046,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -3060,7 +3060,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -3074,7 +3074,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -3089,7 +3089,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -3097,7 +3097,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[0]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -3111,7 +3111,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[0]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -3131,7 +3131,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -3150,7 +3150,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -3167,7 +3167,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -3181,7 +3181,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -3195,7 +3195,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -3209,7 +3209,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -3224,7 +3224,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -3232,7 +3232,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[1]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -3246,7 +3246,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[1]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -3266,7 +3266,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[2]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -3285,7 +3285,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[2]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -3302,7 +3302,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -3316,7 +3316,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -3330,7 +3330,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -3344,7 +3344,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -3359,7 +3359,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -3367,7 +3367,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[2]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -3381,7 +3381,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[2]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,
@@ -3401,7 +3401,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "padding": 16,
   },
   "View[0]/View[1]/View[3]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 8,
     "height": 22,
     "width": 64,
@@ -3420,7 +3420,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "paddingEnd": 80,
   },
   "View[0]/View[1]/View[3]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 12,
     "height": 64,
     "width": 64,
@@ -3437,7 +3437,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "marginStart": 12,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": "80%",
@@ -3451,7 +3451,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 12,
     "width": "55%",
@@ -3465,7 +3465,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[1]/View[1]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 11,
     "width": "35%",
@@ -3479,7 +3479,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[2]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 14,
     "marginBottom": 12,
@@ -3494,7 +3494,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[3]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "height": 1,
     "marginBottom": 12,
   },
@@ -3502,7 +3502,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[1]/View[3]/View[4]/View[0]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 16,
     "width": 60,
@@ -3516,7 +3516,7 @@ exports[`OrdersScreen states loading loading standard-light-en 1`] = `
     "width": 300,
   },
   "View[0]/View[1]/View[3]/View[4]/View[1]": {
-    "backgroundColor": "#F1F5F9",
+    "backgroundColor": "#F5F5F5",
     "borderRadius": 4,
     "height": 18,
     "width": 90,

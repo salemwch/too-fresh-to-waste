@@ -48,14 +48,14 @@ interface OrdersScreenProps {
   navigation: OrdersScreenNavigationProp;
 }
 
-const TAB_BORDER = '#F1F5F9';
+const TAB_BORDER = colorTokens.base.neutral[100];
 const BRAND_PRIMARY = colorTokens.base.primary[500];
 const TEXT_SECONDARY = '#64748B';
 const WHITE = '#FFFFFF';
-const BADGE_BACKGROUND = '#E2E8F0';
+const BADGE_BACKGROUND = colorTokens.base.neutral[200];
 const BADGE_ACTIVE_BACKGROUND = 'rgba(255, 255, 255, 0.25)';
-const TEXT_TERTIARY = '#475569';
-const TEXT_PRIMARY = '#1F2937';
+const TEXT_TERTIARY = colorTokens.base.neutral[700];
+const TEXT_PRIMARY = colorTokens.base.neutral[900];
 const STEP_BACKGROUND = '#D1FAE5';
 
 // ---------------------------------------------------------------------------
@@ -120,7 +120,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
           name={tab === 'active' ? 'receipt-outline' : 'time-outline'}
           family='Ionicons'
           size={56}
-          color='#94A3B8'
+          color={colorTokens.base.neutral[500]}
         />
       </View>
 

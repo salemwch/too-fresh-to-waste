@@ -61,7 +61,7 @@ export const TEXT_25 = withAlpha(neutral[0], 0.25);
 // ── Prize modal: keeps a light surface for readability ──
 export const OVERLAY = withAlpha(neutral[1000], 0.45);
 export const SURFACE = neutral[0];
-export const BORDER_SUBTLE = '#F3F4F6';
+export const BORDER_SUBTLE = colorTokens.base.neutral[100];
 /** Sheet grab handle. */
 export const HANDLE_GREY = '#E8EEEF';
 /** Discount tier chip — a green tint with no counterpart in the token scale. */

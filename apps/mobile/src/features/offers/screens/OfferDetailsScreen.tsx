@@ -36,6 +36,8 @@ import type { MainStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type OfferDetailsScreenNavigationProp = NativeStackNavigationProp<
@@ -453,7 +455,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               style={styles.iconButton}
               onPress={() => navigation.goBack()}
             >
-              <IoniconsIcon name='chevron-back' color='#111827' size={24} />
+              <IoniconsIcon name='chevron-back' color={colorTokens.base.neutral[900]} size={24} />
             </Pressable>
             <View style={styles.topRightActions}>
               <Pressable
@@ -470,7 +472,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               >
                 <IoniconsIcon
                   name={isFavorite ? 'heart' : 'heart-outline'}
-                  color={isFavorite ? PRIMARY_COLOR : '#111827'}
+                  color={isFavorite ? PRIMARY_COLOR : colorTokens.base.neutral[900]}
                   size={20}
                 />
               </Pressable>
@@ -549,7 +551,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           )}
 
           <View style={styles.pickupRow}>
-            <IoniconsIcon name='time' color='#9ca3af' size={20} />
+            <IoniconsIcon name='time' color={colorTokens.base.neutral[500]} size={20} />
             <Text style={styles.pickupText}>
               {t('offers.pickUp')}: {offer.pickupTimeSlots?.[0]?.startTime} -{' '}
               {offer.pickupTimeSlots?.[0]?.endTime}
@@ -563,7 +565,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
           {offer.pickupTimeSlots?.[0]?.maxOrders != null && (
             <View style={styles.slotLimitRow}>
-              <IoniconsIcon name='people' color='#9ca3af' size={16} />
+              <IoniconsIcon name='people' color={colorTokens.base.neutral[500]} size={16} />
               <Text style={styles.slotLimitText}>
                 {offer.pickupTimeSlots[0].maxOrders === 1
                   ? t('offers.slotLimit', { count: offer.pickupTimeSlots[0].maxOrders })
@@ -592,7 +594,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                   </Text>
                 </View>
               </View>
-              <IoniconsIcon name='chevron-forward' color='#9ca3af' size={20} />
+              <IoniconsIcon
+                name='chevron-forward'
+                color={colorTokens.base.neutral[500]}
+                size={20}
+              />
             </Pressable>
           )}
 
@@ -609,9 +615,9 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 {t('offers.whatToKnow')}
               </Text>
               {isDescriptionOpen ? (
-                <IoniconsIcon name='chevron-up' color='#9ca3af' size={20} />
+                <IoniconsIcon name='chevron-up' color={colorTokens.base.neutral[500]} size={20} />
               ) : (
-                <IoniconsIcon name='chevron-down' color='#9ca3af' size={20} />
+                <IoniconsIcon name='chevron-down' color={colorTokens.base.neutral[500]} size={20} />
               )}
             </Pressable>
             {isDescriptionOpen && (
@@ -656,9 +662,17 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                     {t('offers.ingredientsAllergens')}
                   </Text>
                   {isAllergensOpen ? (
-                    <IoniconsIcon name='chevron-up' color='#9ca3af' size={20} />
+                    <IoniconsIcon
+                      name='chevron-up'
+                      color={colorTokens.base.neutral[500]}
+                      size={20}
+                    />
                   ) : (
-                    <IoniconsIcon name='chevron-down' color='#9ca3af' size={20} />
+                    <IoniconsIcon
+                      name='chevron-down'
+                      color={colorTokens.base.neutral[500]}
+                      size={20}
+                    />
                   )}
                 </Pressable>
                 {isAllergensOpen && (

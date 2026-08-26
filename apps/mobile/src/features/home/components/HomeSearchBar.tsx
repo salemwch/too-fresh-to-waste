@@ -59,13 +59,13 @@ interface HomeSearchBarProps {
 const COLORS = {
   brand: colorTokens.base.primary[500],
   danger: colorTokens.base.error[500],
-  surface: '#F8FAFC',
+  surface: colorTokens.base.neutral[50],
   surfaceAccent: '#D1FAE5',
-  border: '#E2E8F0',
-  textPrimary: '#1F2937',
+  border: colorTokens.base.neutral[200],
+  textPrimary: colorTokens.base.neutral[900],
   textSecondary: '#64748B',
   textInverse: '#FFFFFF',
-  textPlaceholder: '#94A3B8',
+  textPlaceholder: colorTokens.base.neutral[500],
   shadow: '#000',
 } as const;
 

@@ -7,6 +7,8 @@
 
 import type { TierName } from '../types/loyalty.types';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 interface TierConfig {
   name: TierName;
   gradientStart: string;
@@ -37,7 +39,7 @@ const TIER_CONFIGS: Record<TierName, TierConfig> = {
     name: 'Silver',
     gradientStart: '#C0C0C0',
     gradientEnd: '#E8E8E8',
-    textColor: '#1F2937',
+    textColor: colorTokens.base.neutral[900],
     minPoints: 400,
     multiplier: 1.2,
     icon: 'shield-half-outline',
@@ -46,7 +48,7 @@ const TIER_CONFIGS: Record<TierName, TierConfig> = {
     name: 'Gold',
     gradientStart: '#FFD700',
     gradientEnd: '#DAA520',
-    textColor: '#1F2937',
+    textColor: colorTokens.base.neutral[900],
     minPoints: 1200,
     multiplier: 1.5,
     icon: 'shield-checkmark-outline',

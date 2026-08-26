@@ -27,12 +27,23 @@ const PALETTE_FILES = [
 ];
 
 /**
- * Current debt, measured 2026-07-27 after converting every semantic colour
- * (brand primary, success, error, warning, info) to its token.
+ * Current debt.
+ *
+ * 2026-07-27: 488, after converting every semantic colour (brand primary,
+ * success, error, warning, info) to its token.
+ * 2026-08-26: 354, after MD2 mapped 135 foreign slate/gray literals onto the
+ * neutral ramp. The drop is 134 rather than 135 because this regex only counts
+ * single-quoted literals and one migrated usage was a double-quoted JSX
+ * attribute.
+ *
+ * Still above zero on purpose: 37 uses of #64748B and #6B7280 are deliberately
+ * unmigrated - mapping them to neutral[600] would drop secondary text on the
+ * *-50 screen background from 4.55/4.63 to 4.41 and fail WCAG AA. See
+ * .claude/work/mobile-design-token-migration.md.
  *
  * Lower this when you clear some. Never raise it.
  */
-const MAX_RAW_COLORS = 488;
+const MAX_RAW_COLORS = 354;
 
 const HEX_LITERAL = /'#[0-9a-fA-F]{3,8}'/gu;
 

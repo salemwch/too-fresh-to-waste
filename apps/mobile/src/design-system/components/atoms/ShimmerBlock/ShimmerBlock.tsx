@@ -17,7 +17,13 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import type { ViewStyle, DimensionValue } from 'react-native';
 
-const DEFAULT_COLORS: [string, string, string] = ['#E5E7EB', '#F3F4F6', '#E5E7EB'];
+import { colorTokens } from '@/design-system/tokens/colors';
+
+const DEFAULT_COLORS: [string, string, string] = [
+  colorTokens.base.neutral[200],
+  colorTokens.base.neutral[100],
+  colorTokens.base.neutral[200],
+];
 
 interface ShimmerBlockProps {
   animValue: Animated.Value;

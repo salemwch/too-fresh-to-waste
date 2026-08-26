@@ -12,6 +12,8 @@ import { Freshness } from '@/lib/react-query/freshness';
 import { reviewsService } from '../services/reviewsService';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { colorTokens } from '@/design-system/tokens/colors';
+
 const { base: sp } = spacingTokens;
 
 // ─── Highlight config ────────────────────────────────────────────────────────
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colorTokens.base.neutral[200],
     marginVertical: sp[3],
   },
   highlightsTitle: {

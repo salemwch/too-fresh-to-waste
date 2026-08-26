@@ -36,11 +36,11 @@ const COLORS = {
   overlay: 'rgba(0, 0, 0, 0.85)',
   surface: '#FFFFFF',
   shadow: '#000',
-  textPrimary: '#1F2937',
+  textPrimary: colorTokens.base.neutral[900],
   textSecondary: '#6B7280',
   success: colorTokens.base.success[500],
-  textMuted: '#9CA3AF',
-  surfaceMuted: '#F3F4F6',
+  textMuted: colorTokens.base.neutral[500],
+  surfaceMuted: colorTokens.base.neutral[100],
   primary: colorTokens.base.primary[500],
 } as const;
 

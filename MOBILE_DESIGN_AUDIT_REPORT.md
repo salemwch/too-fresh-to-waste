@@ -107,6 +107,26 @@ go.
 
 ### M2. A foreign grey palette has displaced the system neutrals
 
+> **MOSTLY RESOLVED 2026-08-26 by MD2 = Option B.** 135 of the 172 uses now read
+> `colorTokens.base.neutral[N]`. The baseline delta was 1,272 changed values,
+> **all 1,272 explained by the approved mapping and none unexplained**, across
+> both themes, all three locales and all three device widths. Raw colour
+> literals fell from 488 to 354; `foreignGreyPalette.test.ts` now fails if any
+> value from either Tailwind ramp reappears.
+>
+> **37 uses are deliberately not migrated.** `#64748B` (19) and `#6B7280` (18)
+> both map to `neutral[600] #757575`, which gives **4.41** against the `*-50`
+> screen background used by `CheckoutScreen.styles.ts`, `OrderSuccessModal`,
+> `HomeSearchBar`, `ForceChangePasswordScreen`, `DiscountClaimModal` and
+> `PhoneVerificationModal` - below the 4.5 AA minimum, where the current values
+> pass at 4.55 and 4.63. Migrating them would trade a consistency win for an
+> accessibility regression, so they wait on the same product decision as M16.
+>
+> **Correction to the counts in this entry.** The brief said 13 foreign greys;
+> there are **17** distinct values. The usage total (172) and file count (43)
+> were both exactly right, so the conclusion is unaffected - only the number of
+> distinct values was wrong.
+
 - **Component:** 43 files, concentrated in orders, checkout, offers, home.
 - **Current behaviour:** **172** uses of Tailwind-default slate/gray hex
   (`#F8FAFC`, `#64748B`, `#94A3B8`, `#1F2937`, `#E5E7EB`, …) against **21** uses
@@ -124,6 +144,15 @@ go.
   technical for the rest.
 
 ### M3. `CheckoutScreen` hardcodes a complete parallel palette
+
+> **PARTLY RESOLVED 2026-08-26.** `SCREEN_BACKGROUND`, `TEXT_PRIMARY`,
+> `TEXT_TERTIARY` and `TEXT_DISABLED` now read from the neutral ramp.
+> `TEXT_SECONDARY '#64748B'` is one of the two values blocked on contrast (see
+> M2), and `SURFACE '#FFFFFF'`, `SUCCESS_SURFACE '#F0FDF4'` and
+> `WARNING_SURFACE '#FEF3C7'` are outside MD2's scope - the last two are
+> semantic tints, not greys, and mapping them to a neutral would destroy the
+> semantic. **This file still declares a local palette**; the finding stays open
+> until those move to tokens or to `DESIGN.md` as documented exceptions.
 
 - **Screen:** `features/orders/screens/CheckoutScreen.styles.ts`.
 - **Current behaviour:** defines its own named palette -
@@ -301,6 +330,43 @@ screens do use it, so the pattern exists and is simply not universal.
 The other 146 rely on their own box clearing 44px. **Whether they do cannot be
 determined from source** - it depends on rendered layout. Listed so it is
 checked on device, not asserted as a violation.
+
+### M16. Secondary text sits at 2.68 contrast, well under AA
+
+> Raised 2026-08-26, out of the MD2 measurement. **This is not caused by MD2 and
+> was not fixed by it** - it is recorded separately so it cannot be mistaken for
+> migration fallout.
+
+- **Current behaviour:** `#9CA3AF` (17 uses) and `#94A3B8` (11) both mapped to
+  `neutral[500] #9E9E9E`. On white that is **2.68**, against a 4.5 minimum for
+  body text and 3.0 for large text. The two source values were 2.54 and 2.56, so
+  the migration moved the number by 0.14 and changed nothing that matters.
+- **Where it lands now** - 29 `neutral[500]` usages, classified by the role the
+  code puts them in:
+
+  | Role                | Uses | Verdict                                              |
+  | ------------------- | ---- | ---------------------------------------------------- |
+  | icon (`color` prop) | 10   | fails 1.4.11 non-text (3.0) where it conveys meaning |
+  | secondary text      | 7    | **fails AA**                                         |
+  | body text           | 5    | **fails AA**                                         |
+  | placeholder         | 3    | **fails AA**                                         |
+  | disabled state      | 2    | exempt from AA, but unreadable in practice           |
+  | icon (tint)         | 1    | fails 1.4.11 non-text                                |
+  | unclassified        | 1    | `usePasswordRules.ts:82`                             |
+
+  **17 of the 29 are text a low-vision user is expected to read.** Worst-placed:
+  `OrderCard.tsx:74` (the establishment line on the most-seen card in the app),
+  `CheckoutScreen.styles.ts:25`, `HomeSearchBar.tsx:68` (search placeholder).
+
+- **Severity:** P1. It is a WCAG AA failure on the core commerce path.
+- **Why it is not a token bug:** no token in the neutral ramp sits in the gap.
+  `neutral[500]` is 2.68 and `neutral[600] #757575` is 4.61 - the first value
+  that passes. So this is a **product decision** about which token secondary
+  text uses, not a mapping error.
+- **Recommendation:** move text roles to `neutral[600]`, keep `neutral[500]` for
+  decorative and disabled use. That also unblocks the 37 `#64748B`/`#6B7280`
+  uses in M2, since the same decision governs both.
+- **Fix type:** **product/brand decision**, then technical.
 
 ### M14. Two list screens have no explicit error branch
 
