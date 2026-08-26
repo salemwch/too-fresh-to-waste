@@ -27,6 +27,7 @@ import { Logger } from '@/utils/logger';
 
 import { notificationPreferencesService } from '../services/notificationPreferencesService';
 
+import type { ThemeMode } from '@/design-system/types';
 import type { NotificationPreferences } from '../services/notificationPreferencesService';
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -45,10 +46,42 @@ interface SettingsScreenProps {
 const GEOAPIFY_URL = 'https://www.geoapify.com/';
 const GEOAPIFY_ATTRIBUTION = 'Powered by Geoapify';
 
+/**
+ * Appearance options, in the order they are shown.
+ *
+ * `auto` is offered but is **not** the app default - `App.tsx` still mounts
+ * `defaultTheme='light'` deliberately. Until every screen has been verified in
+ * dark (MOBILE_DESIGN_DECISION_BRIEF.md MD3, phase 6), defaulting to `auto`
+ * would flip a large share of users onto a theme nobody has checked. Choosing it
+ * here is opt-in, which is exactly what makes dark reachable for testing.
+ *
+ * Unlike a language change this needs no restart: `ThemeProvider` recomputes
+ * `colorScheme` from React state, so the tree re-renders in place.
+ */
+const THEME_OPTIONS: ReadonlyArray<{ mode: ThemeMode; labelKey: string }> = [
+  { mode: 'light', labelKey: 'settings.themeLight' },
+  { mode: 'dark', labelKey: 'settings.themeDark' },
+  { mode: 'auto', labelKey: 'settings.themeAuto' },
+];
+
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _navigation }) => {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
   const [currentLang, setCurrentLang] = useState<AppLanguage>(getCurrentLanguage());
+
+  /**
+   * No restart, no confirmation: the provider recomputes from state, so the
+   * change is immediate and reversible in one tap. That is the whole reason
+   * this is safe to ship while `auto` is still not the default.
+   */
+  const handleThemeChange = useCallback(
+    (mode: ThemeMode) => {
+      if (mode === theme.mode) return;
+      theme.setTheme(mode);
+      Logger.info('Theme changed', { mode });
+    },
+    [theme],
+  );
 
   const handleLanguageChange = useCallback(
     (lang: AppLanguage) => {
@@ -288,6 +321,51 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
           </View>
         </Card>
 
+        {/* Appearance Section */}
+        <Card style={[styles.card, styles.appearanceCard]}>
+          <Text variant='headline.medium' weight='semibold' style={styles.sectionTitle}>
+            {t('settings.appearance')}
+          </Text>
+
+          <Text variant='body.small' color='secondary' style={styles.rowSubtitle}>
+            {t('settings.appearanceDescription')}
+          </Text>
+
+          <View
+            style={[styles.pillContainer, { backgroundColor: theme.colors.surfaceVariant }]}
+            accessibilityRole='radiogroup'
+            accessibilityLabel={t('settings.appearance')}
+            accessibilityHint={t('settings.appearanceDescription')}
+          >
+            {THEME_OPTIONS.map(({ mode, labelKey }) => {
+              const isSelected = theme.mode === mode;
+              return (
+                <Pressable
+                  key={mode}
+                  testID={`theme-option-${mode}`}
+                  style={[
+                    styles.languagePill,
+                    isSelected && { backgroundColor: theme.colors.primary },
+                  ]}
+                  onPress={() => handleThemeChange(mode)}
+                  accessibilityRole='radio'
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={t(labelKey)}
+                  accessibilityHint={t('settings.a11ySwitchThemeHint')}
+                >
+                  <Text
+                    variant='body.medium'
+                    weight={isSelected ? 'semibold' : 'medium'}
+                    style={selectedLanguageLabelStyle(isSelected, theme)}
+                  >
+                    {t(labelKey)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Card>
+
         {/* Attributions Section */}
         <Card style={[styles.card, styles.attributionCard]}>
           <Text variant='headline.medium' weight='semibold' style={styles.sectionTitle}>
@@ -378,6 +456,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 10,
     borderRadius: 10,
+  },
+  appearanceCard: {
+    marginTop: 16,
   },
   attributionCard: {
     marginTop: 16,

@@ -495,3 +495,14 @@ and the corrections are recorded here rather than by rewriting the audit:
    recommendation is unaffected - a larger count argues the same way - but the
    number was wrong and the method that produced it was too narrow. The
    migration and its completeness test both cover the gap properties.
+
+4. **MD3's evidence named the wrong function (found 2026-08-25).** Point 3 of
+   the MD3 section says "`setThemeMode` and `toggleTheme` have zero call sites".
+   `setThemeMode` is the provider's internal `useState` setter and was never on
+   the context; the public API is **`setTheme`**. Grepping for the wrong name
+   could easily have produced a false negative.
+
+   Re-checked against the correct name before implementing: `setTheme` and
+   `toggleTheme` both have zero call sites outside the provider, and nothing
+   writes `@foodwaste/theme`. **The conclusion stands unchanged - dark mode was
+   unreachable** - but it stood on a grep that did not test what it claimed to.

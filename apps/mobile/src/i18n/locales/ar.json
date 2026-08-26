@@ -661,6 +661,12 @@
     "restartLater": "لاحقاً",
     "attributions": "الإسنادات",
     "geocodingAttribution": "خدمة البحث عن العناوين وتحديد المواقع مقدَّمة من:",
+    "appearance": "المظهر",
+    "appearanceDescription": "اختر شكل التطبيق. يتبع الوضع التلقائي إعداد جهازك.",
+    "themeLight": "فاتح",
+    "themeDark": "داكن",
+    "themeAuto": "تلقائي",
+    "a11ySwitchThemeHint": "يبدّل مظهر التطبيق إلى هذا المظهر",
     "a11ySwitchLanguageHint": "يبدّل لغة التطبيق إلى هذه اللغة",
     "a11yOpenGeoapifyHint": "يفتح موقع Geoapify في متصفحك"
   },

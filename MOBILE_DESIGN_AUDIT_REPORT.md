@@ -156,6 +156,20 @@ go.
 
 ### M5. Dark mode cannot be chosen by the user
 
+> **PARTLY RESOLVED 2026-08-25 by MD3 = Option A (staged).** Settings now has an
+> Appearance control offering light / dark / automatic, so dark is reachable and
+> testable for the first time. **The app default is deliberately still `light`**
+>
+> - `App.tsx` keeps `defaultTheme='light'`, guarded by a test, until every
+>   screen has been verified in dark on a device (phase 6). M5 stays open until
+>   then.
+>
+> **This finding was understated.** It said dark "cannot be chosen". In fact the
+> mount was `light` rather than `auto` and nothing ever wrote the storage key,
+> so dark was **unreachable by any means**, and the `auto` branch, the dark ramp
+> and the persistence were all dead code. See `MOBILE_DESIGN_DECISION_BRIEF.md`
+> MD3.
+
 - **Component:** `design-system/providers/ThemeProvider.tsx`,
   `features/profile/screens/SettingsScreen.tsx`.
 - **Current behaviour:** the provider fully supports `light | dark | auto`,
@@ -372,6 +386,12 @@ token set (blesses a second neutral family). _Brand decision._
 
 **MD3. Should users be able to choose the theme (M5)?** Expose the toggle, or
 follow the system only and delete the unused API. _Product decision._
+
+> **DECIDED 2026-08-25: Option A, staged.** Phase 2 shipped the Settings
+> Appearance control (light / dark / automatic) wired to the existing
+> `setTheme`, with persistence unchanged. The mount default stays `light`, held
+> there by an explicit test, until phase 6 fixes the theme-blind screens and a
+> device audit passes. Only then does the default become `auto`.
 
 **MD4. Is the driver flow in scope for the design system?** All four driver
 screens skip both the theme and the design-system button. That may be deliberate

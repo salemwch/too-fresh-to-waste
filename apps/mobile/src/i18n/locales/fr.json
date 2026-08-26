@@ -661,6 +661,12 @@
     "restartLater": "Plus tard",
     "attributions": "Attributions",
     "geocodingAttribution": "La recherche d'adresses et la localisation sont fournies par :",
+    "appearance": "Apparence",
+    "appearanceDescription": "Choisissez l’apparence de l’application. Automatique suit le réglage de votre appareil.",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeAuto": "Automatique",
+    "a11ySwitchThemeHint": "Bascule l’application dans cette apparence",
     "a11ySwitchLanguageHint": "Bascule l’application dans cette langue",
     "a11yOpenGeoapifyHint": "Ouvre le site Geoapify dans votre navigateur"
   },

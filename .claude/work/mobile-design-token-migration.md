@@ -36,7 +36,7 @@ changes they exist to catch.
       padding, margin and gap literals migrated. _Acceptance:_ inverse
       substitution reproduces every changed file byte for byte; 78 baselines
       unchanged.
-- [ ] **Phase 2 - MD3 prep.** Theme selectable in Settings; default still
+- [x] **Phase 2 - MD3 prep.** Theme selectable in Settings; default still
       `light`; persistence preserved. _Acceptance:_ a test proves dark is
       reachable and that the mount default is unchanged.
 - [ ] **Phase 3 - matrix expansion.** Baselines for OrderCard, Checkout and the
@@ -81,6 +81,20 @@ corrections section and in audit M10.
 only the absence of collateral drift. The binding proof is that substituting the
 tokens back reproduces all 86 originals byte for byte - exhaustive over every
 site rather than sampled.
+
+**2026-08-25 - the rollout guard is a source assertion, and is labelled as
+one.** `SettingsScreen.appearance.test.tsx` reads `App.tsx` and requires
+`defaultTheme='light'`. `.claude/rules/testing.md` rightly says source-text
+assertions are not tests, and this one is not counted as behavioural coverage.
+It exists because the risk is a one-word edit in a file no test renders, and
+because shipping `auto` early puts every dark-phone user on an unverified theme.
+Mutation-checked: flipping the mount to `auto` turns it red. Phase 6 deletes it.
+
+**2026-08-25 - correction: MD3's evidence grepped the wrong symbol.** The brief
+asserted `setThemeMode` had no call sites. That is the provider's internal
+`useState` setter and was never on the context; the public API is `setTheme`.
+Re-checked under the correct name before building: still zero call sites, still
+nothing writing `@foodwaste/theme`, so the conclusion held. The method did not.
 
 ## Open questions
 
