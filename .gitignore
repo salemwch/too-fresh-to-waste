@@ -211,3 +211,6 @@ generate_bp.js
 
 # k6 run artifacts (summaries, raw metrics)
 results/
+
+# Phase 6.5 device-verification screenshots - evidence, not source
+apps/mobile/device-verification/shots/
