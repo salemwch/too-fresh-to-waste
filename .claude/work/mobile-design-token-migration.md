@@ -48,9 +48,11 @@ changes they exist to catch.
       37 blocked on contrast. _Acceptance met:_ no second neutral family;
       `MAX_RAW_COLORS` 488 -> 354; **1,272 baseline values changed, all 1,272
       explained by the approved mapping, 0 unexplained.**
-- [ ] **Phase 5 - MD4 driver.** 71 font sizes to type tokens, `useTheme()`
-      added, RTL verified. _Acceptance:_ driver renders correctly in both
-      themes.
+- [x] **Phase 5 - MD4 driver.** 32 off-scale sizes migrated (+39 on-scale
+      tokenised), `useTheme()` wired through all four screens, RTL verified.
+      _Acceptance met:_ **870 colour changes, every one in a dark cell; 0 in a
+      light cell.** The dark baselines now differ from the light ones, which is
+      the criterion Phase 3 recorded as data.
 - [ ] **Phase 6 - dark-mode prep.** Every theme-blind screen fixed; full gate +
       production build + device audit. _Acceptance:_ all pass **before** any
       change to the mount default.
@@ -233,6 +235,74 @@ load. It is a pure constants module with no native dependency; there was nothing
 to stub, and a fake of a constant can only drift from it. Mock deleted rather
 than extended.
 
+**2026-08-26 - correction: "71 off-scale font sizes" was 71 font-size
+literals.** The driver screens contain 71 `fontSize:` literals, of which **39
+are already on the scale** (12, 14, 16, 18, 48) and only **32 are off it** (13,
+15, 17, 34, 40, 44). The audit and brief both read as though all 71 were
+violations. They conflate "raw literal" (audit M1) with "off-scale" (audit M8) -
+different findings with different fixes.
+
+Both were migrated, and they are reported separately because their risk is not
+comparable: the 32 change rendered output, the 39 cannot.
+
+**2026-08-26 - font sizes map by nearest token, ties broken downward, applied
+per value rather than per usage.** `13 -> sm`, `15 -> base`, `17 -> md`,
+`34 -> 4xl`, `40 -> 6xl`, `44 -> 6xl`.
+
+Mapping by DESIGN.md §3.2's role column would be more faithful in isolation, and
+it was rejected: `infoLabel` and `infoValue` are both 13 today, so sending the
+label to `sm` and the value to `base` would **invent** a hierarchy the screen
+does not have. That is the redesign the phase brief rules out. One source value,
+one target token.
+
+Ties break downward because these are dense rows in fixed-height containers and
+French runs ~30% longer than English (§3.6.7): growing every row by a step risks
+clipping in fr/ar, shrinking cannot. Relative hierarchy survives either way - 13
+and 15 are one step apart, and so are 12 and 14.
+
+Checked afterwards: all five `lineHeight` literals in the driver flow still sit
+at 1.13-1.57x their (now smaller) font size, so nothing is clipped.
+
+**2026-08-26 - `PRIMARY` and `SUCCESS` became theme reads too, not just the
+surface colours.** The obvious minimal change was to theme only the greys and
+leave the brand constants alone, since a brand colour is theme-independent by
+definition. Measured, that would have shipped an unreadable screen:
+`primary[500] #1E4448` on the dark surface `#1E1E1E` is **1.57**. The theme
+already maps `colors.primary` to `primary[300]` in dark, which is **6.31**, and
+`colors.success` to `success[300]` at 8.28. Using `theme.colors.primary` rather
+than `colorTokens.base.primary[500]` is what makes dark mode legible rather than
+merely different.
+
+**2026-08-26 - styles are memoised per colour scheme in a module cache, not per
+component.** `createDriverStyles` in `features/driver/driverTheme.ts` returns a
+hook backed by a `Map<ColorScheme, T>`. Calling `StyleSheet.create` in a
+component body allocates a new object every render, and a fresh identity
+invalidates every `React.memo` child it reaches - `.claude/rules/performance.md`
+#1 and #2 - which on `DriverOrdersListScreen` means every `FlashList` row. There
+are only two schemes, so the factory runs at most twice per screen for the life
+of the process and the identity handed to children never changes while the theme
+does not. `useMemo` per component would recompute per instance; this does not.
+
+**2026-08-26 - the map marker moved to `secondary[700]`, and `warning` was
+rejected.** The pickup pin was `#FF9800`, the one raw colour the audit names.
+Candidates by distance: `secondary[700] #FFA000` (**8**), `warning[500] #F57C00`
+(30), `secondary[500] #FFC107` (42), `accent[500] #F55449` (100).
+
+`warning` is the closest _semantic-sounding_ token and is wrong: a collection
+point is not a warning state, and encoding that in a token is worse than the raw
+hex it replaces - the next reader would take it as meaning something. `accent`
+is reserved for destructive. `secondary`'s documented role is "warm secondary
+highlights", which is what this marker is: the secondary waypoint beside the
+customer pin. At distance 8 it is also imperceptible, so requirement "do not
+redesign unnecessarily" is met at the same time.
+
+**2026-08-26 - light rendering is unchanged by the theme work, and that was
+verified before regenerating.** Running the driver suites after wiring
+`useTheme` produced exactly **66 failures, all of them dark cells** (22
+baselines x 3 dark cells); all 110 light-cell baselines passed byte-identical.
+Counted across the whole phase: 870 colour changes in dark cells, **0 in
+light**.
+
 ## Open questions
 
 - **RAISED, now audit finding M16.** `#9CA3AF` and `#94A3B8` migrated to
@@ -240,11 +310,15 @@ than extended.
   usages, **17 of them text a low-vision user must read**, enumerated with
   file:line in M16. The same product decision unblocks the 37 `#64748B`/
   `#6B7280` uses. **Blocking for Phase 6's device audit, not for Phase 5.**
-- **Non-blocking:** two hardcoded English strings ship in
-  `DriverOrdersListScreen` - `'Starting up…'` and `'Requesting location…'` are
-  not routed through `t()`, so an Arabic or French driver sees English at the
-  first screen of the flow. Out of scope for a token migration; fold into Phase
-  5 only if it does not widen the diff.
+- **Non-blocking, still open after Phase 5.** `DriverOrdersListScreen` ships six
+  untranslated English strings: `'Starting up…'`, `'Requesting location…'`, and
+  the online/offline `Switch`'s `accessibilityLabel` and `accessibilityHint`
+  ternaries (four strings). A French or Arabic driver sees English at the first
+  screen of the flow, and a screen-reader user hears it. **Deliberately not
+  fixed in Phase 5**: the phase brief forbids using the migration to resolve
+  unrelated findings silently, and a translation change would not be visible in
+  the resolved-style gate. Needs its own change with keys added to all three
+  locale files together.
 - **Non-blocking:** the driver screens compare `order.status` against string
   literals rather than `OrderStatus`, and the field is typed `string`. That is
   what let the fixture bug above type-check. Worth tightening, separately.

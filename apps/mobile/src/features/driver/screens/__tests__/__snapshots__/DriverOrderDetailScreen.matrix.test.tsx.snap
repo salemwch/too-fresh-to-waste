@@ -43,7 +43,7 @@ exports[`DriverOrderDetailScreen order already taken not-found large-light-en 1`
 exports[`DriverOrderDetailScreen order already taken not-found small-dark-en 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
     "padding": 24,
   },
   "View[0]/Text[0]": {
@@ -51,21 +51,21 @@ exports[`DriverOrderDetailScreen order already taken not-found small-dark-en 1`]
     "marginBottom": 16,
   },
   "View[0]/Text[1]": {
-    "color": "#424242",
+    "color": "#EEEEEE",
     "fontSize": 18,
     "fontWeight": "700",
     "marginBottom": 4,
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 14,
     "lineHeight": 22,
     "marginBottom": 32,
     "textAlign": "center",
   },
   "View[0]/View[3]": {
-    "borderColor": "#1E4448",
+    "borderColor": "#54ACB5",
     "borderRadius": 12,
     "borderWidth": 1.5,
     "opacity": 1,
@@ -73,7 +73,7 @@ exports[`DriverOrderDetailScreen order already taken not-found small-dark-en 1`]
     "paddingVertical": 8,
   },
   "View[0]/View[3]/Text[0]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 14,
     "fontWeight": "600",
   },
@@ -123,7 +123,7 @@ exports[`DriverOrderDetailScreen order already taken not-found small-light-en 1`
 exports[`DriverOrderDetailScreen order already taken not-found standard-dark-ar 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
     "padding": 24,
   },
   "View[0]/Text[0]": {
@@ -131,21 +131,21 @@ exports[`DriverOrderDetailScreen order already taken not-found standard-dark-ar 
     "marginBottom": 16,
   },
   "View[0]/Text[1]": {
-    "color": "#424242",
+    "color": "#EEEEEE",
     "fontSize": 18,
     "fontWeight": "700",
     "marginBottom": 4,
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 14,
     "lineHeight": 22,
     "marginBottom": 32,
     "textAlign": "center",
   },
   "View[0]/View[3]": {
-    "borderColor": "#1E4448",
+    "borderColor": "#54ACB5",
     "borderRadius": 12,
     "borderWidth": 1.5,
     "opacity": 1,
@@ -153,7 +153,7 @@ exports[`DriverOrderDetailScreen order already taken not-found standard-dark-ar 
     "paddingVertical": 8,
   },
   "View[0]/View[3]/Text[0]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 14,
     "fontWeight": "600",
   },
@@ -163,7 +163,7 @@ exports[`DriverOrderDetailScreen order already taken not-found standard-dark-ar 
 exports[`DriverOrderDetailScreen order already taken not-found standard-dark-en 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
     "padding": 24,
   },
   "View[0]/Text[0]": {
@@ -171,21 +171,21 @@ exports[`DriverOrderDetailScreen order already taken not-found standard-dark-en 
     "marginBottom": 16,
   },
   "View[0]/Text[1]": {
-    "color": "#424242",
+    "color": "#EEEEEE",
     "fontSize": 18,
     "fontWeight": "700",
     "marginBottom": 4,
     "textAlign": "center",
   },
   "View[0]/Text[2]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 14,
     "lineHeight": 22,
     "marginBottom": 32,
     "textAlign": "center",
   },
   "View[0]/View[3]": {
-    "borderColor": "#1E4448",
+    "borderColor": "#54ACB5",
     "borderRadius": 12,
     "borderWidth": 1.5,
     "opacity": 1,
@@ -193,7 +193,7 @@ exports[`DriverOrderDetailScreen order already taken not-found standard-dark-en 
     "paddingVertical": 8,
   },
   "View[0]/View[3]/Text[0]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 14,
     "fontWeight": "600",
   },
@@ -382,11 +382,11 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -396,11 +396,11 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -410,11 +410,11 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -424,11 +424,11 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -471,11 +471,11 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -485,11 +485,11 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -512,7 +512,7 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[1]": {
@@ -531,11 +531,11 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[1]": {
@@ -583,7 +583,7 @@ exports[`DriverOrderDetailScreen order available to accept available large-light
 exports[`DriverOrderDetailScreen order available to accept available small-dark-en 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]": {
     "backgroundColor": "#EBF3F4",
@@ -596,12 +596,12 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "letterSpacing": 0.5,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -618,19 +618,19 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#2E7D32",
+    "backgroundColor": "#81C784",
     "borderRadius": 3,
     "height": 6,
     "width": 6,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -641,12 +641,12 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -655,12 +655,12 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -669,12 +669,12 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -683,23 +683,23 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -713,13 +713,13 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "@pinColor": "#2196F3",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -730,12 +730,12 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -744,23 +744,23 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -771,12 +771,12 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "500",
   },
@@ -791,11 +791,11 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[1]": {
@@ -808,12 +808,12 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[2]/Text[0]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 14,
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[2]/Text[1]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -821,12 +821,12 @@ exports[`DriverOrderDetailScreen order available to accept available small-dark-
     "height": 88,
   },
   "View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "padding": 16,
     "paddingBottom": 24,
   },
   "View[0]/View[1]/View[0]": {
-    "backgroundColor": "#1E4448",
+    "backgroundColor": "#54ACB5",
     "borderRadius": 12,
     "height": 56,
     "opacity": 1,
@@ -902,11 +902,11 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -916,11 +916,11 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -930,11 +930,11 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -944,11 +944,11 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -991,11 +991,11 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1005,11 +1005,11 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1032,7 +1032,7 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[1]": {
@@ -1051,11 +1051,11 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[1]": {
@@ -1103,7 +1103,7 @@ exports[`DriverOrderDetailScreen order available to accept available small-light
 exports[`DriverOrderDetailScreen order available to accept available standard-dark-ar 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]": {
     "backgroundColor": "#EBF3F4",
@@ -1116,12 +1116,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "letterSpacing": 0.5,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -1138,19 +1138,19 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#2E7D32",
+    "backgroundColor": "#81C784",
     "borderRadius": 3,
     "height": 6,
     "width": 6,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -1161,12 +1161,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1175,12 +1175,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1189,12 +1189,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1203,23 +1203,23 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -1233,13 +1233,13 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "@pinColor": "#2196F3",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -1250,12 +1250,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1264,23 +1264,23 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -1291,12 +1291,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "500",
   },
@@ -1311,11 +1311,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[1]": {
@@ -1328,12 +1328,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[2]/Text[0]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 14,
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[2]/Text[1]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -1341,12 +1341,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "height": 88,
   },
   "View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "padding": 16,
     "paddingBottom": 24,
   },
   "View[0]/View[1]/View[0]": {
-    "backgroundColor": "#1E4448",
+    "backgroundColor": "#54ACB5",
     "borderRadius": 12,
     "height": 56,
     "opacity": 1,
@@ -1363,7 +1363,7 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
 exports[`DriverOrderDetailScreen order available to accept available standard-dark-en 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]": {
     "backgroundColor": "#EBF3F4",
@@ -1376,12 +1376,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "letterSpacing": 0.5,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -1398,19 +1398,19 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#2E7D32",
+    "backgroundColor": "#81C784",
     "borderRadius": 3,
     "height": 6,
     "width": 6,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -1421,12 +1421,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1435,12 +1435,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1449,12 +1449,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1463,23 +1463,23 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -1493,13 +1493,13 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "@pinColor": "#2196F3",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -1510,12 +1510,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1524,23 +1524,23 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -1551,12 +1551,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "500",
   },
@@ -1571,11 +1571,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[1]": {
@@ -1588,12 +1588,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[2]/Text[0]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 14,
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[2]/Text[1]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -1601,12 +1601,12 @@ exports[`DriverOrderDetailScreen order available to accept available standard-da
     "height": 88,
   },
   "View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "padding": 16,
     "paddingBottom": 24,
   },
   "View[0]/View[1]/View[0]": {
-    "backgroundColor": "#1E4448",
+    "backgroundColor": "#54ACB5",
     "borderRadius": 12,
     "height": 56,
     "opacity": 1,
@@ -1682,11 +1682,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1696,11 +1696,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1710,11 +1710,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1724,11 +1724,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1771,11 +1771,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1785,11 +1785,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1812,7 +1812,7 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[1]": {
@@ -1831,11 +1831,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[1]": {
@@ -1942,11 +1942,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1956,11 +1956,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1970,11 +1970,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -1984,11 +1984,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2031,11 +2031,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2045,11 +2045,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2072,7 +2072,7 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[1]": {
@@ -2091,11 +2091,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[1]": {
@@ -2202,11 +2202,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2216,11 +2216,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2230,11 +2230,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2244,11 +2244,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2291,11 +2291,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2305,11 +2305,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2332,7 +2332,7 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]/Text[1]": {
@@ -2351,11 +2351,11 @@ exports[`DriverOrderDetailScreen order available to accept available standard-li
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[5]/View[1]": {
@@ -2462,11 +2462,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2476,11 +2476,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2490,11 +2490,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2504,11 +2504,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2531,11 +2531,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2545,11 +2545,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2572,7 +2572,7 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
@@ -2591,11 +2591,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]": {
@@ -2643,7 +2643,7 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
 exports[`DriverOrderDetailScreen order available, no coordinates to map available-no-map small-dark-en 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]": {
     "backgroundColor": "#EBF3F4",
@@ -2656,12 +2656,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "letterSpacing": 0.5,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -2678,19 +2678,19 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#2E7D32",
+    "backgroundColor": "#81C784",
     "borderRadius": 3,
     "height": 6,
     "width": 6,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -2701,12 +2701,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2715,12 +2715,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2729,12 +2729,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2743,23 +2743,23 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -2770,12 +2770,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2784,23 +2784,23 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -2811,12 +2811,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "500",
   },
@@ -2831,11 +2831,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]": {
@@ -2848,12 +2848,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[2]/Text[0]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 14,
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[2]/Text[1]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -2861,12 +2861,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "height": 88,
   },
   "View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "padding": 16,
     "paddingBottom": 24,
   },
   "View[0]/View[1]/View[0]": {
-    "backgroundColor": "#1E4448",
+    "backgroundColor": "#54ACB5",
     "borderRadius": 12,
     "height": 56,
     "opacity": 1,
@@ -2942,11 +2942,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2956,11 +2956,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2970,11 +2970,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -2984,11 +2984,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3011,11 +3011,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3025,11 +3025,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3052,7 +3052,7 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
@@ -3071,11 +3071,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]": {
@@ -3123,7 +3123,7 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
 exports[`DriverOrderDetailScreen order available, no coordinates to map available-no-map standard-dark-ar 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]": {
     "backgroundColor": "#EBF3F4",
@@ -3136,12 +3136,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "letterSpacing": 0.5,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -3158,19 +3158,19 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#2E7D32",
+    "backgroundColor": "#81C784",
     "borderRadius": 3,
     "height": 6,
     "width": 6,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -3181,12 +3181,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3195,12 +3195,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3209,12 +3209,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3223,23 +3223,23 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -3250,12 +3250,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3264,23 +3264,23 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -3291,12 +3291,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "500",
   },
@@ -3311,11 +3311,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]": {
@@ -3328,12 +3328,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[2]/Text[0]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 14,
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[2]/Text[1]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -3341,12 +3341,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "height": 88,
   },
   "View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "padding": 16,
     "paddingBottom": 24,
   },
   "View[0]/View[1]/View[0]": {
-    "backgroundColor": "#1E4448",
+    "backgroundColor": "#54ACB5",
     "borderRadius": 12,
     "height": 56,
     "opacity": 1,
@@ -3363,7 +3363,7 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
 exports[`DriverOrderDetailScreen order available, no coordinates to map available-no-map standard-dark-en 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]": {
     "backgroundColor": "#EBF3F4",
@@ -3376,12 +3376,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "letterSpacing": 0.5,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/Text[1]": {
-    "color": "#1E4448",
+    "color": "#54ACB5",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -3398,19 +3398,19 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[0]": {
-    "backgroundColor": "#2E7D32",
+    "backgroundColor": "#81C784",
     "borderRadius": 3,
     "height": 6,
     "width": 6,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -3421,12 +3421,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3435,12 +3435,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3449,12 +3449,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3463,23 +3463,23 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -3490,12 +3490,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3504,23 +3504,23 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[0]": {
-    "color": "#757575",
-    "fontSize": 13,
+    "color": "#BDBDBD",
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[1]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "borderRadius": 12,
     "marginBottom": 4,
     "padding": 16,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/Text[0]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "700",
     "letterSpacing": 0.6,
@@ -3531,12 +3531,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "paddingVertical": 2,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
-    "color": "#424242",
-    "fontSize": 13,
+    "color": "#EEEEEE",
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
-    "color": "#757575",
+    "color": "#BDBDBD",
     "fontSize": 12,
     "fontWeight": "500",
   },
@@ -3551,11 +3551,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]": {
@@ -3568,12 +3568,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "flexDirection": "row",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[2]/Text[0]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 14,
     "fontWeight": "700",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[2]/Text[1]": {
-    "color": "#2E7D32",
+    "color": "#81C784",
     "fontSize": 18,
     "fontWeight": "800",
   },
@@ -3581,12 +3581,12 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
     "height": 88,
   },
   "View[0]/View[1]": {
-    "backgroundColor": "#FAFAFA",
+    "backgroundColor": "#1E1E1E",
     "padding": 16,
     "paddingBottom": 24,
   },
   "View[0]/View[1]/View[0]": {
-    "backgroundColor": "#1E4448",
+    "backgroundColor": "#54ACB5",
     "borderRadius": 12,
     "height": 56,
     "opacity": 1,
@@ -3662,11 +3662,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3676,11 +3676,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3690,11 +3690,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3704,11 +3704,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3731,11 +3731,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3745,11 +3745,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3772,7 +3772,7 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
@@ -3791,11 +3791,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]": {
@@ -3902,11 +3902,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3916,11 +3916,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3930,11 +3930,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3944,11 +3944,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3971,11 +3971,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -3985,11 +3985,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -4012,7 +4012,7 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
@@ -4031,11 +4031,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]": {
@@ -4142,11 +4142,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -4156,11 +4156,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -4170,11 +4170,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -4184,11 +4184,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[4]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -4211,11 +4211,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[1]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -4225,11 +4225,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[0]": {
     "color": "#757575",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[2]/View[2]/Text[1]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
     "textAlign": "right",
   },
@@ -4252,7 +4252,7 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[0]": {
     "color": "#424242",
-    "fontSize": 13,
+    "fontSize": 12,
     "marginEnd": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[3]/View[1]/Text[1]": {
@@ -4271,11 +4271,11 @@ exports[`DriverOrderDetailScreen order available, no coordinates to map availabl
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[0]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[0]/Text[1]": {
     "color": "#1B5E20",
-    "fontSize": 13,
+    "fontSize": 12,
     "fontWeight": "600",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[4]/View[1]": {
@@ -4331,7 +4331,7 @@ exports[`DriverOrderDetailScreen waiting for a GPS fix loading large-light-en 1`
   },
   "View[0]/Text[1]": {
     "color": "#757575",
-    "fontSize": 15,
+    "fontSize": 14,
     "marginTop": 16,
   },
 }
@@ -4340,15 +4340,15 @@ exports[`DriverOrderDetailScreen waiting for a GPS fix loading large-light-en 1`
 exports[`DriverOrderDetailScreen waiting for a GPS fix loading small-dark-en 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
     "padding": 24,
   },
   "View[0]/ActivityIndicator[0]": {
-    "@color": "#1E4448",
+    "@color": "#54ACB5",
   },
   "View[0]/Text[1]": {
-    "color": "#757575",
-    "fontSize": 15,
+    "color": "#BDBDBD",
+    "fontSize": 14,
     "marginTop": 16,
   },
 }
@@ -4365,7 +4365,7 @@ exports[`DriverOrderDetailScreen waiting for a GPS fix loading small-light-en 1`
   },
   "View[0]/Text[1]": {
     "color": "#757575",
-    "fontSize": 15,
+    "fontSize": 14,
     "marginTop": 16,
   },
 }
@@ -4374,15 +4374,15 @@ exports[`DriverOrderDetailScreen waiting for a GPS fix loading small-light-en 1`
 exports[`DriverOrderDetailScreen waiting for a GPS fix loading standard-dark-ar 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
     "padding": 24,
   },
   "View[0]/ActivityIndicator[0]": {
-    "@color": "#1E4448",
+    "@color": "#54ACB5",
   },
   "View[0]/Text[1]": {
-    "color": "#757575",
-    "fontSize": 15,
+    "color": "#BDBDBD",
+    "fontSize": 14,
     "marginTop": 16,
   },
 }
@@ -4391,15 +4391,15 @@ exports[`DriverOrderDetailScreen waiting for a GPS fix loading standard-dark-ar 
 exports[`DriverOrderDetailScreen waiting for a GPS fix loading standard-dark-en 1`] = `
 {
   "View[0]": {
-    "backgroundColor": "#F5F5F5",
+    "backgroundColor": "#2C2C2C",
     "padding": 24,
   },
   "View[0]/ActivityIndicator[0]": {
-    "@color": "#1E4448",
+    "@color": "#54ACB5",
   },
   "View[0]/Text[1]": {
-    "color": "#757575",
-    "fontSize": 15,
+    "color": "#BDBDBD",
+    "fontSize": 14,
     "marginTop": 16,
   },
 }
@@ -4416,7 +4416,7 @@ exports[`DriverOrderDetailScreen waiting for a GPS fix loading standard-light-ar
   },
   "View[0]/Text[1]": {
     "color": "#757575",
-    "fontSize": 15,
+    "fontSize": 14,
     "marginTop": 16,
   },
 }
@@ -4433,7 +4433,7 @@ exports[`DriverOrderDetailScreen waiting for a GPS fix loading standard-light-en
   },
   "View[0]/Text[1]": {
     "color": "#757575",
-    "fontSize": 15,
+    "fontSize": 14,
     "marginTop": 16,
   },
 }
@@ -4450,7 +4450,7 @@ exports[`DriverOrderDetailScreen waiting for a GPS fix loading standard-light-fr
   },
   "View[0]/Text[1]": {
     "color": "#757575",
-    "fontSize": 15,
+    "fontSize": 14,
     "marginTop": 16,
   },
 }

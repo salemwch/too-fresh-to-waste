@@ -30,20 +30,20 @@ import {
 import { useLocationHeartbeat } from '../hooks/useLocationHeartbeat';
 import type { DriverAvailableOrder } from '../services/driver.service';
 
+import { typographyTokens } from '@/design-system/tokens/typography';
+
+import { useTheme } from '@/design-system/providers';
+
+import { createDriverStyles, type DriverPalette } from '../driverTheme';
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const PRIMARY = colorTokens.base.primary[500];
-const SUCCESS = colorTokens.base.success[500];
 const WARNING = colorTokens.base.warning[500];
-const SURFACE = colorTokens.light.surface;
-const SURFACE_VARIANT = colorTokens.light.surfaceVariant;
-const ON_SURFACE = colorTokens.light.onSurface;
-const ON_SURFACE_VARIANT = colorTokens.light.onSurfaceVariant;
-const OUTLINE = colorTokens.light.outline;
 
 const { base: sp, radius } = spacingTokens;
+const { fontSize } = typographyTokens;
 
 const LOCATION_PERMISSION = Platform.select({
   ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
@@ -88,6 +88,7 @@ interface OrderCardProps {
 }
 
 const OrderCard: React.FC<OrderCardProps> = ({ item, onPress }) => {
+  const styles = useStyles();
   const { t } = useTranslation();
   const city = item.establishmentAddress?.city ?? t('driver.unknownLocation');
   const street = item.establishmentAddress?.street;
@@ -155,6 +156,7 @@ interface ActiveOrderBannerProps {
 }
 
 const ActiveOrderBanner: React.FC<ActiveOrderBannerProps> = ({ order, onResume }) => {
+  const styles = useStyles();
   const { t } = useTranslation();
   const collected = order.status === 'out_for_delivery';
 
@@ -192,6 +194,7 @@ interface PermissionViewProps {
 }
 
 const PermissionView: React.FC<PermissionViewProps> = ({ state, onRetry }) => {
+  const styles = useStyles();
   const { t } = useTranslation();
   const isBlocked = state === 'blocked';
   return (
@@ -230,6 +233,7 @@ const PermissionView: React.FC<PermissionViewProps> = ({ state, onRetry }) => {
 // ---------------------------------------------------------------------------
 
 const EmptyState: React.FC = () => {
+  const styles = useStyles();
   const { t } = useTranslation();
   return (
     <View style={styles.emptyContainer}>
@@ -241,6 +245,7 @@ const EmptyState: React.FC = () => {
 };
 
 const OfflineState: React.FC = () => {
+  const styles = useStyles();
   const { t } = useTranslation();
   return (
     <View style={styles.emptyContainer}>
@@ -256,6 +261,8 @@ const OfflineState: React.FC = () => {
 // ---------------------------------------------------------------------------
 
 export default function DriverOrdersListScreen({ navigation }: Props) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { t } = useTranslation();
   const [permState, setPermState] = useState<PermState>('checking');
   const [coords, setCoords] = useState<Coords | null>(null);
@@ -382,7 +389,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
   if (permState === 'checking' || permState === 'requesting') {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size='large' color={PRIMARY} />
+        <ActivityIndicator size='large' color={colors.primary} />
         <Text style={styles.loadingTitle}>
           {permState === 'checking' ? 'Starting up…' : 'Requesting location…'}
         </Text>
@@ -404,7 +411,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
   if (profileLoading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size='large' color={PRIMARY} />
+        <ActivityIndicator size='large' color={colors.primary} />
         <Text style={styles.loadingTitle}>{t('driver.loadingProfile')}</Text>
         <Text style={styles.loadingSubtitle}>
           The server may be waking up — this can take up to a minute.
@@ -450,8 +457,8 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
         value={isOnline}
         onValueChange={next => setOnline(next)}
         disabled={isTogglingStatus}
-        trackColor={{ false: OUTLINE, true: colorTokens.base.success[300] }}
-        thumbColor={isOnline ? SUCCESS : SURFACE}
+        trackColor={{ false: colors.outline, true: colorTokens.base.success[300] }}
+        thumbColor={isOnline ? colors.success : colors.surface}
         accessibilityLabel={isOnline ? 'Go offline' : 'Go online'}
         accessibilityHint={
           isOnline
@@ -510,7 +517,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
             </>
           ) : (
             <>
-              <ActivityIndicator size='large' color={PRIMARY} />
+              <ActivityIndicator size='large' color={colors.primary} />
               <Text style={styles.loadingTitle}>{t('driver.locatingYou')}</Text>
               <Text style={styles.loadingSubtitle}>{t('driver.acquiringGps')}</Text>
             </>
@@ -525,7 +532,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
       <View style={styles.container}>
         {statusBar}
         <View style={styles.centerContainer}>
-          <ActivityIndicator size='large' color={PRIMARY} />
+          <ActivityIndicator size='large' color={colors.primary} />
           <Text style={styles.loadingTitle}>{t('driver.searchingOrders')}</Text>
         </View>
       </View>
@@ -558,8 +565,8 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
             onRefresh={() => {
               void refetch();
             }}
-            tintColor={PRIMARY}
-            colors={[PRIMARY]}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
       />
@@ -581,163 +588,184 @@ const CARD_SHADOW = Platform.select({
   android: { elevation: 2 },
 });
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: SURFACE_VARIANT },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: sp.lg,
-    backgroundColor: SURFACE_VARIANT,
-  },
-  loadingTitle: {
-    marginTop: sp.md,
-    fontSize: 16,
-    fontWeight: '600',
-    color: ON_SURFACE,
-    textAlign: 'center',
-  },
-  loadingSubtitle: {
-    marginTop: sp.xs,
-    fontSize: 13,
-    color: ON_SURFACE_VARIANT,
-    textAlign: 'center',
-  },
-  errorIcon: { fontSize: 40, marginBottom: sp.sm },
-  permissionButton: {
-    marginTop: sp.lg,
-    backgroundColor: PRIMARY,
-    paddingHorizontal: sp.xl,
-    paddingVertical: sp.sm,
-    borderRadius: radius.lg,
-  },
-  permissionButtonText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+const useStyles = createDriverStyles((c: DriverPalette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.surfaceVariant },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: sp.lg,
+      backgroundColor: c.surfaceVariant,
+    },
+    loadingTitle: {
+      marginTop: sp.md,
+      fontSize: fontSize.md,
+      fontWeight: '600',
+      color: c.onSurface,
+      textAlign: 'center',
+    },
+    loadingSubtitle: {
+      marginTop: sp.xs,
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      textAlign: 'center',
+    },
+    errorIcon: { fontSize: fontSize['6xl'], marginBottom: sp.sm },
+    permissionButton: {
+      marginTop: sp.lg,
+      backgroundColor: c.primary,
+      paddingHorizontal: sp.xl,
+      paddingVertical: sp.sm,
+      borderRadius: radius.lg,
+    },
+    permissionButtonText: { color: '#fff', fontSize: fontSize.base, fontWeight: '600' },
 
-  // ── Status bar (online toggle + earnings) ──
-  statusBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: sp.md,
-    paddingVertical: sp.sm,
-    backgroundColor: SURFACE,
-    borderBottomWidth: 1,
-    borderBottomColor: OUTLINE,
-    gap: sp.xs,
-  },
-  statusDot: { width: 10, height: 10, borderRadius: 5 },
-  statusDotOnline: { backgroundColor: SUCCESS },
-  statusDotOffline: { backgroundColor: ON_SURFACE_VARIANT },
-  statusText: { flex: 1, fontSize: 15, fontWeight: '700', color: ON_SURFACE },
-  earningsButton: {
-    marginStart: sp.sm,
-    paddingHorizontal: sp.sm,
-    paddingVertical: sp.xxs,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: PRIMARY,
-  },
-  earningsButtonText: { fontSize: 13, fontWeight: '600', color: PRIMARY },
+    // ── Status bar (online toggle + earnings) ──
+    statusBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: sp.md,
+      paddingVertical: sp.sm,
+      backgroundColor: c.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: c.outline,
+      gap: sp.xs,
+    },
+    statusDot: { width: 10, height: 10, borderRadius: 5 },
+    statusDotOnline: { backgroundColor: c.success },
+    statusDotOffline: { backgroundColor: c.onSurfaceVariant },
+    statusText: { flex: 1, fontSize: fontSize.base, fontWeight: '700', color: c.onSurface },
+    earningsButton: {
+      marginStart: sp.sm,
+      paddingHorizontal: sp.sm,
+      paddingVertical: sp.xxs,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.primary,
+    },
+    earningsButtonText: { fontSize: fontSize.sm, fontWeight: '600', color: c.primary },
 
-  // ── Active delivery banner ──
-  activeOnlyContainer: { flex: 1, padding: sp.md },
-  activeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colorTokens.base.warning[50],
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: WARNING,
-    padding: sp.md,
-    ...CARD_SHADOW,
-  },
-  activeBannerBody: { flex: 1 },
-  activeBannerTitle: { fontSize: 16, fontWeight: '700', color: ON_SURFACE, marginBottom: sp.xxs },
-  activeBannerSubtitle: { fontSize: 13, color: ON_SURFACE_VARIANT, lineHeight: 18 },
-  activeBannerAction: { fontSize: 14, fontWeight: '700', color: PRIMARY, marginStart: sp.sm },
-  activeHint: {
-    marginTop: sp.md,
-    fontSize: 13,
-    color: ON_SURFACE_VARIANT,
-    textAlign: 'center',
-  },
+    // ── Active delivery banner ──
+    activeOnlyContainer: { flex: 1, padding: sp.md },
+    activeBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colorTokens.base.warning[50],
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: WARNING,
+      padding: sp.md,
+      ...CARD_SHADOW,
+    },
+    activeBannerBody: { flex: 1 },
+    activeBannerTitle: {
+      fontSize: fontSize.md,
+      fontWeight: '700',
+      color: c.onSurface,
+      marginBottom: sp.xxs,
+    },
+    activeBannerSubtitle: { fontSize: fontSize.sm, color: c.onSurfaceVariant, lineHeight: 18 },
+    activeBannerAction: {
+      fontSize: fontSize.base,
+      fontWeight: '700',
+      color: c.primary,
+      marginStart: sp.sm,
+    },
+    activeHint: {
+      marginTop: sp.md,
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      textAlign: 'center',
+    },
 
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: sp.md,
-    paddingVertical: sp.sm,
-    backgroundColor: SURFACE,
-    borderBottomWidth: 1,
-    borderBottomColor: OUTLINE,
-    gap: sp.xs,
-  },
-  liveIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: SUCCESS },
-  liveIndicatorError: { backgroundColor: ON_SURFACE_VARIANT },
-  headerText: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: ON_SURFACE_VARIANT,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  countBadge: { fontSize: 13, fontWeight: '700', color: PRIMARY },
-  listContent: { padding: sp.md, gap: sp.sm, paddingBottom: sp['2xl'] },
-  card: {
-    backgroundColor: SURFACE,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    marginBottom: sp.sm,
-    ...CARD_SHADOW,
-  },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: sp.xxs,
-  },
-  cityText: { fontSize: 16, fontWeight: '700', color: PRIMARY, flex: 1 },
-  orderNumberText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: ON_SURFACE_VARIANT,
-    marginStart: sp.xs,
-  },
-  streetText: { fontSize: 13, color: ON_SURFACE_VARIANT, marginBottom: sp.xs },
-  divider: { height: 1, backgroundColor: OUTLINE, marginVertical: sp.sm },
-  windowLabel: {
-    fontSize: 12,
-    color: ON_SURFACE_VARIANT,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  windowTime: { fontSize: 13, fontWeight: '600', color: ON_SURFACE },
-  earningsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: sp.sm,
-    backgroundColor: colorTokens.base.success[50],
-    borderRadius: radius.md,
-    paddingHorizontal: sp.sm,
-    paddingVertical: sp.xs,
-  },
-  earningsLabel: { fontSize: 12, color: colorTokens.base.success[600], fontWeight: '500' },
-  earningsAmount: { fontSize: 15, fontWeight: '700', color: SUCCESS },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: sp.xl,
-    paddingBottom: sp['4xl'],
-  },
-  emptyIcon: { fontSize: 48, marginBottom: sp.md },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: ON_SURFACE,
-    marginBottom: sp.xs,
-    textAlign: 'center',
-  },
-  emptySubtitle: { fontSize: 14, color: ON_SURFACE_VARIANT, textAlign: 'center', lineHeight: 22 },
-});
+    headerBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: sp.md,
+      paddingVertical: sp.sm,
+      backgroundColor: c.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: c.outline,
+      gap: sp.xs,
+    },
+    liveIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.success },
+    liveIndicatorError: { backgroundColor: c.onSurfaceVariant },
+    headerText: {
+      flex: 1,
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+      color: c.onSurfaceVariant,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    countBadge: { fontSize: fontSize.sm, fontWeight: '700', color: c.primary },
+    listContent: { padding: sp.md, gap: sp.sm, paddingBottom: sp['2xl'] },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      marginBottom: sp.sm,
+      ...CARD_SHADOW,
+    },
+    cardRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: sp.xxs,
+    },
+    cityText: { fontSize: fontSize.md, fontWeight: '700', color: c.primary, flex: 1 },
+    orderNumberText: {
+      fontSize: fontSize.sm,
+      fontWeight: '500',
+      color: c.onSurfaceVariant,
+      marginStart: sp.xs,
+    },
+    streetText: { fontSize: fontSize.sm, color: c.onSurfaceVariant, marginBottom: sp.xs },
+    divider: { height: 1, backgroundColor: c.outline, marginVertical: sp.sm },
+    windowLabel: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+    },
+    windowTime: { fontSize: fontSize.sm, fontWeight: '600', color: c.onSurface },
+    earningsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: sp.sm,
+      backgroundColor: colorTokens.base.success[50],
+      borderRadius: radius.md,
+      paddingHorizontal: sp.sm,
+      paddingVertical: sp.xs,
+    },
+    earningsLabel: {
+      fontSize: fontSize.sm,
+      color: colorTokens.base.success[600],
+      fontWeight: '500',
+    },
+    earningsAmount: { fontSize: fontSize.base, fontWeight: '700', color: c.success },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: sp.xl,
+      paddingBottom: sp['4xl'],
+    },
+    emptyIcon: { fontSize: fontSize['7xl'], marginBottom: sp.md },
+    emptyTitle: {
+      fontSize: fontSize.lg,
+      fontWeight: '700',
+      color: c.onSurface,
+      marginBottom: sp.xs,
+      textAlign: 'center',
+    },
+    emptySubtitle: {
+      fontSize: fontSize.base,
+      color: c.onSurfaceVariant,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+  }),
+);

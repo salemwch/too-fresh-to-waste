@@ -38,6 +38,12 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 import { textAlignEnd } from '@/utils/rtl';
+
+import { typographyTokens } from '@/design-system/tokens/typography';
+
+import { useTheme } from '@/design-system/providers';
+
+import { createDriverStyles, type DriverPalette } from '../driverTheme';
 import type {
   DriverActiveOrderNavigationProp,
   DriverActiveOrderRouteProp,
@@ -54,21 +60,15 @@ import {
 // Design tokens
 // ---------------------------------------------------------------------------
 
-const PRIMARY = colorTokens.base.primary[500];
 const PRIMARY_CONTAINER = colorTokens.base.primary[50];
 const ERROR = colorTokens.base.error[500];
 const ERROR_CONTAINER = colorTokens.base.error[50];
-const SUCCESS = colorTokens.base.success[500];
 const SUCCESS_CONTAINER = colorTokens.base.success[50];
 const SUCCESS_ON = colorTokens.base.success[600];
-const SURFACE = colorTokens.light.surface;
-const SURFACE_VARIANT = colorTokens.light.surfaceVariant;
-const ON_SURFACE = colorTokens.light.onSurface;
-const ON_SURFACE_VARIANT = colorTokens.light.onSurfaceVariant;
-const OUTLINE = colorTokens.light.outline;
 const WHITE = colorTokens.base.neutral[0];
 
 const { base: sp, radius, sizing } = spacingTokens;
+const { fontSize } = typographyTokens;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -140,32 +140,42 @@ interface InfoRowProps {
   value: string;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
-  <View style={styles.infoRow}>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue} numberOfLines={2}>
-      {value}
-    </Text>
-  </View>
-);
+const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
+  const styles = useStyles();
+
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue} numberOfLines={2}>
+        {value}
+      </Text>
+    </View>
+  );
+};
 
 interface SectionCardProps {
   title: string;
   children: React.ReactNode;
 }
 
-const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => (
-  <View style={styles.card}>
-    <Text style={styles.cardTitle}>{title}</Text>
-    {children}
-  </View>
-);
+const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => {
+  const styles = useStyles();
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>{title}</Text>
+      {children}
+    </View>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
 
 export default function DriverActiveOrderScreen({ navigation, route }: Props) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { t } = useTranslation();
   const { orderId, order: passedOrder } = route.params;
 
@@ -254,7 +264,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   if (isLoading && !passedOrder) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size='large' color={PRIMARY} />
+        <ActivityIndicator size='large' color={colors.primary} />
         <Text style={styles.loadingText}>{t('driver.loadingDelivery')}</Text>
       </View>
     );
@@ -363,7 +373,13 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
               {pickupLatLng ? (
                 <Marker
                   coordinate={pickupLatLng}
-                  pinColor='#FF9800'
+                  // Material orange 500 was the only raw colour left in the driver flow.
+                  // secondary[700] #FFA000 is 8 RGB away - imperceptible - and its
+                  // documented role, "warm secondary", is what this marker is: the
+                  // secondary waypoint beside the customer pin. warning[500] was
+                  // rejected; a collection point is not a warning state, and encoding
+                  // that in a token is worse than the raw hex it replaces.
+                  pinColor={colorTokens.base.secondary[700]}
                   title={t('driver.pickup')}
                   description={pickupCity ?? t('driver.establishment')}
                 />
@@ -523,277 +539,279 @@ const FOOTER_SHADOW = Platform.select({
   android: { elevation: 8 },
 });
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: SURFACE_VARIANT,
-  },
+const useStyles = createDriverStyles((c: DriverPalette) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.surfaceVariant,
+    },
 
-  // ── Center / loading ──
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: sp.lg,
-    backgroundColor: SURFACE_VARIANT,
-  },
-  loadingText: {
-    marginTop: sp.md,
-    fontSize: 15,
-    color: ON_SURFACE_VARIANT,
-  },
+    // ── Center / loading ──
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: sp.lg,
+      backgroundColor: c.surfaceVariant,
+    },
+    loadingText: {
+      marginTop: sp.md,
+      fontSize: fontSize.base,
+      color: c.onSurfaceVariant,
+    },
 
-  // ── Scroll ──
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: sp.md,
-    gap: sp.sm,
-  },
+    // ── Scroll ──
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: sp.md,
+      gap: sp.sm,
+    },
 
-  // ── Header card ──
-  headerCard: {
-    backgroundColor: PRIMARY_CONTAINER,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: sp.xs,
-    ...CARD_SHADOW,
-  },
-  orderNumberRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: sp.xs,
-  },
-  orderNumberLabel: {
-    fontSize: 12,
-    color: ON_SURFACE_VARIANT,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    // Never gives up its width: this is the label that says what the screen is.
-    flexShrink: 0,
-  },
-  orderNumber: {
-    // Was 18, which let a long order number push the row past the card edge and
-    // clip the status text underneath. Smaller and allowed to shrink — the
-    // driver needs the status far more than the reference.
-    fontSize: 15,
-    fontWeight: '800',
-    color: PRIMARY,
-    flexShrink: 1,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    // flex-start, not center: with two lines of status text the dot should sit
-    // beside the first line rather than float in the middle.
-    alignItems: 'flex-start',
-    alignSelf: 'flex-start',
-    backgroundColor: SUCCESS_CONTAINER,
-    borderRadius: radius.full,
-    paddingHorizontal: sp.sm,
-    paddingVertical: sp.xxs,
-    gap: sp.xxs,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: SUCCESS,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: SUCCESS_ON,
-  },
+    // ── Header card ──
+    headerCard: {
+      backgroundColor: PRIMARY_CONTAINER,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: sp.xs,
+      ...CARD_SHADOW,
+    },
+    orderNumberRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: sp.xs,
+    },
+    orderNumberLabel: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      // Never gives up its width: this is the label that says what the screen is.
+      flexShrink: 0,
+    },
+    orderNumber: {
+      // Was 18, which let a long order number push the row past the card edge and
+      // clip the status text underneath. Smaller and allowed to shrink — the
+      // driver needs the status far more than the reference.
+      fontSize: fontSize.base,
+      fontWeight: '800',
+      color: c.primary,
+      flexShrink: 1,
+    },
+    statusPill: {
+      flexDirection: 'row',
+      // flex-start, not center: with two lines of status text the dot should sit
+      // beside the first line rather than float in the middle.
+      alignItems: 'flex-start',
+      alignSelf: 'flex-start',
+      backgroundColor: SUCCESS_CONTAINER,
+      borderRadius: radius.full,
+      paddingHorizontal: sp.sm,
+      paddingVertical: sp.xxs,
+      gap: sp.xxs,
+    },
+    statusDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: c.success,
+    },
+    statusText: {
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+      color: SUCCESS_ON,
+    },
 
-  // ── Section card ──
-  card: {
-    backgroundColor: SURFACE,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    marginBottom: sp.xs,
-    ...CARD_SHADOW,
-  },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: ON_SURFACE_VARIANT,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: sp.sm,
-  },
-  placeholderText: {
-    fontSize: 13,
-    color: ON_SURFACE_VARIANT,
-    fontStyle: 'italic',
-  },
+    // ── Section card ──
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      marginBottom: sp.xs,
+      ...CARD_SHADOW,
+    },
+    cardTitle: {
+      fontSize: fontSize.sm,
+      fontWeight: '700',
+      color: c.onSurfaceVariant,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      marginBottom: sp.sm,
+    },
+    placeholderText: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      fontStyle: 'italic',
+    },
 
-  // ── Live map ──
-  liveMapCard: {
-    height: 280,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    marginBottom: sp.xs,
-    ...CARD_SHADOW,
-  },
-  liveMap: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  navButtonFloating: {
-    position: 'absolute',
-    bottom: sp.sm,
-    insetInlineStart: sp.sm,
-    insetInlineEnd: sp.sm,
-    backgroundColor: PRIMARY,
-    borderRadius: radius.md,
-    padding: sp.sm,
-    alignItems: 'center',
-  },
-  navButtonText: {
-    color: WHITE,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+    // ── Live map ──
+    liveMapCard: {
+      height: 280,
+      borderRadius: radius.lg,
+      overflow: 'hidden',
+      marginBottom: sp.xs,
+      ...CARD_SHADOW,
+    },
+    liveMap: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    navButtonFloating: {
+      position: 'absolute',
+      bottom: sp.sm,
+      insetInlineStart: sp.sm,
+      insetInlineEnd: sp.sm,
+      backgroundColor: c.primary,
+      borderRadius: radius.md,
+      padding: sp.sm,
+      alignItems: 'center',
+    },
+    navButtonText: {
+      color: WHITE,
+      fontSize: fontSize.base,
+      fontWeight: '600',
+    },
 
-  // ── Info row ──
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingVertical: sp.xxs,
-    borderBottomWidth: 1,
-    borderBottomColor: OUTLINE,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: ON_SURFACE_VARIANT,
-    flex: 1,
-  },
-  infoValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: ON_SURFACE,
-    flex: 2,
-    textAlign: textAlignEnd(),
-  },
+    // ── Info row ──
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingVertical: sp.xxs,
+      borderBottomWidth: 1,
+      borderBottomColor: c.outline,
+    },
+    infoLabel: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      flex: 1,
+    },
+    infoValue: {
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+      color: c.onSurface,
+      flex: 2,
+      textAlign: textAlignEnd(),
+    },
 
-  // ── Item row ──
-  itemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: sp.xxs,
-    borderBottomWidth: 1,
-    borderBottomColor: OUTLINE,
-  },
-  itemTitle: {
-    fontSize: 13,
-    color: ON_SURFACE,
-    flex: 1,
-    marginEnd: sp.sm,
-  },
-  itemMeta: {
-    fontSize: 12,
-    color: ON_SURFACE_VARIANT,
-    fontWeight: '500',
-  },
+    // ── Item row ──
+    itemRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: sp.xxs,
+      borderBottomWidth: 1,
+      borderBottomColor: c.outline,
+    },
+    itemTitle: {
+      fontSize: fontSize.sm,
+      color: c.onSurface,
+      flex: 1,
+      marginEnd: sp.sm,
+    },
+    itemMeta: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      fontWeight: '500',
+    },
 
-  // ── Earnings card ──
-  earningsCard: {
-    backgroundColor: SUCCESS_CONTAINER,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    marginBottom: sp.xs,
-    ...CARD_SHADOW,
-  },
-  earningsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  earningsPrimaryLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: SUCCESS,
-  },
-  earningsPrimaryAmount: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: SUCCESS,
-  },
+    // ── Earnings card ──
+    earningsCard: {
+      backgroundColor: SUCCESS_CONTAINER,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      marginBottom: sp.xs,
+      ...CARD_SHADOW,
+    },
+    earningsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    earningsPrimaryLabel: {
+      fontSize: fontSize.base,
+      fontWeight: '700',
+      color: c.success,
+    },
+    earningsPrimaryAmount: {
+      fontSize: fontSize.lg,
+      fontWeight: '800',
+      color: c.success,
+    },
 
-  // ── Sticky footer ──
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: sp.md,
-    paddingBottom: sp.lg,
-    gap: sp.sm,
-    backgroundColor: SURFACE,
-    borderTopWidth: 1,
-    borderTopColor: OUTLINE,
-    ...FOOTER_SHADOW,
-  },
+    // ── Sticky footer ──
+    footer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: sp.md,
+      paddingBottom: sp.lg,
+      gap: sp.sm,
+      backgroundColor: c.surface,
+      borderTopWidth: 1,
+      borderTopColor: c.outline,
+      ...FOOTER_SHADOW,
+    },
 
-  // ── Deliver button ──
-  deliverButton: {
-    backgroundColor: SUCCESS,
-    borderRadius: radius.lg,
-    height: sizing.button.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Pickup is a progress step, not a completion — primary blue, not success green,
-  // so "Mark as Delivered" stays the only green (terminal) action in the flow.
-  pickupButton: {
-    backgroundColor: PRIMARY,
-    borderRadius: radius.lg,
-    height: sizing.button.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deliverText: {
-    color: WHITE,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  backToListButton: {
-    marginTop: sp.lg,
-    backgroundColor: PRIMARY,
-    borderRadius: radius.lg,
-    paddingHorizontal: sp.xl,
-    paddingVertical: sp.sm,
-  },
-  backToListText: {
-    color: WHITE,
-    fontSize: 15,
-    fontWeight: '600',
-  },
+    // ── Deliver button ──
+    deliverButton: {
+      backgroundColor: c.success,
+      borderRadius: radius.lg,
+      height: sizing.button.xl,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    // Pickup is a progress step, not a completion — primary blue, not success green,
+    // so "Mark as Delivered" stays the only green (terminal) action in the flow.
+    pickupButton: {
+      backgroundColor: c.primary,
+      borderRadius: radius.lg,
+      height: sizing.button.xl,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    deliverText: {
+      color: WHITE,
+      fontSize: fontSize.md,
+      fontWeight: '700',
+      letterSpacing: 0.3,
+    },
+    backToListButton: {
+      marginTop: sp.lg,
+      backgroundColor: c.primary,
+      borderRadius: radius.lg,
+      paddingHorizontal: sp.xl,
+      paddingVertical: sp.sm,
+    },
+    backToListText: {
+      color: WHITE,
+      fontSize: fontSize.base,
+      fontWeight: '600',
+    },
 
-  // ── Unassign button ──
-  unassignButton: {
-    borderRadius: radius.lg,
-    height: sizing.button.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: ERROR,
-    backgroundColor: ERROR_CONTAINER,
-  },
-  unassignText: {
-    color: ERROR,
-    fontSize: 15,
-    fontWeight: '600',
-  },
+    // ── Unassign button ──
+    unassignButton: {
+      borderRadius: radius.lg,
+      height: sizing.button.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: ERROR,
+      backgroundColor: ERROR_CONTAINER,
+    },
+    unassignText: {
+      color: ERROR,
+      fontSize: fontSize.base,
+      fontWeight: '600',
+    },
 
-  // ── Shared state ──
-  buttonDisabled: {
-    opacity: 0.55,
-  },
-});
+    // ── Shared state ──
+    buttonDisabled: {
+      opacity: 0.55,
+    },
+  }),
+);

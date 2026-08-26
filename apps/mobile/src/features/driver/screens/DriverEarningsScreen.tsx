@@ -11,25 +11,23 @@ import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
 import { useDriverEarnings, useDriverOrderHistory } from '../hooks/useDriverOrders';
 import type { DriverAvailableOrder, DriverEarningsSummary } from '../services/driver.service';
 
+import { typographyTokens } from '@/design-system/tokens/typography';
+
+import { useTheme } from '@/design-system/providers';
+
+import { createDriverStyles, type DriverPalette } from '../driverTheme';
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const PRIMARY = colorTokens.base.primary[500];
-const SUCCESS = colorTokens.base.success[500];
-const SURFACE = colorTokens.light.surface;
-const SURFACE_VARIANT = colorTokens.light.surfaceVariant;
-const ON_SURFACE = colorTokens.light.onSurface;
-const ON_SURFACE_VARIANT = colorTokens.light.onSurfaceVariant;
-const OUTLINE = colorTokens.light.outline;
-
 const { base: sp, radius } = spacingTokens;
+const { fontSize } = typographyTokens;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -58,6 +56,7 @@ interface EarningsSummaryProps {
 }
 
 const EarningsSummary: React.FC<EarningsSummaryProps> = ({ summary }) => {
+  const styles = useStyles();
   const { t } = useTranslation();
 
   return (
@@ -108,6 +107,7 @@ const EarningsSummary: React.FC<EarningsSummaryProps> = ({ summary }) => {
 // ---------------------------------------------------------------------------
 
 const HistoryRow: React.FC<{ item: DriverAvailableOrder }> = ({ item }) => {
+  const styles = useStyles();
   const { t } = useTranslation();
 
   return (
@@ -133,6 +133,8 @@ const HistoryRow: React.FC<{ item: DriverAvailableOrder }> = ({ item }) => {
 // ---------------------------------------------------------------------------
 
 export default function DriverEarningsScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { t } = useTranslation();
 
   const {
@@ -162,7 +164,7 @@ export default function DriverEarningsScreen() {
   if (earningsLoading || historyLoading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size='large' color={PRIMARY} />
+        <ActivityIndicator size='large' color={colors.primary} />
         <Text style={styles.loadingTitle}>{t('driver.loadingEarnings')}</Text>
       </View>
     );
@@ -199,8 +201,8 @@ export default function DriverEarningsScreen() {
         <RefreshControl
           refreshing={earningsRefetching}
           onRefresh={handleRefresh}
-          tintColor={PRIMARY}
-          colors={[PRIMARY]}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
         />
       }
     />
@@ -221,109 +223,121 @@ const CARD_SHADOW = Platform.select({
   android: { elevation: 2 },
 });
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: SURFACE_VARIANT },
-  listContent: { padding: sp.md, paddingBottom: sp['2xl'] },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: sp.lg,
-    backgroundColor: SURFACE_VARIANT,
-  },
-  loadingTitle: {
-    marginTop: sp.md,
-    fontSize: 16,
-    fontWeight: '600',
-    color: ON_SURFACE,
-    textAlign: 'center',
-  },
+const useStyles = createDriverStyles((c: DriverPalette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.surfaceVariant },
+    listContent: { padding: sp.md, paddingBottom: sp['2xl'] },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: sp.lg,
+      backgroundColor: c.surfaceVariant,
+    },
+    loadingTitle: {
+      marginTop: sp.md,
+      fontSize: fontSize.md,
+      fontWeight: '600',
+      color: c.onSurface,
+      textAlign: 'center',
+    },
 
-  summaryWrapper: { gap: sp.sm },
+    summaryWrapper: { gap: sp.sm },
 
-  // ── Hero: today ──
-  heroCard: {
-    backgroundColor: PRIMARY,
-    borderRadius: radius.lg,
-    padding: sp.lg,
-    ...CARD_SHADOW,
-  },
-  heroLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#fff',
-    opacity: 0.75,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  heroAmount: { marginTop: sp.xs, fontSize: 34, fontWeight: '800', color: '#fff' },
-  heroCurrency: { fontSize: 18, fontWeight: '600', opacity: 0.8 },
-  heroMeta: { marginTop: sp.xxs, fontSize: 13, color: '#fff', opacity: 0.8 },
+    // ── Hero: today ──
+    heroCard: {
+      backgroundColor: c.primary,
+      borderRadius: radius.lg,
+      padding: sp.lg,
+      ...CARD_SHADOW,
+    },
+    heroLabel: {
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+      color: '#fff',
+      opacity: 0.75,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+    },
+    heroAmount: { marginTop: sp.xs, fontSize: fontSize['4xl'], fontWeight: '800', color: '#fff' },
+    heroCurrency: { fontSize: fontSize.lg, fontWeight: '600', opacity: 0.8 },
+    heroMeta: { marginTop: sp.xxs, fontSize: fontSize.sm, color: '#fff', opacity: 0.8 },
 
-  // ── Week / month ──
-  statRow: { flexDirection: 'row', gap: sp.sm },
-  statCard: {
-    flex: 1,
-    backgroundColor: SURFACE,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    ...CARD_SHADOW,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: ON_SURFACE_VARIANT,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  statValue: { marginTop: sp.xxs, fontSize: 18, fontWeight: '700', color: ON_SURFACE },
+    // ── Week / month ──
+    statRow: { flexDirection: 'row', gap: sp.sm },
+    statCard: {
+      flex: 1,
+      backgroundColor: c.surface,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      ...CARD_SHADOW,
+    },
+    statLabel: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+    },
+    statValue: { marginTop: sp.xxs, fontSize: fontSize.lg, fontWeight: '700', color: c.onSurface },
 
-  // ── All time ──
-  allTimeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: SURFACE,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    ...CARD_SHADOW,
-  },
-  allTimeItem: { flex: 1 },
-  allTimeDivider: { width: 1, alignSelf: 'stretch', backgroundColor: OUTLINE, marginEnd: sp.md },
+    // ── All time ──
+    allTimeCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.surface,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      ...CARD_SHADOW,
+    },
+    allTimeItem: { flex: 1 },
+    allTimeDivider: {
+      width: 1,
+      alignSelf: 'stretch',
+      backgroundColor: c.outline,
+      marginEnd: sp.md,
+    },
 
-  sectionHeading: {
-    marginTop: sp.md,
-    marginBottom: sp.xxs,
-    fontSize: 13,
-    fontWeight: '700',
-    color: ON_SURFACE_VARIANT,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+    sectionHeading: {
+      marginTop: sp.md,
+      marginBottom: sp.xxs,
+      fontSize: fontSize.sm,
+      fontWeight: '700',
+      color: c.onSurfaceVariant,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
 
-  // ── History ──
-  historyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: SURFACE,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    marginBottom: sp.sm,
-    ...CARD_SHADOW,
-  },
-  historyBody: { flex: 1 },
-  historyCity: { fontSize: 15, fontWeight: '600', color: ON_SURFACE },
-  historyDate: { marginTop: 2, fontSize: 12, color: ON_SURFACE_VARIANT },
-  historyEarnings: { fontSize: 16, fontWeight: '700', color: SUCCESS },
-  historyCurrency: { fontSize: 12, fontWeight: '600' },
+    // ── History ──
+    historyCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.surface,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      marginBottom: sp.sm,
+      ...CARD_SHADOW,
+    },
+    historyBody: { flex: 1 },
+    historyCity: { fontSize: fontSize.base, fontWeight: '600', color: c.onSurface },
+    historyDate: { marginTop: 2, fontSize: fontSize.sm, color: c.onSurfaceVariant },
+    historyEarnings: { fontSize: fontSize.md, fontWeight: '700', color: c.success },
+    historyCurrency: { fontSize: fontSize.sm, fontWeight: '600' },
 
-  // ── Empty ──
-  emptyContainer: { alignItems: 'center', paddingVertical: sp['2xl'], paddingHorizontal: sp.lg },
-  emptyIcon: { fontSize: 44, marginBottom: sp.sm },
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: ON_SURFACE,
-    marginBottom: sp.xxs,
-    textAlign: 'center',
-  },
-  emptySubtitle: { fontSize: 14, color: ON_SURFACE_VARIANT, textAlign: 'center', lineHeight: 21 },
-});
+    // ── Empty ──
+    emptyContainer: { alignItems: 'center', paddingVertical: sp['2xl'], paddingHorizontal: sp.lg },
+    emptyIcon: { fontSize: fontSize['6xl'], marginBottom: sp.sm },
+    emptyTitle: {
+      fontSize: fontSize.md,
+      fontWeight: '700',
+      color: c.onSurface,
+      marginBottom: sp.xxs,
+      textAlign: 'center',
+    },
+    emptySubtitle: {
+      fontSize: fontSize.base,
+      color: c.onSurfaceVariant,
+      textAlign: 'center',
+      lineHeight: 21,
+    },
+  }),
+);

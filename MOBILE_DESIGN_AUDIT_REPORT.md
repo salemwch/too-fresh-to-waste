@@ -171,6 +171,13 @@ go.
 
 ### M4. Eight screens never read the theme
 
+> **PARTLY RESOLVED 2026-08-26 by MD4.** The four driver screens now read the
+> theme through `createDriverStyles`. Verified behaviourally rather than by
+> inspection: their dark baselines were byte-identical to their light ones
+> before this change and now differ, asserted by `driverDesignSystem.test.ts` ›
+> "renders differently in dark than in light". The eight consumer screens this
+> entry names are **not** fixed - that is Phase 6.
+
 - **Screens:** `ForceChangePasswordScreen`, `WelcomeScreen`,
   `DriverActiveOrderScreen`, `DriverEarningsScreen`, `DriverOrderDetailScreen`,
   `DriverOrdersListScreen`, `LeaderboardScreen`, `CheckoutScreen`.
@@ -243,6 +250,17 @@ go.
 - **Fix type:** technical.
 
 ### M8. 152 off-scale font sizes
+
+> **PARTLY RESOLVED 2026-08-26 by MD4.** The driver flow's share is done: 32
+> off-scale literals migrated to `typographyTokens.fontSize`, plus 39 that were
+> already on the scale but written as raw numbers. `driverDesignSystem.test.ts`
+> now fails on any numeric `fontSize:` in those four screens. The rest of the
+> app is untouched and M8 stays open for it.
+>
+> **Correction to this entry's framing.** The brief described the driver flow as
+> having "71 off-scale font sizes". 71 is the count of font-size _literals_;
+> only **32** are off the scale. The entry conflates M1 (raw literal) with M8
+> (off-scale value) - different findings, different fixes.
 
 - **Current behaviour:** sizes outside the documented scale - **13px ×58, 15px
   ×39, 11px ×24, 22px ×12, 17px ×6**, plus 8/9/34/40/44px.
@@ -366,6 +384,43 @@ checked on device, not asserted as a violation.
 - **Recommendation:** move text roles to `neutral[600]`, keep `neutral[500]` for
   decorative and disabled use. That also unblocks the 37 `#64748B`/`#6B7280`
   uses in M2, since the same decision governs both.
+- **Fix type:** **product/brand decision**, then technical.
+
+#### M16-b. The light theme's own `onSurfaceVariant` fails AA (found 2026-08-26)
+
+Found while checking dark contrast for MD4, and it is the **root cause of the
+Phase 4 blocker**, not a separate coincidence. `onSurfaceVariant` is the token
+every screen in the app uses for secondary text. In the light theme it is
+`neutral[600] #757575`, and it fails against every light surface the system
+defines except pure white:
+
+| `onSurfaceVariant` on                       | Ratio    | AA 4.5 |
+| ------------------------------------------- | -------- | ------ |
+| `surface` (neutral[50] `#FAFAFA`)           | **4.41** | fails  |
+| `surfaceVariant` (neutral[100] `#F5F5F5`)   | **4.23** | fails  |
+| `surfaceContainer` (neutral[200] `#EEEEEE`) | **3.97** | fails  |
+| `background` (cream `#F9F3F0`)              | **4.19** | fails  |
+| pure white `#FFFFFF`                        | 4.61     | passes |
+
+The **dark** theme is fine - `onSurfaceVariant` is `neutral[400] #BDBDBD` there,
+which is 7.43-9.97 on the dark surfaces.
+
+This is why MD2 could not migrate `#64748B` and `#6B7280`: their target,
+`neutral[600]`, is the same value as `onSurfaceVariant`, and 4.41 is the same
+number. The blocked mapping was not a quirk of those two greys - it was the
+token pair itself, reached from a different direction.
+
+- **Severity:** P1, and wider than M16-a: this is a token definition, so it
+  affects every screen that uses secondary text on a non-white surface, not just
+  the 29 `neutral[500]` sites.
+- **Recommendation:** move light `onSurfaceVariant` to `neutral[700] #616161`,
+  which passes on all four surfaces (5.63-5.93) and needs no new token. That one
+  change resolves M16-a's text roles, M16-b, and unblocks the 37 held uses in M2
+  together, because all three are the same question: which neutral step carries
+  secondary text.
+- **Not done here.** Changing a theme token moves every screen in the app, which
+  is a governance event (`DESIGN.md` §20) and far outside a driver-flow
+  migration. It needs its own change with the full matrix as its gate.
 - **Fix type:** **product/brand decision**, then technical.
 
 ### M14. Two list screens have no explicit error branch

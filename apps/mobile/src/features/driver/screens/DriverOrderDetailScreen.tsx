@@ -39,23 +39,23 @@ import type {
 import { useAvailableOrders, useAcceptOrder } from '../hooks/useDriverOrders';
 import { getDriverErrorMessage, type DriverAvailableOrder } from '../services/driver.service';
 
+import { typographyTokens } from '@/design-system/tokens/typography';
+
+import { useTheme } from '@/design-system/providers';
+
+import { createDriverStyles, type DriverPalette } from '../driverTheme';
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const PRIMARY = colorTokens.base.primary[500];
 const PRIMARY_CONTAINER = colorTokens.base.primary[50];
-const SUCCESS = colorTokens.base.success[500];
 const SUCCESS_CONTAINER = colorTokens.base.success[50];
 const SUCCESS_ON = colorTokens.base.success[600];
-const SURFACE = colorTokens.light.surface;
-const SURFACE_VARIANT = colorTokens.light.surfaceVariant;
-const ON_SURFACE = colorTokens.light.onSurface;
-const ON_SURFACE_VARIANT = colorTokens.light.onSurfaceVariant;
-const OUTLINE = colorTokens.light.outline;
 const WHITE = colorTokens.base.neutral[0];
 
 const { base: sp, radius, sizing } = spacingTokens;
+const { fontSize } = typographyTokens;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -119,14 +119,18 @@ interface InfoRowProps {
   value: string;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
-  <View style={styles.infoRow}>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue} numberOfLines={2}>
-      {value}
-    </Text>
-  </View>
-);
+const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
+  const styles = useStyles();
+
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue} numberOfLines={2}>
+        {value}
+      </Text>
+    </View>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Section Card component
@@ -137,18 +141,24 @@ interface SectionCardProps {
   children: React.ReactNode;
 }
 
-const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => (
-  <View style={styles.card}>
-    <Text style={styles.cardTitle}>{title}</Text>
-    {children}
-  </View>
-);
+const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => {
+  const styles = useStyles();
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>{title}</Text>
+      {children}
+    </View>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Main Screen
 // ---------------------------------------------------------------------------
 
 export default function DriverOrderDetailScreen({ navigation, route }: Props) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { t } = useTranslation();
   const { orderId } = route.params;
   const [coords, setCoords] = useState<Coords | null>(null);
@@ -219,7 +229,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
   if (!hasCoords || (isLoading && orders.length === 0)) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size='large' color={PRIMARY} />
+        <ActivityIndicator size='large' color={colors.primary} />
         <Text style={styles.loadingText}>{t('driver.loadingOrderDetails')}</Text>
       </View>
     );
@@ -400,257 +410,259 @@ const CARD_SHADOW = Platform.select({
   android: { elevation: 2 },
 });
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: SURFACE_VARIANT,
-  },
+const useStyles = createDriverStyles((c: DriverPalette) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.surfaceVariant,
+    },
 
-  // ── Center / loading ──
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: sp.lg,
-    backgroundColor: SURFACE_VARIANT,
-  },
-  loadingText: {
-    marginTop: sp.md,
-    fontSize: 15,
-    color: ON_SURFACE_VARIANT,
-  },
-  notFoundIcon: {
-    fontSize: 48,
-    marginBottom: sp.md,
-  },
-  notFoundTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: ON_SURFACE,
-    marginBottom: sp.xs,
-    textAlign: 'center',
-  },
-  notFoundSubtitle: {
-    fontSize: 14,
-    color: ON_SURFACE_VARIANT,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: sp.xl,
-  },
-  backButton: {
-    paddingHorizontal: sp.lg,
-    paddingVertical: sp.sm,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    borderColor: PRIMARY,
-  },
-  backButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: PRIMARY,
-  },
+    // ── Center / loading ──
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: sp.lg,
+      backgroundColor: c.surfaceVariant,
+    },
+    loadingText: {
+      marginTop: sp.md,
+      fontSize: fontSize.base,
+      color: c.onSurfaceVariant,
+    },
+    notFoundIcon: {
+      fontSize: fontSize['7xl'],
+      marginBottom: sp.md,
+    },
+    notFoundTitle: {
+      fontSize: fontSize.lg,
+      fontWeight: '700',
+      color: c.onSurface,
+      marginBottom: sp.xs,
+      textAlign: 'center',
+    },
+    notFoundSubtitle: {
+      fontSize: fontSize.base,
+      color: c.onSurfaceVariant,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: sp.xl,
+    },
+    backButton: {
+      paddingHorizontal: sp.lg,
+      paddingVertical: sp.sm,
+      borderRadius: radius.lg,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+    },
+    backButtonText: {
+      fontSize: fontSize.base,
+      fontWeight: '600',
+      color: c.primary,
+    },
 
-  // ── Scroll ──
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: sp.md,
-    gap: sp.sm,
-  },
+    // ── Scroll ──
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: sp.md,
+      gap: sp.sm,
+    },
 
-  // ── Header card ──
-  headerCard: {
-    backgroundColor: PRIMARY_CONTAINER,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: sp.xs,
-    ...CARD_SHADOW,
-  },
-  orderNumberRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: sp.xs,
-  },
-  orderNumberLabel: {
-    fontSize: 12,
-    color: ON_SURFACE_VARIANT,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  orderNumber: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: PRIMARY,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: SUCCESS_CONTAINER,
-    borderRadius: radius.full,
-    paddingHorizontal: sp.sm,
-    paddingVertical: sp.xxs,
-    gap: sp.xxs,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: SUCCESS,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: SUCCESS_ON,
-  },
+    // ── Header card ──
+    headerCard: {
+      backgroundColor: PRIMARY_CONTAINER,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: sp.xs,
+      ...CARD_SHADOW,
+    },
+    orderNumberRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: sp.xs,
+    },
+    orderNumberLabel: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    orderNumber: {
+      fontSize: fontSize.lg,
+      fontWeight: '800',
+      color: c.primary,
+    },
+    statusPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: SUCCESS_CONTAINER,
+      borderRadius: radius.full,
+      paddingHorizontal: sp.sm,
+      paddingVertical: sp.xxs,
+      gap: sp.xxs,
+    },
+    statusDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: c.success,
+    },
+    statusText: {
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+      color: SUCCESS_ON,
+    },
 
-  // ── Section card ──
-  card: {
-    backgroundColor: SURFACE,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    marginBottom: sp.xs,
-    ...CARD_SHADOW,
-  },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: ON_SURFACE_VARIANT,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: sp.sm,
-  },
+    // ── Section card ──
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      marginBottom: sp.xs,
+      ...CARD_SHADOW,
+    },
+    cardTitle: {
+      fontSize: fontSize.sm,
+      fontWeight: '700',
+      color: c.onSurfaceVariant,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      marginBottom: sp.sm,
+    },
 
-  // ── Map ──
-  mapContainer: {
-    height: 180,
-    borderRadius: radius.md,
-    overflow: 'hidden',
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
+    // ── Map ──
+    mapContainer: {
+      height: 180,
+      borderRadius: radius.md,
+      overflow: 'hidden',
+    },
+    map: {
+      ...StyleSheet.absoluteFillObject,
+    },
 
-  // ── Info row ──
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingVertical: sp.xxs,
-    borderBottomWidth: 1,
-    borderBottomColor: OUTLINE,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: ON_SURFACE_VARIANT,
-    flex: 1,
-  },
-  infoValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: ON_SURFACE,
-    flex: 2,
-    textAlign: textAlignEnd(),
-  },
+    // ── Info row ──
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingVertical: sp.xxs,
+      borderBottomWidth: 1,
+      borderBottomColor: c.outline,
+    },
+    infoLabel: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      flex: 1,
+    },
+    infoValue: {
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+      color: c.onSurface,
+      flex: 2,
+      textAlign: textAlignEnd(),
+    },
 
-  // ── Item row ──
-  itemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: sp.xxs,
-    borderBottomWidth: 1,
-    borderBottomColor: OUTLINE,
-  },
-  itemTitle: {
-    fontSize: 13,
-    color: ON_SURFACE,
-    flex: 1,
-    marginEnd: sp.sm,
-  },
-  itemMeta: {
-    fontSize: 12,
-    color: ON_SURFACE_VARIANT,
-    fontWeight: '500',
-  },
+    // ── Item row ──
+    itemRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: sp.xxs,
+      borderBottomWidth: 1,
+      borderBottomColor: c.outline,
+    },
+    itemTitle: {
+      fontSize: fontSize.sm,
+      color: c.onSurface,
+      flex: 1,
+      marginEnd: sp.sm,
+    },
+    itemMeta: {
+      fontSize: fontSize.sm,
+      color: c.onSurfaceVariant,
+      fontWeight: '500',
+    },
 
-  // ── Earnings card ──
-  earningsCard: {
-    backgroundColor: SUCCESS_CONTAINER,
-    borderRadius: radius.lg,
-    padding: sp.md,
-    marginBottom: sp.xs,
-    ...CARD_SHADOW,
-  },
-  earningsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  earningsLabel: {
-    fontSize: 13,
-    color: SUCCESS_ON,
-  },
-  earningsSecondary: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: SUCCESS_ON,
-  },
-  earningsDivider: {
-    height: 1,
-    backgroundColor: colorTokens.base.success[300],
-    marginVertical: sp.sm,
-    opacity: 0.4,
-  },
-  earningsPrimaryLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: SUCCESS,
-  },
-  earningsPrimaryAmount: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: SUCCESS,
-  },
+    // ── Earnings card ──
+    earningsCard: {
+      backgroundColor: SUCCESS_CONTAINER,
+      borderRadius: radius.lg,
+      padding: sp.md,
+      marginBottom: sp.xs,
+      ...CARD_SHADOW,
+    },
+    earningsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    earningsLabel: {
+      fontSize: fontSize.sm,
+      color: SUCCESS_ON,
+    },
+    earningsSecondary: {
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+      color: SUCCESS_ON,
+    },
+    earningsDivider: {
+      height: 1,
+      backgroundColor: colorTokens.base.success[300],
+      marginVertical: sp.sm,
+      opacity: 0.4,
+    },
+    earningsPrimaryLabel: {
+      fontSize: fontSize.base,
+      fontWeight: '700',
+      color: c.success,
+    },
+    earningsPrimaryAmount: {
+      fontSize: fontSize.lg,
+      fontWeight: '800',
+      color: c.success,
+    },
 
-  // ── Footer (sticky accept button) ──
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: sp.md,
-    paddingBottom: sp.lg,
-    backgroundColor: SURFACE,
-    borderTopWidth: 1,
-    borderTopColor: OUTLINE,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-      },
-      android: { elevation: 8 },
-    }),
-  },
-  acceptButton: {
-    backgroundColor: PRIMARY,
-    borderRadius: radius.lg,
-    height: sizing.button.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  acceptButtonDisabled: {
-    opacity: 0.55,
-  },
-  acceptButtonText: {
-    color: WHITE,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-});
+    // ── Footer (sticky accept button) ──
+    footer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: sp.md,
+      paddingBottom: sp.lg,
+      backgroundColor: c.surface,
+      borderTopWidth: 1,
+      borderTopColor: c.outline,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+        },
+        android: { elevation: 8 },
+      }),
+    },
+    acceptButton: {
+      backgroundColor: c.primary,
+      borderRadius: radius.lg,
+      height: sizing.button.xl,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    acceptButtonDisabled: {
+      opacity: 0.55,
+    },
+    acceptButtonText: {
+      color: WHITE,
+      fontSize: fontSize.md,
+      fontWeight: '700',
+      letterSpacing: 0.3,
+    },
+  }),
+);
