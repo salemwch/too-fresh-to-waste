@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { Component, useEffect, useRef } from 'react';
 import { Config } from 'react-native-config';
-import { InteractionManager, StatusBar, StyleSheet, View, Text, Pressable } from 'react-native';
+import { InteractionManager, StyleSheet, View, Text, Pressable } from 'react-native';
 import i18n from '@/i18n';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { ForceUpdateModal } from '@/components/ForceUpdateModal';
 import { SoftUpdateBanner } from '@/components/SoftUpdateBanner';
 import { environment, validateEnvironmentConfig } from '@/config/environment';
+import { ThemedStatusBar } from '@/design-system/components/atoms/ThemedStatusBar';
 import { ThemeProvider } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { AuthFlowState } from '@/features/auth/types';
@@ -335,8 +336,13 @@ function AppContent(): React.JSX.Element {
           are guarded by isEdgeToEdgeFeatureFlagOn and return early —
           backgroundColor and translucent props are no-ops. Only barStyle
           (light/dark icons) is active; screen-level statusBarStyle from
-          react-native-screens takes precedence per screen. */}
-      <StatusBar barStyle='dark-content' />
+          react-native-screens takes precedence per screen.
+
+          barStyle now follows the theme rather than being pinned to
+          'dark-content', which rendered dark icons on the dark ground in dark
+          mode (device finding D4). ThemedStatusBar reads the theme, so it has
+          to live inside ThemeProvider - AppContent does. */}
+      <ThemedStatusBar />
       <RootNavigator />
       <ForceUpdateModal
         visible={versionCheck.updateType === 'force'}

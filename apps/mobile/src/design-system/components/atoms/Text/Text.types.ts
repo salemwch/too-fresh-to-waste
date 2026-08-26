@@ -5,6 +5,11 @@
 import type { BaseComponentProps, StyleSystemProps, TypographyVariant } from '../../../types';
 import type { StyleProp, TextProps as RNTextProps, TextStyle } from 'react-native';
 
+/**
+ * Semantic text colours, resolved against the active theme by `Text`.
+ */
+export type TextColorName = 'primary' | 'secondary' | 'error' | 'warning' | 'success' | 'white';
+
 export interface TextProps
   extends
     Omit<
@@ -26,9 +31,18 @@ export interface TextProps
   variant?: TypographyVariant;
 
   /**
-   * Text color from theme or custom color
+   * Text colour.
+   *
+   * Prefer a semantic name - it resolves against the active theme, so it is
+   * correct in both light and dark. A raw value (`'#FF0000'`) is still allowed
+   * and is passed through untouched, but it will not respond to the theme.
+   *
+   * The named union exists so the names are discoverable and a typo is a type
+   * error: before it, `color='secondary'` type-checked as a plain string, was
+   * handed to React Native as a colour, failed to parse, and silently rendered
+   * as the platform default black - invisible in dark mode.
    */
-  color?: string;
+  color?: TextColorName | (string & {});
 
   /**
    * Text alignment

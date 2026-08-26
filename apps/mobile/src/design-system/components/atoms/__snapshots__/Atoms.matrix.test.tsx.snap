@@ -513,7 +513,7 @@ exports[`Card / elevated standard-light-fr 1`] = `
 exports[`Input / default large-light-en 1`] = `
 {
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#E0E0E0",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -541,7 +541,7 @@ exports[`Input / default large-light-en 1`] = `
 exports[`Input / default small-light-en 1`] = `
 {
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#E0E0E0",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -569,7 +569,7 @@ exports[`Input / default small-light-en 1`] = `
 exports[`Input / default standard-dark-en 1`] = `
 {
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#1E1E1E",
     "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -597,7 +597,7 @@ exports[`Input / default standard-dark-en 1`] = `
 exports[`Input / default standard-light-ar 1`] = `
 {
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#E0E0E0",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -625,7 +625,7 @@ exports[`Input / default standard-light-ar 1`] = `
 exports[`Input / default standard-light-en 1`] = `
 {
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#E0E0E0",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -653,7 +653,7 @@ exports[`Input / default standard-light-en 1`] = `
 exports[`Input / default standard-light-fr 1`] = `
 {
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#E0E0E0",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -690,7 +690,7 @@ exports[`Input / error large-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#D32F2F",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -727,7 +727,7 @@ exports[`Input / error small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#D32F2F",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -764,7 +764,7 @@ exports[`Input / error standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#1E1E1E",
     "borderColor": "#E57373",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -801,7 +801,7 @@ exports[`Input / error standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#D32F2F",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -838,7 +838,7 @@ exports[`Input / error standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#D32F2F",
     "borderRadius": 8,
     "borderWidth": 1,
@@ -875,7 +875,7 @@ exports[`Input / error standard-light-fr 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[0]": {
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#FAFAFA",
     "borderColor": "#D32F2F",
     "borderRadius": 8,
     "borderWidth": 1,

@@ -1,9 +1,10 @@
 # Mobile Device Verification Report — Phase 6.5
 
-**Status:** PARTIAL — auth-gated screens were not reachable (see §5) **Date:**
-2026-08-26 **Build under test:** `assembleDevDebug` from the working tree at
-`4da1cb37`, installed as `com.toofreshtowaste.app.dev`, JS served by Metro.
-**Default theme during test:** `light` — unchanged, and unchanged in git.
+**Status:** PARTIAL — D1-D4 fixed and re-verified on device; D5 diagnosed and
+deliberately not shipped; auth-gated screens still unreachable (see §5)
+**Date:** 2026-08-26 **Build under test:** `assembleDevDebug` from the working
+tree at `4da1cb37`, installed as `com.toofreshtowaste.app.dev`, JS served by
+Metro. **Default theme during test:** `light` — unchanged, and unchanged in git.
 
 This report exists because a resolved-style snapshot gate cannot see clipping,
 truncation, keyboard behaviour, safe areas, or how a theme actually looks.
@@ -238,6 +239,138 @@ matches the resolved theme before JS mounts.
 
 ---
 
+## 4b. Round 2 — fixes and their device re-verification
+
+Each fix below was re-run on the same rig. Nothing here is claimed from source.
+
+### D1 — FIXED and verified · was P0
+
+**Cause, confirmed:** not `numberOfLines`. A flex child is `flexShrink: 0` by
+default in React Native, so once scaled glyphs stopped fitting the row, the
+`<Text>` kept its intrinsic width and the parent clipped it. `errorText` and
+`successText` already carried `flex: 1` and reflowed correctly at 1.3x — which
+is what identified the mechanism.
+
+**Fix:** `flexShrink: 1` on the text in each row, `flexWrap: 'wrap'` where a
+second line is the right answer, and `flexShrink: 1` on the `Input` atom's label
+row. Font scaling is **not** disabled anywhere.
+
+**Verified at 1.3x** (`23-FIXED-light-1.3.png` against
+`12-DARK-login-fontscale1.3.png`):
+
+| Element            | Before           | After                  |
+| ------------------ | ---------------- | ---------------------- |
+| `Password`         | `Passw`          | **`Password`**         |
+| `Email Address`    | `Email`          | **`Email Address`**    |
+| `Welcome Back 👋`  | `Welcome`        | **full**               |
+| subtitle           | clipped          | **full**               |
+| `Remember me`      | `Remember`       | **full**               |
+| `Forgot Password?` | `Forgot`         | **full**               |
+| `OR`               | `O`              | **`OR`**               |
+| terms sentence     | clipped at `and` | **wraps to two lines** |
+
+No clipping, no overlap, no broken rhythm. The terms line reflows rather than
+truncating, which is the correct behaviour.
+
+**Regression coverage:** `src/test-utils/__tests__/textScalingSafety.test.tsx`
+walks the rendered tree and fails on a row whose text can neither shrink nor
+wrap. Jest does not run Yoga layout, so it cannot observe clipping itself — the
+test says so, and carries a negative control proving it detects the exact shape
+the fix removed.
+
+### D2 — FIXED and verified · was P1
+
+**Cause:** `Input.styles.ts` set `backgroundColor: colors.base.neutral[0]` on
+the `default` and `outlined` variants, commented "Pure white for better text
+visibility" — a light-mode statement written before there was a dark mode.
+`filled` was already theme-derived.
+
+**Fix:** both variants now use `colors.surface` — `#FAFAFA` in light (5 RGB from
+the old white, imperceptible) and `#1E1E1E` in dark. Placeholder
+(`onSurfaceVariant`) and selection (`primary`) were already theme-aware and are
+untouched; the border is `colors.outline`, which is 3.62 on the dark surface.
+
+**Verified:** `24-FIXED-dark-1.0.png` — the fields are dark with a visible
+border, not the brightest objects on the screen.
+
+**Regression coverage:** `Input.matrix.test.tsx`, 32 baselines across resting,
+error, disabled and filled in both themes. The error state was initially written
+with a non-existent `state` prop, which type-checked as a snapshot but captured
+the resting state — caught by `tsc` and corrected; the states are now asserted
+distinct (error border `#D32F2F`).
+
+### D3 — FIXED and verified · was P1, and far wider than reported
+
+**The reported symptom was two strings on one screen. The cause was the `Text`
+atom, and it affected 158 call sites.**
+
+`Text.types.ts` documents `color` as "Text color from theme or custom color",
+but the implementation was `color: color ?? colors.onSurface` — the prop went
+straight to React Native as a raw colour value. RN cannot parse `'secondary'`,
+drops the style, and the text falls back to platform-default black. Readable on
+a light card; invisible on a dark one.
+
+Usage: 136 `secondary`, 15 `primary`, 5 `error`, and one each of `warning`,
+`success`, `white`.
+
+**Fix:** `Text` resolves semantic names against the theme, passes raw values
+through untouched, and `TextColorName` makes the valid names discoverable so a
+typo is a type error rather than an invisible string.
+
+**Verified:** `24-FIXED-dark-1.0.png` — both strings are legible. Baselines show
+the 8 `secondary` texts resolving `#616161` in light and `#BDBDBD` in dark, and
+`primary` flipping `#1E4448` → `#54ACB5`.
+
+**Regression coverage:** `LoginScreen.matrix.test.tsx`, 8 baselines. The screen
+had none before, which is why this survived every gate — **no baseline in the
+app rendered a `<Text color='secondary'>` at all**.
+
+### D4 — FIXED and verified · was P2
+
+`App.tsx` rendered `<StatusBar barStyle='dark-content' />` unconditionally, and
+sat _outside_ `ThemeProvider`, so it could not have read the theme.
+
+**Fix:** `ThemedStatusBar` inside the provider, choosing `light-content` in dark
+and `dark-content` in light. Only `barStyle` is set — `backgroundColor` and
+`translucent` are no-ops under edge-to-edge.
+
+**Verified:** `24-FIXED-dark-1.0.png` — the clock and icons are light on the
+dark ground; `23-FIXED-light-1.3.png` — dark on the light ground.
+
+**Residual:** this follows the _theme_. `WelcomeScreen` and `LeaderboardScreen`
+paint a fixed dark brand ground in **both** themes and still want
+`light-content` regardless. They need a screen-level `statusBarStyle`. Recorded,
+not guessed at.
+
+### D5 — NOT SHIPPED · root-caused, fix verified, then deliberately reverted
+
+The naive fix does not work, and the working fix makes today's build worse. Both
+statements were established on the device, not reasoned about.
+
+1. **`values-night/colors.xml` alone changed nothing**
+   (`25-D5-coldstart-systemdark.png` — still cream). Cause: `AppTheme` inherits
+   `Theme.AppCompat.Light.NoActionBar`, and a `.Light` parent pins AppCompat's
+   night mode off, so `-night` resources are never selected.
+2. **Switching the parent to `Theme.AppCompat.DayNight.NoActionBar` fixed it**
+   (`26-D5-coldstart-daynight.png` — `#121212`), with light unaffected
+   (`27-D5-coldstart-systemlight.png` — still cream).
+3. **And that is why it was reverted.** `values-night` follows the **system**,
+   not the app's theme. With the shipped default at `light`, a user whose
+   _system_ is dark would get a dark window followed by a light app —
+   `28-MISMATCH-lightdefault-systemdark.png` confirms the dark window under a
+   light default. Today those users see cream → cream, which is consistent.
+   Shipping this would trade one flash for a worse one.
+
+**The recipe is verified and recorded; it belongs in the same change as the
+`auto` flip, not before it.** The alternative — making the native window follow
+the app's _persisted_ preference rather than the system — is the complete fix
+and needs the theme mirrored into SharedPreferences plus
+`AppCompatDelegate.setDefaultNightMode` at startup.
+
+`git status` on `android/` is clean; nothing from this investigation shipped.
+
+---
+
 ## 5. NOT verified — and why
 
 **This is the load-bearing section of this report.** The following were in the
@@ -299,25 +432,62 @@ Device state was restored afterwards: `font_scale=1.0`, `density=240`,
 
 ---
 
+## 6b. Still not done — the authenticated path
+
+The brief asked for a repeatable authenticated device path (deterministic
+account, dev backend, mocked API, or injected session) so that Home, Search,
+Favorites, Orders, Order Details, Checkout, Profile, Settings, Loyalty,
+Leaderboard and the driver screens could be rendered.
+
+**That was not built in this round.** The five findings above consumed it, and
+D3 turned out to be an app-wide atom bug rather than two strings, which widened
+the work. Nothing was weakened in production authentication, because nothing was
+touched.
+
+Consequence, unchanged from the previous round: **the surfaces this migration
+altered most have still never been rendered on a device.** Checkout and the
+driver flow are proven only by resolved-style baselines.
+
+The cheapest option of the four is mocking the API layer behind the real
+navigation path - it needs no backend and no production auth change - and it is
+what the next round should build first.
+
+---
+
 ## 7. Verdict for Phase 6.6
 
-**Do not change `defaultTheme` to `auto`.**
+**Do not change `defaultTheme` to `auto`.** `App.tsx` is unchanged and
+`git status` on it is clean.
 
-Two independent reasons, either sufficient:
+The blocking reason has changed, and that is worth stating plainly. Last round
+it was D1, a live P0. That is now fixed and verified on the device. What blocks
+it now is **coverage, not known defects**:
 
-1. **D1 is a P0** and is not theme-specific — it is a live accessibility defect
-   in the current light-mode build.
-2. **The screens that matter most are unverified** (§5.1). Turning on `auto`
-   would put every dark-phone user onto a dark Checkout and a dark driver flow
-   that no one has looked at.
+- The authenticated surfaces have still never been rendered (§5.1, §6b).
+  Checkout and the driver flow are the screens this migration changed most.
+- French and Arabic/RTL remain unverified (§5.2). **No RTL claim anywhere in
+  this migration has been checked on a device.**
+- D5 is unshipped by design, and its correct fix is coupled to this very flip.
 
-The mechanism is sound — §3.2 shows `auto` works exactly as intended. It is the
-_content_ that is not ready, not the switch.
+### The gate, restated
 
-### Recommended order
+| Precondition                    | State                                                                  |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| D1 resolved                     | **yes** — verified at 1.3× on device                                   |
+| D2 resolved                     | **yes** — verified in dark on device                                   |
+| D3 resolved                     | **yes** — verified in dark; root cause was app-wide                    |
+| Authenticated surfaces rendered | **no**                                                                 |
+| No P0/P1 dark-mode blockers     | **none known** — but only across the screens reachable without a login |
+| Device audit passes             | **partially** — §5 is still large                                      |
 
-1. Fix **D1** (P0, ships today's users a broken form at 1.3×).
-2. Fix **D2** and **D3**, then add an `Input` matrix entry.
-3. Get a session onto the device and re-run §5.1 and §5.2.
-4. Re-run this report.
-5. Only then reconsider `auto`.
+"No P0/P1 blockers remain" is only true of what has been looked at. Two rounds
+of this exercise have each found a P0 or P1 on the first screen examined, and
+most screens have not been examined.
+
+### Order for the next round
+
+1. Build the mocked-API authenticated path (§6b).
+2. Render and audit §5.1 in both themes.
+3. Cover French and Arabic/RTL.
+4. Ship D5's verified recipe **together with** the `auto` flip, not before it.
+5. Re-run this report, then reconsider the default.

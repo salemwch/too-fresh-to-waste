@@ -393,7 +393,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           {/* Welcome Back Header with Waving Hand */}
           <View style={styles.welcomeHeader}>
             <View style={styles.welcomeTitleRow}>
-              <Text variant='headline.large' weight='semibold'>
+              <Text variant='headline.large' weight='semibold' style={styles.welcomeTitle}>
                 {t('auth.welcomeBack')}
               </Text>
               <Image
@@ -609,7 +609,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                       </Text>
                     )}
                   </View>
-                  <Text variant='body.small' color='secondary'>
+                  <Text variant='body.small' color='secondary' style={styles.rememberMeLabel}>
                     {t('auth.rememberMe')}
                   </Text>
                 </Pressable>
@@ -619,7 +619,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   onPress={handleNavigateToForgotPassword}
                   disabled={isLoading}
                 >
-                  <Text variant='body.small' color='primary' weight='medium'>
+                  <Text
+                    variant='body.small'
+                    color='primary'
+                    weight='medium'
+                    style={styles.forgotPasswordLabel}
+                  >
                     {t('auth.forgotPassword')}
                   </Text>
                 </Pressable>
@@ -755,6 +760,7 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -774,7 +780,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    // Wraps rather than clipping: the hand drops below the heading at large
+    // font scales instead of pushing "Back" off the row.
+    flexWrap: 'wrap',
     gap: 8,
+  },
+  welcomeTitle: {
+    flexShrink: 1,
+    textAlign: 'center',
   },
   wavingHand: {
     width: 28,
@@ -829,12 +842,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    // The two controls stack instead of eating each other once either label
+    // outgrows half the row.
+    flexWrap: 'wrap',
+    rowGap: sp.sm,
+    columnGap: sp.sm,
     marginTop: sp[3],
     marginBottom: 24,
   },
   rememberMeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
+  },
+  rememberMeLabel: {
+    flexShrink: 1,
+  },
+  forgotPasswordLabel: {
+    flexShrink: 1,
   },
   checkbox: {
     width: 20,
@@ -860,16 +885,27 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   dividerLine: {
+    // flexShrink so the rules yield to the label, not the other way round.
+    // With flex: 1 on both rules and nothing on the label, "OR" was squeezed
+    // to "O" at 1.3x.
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     height: 1,
   },
   dividerText: {
+    flexShrink: 0,
     marginHorizontal: 16,
   },
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    columnGap: sp.xs,
+  },
+  registerPrompt: {
+    flexShrink: 1,
   },
   signUpText: {
     textDecorationLine: 'underline',
@@ -879,6 +915,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    columnGap: sp.xs,
     marginTop: sp[3],
   },
   verificationLinkText: {

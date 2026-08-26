@@ -55,7 +55,7 @@ export const createInputStyles = (
   // Variant styles
   const variantStyles = {
     default: {
-      backgroundColor: colors.base.neutral[0], // Pure white for better text visibility
+      backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor:
         state === 'error'
@@ -89,7 +89,7 @@ export const createInputStyles = (
       borderBottomRightRadius: 0,
     },
     outlined: {
-      backgroundColor: colors.base.neutral[0], // Pure white for better text visibility
+      backgroundColor: colors.surface,
       borderWidth: 2,
       borderColor:
         state === 'error'
@@ -176,8 +176,13 @@ export const createInputStyles = (
     labelRow: {
       flexDirection: 'row',
       alignItems: 'baseline',
+      // A flex child is flexShrink: 0 by default in React Native, so at an
+      // enlarged font scale the label kept its intrinsic width and was clipped
+      // by the row - "Password" rendered as "Passw". Wrapping is the correct
+      // behaviour for a form label; truncating it is not.
+      flexWrap: 'wrap',
     },
-    label: labelStyle,
+    label: { ...labelStyle, flexShrink: 1 },
     inputContainer: {
       flexDirection: 'row',
       alignItems: 'center',

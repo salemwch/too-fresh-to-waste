@@ -10,6 +10,7 @@ import { useTheme } from '../../../providers';
 
 import type { TextProps } from './Text.types';
 import type { TypographyVariant, UseThemeReturn } from '../../../types';
+import type { ThemeContextValue } from '../../../types';
 
 // Helper function to get style from typography variant
 const getVariantStyle = (variant: TypographyVariant, typography: UseThemeReturn['typography']) => {
@@ -38,6 +39,46 @@ const getVariantStyle = (variant: TypographyVariant, typography: UseThemeReturn[
   }
 
   return typography.styles.body.medium;
+};
+
+/**
+ * Map a `color` prop onto the theme.
+ *
+ * Accepts three things, in this order:
+ *   - a semantic name  `color='secondary'`  -> the theme role
+ *   - a raw value      `color='#FF0000'`     -> passed through untouched
+ *   - nothing                                 -> `onSurface`
+ *
+ * The pass-through branch matters: the prop is typed `string`, callers do use
+ * literal values, and silently swallowing one would be the same class of bug
+ * this function exists to fix.
+ */
+const resolveTextColor = (
+  color: string | undefined,
+  colors: ThemeContextValue['colors'],
+): string => {
+  if (color === undefined) return colors.onSurface;
+
+  switch (color) {
+    case 'primary':
+      return colors.primary;
+    case 'secondary':
+      // Secondary *text*, not the brand secondary: every call site is a
+      // description, caption or helper line.
+      return colors.onSurfaceVariant;
+    case 'error':
+      return colors.error;
+    case 'warning':
+      return colors.warning;
+    case 'success':
+      return colors.success;
+    case 'white':
+      // Deliberately literal - used for text on brand grounds, which stay brand
+      // coloured in both themes.
+      return colors.base.neutral[0];
+    default:
+      return color;
+  }
 };
 
 export const Text = forwardRef<RNText, TextProps>(
@@ -88,8 +129,8 @@ export const Text = forwardRef<RNText, TextProps>(
       // Base variant styles
       ...variantStyle,
 
-      // Color override
-      color: color ?? colors.onSurface,
+      // Color override - semantic name, raw value, or the default
+      color: resolveTextColor(color, colors),
 
       // Alignment
       textAlign: align,

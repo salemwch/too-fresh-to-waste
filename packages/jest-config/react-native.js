@@ -19,6 +19,10 @@ const RN_ESM_PACKAGES = [
   '@testing-library/react-native',
   'react-native-haptic-feedback',
   'react-native-linear-gradient',
+  // Ships ESM (`export { default as Bar } from './Bar'`). Reached through
+  // design-system molecules -> PasswordStrengthIndicator, so any suite that
+  // renders LoginScreen or RegisterScreen hits it.
+  'react-native-progress',
   // Ships ESM (`export { Toast as default }`). Reached indirectly by anything
   // importing utils/errorHandler → utils/toast, so any screen test hits it.
   'react-native-toast-message',
