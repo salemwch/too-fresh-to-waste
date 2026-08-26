@@ -225,6 +225,27 @@ go.
 
 ### M9. No visual regression coverage exists for mobile
 
+> **PARTLY RESOLVED 2026-08-26.** A resolved-style matrix now covers 350
+> baselines over 9 suites - the atoms, `Button`, `OrderCard`, `OrdersScreen`,
+> `CheckoutScreen` and all four driver screens - across light/dark, en/fr/ar
+> (RTL) and 320/390/430 px, on a frozen clock with deterministic fixtures. It
+> runs in CI with no emulator.
+>
+> **This is not the screenshot parity the recommendation asks for.** It renders
+> no pixels and observes no text, so it cannot see overflow, cramping, a touch
+> target below 44px, or a copy regression. It sees resolved style and four
+> colour-bearing props - which is the class the token migration actually moves.
+> The device half of this finding stays open.
+>
+> **Correction to the first attempt (2026-08-26).** The matrix landed in
+> `f2336b26` keyed on `testID`, and no screen in this app sets one - so every
+> screen-level baseline it wrote was the empty object. 40 of 40 `OrderCard` and
+> 8 of 12 `OrdersScreen` baselines were `{}`, passing against nothing. The
+> harness now falls back to a structural path, tracks `pinColor` / `color` /
+> `placeholderTextColor` / `tintColor`, treats an empty capture as a failure,
+> and renders screens to stability rather than for a fixed flush count. Full
+> account in `.claude/work/mobile-design-token-migration.md`.
+
 - **Current behaviour:** web has 240 committed screenshot baselines; mobile has
   none. There is no way to make any of M1-M3 or M8 safely.
 - **Expected:** parity of safety, not of implementation.

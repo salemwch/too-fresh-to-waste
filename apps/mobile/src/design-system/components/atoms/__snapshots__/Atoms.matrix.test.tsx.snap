@@ -2,6 +2,14 @@
 
 exports[`Badge / default large-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#EEEEEE",
     "borderRadius": 9999,
@@ -15,6 +23,14 @@ exports[`Badge / default large-light-en 1`] = `
 
 exports[`Badge / default small-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#EEEEEE",
     "borderRadius": 9999,
@@ -28,6 +44,14 @@ exports[`Badge / default small-light-en 1`] = `
 
 exports[`Badge / default standard-dark-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#EEEEEE",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#383838",
     "borderRadius": 9999,
@@ -41,6 +65,14 @@ exports[`Badge / default standard-dark-en 1`] = `
 
 exports[`Badge / default standard-light-ar 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#EEEEEE",
     "borderRadius": 9999,
@@ -54,6 +86,14 @@ exports[`Badge / default standard-light-ar 1`] = `
 
 exports[`Badge / default standard-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#EEEEEE",
     "borderRadius": 9999,
@@ -67,6 +107,14 @@ exports[`Badge / default standard-light-en 1`] = `
 
 exports[`Badge / default standard-light-fr 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#EEEEEE",
     "borderRadius": 9999,
@@ -80,6 +128,14 @@ exports[`Badge / default standard-light-fr 1`] = `
 
 exports[`Badge / error large-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#D32F2F",
     "borderRadius": 9999,
@@ -93,6 +149,14 @@ exports[`Badge / error large-light-en 1`] = `
 
 exports[`Badge / error small-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#D32F2F",
     "borderRadius": 9999,
@@ -106,6 +170,14 @@ exports[`Badge / error small-light-en 1`] = `
 
 exports[`Badge / error standard-dark-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#E57373",
     "borderRadius": 9999,
@@ -119,6 +191,14 @@ exports[`Badge / error standard-dark-en 1`] = `
 
 exports[`Badge / error standard-light-ar 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#D32F2F",
     "borderRadius": 9999,
@@ -132,6 +212,14 @@ exports[`Badge / error standard-light-ar 1`] = `
 
 exports[`Badge / error standard-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#D32F2F",
     "borderRadius": 9999,
@@ -145,6 +233,14 @@ exports[`Badge / error standard-light-en 1`] = `
 
 exports[`Badge / error standard-light-fr 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#D32F2F",
     "borderRadius": 9999,
@@ -158,6 +254,14 @@ exports[`Badge / error standard-light-fr 1`] = `
 
 exports[`Badge / success large-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#2E7D32",
     "borderRadius": 9999,
@@ -171,6 +275,14 @@ exports[`Badge / success large-light-en 1`] = `
 
 exports[`Badge / success small-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#2E7D32",
     "borderRadius": 9999,
@@ -184,6 +296,14 @@ exports[`Badge / success small-light-en 1`] = `
 
 exports[`Badge / success standard-dark-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#81C784",
     "borderRadius": 9999,
@@ -197,6 +317,14 @@ exports[`Badge / success standard-dark-en 1`] = `
 
 exports[`Badge / success standard-light-ar 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#2E7D32",
     "borderRadius": 9999,
@@ -210,6 +338,14 @@ exports[`Badge / success standard-light-ar 1`] = `
 
 exports[`Badge / success standard-light-en 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#2E7D32",
     "borderRadius": 9999,
@@ -223,6 +359,14 @@ exports[`Badge / success standard-light-en 1`] = `
 
 exports[`Badge / success standard-light-fr 1`] = `
 {
+  "View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+    "lineHeight": 14.399999999999999,
+    "textAlign": "left",
+  },
   "badge": {
     "backgroundColor": "#2E7D32",
     "borderRadius": 9999,
@@ -368,7 +512,19 @@ exports[`Card / elevated standard-light-fr 1`] = `
 
 exports[`Input / default large-light-en 1`] = `
 {
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#E0E0E0",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -384,7 +540,19 @@ exports[`Input / default large-light-en 1`] = `
 
 exports[`Input / default small-light-en 1`] = `
 {
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#E0E0E0",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -400,7 +568,19 @@ exports[`Input / default small-light-en 1`] = `
 
 exports[`Input / default standard-dark-en 1`] = `
 {
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#757575",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#BDBDBD",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -416,7 +596,19 @@ exports[`Input / default standard-dark-en 1`] = `
 
 exports[`Input / default standard-light-ar 1`] = `
 {
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#E0E0E0",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -432,7 +624,19 @@ exports[`Input / default standard-light-ar 1`] = `
 
 exports[`Input / default standard-light-en 1`] = `
 {
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#E0E0E0",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -448,7 +652,19 @@ exports[`Input / default standard-light-en 1`] = `
 
 exports[`Input / default standard-light-fr 1`] = `
 {
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#E0E0E0",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -464,7 +680,28 @@ exports[`Input / default standard-light-fr 1`] = `
 
 exports[`Input / error large-light-en 1`] = `
 {
+  "View[0]/Text[1]": {
+    "color": "#D32F2F",
+    "fontSize": 10,
+    "fontWeight": "400",
+    "letterSpacing": 0,
+    "lineHeight": 18,
+    "marginTop": 4,
+    "textAlign": "left",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#D32F2F",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -480,7 +717,28 @@ exports[`Input / error large-light-en 1`] = `
 
 exports[`Input / error small-light-en 1`] = `
 {
+  "View[0]/Text[1]": {
+    "color": "#D32F2F",
+    "fontSize": 10,
+    "fontWeight": "400",
+    "letterSpacing": 0,
+    "lineHeight": 18,
+    "marginTop": 4,
+    "textAlign": "left",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#D32F2F",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -496,7 +754,28 @@ exports[`Input / error small-light-en 1`] = `
 
 exports[`Input / error standard-dark-en 1`] = `
 {
+  "View[0]/Text[1]": {
+    "color": "#E57373",
+    "fontSize": 10,
+    "fontWeight": "400",
+    "letterSpacing": 0,
+    "lineHeight": 18,
+    "marginTop": 4,
+    "textAlign": "left",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#E57373",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#BDBDBD",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -512,7 +791,28 @@ exports[`Input / error standard-dark-en 1`] = `
 
 exports[`Input / error standard-light-ar 1`] = `
 {
+  "View[0]/Text[1]": {
+    "color": "#D32F2F",
+    "fontSize": 10,
+    "fontWeight": "400",
+    "letterSpacing": 0,
+    "lineHeight": 18,
+    "marginTop": 4,
+    "textAlign": "left",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#D32F2F",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -528,7 +828,28 @@ exports[`Input / error standard-light-ar 1`] = `
 
 exports[`Input / error standard-light-en 1`] = `
 {
+  "View[0]/Text[1]": {
+    "color": "#D32F2F",
+    "fontSize": 10,
+    "fontWeight": "400",
+    "letterSpacing": 0,
+    "lineHeight": 18,
+    "marginTop": 4,
+    "textAlign": "left",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#D32F2F",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",
@@ -544,7 +865,28 @@ exports[`Input / error standard-light-en 1`] = `
 
 exports[`Input / error standard-light-fr 1`] = `
 {
+  "View[0]/Text[1]": {
+    "color": "#D32F2F",
+    "fontSize": 10,
+    "fontWeight": "400",
+    "letterSpacing": 0,
+    "lineHeight": 18,
+    "marginTop": 4,
+    "textAlign": "left",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FFFFFF",
+    "borderColor": "#D32F2F",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "height": 44,
+    "paddingEnd": 16,
+    "paddingStart": 16,
+    "paddingVertical": 0,
+  },
   "input": {
+    "@placeholderTextColor": "#757575",
     "color": "#212121",
     "fontSize": 14,
     "fontWeight": "400",

@@ -39,9 +39,11 @@ changes they exist to catch.
 - [x] **Phase 2 - MD3 prep.** Theme selectable in Settings; default still
       `light`; persistence preserved. _Acceptance:_ a test proves dark is
       reachable and that the mount default is unchanged.
-- [ ] **Phase 3 - matrix expansion.** Baselines for OrderCard, Checkout and the
+- [x] **Phase 3 - matrix expansion.** Baselines for OrderCard, Checkout and the
       4 driver screens across light/dark, en/fr/ar, 320/390/430. _Acceptance:_
-      baselines committed and mutation-tested before Phase 4 starts.
+      baselines committed and mutation-tested before Phase 4 starts. **Done:**
+      350 baselines over 9 suites, none empty; the harness itself was rebuilt
+      first (see decisions below).
 - [ ] **Phase 4 - MD2 greys.** 172 literals to neutral tokens via the brief's
       13-entry map. _Acceptance:_ no second neutral family; `MAX_RAW_COLORS`
       lowered; every baseline delta explained.
@@ -96,6 +98,80 @@ asserted `setThemeMode` had no call sites. That is the provider's internal
 Re-checked under the correct name before building: still zero call sites, still
 nothing writing `@foodwaste/theme`, so the conclusion held. The method did not.
 
+**2026-08-26 - correction: the phase 1 baselines observed nothing, and the
+harness was the reason.** `captureStyles` keyed every capture on `testID`. Not
+one screen in this app sets one - `OrderCard`, `CheckoutScreen` and all four
+driver screens have zero between them - so every screen-level baseline it wrote
+was `{}`. Measured: 40 of 40 OrderCard baselines and 8 of 12 committed
+OrdersScreen baselines were the empty object. The atoms were fine only because
+their specs pass a `testID` prop explicitly.
+
+This invalidates the phase 1 acceptance criterion as written. "78 baselines
+unchanged" was true and meaningless: 74 style keys were actually being observed
+across all 78 cases. The inverse-substitution proof is what actually carried
+phase 1, and it still stands on its own.
+
+Fixed by keying on the structural path (`View[0]/RCTScrollView[0]/Text[1]`) when
+no `testID` is present, and by making an empty capture a hard failure rather
+than a recorded value. The original testID-first reasoning - that a contract key
+survives refactors where a positional one does not - is still right, and tagged
+nodes keep their key; it just cannot be the only key. Positional keys churn on
+structural edits, which is the correct trade here: phases 4 and 5 change style
+values, not tree shape, and a baseline covering every styled node cannot be
+defeated by someone forgetting to tag one.
+
+Verified additive: 74 pre-existing style keys checked, 0 lost, 0 value-drifted,
+744 keys gained.
+
+**2026-08-26 - the harness tracks four props as well as style.** `pinColor` is a
+prop, not a style, so a style-only capture would have watched phase 5 change the
+driver map's raw `#FF9800` - the one raw colour the audit names - and stayed
+green. `color` (ActivityIndicator), `placeholderTextColor` and `tintColor` are
+in for the same reason. Recorded with an `@` prefix so a prop can never be read
+as a style key. Verified additive across all baselines: 2,962 keys checked, 0
+lost, 0 unexplained drift.
+
+**2026-08-26 - screens are rendered to stability, not for a fixed number of
+flushes.** The first async variant flushed twice. That settled the driver
+screens and did not settle Checkout, whose React Query fetch needs more hops -
+so all seven Checkout states captured `SkeletonCheckoutScreen`,
+byte-identically, and passed. Replaced with a bounded loop that flushes until
+the serialised tree is unchanged for four consecutive rounds, throwing if it
+never settles.
+
+Four rounds, not one: a screen waiting on a fetch is _already_ unchanged between
+the first two rounds, so a single-round check declares the skeleton stable. That
+is precisely the bug it was meant to catch. Mutation-checked - setting the
+requirement back to 1 turns 51 of 62 Checkout tests red.
+
+**2026-08-26 - Checkout mocks at the service boundary, with a real
+QueryClient.** Overriding `useQuery` alone left `useMutation` unprovided, since
+`OrderSuccessModal` (rendered unconditionally) calls it. Mocking
+`offersService.getOfferById` instead keeps the real query wiring inside the
+baseline, which is the part that decides whether the skeleton or the form is on
+screen. `react-redux` is mocked rather than the `@/hooks` barrel, because the
+barrel pulls in react-redux's untransformed ESM build.
+
+**2026-08-26 - snapshots are not trusted to be the state they are named after.**
+`CheckoutScreen.matrix.test.tsx` carries six non-snapshot assertions naming an
+element that exists in exactly one branch. Snapshot-only coverage cannot tell a
+correct baseline from a uniformly wrong one; that distinction is what was missed
+twice in this phase, so it is now asserted rather than inspected.
+
+**2026-08-26 - correction: the first driver fixtures used the wrong status
+casing.** They set `'DRIVER_ASSIGNED'` / `'OUT_FOR_DELIVERY'`, while
+`OrderStatus` values are lowercase snake_case and the driver screens compare
+against `'out_for_delivery'` directly. `DriverAvailableOrder.status` is typed as
+plain `string`, so it type-checked cleanly and would have made every
+status-dependent branch unreachable - the active-delivery screen would have
+baselined its before-pickup layout under both names. Now built from the enum.
+
+**2026-08-26 - the global haptics mock was incomplete and it hid as a broken
+suite.** `jest.setup.js` mocked only `trigger`, but `src/utils/haptics.ts` reads
+`HapticFeedbackTypes` at module scope, so any suite whose tree reaches
+`OrderSuccessModal` failed at import with "Cannot read properties of undefined".
+Fixed in the shared setup rather than per-spec.
+
 ## Open questions
 
 - **Non-blocking:** `#9CA3AF` (17 uses) and `#94A3B8` (11) are 2.54/2.56 on
@@ -103,6 +179,18 @@ nothing writing `@foodwaste/theme`, so the conclusion held. The method did not.
   at 2.68. MD2 neither causes nor fixes this. Needs its own finding and a
   product call on which token secondary text should use. Raise in Phase 4, do
   not fold into it.
+- **Non-blocking:** two hardcoded English strings ship in
+  `DriverOrdersListScreen` - `'Starting up…'` and `'Requesting location…'` are
+  not routed through `t()`, so an Arabic or French driver sees English at the
+  first screen of the flow. Out of scope for a token migration; fold into Phase
+  5 only if it does not widen the diff.
+- **Non-blocking:** the driver screens compare `order.status` against string
+  literals rather than `OrderStatus`, and the field is typed `string`. That is
+  what let the fixture bug above type-check. Worth tightening, separately.
+- **Non-blocking:** a Checkout user with no stored location sees delivery
+  offered, because `isOutsideDeliveryZone` returns `false` when `userCoords` is
+  null. It is now baselined and asserted as current behaviour, not endorsed -
+  the backend `MAX_DELIVERY_KM` gate would reject at submit.
 - **Non-blocking:** `OrderHistoryScreen` is dead code (audit M15). It appears in
   the Phase 1 diff only because it contained migrated literals. Decide whether
   to delete rather than maintain it through Phases 4-6.

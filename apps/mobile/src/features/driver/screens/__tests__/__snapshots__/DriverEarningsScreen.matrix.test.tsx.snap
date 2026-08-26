@@ -1,0 +1,2769 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DriverEarningsScreen earnings with deliveries populated large-light-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with deliveries populated small-dark-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with deliveries populated small-light-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with deliveries populated standard-dark-ar 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with deliveries populated standard-dark-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with deliveries populated standard-light-ar 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with deliveries populated standard-light-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with deliveries populated standard-light-fr 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "marginBottom": 8,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 12,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+  "RCTScrollView[0]/View[1]/View[2]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "marginTop": 2,
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with empty history empty-history large-light-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]": {
+    "paddingHorizontal": 24,
+    "paddingVertical": 40,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with empty history empty-history small-dark-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]": {
+    "paddingHorizontal": 24,
+    "paddingVertical": 40,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with empty history empty-history small-light-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]": {
+    "paddingHorizontal": 24,
+    "paddingVertical": 40,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with empty history empty-history standard-dark-ar 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]": {
+    "paddingHorizontal": 24,
+    "paddingVertical": 40,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with empty history empty-history standard-dark-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]": {
+    "paddingHorizontal": 24,
+    "paddingVertical": 40,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with empty history empty-history standard-light-ar 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]": {
+    "paddingHorizontal": 24,
+    "paddingVertical": 40,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with empty history empty-history standard-light-en 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]": {
+    "paddingHorizontal": 24,
+    "paddingVertical": 40,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen earnings with empty history empty-history standard-light-fr 1`] = `
+{
+  "RCTScrollView[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/Text[3]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "700",
+    "letterSpacing": 0.5,
+    "marginBottom": 2,
+    "marginTop": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "padding": 24,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 12,
+    "fontWeight": "600",
+    "letterSpacing": 0.6,
+    "opacity": 0.75,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#fff",
+    "fontSize": 34,
+    "fontWeight": "800",
+    "marginTop": 4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[1]/Text[0]": {
+    "fontSize": 18,
+    "fontWeight": "600",
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[0]/Text[2]": {
+    "color": "#fff",
+    "fontSize": 13,
+    "marginTop": 2,
+    "opacity": 0.8,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]": {
+    "flexDirection": "row",
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "flexDirection": "row",
+    "padding": 16,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
+    "alignSelf": "stretch",
+    "backgroundColor": "#E0E0E0",
+    "marginEnd": 16,
+    "width": 1,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[2]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginTop": 2,
+  },
+  "RCTScrollView[0]/View[1]/View[1]": {
+    "paddingHorizontal": 24,
+    "paddingVertical": 40,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "RCTScrollView[0]/View[1]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen loading loading large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen loading loading small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen loading loading small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen loading loading standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen loading loading standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen loading loading standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen loading loading standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen loading loading standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen no earnings record yet no-earnings large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen no earnings record yet no-earnings small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen no earnings record yet no-earnings small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen no earnings record yet no-earnings standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen no earnings record yet no-earnings standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen no earnings record yet no-earnings standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen no earnings record yet no-earnings standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverEarningsScreen no earnings record yet no-earnings standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 44,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 17,
+    "fontWeight": "700",
+    "marginBottom": 2,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
+}
+`;

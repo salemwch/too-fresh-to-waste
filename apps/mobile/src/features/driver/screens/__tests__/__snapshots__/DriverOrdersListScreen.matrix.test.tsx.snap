@@ -1,0 +1,5073 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DriverOrdersListScreen driver profile failed profile-error large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile failed profile-error small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile failed profile-error small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile failed profile-error standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile failed profile-error standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile failed profile-error standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile failed profile-error standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile failed profile-error standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile loading profile-loading large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile loading profile-loading small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile loading profile-loading small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile loading profile-loading standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile loading profile-loading standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile loading profile-loading standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile loading profile-loading standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen driver profile loading profile-loading standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/ActivityIndicator[0]": {
+    "@color": "#1E4448",
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission blocked permission-blocked large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission blocked permission-blocked small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission blocked permission-blocked small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission blocked permission-blocked standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission blocked permission-blocked standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission blocked permission-blocked standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission blocked permission-blocked standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission blocked permission-blocked standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission denied permission-denied large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission denied permission-denied small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission denied permission-denied small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission denied permission-denied standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission denied permission-denied standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission denied permission-denied standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission denied permission-denied standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen location permission denied permission-denied standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[3]": {
+    "backgroundColor": "#1E4448",
+    "borderRadius": 12,
+    "marginTop": 24,
+    "opacity": 1,
+    "paddingHorizontal": 32,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[3]/Text[0]": {
+    "color": "#fff",
+    "fontSize": 15,
+    "fontWeight": "600",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen offline offline large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#757575",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen offline offline small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#757575",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen offline offline small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#757575",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen offline offline standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#757575",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen offline offline standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#757575",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen offline offline standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#757575",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen offline offline standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#757575",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen offline offline standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#757575",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#F5F5F5",
+    "padding": 24,
+  },
+  "View[0]/View[1]/Text[0]": {
+    "fontSize": 40,
+    "marginBottom": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "600",
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 4,
+    "textAlign": "center",
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, orders available populated large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, orders available populated small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, orders available populated small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, orders available populated standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, orders available populated standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, orders available populated standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, orders available populated standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, orders available populated standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "borderRadius": 12,
+    "marginBottom": 8,
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginBottom": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 16,
+    "fontWeight": "700",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "fontWeight": "500",
+    "marginStart": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[2]": {
+    "backgroundColor": "#E0E0E0",
+    "height": 1,
+    "marginVertical": 8,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]": {
+    "flexDirection": "row",
+    "marginBottom": 2,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[0]": {
+    "color": "#757575",
+    "fontSize": 12,
+    "letterSpacing": 0.4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[3]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]": {
+    "backgroundColor": "#E8F5E8",
+    "borderRadius": 8,
+    "flexDirection": "row",
+    "marginTop": 8,
+    "paddingHorizontal": 8,
+    "paddingVertical": 4,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[0]": {
+    "color": "#1B5E20",
+    "fontSize": 12,
+    "fontWeight": "500",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[1]/View[0]/View[4]/Text[1]": {
+    "color": "#2E7D32",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, pool empty empty-pool large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, pool empty empty-pool small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, pool empty empty-pool small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, pool empty empty-pool standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, pool empty empty-pool standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]": {
+    "paddingBottom": 64,
+    "paddingHorizontal": 32,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[0]": {
+    "fontSize": 48,
+    "marginBottom": 16,
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 18,
+    "fontWeight": "700",
+    "marginBottom": 4,
+    "textAlign": "center",
+  },
+  "View[0]/RCTScrollView[2]/View[1]/View[0]/Text[2]": {
+    "color": "#757575",
+    "fontSize": 14,
+    "lineHeight": 22,
+    "textAlign": "center",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "letterSpacing": 0.5,
+  },
+  "View[0]/View[1]/Text[2]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "700",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 4,
+    "height": 8,
+    "width": 8,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen resuming an active delivery active-order-banner large-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "padding": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FFF3E0",
+    "borderColor": "#F57C00",
+    "borderRadius": 12,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "700",
+    "marginStart": 8,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "700",
+    "marginBottom": 2,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "lineHeight": 18,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen resuming an active delivery active-order-banner small-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "padding": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FFF3E0",
+    "borderColor": "#F57C00",
+    "borderRadius": 12,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "700",
+    "marginStart": 8,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "700",
+    "marginBottom": 2,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "lineHeight": 18,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen resuming an active delivery active-order-banner small-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "padding": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FFF3E0",
+    "borderColor": "#F57C00",
+    "borderRadius": 12,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "700",
+    "marginStart": 8,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "700",
+    "marginBottom": 2,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "lineHeight": 18,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen resuming an active delivery active-order-banner standard-dark-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "padding": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FFF3E0",
+    "borderColor": "#F57C00",
+    "borderRadius": 12,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "700",
+    "marginStart": 8,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "700",
+    "marginBottom": 2,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "lineHeight": 18,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen resuming an active delivery active-order-banner standard-dark-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "padding": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FFF3E0",
+    "borderColor": "#F57C00",
+    "borderRadius": 12,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "700",
+    "marginStart": 8,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "700",
+    "marginBottom": 2,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "lineHeight": 18,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen resuming an active delivery active-order-banner standard-light-ar 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "padding": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FFF3E0",
+    "borderColor": "#F57C00",
+    "borderRadius": 12,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "700",
+    "marginStart": 8,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "700",
+    "marginBottom": 2,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "lineHeight": 18,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen resuming an active delivery active-order-banner standard-light-en 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "padding": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FFF3E0",
+    "borderColor": "#F57C00",
+    "borderRadius": 12,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "700",
+    "marginStart": 8,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "700",
+    "marginBottom": 2,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "lineHeight": 18,
+  },
+}
+`;
+
+exports[`DriverOrdersListScreen resuming an active delivery active-order-banner standard-light-fr 1`] = `
+{
+  "View[0]": {
+    "backgroundColor": "#F5F5F5",
+  },
+  "View[0]/View[0]": {
+    "backgroundColor": "#FAFAFA",
+    "flexDirection": "row",
+    "paddingHorizontal": 16,
+    "paddingVertical": 8,
+  },
+  "View[0]/View[0]/RCTSwitch[2]": {
+    "@tintColor": "#E0E0E0",
+    "height": 31,
+    "width": 51,
+  },
+  "View[0]/View[0]/Text[1]": {
+    "color": "#424242",
+    "fontSize": 15,
+    "fontWeight": "700",
+  },
+  "View[0]/View[0]/View[0]": {
+    "backgroundColor": "#2E7D32",
+    "borderRadius": 5,
+    "height": 10,
+    "width": 10,
+  },
+  "View[0]/View[0]/View[3]": {
+    "borderColor": "#1E4448",
+    "borderRadius": 8,
+    "borderWidth": 1,
+    "marginStart": 8,
+    "opacity": 1,
+    "paddingHorizontal": 8,
+    "paddingVertical": 2,
+  },
+  "View[0]/View[0]/View[3]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 13,
+    "fontWeight": "600",
+  },
+  "View[0]/View[1]": {
+    "padding": 16,
+  },
+  "View[0]/View[1]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "marginTop": 16,
+    "textAlign": "center",
+  },
+  "View[0]/View[1]/View[0]": {
+    "backgroundColor": "#FFF3E0",
+    "borderColor": "#F57C00",
+    "borderRadius": 12,
+    "borderWidth": 1,
+    "flexDirection": "row",
+    "opacity": 1,
+    "padding": 16,
+  },
+  "View[0]/View[1]/View[0]/Text[1]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "700",
+    "marginStart": 8,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[0]": {
+    "color": "#424242",
+    "fontSize": 16,
+    "fontWeight": "700",
+    "marginBottom": 2,
+  },
+  "View[0]/View[1]/View[0]/View[0]/Text[1]": {
+    "color": "#757575",
+    "fontSize": 13,
+    "lineHeight": 18,
+  },
+}
+`;

@@ -11,8 +11,32 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 
 // Haptic feedback mock
+/*
+ * The default export alone is not enough: src/utils/haptics.ts reads
+ * HapticFeedbackTypes at module scope to build its presets, so any suite whose
+ * tree reaches it (OrderSuccessModal, and therefore CheckoutScreen) failed to
+ * load entirely with "Cannot read properties of undefined (reading
+ * 'impactLight')" - an import-time crash, not a test failure, so it read as a
+ * broken suite rather than a missing mock.
+ *
+ * Values mirror the real enum's string members; nothing asserts on them, they
+ * only have to exist.
+ */
 jest.mock('react-native-haptic-feedback', () => ({
   trigger: jest.fn(),
+  HapticFeedbackTypes: {
+    selection: 'selection',
+    impactLight: 'impactLight',
+    impactMedium: 'impactMedium',
+    impactHeavy: 'impactHeavy',
+    notificationSuccess: 'notificationSuccess',
+    notificationWarning: 'notificationWarning',
+    notificationError: 'notificationError',
+    effectClick: 'effectClick',
+    effectDoubleClick: 'effectDoubleClick',
+    effectHeavyClick: 'effectHeavyClick',
+    effectTick: 'effectTick',
+  },
 }));
 
 // Linear gradient mock

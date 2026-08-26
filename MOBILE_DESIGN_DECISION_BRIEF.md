@@ -506,3 +506,38 @@ and the corrections are recorded here rather than by rewriting the audit:
    `toggleTheme` both have zero call sites outside the provider, and nothing
    writes `@foodwaste/theme`. **The conclusion stands unchanged - dark mode was
    unreachable** - but it stood on a grep that did not test what it claimed to.
+
+5. **The regression matrix this brief relies on was not observing screens at all
+   (found 2026-08-26).** Every section above rests on the same premise: that the
+   design matrix added in `f2336b26` is the safety net which makes MD1-MD4
+   reviewable. The "which visual regression baselines would be affected" field
+   was answered against that premise for all four decisions.
+
+   The premise was false for screens. `captureStyles` recorded the resolved
+   style of nodes carrying a `testID`, and **no screen in this app sets one** -
+   `OrderCard`, `CheckoutScreen` and all four driver screens have zero between
+   them. Measured on 2026-08-26: 40 of 40 `OrderCard` baselines and 8 of 12
+   committed `OrdersScreen` baselines were the empty object `{}`. They diffed
+   against nothing and reported green. The atom baselines were sound, because
+   those specs pass a `testID` prop explicitly - which is why the defect
+   survived: the part of the matrix anyone looked at worked.
+
+   So the honest reading of MD1's "78 baselines unchanged" acceptance is that 74
+   style keys were observed across all 78 cases. What actually carried Phase 1
+   was the inverse-substitution proof, which reconstructs every migrated file
+   byte for byte and is unaffected by this.
+
+   Fixed in Phase 3 before any MD2/MD4 work: captures fall back to a structural
+   path when no `testID` exists, four colour-bearing **props** (`pinColor`,
+   `color`, `placeholderTextColor`, `tintColor`) are tracked alongside style, an
+   empty capture is now a hard failure, and screens are rendered to stability
+   rather than for a fixed number of flushes. Coverage went from 74 observed
+   style keys to 350 baselines across 9 suites, none empty.
+
+   Two further defects of the same kind were caught by the same pass and are
+   recorded in `.claude/work/mobile-design-token-migration.md`: all seven
+   Checkout states initially captured the loading skeleton byte-identically, and
+   the first driver fixtures used a status casing that no branch matches. Both
+   passed. **The lesson this brief should carry into Phase 4 is that a green
+   snapshot run is not evidence a baseline observed anything** - the baseline
+   has to be read, and the state it claims to be in has to be asserted.

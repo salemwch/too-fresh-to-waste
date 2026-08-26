@@ -2,6 +2,17 @@
 
 exports[`Button / disabled large-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#9E9E9E",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#E0E0E0",
     "borderColor": "#E0E0E0",
@@ -18,6 +29,17 @@ exports[`Button / disabled large-light-en 1`] = `
 
 exports[`Button / disabled small-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#9E9E9E",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#E0E0E0",
     "borderColor": "#E0E0E0",
@@ -34,6 +56,17 @@ exports[`Button / disabled small-light-en 1`] = `
 
 exports[`Button / disabled standard-dark-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#9E9E9E",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#E0E0E0",
     "borderColor": "#E0E0E0",
@@ -50,6 +83,17 @@ exports[`Button / disabled standard-dark-en 1`] = `
 
 exports[`Button / disabled standard-light-ar 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#9E9E9E",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#E0E0E0",
     "borderColor": "#E0E0E0",
@@ -66,6 +110,17 @@ exports[`Button / disabled standard-light-ar 1`] = `
 
 exports[`Button / disabled standard-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#9E9E9E",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#E0E0E0",
     "borderColor": "#E0E0E0",
@@ -82,6 +137,17 @@ exports[`Button / disabled standard-light-en 1`] = `
 
 exports[`Button / disabled standard-light-fr 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#9E9E9E",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#E0E0E0",
     "borderColor": "#E0E0E0",
@@ -98,6 +164,17 @@ exports[`Button / disabled standard-light-fr 1`] = `
 
 exports[`Button / outline large-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "transparent",
     "borderColor": "#1E4448",
@@ -114,6 +191,17 @@ exports[`Button / outline large-light-en 1`] = `
 
 exports[`Button / outline small-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "transparent",
     "borderColor": "#1E4448",
@@ -130,6 +218,17 @@ exports[`Button / outline small-light-en 1`] = `
 
 exports[`Button / outline standard-dark-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#54ACB5",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "transparent",
     "borderColor": "#54ACB5",
@@ -146,6 +245,17 @@ exports[`Button / outline standard-dark-en 1`] = `
 
 exports[`Button / outline standard-light-ar 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "transparent",
     "borderColor": "#1E4448",
@@ -162,6 +272,17 @@ exports[`Button / outline standard-light-ar 1`] = `
 
 exports[`Button / outline standard-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "transparent",
     "borderColor": "#1E4448",
@@ -178,6 +299,17 @@ exports[`Button / outline standard-light-en 1`] = `
 
 exports[`Button / outline standard-light-fr 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#1E4448",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "transparent",
     "borderColor": "#1E4448",
@@ -194,6 +326,17 @@ exports[`Button / outline standard-light-fr 1`] = `
 
 exports[`Button / primary large-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#1E4448",
     "borderColor": "#1E4448",
@@ -210,6 +353,17 @@ exports[`Button / primary large-light-en 1`] = `
 
 exports[`Button / primary small-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#1E4448",
     "borderColor": "#1E4448",
@@ -226,6 +380,17 @@ exports[`Button / primary small-light-en 1`] = `
 
 exports[`Button / primary standard-dark-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#54ACB5",
     "borderColor": "#54ACB5",
@@ -242,6 +407,17 @@ exports[`Button / primary standard-dark-en 1`] = `
 
 exports[`Button / primary standard-light-ar 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#1E4448",
     "borderColor": "#1E4448",
@@ -258,6 +434,17 @@ exports[`Button / primary standard-light-ar 1`] = `
 
 exports[`Button / primary standard-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#1E4448",
     "borderColor": "#1E4448",
@@ -274,6 +461,17 @@ exports[`Button / primary standard-light-en 1`] = `
 
 exports[`Button / primary standard-light-fr 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#FFFFFF",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#1E4448",
     "borderColor": "#1E4448",
@@ -290,6 +488,17 @@ exports[`Button / primary standard-light-fr 1`] = `
 
 exports[`Button / secondary large-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#FFC107",
     "borderColor": "#FFC107",
@@ -306,6 +515,17 @@ exports[`Button / secondary large-light-en 1`] = `
 
 exports[`Button / secondary small-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#FFC107",
     "borderColor": "#FFC107",
@@ -322,6 +542,17 @@ exports[`Button / secondary small-light-en 1`] = `
 
 exports[`Button / secondary standard-dark-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#FFD54F",
     "borderColor": "#FFD54F",
@@ -338,6 +569,17 @@ exports[`Button / secondary standard-dark-en 1`] = `
 
 exports[`Button / secondary standard-light-ar 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#FFC107",
     "borderColor": "#FFC107",
@@ -354,6 +596,17 @@ exports[`Button / secondary standard-light-ar 1`] = `
 
 exports[`Button / secondary standard-light-en 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#FFC107",
     "borderColor": "#FFC107",
@@ -370,6 +623,17 @@ exports[`Button / secondary standard-light-en 1`] = `
 
 exports[`Button / secondary standard-light-fr 1`] = `
 {
+  "View[0]/View[0]/View[0]": {
+    "flexDirection": "row",
+  },
+  "View[0]/View[0]/View[0]/Text[0]": {
+    "color": "#212121",
+    "fontSize": 14,
+    "fontWeight": "500",
+    "letterSpacing": 0.25,
+    "lineHeight": 21,
+    "textAlign": "center",
+  },
   "btn": {
     "backgroundColor": "#FFC107",
     "borderColor": "#FFC107",
