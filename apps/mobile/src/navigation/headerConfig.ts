@@ -113,6 +113,30 @@ export const makeHeaderBackButton = (navigation: { goBack: () => void }, default
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Status bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Status-bar icon style for a screen, derived from the theme.
+ *
+ * react-native-screens applies this **per screen**, and it wins over the global
+ * `<StatusBar>` rendered in App.tsx. So making that global one theme-aware was
+ * necessary and not sufficient: both option factories below pinned `'dark'`,
+ * which means *dark icons*, and dark icons on the dark theme's ground are
+ * exactly what the device showed.
+ *
+ * The value names follow the react-native-screens convention and describe the
+ * content, not the background: `'dark'` = dark icons for a light background,
+ * `'light'` = light icons for a dark one.
+ *
+ * Welcome and the two Onboarding screens set `'light'` at their own call sites
+ * in AuthStack and are deliberately untouched - they paint the brand ground in
+ * *both* themes, so their icons must stay light either way.
+ */
+const statusBarStyleFor = (theme: ThemeContextValue): 'light' | 'dark' =>
+  theme.colorScheme === 'dark' ? 'light' : 'dark';
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Screen option factories
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -142,7 +166,7 @@ export const getDefaultScreenOptions = (
   },
   headerShadowVisible: false,
   animation: 'slide_from_right',
-  statusBarStyle: 'dark',
+  statusBarStyle: statusBarStyleFor(theme),
   statusBarTranslucent: true,
   statusBarBackgroundColor: 'transparent',
   headerTitle: createHeaderTitle(
@@ -180,7 +204,7 @@ export const getAuthScreenOptions = (theme: ThemeContextValue): NativeStackNavig
   },
   headerShadowVisible: false,
   animation: 'slide_from_right',
-  statusBarStyle: 'dark',
+  statusBarStyle: statusBarStyleFor(theme),
   statusBarTranslucent: true,
   statusBarBackgroundColor: 'transparent',
   headerTitle: createHeaderTitle(

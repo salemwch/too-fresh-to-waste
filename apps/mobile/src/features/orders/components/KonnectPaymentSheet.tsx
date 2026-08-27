@@ -117,6 +117,9 @@ export const KonnectPaymentSheet: React.FC<KonnectPaymentSheetProps> = ({
     >
       {/* barStyle only — see App.tsx: colour/translucency props hit deprecated
           Window APIs and do nothing under edge-to-edge. */}
+      {/* The Konnect sheet renders the provider's own page, which is light in
+          both themes - so this stays dark-content deliberately rather than
+          following the app theme. */}
       <StatusBar barStyle='dark-content' />
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* Header */}
