@@ -21,30 +21,23 @@ jest.mock('@/design-system/components/atoms', () => {
   return { Text: MockText, Icon: MockIcon };
 });
 
-// Mock color tokens
-jest.mock('@/design-system/tokens/colors', () => ({
-  colorTokens: {
-    base: {
-      primary: {
-        50: '#F0F9FF',
-        200: '#A5F3FC',
-        300: '#67E8F9',
-        500: '#1E4448',
-      },
-      accent: { 500: '#F55449' },
-      success: { 500: '#2E7D32' },
-      neutral: {
-        0: '#FFFFFF',
-        50: '#F9FAFB',
-        200: '#E5E7EB',
-        300: '#D1D5DB',
-        600: '#4B5563',
-        800: '#1F2937',
-        1000: '#000000',
-      },
-    },
-  },
-}));
+/*
+ * The colour tokens are deliberately NOT mocked.
+ *
+ * There was a partial stub here. It was removed on 2026-08-28 for two reasons.
+ *
+ * It was wrong: its neutral ramp was Tailwind (#F9FAFB, #E5E7EB, #D1D5DB,
+ * #4B5563, #1F2937) while the real ramp is Material (#FAFAFA, #EEEEEE,
+ * #E0E0E0, #757575, #424242). Anything this suite proved about colour, it
+ * proved about values the app has never rendered.
+ *
+ * And it was fragile in the way partial stubs always are: it declared only
+ * `base`, so the moment a module in this import graph read `colorTokens.light`
+ * the whole suite failed to load - which is how it surfaced.
+ *
+ * `tokens/colors` is a plain constants module with no side effects and nothing
+ * to isolate from, so the real one is used.
+ */
 
 // ---------------------------------------------------------------------------
 // Mock voting hook + VoteBottomSheet

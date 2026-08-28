@@ -80,30 +80,58 @@ describe.each([
   });
 
   /*
-   * A RATCHET, NOT THE TARGET.
+   * M17 - RESOLVED for light on 2026-08-28, still a ratchet for dark.
    *
-   * WCAG 1.4.11 wants 3:1 for a boundary that identifies a control. Light
-   * `outline` is `neutral[300] #E0E0E0`, which is 1.14-1.26 against the light
-   * surfaces, and even `neutral[500]` only reaches 2.57 - closing the gap means
-   * `neutral[600]`, which would visibly redraw every border in the app.
+   * The earlier note here said closing this gap "would visibly redraw every
+   * border in the app". That was true of the token as it stood, and it was the
+   * wrong conclusion: 60 of `outline`'s 79 uses were dividers, skeleton
+   * blocks, switch tracks and drag handles, none of which WCAG 1.4.11 governs.
+   * Moving those to `outlineVariant` - which took `outline`'s old neutral[300],
+   * so they render unchanged - left 19 real control boundaries, and darkening
+   * only those to neutral[600] is not a redesign.
    *
-   * That is a design decision, not a migration, and it is recorded as audit
-   * finding M17 rather than made here. Until it is taken, this asserts the
-   * current floor so the value cannot quietly get worse.
+   * Light is now asserted against the standard. Dark keeps a floor: its outline
+   * is 2.54-4.07, which fails on the darkest surface, and dark mode is gated
+   * off (DESIGN.md 19-E27) so this is unreachable rather than shipped. Fixing
+   * it means picking a value for a theme nobody has verified on hardware.
    */
-  const OUTLINE_FLOOR = themeName === 'light' ? 1.14 : 2.54;
-
-  describe('outline is no less visible than it is today (M17)', () => {
-    it.each(surfaces)('on %s (%s)', (_surfaceName, bg) => {
-      expect(contrastRatio(theme.outline as string, bg)).toBeGreaterThanOrEqual(OUTLINE_FLOOR);
-    });
+  describe('outline identifies a control boundary (M17)', () => {
+    if (themeName === 'light') {
+      it.each(surfaces)('meets AA non-text on %s (%s)', (_surfaceName, bg) => {
+        expect({
+          pair: `light: outline on ${_surfaceName}`,
+          ratio: contrastRatio(theme.outline as string, bg),
+          meetsNonText: contrastRatio(theme.outline as string, bg) >= AA_NON_TEXT,
+        }).toMatchObject({ meetsNonText: true });
+      });
+    } else {
+      it.each(surfaces)('is no less visible than today on %s (%s)', (_surfaceName, bg) => {
+        expect(contrastRatio(theme.outline as string, bg)).toBeGreaterThanOrEqual(2.54);
+      });
+    }
   });
 
-  it('records how far outline is from AA non-text, so the gap stays visible', () => {
+  /*
+   * outlineVariant is decorative - dividers and fills - so it has no contrast
+   * floor to meet. What it must not do is drift into being as strong as
+   * `outline`, because then the split that made M17 affordable has collapsed
+   * and the two roles are one token again.
+   */
+  it('keeps outlineVariant weaker than outline, so the roles stay distinct', () => {
+    const worstOutline = Math.min(
+      ...surfaces.map(([, bg]) => contrastRatio(theme.outline as string, bg)),
+    );
+    const worstVariant = Math.min(
+      ...surfaces.map(([, bg]) => contrastRatio(theme.outlineVariant as string, bg)),
+    );
+    expect(worstVariant).toBeLessThan(worstOutline);
+  });
+
+  it('records the outline ratios so a regression reads as a number, not a boolean', () => {
     const worst = Math.min(...surfaces.map(([, bg]) => contrastRatio(theme.outline as string, bg)));
     expect({ theme: themeName, worstOutlineRatio: worst, aaNonText: AA_NON_TEXT }).toEqual({
       theme: themeName,
-      worstOutlineRatio: themeName === 'light' ? 1.14 : 2.54,
+      worstOutlineRatio: themeName === 'light' ? 3.97 : 2.54,
       aaNonText: 3,
     });
   });
@@ -114,20 +142,24 @@ describe.each([
    * so long without anyone noticing it had no dark half.
    */
   /*
-   * A TABLE OF TODAY, NOT A TARGET - audit finding M18.
+   * M18. The light half is now a target; the dark half is still a table of today.
    *
-   * Four of these eight pairs fail AA. That is the same defect `.claude/rules/ui-ux.md`
-   * already records on web ("the bg-X/10 text-X tint pattern fails AA for 7 of 8
-   * status colours"), and DESIGN.md 2.5 already prescribes the solid-fill
-   * replacement. Fixing it here would mean redesigning every status badge and
-   * banner in the app, which is a design change, not a token migration.
+   * LIGHT - all four pass as of 2026-08-28. The earlier note here said fixing
+   * this "would mean redesigning every status badge and banner in the app".
+   * That was wrong, and it is worth leaving the correction visible: counting
+   * the consumers showed `onWarningContainer` had exactly one
+   * (PasswordStrengthIndicator's warning banner) and `onInfoContainer` had
+   * none at all. It was a token-pair defect, not a component pattern, and it
+   * cost two ramp steps - warning[700] and info[700].
    *
-   * Pinned rather than asserted so the suite stays honest: a pair that passes
-   * today cannot silently start failing, and the four that fail are visible in
-   * the expected values instead of hidden behind a skip.
+   * DARK - all four still fail, and are pinned rather than fixed. Dark mode is
+   * gated off (DESIGN.md 19-E27), so this is unreachable by a user, and fixing
+   * it means choosing container/text pairs for a theme nobody has verified on
+   * hardware. Pinned so the numbers stay visible instead of hidden behind a
+   * skip, and so a pair that passes cannot silently start failing.
    */
   const CONTAINER_AA: Record<string, Record<string, boolean>> = {
-    light: { success: true, error: true, warning: false, info: false },
+    light: { success: true, error: true, warning: true, info: true },
     dark: { success: false, error: false, warning: false, info: false },
   };
 

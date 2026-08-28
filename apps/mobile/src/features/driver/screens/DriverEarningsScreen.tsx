@@ -293,7 +293,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
     allTimeDivider: {
       width: 1,
       alignSelf: 'stretch',
-      backgroundColor: c.outline,
+      backgroundColor: c.outlineVariant,
       marginEnd: sp.md,
     },
 

@@ -136,7 +136,7 @@ export default function ForceChangePasswordScreen() {
                 placeholder={t('auth.newPasswordPlaceholder')}
                 accessibilityLabel={t('auth.a11yNewPasswordInput')}
                 accessibilityHint={t('auth.a11yNewPasswordHint')}
-                placeholderTextColor={colorTokens.base.neutral[500]}
+                placeholderTextColor={colorTokens.light.onSurfaceVariant}
                 secureTextEntry
                 autoCapitalize='none'
                 autoCorrect={false}

@@ -271,7 +271,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
    * Render individual rule item with icon and label
    */
   const renderRuleItem = (rule: (typeof rules)[0]) => {
-    const iconColor = rule.isMet ? theme.colors.primary : theme.colors.neutral[500];
+    const iconColor = rule.isMet ? theme.colors.primary : theme.colors.onSurfaceVariant;
     const iconName = rule.isMet ? 'checkmark-circle' : 'ellipse-outline';
     const iconSize = dropdownMode === true ? 14 : 20;
 
@@ -392,7 +392,10 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
 
     return (
       <View style={styles.warningBanner}>
-        <Icon name='warning' size={20} color='#FF9800' />
+        {/* Was a raw #FF9800 (Material Orange 500). The banner's own border
+            already reads `colors.warning` (#F57C00), so the icon was a slightly
+            different orange from the box around it. */}
+        <Icon name='warning' size={20} color={theme.colors.warning} />
         <Text style={styles.warningBannerText}>
           Password is too weak. Backend requires at least &ldquo;Fair&rdquo; strength.
         </Text>

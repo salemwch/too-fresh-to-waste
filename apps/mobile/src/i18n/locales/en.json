@@ -961,7 +961,13 @@
     "a11yViewEarningsHint": "Opens your earnings totals and past deliveries",
     "unknownLocation": "Unknown location",
     "bannerCollected": "You have the order — deliver it to the customer.",
-    "bannerHeadToStore": "Head to the store and collect the order."
+    "bannerHeadToStore": "Head to the store and collect the order.",
+    "startingUp": "Starting up…",
+    "requestingLocation": "Requesting location…",
+    "a11yGoOnline": "Go online",
+    "a11yGoOffline": "Go offline",
+    "a11yGoOnlineHint": "Starts showing nearby delivery orders and sending you alerts",
+    "a11yGoOfflineHint": "Stops new delivery orders and alerts from reaching you"
   },
   "leaderboard": {
     "a11yCloseDiscount": "Close discount modal",

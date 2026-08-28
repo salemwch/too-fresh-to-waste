@@ -23,7 +23,7 @@ const COLORS = {
   surface: '#FFFFFF',
   border: colorTokens.base.neutral[200],
   textSecondary: colorTokens.base.neutral[700],
-  textMuted: colorTokens.base.neutral[500],
+  textMuted: colorTokens.light.onSurfaceVariant,
   dangerSurface: '#FEE2E2',
   danger: colorTokens.base.error[500],
 } as const;

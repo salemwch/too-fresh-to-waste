@@ -682,7 +682,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       alignItems: 'flex-start',
       paddingVertical: sp.xxs,
       borderBottomWidth: 1,
-      borderBottomColor: c.outline,
+      borderBottomColor: c.outlineVariant,
     },
     infoLabel: {
       fontSize: fontSize.sm,
@@ -704,7 +704,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       alignItems: 'center',
       paddingVertical: sp.xxs,
       borderBottomWidth: 1,
-      borderBottomColor: c.outline,
+      borderBottomColor: c.outlineVariant,
     },
     itemTitle: {
       fontSize: fontSize.sm,
@@ -753,7 +753,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       gap: sp.sm,
       backgroundColor: c.surface,
       borderTopWidth: 1,
-      borderTopColor: c.outline,
+      borderTopColor: c.outlineVariant,
       ...FOOTER_SHADOW,
     },
 

@@ -287,7 +287,7 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
               name='fast-food'
               family='Ionicons'
               size={28}
-              color={colorTokens.base.neutral[500]}
+              color={colorTokens.light.onSurfaceVariant}
             />
           </View>
         )}
@@ -329,7 +329,7 @@ export const OrderCard: React.FC<OrderCardProps> = memo(({ order, onPress }) => 
             name='time-outline'
             family='Ionicons'
             size={16}
-            color={colorTokens.base.neutral[500]}
+            color={colorTokens.light.onSurfaceVariant}
           />
           <Text style={styles.pickupText}>{t('orders.pickupTimePending')}</Text>
         </View>
@@ -445,7 +445,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
     orderNumber: {
       fontSize: 12,
       fontWeight: '600',
-      color: colorTokens.base.neutral[500],
+      color: colorTokens.light.onSurfaceVariant,
       marginTop: 2,
     },
 
@@ -514,7 +514,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
     originalPrice: {
       fontSize: 13,
       fontWeight: '500',
-      color: colorTokens.base.neutral[500],
+      color: colorTokens.light.onSurfaceVariant,
       textDecorationLine: 'line-through',
     },
     activePrice: {

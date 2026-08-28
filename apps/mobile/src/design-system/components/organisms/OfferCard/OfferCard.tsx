@@ -50,7 +50,7 @@ const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x300/E5E7EB/9CA3AF?tex
  */
 const COLORS = {
   HEART_DEFAULT: colorTokens.base.primary[500], // ✅ Brand green for filled heart
-  HEART_UNFILLED: colorTokens.base.neutral[500],
+  HEART_UNFILLED: colorTokens.light.onSurfaceVariant,
   ITEMS_LEFT_BG: '#fbf9be',
   ITEMS_LEFT_TEXT: colorTokens.base.primary[500],
   WHITE: '#FFFFFF',
@@ -915,7 +915,7 @@ const createStyles = (
       justifyContent: 'flex-end',
       paddingTop: 8,
       borderTopWidth: 1,
-      borderTopColor: theme.colors.outline,
+      borderTopColor: theme.colors.outlineVariant,
     },
     priceContainer: {
       flexDirection: 'row',

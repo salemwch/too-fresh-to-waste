@@ -65,7 +65,7 @@ const COLORS = {
   textPrimary: colorTokens.base.neutral[900],
   textSecondary: colorTokens.base.neutral[700],
   textInverse: '#FFFFFF',
-  textPlaceholder: colorTokens.base.neutral[500],
+  textPlaceholder: colorTokens.light.onSurfaceVariant,
   shadow: '#000',
 } as const;
 

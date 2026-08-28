@@ -96,6 +96,14 @@ const baseColors = {
     300: '#FFB74D',
     500: '#F57C00',
     600: '#EF6C00',
+    /* Added 2026-08-28 for audit finding M18. The ramp above is Material
+     * Orange (50, 100, 300, 700, 800 under Material's keys); Material's own
+     * Orange ends at 900 #E65100, which is only 3.46 on `warningContainer` and
+     * still fails AA. This step continues the same hue and saturation
+     * - HSL(21, 100%, 36%) - rather than borrowing Deep Orange 900 #BF360C,
+     * which would jump palette family for the sake of using a published name.
+     * 5.08 on warningContainer, 5.57 on white. */
+    700: '#B84000',
   },
 
   info: {
@@ -104,6 +112,10 @@ const baseColors = {
     300: '#64B5F6',
     500: '#2196F3',
     600: '#1976D2',
+    /* Added 2026-08-28 for audit finding M18. Material Blue 800 - the next
+     * published step after 600 (Blue 700), so this needs no derived value.
+     * 5.03 on `infoContainer`, where 600 was 4.03 and failed AA. */
+    700: '#1565C0',
   },
 
   // Neutral Colors
@@ -265,8 +277,35 @@ const lightThemeColors = {
   onSecondaryContainer: baseColors.secondary[800],
 
   // Border colors
-  outline: baseColors.neutral[300],
-  outlineVariant: baseColors.neutral[200],
+  /**
+   * M17. These two roles were doing one job badly and are now doing two jobs.
+   *
+   * `outline` was neutral[300] #E0E0E0, which is 1.14-1.26 against the four
+   * light surfaces. WCAG 1.4.11 asks for 3.0 on a boundary that identifies a
+   * control, and a text field's border is the canonical example - an empty
+   * input with an invisible border is an invisible control. neutral[500] only
+   * reaches 2.31-2.57, so neutral[600] is the first step that clears it
+   * (3.97-4.41).
+   *
+   * The reason this looked like an unaffordable change for so long is that
+   * `outline` was also carrying every divider, skeleton block, switch track and
+   * drag handle in the app - 60 of its 79 uses. Darkening all of those would
+   * have been a redesign. Splitting them out first, per the Material 3
+   * definitions the token names come from, makes it a two-line change:
+   *
+   *   outline        - boundaries that identify a control (19 uses, must pass 3.0)
+   *   outlineVariant - dividers and decorative fills (60 uses, no requirement)
+   *
+   * `outlineVariant` takes neutral[300], the value `outline` used to hold, so
+   * every one of those 60 sites renders exactly the colour it rendered before.
+   * The only visible change in the app is that control borders got darker,
+   * which is the finding.
+   *
+   * The dark theme already had this structure (outline 600, outlineVariant 700)
+   * and is untouched.
+   */
+  outline: baseColors.neutral[600],
+  outlineVariant: baseColors.neutral[300],
 
   // State colors
   success: baseColors.success[500],
@@ -286,9 +325,14 @@ const lightThemeColors = {
   errorContainer: baseColors.error[50],
   onErrorContainer: baseColors.error[600],
   warningContainer: baseColors.warning[50],
-  onWarningContainer: baseColors.warning[600],
+  /* M18: was warning[600], which read 2.81 on warningContainer - far under the
+   * 4.5 AA floor for the banner text it carries. warning[700] is 5.08. */
+  onWarningContainer: baseColors.warning[700],
   infoContainer: baseColors.info[50],
-  onInfoContainer: baseColors.info[600],
+  /* M18: was info[600] at 4.03. info[700] is 5.03. No consumer today, so this
+   * closes the token defect without moving a pixel - which is the point of
+   * fixing it now rather than when something first renders it. */
+  onInfoContainer: baseColors.info[700],
 
   // Overlay colors
   overlay: accessibilityColors.overlay,

@@ -262,7 +262,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated small-dark-en 1
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
     "alignSelf": "stretch",
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "marginEnd": 16,
     "width": 1,
   },
@@ -594,7 +594,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-dark-a
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
     "alignSelf": "stretch",
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "marginEnd": 16,
     "width": 1,
   },
@@ -760,7 +760,7 @@ exports[`DriverEarningsScreen earnings with deliveries populated standard-dark-e
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
     "alignSelf": "stretch",
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "marginEnd": 16,
     "width": 1,
   },
@@ -1559,7 +1559,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history small-da
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
     "alignSelf": "stretch",
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "marginEnd": 16,
     "width": 1,
   },
@@ -1829,7 +1829,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
     "alignSelf": "stretch",
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "marginEnd": 16,
     "width": 1,
   },
@@ -1964,7 +1964,7 @@ exports[`DriverEarningsScreen earnings with empty history empty-history standard
   },
   "RCTScrollView[0]/View[1]/View[0]/View[0]/View[2]/View[1]": {
     "alignSelf": "stretch",
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "marginEnd": 16,
     "width": 1,
   },

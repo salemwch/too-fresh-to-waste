@@ -202,7 +202,7 @@ const createStyles = (
       justifyContent: 'flex-end',
       paddingTop: 8,
       borderTopWidth: 1,
-      borderTopColor: theme.colors.outline,
+      borderTopColor: theme.colors.outlineVariant,
     },
     priceSkeleton: {
       width: 60,

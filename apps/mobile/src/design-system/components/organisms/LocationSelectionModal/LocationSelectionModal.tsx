@@ -200,11 +200,15 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
 
                     {/* Divider */}
                     <View style={styles.dividerContainer}>
-                      <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
+                      <View
+                        style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]}
+                      />
                       <Text variant='body' size='sm' color='secondary' style={styles.dividerText}>
                         OR
                       </Text>
-                      <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
+                      <View
+                        style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]}
+                      />
                     </View>
 
                     {/* Option 4: Search by city */}

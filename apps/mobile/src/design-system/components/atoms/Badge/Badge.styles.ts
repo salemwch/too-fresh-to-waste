@@ -63,7 +63,7 @@ export const createBadgeStyles = (
     default: {
       bg: colors.surfaceContainer,
       text: colors.onSurface,
-      border: colors.outline,
+      border: colors.outlineVariant,
     },
     primary: {
       bg: colors.primary,

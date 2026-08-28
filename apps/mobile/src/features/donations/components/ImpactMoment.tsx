@@ -39,7 +39,7 @@ const COLORS = {
   textPrimary: colorTokens.base.neutral[900],
   textSecondary: colorTokens.base.neutral[700],
   success: colorTokens.base.success[500],
-  textMuted: colorTokens.base.neutral[500],
+  textMuted: colorTokens.light.onSurfaceVariant,
   surfaceMuted: colorTokens.base.neutral[100],
   primary: colorTokens.base.primary[500],
 } as const;

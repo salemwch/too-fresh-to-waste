@@ -54,7 +54,7 @@ exports[`OrderCard cancelled cancelled large-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -106,7 +106,7 @@ exports[`OrderCard cancelled cancelled large-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -126,7 +126,7 @@ exports[`OrderCard cancelled cancelled large-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -198,7 +198,7 @@ exports[`OrderCard cancelled cancelled small-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -270,7 +270,7 @@ exports[`OrderCard cancelled cancelled small-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -342,7 +342,7 @@ exports[`OrderCard cancelled cancelled small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -394,7 +394,7 @@ exports[`OrderCard cancelled cancelled small-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -414,7 +414,7 @@ exports[`OrderCard cancelled cancelled small-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -486,7 +486,7 @@ exports[`OrderCard cancelled cancelled standard-dark-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -558,7 +558,7 @@ exports[`OrderCard cancelled cancelled standard-dark-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -630,7 +630,7 @@ exports[`OrderCard cancelled cancelled standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -702,7 +702,7 @@ exports[`OrderCard cancelled cancelled standard-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -774,7 +774,7 @@ exports[`OrderCard cancelled cancelled standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -826,7 +826,7 @@ exports[`OrderCard cancelled cancelled standard-light-ar 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -846,7 +846,7 @@ exports[`OrderCard cancelled cancelled standard-light-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -918,7 +918,7 @@ exports[`OrderCard cancelled cancelled standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -970,7 +970,7 @@ exports[`OrderCard cancelled cancelled standard-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -990,7 +990,7 @@ exports[`OrderCard cancelled cancelled standard-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -1062,7 +1062,7 @@ exports[`OrderCard cancelled cancelled standard-light-fr 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1114,7 +1114,7 @@ exports[`OrderCard cancelled cancelled standard-light-fr 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -1134,7 +1134,7 @@ exports[`OrderCard cancelled cancelled standard-light-fr 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -1206,7 +1206,7 @@ exports[`OrderCard completed picked-up large-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1258,7 +1258,7 @@ exports[`OrderCard completed picked-up large-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -1278,7 +1278,7 @@ exports[`OrderCard completed picked-up large-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -1350,7 +1350,7 @@ exports[`OrderCard completed picked-up small-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1422,7 +1422,7 @@ exports[`OrderCard completed picked-up small-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -1494,7 +1494,7 @@ exports[`OrderCard completed picked-up small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1546,7 +1546,7 @@ exports[`OrderCard completed picked-up small-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -1566,7 +1566,7 @@ exports[`OrderCard completed picked-up small-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -1638,7 +1638,7 @@ exports[`OrderCard completed picked-up standard-dark-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1710,7 +1710,7 @@ exports[`OrderCard completed picked-up standard-dark-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -1782,7 +1782,7 @@ exports[`OrderCard completed picked-up standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1854,7 +1854,7 @@ exports[`OrderCard completed picked-up standard-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -1926,7 +1926,7 @@ exports[`OrderCard completed picked-up standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1978,7 +1978,7 @@ exports[`OrderCard completed picked-up standard-light-ar 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -1998,7 +1998,7 @@ exports[`OrderCard completed picked-up standard-light-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -2070,7 +2070,7 @@ exports[`OrderCard completed picked-up standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2122,7 +2122,7 @@ exports[`OrderCard completed picked-up standard-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -2142,7 +2142,7 @@ exports[`OrderCard completed picked-up standard-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -2214,7 +2214,7 @@ exports[`OrderCard completed picked-up standard-light-fr 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2266,7 +2266,7 @@ exports[`OrderCard completed picked-up standard-light-fr 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -2286,7 +2286,7 @@ exports[`OrderCard completed picked-up standard-light-fr 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -2358,7 +2358,7 @@ exports[`OrderCard confirmed, pickup window open confirmed large-light-en 1`] = 
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2410,7 +2410,7 @@ exports[`OrderCard confirmed, pickup window open confirmed large-light-en 1`] = 
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -2430,7 +2430,7 @@ exports[`OrderCard confirmed, pickup window open confirmed large-light-en 1`] = 
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -2502,7 +2502,7 @@ exports[`OrderCard confirmed, pickup window open confirmed small-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2574,7 +2574,7 @@ exports[`OrderCard confirmed, pickup window open confirmed small-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -2646,7 +2646,7 @@ exports[`OrderCard confirmed, pickup window open confirmed small-light-en 1`] = 
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2698,7 +2698,7 @@ exports[`OrderCard confirmed, pickup window open confirmed small-light-en 1`] = 
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -2718,7 +2718,7 @@ exports[`OrderCard confirmed, pickup window open confirmed small-light-en 1`] = 
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -2790,7 +2790,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-dark-ar 1`] 
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2862,7 +2862,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-dark-ar 1`] 
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -2934,7 +2934,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-dark-en 1`] 
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -3006,7 +3006,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-dark-en 1`] 
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -3078,7 +3078,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-ar 1`]
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -3130,7 +3130,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-ar 1`]
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -3150,7 +3150,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-ar 1`]
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -3222,7 +3222,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-en 1`]
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -3274,7 +3274,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-en 1`]
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -3294,7 +3294,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-en 1`]
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -3366,7 +3366,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-fr 1`]
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -3418,7 +3418,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-fr 1`]
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -3438,7 +3438,7 @@ exports[`OrderCard confirmed, pickup window open confirmed standard-light-fr 1`]
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -3510,7 +3510,7 @@ exports[`OrderCard pickup window closed window-closed large-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -3538,7 +3538,7 @@ exports[`OrderCard pickup window closed window-closed large-light-en 1`] = `
     "width": 16,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -3558,7 +3558,7 @@ exports[`OrderCard pickup window closed window-closed large-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -3630,7 +3630,7 @@ exports[`OrderCard pickup window closed window-closed small-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -3678,7 +3678,7 @@ exports[`OrderCard pickup window closed window-closed small-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -3750,7 +3750,7 @@ exports[`OrderCard pickup window closed window-closed small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -3778,7 +3778,7 @@ exports[`OrderCard pickup window closed window-closed small-light-en 1`] = `
     "width": 16,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -3798,7 +3798,7 @@ exports[`OrderCard pickup window closed window-closed small-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -3870,7 +3870,7 @@ exports[`OrderCard pickup window closed window-closed standard-dark-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -3918,7 +3918,7 @@ exports[`OrderCard pickup window closed window-closed standard-dark-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -3990,7 +3990,7 @@ exports[`OrderCard pickup window closed window-closed standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -4038,7 +4038,7 @@ exports[`OrderCard pickup window closed window-closed standard-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -4110,7 +4110,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -4138,7 +4138,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-ar 1`] = `
     "width": 16,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -4158,7 +4158,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -4230,7 +4230,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -4258,7 +4258,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-en 1`] = `
     "width": 16,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -4278,7 +4278,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -4350,7 +4350,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-fr 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -4378,7 +4378,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-fr 1`] = `
     "width": 16,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -4398,7 +4398,7 @@ exports[`OrderCard pickup window closed window-closed standard-light-fr 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -4470,7 +4470,7 @@ exports[`OrderCard ready for pickup ready large-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -4522,7 +4522,7 @@ exports[`OrderCard ready for pickup ready large-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -4542,7 +4542,7 @@ exports[`OrderCard ready for pickup ready large-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -4614,7 +4614,7 @@ exports[`OrderCard ready for pickup ready small-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -4686,7 +4686,7 @@ exports[`OrderCard ready for pickup ready small-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -4758,7 +4758,7 @@ exports[`OrderCard ready for pickup ready small-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -4810,7 +4810,7 @@ exports[`OrderCard ready for pickup ready small-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -4830,7 +4830,7 @@ exports[`OrderCard ready for pickup ready small-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -4902,7 +4902,7 @@ exports[`OrderCard ready for pickup ready standard-dark-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -4974,7 +4974,7 @@ exports[`OrderCard ready for pickup ready standard-dark-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -5046,7 +5046,7 @@ exports[`OrderCard ready for pickup ready standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -5118,7 +5118,7 @@ exports[`OrderCard ready for pickup ready standard-dark-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -5190,7 +5190,7 @@ exports[`OrderCard ready for pickup ready standard-light-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -5242,7 +5242,7 @@ exports[`OrderCard ready for pickup ready standard-light-ar 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -5262,7 +5262,7 @@ exports[`OrderCard ready for pickup ready standard-light-ar 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -5334,7 +5334,7 @@ exports[`OrderCard ready for pickup ready standard-light-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -5386,7 +5386,7 @@ exports[`OrderCard ready for pickup ready standard-light-en 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -5406,7 +5406,7 @@ exports[`OrderCard ready for pickup ready standard-light-en 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,
@@ -5478,7 +5478,7 @@ exports[`OrderCard ready for pickup ready standard-light-fr 1`] = `
     "textAlign": "left",
   },
   "View[0]/View[1]/View[1]/Text[2]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 12,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -5530,7 +5530,7 @@ exports[`OrderCard ready for pickup ready standard-light-fr 1`] = `
     "width": 6,
   },
   "View[0]/View[3]": {
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderWidth": 0.8,
     "height": 1,
     "marginBottom": 12,
@@ -5550,7 +5550,7 @@ exports[`OrderCard ready for pickup ready standard-light-fr 1`] = `
     "flexDirection": "row",
   },
   "View[0]/View[4]/View[1]/Text[0]": {
-    "color": "#9E9E9E",
+    "color": "#616161",
     "fontSize": 13,
     "fontWeight": "500",
     "letterSpacing": 0,

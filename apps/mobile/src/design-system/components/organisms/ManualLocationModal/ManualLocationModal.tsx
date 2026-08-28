@@ -67,7 +67,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
     const renderSearchResult = useCallback(
       ({ item }: { item: GeocodeResult }) => (
         <Pressable
-          style={[styles.resultItem, { borderBottomColor: theme.colors.outline }]}
+          style={[styles.resultItem, { borderBottomColor: theme.colors.outlineVariant }]}
           onPress={() => handleSelectLocation(item)}
           accessibilityRole='button'
           accessibilityLabel={item.displayName}
@@ -175,7 +175,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             {/* Header */}
-            <View style={[styles.header, { borderBottomColor: theme.colors.outline }]}>
+            <View style={[styles.header, { borderBottomColor: theme.colors.outlineVariant }]}>
               <Text variant='title' size='lg' weight='semibold'>
                 Set Location
               </Text>
@@ -237,7 +237,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
             />
 
             {/* Cancel Button */}
-            <View style={[styles.footer, { borderTopColor: theme.colors.outline }]}>
+            <View style={[styles.footer, { borderTopColor: theme.colors.outlineVariant }]}>
               <Button variant='outline' size='lg' onPress={onClose} style={styles.cancelButton}>
                 Cancel
               </Button>

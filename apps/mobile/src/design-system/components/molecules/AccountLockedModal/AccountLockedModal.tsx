@@ -169,7 +169,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
                   styles.timerContainer,
                   {
                     backgroundColor: theme.colors.surfaceVariant,
-                    borderColor: theme.colors.outline,
+                    borderColor: theme.colors.outlineVariant,
                   },
                 ]}
               >

@@ -24,7 +24,7 @@
  *
  * @example
  * const useStyles = createThemedStyles(c => StyleSheet.create({
- *   card: { backgroundColor: c.surface, borderColor: c.outline },
+ *   card: { backgroundColor: c.surface, borderColor: c.outlineVariant },
  * }));
  *
  * const Row = () => {

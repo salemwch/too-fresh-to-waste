@@ -308,7 +308,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outlineVariant }]} />
           </View>
 
           {/* Back to Login */}

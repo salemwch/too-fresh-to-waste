@@ -449,7 +449,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                       variant='body.small'
                       weight='semibold'
                       style={{
-                        color: resendingEmail ? theme.colors.outline : theme.colors.primary,
+                        color: resendingEmail ? theme.colors.outlineVariant : theme.colors.primary,
                       }}
                     >
                       {resendingEmail ? t('auth.sending') : t('auth.resendVerificationEmail')}
@@ -652,11 +652,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outlineVariant }]} />
             <Text variant='body.small' color='secondary' style={styles.dividerText}>
               {t('common.or')}
             </Text>
-            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outlineVariant }]} />
           </View>
 
           {/* Google Sign-In */}

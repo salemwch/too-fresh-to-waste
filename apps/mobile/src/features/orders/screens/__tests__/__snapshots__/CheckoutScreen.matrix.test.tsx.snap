@@ -67,7 +67,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "opacity": 0.6,
@@ -180,7 +180,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -201,7 +201,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -737,7 +737,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "opacity": 0.6,
@@ -850,7 +850,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -871,7 +871,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -1742,7 +1742,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "opacity": 0.6,
@@ -1855,7 +1855,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -1876,7 +1876,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -2077,7 +2077,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "opacity": 0.6,
@@ -2190,7 +2190,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -2211,7 +2211,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -2412,7 +2412,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "opacity": 0.6,
@@ -2525,7 +2525,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -2546,7 +2546,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -2716,7 +2716,7 @@ exports[`CheckoutScreen loading the offer loading large-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "padding": 16,
@@ -2766,7 +2766,7 @@ exports[`CheckoutScreen loading the offer loading large-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 12,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -2796,7 +2796,7 @@ exports[`CheckoutScreen loading the offer loading large-light-en 1`] = `
     "width": 40,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginBottom": 14,
   },
@@ -2838,7 +2838,7 @@ exports[`CheckoutScreen loading the offer loading large-light-en 1`] = `
     "width": 100,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -2866,7 +2866,7 @@ exports[`CheckoutScreen loading the offer loading large-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -2898,7 +2898,7 @@ exports[`CheckoutScreen loading the offer loading large-light-en 1`] = `
     "width": "80%",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -3394,7 +3394,7 @@ exports[`CheckoutScreen loading the offer loading small-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "padding": 16,
@@ -3444,7 +3444,7 @@ exports[`CheckoutScreen loading the offer loading small-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 12,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -3474,7 +3474,7 @@ exports[`CheckoutScreen loading the offer loading small-light-en 1`] = `
     "width": 40,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginBottom": 14,
   },
@@ -3516,7 +3516,7 @@ exports[`CheckoutScreen loading the offer loading small-light-en 1`] = `
     "width": 100,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -3544,7 +3544,7 @@ exports[`CheckoutScreen loading the offer loading small-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -3576,7 +3576,7 @@ exports[`CheckoutScreen loading the offer loading small-light-en 1`] = `
     "width": "80%",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -4411,7 +4411,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-ar 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "padding": 16,
@@ -4461,7 +4461,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-ar 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 12,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -4491,7 +4491,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-ar 1`] = `
     "width": 40,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginBottom": 14,
   },
@@ -4533,7 +4533,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-ar 1`] = `
     "width": 100,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -4561,7 +4561,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-ar 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -4593,7 +4593,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-ar 1`] = `
     "width": "80%",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -4750,7 +4750,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "padding": 16,
@@ -4800,7 +4800,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 12,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -4830,7 +4830,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-en 1`] = `
     "width": 40,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginBottom": 14,
   },
@@ -4872,7 +4872,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-en 1`] = `
     "width": 100,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -4900,7 +4900,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -4932,7 +4932,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-en 1`] = `
     "width": "80%",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -5089,7 +5089,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-fr 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "padding": 16,
@@ -5139,7 +5139,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-fr 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 12,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -5169,7 +5169,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-fr 1`] = `
     "width": 40,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginBottom": 14,
   },
@@ -5211,7 +5211,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-fr 1`] = `
     "width": 100,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -5239,7 +5239,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-fr 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]/View[1]": {
     "backgroundColor": "#F5F5F5",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -5271,7 +5271,7 @@ exports[`CheckoutScreen loading the offer loading standard-light-fr 1`] = `
     "width": "80%",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 24,
   },
@@ -5459,7 +5459,7 @@ exports[`CheckoutScreen no stored user location no-user-location large-light-en 
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -5534,7 +5534,7 @@ exports[`CheckoutScreen no stored user location no-user-location large-light-en 
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -5555,7 +5555,7 @@ exports[`CheckoutScreen no stored user location no-user-location large-light-en 
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -6053,7 +6053,7 @@ exports[`CheckoutScreen no stored user location no-user-location small-light-en 
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -6128,7 +6128,7 @@ exports[`CheckoutScreen no stored user location no-user-location small-light-en 
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -6149,7 +6149,7 @@ exports[`CheckoutScreen no stored user location no-user-location small-light-en 
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -6944,7 +6944,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -7019,7 +7019,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -7040,7 +7040,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -7241,7 +7241,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -7316,7 +7316,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -7337,7 +7337,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -7538,7 +7538,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -7613,7 +7613,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -7634,7 +7634,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -8243,7 +8243,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -8317,7 +8317,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -8793,7 +8793,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -8867,7 +8867,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -9618,7 +9618,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -9692,7 +9692,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -9893,7 +9893,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -9967,7 +9967,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -10168,7 +10168,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -10242,7 +10242,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -10443,7 +10443,7 @@ exports[`CheckoutScreen phone not verified phone-unverified large-light-en 1`] =
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -10518,7 +10518,7 @@ exports[`CheckoutScreen phone not verified phone-unverified large-light-en 1`] =
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -10539,7 +10539,7 @@ exports[`CheckoutScreen phone not verified phone-unverified large-light-en 1`] =
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -11037,7 +11037,7 @@ exports[`CheckoutScreen phone not verified phone-unverified small-light-en 1`] =
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -11112,7 +11112,7 @@ exports[`CheckoutScreen phone not verified phone-unverified small-light-en 1`] =
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -11133,7 +11133,7 @@ exports[`CheckoutScreen phone not verified phone-unverified small-light-en 1`] =
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -11928,7 +11928,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-ar 1`
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -12003,7 +12003,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-ar 1`
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -12024,7 +12024,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-ar 1`
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -12225,7 +12225,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-en 1`
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -12300,7 +12300,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-en 1`
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -12321,7 +12321,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-en 1`
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -12522,7 +12522,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-fr 1`
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -12597,7 +12597,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-fr 1`
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -12618,7 +12618,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-fr 1`
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -12819,7 +12819,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -12894,7 +12894,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -12915,7 +12915,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -13413,7 +13413,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -13488,7 +13488,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -13509,7 +13509,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -14304,7 +14304,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -14379,7 +14379,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -14400,7 +14400,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -14601,7 +14601,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -14676,7 +14676,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -14697,7 +14697,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },
@@ -14898,7 +14898,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[0]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -14973,7 +14973,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#EEEEEE",
+    "borderColor": "#E0E0E0",
     "borderRadius": 16,
     "borderWidth": 1.5,
     "paddingHorizontal": 6,
@@ -14994,7 +14994,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "width": 28,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[2]": {
-    "backgroundColor": "#EEEEEE",
+    "backgroundColor": "#E0E0E0",
     "height": 1,
     "marginVertical": 12,
   },

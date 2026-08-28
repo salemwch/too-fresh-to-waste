@@ -72,14 +72,14 @@ export const SkeletonEditProfileScreen: React.FC = () => {
               width={96}
               height={96}
               borderRadius={48}
-              color={theme.colors.outline}
+              color={theme.colors.outlineVariant}
             />
             <SkeletonBox
               animValue={anim}
               width={140}
               height={36}
               borderRadius={18}
-              color={theme.colors.outline}
+              color={theme.colors.outlineVariant}
               style={styles.changePhotoBtn}
             />
           </View>
@@ -87,24 +87,24 @@ export const SkeletonEditProfileScreen: React.FC = () => {
 
         {/* Personal Information Section */}
         <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <SkeletonSectionHeader animValue={anim} color={theme.colors.outline} />
-          <SkeletonInput animValue={anim} color={theme.colors.outline} />
-          <SkeletonInput animValue={anim} color={theme.colors.outline} />
-          <SkeletonInput animValue={anim} color={theme.colors.outline} />
-          <SkeletonInput animValue={anim} color={theme.colors.outline} />
+          <SkeletonSectionHeader animValue={anim} color={theme.colors.outlineVariant} />
+          <SkeletonInput animValue={anim} color={theme.colors.outlineVariant} />
+          <SkeletonInput animValue={anim} color={theme.colors.outlineVariant} />
+          <SkeletonInput animValue={anim} color={theme.colors.outlineVariant} />
+          <SkeletonInput animValue={anim} color={theme.colors.outlineVariant} />
         </View>
 
         {/* Address Section */}
         <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <SkeletonSectionHeader animValue={anim} color={theme.colors.outline} />
-          <SkeletonInput animValue={anim} color={theme.colors.outline} />
-          <SkeletonInput animValue={anim} color={theme.colors.outline} />
+          <SkeletonSectionHeader animValue={anim} color={theme.colors.outlineVariant} />
+          <SkeletonInput animValue={anim} color={theme.colors.outlineVariant} />
+          <SkeletonInput animValue={anim} color={theme.colors.outlineVariant} />
           <View style={styles.row}>
             <View style={styles.halfWidth}>
-              <SkeletonInput animValue={anim} color={theme.colors.outline} />
+              <SkeletonInput animValue={anim} color={theme.colors.outlineVariant} />
             </View>
             <View style={styles.halfWidth}>
-              <SkeletonInput animValue={anim} color={theme.colors.outline} />
+              <SkeletonInput animValue={anim} color={theme.colors.outlineVariant} />
             </View>
           </View>
         </View>
@@ -116,14 +116,14 @@ export const SkeletonEditProfileScreen: React.FC = () => {
             width='100%'
             height={52}
             borderRadius={12}
-            color={theme.colors.outline}
+            color={theme.colors.outlineVariant}
           />
           <SkeletonBox
             animValue={anim}
             width='100%'
             height={44}
             borderRadius={12}
-            color={theme.colors.outline}
+            color={theme.colors.outlineVariant}
             style={styles.cancelBtn}
           />
         </View>

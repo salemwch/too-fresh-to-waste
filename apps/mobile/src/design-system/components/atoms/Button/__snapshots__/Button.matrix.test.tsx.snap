@@ -69,7 +69,7 @@ exports[`Button / disabled standard-dark-en 1`] = `
   },
   "btn": {
     "backgroundColor": "#383838",
-    "borderColor": "#757575",
+    "borderColor": "#616161",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",

@@ -60,15 +60,15 @@ export const createButtonStyles = (
   const variantStyles = {
     primary: {
       backgroundColor: disabled ? colors.surfaceContainer : colors.primary,
-      borderColor: disabled ? colors.outline : colors.primary,
+      borderColor: disabled ? colors.outlineVariant : colors.primary,
     },
     secondary: {
       backgroundColor: disabled ? colors.surfaceVariant : colors.secondary,
-      borderColor: disabled ? colors.outline : colors.secondary,
+      borderColor: disabled ? colors.outlineVariant : colors.secondary,
     },
     tertiary: {
       backgroundColor: disabled ? colors.surfaceVariant : colors.surface,
-      borderColor: disabled ? colors.outline : colors.outline,
+      borderColor: disabled ? colors.outlineVariant : colors.outline,
     },
     ghost: {
       backgroundColor: 'transparent',
@@ -77,16 +77,16 @@ export const createButtonStyles = (
     },
     outline: {
       backgroundColor: 'transparent',
-      borderColor: disabled ? colors.outline : colors.primary,
+      borderColor: disabled ? colors.outlineVariant : colors.primary,
       ...shadows.none,
     },
     danger: {
       backgroundColor: disabled ? colors.surfaceContainer : colors.error,
-      borderColor: disabled ? colors.outline : colors.error,
+      borderColor: disabled ? colors.outlineVariant : colors.error,
     },
     success: {
       backgroundColor: disabled ? colors.surfaceContainer : colors.success,
-      borderColor: disabled ? colors.outline : colors.success,
+      borderColor: disabled ? colors.outlineVariant : colors.success,
     },
     text: {
       backgroundColor: 'transparent',

@@ -506,11 +506,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outlineVariant }]} />
             <Text variant='body.small' color='secondary' style={styles.dividerText}>
               {t('common.or')}
             </Text>
-            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outline }]} />
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.outlineVariant }]} />
           </View>
 
           {/* Google Sign-In */}

@@ -67,8 +67,8 @@ const TRANSACTION_ICONS: Record<
   },
   expired: {
     icon: 'time-outline',
-    color: colorTokens.base.neutral[500],
-    amountStyle: { color: colorTokens.base.neutral[500] },
+    color: colorTokens.light.onSurfaceVariant,
+    amountStyle: { color: colorTokens.light.onSurfaceVariant },
   },
   donated: { icon: 'heart-outline', color: '#8B5CF6', amountStyle: { color: '#8B5CF6' } },
 };

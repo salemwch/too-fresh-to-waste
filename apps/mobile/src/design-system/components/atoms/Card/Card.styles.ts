@@ -46,7 +46,7 @@ export const createCardStyles = (
     outlined: {
       backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: colors.outline,
+      borderColor: colors.outlineVariant,
       ...(Platform.OS === 'ios' ? shadows.none : Platform.OS === 'android' ? { elevation: 0 } : {}),
     },
     filled: {

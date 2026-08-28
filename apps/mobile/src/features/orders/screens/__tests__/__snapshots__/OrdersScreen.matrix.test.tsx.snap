@@ -68,7 +68,7 @@ exports[`OrdersScreen states empty empty small-light-en 1`] = `
     "width": 112,
   },
   "View[0]/View[1]/View[0]/View[0]/Icon[0]": {
-    "@color": "#9E9E9E",
+    "@color": "#616161",
     "height": 56,
     "textAlign": "center",
     "width": 56,
@@ -275,7 +275,7 @@ exports[`OrdersScreen states empty empty standard-dark-en 1`] = `
     "width": 112,
   },
   "View[0]/View[1]/View[0]/View[0]/Icon[0]": {
-    "@color": "#9E9E9E",
+    "@color": "#616161",
     "height": 56,
     "textAlign": "center",
     "width": 56,
@@ -482,7 +482,7 @@ exports[`OrdersScreen states empty empty standard-light-ar 1`] = `
     "width": 112,
   },
   "View[0]/View[1]/View[0]/View[0]/Icon[0]": {
-    "@color": "#9E9E9E",
+    "@color": "#616161",
     "height": 56,
     "textAlign": "center",
     "width": 56,
@@ -689,7 +689,7 @@ exports[`OrdersScreen states empty empty standard-light-en 1`] = `
     "width": 112,
   },
   "View[0]/View[1]/View[0]/View[0]/Icon[0]": {
-    "@color": "#9E9E9E",
+    "@color": "#616161",
     "height": 56,
     "textAlign": "center",
     "width": 56,

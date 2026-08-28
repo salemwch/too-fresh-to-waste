@@ -391,7 +391,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
       <View style={styles.centerContainer}>
         <ActivityIndicator size='large' color={colors.primary} />
         <Text style={styles.loadingTitle}>
-          {permState === 'checking' ? 'Starting up…' : 'Requesting location…'}
+          {permState === 'checking' ? t('driver.startingUp') : t('driver.requestingLocation')}
         </Text>
       </View>
     );
@@ -457,14 +457,10 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
         value={isOnline}
         onValueChange={next => setOnline(next)}
         disabled={isTogglingStatus}
-        trackColor={{ false: colors.outline, true: colorTokens.base.success[300] }}
+        trackColor={{ false: colors.outlineVariant, true: colorTokens.base.success[300] }}
         thumbColor={isOnline ? colors.success : colors.surface}
-        accessibilityLabel={isOnline ? 'Go offline' : 'Go online'}
-        accessibilityHint={
-          isOnline
-            ? 'Stops new delivery orders and alerts from reaching you'
-            : 'Starts showing nearby delivery orders and sending you alerts'
-        }
+        accessibilityLabel={isOnline ? t('driver.a11yGoOffline') : t('driver.a11yGoOnline')}
+        accessibilityHint={isOnline ? t('driver.a11yGoOfflineHint') : t('driver.a11yGoOnlineHint')}
       />
 
       <TouchableOpacity
@@ -629,7 +625,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       paddingVertical: sp.sm,
       backgroundColor: c.surface,
       borderBottomWidth: 1,
-      borderBottomColor: c.outline,
+      borderBottomColor: c.outlineVariant,
       gap: sp.xs,
     },
     statusDot: { width: 10, height: 10, borderRadius: 5 },
@@ -686,7 +682,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       paddingVertical: sp.sm,
       backgroundColor: c.surface,
       borderBottomWidth: 1,
-      borderBottomColor: c.outline,
+      borderBottomColor: c.outlineVariant,
       gap: sp.xs,
     },
     liveIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.success },
@@ -722,7 +718,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       marginStart: sp.xs,
     },
     streetText: { fontSize: fontSize.sm, color: c.onSurfaceVariant, marginBottom: sp.xs },
-    divider: { height: 1, backgroundColor: c.outline, marginVertical: sp.sm },
+    divider: { height: 1, backgroundColor: c.outlineVariant, marginVertical: sp.sm },
     windowLabel: {
       fontSize: fontSize.sm,
       color: c.onSurfaceVariant,

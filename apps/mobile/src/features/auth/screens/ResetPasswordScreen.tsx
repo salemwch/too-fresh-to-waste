@@ -344,7 +344,10 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             <View
               style={[
                 styles.emailContainer,
-                { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.outline },
+                {
+                  backgroundColor: theme.colors.surfaceVariant,
+                  borderColor: theme.colors.outlineVariant,
+                },
               ]}
             >
               <Icon

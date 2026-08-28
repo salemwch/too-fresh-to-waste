@@ -159,7 +159,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 styles.oauthInfoBox,
                 {
                   backgroundColor: theme.colors.surfaceVariant,
-                  borderColor: theme.colors.outline,
+                  borderColor: theme.colors.outlineVariant,
                 },
               ]}
             >

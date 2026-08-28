@@ -286,7 +286,7 @@ export const RootNavigator: React.FC = () => {
       background: theme.colors.background,
       card: theme.colors.surface,
       text: theme.colors.onSurface,
-      border: theme.colors.outline,
+      border: theme.colors.outlineVariant,
       notification: theme.colors.error,
     },
     fonts: DefaultTheme.fonts,

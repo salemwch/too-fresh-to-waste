@@ -43,7 +43,7 @@ export const ContactSupportScreen: React.FC = () => {
         </Text>
 
         {/* Email card */}
-        <Card style={[styles.card, { borderColor: theme.colors.outline }]}>
+        <Card style={[styles.card, { borderColor: theme.colors.outlineVariant }]}>
           <View style={styles.cardRow}>
             <View
               style={[styles.cardIconWrapper, { backgroundColor: theme.colors.primaryContainer }]}

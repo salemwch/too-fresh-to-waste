@@ -120,7 +120,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ tab, onBrowse }) => {
           name={tab === 'active' ? 'receipt-outline' : 'time-outline'}
           family='Ionicons'
           size={56}
-          color={colorTokens.base.neutral[500]}
+          color={colorTokens.light.onSurfaceVariant}
         />
       </View>
 

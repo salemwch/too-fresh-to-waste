@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: colorTokens.base.neutral[500],
+    color: colorTokens.light.onSurfaceVariant,
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 14,

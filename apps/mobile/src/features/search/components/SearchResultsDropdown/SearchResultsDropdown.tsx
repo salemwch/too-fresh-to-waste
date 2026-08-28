@@ -152,7 +152,7 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
                   key={`app-${est.item._id}`}
                   style={[
                     styles.item,
-                    { borderBottomColor: theme.colors.outline },
+                    { borderBottomColor: theme.colors.outlineVariant },
                     // Only the very last row in the panel loses its divider.
                     index === appShown.length - 1 && googleShown.length === 0 && styles.itemLast,
                   ]}
@@ -203,7 +203,7 @@ export const SearchResultsDropdown: React.FC<SearchResultsDropdownProps> = ({
                   key={`google-${place.id}`}
                   style={[
                     styles.item,
-                    { borderBottomColor: theme.colors.outline },
+                    { borderBottomColor: theme.colors.outlineVariant },
                     index === googleShown.length - 1 && styles.itemLast,
                   ]}
                   onPress={() => onGooglePlacePress(place)}

@@ -134,13 +134,15 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
 
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
-        <View style={[styles.header, { borderBottomColor: colors.outline }]}>
+        <View style={[styles.header, { borderBottomColor: colors.outlineVariant }]}>
           <Pressable
             accessibilityRole='button'
             accessibilityLabel={t('search.a11yCloseFilters')}
             accessibilityHint={t('common.a11yCloseModalHint')}
             onPress={onClose}
             style={styles.closeButton}
+            // 32x32 box + 6px each side = the 44x44 minimum touch target.
+            hitSlop={6}
           >
             <Icon name='close' size={24} color={colors.onSurface} />
           </Pressable>
@@ -273,7 +275,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
         </ScrollView>
 
         {/* Apply Button */}
-        <View style={[styles.footer, { borderTopColor: colors.outline }]}>
+        <View style={[styles.footer, { borderTopColor: colors.outlineVariant }]}>
           <Pressable
             accessibilityRole='button'
             style={[styles.applyButton, { backgroundColor: colors.primary }]}

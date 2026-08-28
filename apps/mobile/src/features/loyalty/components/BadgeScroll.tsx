@@ -33,7 +33,7 @@ const BADGE_ITEM_WIDTH = 90;
 const LOCKED_BADGE_BACKGROUND = colorTokens.base.neutral[100];
 const LOCKED_BADGE_BORDER = colorTokens.base.neutral[200];
 const LOCKED_ICON_COLOR = colorTokens.base.neutral[300];
-const LOCKED_TEXT_COLOR = colorTokens.base.neutral[500];
+const LOCKED_TEXT_COLOR = colorTokens.light.onSurfaceVariant;
 const SURFACE = '#FFFFFF';
 
 const BadgeCell: React.FC<{ item: BadgeItem }> = ({ item }) => {

@@ -180,7 +180,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
     ({ item }: { item: GeocodeResult }) => (
       <Pressable
         accessibilityRole='button'
-        style={[styles.searchResultItem, { borderBottomColor: theme.colors.outline }]}
+        style={[styles.searchResultItem, { borderBottomColor: theme.colors.outlineVariant }]}
         onPress={() => handleLocationSelect(item)}
       >
         <View style={[styles.searchResultIcon, { backgroundColor: theme.colors.primaryContainer }]}>
@@ -245,7 +245,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
       >
         {/* Drag Handle */}
         <View style={styles.dragHandleContainer}>
-          <View style={[styles.dragHandle, { backgroundColor: theme.colors.outline }]} />
+          <View style={[styles.dragHandle, { backgroundColor: theme.colors.outlineVariant }]} />
         </View>
 
         {/* Header */}
@@ -295,7 +295,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
               onValueChange={values => setLocalRadius(values[0] ?? localRadius)}
               onSlidingComplete={values => handleSliderComplete(values[0] ?? localRadius)}
               minimumTrackTintColor={theme.colors.primary}
-              maximumTrackTintColor={theme.colors.outline}
+              maximumTrackTintColor={theme.colors.outlineVariant}
               thumbTintColor={theme.colors.primary}
               step={0.5}
               trackStyle={styles.sliderTrack}
@@ -317,7 +317,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
         </View>
 
         {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
+        <View style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
         {/* City Search Section */}
         <View style={styles.section}>
@@ -386,7 +386,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
         </View>
 
         {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
+        <View style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
         {/* Use My Location Button */}
         <View style={styles.section}>

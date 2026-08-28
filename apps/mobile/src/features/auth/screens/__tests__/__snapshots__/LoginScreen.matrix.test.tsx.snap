@@ -72,7 +72,7 @@ exports[`LoginScreen resting large-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -109,7 +109,7 @@ exports[`LoginScreen resting large-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -156,7 +156,7 @@ exports[`LoginScreen resting large-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/View[0]/View[0]": {
     "backgroundColor": "#1E4448",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 4,
     "borderWidth": 2,
     "height": 20,
@@ -532,12 +532,12 @@ exports[`LoginScreen resting small-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[6]/View[0]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "height": 1,
     "minWidth": 0,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[6]/View[2]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "height": 1,
     "minWidth": 0,
   },
@@ -690,7 +690,7 @@ exports[`LoginScreen resting small-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -727,7 +727,7 @@ exports[`LoginScreen resting small-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -774,7 +774,7 @@ exports[`LoginScreen resting small-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/View[0]/View[0]": {
     "backgroundColor": "#1E4448",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 4,
     "borderWidth": 2,
     "height": 20,
@@ -1150,12 +1150,12 @@ exports[`LoginScreen resting standard-dark-ar 1`] = `
     "textAlign": "left",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[6]/View[0]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "height": 1,
     "minWidth": 0,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[6]/View[2]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "height": 1,
     "minWidth": 0,
   },
@@ -1459,12 +1459,12 @@ exports[`LoginScreen resting standard-dark-en 1`] = `
     "textAlign": "left",
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[6]/View[0]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "height": 1,
     "minWidth": 0,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[6]/View[2]": {
-    "backgroundColor": "#757575",
+    "backgroundColor": "#616161",
     "height": 1,
     "minWidth": 0,
   },
@@ -1617,7 +1617,7 @@ exports[`LoginScreen resting standard-light-ar 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -1654,7 +1654,7 @@ exports[`LoginScreen resting standard-light-ar 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -1701,7 +1701,7 @@ exports[`LoginScreen resting standard-light-ar 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/View[0]/View[0]": {
     "backgroundColor": "#1E4448",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 4,
     "borderWidth": 2,
     "height": 20,
@@ -1926,7 +1926,7 @@ exports[`LoginScreen resting standard-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -1963,7 +1963,7 @@ exports[`LoginScreen resting standard-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -2010,7 +2010,7 @@ exports[`LoginScreen resting standard-light-en 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/View[0]/View[0]": {
     "backgroundColor": "#1E4448",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 4,
     "borderWidth": 2,
     "height": 20,
@@ -2235,7 +2235,7 @@ exports[`LoginScreen resting standard-light-fr 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[1]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -2272,7 +2272,7 @@ exports[`LoginScreen resting standard-light-fr 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[2]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -2319,7 +2319,7 @@ exports[`LoginScreen resting standard-light-fr 1`] = `
   },
   "View[0]/RCTScrollView[0]/View[0]/View[1]/View[3]/View[0]/View[0]": {
     "backgroundColor": "#1E4448",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 4,
     "borderWidth": 2,
     "height": 20,

@@ -965,7 +965,13 @@
     "a11yViewEarningsHint": "يفتح إجمالي أرباحك وعمليات التوصيل السابقة",
     "unknownLocation": "موقع غير معروف",
     "bannerCollected": "الطلب معك — قم بتوصيله إلى العميل.",
-    "bannerHeadToStore": "توجّه إلى المتجر واستلم الطلب."
+    "bannerHeadToStore": "توجّه إلى المتجر واستلم الطلب.",
+    "startingUp": "جارٍ البدء…",
+    "requestingLocation": "جارٍ طلب الموقع…",
+    "a11yGoOnline": "الاتصال بالإنترنت",
+    "a11yGoOffline": "الانتقال إلى وضع عدم الاتصال",
+    "a11yGoOnlineHint": "يبدأ بعرض طلبات التوصيل القريبة وإرسال التنبيهات إليك",
+    "a11yGoOfflineHint": "يمنع وصول طلبات التوصيل والتنبيهات الجديدة إليك"
   },
   "leaderboard": {
     "a11yCloseDiscount": "إغلاق نافذة الخصم",

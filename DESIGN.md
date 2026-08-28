@@ -1872,6 +1872,17 @@ warning and info in light - so migrating the tints onto the roles would make
 them worse. Checkout's own `SUCCESS_TEXT` on `SUCCESS_SURFACE` is already 3.6
 and fails.
 
+> **Update 2026-08-28.** The _light_ half of that is no longer true. M18 is
+> fixed for light: `onWarningContainer` moved to a new `warning[700]` (2.81 →
+> 5.08) and `onInfoContainer` to a new `info[700]` (4.03 → 5.03), so all four
+> light pairs now pass. Migrating these tints onto the light `*Container` roles
+> would no longer make them worse.
+>
+> E25 stays **OPEN** anyway, for two narrower reasons. All four _dark_ pairs
+> still fail, and Checkout's own `SUCCESS_TEXT` on `SUCCESS_SURFACE` is still
+> 3.6 - that pair is hardcoded and was never a token problem. Adopting §2.5 is
+> still the fix; it is now a component change rather than a blocked one.
+
 This is the mobile face of the web finding in `.claude/rules/ui-ux.md`, and §2.5
 of this document already prescribes the fix: a solid fill rather than a tint.
 Clearing E25 means adopting §2.5 on mobile, which is audit finding **M18**.
@@ -1897,6 +1908,51 @@ other baseline changes between themes.
 > that reused those numbers. They are restored above as E19 and E20 rather than
 > renumbered, because §19 is append-only and renumbering would break every
 > existing reference.
+
+**E28. `outline` and `outlineVariant` now carry different roles in mobile.**
+`RESOLVED 2026-08-28` Audit finding M17. Light `outline` was `neutral[300]`,
+measuring 1.14-1.26 against the four light surfaces, where WCAG 1.4.11 wants 3.0
+for a boundary that identifies a control.
+
+It looked unaffordable because one token was doing two jobs: 60 of its 79 uses
+were dividers, skeleton blocks, switch tracks and drag handles, none of which
+1.4.11 governs, and darkening those would have been a redesign. Splitting them
+per the Material 3 definitions the names come from made it a two-line change.
+
+| Token            | Role                                                                                             | Light value              | On the four light surfaces |
+| ---------------- | ------------------------------------------------------------------------------------------------ | ------------------------ | -------------------------- |
+| `outline`        | boundaries that identify a control - text fields, OTP boxes, checkboxes, chips, bordered buttons | `neutral[600]` `#757575` | 3.97-4.41, passes 3.0      |
+| `outlineVariant` | dividers, separators, decorative fills, informational container borders                          | `neutral[300]` `#E0E0E0` | 1.14-1.32, no requirement  |
+
+`outlineVariant` took `outline`'s previous value, so all 60 moved sites render
+unchanged. Dark already had this structure (600 / 700) and is untouched.
+
+**Disabled controls use `outlineVariant`, not `outline`.** WCAG 1.4.3 exempts
+inactive components, and a disabled control is meant to recede. Six `Button`
+variants had to be corrected after the initial change for exactly this.
+
+`themeContrast.test.ts` asserts light `outline` against 3.0, and asserts
+`outlineVariant` stays weaker than `outline` so the split cannot collapse back
+into one token.
+
+**E29. The warning and info ramps have a 700 step; success and error do not.**
+`ACCEPTED 2026-08-28` Audit finding M18. `onWarningContainer` read 2.81 on its
+container and `onInfoContainer` 4.03, both under the 4.5 AA floor.
+
+| Token          | Value     | Where it comes from                                                     |
+| -------------- | --------- | ----------------------------------------------------------------------- |
+| `warning[700]` | `#B84000` | HSL(21°, 100%, 36%) - the existing warning hue, darkened                |
+| `info[700]`    | `#1565C0` | Material Blue 800, the next published step after `info[600]` = Blue 700 |
+
+`info[700]` needed no derivation. `warning[700]` did: the ramp is Material
+Orange and Material's own Orange ends at 900 `#E65100`, which is 3.46 on the
+container and still fails. Deep Orange 900 `#BF360C` would pass at 5.11 but
+jumps palette family for the sake of a published name, so the step holds hue and
+saturation and drops lightness instead.
+
+The asymmetry is deliberate. `success` and `error` light pairs already pass at
+6.99 and 4.92, and adding ramp steps nothing consumes is speculation. Add them
+when a measured failure asks for them.
 
 **E27. Mobile ships light-only; dark mode is built but gated.** `OPEN`
 `apps/mobile/src/design-system/providers/themeRollout.ts` exports

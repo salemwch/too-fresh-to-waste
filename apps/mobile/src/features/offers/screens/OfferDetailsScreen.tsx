@@ -363,7 +363,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
   })();
 
   const todayBadgeStyle = { backgroundColor: theme.colors.primary };
-  const footerStyle = { borderTopColor: theme.colors.outline };
+  const footerStyle = { borderTopColor: theme.colors.outlineVariant };
   const reserveButtonStyle = {
     backgroundColor: isNotStarted ? INDIGO : theme.colors.primary,
     opacity: canReserve ? 1 : 0.6,
@@ -551,7 +551,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
           )}
 
           <View style={styles.pickupRow}>
-            <IoniconsIcon name='time' color={colorTokens.base.neutral[500]} size={20} />
+            <IoniconsIcon name='time' color={colorTokens.light.onSurfaceVariant} size={20} />
             <Text style={styles.pickupText}>
               {t('offers.pickUp')}: {offer.pickupTimeSlots?.[0]?.startTime} -{' '}
               {offer.pickupTimeSlots?.[0]?.endTime}
@@ -565,7 +565,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
 
           {offer.pickupTimeSlots?.[0]?.maxOrders != null && (
             <View style={styles.slotLimitRow}>
-              <IoniconsIcon name='people' color={colorTokens.base.neutral[500]} size={16} />
+              <IoniconsIcon name='people' color={colorTokens.light.onSurfaceVariant} size={16} />
               <Text style={styles.slotLimitText}>
                 {offer.pickupTimeSlots[0].maxOrders === 1
                   ? t('offers.slotLimit', { count: offer.pickupTimeSlots[0].maxOrders })
@@ -596,7 +596,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               </View>
               <IoniconsIcon
                 name='chevron-forward'
-                color={colorTokens.base.neutral[500]}
+                color={colorTokens.light.onSurfaceVariant}
                 size={20}
               />
             </Pressable>
@@ -615,9 +615,17 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 {t('offers.whatToKnow')}
               </Text>
               {isDescriptionOpen ? (
-                <IoniconsIcon name='chevron-up' color={colorTokens.base.neutral[500]} size={20} />
+                <IoniconsIcon
+                  name='chevron-up'
+                  color={colorTokens.light.onSurfaceVariant}
+                  size={20}
+                />
               ) : (
-                <IoniconsIcon name='chevron-down' color={colorTokens.base.neutral[500]} size={20} />
+                <IoniconsIcon
+                  name='chevron-down'
+                  color={colorTokens.light.onSurfaceVariant}
+                  size={20}
+                />
               )}
             </Pressable>
             {isDescriptionOpen && (
@@ -664,13 +672,13 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                   {isAllergensOpen ? (
                     <IoniconsIcon
                       name='chevron-up'
-                      color={colorTokens.base.neutral[500]}
+                      color={colorTokens.light.onSurfaceVariant}
                       size={20}
                     />
                   ) : (
                     <IoniconsIcon
                       name='chevron-down'
-                      color={colorTokens.base.neutral[500]}
+                      color={colorTokens.light.onSurfaceVariant}
                       size={20}
                     />
                   )}

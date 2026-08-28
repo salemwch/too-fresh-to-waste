@@ -961,7 +961,13 @@
     "a11yViewEarningsHint": "Ouvre vos totaux de gains et vos livraisons passées",
     "unknownLocation": "Lieu inconnu",
     "bannerCollected": "Vous avez la commande — livrez-la au client.",
-    "bannerHeadToStore": "Rendez-vous au commerce et récupérez la commande."
+    "bannerHeadToStore": "Rendez-vous au commerce et récupérez la commande.",
+    "startingUp": "Démarrage…",
+    "requestingLocation": "Demande de localisation…",
+    "a11yGoOnline": "Passer en ligne",
+    "a11yGoOffline": "Passer hors ligne",
+    "a11yGoOnlineHint": "Affiche les commandes de livraison à proximité et vous envoie les alertes",
+    "a11yGoOfflineHint": "Empêche les nouvelles commandes et alertes de vous parvenir"
   },
   "leaderboard": {
     "a11yCloseDiscount": "Fermer la fenêtre de réduction",

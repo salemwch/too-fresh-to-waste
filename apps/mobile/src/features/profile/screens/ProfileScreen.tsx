@@ -130,7 +130,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
     <Pressable
       style={[
         styles.menuItem,
-        { borderBottomColor: theme.colors.outline },
+        { borderBottomColor: theme.colors.outlineVariant },
         disabled && styles.menuItemDisabled,
       ]}
       onPress={onPress}
@@ -148,12 +148,12 @@ const MenuItem: React.FC<MenuItemProps> = ({
           name={icon}
           family='Ionicons'
           size={24}
-          color={disabled ? theme.colors.outline : theme.colors.onSurfaceVariant}
+          color={disabled ? theme.colors.outlineVariant : theme.colors.onSurfaceVariant}
         />
         <Text
           variant='body'
           size='md'
-          style={[styles.menuItemLabel, disabled && { color: theme.colors.outline }]}
+          style={[styles.menuItemLabel, disabled && { color: theme.colors.outlineVariant }]}
         >
           {label}
         </Text>
@@ -170,7 +170,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
               false: theme.colors.surfaceVariant,
               true: theme.colors.primaryContainer,
             }}
-            thumbColor={switchValue ? theme.colors.primary : theme.colors.outline}
+            thumbColor={switchValue ? theme.colors.primary : theme.colors.outlineVariant}
             disabled={disabled}
           />
         )}

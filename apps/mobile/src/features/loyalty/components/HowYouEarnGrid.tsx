@@ -64,7 +64,7 @@ const EARN_METHODS: EarnMethod[] = [
 ];
 
 const INACTIVE_BACKGROUND = colorTokens.base.neutral[100];
-const INACTIVE_TEXT = colorTokens.base.neutral[500];
+const INACTIVE_TEXT = colorTokens.light.onSurfaceVariant;
 
 interface HowYouEarnGridProps {
   onReferPress?: () => void;

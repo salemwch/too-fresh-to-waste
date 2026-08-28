@@ -1048,7 +1048,7 @@ exports[`Input resting default large-light-en 1`] = `
   },
   "View[0]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -1128,7 +1128,7 @@ exports[`Input resting default small-light-en 1`] = `
   },
   "View[0]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -1248,7 +1248,7 @@ exports[`Input resting default standard-light-ar 1`] = `
   },
   "View[0]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -1288,7 +1288,7 @@ exports[`Input resting default standard-light-en 1`] = `
   },
   "View[0]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",
@@ -1328,7 +1328,7 @@ exports[`Input resting default standard-light-fr 1`] = `
   },
   "View[0]/View[1]": {
     "backgroundColor": "#FAFAFA",
-    "borderColor": "#E0E0E0",
+    "borderColor": "#757575",
     "borderRadius": 8,
     "borderWidth": 1,
     "flexDirection": "row",

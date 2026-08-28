@@ -79,7 +79,7 @@ const MAX_REPEATING_CHARS = 2;
 
 // Color palette for rule states - Uses design system tokens for consistency
 const COLORS = {
-  unmet: colorTokens.base.neutral[500], // Gray - rule not met
+  unmet: colorTokens.light.onSurfaceVariant, // Gray - rule not met
   met: colorTokens.base.primary[500], // Primary brand color - rule met
   error: colorTokens.base.error[500], // Red - error state
   warning: colorTokens.base.warning[500], // Orange - warning

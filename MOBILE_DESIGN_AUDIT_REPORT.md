@@ -250,6 +250,13 @@ go.
 
 ### M7. Two different offline banners are mounted at once
 
+> **ALREADY RESOLVED, confirmed 2026-08-28.** Re-checked rather than trusted.
+> The `components/Errors` banner is gone from `App.tsx` and has no importers;
+> only the design-system molecule remains, rendered conditionally in
+> `RootNavigator`. Its empty barrel `src/components/Errors/index.ts` - no
+> exports, no importers - was deleted as the last residue. This finding was
+> stale.
+
 - **Components:** `components/Errors/OfflineBanner.tsx` (rendered
   unconditionally in `App.tsx:327`) and
   `design-system/components/molecules/OfflineBanner` (rendered conditionally in
@@ -360,6 +367,15 @@ screens do use it, so the pattern exists and is simply not universal.
 
 ### M13. `hitSlop` on 28 of 174 touchables
 
+> **DECIDABLE SUBSET RESOLVED 2026-08-28.** The point that 146 touchables
+> "cannot be determined from source" still stands and is unchanged. What is
+> decidable is the subset pinning _both_ axes below 44px, since those are that
+> size by construction. Six exist; two had no `hitSlop`
+> (`ChallengeHeader.infoBtn` 36x36, `FilterBottomSheet.closeButton` 32x32) and
+> now have one sized to reach exactly 44 on each axis. Gated by
+> `design-system/__tests__/touchTargets.test.ts`. The content-sized majority
+> still needs a device.
+
 The other 146 rely on their own box clearing 44px. **Whether they do cannot be
 determined from source** - it depends on rendered layout. Listed so it is
 checked on device, not asserted as a violation.
@@ -413,6 +429,16 @@ checked on device, not asserted as a violation.
 > **M16-a is NOT resolved.** The 29 `neutral[500]` sites - 17 of them text - are
 > still 2.68. That is a separate decision about which step decorative and
 > disabled text uses.
+>
+> **M16-a RESOLVED 2026-08-28.** The real count was **39**, not 29 - the extra
+> ten are `Button`'s eight disabled-label variants plus two more disabled sites.
+> That matters: a quarter of the "failures" were never failures. 29 text,
+> placeholder and meaningful-icon sites moved to `onSurfaceVariant`
+> (`neutral[700]`), taking them from 2.31-2.68 to 5.34-6.19. The ten disabled
+> sites kept `neutral[500]`, which WCAG 1.4.3 exempts as inactive components.
+> Gated by `tokens/__tests__/neutralRoleAdoption.test.ts`, which pins the
+> exemption list _and_ each exempt file's exact usage count. Whether a disabled
+> label at 2.31 is legible enough is a design question and stays open.
 
 Found while checking dark contrast for MD4, and it is the **root cause of the
 Phase 4 blocker**, not a separate coincidence. `onSurfaceVariant` is the token
@@ -473,6 +499,18 @@ WCAG 1.4.11 wants 3.0 for a boundary that identifies a control. Dark `outline`
   value cannot quietly get worse.
 - **Fix type:** **product/brand decision**, then technical.
 
+> **RESOLVED for light 2026-08-28 - and the reasoning above was wrong.** "Even
+> `neutral[500]` only reaches 2.57, so closing the gap means `neutral[600]`,
+> which would visibly redraw every border in the app" is true of the first
+> clause and false of the second. `outline` had 79 uses and **60 were dividers,
+> skeleton fills, switch tracks and drag handles**, which 1.4.11 does not
+> govern. Those moved to `outlineVariant`, which took `outline`'s old
+> `neutral[300]` and so renders them unchanged. The 19 real control boundaries
+> moved to `neutral[600]`: 3.97-4.41, passes. See `DESIGN.md` §19-E28.
+>
+> Dark `outline` still fails on the darkest surface and stays a ratchet - dark
+> is gated off (§19-E27).
+
 ### M18. Four of eight status-container pairs fail AA
 
 Found 2026-08-26 by `themeContrast.test.ts`.
@@ -496,7 +534,34 @@ This is the same defect `.claude/rules/ui-ux.md` already records for web ("the
   tint constants from both files.
 - **Fix type:** **design decision**, then technical.
 
+> **RESOLVED for light 2026-08-28 - and it was not a badge redesign.** "Fixing
+> it here would mean redesigning every status badge and banner in the app" did
+> not survive counting the consumers: `onWarningContainer` had **one**
+> (`PasswordStrengthIndicator`'s warning banner) and `onInfoContainer` had
+> **none**. It was a token-pair defect. Two ramp steps fixed it - `warning[700]`
+> `#B84000` (2.81 → 5.08) and `info[700]` `#1565C0` (4.03 → 5.03). All four
+> light pairs now pass; all four dark pairs still fail and are pinned, not
+> fixed. See `DESIGN.md` §19-E29.
+>
+> **A caveat that matters more than the fix.** That warning banner is
+> **unreachable**: it needs all five basic password rules met _and_ score < 2,
+> but the rules force length ≥ 12 with all four character classes, so the
+> entropy floor is 12 × log2(94) = 78.6 bits, which is score 3. So
+> `onWarningContainer` has zero reachable consumers and correcting it changed no
+> pixel. Proof encoded in `PasswordStrengthIndicator.matrix.test.tsx`.
+
 ### M14. Two list screens have no explicit error branch
+
+> **HALF RESOLVED, HALF MISFRAMED - checked 2026-08-28.** `OrdersScreen` now has
+> an explicit `error` branch with a retry (`OrdersScreen.tsx:295`), so that half
+> is done.
+>
+> `OrderHistoryScreen` cannot have an error branch: **it fetches nothing.** It
+> carries `// TODO: Fetch order history`, a `RefreshControl` whose handler is a
+> 1-second `setTimeout`, an always-rendered empty state and three hardcoded
+> English strings. It is registered in `MainStack` but nothing navigates to it -
+> there is no `navigate('OrderHistory')` anywhere in `src`. The real question is
+> M15's (delete or build it), and that is a product decision, still open.
 
 `OrdersScreen` and `OrderHistoryScreen` have empty states and `RefreshControl`
 but no `isError` handling, so a failed fetch likely renders as an empty list -

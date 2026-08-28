@@ -78,6 +78,8 @@ const ChallengeHeaderComponent: React.FC<ChallengeHeaderProps> = ({ endDate, onI
         </View>
         <Pressable
           style={styles.infoBtn}
+          // 36x36 box + 4px each side = the 44x44 minimum touch target.
+          hitSlop={4}
           onPress={onInfoPress}
           accessibilityRole='button'
           accessibilityLabel={t('leaderboard.a11yShowPrizeInfo')}
