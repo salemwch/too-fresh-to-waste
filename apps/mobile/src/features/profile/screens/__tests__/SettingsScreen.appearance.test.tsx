@@ -1,25 +1,28 @@
 /**
- * The Settings appearance control - phase 2 of the MD3 rollout.
+ * Settings while the dark rollout gate is CLOSED - the shipped configuration.
  *
- * This control is the only thing in the app that calls `setTheme`. Before it
- * existed the theme storage key was never written, so `ThemeProvider`'s load
- * effect always read null and dark mode could not be reached by any means.
+ * Dark mode is implemented app-wide but has only ever been verified on a device
+ * across the four screens reachable without a login. Until the authenticated
+ * surfaces have been checked, the entry point is hidden rather than the code
+ * removed. See providers/themeRollout.ts for the reasoning and the steps to
+ * reopen it.
  *
- * Two things are pinned here, and the second matters as much as the first:
+ * What is pinned here is the *absence* of the control, which is a weaker claim
+ * than it looks and needs stating carefully: an assertion that something is not
+ * on screen passes just as happily when the screen failed to render at all. So
+ * every absence check below is paired with a positive assertion that the rest
+ * of Settings did render.
  *
- * 1. Dark and auto are genuinely selectable, and selecting one changes the
- *    rendered theme rather than only the label.
- * 2. **`auto` is offered but is not the default.** Phase 6 of the migration is
- *    what flips `App.tsx`, and only after every screen has been verified in
- *    dark on a device. A change that quietly makes `auto` the default would
- *    move a large share of users onto an unverified theme, so it fails here.
+ * The open-gate behaviour is covered in SettingsScreen.appearance.enabled.test.tsx.
+ * The provider-level lock - which is what actually protects a user who already
+ * saved a dark preference - is covered in providers/__tests__/themeRollout.test.ts.
  */
 
 import React from 'react';
 import { Text } from 'react-native';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 
-import { ThemeProvider, useTheme } from '@/design-system/providers';
+import { DARK_MODE_ENABLED, ThemeProvider, useTheme } from '@/design-system/providers';
 
 import { SettingsScreen } from '../SettingsScreen';
 
@@ -35,10 +38,6 @@ jest.mock('../../services/notificationPreferencesService', () => ({
 
 jest.mock('react-native-restart', () => ({ restart: jest.fn() }));
 
-/**
- * Reports the resolved theme, so a tap is checked against what the provider
- * actually produced rather than against the button's own selected state.
- */
 const SchemeProbe: React.FC = () => {
   const { colorScheme, mode } = useTheme();
   return (
@@ -51,113 +50,72 @@ const SchemeProbe: React.FC = () => {
 
 const renderSettings = () =>
   render(
-    <ThemeProvider defaultTheme='light'>
+    <ThemeProvider defaultTheme='light' lockToLight={!DARK_MODE_ENABLED}>
       <SchemeProbe />
       <SettingsScreen {...({} as React.ComponentProps<typeof SettingsScreen>)} />
     </ThemeProvider>,
   );
 
-describe('the appearance control', () => {
-  it('offers exactly light, dark and automatic', () => {
+describe('the appearance control while the gate is closed', () => {
+  it('is not rendered', () => {
     renderSettings();
-    expect(screen.getByTestId('theme-option-light')).toBeTruthy();
-    expect(screen.getByTestId('theme-option-dark')).toBeTruthy();
-    expect(screen.getByTestId('theme-option-auto')).toBeTruthy();
+
+    // Paired with a positive check, so this cannot pass because Settings blew
+    // up and rendered nothing at all.
+    expect(screen.getByTestId('probe-scheme')).toBeTruthy();
+
+    expect(screen.queryByTestId('theme-option-light')).toBeNull();
+    expect(screen.queryByTestId('theme-option-dark')).toBeNull();
+    expect(screen.queryByTestId('theme-option-auto')).toBeNull();
   });
 
-  it('labels them from the translation file, not from hardcoded strings', () => {
+  it('leaves no orphaned Appearance heading behind it', () => {
     renderSettings();
-    // The suite runs a real i18n instance over the real en.json, so a missing
-    // or renamed key surfaces here rather than as a raw key on screen.
-    expect(screen.getByText('Light')).toBeTruthy();
-    expect(screen.getByText('Dark')).toBeTruthy();
-    expect(screen.getByText('Automatic')).toBeTruthy();
+    // The heading and its description are inside the gated card; if only the
+    // pills had been removed this would catch the empty section.
+    expect(screen.queryByText('Appearance')).toBeNull();
   });
 
-  it('marks the current mode as selected and the others as not', () => {
+  it('does not take the rest of Settings with it', () => {
     renderSettings();
-    expect(screen.getByTestId('theme-option-light').props['accessibilityState'].selected).toBe(
-      true,
-    );
-    expect(screen.getByTestId('theme-option-dark').props['accessibilityState'].selected).toBe(
-      false,
-    );
-    expect(screen.getByTestId('theme-option-auto').props['accessibilityState'].selected).toBe(
-      false,
-    );
+    // The language control sits directly above the appearance card and shares
+    // its markup, so it is the thing most likely to be caught by a bad edit.
+    expect(screen.getByText('English')).toBeTruthy();
   });
 
-  it('exposes each option as a radio for screen readers', () => {
-    renderSettings();
-    for (const mode of ['light', 'dark', 'auto']) {
-      expect(screen.getByTestId(`theme-option-${mode}`).props['accessibilityRole']).toBe('radio');
-    }
-  });
-});
-
-describe('choosing a mode', () => {
-  it('makes dark reachable - the defect MD3 was raised for', () => {
+  it('renders light, and reports light', () => {
     renderSettings();
     expect(screen.getByTestId('probe-scheme').props['children']).toBe('light');
-
-    fireEvent.press(screen.getByTestId('theme-option-dark'));
-
-    expect(screen.getByTestId('probe-scheme').props['children']).toBe('dark');
-  });
-
-  it('moves the selected state to the chosen option', () => {
-    renderSettings();
-    fireEvent.press(screen.getByTestId('theme-option-dark'));
-
-    expect(screen.getByTestId('theme-option-dark').props['accessibilityState'].selected).toBe(true);
-    expect(screen.getByTestId('theme-option-light').props['accessibilityState'].selected).toBe(
-      false,
-    );
-  });
-
-  it('can select automatic', () => {
-    renderSettings();
-    fireEvent.press(screen.getByTestId('theme-option-auto'));
-    expect(screen.getByTestId('probe-mode').props['children']).toBe('auto');
-  });
-
-  it('can go back to light after choosing dark', () => {
-    renderSettings();
-    fireEvent.press(screen.getByTestId('theme-option-dark'));
-    fireEvent.press(screen.getByTestId('theme-option-light'));
-
-    // One tap out is what makes this safe to ship ahead of the device audit.
-    expect(screen.getByTestId('probe-scheme').props['children']).toBe('light');
-  });
-
-  it('is idempotent - re-pressing the current mode changes nothing', () => {
-    renderSettings();
-    fireEvent.press(screen.getByTestId('theme-option-light'));
-    fireEvent.press(screen.getByTestId('theme-option-light'));
-
     expect(screen.getByTestId('probe-mode').props['children']).toBe('light');
-    expect(screen.getByTestId('theme-option-light').props['accessibilityState'].selected).toBe(
-      true,
-    );
   });
 });
 
 describe('the staged rollout guard', () => {
   /*
-   * A source assertion, not a behaviour test, and labelled as one. It exists
-   * because the risk it covers is a one-word edit in a file no test renders:
-   * changing App.tsx's mount to `auto` ships an unverified dark theme to
-   * everyone whose phone is set to dark. Phase 6 removes this guard on purpose.
+   * Source assertions, not behaviour tests, and labelled as such. They exist
+   * because the risk is a one-word edit in a file no test renders: mounting
+   * App.tsx with `auto` and no lock ships an unverified dark theme to everyone
+   * whose phone is set to dark.
    */
-  it('still mounts the app with light as the default theme', () => {
+  const readApp = (): string => {
     const { readFileSync } = jest.requireActual('fs');
     const { join } = jest.requireActual('path');
     // __tests__ -> screens -> profile -> features -> src
-    const app = readFileSync(join(__dirname, '..', '..', '..', '..', 'App.tsx'), 'utf8');
+    return readFileSync(join(__dirname, '..', '..', '..', '..', 'App.tsx'), 'utf8');
+  };
+
+  it('still mounts the app with light as the default theme', () => {
+    const app = readApp();
 
     // Guards against the guard silently passing if App.tsx ever moves.
     expect(app).toContain('ThemeProvider');
-    expect(app).toContain("<ThemeProvider defaultTheme='light'>");
-    expect(app).not.toContain("<ThemeProvider defaultTheme='auto'>");
+    expect(app).toContain("defaultTheme='light'");
+    expect(app).not.toContain("defaultTheme='auto'");
+  });
+
+  it('still passes the rollout lock, so a saved dark preference cannot surface', () => {
+    // The default alone is not enough: the provider adopts whatever is in
+    // AsyncStorage a moment after mount, which is how dark would come back.
+    expect(readApp()).toContain('lockToLight={!DARK_MODE_ENABLED}');
   });
 });

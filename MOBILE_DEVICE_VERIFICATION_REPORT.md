@@ -456,38 +456,47 @@ what the next round should build first.
 
 ## 7. Verdict for Phase 6.6
 
-**Do not change `defaultTheme` to `auto`.** `App.tsx` is unchanged and
-`git status` on it is clean.
+**Superseded 2026-08-28 - the question changed.** On the product owner's
+direction the app now ships **light-only**, with dark mode behind
+`DARK_MODE_ENABLED` in `design-system/providers/themeRollout.ts` and a
+`lockToLight` prop on `ThemeProvider`. See `DESIGN.md` §19-E27.
 
-The blocking reason has changed, and that is worth stating plainly. Last round
-it was D1, a live P0. That is now fixed and verified on the device. What blocks
-it now is **coverage, not known defects**:
+So there is no longer a default to flip. The decision is whether to **open the
+gate**, and the preconditions below are unchanged - none of them has been met.
 
-- The authenticated surfaces have still never been rendered (§5.1, §6b).
-  Checkout and the driver flow are the screens this migration changed most.
-- French and Arabic/RTL remain unverified (§5.2). **No RTL claim anywhere in
-  this migration has been checked on a device.**
-- D5 is unshipped by design, and its correct fix is coupled to this very flip.
+### What the gate closing does and does not change
+
+It does not reduce coverage. The dark token ramp, the themed styles, both
+contrast ratchets, the light/dark difference gate and all 390 snapshot baselines
+still run, and the dark cells still assert they differ from the light ones. What
+changed is only whether a user can reach dark.
+
+It does remove the live risk that motivated the original verdict: with the lock
+in place, a user whose phone is set to dark - or who had already selected dark
+while the control was visible - cannot land on an unverified screen.
 
 ### The gate, restated
 
-| Precondition                    | State                                                                  |
-| ------------------------------- | ---------------------------------------------------------------------- |
-| D1 resolved                     | **yes** — verified at 1.3× on device                                   |
-| D2 resolved                     | **yes** — verified in dark on device                                   |
-| D3 resolved                     | **yes** — verified in dark; root cause was app-wide                    |
-| Authenticated surfaces rendered | **no**                                                                 |
-| No P0/P1 dark-mode blockers     | **none known** — but only across the screens reachable without a login |
-| Device audit passes             | **partially** — §5 is still large                                      |
+| Precondition                              | State                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| D1 resolved                               | **yes** - verified at 1.3x on device                               |
+| D2 resolved                               | **yes** - verified in dark on device                               |
+| D3 resolved                               | **yes** - verified in dark; root cause was app-wide                |
+| D4 resolved                               | **yes** - per-screen status bar now follows the theme              |
+| Authenticated surfaces rendered in dark   | **no**                                                             |
+| French and Arabic/RTL covered on device   | **no**                                                             |
+| D5 cold-start fix ready to ship alongside | **no** - recipe verified, unshipped by design                      |
+| No P0/P1 dark-mode blockers               | **none known** - across the four screens reachable without a login |
 
-"No P0/P1 blockers remain" is only true of what has been looked at. Two rounds
-of this exercise have each found a P0 or P1 on the first screen examined, and
-most screens have not been examined.
+"No P0/P1 blockers remain" is true only of what has been looked at. Two rounds
+of this exercise each found a P0 or P1 on the first screen examined, and most
+screens have not been examined.
 
 ### Order for the next round
 
 1. Build the mocked-API authenticated path (§6b).
 2. Render and audit §5.1 in both themes.
-3. Cover French and Arabic/RTL.
-4. Ship D5's verified recipe **together with** the `auto` flip, not before it.
-5. Re-run this report, then reconsider the default.
+3. Cover French and Arabic/RTL - **no RTL claim in this migration has ever been
+   device-verified.**
+4. Ship D5's verified recipe **together with** opening the gate, not before.
+5. Re-run this report, then reconsider `DARK_MODE_ENABLED`.

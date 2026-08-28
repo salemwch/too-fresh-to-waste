@@ -4,3 +4,4 @@
  */
 
 export { ThemeProvider, useTheme } from './ThemeProvider';
+export { DARK_MODE_ENABLED } from './themeRollout';

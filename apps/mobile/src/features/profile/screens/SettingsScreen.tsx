@@ -22,7 +22,7 @@ import RNRestart from 'react-native-restart';
 import { Text, Card } from '@/design-system/components/atoms';
 import { SUPPORTED_LANGUAGES, setStoredLanguage, getCurrentLanguage } from '@/i18n';
 import type { AppLanguage } from '@/i18n';
-import { useTheme } from '@/design-system/providers';
+import { DARK_MODE_ENABLED, useTheme } from '@/design-system/providers';
 import { Logger } from '@/utils/logger';
 
 import { notificationPreferencesService } from '../services/notificationPreferencesService';
@@ -321,50 +321,55 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
           </View>
         </Card>
 
-        {/* Appearance Section */}
-        <Card style={[styles.card, styles.appearanceCard]}>
-          <Text variant='headline.medium' weight='semibold' style={styles.sectionTitle}>
-            {t('settings.appearance')}
-          </Text>
+        {/* Appearance Section - hidden while the dark rollout gate is closed.
+            The control is the only caller of setTheme, so with it hidden the
+            saved theme never changes; App.tsx also locks the provider so an
+            already-saved dark preference cannot leave anyone stuck. */}
+        {DARK_MODE_ENABLED && (
+          <Card style={[styles.card, styles.appearanceCard]}>
+            <Text variant='headline.medium' weight='semibold' style={styles.sectionTitle}>
+              {t('settings.appearance')}
+            </Text>
 
-          <Text variant='body.small' color='secondary' style={styles.rowSubtitle}>
-            {t('settings.appearanceDescription')}
-          </Text>
+            <Text variant='body.small' color='secondary' style={styles.rowSubtitle}>
+              {t('settings.appearanceDescription')}
+            </Text>
 
-          <View
-            style={[styles.pillContainer, { backgroundColor: theme.colors.surfaceVariant }]}
-            accessibilityRole='radiogroup'
-            accessibilityLabel={t('settings.appearance')}
-            accessibilityHint={t('settings.appearanceDescription')}
-          >
-            {THEME_OPTIONS.map(({ mode, labelKey }) => {
-              const isSelected = theme.mode === mode;
-              return (
-                <Pressable
-                  key={mode}
-                  testID={`theme-option-${mode}`}
-                  style={[
-                    styles.languagePill,
-                    isSelected && { backgroundColor: theme.colors.primary },
-                  ]}
-                  onPress={() => handleThemeChange(mode)}
-                  accessibilityRole='radio'
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={t(labelKey)}
-                  accessibilityHint={t('settings.a11ySwitchThemeHint')}
-                >
-                  <Text
-                    variant='body.medium'
-                    weight={isSelected ? 'semibold' : 'medium'}
-                    style={selectedLanguageLabelStyle(isSelected, theme)}
+            <View
+              style={[styles.pillContainer, { backgroundColor: theme.colors.surfaceVariant }]}
+              accessibilityRole='radiogroup'
+              accessibilityLabel={t('settings.appearance')}
+              accessibilityHint={t('settings.appearanceDescription')}
+            >
+              {THEME_OPTIONS.map(({ mode, labelKey }) => {
+                const isSelected = theme.mode === mode;
+                return (
+                  <Pressable
+                    key={mode}
+                    testID={`theme-option-${mode}`}
+                    style={[
+                      styles.languagePill,
+                      isSelected && { backgroundColor: theme.colors.primary },
+                    ]}
+                    onPress={() => handleThemeChange(mode)}
+                    accessibilityRole='radio'
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={t(labelKey)}
+                    accessibilityHint={t('settings.a11ySwitchThemeHint')}
                   >
-                    {t(labelKey)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </Card>
+                    <Text
+                      variant='body.medium'
+                      weight={isSelected ? 'semibold' : 'medium'}
+                      style={selectedLanguageLabelStyle(isSelected, theme)}
+                    >
+                      {t(labelKey)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Card>
+        )}
 
         {/* Attributions Section */}
         <Card style={[styles.card, styles.attributionCard]}>

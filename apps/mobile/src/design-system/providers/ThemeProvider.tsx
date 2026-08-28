@@ -24,6 +24,20 @@ interface ThemeProviderProps {
   children: ReactNode;
   defaultTheme?: ThemeMode;
   storageKey?: string;
+  /**
+   * Rollout lock. When true the provider reports light no matter what the user
+   * saved or what the system reports.
+   *
+   * This is a prop rather than something the provider reads from a module
+   * because the visual matrix mounts this provider directly to capture dark
+   * baselines. A global consulted here would collapse every one of those to
+   * light and still report green - the exact failure the matrix exists to
+   * catch.
+   *
+   * The saved preference is deliberately left in storage and `setTheme` keeps
+   * writing to it, so clearing the lock restores whatever the user had chosen.
+   */
+  lockToLight?: boolean;
 }
 
 // Custom hook to get theme colors based on mode
@@ -46,13 +60,23 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
   defaultTheme = 'light',
   storageKey = THEME_STORAGE_KEY,
+  lockToLight = false,
 }) => {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeMode] = useState<ThemeMode>(defaultTheme);
 
-  // Determine the active color scheme
-  const colorScheme: ColorScheme =
+  // What the user's preference resolves to, before the rollout lock.
+  const preferredScheme: ColorScheme =
     themeMode === 'auto' ? (systemColorScheme ?? 'light') : (themeMode as ColorScheme);
+
+  // The active scheme, and the mode reported alongside it.
+  //
+  // `mode` is clamped together with `colorScheme` on purpose: the context has
+  // to describe what is actually on screen. Reporting mode 'dark' while
+  // rendering light would make every consumer that branches on `mode` wrong,
+  // and would put a selected "Dark" pill above a light screen.
+  const colorScheme: ColorScheme = lockToLight ? 'light' : preferredScheme;
+  const effectiveMode: ThemeMode = lockToLight ? 'light' : themeMode;
 
   // Get theme-specific tokens
   const themeColors = useThemeColors(colorScheme);
@@ -106,14 +130,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Toggle theme function
   const toggleTheme = useCallback(() => {
-    const newMode = colorScheme === 'light' ? 'dark' : 'light';
+    // Keyed off the preference rather than the clamped scheme: while locked the
+    // clamped value is always 'light', so toggling would otherwise be a no-op
+    // that silently rewrote the user's saved choice to 'dark' on every call.
+    const newMode = preferredScheme === 'light' ? 'dark' : 'light';
     setTheme(newMode);
-  }, [colorScheme, setTheme]);
+  }, [preferredScheme, setTheme]);
 
   // Theme context value
   // Enterprise-grade spacing structure: preserve full nested structure for type safety
   const contextValue: ThemeContextValue = {
-    mode: themeMode,
+    mode: effectiveMode,
     colorScheme,
     colors: { ...colors, base: designTokens.colors.base } as typeof designTokens.colors.light & {
       base: typeof designTokens.colors.base;

@@ -418,3 +418,39 @@ modals) are **still uncovered** and are listed as remaining work.
 - **Non-blocking:** `OrderHistoryScreen` is dead code (audit M15). It appears in
   the Phase 1 diff only because it contained migrated literals. Decide whether
   to delete rather than maintain it through Phases 4-6.
+
+### Decision 2026-08-28 - dark mode ships gated, not removed
+
+The product owner asked for the app to be light-only "for now", on the grounds
+of not being ready to own a dark theme across every screen. That is accepted.
+
+**What was rejected: deleting the dark theme.** It would discard a verified
+token ramp, two contrast ratchets, the light/dark difference gate and 390
+baselines - all of which would then have to be re-derived, slightly differently,
+when the screens are ready. The re-derivation is the expensive part, and the
+difference between the two derivations is where the defects live.
+
+**What was done instead**: a single `DARK_MODE_ENABLED` constant. Settings hides
+the appearance control when it is false, and `App.tsx` passes `lockToLight` to
+`ThemeProvider`.
+
+**Why both, and not just hiding the control.** The control is the only _writer_
+of the theme preference, but the provider still _reads_ AsyncStorage on mount.
+Hiding the control alone would leave anyone who had already selected dark -
+including every device this migration was verified on - rendering dark with no
+remaining way out. Hiding the exit is worse than never offering the door.
+
+**Why the lock is a prop and not a module the provider reads.** The visual
+matrix mounts `ThemeProvider` directly to capture dark baselines. A global
+consulted inside the provider would have collapsed all 390 of those to light
+while still reporting green - precisely the vacuous-coverage failure the matrix
+was rebuilt in Phase 3 to catch. Confirmed by mutation: defaulting `lockToLight`
+to true fails `themeRollout.test.tsx`, and the snapshot count stayed at 390
+after the change.
+
+**Verified on device**: emulator in system dark (`mCurUiMode=0x21`), app renders
+light, status-bar content dark to match the light ground.
+
+**Consequence for Phase 6.6**: the question is no longer "flip the default to
+auto" but "open the gate". The preconditions are unchanged and none of them has
+been met.

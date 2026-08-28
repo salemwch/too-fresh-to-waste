@@ -14,7 +14,7 @@ import { ForceUpdateModal } from '@/components/ForceUpdateModal';
 import { SoftUpdateBanner } from '@/components/SoftUpdateBanner';
 import { environment, validateEnvironmentConfig } from '@/config/environment';
 import { ThemedStatusBar } from '@/design-system/components/atoms/ThemedStatusBar';
-import { ThemeProvider } from '@/design-system/providers';
+import { DARK_MODE_ENABLED, ThemeProvider } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { AuthFlowState } from '@/features/auth/types';
 import { authKeys } from '@/features/auth/queryKeys';
@@ -449,7 +449,11 @@ function App(): React.JSX.Element {
             <PersistGate loading={null} persistor={persistor}>
               <RehydrationGate>
                 <QueryProvider>
-                  <ThemeProvider defaultTheme='light'>
+                  {/* Light-only while the dark rollout gate is closed. The lock
+                      is what makes that true for users who already saved a dark
+                      preference - hiding the Settings control alone would strand
+                      them with no way back. See providers/themeRollout.ts. */}
+                  <ThemeProvider defaultTheme='light' lockToLight={!DARK_MODE_ENABLED}>
                     <AppContent />
                   </ThemeProvider>
                 </QueryProvider>

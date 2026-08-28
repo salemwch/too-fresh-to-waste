@@ -1898,6 +1898,32 @@ other baseline changes between themes.
 > renumbered, because §19 is append-only and renumbering would break every
 > existing reference.
 
+**E27. Mobile ships light-only; dark mode is built but gated.** `OPEN`
+`apps/mobile/src/design-system/providers/themeRollout.ts` exports
+`DARK_MODE_ENABLED = false`. While it is false the Settings appearance control
+is not rendered and `App.tsx` passes `lockToLight` to `ThemeProvider`, so the
+app resolves light regardless of the system setting or any preference already
+saved to AsyncStorage.
+
+This is a **rollout gate, not a retreat**. Every part of dark mode stays in the
+codebase and in CI: the dark token ramp, the themed styles across every screen,
+the WCAG contrast ratchets, the light/dark difference gate, and 390 snapshot
+baselines - of which the dark cells still run and still assert they differ from
+their light counterparts. Turning it on is one boolean.
+
+The reason it is closed is coverage, not a known defect. Device verification
+only ever reached the four screens available without a login; Home, Search,
+Favorites, Orders, Order Details, Checkout, Profile, Settings, Loyalty,
+Leaderboard and the driver flow have never been rendered in dark on hardware
+(§5.1 of `MOBILE_DEVICE_VERIFICATION_REPORT.md`). Both prior rounds of device
+verification found a P0 or P1 on the first screen examined, so the expected
+defect count on the unexamined screens is not zero.
+
+**Closes when** the authenticated surfaces have been rendered and audited in
+dark on a device, French and Arabic/RTL have been covered there, and the D5
+cold-start fix (a DayNight AppCompat parent plus `values-night`, §4b of
+`MOBILE_DEVICE_VERIFICATION_REPORT.md`) ships in the same change.
+
 **E17. Visual coverage has not been performed.** `OPEN` No route has been opened
 in a browser as part of authoring this document. All values are static analysis
 plus computed contrast plus compiled-CSS measurement. **No claim in this
