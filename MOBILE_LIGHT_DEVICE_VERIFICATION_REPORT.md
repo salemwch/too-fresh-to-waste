@@ -369,3 +369,287 @@ What it does not establish: anything about the authenticated half of the app,
 which is where `OrderCard`, Checkout and the driver flow live; anything about
 real hardware; anything about the release bundle; and anything about the M13
 touch-target fixes, which were never rendered.
+
+---
+
+---
+
+# Part 2 - Authenticated Device Verification
+
+**Date:** 2026-08-29 **Status:** partial - not certified
+
+Dark mode was not enabled at any point in this pass. `DARK_MODE_ENABLED` is
+still `false`, `defaultTheme` is still `light`, and the device stayed in light
+(`mCurUiMode=0x11`) for every capture.
+
+---
+
+## 16. How authentication was reached
+
+The blocker recorded in Part 1 §12 was that every authenticated screen sat
+behind a login that could not be performed: `.env.development` pointed at the
+**production** API, Google Sign-In fails on this rig, and entering a password is
+not something I will do.
+
+Two pieces now solve it, and **neither touches authentication**:
+
+| Piece                           | What it does                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `tools/dev-mock-api/server.mjs` | Serves the real backend's response envelope from `localhost:8787` with fixture data                    |
+| `src/dev/devSession.ts`         | Writes the same three `SecureStorage` entries a real login writes: tokens, user JSON, session metadata |
+
+The app's own `loadStoredAuthAsync` then finds them on boot and authenticates
+exactly as it always does. There is no bypass, no new Redux action, no relaxed
+guard, and no branch inside any auth code path.
+
+**Confirmed on device**, from logcat:
+
+```
+auth/loadStoredAuth/fulfilled   flowState: "authenticated"
+auth/syncCurrentUser/fulfilled  flowState: "authenticated"
+```
+
+That is the app's normal stored-auth boot path, unmodified.
+
+### The fixture had to satisfy the app's own token validation
+
+The first attempt authenticated and then dropped the session 64 seconds later:
+
+```
+[TOKEN-VALIDATOR] Refresh token has invalid format | parts: 2
+[AUTH-MIDDLEWARE] Refresh token missing or malformed, clearing session
+```
+
+`utils/tokenValidator.ts` requires a three-part JWT shape. **The fixture was
+changed to conform; the validator was not relaxed to accept the fixture.** That
+distinction is the whole point of the exercise.
+
+### Three gates, unchanged from the previous pass
+
+`__DEV__`, `ENABLE_DEV_AUTH === 'true'`, and an API base URL on
+localhost/127.0.0.1/10.0.2.2. 26 tests, mutation-checked. Pre-flight for this
+run confirmed `.env.production` and `.env.staging` still point at their real
+APIs and carry no `ENABLE_DEV_AUTH`.
+
+---
+
+## 17. A pre-existing bug this uncovered - dev and staging never read their .env
+
+**Severity: P1. Fixed, because it blocked everything else.**
+
+The dev build ignored the changed `API_BASE_URL` entirely. `BuildConfig.java`
+held the right value and the app still read `http://localhost:3000` - the
+hardcoded fallback in `src/config/environment.ts`.
+
+Cause: `applicationId` is `com.toofreshtowaste.app` with
+`applicationIdSuffix ".dev"`, so the runtime package is
+`com.toofreshtowaste.app.dev` while `BuildConfig` is generated into
+`com.toofreshtowaste.app`. `react-native-config` resolves `BuildConfig` by the
+runtime package name, missed, and returned an **empty config** - so every
+`Config[...]` read in JS fell through to its fallback.
+
+**Consequence:** dev and staging builds have never read their `.env` files. They
+ran with fallback API URLs and placeholder Firebase, Maps and storage-encryption
+values.
+
+**Production was never affected** - it sets no `applicationIdSuffix`, so its
+package already matched.
+
+Fixed by adding
+`resValue "string", "build_config_package", "com.toofreshtowaste.app"` to the
+`dev` and `staging` flavors, which is the documented remedy.
+
+---
+
+## 18. Screens: reached, and not reached
+
+| Screen                                         | Status                     | Evidence                                                   |
+| ---------------------------------------------- | -------------------------- | ---------------------------------------------------------- |
+| **Home**                                       | **VERIFIED**               | Rendered with live content; five colour measurements below |
+| Location modal (`LocationSelectionModal`)      | **VERIFIED**               | Rendered; a P1 contrast defect found in it                 |
+| Manual location search (`ManualLocationModal`) | **VERIFIED** (empty state) | Rendered; borders measured                                 |
+| Global error boundary                          | **VERIFIED**               | Rendered; off-palette CTA found                            |
+| Search                                         | **NOT REACHED**            | Blocked - see §20                                          |
+| Favorites                                      | **NOT REACHED**            | Blocked                                                    |
+| Orders                                         | **NOT REACHED**            | Blocked                                                    |
+| Order Details                                  | **NOT REACHED**            | Blocked                                                    |
+| Checkout                                       | **NOT REACHED**            | Blocked                                                    |
+| Profile                                        | **NOT REACHED**            | Blocked                                                    |
+| Settings                                       | **NOT REACHED**            | Blocked                                                    |
+| Loyalty                                        | **NOT REACHED**            | Blocked                                                    |
+| Leaderboard                                    | **NOT REACHED**            | Blocked                                                    |
+| Driver screens                                 | **NOT REACHED**            | Blocked                                                    |
+
+**Home is the first authenticated screen ever rendered on a device in this
+project.** The rest remain unverified and are not claimed otherwise.
+
+---
+
+## 19. Home - measured
+
+All values sampled from the framebuffer, not judged by eye.
+
+| Element                                      | Rendered  | Role               | Ratio                 | Verdict                                                  |
+| -------------------------------------------- | --------- | ------------------ | --------------------- | -------------------------------------------------------- |
+| **Home search placeholder**                  | `#616161` | `onSurfaceVariant` | **5.93** on `#FAFAFA` | **M16-a VERIFIED** (was `#9E9E9E`, 2.57)                 |
+| **OfferCard pickup line**                    | `#616161` | `onSurfaceVariant` | **5.93**              | **M16-a VERIFIED**                                       |
+| **OfferCard struck price**                   | `#616161` | `onSurfaceVariant` | **5.93**              | **M16-a VERIFIED**                                       |
+| OfferCard title                              | `#424242` | `onSurface`        | 9.0                   | unchanged, correct                                       |
+| **OfferCard divider**                        | `#E0E0E0` | `outlineVariant`   | -                     | **M17 VERIFIED** - card dividers did **not** get heavier |
+| `ManualLocationModal` field border (focused) | `#1E4448` | `primary`          | -                     | focus state correct                                      |
+| `ManualLocationModal` Cancel border          | `#1E4448` | `primary`          | -                     | correct                                                  |
+
+Home rendered its donation card, the community-goal banner ("Autumn Challenge
+1,240 / 2,000 bags"), the "Urgent Deals" carousel with `OfferCard`s showing "3
+left", the SOS badge and "TND24.00 -> TND8.00", and the bottom tab bar. Loading
+skeletons and the location empty state were also observed.
+
+**One of the two items the brief named specifically - the Home search
+placeholder - is now verified.** The other, `OrderCard`'s establishment line, is
+still **NOT REACHED** (Orders tab, §20). Note that `OfferCard` (Home) and
+`OrderCard` (Orders) are different components; only the former was reached.
+
+---
+
+## 20. Why the remaining screens were not reached
+
+A location gate, not a design problem.
+
+`LocationSelectionModal` is presented modally over the tab navigator whenever
+`location.coordinates` is null, with a scrim that swallows taps on the tab bar.
+It offers two ways out, and on this rig neither completes:
+
+1. **"Use my current location"** - BlueStacks has no GPS fix. The app correctly
+   surfaces `GPS signal not found. Please try again or search for your city.`
+2. **City search** - issues `POST /geolocation/geocode`. The fixture was
+   corrected to the real `GeocodeResult[]` shape from
+   `packages/shared/src/types/geo.types.ts:145`
+   (`{ coordinates, displayName, address }`), and results still did not bind.
+
+This is an environment and fixture limitation. **It is not evidence of a defect
+in the app**, and it is not recorded as one.
+
+### What would unblock it next time
+
+Seed `location.coordinates` alongside the auth fixture. The location slice is
+Redux persisted to MMKV rather than Keychain, so the current seeder cannot reach
+it - that is a known extension, not a redesign.
+
+---
+
+## 21. Findings
+
+### DL-7 - `LocationSelectionModal` GPS error fails AA - **P1** - NOT FIXED
+
+Measured on device: **`#D32F2F` text on `#FFEBEE`** = **4.36**, under the 4.5 AA
+floor. The paired token `onErrorContainer` `#C62828` is **4.92**.
+
+This is the same defect class as DL-1, at a site DL-1's fix did not reach - and
+**`containerPairing.test.ts` does not catch it**. The gate scans 14 lines past a
+container background; here the container style is defined at
+`LocationSelectionModal.tsx:91` and applied at line 167, so the foreground sits
+outside the window. The gate was described as necessary-not-sufficient when it
+was written; this is the concrete proof.
+
+Recorded, not fixed, per the instruction to record first.
+
+### DL-8 - global error boundary is off-palette - **P2** - NOT FIXED
+
+The `Something went wrong` fallback renders its "Try Again" CTA in **`#1976D2`**
+
+- Material Blue, the `info` ramp - where the brand primary is `#1E4448` teal.
+  White on it is 4.6, so it is legible; it is simply not this product's colour.
+  The heading at `#D32F2F` on the cream ground is 4.53 and passes.
+
+### DL-9 - Home search field has no perceivable boundary - **P2** - NOT FIXED
+
+The field fill is `#FAFAFA` on a `#F9F3F0` page: **1.05**. Its edge is
+`#EEEEEE`: **1.06**. WCAG 1.4.11 asks 3.0 of a boundary that identifies a
+control. Only the placeholder text makes the field findable.
+
+`HomeSearchBar` uses its own local colour constants and never reads
+`colors.outline`, so M17 did not touch it.
+
+### DL-10 - components crash on unexpected API shapes - **P2** - NOT FIXED
+
+Three separate red-screens during this pass, each from a field being absent
+rather than wrong:
+
+| Component                      | Read                            | Result                                      |
+| ------------------------------ | ------------------------------- | ------------------------------------------- |
+| `useAppVersionCheck.ts:26`     | `minVersion.split('.')`         | `Cannot read property 'split' of undefined` |
+| `MonthlyBagGoalBanner.tsx:117` | `stats....toLocaleString()`     | `...of undefined`                           |
+| `OfferCard.tsx:345`            | `offer.pricing.discountedPrice` | `...of undefined`                           |
+
+`useAppVersionCheck` wraps its _fetch_ in try/catch but not its _parse_, so a
+malformed response white-screens rather than skipping the check. `OfferCard`
+reads `offer.pricing.*` with no optional chaining in three places.
+
+These were provoked by fixture shapes, so they are **not** proof of a production
+defect. They are recorded because the same class of failure would follow any
+backend field rename, and the blast radius is the whole tree via the error
+boundary.
+
+### DL-11 - stale persisted query cache survives fixture changes - observation
+
+Corrected fixtures appeared to have no effect across several relaunches. The
+cause was the React Query cache persisted to MMKV still holding offers from the
+first broken fixture: `force-stop` does not clear it, only `pm clear` does.
+Worth knowing for anyone debugging against this mock, and worth knowing
+generally - a bad payload can outlive the deploy that caused it.
+
+### DL-12 - one native crash, not reproduced - observation
+
+A single `Fatal signal 11 (SIGSEGV)` on the `mqt_v_js` thread during a cold
+start, before any network request. It did not recur across roughly a dozen
+subsequent launches. Recorded for completeness; on the evidence available this
+is rig flakiness rather than an app defect.
+
+---
+
+## 22. Not covered in this pass
+
+Stated plainly rather than implied:
+
+- **Localization** - English only. No French or Arabic/RTL pass was run on the
+  authenticated side.
+- **Font scaling** - 1.0x only. No 1.3/1.5/2.0 pass on the authenticated side.
+- **Interaction** - no modal/bottom-sheet/dropdown/keyboard/scroll matrix beyond
+  what Home and the location modal exercised.
+- **Accessibility** - no touch-target, label or state-announcement audit on the
+  authenticated screens.
+- **The states the brief listed** - disabled controls, switches, skeletons,
+  error, loading, empty, success: only **skeletons**, **empty** (manual
+  location) and **error** (GPS, error boundary) were observed. Disabled controls
+  and switches were not reached.
+- **M13 touch targets** - still NOT REACHED. Both live behind Leaderboard and
+  the Search filter sheet.
+
+---
+
+## 23. Verification gate
+
+| Check                         | Result                                   |
+| ----------------------------- | ---------------------------------------- |
+| `tsc --noEmit`                | clean                                    |
+| `eslint src index.js --quiet` | clean                                    |
+| Unit tests                    | **112 suites, 1771 tests** passed        |
+| Snapshots                     | 422 passed                               |
+| Dev-session isolation tests   | 26 passed, mutation-checked              |
+| Android dev debug build       | BUILD SUCCESSFUL, installed and launched |
+
+---
+
+## 24. Still open for a product or design decision
+
+- **DL-7** - one line, but it is the third instance of the container-pairing
+  class; the question is whether to widen `containerPairing.test.ts` beyond line
+  proximity or accept that it is a partial net.
+- **DL-8** - what the error boundary's CTA should look like in brand terms.
+- **DL-9** - whether the Home search field should carry a perceivable boundary,
+  which is a visible change to the most-seen screen.
+- **DL-10** - whether to harden the three call sites, or accept that a backend
+  contract change red-screens the app.
+- Everything still open from `MOBILE_LIGHT_MODE_REMEDIATION_REPORT.md` §6.
+
+**The design system is not certified, and this pass does not certify it.**

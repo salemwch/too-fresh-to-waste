@@ -9,6 +9,13 @@ node_modules
 **/.env.development
 **/.env.staging
 **/.env.production
+# Suffixed copies - .env.development.bak and friends carry exactly the same
+# secrets as the file they were copied from, and the patterns above do not
+# match them. Added 2026-08-29 after a `cp .env.development .env.development.bak`
+# left a committable file holding the Firebase, Maps and storage-encryption keys.
+**/.env.development.*
+**/.env.staging.*
+**/.env.production.*
 !**/.env.example
 
 # Build outputs

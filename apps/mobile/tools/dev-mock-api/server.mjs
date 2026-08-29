@@ -101,22 +101,49 @@ const ESTABLISHMENT = {
   category: 'bakery',
 };
 
+/**
+ * Shaped from `packages/shared/src/types/offer.types.ts`, not improvised.
+ *
+ * Two things there are easy to get wrong and both red-screen the app:
+ * prices live in a nested `pricing: PriceInfo`, not flat on the offer
+ * (`OfferCard` reads `offer.pricing.discountedPrice` while building its
+ * accessibility label, with no optional chaining), and the id field is `id`,
+ * not `_id` - the comment in the type says the backend DTO uses `id` and only
+ * some aggregation paths still return Mongo-style ids. Both are supplied.
+ */
 const offer = (i, over = {}) => ({
+  id: `dev-offer-${String(i).padStart(4, '0')}`,
   _id: `dev-offer-${String(i).padStart(4, '0')}`,
   title: ['Surprise Bag', 'Pastry Box', 'Sandwich Deal', 'Veggie Basket'][i % 4],
   description: 'A mixed selection of what is left at the end of the day.',
-  originalPrice: 24,
-  discountedPrice: 8,
-  discountPercentage: 67,
-  quantity: 5,
-  quantityAvailable: 3,
-  images: [],
-  category: 'bakery',
   establishmentId: ESTABLISHMENT,
+  merchantId: 'dev-merchant-0001',
+  type: 'surprise_bag',
+  status: 'active',
+  pricing: {
+    originalPrice: 24,
+    discountedPrice: 8,
+    discountPercentage: 67,
+    currency: 'TND',
+  },
+  totalQuantity: 5,
+  reservedQuantity: 2,
+  soldQuantity: 0,
+  availableQuantity: 3,
+  images: [],
+  categories: ['bakery'],
+  tags: ['vegetarian'],
   availableFrom: iso(-3600e3),
   availableUntil: iso(6 * 3600e3),
   pickupTimeSlots: [{ startTime: '18:00', endTime: '20:00' }],
-  status: 'active',
+  viewCount: 42,
+  favoriteCount: 7,
+  isActive: true,
+  isFeatured: i === 0,
+  isRecurring: false,
+  isExpired: false,
+  isSoldOut: false,
+  isDeleted: false,
   isFavorite: i % 3 === 0,
   distance: 1.2 + i * 0.4,
   createdAt: iso(-864e5),
@@ -126,25 +153,68 @@ const offer = (i, over = {}) => ({
 
 const OFFERS = Array.from({ length: 6 }, (_, i) => offer(i));
 
-const order = (i, status, deliveryMode = 'pickup') => ({
-  _id: `dev-order-${String(i).padStart(4, '0')}`,
-  orderNumber: `TFW-${1000 + i}`,
-  userId: USER.userId,
-  establishmentId: ESTABLISHMENT,
-  offerId: OFFERS[i % OFFERS.length],
-  items: [{ offerId: OFFERS[i % OFFERS.length]._id, title: 'Surprise Bag', quantity: 1, price: 8 }],
-  quantity: 1,
-  status,
-  deliveryMode,
-  pricing: { subtotal: 8, deliveryFee: deliveryMode === 'delivery' ? 4 : 0, total: deliveryMode === 'delivery' ? 12 : 8 },
-  totalAmount: deliveryMode === 'delivery' ? 12 : 8,
-  paymentMethod: 'cash',
-  paymentStatus: 'pending',
-  pickupCode: '4821',
-  expiresAt: iso(6 * 3600e3),
-  createdAt: iso(-2 * 3600e3),
-  updatedAt: iso(),
-});
+/**
+ * Shaped from `packages/shared/src/types/order.types.ts`.
+ *
+ * The parts that are easy to get wrong: the customer field is `customerId`,
+ * not `userId`; `items[]` entries carry their own `offerTitle`/`unitPrice`
+ * rather than a bare price; and `pickupDetails` / `paymentDetails` / `pricing`
+ * are required nested objects. A flat first draft red-screened the Orders tab
+ * into the global error boundary.
+ *
+ * `items[].offerId` is given as a populated offer, which the type allows
+ * (`string | PopulatedOffer`) and which is the shape the list actually renders.
+ */
+const order = (i, status, deliveryMode = 'pickup') => {
+  const deliveryFee = deliveryMode === 'delivery' ? 4 : 0;
+  const subtotal = 8;
+  return {
+    _id: `dev-order-${String(i).padStart(4, '0')}`,
+    orderNumber: `TFW-${1000 + i}`,
+    customerId: USER.userId,
+    establishmentId: ESTABLISHMENT,
+    merchantId: 'dev-merchant-0001',
+    items: [
+      {
+        offerId: OFFERS[i % OFFERS.length],
+        offerTitle: OFFERS[i % OFFERS.length].title,
+        quantity: 1,
+        unitPrice: subtotal,
+        totalPrice: subtotal,
+        originalPrice: 24,
+        discountAmount: 16,
+      },
+    ],
+    status,
+    paymentStatus: 'pending',
+    pickupDetails: {
+      timeSlot: { startTime: '18:00', endTime: '20:00' },
+      scheduledDate: iso(3 * 3600e3),
+      qrCode: 'dev-qr-code',
+      pickupCode: '4821',
+    },
+    paymentDetails: {
+      method: 'cash',
+      amount: subtotal + deliveryFee,
+      currency: 'TND',
+    },
+    pricing: {
+      subtotal,
+      discountAmount: 16,
+      taxAmount: 0,
+      deliveryFee,
+      total: subtotal + deliveryFee,
+      currency: 'TND',
+    },
+    paymentProvider: 'cash',
+    deliveryMode,
+    donationAmount: Number((subtotal * 0.19 * 0.05).toFixed(3)),
+    expiresAt: iso(6 * 3600e3),
+    isRated: false,
+    createdAt: iso(-2 * 3600e3),
+    updatedAt: iso(),
+  };
+};
 
 const ORDERS = [
   order(0, 'confirmed'),
@@ -162,13 +232,28 @@ const routes = [
   ['POST', /^\/auth\/refresh$/, () =>
     ok({ accessToken: 'dev-access-token', refreshToken: 'dev-refresh-token' })],
   ['GET', /^\/config\/features$/, () => ok({ onlinePayment: true })],
+  // Discovered from the UNMATCHED log on the first authenticated boot.
+  /* Field names matter here. `useAppVersionCheck` wraps the *fetch* in
+   * try/catch but not the parse, so a response missing `minVersion` throws
+   * `Cannot read property 'split' of undefined` during render and red-screens
+   * the app. A first draft of this fixture used `minimumVersion` and did
+   * exactly that. */
+  ['GET', /^\/config\/app-version$/, () =>
+    ok({ minVersion: '1.0.0', latestVersion: '1.0.0', updateUrl: 'https://example.invalid' })],
+  ['POST', /^\/notifications\/device-token$/, () => ok({ registered: true })],
 
   ['GET', /^\/offers\/?$/, () => page(OFFERS)],
   ['GET', /^\/offers\/search/, () => page(OFFERS)],
   ['GET', /^\/offers\/nearby/, () => page(OFFERS)],
+  /* The Home feed's named collections. These must precede the `/offers/:id`
+   * rule below or they match it and return a single object where the screen
+   * expects a list - which is silent, not a crash, and shows as an empty
+   * carousel. Found by reading the mock's own request log. */
+  ['GET', /^\/offers\/(urgent|featured|recommended|pickup-today|pickup-tomorrow)$/, () =>
+    page(OFFERS)],
   ['GET', /^\/offers\/[^/]+$/, (m, url) => {
     const id = url.pathname.split('/').pop();
-    return ok(OFFERS.find(o => o._id === id) ?? OFFERS[0]);
+    return ok(OFFERS.find(o => o.id === id) ?? OFFERS[0]);
   }],
 
   ['GET', /^\/establishments\/?$/, () => page([ESTABLISHMENT])],
@@ -182,7 +267,20 @@ const routes = [
 
   ['GET', /^\/favorites\/ids$/, () => ok([OFFERS[0]._id, OFFERS[3]._id])],
   ['GET', /^\/favorites\/stats$/, () => ok({ offers: 2, establishments: 1, total: 3 })],
-  ['GET', /^\/favorites/, () => page([{ _id: 'fav-1', type: 'offer', item: OFFERS[0] }])],
+  /* An empty favourites list, deliberately.
+   *
+   * `FavoritesResponse` is an object with its own envelope, not the bare array
+   * `page()` produces, and `favoritesService` unwraps it by shape-sniffing. A
+   * wrapped-offer first draft fed `undefined` into `OfferCard`, which reads
+   * `offer.pricing.discountedPrice` with no optional chaining and took the
+   * whole tree into the QueryErrorBoundary.
+   *
+   * Empty is honest rather than lazy: it exercises the Favorites empty state,
+   * which is a state this verification pass has to check anyway. The populated
+   * list is recorded as NOT exercised in the report rather than faked into a
+   * shape that might not match the backend's. */
+  ['GET', /^\/favorites/, () =>
+    ok({ favorites: [], total: 0, page: 1, limit: 20, totalPages: 0, hasNext: false, hasPrev: false })],
 
   ['GET', /^\/loyalty\/(me|summary|points)/, () =>
     ok({
@@ -218,6 +316,47 @@ const routes = [
       })),
     )],
 
+  /* Shapes below are taken from packages/shared/src/types, not invented. The
+   * catch-all's empty array crashed both of these components on first contact
+   * (`Cannot read property 'toLocaleString' of undefined`), which is the cost
+   * of the empty-collection default and the reason these are explicit. */
+  ['GET', /^\/community-goal\/stats$/, () =>
+    ok({
+      currentCount: 1240,
+      targetCount: 2000,
+      progressPercentage: 62,
+      remaining: 760,
+      cycleNumber: 3,
+      status: 'ACTIVE',
+      lastUpdatedAt: iso(),
+      seasonName: 'Autumn Challenge',
+      participantCount: 318,
+      causeType: 'TSHIRTS',
+      causeTitle: 'School t-shirts',
+      causeDescription: 'Every 2000 bags funds a set of school t-shirts.',
+    })],
+
+  ['GET', /^\/donations\/stats$/, () =>
+    ok({
+      totalDonations: 213.5,
+      targetAmount: 500,
+      mealCount: 427,
+      contributorCount: 96,
+      progressPercentage: 43,
+      status: 'ACTIVE',
+      cause: 'School t-shirts',
+      activeGoalCategory: 'TSHIRTS',
+      currency: 'TND',
+      categoryProgress: [],
+      season: 1,
+      goalIndex: 0,
+      completedGoals: [],
+    })],
+
+  /* No active cycle. VotingCard renders its "coming soon" branch for this,
+   * which is a state worth seeing, and it avoids inventing a cycle shape. */
+  ['GET', /^\/voting\/active$/, () => ok(null)],
+
   ['GET', /^\/donations\/(pool|impact|current)/, () =>
     ok({ goal: 'TSHIRTS', target: 500, raised: 213, status: 'ACTIVE', season: 1 })],
 
@@ -229,6 +368,28 @@ const routes = [
 
   ['GET', /^\/notifications/, () => page([])],
   ['GET', /^\/reviews/, () => page([])],
+  /* The manual city search geocodes rather than listing cities. Without this
+   * the location modal can never be satisfied on an emulator with no GPS fix,
+   * which blocks every authenticated tab behind it. */
+  /* `GeocodeResult[]` from packages/shared/src/types/geo.types.ts:145 -
+   * `{ coordinates, displayName, address }`. An invented flat shape returned
+   * 200 and rendered nothing, which is the quiet failure mode of this whole
+   * file: a wrong shape looks like an empty result, not an error. */
+  ['POST', /^\/geolocation\/geocode$/, () =>
+    ok([
+      {
+        coordinates: { latitude: 36.8065, longitude: 10.1815 },
+        displayName: 'Tunis, Tunisia',
+        address: {
+          street: '',
+          city: 'Tunis',
+          state: 'Tunis',
+          postalCode: '1000',
+          country: 'Tunisia',
+          formattedAddress: 'Tunis, Tunisia',
+        },
+      },
+    ])],
   ['GET', /^\/geolocation\/(geozones|cities)/, () =>
     page([{ _id: 'gz-1', name: 'Tunis', deliveryFee: 4, minimumOrder: 5, defaultSearchRadius: 5 }])],
 ];

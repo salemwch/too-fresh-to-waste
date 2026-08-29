@@ -154,15 +154,38 @@ android {
     flavorDimensions "environment"
 
     productFlavors {
+        /*
+         * `build_config_package` is required on any flavor that sets an
+         * applicationIdSuffix.
+         *
+         * react-native-config locates BuildConfig by the *runtime* package
+         * name. The suffix makes that `com.toofreshtowaste.app.dev`, while
+         * BuildConfig is generated into `com.toofreshtowaste.app` (the
+         * applicationId, unsuffixed). The reflective lookup missed, the native
+         * module returned an empty config, and every `Config[...]` read in JS
+         * fell through to the hardcoded fallback in `src/config/environment.ts`
+         * - so dev and staging builds silently ignored their .env files and ran
+         * against `http://localhost:3000` with placeholder Firebase, Maps and
+         * storage-encryption values.
+         *
+         * Found 2026-08-29 while pointing the dev build at a local mock API:
+         * BuildConfig.java held the right API_BASE_URL and the app still read
+         * the default. Production was never affected - it sets no suffix, so
+         * its package already matched.
+         *
+         * Source: https://github.com/lugg/react-native-config#problems-with-devrelease-builds
+         */
         dev {
             dimension "environment"
             applicationIdSuffix ".dev"
             resValue "string", "app_name", "TFTW Dev"
+            resValue "string", "build_config_package", "com.toofreshtowaste.app"
         }
         staging {
             dimension "environment"
             applicationIdSuffix ".staging"
             resValue "string", "app_name", "TFTW Staging"
+            resValue "string", "build_config_package", "com.toofreshtowaste.app"
         }
         production {
             dimension "environment"

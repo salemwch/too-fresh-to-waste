@@ -81,10 +81,24 @@ const DEV_USER = {
   authProvider: 'local',
 } as const;
 
-/* Obviously-fake, and obviously not a secret. The app never decodes tokens -
- * they are opaque Bearer strings - so these need no JWT structure. */
-const DEV_ACCESS_TOKEN = 'dev-mock-access-token.not-a-real-credential';
-const DEV_REFRESH_TOKEN = 'dev-mock-refresh-token.not-a-real-credential';
+/*
+ * Obviously-fake, and obviously not secrets - but they must still be shaped
+ * like a JWT.
+ *
+ * `utils/tokenValidator.ts` rejects any refresh token that does not split into
+ * three dot-separated parts, and the middleware treats that as a dead session
+ * and logs out. A first attempt used a two-part string; the app authenticated,
+ * then dropped the session on its first periodic check with
+ * `[TOKEN-VALIDATOR] Refresh token has invalid format | parts: 2`.
+ *
+ * That check is a real security property, so the fixture conforms to it rather
+ * than the validator being relaxed to accept the fixture. The payload is inert:
+ * the validator reads expiry from the stored session metadata, never from the
+ * token body, so nothing here needs to decode.
+ */
+const DEV_ACCESS_TOKEN = 'eyJhbGciOiJub25lIn0.eyJzdWIiOiJkZXYtZml4dHVyZSJ9.not-a-real-signature';
+const DEV_REFRESH_TOKEN =
+  'eyJhbGciOiJub25lIn0.eyJzdWIiOiJkZXYtZml4dHVyZS1yZWZyZXNoIn0.not-a-real-signature';
 
 export interface DevSessionResult {
   seeded: boolean;
@@ -120,6 +134,13 @@ export async function seedDevSessionIfEnabled(): Promise<DevSessionResult> {
   );
 
   if (blocked !== null) {
+    // Logged, not silent. A seeder that refuses without saying why is
+    // indistinguishable from one that never ran, and that cost a build cycle.
+    Logger.info('[DEV-SESSION] Not seeding', {
+      reason: blocked,
+      flagSeen: String(Config['ENABLE_DEV_AUTH']),
+      api: environment.api.baseUrl,
+    });
     return { seeded: false, reason: blocked };
   }
 
