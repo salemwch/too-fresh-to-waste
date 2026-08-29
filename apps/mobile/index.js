@@ -32,6 +32,37 @@ enableScreens(true);
 enableFreeze(true);
 
 // ============================================================================
+// Development-only session seeding
+// ============================================================================
+// Reaches the authenticated screens on an emulator without touching auth. See
+// src/dev/devSession.ts for the three gates - this cannot run in a release
+// build, and it refuses to write anything unless the app is pointed at a mock
+// on localhost.
+//
+// `__DEV__` is a compile-time constant, so the whole block is dead code in a
+// release bundle and the module is never evaluated.
+//
+// The reload is not decoration. Seeding writes to the Keychain asynchronously
+// while RootNavigator is already dispatching loadStoredAuthAsync, so the first
+// launch would otherwise race and lose. Seeding returns true only on the launch
+// that actually wrote something; reloading then lets the app's own restore path
+// find the session on a clean pass.
+if (__DEV__) {
+  // `require`, not `import`, on purpose: a static import would put this module
+  // in the top-level graph of every build including release. Keeping it behind
+  // the guard is the isolation, so the rule is disabled here rather than the
+  // code changed to satisfy it.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { seedDevSessionIfEnabled } = require('./src/dev/devSession');
+  void seedDevSessionIfEnabled().then(({ seeded }) => {
+    if (seeded) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('react-native').DevSettings.reload();
+    }
+  });
+}
+
+// ============================================================================
 // App Registration
 // ============================================================================
 // IMPORTANT: This name must match MainActivity.kt getMainComponentName()
