@@ -307,12 +307,12 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 name='alert-circle-outline'
                 family='Ionicons'
                 size={16}
-                color={theme.colors.error}
+                color={theme.colors.onErrorContainer}
               />
               <Text
                 variant='body'
                 size='sm'
-                style={[styles.errorText, { color: theme.colors.error }]}
+                style={[styles.errorText, { color: theme.colors.onErrorContainer }]}
               >
                 {serverError}
               </Text>

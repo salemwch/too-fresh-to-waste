@@ -607,12 +607,12 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
               name='alert-circle-outline'
               family='Ionicons'
               size={16}
-              color={theme.colors.error}
+              color={theme.colors.onErrorContainer}
             />
             <Text
               variant='body'
               size='sm'
-              style={[styles.inlineErrorText, { color: theme.colors.error }]}
+              style={[styles.inlineErrorText, { color: theme.colors.onErrorContainer }]}
             >
               {saveError}
             </Text>

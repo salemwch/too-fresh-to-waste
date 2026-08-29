@@ -258,8 +258,15 @@ export const ReviewModal: React.FC<Props> = ({
                 { backgroundColor: theme.colors.errorContainer ?? '#FEE2E2' },
               ]}
             >
-              <IoniconsIcon name='alert-circle-outline' size={16} color={theme.colors.error} />
-              <Text size='sm' style={[styles.inlineErrorText, { color: theme.colors.error }]}>
+              <IoniconsIcon
+                name='alert-circle-outline'
+                size={16}
+                color={theme.colors.onErrorContainer}
+              />
+              <Text
+                size='sm'
+                style={[styles.inlineErrorText, { color: theme.colors.onErrorContainer }]}
+              >
                 {submitError}
               </Text>
             </View>

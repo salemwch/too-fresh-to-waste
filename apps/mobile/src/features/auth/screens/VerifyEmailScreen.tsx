@@ -185,7 +185,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                     ? theme.colors.primary
                     : verificationStatus === 'error'
                       ? theme.colors.error
-                      : theme.colors.warning
+                      : theme.colors.onWarningContainer
                 }
               />
             </View>
@@ -359,12 +359,12 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
                 name='alert-circle-outline'
                 family='Ionicons'
                 size={16}
-                color={theme.colors.error}
+                color={theme.colors.onErrorContainer}
               />
               <Text
                 variant='body'
                 size='sm'
-                style={[styles.inlineErrorText, { color: theme.colors.error }]}
+                style={[styles.inlineErrorText, { color: theme.colors.onErrorContainer }]}
               >
                 {inlineError}
               </Text>

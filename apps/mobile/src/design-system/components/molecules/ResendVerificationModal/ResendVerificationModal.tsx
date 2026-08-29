@@ -191,7 +191,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                       name='alert-circle-outline'
                       family='Ionicons'
                       size='md'
-                      color={theme.colors.error}
+                      color={theme.colors.onErrorContainer}
                     />
                     <Text
                       variant='body.small'

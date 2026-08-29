@@ -97,9 +97,13 @@ export function GoogleSignInButton({ referralCode }: GoogleSignInButtonProps) {
             name='alert-circle-outline'
             family='Ionicons'
             size={14}
-            color={theme.colors.error}
+            color={theme.colors.onErrorContainer}
           />
-          <Text variant='body' size='xs' style={[styles.inlineErrorText, { color: theme.colors.error }]}>
+          <Text
+            variant='body'
+            size='xs'
+            style={[styles.inlineErrorText, { color: theme.colors.onErrorContainer }]}
+          >
             {error}
           </Text>
         </View>
