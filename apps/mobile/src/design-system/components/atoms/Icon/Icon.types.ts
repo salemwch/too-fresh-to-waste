@@ -35,6 +35,17 @@ export interface IconProps
   name: string;
 
   /**
+   * Whether a directional icon (chevron-back, arrow-forward, ...) flips to its
+   * mirrored counterpart under RTL. Defaults to true, which is what almost
+   * every caller wants: the glyph should follow the reading direction the same
+   * way the layout already does.
+   *
+   * Pass false for an icon whose direction is not about reading order - media
+   * transport controls being the usual case.
+   */
+  mirrorInRTL?: boolean;
+
+  /**
    * Icon size - predefined or custom number
    */
   size?: IconSize;

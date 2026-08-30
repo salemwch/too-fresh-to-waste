@@ -12,12 +12,14 @@ import {
   Alert,
   Easing,
   InteractionManager,
+  I18nManager,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text, Button } from '@/design-system/components/atoms';
+import { mirrorIconName } from '@/design-system/components/atoms/Icon/rtlMirror';
 import { useTheme } from '@/design-system/providers';
 
 import { useFavoriteToggle } from '@/features/favorites/hooks';
@@ -455,7 +457,11 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               style={styles.iconButton}
               onPress={() => navigation.goBack()}
             >
-              <IoniconsIcon name='chevron-back' color={colorTokens.base.neutral[900]} size={24} />
+              <IoniconsIcon
+                name={mirrorIconName('chevron-back', I18nManager.isRTL) as 'chevron-back'}
+                color={colorTokens.base.neutral[900]}
+                size={24}
+              />
             </Pressable>
             <View style={styles.topRightActions}>
               <Pressable
@@ -595,7 +601,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                 </View>
               </View>
               <IoniconsIcon
-                name='chevron-forward'
+                name={mirrorIconName('chevron-forward', I18nManager.isRTL) as 'chevron-forward'}
                 color={colorTokens.light.onSurfaceVariant}
                 size={20}
               />

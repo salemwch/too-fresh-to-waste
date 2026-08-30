@@ -104,6 +104,25 @@ const USER = {
   authProvider: 'local',
 };
 
+/**
+ * One LeaderboardEntry (packages/shared/src/types/leaderboard.types.ts).
+ * Rank 4 is the signed-in dev user, so the current-user row highlight and the
+ * "your position" floating bar both have something real to resolve against.
+ */
+const CURRENT_USER_RANK = 4;
+const leaderboardEntry = rank => ({
+  rank,
+  userId: rank === CURRENT_USER_RANK ? USER.userId : `other-${rank}`,
+  firstName: rank === CURRENT_USER_RANK ? USER.firstName : 'Saver',
+  lastName: rank === CURRENT_USER_RANK ? USER.lastName : `No${rank}`,
+  profileImage: null,
+  currentBadge: null,
+  currentBadgeType: null,
+  currentTier: rank <= 3 ? 'gold' : rank <= 6 ? 'silver' : 'bronze',
+  totalPoints: 900 - (rank - 1) * 70,
+  isCurrentUser: rank === CURRENT_USER_RANK,
+});
+
 const ESTABLISHMENT = {
   _id: 'dev-est-0001',
   name: 'Boulangerie du Lac',
@@ -506,18 +525,43 @@ const routes = [
       { _id: 'b2', name: 'Ten Bags', unlocked: true, icon: 'medal' },
       { _id: 'b3', name: 'Fifty Bags', unlocked: false, icon: 'star' },
     ])],
-  ['GET', /^\/loyalty\/leaderboard/, () =>
-    page(
-      Array.from({ length: 8 }, (_, i) => ({
-        _id: `lb-${i}`,
-        rank: i + 1,
-        userId: i === 3 ? USER.userId : `other-${i}`,
-        displayName: i === 3 ? 'Dev Consumer' : `Saver ${i + 1}`,
-        points: 900 - i * 70,
-        bagsSaved: 90 - i * 7,
-        isCurrentUser: i === 3,
+  /*
+   * Shape is LeaderboardResponse from packages/shared/src/types, NOT a bare
+   * paginated array. The previous fixture returned page([...]), so
+   * unwrapBackendResponse handed the screen an array, and the screen's
+   * data.pages.flatMap(p => p.entries) then produced [undefined]. FlashList
+   * threw "Cannot read property 'toString' of undefined" inside
+   * ProgressiveListView, which is why Leaderboard never rendered past its
+   * skeleton. Item fields are LeaderboardEntry too - firstName/lastName/
+   * totalPoints/currentTier, not the invented displayName/points/bagsSaved.
+   *
+   * The two specific routes must stay above the catch-all: the generic pattern
+   * is a prefix match and would otherwise swallow both.
+   */
+  ['GET', /^\/loyalty\/leaderboard\/neighborhood$/, () => {
+    const anchor = CURRENT_USER_RANK;
+    return ok({
+      entries: Array.from({ length: 5 }, (_, i) => ({
+        ...leaderboardEntry(anchor - 2 + i),
+        isAnchor: anchor - 2 + i === anchor,
       })),
-    )],
+      anchorRank: anchor,
+      total: 128,
+    });
+  }],
+
+  ['GET', /^\/loyalty\/leaderboard\/champion$/, () => ok(leaderboardEntry(1))],
+
+  ['GET', /^\/loyalty\/leaderboard/, () => {
+    const entries = Array.from({ length: 8 }, (_, i) => leaderboardEntry(i + 1));
+    return ok({
+      entries,
+      currentUserEntry: entries.find(e => e.isCurrentUser) ?? null,
+      total: 128,
+      hasMore: true,
+      hasSetConsent: true,
+    });
+  }],
 
   /* Shapes below are taken from packages/shared/src/types, not invented. The
    * catch-all's empty array crashed both of these components on first contact

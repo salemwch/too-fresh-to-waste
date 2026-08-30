@@ -5,11 +5,12 @@
 
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { forwardRef } from 'react';
-import { View } from 'react-native';
+import { I18nManager, View } from 'react-native';
 
 import { useTheme } from '../../../providers';
 
 import { createIconStyles, getIconSize } from './Icon.styles';
+import { mirrorIconName } from './rtlMirror';
 
 import type { IconProps } from './Icon.types';
 
@@ -22,6 +23,7 @@ export const Icon = forwardRef<View, IconProps>(
       variant: _variant = 'default',
       family: _family = 'Ionicons',
       disabled = false,
+      mirrorInRTL = true,
       backgroundColor,
       borderRadius,
       padding,
@@ -56,6 +58,10 @@ export const Icon = forwardRef<View, IconProps>(
 
     const IconComponent = IoniconsIcon;
 
+    // RTL mirrors the layout but not the glyph, so a back chevron ends up on
+    // the correct side still pointing the wrong way. See ./rtlMirror.ts.
+    const resolvedName = mirrorInRTL ? mirrorIconName(name, I18nManager.isRTL) : name;
+
     return (
       <View
         ref={ref}
@@ -67,7 +73,7 @@ export const Icon = forwardRef<View, IconProps>(
         {...rest}
       >
         <IconComponent
-          name={name as React.ComponentProps<typeof IoniconsIcon>['name']}
+          name={resolvedName as React.ComponentProps<typeof IoniconsIcon>['name']}
           size={iconSize}
           color={iconColor}
           style={[styles.icon, style]}
