@@ -23,11 +23,20 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, type ViewStyle } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  PixelRatio,
+  type ViewStyle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
+import { shouldStackAtFontScale } from '@/design-system/utils/largeFontScale';
 
 import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 
@@ -113,6 +122,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
       ? options.headerRight({ tintColor, canGoBack })
       : null;
 
+  // Only stack when there is actually something to move down; a header with no
+  // actions has no crowding problem to solve.
+  const stackActions = rightElement != null && shouldStackAtFontScale(PixelRatio.getFontScale());
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <View
@@ -126,18 +139,36 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ navigation, options, route
         },
       ]}
     >
-      <View style={styles.row}>
-        {/* Left: only rendered when there is something to show.
-            Skipping it on first-screen (no back button) lets the title
-            start at the left edge (e.g. LocationHeader on Home). */}
-        {leftElement != null && <View style={styles.leftContainer}>{leftElement}</View>}
+      {/*
+        At a large system font scale the left control, the title and the header
+        actions cannot share one row: the actions grow, the flex:1 title column
+        collapses, and the title ellipsises to something like "Livrais..".
+        A screen title is not disposable content, so the actions move to their
+        own full-width line rather than the title losing its words.
+        Device-verified at 2.0x on 2026-08-30. Unchanged below 1.5x.
+      */}
+      {stackActions ? (
+        <View style={styles.stackedRoot} testID='app-header-stacked'>
+          <View style={styles.row}>
+            {leftElement != null && <View style={styles.leftContainer}>{leftElement}</View>}
+            <View style={styles.titleContainer}>{titleElement}</View>
+          </View>
+          <View style={styles.stackedActions}>{rightElement}</View>
+        </View>
+      ) : (
+        <View style={styles.row} testID='app-header-row'>
+          {/* Left: only rendered when there is something to show.
+              Skipping it on first-screen (no back button) lets the title
+              start at the left edge (e.g. LocationHeader on Home). */}
+          {leftElement != null && <View style={styles.leftContainer}>{leftElement}</View>}
 
-        {/* Title: custom component (e.g. LocationHeader) or themed text */}
-        <View style={styles.titleContainer}>{titleElement}</View>
+          {/* Title: custom component (e.g. LocationHeader) or themed text */}
+          <View style={styles.titleContainer}>{titleElement}</View>
 
-        {/* Right: only rendered when present so it doesn't consume space */}
-        {rightElement != null && <View style={styles.rightContainer}>{rightElement}</View>}
-      </View>
+          {/* Right: only rendered when present so it doesn't consume space */}
+          {rightElement != null && <View style={styles.rightContainer}>{rightElement}</View>}
+        </View>
+      )}
     </View>
   );
 };
@@ -164,6 +195,21 @@ const styles = StyleSheet.create({
      * content never reaches 56dp.
      */
     minHeight: TOOLBAR_HEIGHT,
+    paddingHorizontal: 4,
+  },
+  stackedRoot: {
+    width: '100%',
+    paddingVertical: 4,
+    gap: 4,
+  },
+  stackedActions: {
+    // Full width and end-aligned, so the actions keep their usual side without
+    // competing with the title for horizontal space.
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    flexWrap: 'wrap',
     paddingHorizontal: 4,
   },
   leftContainer: {

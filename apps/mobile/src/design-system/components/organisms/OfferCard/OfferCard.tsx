@@ -495,6 +495,13 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           accessibilityLabel={t('offers.a11yViewEstablishment', { name: offer.establishment.name })}
           accessibilityHint={t('offers.a11yEstablishmentHint')}
           style={styles.establishmentNameContainer}
+          /*
+           * The label is one 20dp line, so the pressable was 20dp tall against
+           * a 44dp minimum. hitSlop rather than padding: it grows the touch
+           * area without moving a single pixel of the card's layout.
+           * 20 + 12 + 12 = 44.
+           */
+          hitSlop={{ top: 12, bottom: 12, left: 0, right: 0 }}
         >
           <Text
             variant='body.medium'

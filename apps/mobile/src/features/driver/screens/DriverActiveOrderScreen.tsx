@@ -24,6 +24,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  PixelRatio,
   Platform,
   ScrollView,
   StyleSheet,
@@ -31,6 +32,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import { shouldStackAtFontScale } from '@/design-system/utils/largeFontScale';
 
 import { CommonActions } from '@react-navigation/native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -175,6 +178,12 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => {
 
 export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   const styles = useStyles();
+  /*
+   * At a large system font scale the order label, the order number and the
+   * status badge cannot share one row: every one of them grows and the badge,
+   * being last, was pushed off the card edge entirely. Stack them instead.
+   */
+  const stackHeader = shouldStackAtFontScale(PixelRatio.getFontScale());
   const { colors } = useTheme();
   const { t } = useTranslation();
   const { orderId, order: passedOrder } = route.params;
@@ -328,7 +337,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Order header ── */}
-        <View style={styles.headerCard}>
+        <View style={[styles.headerCard, stackHeader && styles.headerCardStacked]}>
           <View style={styles.orderNumberRow}>
             <Text style={styles.orderNumberLabel}>{t('driver.activeDelivery')}</Text>
             {/* Shrinks and ellipsises rather than pushing the row: an order
@@ -584,6 +593,19 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       flexDirection: 'row',
       alignItems: 'baseline',
       gap: sp.xs,
+      // Yields space before the status badge does. The badge tells the driver
+      // where to go; the order number is a reference they rarely read.
+      flexShrink: 1,
+    },
+    /*
+     * Reflow for large font scales. Column, so the badge gets its own line at
+     * full card width instead of being squeezed off the right edge.
+     * Device-verified at 2.0x on 2026-08-30.
+     */
+    headerCardStacked: {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: sp.xs,
     },
     orderNumberLabel: {
       fontSize: fontSize.sm,
@@ -604,6 +626,8 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
     },
     statusPill: {
       flexDirection: 'row',
+      // Never shrinks: clipping this is the exact defect being fixed.
+      flexShrink: 0,
       // flex-start, not center: with two lines of status text the dot should sit
       // beside the first line rather than float in the middle.
       alignItems: 'flex-start',

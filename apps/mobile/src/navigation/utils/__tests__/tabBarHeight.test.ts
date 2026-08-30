@@ -26,10 +26,10 @@ describe('getTabBarHeight', () => {
 
   describe('large font scales grow the bar instead of clipping the label', () => {
     it('grows on android once the content exceeds the 56dp base', () => {
-      // 28 icon + ceil(10 * 2.0 * 1.2) + 16 padding = 28 + 24 + 16 = 68
-      expect(android(2.0)).toBe(68);
-      expect(android(1.5)).toBe(62);
-      expect(android(1.3)).toBe(60);
+      // 28 icon + ceil(10 * scale * 1.2) + 12 padding
+      expect(android(2.0)).toBe(64); // 28 + 24 + 12
+      expect(android(1.5)).toBe(58); // 28 + 18 + 12
+      expect(android(1.3)).toBe(56); // 28 + 16 + 12, still at the base
     });
 
     it('is monotonically non-decreasing across the full accessibility range', () => {
@@ -43,15 +43,31 @@ describe('getTabBarHeight', () => {
 
     it('always leaves room for the icon, the scaled label and the padding', () => {
       for (const scale of [1.0, 1.3, 1.5, 2.0, 3.0]) {
-        const required = TAB_ICON_HEIGHT + Math.ceil(LABEL * scale * LABEL_LINE_RATIO) + 16;
+        const required = TAB_ICON_HEIGHT + Math.ceil(LABEL * scale * LABEL_LINE_RATIO) + 12;
         expect(android(scale)).toBeGreaterThanOrEqual(required);
       }
     });
   });
 
+  describe('each tab button clears the 44dp touch minimum (M13)', () => {
+    // react-navigation sizes each tab button as the bar height minus the bar's
+    // vertical padding. Measured on device at 8+8 padding it was 40dp, under
+    // the 44dp minimum, which is why the padding is 6+6.
+    const ANDROID_V_PADDING = 12;
+
+    it.each([1.0, 1.3, 1.5, 2.0])('button is at least 44dp at %sx', scale => {
+      const buttonHeight = android(scale) - ANDROID_V_PADDING;
+      expect(buttonHeight).toBeGreaterThanOrEqual(44);
+    });
+
+    it('is exactly 44dp at 1.0x, so no vertical space is wasted', () => {
+      expect(android(1.0) - ANDROID_V_PADDING).toBe(44);
+    });
+  });
+
   describe('the bottom inset is added on android and never on ios', () => {
     it('adds the android navigation bar inset on top of the content height', () => {
-      expect(android(2.0, 48)).toBe(68 + 48);
+      expect(android(2.0, 48)).toBe(64 + 48);
     });
 
     it('ignores the inset on ios, whose base already covers the home indicator', () => {

@@ -45,8 +45,9 @@ export const getTabBarHeight = ({
 }: TabBarHeightInput): number => {
   const isIOS = platform === 'ios';
 
-  // paddingTop + paddingBottom applied to the bar in TabNavigator.
-  const verticalPadding = isIOS ? 32 : 16;
+  // paddingTop + paddingBottom applied to the bar in TabNavigator. 6 + 6 on
+  // Android, so each tab button gets 44dp of the 56dp bar (M13 minimum).
+  const verticalPadding = isIOS ? 32 : 12;
   const baseHeight = isIOS ? 88 : 56;
 
   // A non-finite or non-positive scale means the platform gave us nothing

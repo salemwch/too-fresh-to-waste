@@ -113,8 +113,14 @@ const TabNavigatorComponent: React.FC = () => {
           // fills the full bottom edge in edge-to-edge mode, and grows with the
           // OS font scale. See the derivation above.
           height: tabBarHeight,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
-          paddingTop: 8,
+          /*
+           * 6, not 8. react-navigation sizes each tab button as the bar height
+           * minus this padding, so 56 - 8 - 8 left a 40dp touch target against
+           * a 44dp minimum. 56 - 6 - 6 = 44. The bar keeps its 56dp height and
+           * the icons move by 2dp, which is not perceptible.
+           */
+          paddingBottom: Platform.OS === 'ios' ? 24 : 6,
+          paddingTop: 6,
         },
         tabBarBackground: () => <View style={tabBarBackgroundStyle} />,
         tabBarLabelStyle: {
