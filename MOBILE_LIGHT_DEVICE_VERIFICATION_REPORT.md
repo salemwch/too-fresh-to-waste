@@ -949,3 +949,217 @@ DL-17 (one status, one treatment), plus everything still open in
 `MOBILE_LIGHT_MODE_REMEDIATION_REPORT.md` §6.
 
 **The design system is not certified, and this pass does not certify it.**
+
+---
+
+# Part 4 - Complete Sweep: All 14 Screens Reached
+
+**Run date:** 2026-08-30 **Device:** BlueStacks (`127.0.0.1:5555`), Android 9
+(API 28) **Resolution / density:** 720 x 1280, 240 dpi **Build:**
+`com.toofreshtowaste.app.dev` (dev flavour, Metro), backed by the local dev mock
+API on `127.0.0.1:8787` **Theme:** light only. `DARK_MODE_ENABLED` is `false`
+and `lockToLight` is on; neither was touched. The Settings screen correctly
+shows **no** theme control. **Locales run:** `en`, `fr`, `ar` (RTL) **Font
+scales run:** 1.0x, 1.3x, 1.5x, 2.0x - each by **cold start**, never by changing
+the setting on a running app (see §36 for why that distinction matters)
+
+## 34. Per-screen verdicts
+
+Every screen in the brief was reached in this pass. Nothing is left blocked.
+
+| Screen             | Verdict      | Evidence                                                                    |
+| ------------------ | ------------ | --------------------------------------------------------------------------- |
+| Home               | **VERIFIED** | Content, carousels, header and search bar; re-measured at all four scales   |
+| Search             | **VERIFIED** | Part 3                                                                      |
+| Favorites          | **VERIFIED** | Part 3 (empty state; populated list still not exercised)                    |
+| Orders             | **VERIFIED** | Part 3                                                                      |
+| Order Details      | **VERIFIED** | Part 3                                                                      |
+| **Checkout**       | **VERIFIED** | Reached this pass via Offer -> Reserve -> quantity sheet -> Checkout        |
+| Profile            | **VERIFIED** | Part 3, re-confirmed here in en/fr/ar                                       |
+| **Settings**       | **VERIFIED** | Reached this pass; divider colour measured; renders in all three locales    |
+| **Loyalty**        | **VERIFIED** | Reached this pass, after two defects fixed (F1, F3)                         |
+| **Leaderboard**    | **VERIFIED** | Reached this pass, after F2 fixed. Podium, rankings, current-user highlight |
+| Offer Details      | **VERIFIED** | Reached this pass en route to Checkout                                      |
+| Location modal     | **VERIFIED** | Part 2                                                                      |
+| Manual location    | **VERIFIED** | Part 2 (empty state)                                                        |
+| Driver screens (4) | **VERIFIED** | Commit `f844c6d0`, via the real `UserRole.DRIVER` guard                     |
+
+**NOT REACHABLE: none.**
+
+Two things remain _unexercised_ rather than unreachable, and are called out in
+§38: a populated Favorites list, and the terminal "Confirm Order" action on
+Checkout. The Checkout screen itself was reached and rendered; the confirm
+button was deliberately not pressed.
+
+## 35. Findings, and what was done about each
+
+Recorded first, classified, then fixed - in that order, as the brief required.
+
+### D6 - Chrome clipped text at a 2.0x font scale (P1, FIXED)
+
+Four layouts sized their box in fixed `dp` while the text inside was
+font-scaled, so at 2.0x the content outgrew the box.
+
+| Component        | Symptom at 2.0x                                 | Fix                                     |
+| ---------------- | ----------------------------------------------- | --------------------------------------- |
+| `AppHeader`      | Title overflowed **upward** into the status bar | `height` -> `minHeight`                 |
+| `LocationHeader` | Both lines clipped                              | Removed hardcoded `lineHeight: 12 / 18` |
+| `HomeSearchBar`  | Placeholder clipped top and bottom              | `height` -> `minHeight`                 |
+| `TabNavigator`   | Every tab label clipped along the bottom edge   | Height derived from the OS font scale   |
+
+The header case is worth recording: the toolbar sits _below_
+`paddingTop: insets.top`, so an oversized title grows into the status bar rather
+than away from it.
+
+`LocationHeader` is the general lesson - `fontSize` scales with the OS setting
+and a literal `lineHeight` does not, so any pairing of the two clips at a large
+scale. At 1.0x React Native's derived line height lands within a pixel of the
+literals it replaces.
+
+The tab bar needed a genuinely different fix. `minHeight` alone did nothing,
+because react-navigation's `getTabBarHeight()` reads `height` out of
+`tabBarStyle` and applies its own before the caller's. More importantly it
+republishes that value through `BottomTabBarHeightContext`, which screens use to
+pad their scroll content - so a `minHeight` would have grown the bar while every
+screen still padded for the old 56dp, hiding content behind it. The height is
+now derived from `PixelRatio.getFontScale()` in
+`navigation/utils/tabBarHeight.ts`, calibrated so 1.0x reproduces the previous
+56dp exactly, and it can only ever add room, never cap a scale.
+
+**None of this disables or limits font scaling.** No `allowFontScaling={false}`,
+no truncation, no hidden content.
+
+Verified on device at 1.0x, 1.3x, 1.5x and 2.0x by cold start. 1.0x is
+pixel-identical to before the change.
+
+### D7 - Directional icons did not mirror in RTL (P1, FIXED)
+
+React Native mirrors _layout_ under `I18nManager.isRTL` but not the _glyph_. On
+every Arabic screen the back chevron sat correctly on the right edge while still
+pointing left, and every disclosure chevron sat on the left edge still pointing
+right. Measured, not eyeballed: the chevron apex rendered at column 9 of the
+glyph box before the fix and column 24 after it.
+
+Fixed once in the `Icon` atom through a shared name-swap map, so all ~15 call
+sites are covered rather than patched one at a time. Swapping the Ionicons name
+preserves glyph hinting, which `scaleX: -1` would not.
+
+Media transport controls (`play-back` / `play-forward`) and vertical icons are
+deliberately excluded - both Material and the Apple HIG are explicit that those
+follow the timeline and the vertical axis, not reading order. `mirrorInRTL` is
+the per-call escape hatch.
+
+`OfferDetailsScreen` renders `IoniconsIcon` directly rather than through the
+atom, so its two directional sites call the same shared map.
+
+The change is inert in LTR: all 422 visual snapshots render unchanged.
+
+### D8 - Settings dividers rendered black (P2, FIXED)
+
+`borderBottomWidth` with no `borderBottomColor` defaults to **black** in React
+Native. Measured after the fix: `rgb(224,224,224)` = `#E0E0E0` = `neutral[300]`
+= `outlineVariant`, on both dividers.
+
+### F1 - An unknown loyalty tier crashed My Points (P0 for the screen, FIXED)
+
+`getTierProgress` and `getPointsToNextTier` indexed `TIER_CONFIGS[currentTier]`
+with no guard, while `getTierConfig` one function above already had the correct
+fallback. `currentTier` is typed `TierName`, but the value arrives over the wire
+and a type is not a runtime check - so any unknown tier threw
+`Cannot read property 'minPoints' of undefined` and took the whole screen into
+the error boundary.
+
+`indexOf` returning `-1` was the second half of the same bug: an unknown tier
+cleared the "already at the top tier" guard and then read index `-1 + 1`, so
+even without the throw it would have reported progress toward Bronze.
+
+Both now normalise through a shared `normalizeTier`.
+
+Membership is tested against a **Set of own keys**, not
+`TIER_CONFIGS[tier] !== undefined`. The latter is an inherited-property lookup,
+so a wire value named after anything on `Object.prototype` - `'toString'`,
+`'constructor'` - passed the check and handed the caller a function where a
+`TierConfig` was expected. The new test caught that; the first version of this
+fix had the hole.
+
+**Verification gap worth recording:** `PremiumPointsCard.test.tsx` mocks all
+three of these helpers, so no test in the suite could ever have caught this. The
+new `constants/__tests__/tiers.test.ts` drives the real functions across every
+tier plus unrecognised input, and was mutation-checked (removing the
+normalisation fails 9 tests; reintroducing the prototype hole fails 1).
+
+### F2 - The Leaderboard fixture had the wrong shape (dev-only, FIXED)
+
+`/loyalty/leaderboard` returned a bare paginated array, but the real contract is
+`LeaderboardResponse { entries, currentUserEntry, total, hasMore, hasSetConsent }`.
+The screen's `data.pages.flatMap(p => p.entries)` therefore produced
+`[undefined]`, and FlashList threw
+`Cannot read property 'toString' of undefined` inside `ProgressiveListView`.
+**This is why Leaderboard had only ever shown its skeleton, in every locale and
+every previous pass.**
+
+The fixture was wrong and the app was right, so the fix is in the mock only. Its
+entry fields now match `LeaderboardEntry`, and the `neighborhood` and `champion`
+routes were moved above the prefix catch-all that had been swallowing them.
+
+### F3 - The Loyalty fixtures were incomplete (dev-only, FIXED)
+
+`/loyalty/account` sent `currentTier: 'bronze'`; `TierName` is capitalised.
+`/loyalty/gamification` omitted `loginStreak`, `purchaseStreak` and `reviews`,
+all required by `GamificationStats`, so `StreakCard` threw next once F1 was
+fixed. The account object is now a single factory shared by `/loyalty/account`
+and its aliases, so the two copies cannot drift apart again - which is exactly
+how the casing mismatch arose.
+
+**No production code was changed to accommodate a fixture.** F1 is a genuine
+robustness fix that stands on its own; F2 and F3 are fixture corrections.
+
+## 36. A near-miss worth recording
+
+Setting `font_scale` on a **running** app truncates text without re-laying out,
+which looks exactly like a layout regression. A false P1 was nearly filed on
+that basis. Cold start disproved it. Every font-scale result in this report was
+taken after `pm clear` and a cold launch.
+
+## 37. Verification gate
+
+| Check                        | Result                                                     |
+| ---------------------------- | ---------------------------------------------------------- |
+| `tsc --noEmit`               | Clean (excluding the known `rehydrationOrchestrator` debt) |
+| `eslint src`                 | Clean                                                      |
+| Jest                         | **117 suites / 1890 tests** passed                         |
+| Visual regression            | **422 snapshots**, zero drift                              |
+| Android production release   | **BUILD SUCCESSFUL** (`assembleProductionRelease`, 6m31s)  |
+| Dev fixtures absent from APK | **Verified** - see below                                   |
+
+The release APK's JS bundle was searched for every dev marker: `devSession`,
+`ENABLE_DEV_AUTH`, `DEV_LOCATION`, `devGeolocation`, `devAuthRole`,
+`devSessionBlockedReason`, `dev.consumer@example.invalid`, `10.0.2.2`,
+`MOCK_ROLE`, `Dev Consumer`. **All ten absent.** Control strings
+(`unwrapBackendResponse`, `Surprise Bag`) were found in the same bundle, so the
+search is demonstrably non-vacuous rather than silently matching nothing. The
+`__DEV__` guard plus `require` in `index.js` keeps those modules out of the
+release module graph entirely.
+
+## 38. Limitations - what this pass does NOT establish
+
+- **Populated Favorites** was never exercised; only the empty state.
+- **"Confirm Order" was not pressed.** Checkout renders and was verified as a
+  screen; the terminal action and any post-order state were not driven.
+- **One device only.** BlueStacks at 720x1280 / 240dpi, Android 9. Nothing here
+  says anything about a notch, a foldable, a tablet, or Android 13+ behaviour.
+- **The backend is a mock.** Shapes were checked against
+  `packages/shared/src/types`, but no response came from the real API. Three of
+  the six findings in this pass were fixture defects, which is itself evidence
+  that fixture-vs-contract drift is the main risk of this rig.
+- **Arabic was verified on Settings, Profile and Leaderboard**, not on all
+  fourteen screens. Bottom sheets, dropdowns and the keyboard were not driven in
+  RTL.
+- **Offline and permission-denied states** were not exercised.
+- **Dark mode remains unverified by design** and is switched off in production.
+
+## 39. Certification status
+
+**Not certified.** This pass closes the reachability gap and fixes six defects,
+but §38 lists real coverage that does not exist yet. Certification is a separate
+decision and is not claimed here.
