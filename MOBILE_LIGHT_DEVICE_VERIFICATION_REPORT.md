@@ -1163,3 +1163,234 @@ release module graph entirely.
 **Not certified.** This pass closes the reachability gap and fixes six defects,
 but §38 lists real coverage that does not exist yet. Certification is a separate
 decision and is not claimed here.
+
+---
+
+# Part 5 - Final Production-Readiness Verification
+
+**Run date:** 2026-08-30 **Device:** BlueStacks (`127.0.0.1:5555`), Android 9
+(API 28), 720x1280, 240 dpi (1 dp = 1.5 px) **Build under test:**
+`com.toofreshtowaste.app.dev` on Metro, against the local dev mock API
+(`127.0.0.1:8787`), consumer and driver roles **Theme:** light only.
+`defaultTheme='light'`, `DARK_MODE_ENABLED=false` and `lockToLight` were **not**
+touched.
+
+## 40. Interactions exercised for the first time
+
+These were listed as untested in Part 4 §38. All are now driven.
+
+| Flow                      | Verdict      | Evidence                                                                                                |
+| ------------------------- | ------------ | ------------------------------------------------------------------------------------------------------- |
+| **Populated Favorites**   | **VERIFIED** | Three entries: two live offers plus one deleted-offer row, which is the only path to `DeletedOfferCard` |
+| **Confirm Order**         | **VERIFIED** | `POST /orders` 200; success sheet with order `TFW-1000`, pickup details and OTP entry                   |
+| **Checkout failure**      | **VERIFIED** | Forced 409 "This offer has just sold out." Inline error banner; user stays on Checkout                  |
+| **Loyalty populated**     | **VERIFIED** | Silver badge, 340 points, "580 pts to next tier", impact stats, earn cards                              |
+| **Leaderboard populated** | **VERIFIED** | Podium, 128 participants, rankings, current-user row highlighted at rank 4                              |
+| **Driver order detail**   | **VERIFIED** | Reached through the **real `UserRole.DRIVER` guard** - the server's role drove routing                  |
+
+The driver path used no bypass. `GET /auth/me` returned `role: driver` and the
+app's own guard routed to `DriverStack`; no guard, role check or navigator
+condition was modified.
+
+**Confirm Order was pressed against the mock only.** No real order exists.
+
+## 41. Localization - what was actually observed
+
+Verified by dumping the rendered view hierarchy per screen and checking three
+things mechanically: that no raw i18n key (`some.key.path`) leaks, which script
+the text is in, and whether text blocks are right- or left-anchored.
+
+| Screen          | fr           | ar (RTL)     |
+| --------------- | ------------ | ------------ |
+| Settings        | **VERIFIED** | **VERIFIED** |
+| Profile         | **VERIFIED** | **VERIFIED** |
+| Favorites       | **VERIFIED** | **VERIFIED** |
+| Loyalty         | **VERIFIED** | **VERIFIED** |
+| Leaderboard     | **VERIFIED** | **VERIFIED** |
+| Checkout        | **VERIFIED** | **VERIFIED** |
+| Contact Support | **VERIFIED** | not re-run   |
+| Home            | not re-run   | **VERIFIED** |
+| Driver - orders | **VERIFIED** | **VERIFIED** |
+| Driver - detail | **VERIFIED** | **VERIFIED** |
+
+RTL is real, not assumed: on Arabic Home the tab bar is mirrored (Home at x
+576-720, Profile at x 0-144), and Favorites reports 19 right-anchored text
+blocks against 8 left-anchored.
+
+**Not claimed:** Search, Orders, Order Details and Offer Details were not
+re-inspected in this pass. Contact Support was confirmed in French only.
+
+## 42. Findings in this pass
+
+### F4 - Nine user-facing strings were never translated (P1, FIXED)
+
+| Where                | Strings                                                              |
+| -------------------- | -------------------------------------------------------------------- |
+| ContactSupportScreen | Title, subtitle, "EMAIL SUPPORT", response time, button, note, alert |
+| DriverStack          | All four navigator titles                                            |
+| DriverOrdersList     | "Online" / "Offline"                                                 |
+| LocationHeader       | "Chosen Location" - on Home in every locale                          |
+| OfferCard            | "{n} left", "Pick up today", the type chip, ", Sold out" (a11y)      |
+
+`OfferCard` and `LocationHeader` are the expensive ones: they render on Home,
+Search and Favorites, so an Arabic user met English text on the first screen
+after sign-in.
+
+**The Arabic plural was a second, separate bug.** `{n} left` was first given
+only `_one` and `_other`. Arabic has six CLDR plural categories, so `count: 3`
+resolves to `few`, finds no key, and i18next falls back to English - the badge
+still read "3 left" in Arabic. The repo already had the six-category pattern in
+`driver.deliveryCount`; the fix now follows it. Device-verified as "بقيت 3".
+
+This is the general trap: **a missing plural category fails silently by
+rendering the fallback language**, which looks like "translation not applied"
+rather than an error.
+
+### F5 - Checkout control borders used the divider token (P1, FIXED)
+
+The delivery-mode and payment-method cards are selectable controls. Their border
+used `outlineVariant`.
+
+| Border                     | Colour    | Contrast vs page | 1.4.11 (3.0) |
+| -------------------------- | --------- | ---------------- | ------------ |
+| Unselected option (before) | `#E0E0E0` | **1.26**         | fails        |
+| Unselected option (after)  | `#757575` | **4.41**         | passes       |
+| Selected option            | `#2E7D32` | 4.91             | passes       |
+
+An unselected option was effectively borderless beside the selected one. Now on
+`outline`. The decorative map container keeps `outlineVariant`; so does the
+disabled variant, which 1.4.11 exempts.
+
+The 40 CheckoutScreen snapshots moved on **exactly one property** -
+`borderColor`
+
+- in both themes. Nothing else in the matrix changed.
+
+### F6 - OfferCard is capped at 270 dp in a full-width list (RECORDED, not fixed)
+
+On Favorites the card renders **405 px inside a 720 px screen**, left-aligned at
+x=48, leaving 267 px of empty row. The screen itself is full width - its header
+spans 696 px.
+
+Cause: `OfferCard.styles.card` sets `maxWidth: 270` for the vertical
+orientation. 270 dp x 1.5 = 405 px exactly. The cap suits the horizontal
+carousels on Home; it leaks into Favorites, where the list is full width.
+
+**Not fixed deliberately.** Changing it alters Home, Search and Favorites
+together and moves the snapshot baseline - a `DESIGN.md` §20 governance
+decision, not a verification fix.
+
+### F7 - Driver header and status badge break at 2.0x (RECORDED, not fixed)
+
+New at 2.0x on `DriverActiveOrder`, in French:
+
+- The header row (title + user name + "Se déconnecter") does not reflow. Title
+  truncates to "Livrais.." and the name to "Dev Dri…".
+- The "Récupérer au commerce" status badge is **clipped off the right edge** of
+  its card - content lost, not ellipsised.
+
+The Part 4 header fix holds: the toolbar grows and no longer overlaps the status
+bar. This is a different defect - a horizontal row with three competing children
+and no wrap.
+
+### F8 - OTP placeholder contrast (RECORDED, low)
+
+The six placeholder dashes measure `#CCCCCC` at **1.54** on white. They are a
+format hint rather than content, and the instruction above them measures 6.19,
+so no information is lost. Recorded rather than fixed.
+
+## 43. Accessibility re-verification
+
+| Check                   | Result                                                                                                |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| **2.0x font scale**     | Part 4 fixes hold - header, location header, search bar and tab bar all still correct. **F7 is new.** |
+| **M16 contrast**        | Re-measured on Checkout: helper text 6.19, pickup row 5.93, headings 16.10. All pass AA.              |
+| **M17 control borders** | **Was failing on Checkout at 1.26.** Fixed to 4.41. Dividers stay decorative.                         |
+| **M13 touch targets**   | Favorites measured. Favourite button 28x29 dp **plus 8 dp hitSlop = 44x45 dp, passes**.               |
+| **Disabled controls**   | "Confirm Pickup" disabled: label 1.70. Compliant - WCAG 1.4.3 exempts inactive components.            |
+| **Switch states**       | Notification switches read OFF; driver online switch reads ON. Both expose state to a11y.             |
+| **Status bar**          | No overlap at any scale after the Part 4 header fix.                                                  |
+| **Error states**        | Checkout 409 banner: text `#991B1B` on `#FEF2F2` = **7.60**; icon `#D32F2F` = 4.55 (needs 3.0).       |
+
+**A measurement caveat worth recording:** single-pixel sampling of text gives
+anti-aliased edges, not the glyph. A first pass read the Checkout helper text as
+1.56 and would have filed a false failure; scanning for the darkest pixel in the
+text's box gives the true 6.19. Every contrast figure here uses the latter.
+
+**Touch targets need the same care.** `uiautomator` bounds exclude React
+Native's `hitSlop`, so the favourite button looks like a 28 dp failure and is
+actually 44 dp. Two other under-44 dp hits are recorded in §45.
+
+## 44. Production safety
+
+| Check                                 | Result                                                                 |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| No dev auth code in production bundle | **VERIFIED - 0 of 20 markers present**                                 |
+| No mock API URL in production bundle  | **VERIFIED** - `10.0.2.2`, `127.0.0.1`, `:8787`, `dev-mock-api` absent |
+| No `ENABLE_DEV_AUTH` in prod/staging  | **VERIFIED** - absent from both `.env` files                           |
+| Production API is the one baked in    | **VERIFIED** - `https://api.toofreshtowaste.com` in the native dex     |
+| Production authentication unchanged   | **VERIFIED** - see below                                               |
+| Production authorization unchanged    | **VERIFIED** - see below                                               |
+| No debugging bypasses                 | **VERIFIED** - dev modules referenced only under `__DEV__`             |
+| No test fixtures bundled              | **VERIFIED** - no fixture user, email or id in the bundle              |
+
+**The bundle scan had to be done twice to be correct.** The release bundle is
+Hermes bytecode (magic `c61fbc03`), which stores non-ASCII strings as UTF-16LE.
+A UTF-8-only search reported Arabic as absent from production, which would have
+been a false alarm of the worst kind - "Arabic is missing from the release". The
+scan now runs in **both encodings**; Arabic is present, including the key added
+in this pass. All 20 dev markers are absent under both encodings, and three
+control strings (`unwrapBackendResponse`, `supportScreen`,
+`Commandes disponibles`) are found, so the search is demonstrably non-vacuous.
+
+**Auth/authorization**: `git diff master...HEAD` over the auth feature,
+`RootNavigator` and `ProtectedRoute`, filtered to security-relevant identifiers
+(token, keychain, password, authProvider, role, guard, flowState, `__DEV__`,
+`Config[]`), returns **only styling changes** - colours, spacing and style
+props. `RootNavigator`'s two changes are an i18n string for the offline banner
+and a theme border token. No token handling, role check or flow-state condition
+moved.
+
+`API_BASE_URL` never appears in the JS bundle because `react-native-config`
+injects it through native `BuildConfig`; it was verified in the dex instead.
+
+## 45. Verification gate
+
+| Check                      | Result                                                     |
+| -------------------------- | ---------------------------------------------------------- |
+| `tsc --noEmit`             | Clean (excluding the known `rehydrationOrchestrator` debt) |
+| `eslint src`               | Clean                                                      |
+| Jest                       | **117 suites / 1890 tests** passed                         |
+| Visual regression          | **422 snapshots** passed                                   |
+| Android production release | **BUILD SUCCESSFUL** (`assembleProductionRelease`)         |
+
+## 46. Remaining blockers to certification
+
+Ordered by what would most change a release decision.
+
+1. **F7 - driver header and status badge break at 2.0x.** Content is lost, not
+   ellipsised. Needs a responsive reflow of a three-child header row.
+2. **F6 - OfferCard's 270 dp cap in full-width lists.** A §20 governance
+   decision, not a local fix.
+3. **Two touch targets under 44 dp with no `hitSlop`:** the OfferCard
+   establishment-name link measures 212x20 dp, and bottom tab items measure
+   96x40 dp. Both are pre-existing and neither was introduced by this work.
+4. **~35 files remain on the hardcoded-string ratchet.** Two were cleared here;
+   the rest are recorded in `src/i18n/__tests__/hardcodedStrings.test.ts` and
+   are a known backlog, not a surprise.
+5. **`OfferCard.establishmentName` hardcodes `lineHeight: 20` against
+   `fontSize: 16`** - the same font-scale class as the Part 4 D6 defects, not
+   yet corrected.
+6. **Single device.** Everything here is one 720x1280 / 240 dpi Android 9 image.
+   No notch, foldable, tablet, or Android 13+ behaviour is covered.
+7. **The backend is a mock.** Six of the defects across Parts 4 and 5 were
+   fixture-versus-contract drift. Nothing here exercises the real API.
+8. **Not re-inspected this pass:** Search, Orders, Order Details, Offer Details
+   in fr/ar; Contact Support in Arabic; offline and permission-denied states.
+9. **Dark mode remains unverified by design** and is off in production.
+
+## 47. Certification status
+
+**Not certified.** `DESIGN_CERTIFICATION.md` has deliberately not been created.
+Items 1-3 above are open defects with device evidence, and items 6-8 are
+coverage that does not exist yet.
