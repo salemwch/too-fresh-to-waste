@@ -50,6 +50,22 @@ const PORT = Number(process.env.MOCK_PORT ?? 8787);
 
 const iso = (offsetMs = 0) => new Date(Date.now() + offsetMs).toISOString();
 
+/**
+ * A backend-shaped error envelope.
+ *
+ * `__status` is stripped by the writer and used as the HTTP status, because
+ * this server otherwise answers 200 to everything - which makes failure states
+ * unreachable, and failure states are exactly what a verification pass needs to
+ * look at. Nothing sets this unless a MOCK_FAIL_* switch is on.
+ */
+const err = (status, message) => ({
+  __status: status,
+  status,
+  message,
+  data: null,
+  timestamp: iso(),
+});
+
 const ok = (data, meta) => ({
   status: 200,
   message: 'OK',
@@ -458,7 +474,13 @@ const routes = [
   ['GET', /^\/establishments\/?$/, () => page([ESTABLISHMENT])],
   ['GET', /^\/establishments\/[^/]+$/, () => ok(ESTABLISHMENT)],
 
-  ['POST', /^\/orders\/?$/, () => ok(ORDERS[0])],
+  /* MOCK_FAIL_ORDER=1 makes checkout fail with a realistic business error
+   * (409, the offer sold out between opening it and confirming) so the failure
+   * state can be verified. Default off, so the success path is unchanged. */
+  ['POST', /^\/orders\/?$/, () =>
+    process.env.MOCK_FAIL_ORDER === '1'
+      ? err(409, 'This offer has just sold out.')
+      : ok(ORDERS[0])],
   ['POST', /^\/orders\/[^/]+\/retry-payment$/, () => ok({ payUrl: 'https://example.invalid/pay' })],
   ['GET', /^\/notifications\/preferences$/, () =>
     ok({ pushEnabled: true, favoriteStoreOffers: true, orderUpdates: true, marketing: false })],
@@ -481,20 +503,49 @@ const routes = [
    * then renders over the tab bar, swallowing every navigation tap. */
   ['GET', /^\/favorites\/ids$/, () => ok({ ids: [OFFERS[0].id, OFFERS[3].id] })],
   ['GET', /^\/favorites\/stats$/, () => ok({ offers: 2, establishments: 1, total: 3 })],
-  /* An empty favourites list, deliberately.
+  /* A populated favourites list.
    *
    * `FavoritesResponse` is an object with its own envelope, not the bare array
-   * `page()` produces, and `favoritesService` unwraps it by shape-sniffing. A
-   * wrapped-offer first draft fed `undefined` into `OfferCard`, which reads
-   * `offer.pricing.discountedPrice` with no optional chaining and took the
-   * whole tree into the QueryErrorBoundary.
+   * `page()` produces, and `favoritesService` unwraps it by shape-sniffing.
+   * An earlier wrapped-offer draft fed `undefined` into `OfferCard`, which reads
+   * `offer.pricing.discountedPrice` with no optional chaining, and took the
+   * whole tree into the QueryErrorBoundary - hence the shape below is the real
+   * one rather than a guess.
    *
-   * Empty is honest rather than lazy: it exercises the Favorites empty state,
-   * which is a state this verification pass has to check anyway. The populated
-   * list is recorded as NOT exercised in the report rather than faked into a
-   * shape that might not match the backend's. */
-  ['GET', /^\/favorites/, () =>
-    ok({ favorites: [], total: 0, page: 1, limit: 20, totalPages: 0, hasNext: false, hasPrev: false })],
+   * `itemId` is the populated offer object (FavoriteOffer). FavoritesScreen
+   * accepts it through `isOfferDocument`: id, title, pricing, images[]. The
+   * offer() fixture already satisfies that - it is the same object Home renders
+   * through OfferCard.
+   *
+   * The third entry keeps `itemId` as a bare string on purpose. That is what a
+   * favourite whose offer has since been deleted looks like, and it is the only
+   * way to exercise the DeletedOfferCard branch. The ids match /favorites/ids,
+   * which previously claimed two favourites while this route returned none. */
+  ['GET', /^\/favorites/, () => {
+    const fav = (n, itemId) => ({
+      _id: `dev-fav-000${n}`,
+      userId: USER.userId,
+      type: 'offer',
+      itemId,
+      preferences: { notifications: true, pushNotifications: true, emailAlerts: false },
+      addedAt: iso(-n * 864e5),
+      notificationCount: 0,
+      interactionCount: n,
+      isActive: true,
+      createdAt: iso(-n * 864e5),
+      updatedAt: iso(-n * 864e5),
+    });
+    const favorites = [fav(1, OFFERS[0]), fav(2, OFFERS[3]), fav(3, 'dev-offer-deleted')];
+    return ok({
+      favorites,
+      total: favorites.length,
+      page: 1,
+      limit: 20,
+      totalPages: 1,
+      hasNext: false,
+      hasPrev: false,
+    });
+  }],
 
   /* Shapes from packages/shared/src/types/loyalty.types.ts:61 and :88. Both
    * were surfacing in the UNMATCHED log and left Loyalty and Leaderboard
@@ -741,8 +792,11 @@ const server = createServer((req, res) => {
       payload = page([], 0);
     }
 
+    const httpStatus = payload?.__status ?? 200;
+    if (payload && '__status' in payload) delete payload.__status;
+
     const json = JSON.stringify(payload);
-    res.writeHead(200, {
+    res.writeHead(httpStatus, {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(json),
     });

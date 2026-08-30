@@ -433,7 +433,19 @@
     "a11yIncreaseQuantityHint": "Reserves one more bag from this offer",
     "a11yBackButton": "Go back",
     "a11yBackButtonHint": "Returns to the previous screen",
-    "a11yReserveOffer": "Reserve this offer"
+    "a11yReserveOffer": "Reserve this offer",
+    "itemsLeft_one": "{{count}} left",
+    "itemsLeft_other": "{{count}} left",
+    "itemsLeftPlus": "5+ left",
+    "a11yItemsLeft": ", {{count}} items left",
+    "a11ySoldOut": ", sold out",
+    "pickUpToday": "🕐 Pick up today : {{time}}",
+    "types": {
+      "surprise_bag": "Surprise Bag",
+      "specific_items": "Specific Items",
+      "meal_deal": "Meal Deal",
+      "parcels_bag": "Parcels Bag"
+    }
   },
   "orders": {
     "active": "Active",
@@ -644,7 +656,18 @@
     "a11yViewPrivacyPolicy": "View Privacy Policy",
     "a11yViewTerms": "View Terms and Conditions",
     "a11yEditLeaderboardDisplay": "Edit community leaderboard display",
-    "a11yEditLeaderboardHint": "Opens leaderboard privacy settings"
+    "a11yEditLeaderboardHint": "Opens leaderboard privacy settings",
+    "supportScreen": {
+      "title": "We're here to help",
+      "subtitle": "Have a question or ran into an issue? Reach out and we'll get back to you as soon as possible.",
+      "emailLabel": "EMAIL SUPPORT",
+      "responseTime": "Typical response within 24 hours",
+      "sendEmail": "Send Email",
+      "note": "For urgent food safety concerns, please include your order number in the subject line.",
+      "cannotOpenTitle": "Cannot Open Email",
+      "cannotOpenMessage": "Please send us an email directly at {{email}}",
+      "a11ySendEmailHint": "Opens your email app to contact {{email}}"
+    }
   },
   "settings": {
     "notifications": "Notifications",
@@ -815,7 +838,8 @@
     "a11yChangeLocationHint": "Tap to change your location",
     "a11yEnableNearby": "Enable location to see nearby offers",
     "a11yBannerHint": "Contains options to enable location or dismiss",
-    "a11yRequestPermissionHint": "Requests location permission to find nearby offers"
+    "a11yRequestPermissionHint": "Requests location permission to find nearby offers",
+    "chosenLocation": "Chosen Location"
   },
   "navigation": {
     "searchOffers": "Search Offers",
@@ -967,7 +991,11 @@
     "a11yGoOnline": "Go online",
     "a11yGoOffline": "Go offline",
     "a11yGoOnlineHint": "Starts showing nearby delivery orders and sending you alerts",
-    "a11yGoOfflineHint": "Stops new delivery orders and alerts from reaching you"
+    "a11yGoOfflineHint": "Stops new delivery orders and alerts from reaching you",
+    "availableOrders": "Available Orders",
+    "orderDetails": "Order Details",
+    "online": "Online",
+    "offline": "Offline"
   },
   "leaderboard": {
     "a11yCloseDiscount": "Close discount modal",

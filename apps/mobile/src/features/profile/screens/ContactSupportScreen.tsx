@@ -18,13 +18,13 @@ export const ContactSupportScreen: React.FC = () => {
   const handleEmailPress = useCallback(() => {
     Linking.openURL(`mailto:${SUPPORT_EMAIL}`).catch(() => {
       showAlert(
-        'Cannot Open Email',
-        `Please send us an email directly at ${SUPPORT_EMAIL}`,
-        [{ text: 'OK' }],
+        t('profile.supportScreen.cannotOpenTitle'),
+        t('profile.supportScreen.cannotOpenMessage', { email: SUPPORT_EMAIL }),
+        [{ text: t('common.ok') }],
         { type: 'info' },
       );
     });
-  }, []);
+  }, [t]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -35,11 +35,10 @@ export const ContactSupportScreen: React.FC = () => {
         </View>
 
         <Text variant='headline' size='lg' weight='bold' align='center' style={styles.title}>
-          We're here to help
+          {t('profile.supportScreen.title')}
         </Text>
         <Text variant='body' size='sm' color='secondary' align='center' style={styles.subtitle}>
-          Have a question or ran into an issue? Reach out and we'll get back to you as soon as
-          possible.
+          {t('profile.supportScreen.subtitle')}
         </Text>
 
         {/* Email card */}
@@ -52,13 +51,13 @@ export const ContactSupportScreen: React.FC = () => {
             </View>
             <View style={styles.cardText}>
               <Text variant='label' size='xs' color='secondary' style={styles.cardLabel}>
-                EMAIL SUPPORT
+                {t('profile.supportScreen.emailLabel')}
               </Text>
               <Text variant='body' size='md' weight='semibold' color='primary'>
                 {SUPPORT_EMAIL}
               </Text>
               <Text variant='body' size='xs' color='secondary' style={styles.responseTime}>
-                Typical response within 24 hours
+                {t('profile.supportScreen.responseTime')}
               </Text>
             </View>
           </View>
@@ -68,7 +67,9 @@ export const ContactSupportScreen: React.FC = () => {
             onPress={handleEmailPress}
             accessibilityRole='button'
             accessibilityLabel={t('errors.a11ySendSupportEmail')}
-            accessibilityHint={`Opens your email app to contact ${SUPPORT_EMAIL}`}
+            accessibilityHint={t('profile.supportScreen.a11ySendEmailHint', {
+              email: SUPPORT_EMAIL,
+            })}
           >
             <Icon name='send-outline' family='Ionicons' size={16} color={theme.colors.onPrimary} />
             <Text
@@ -77,7 +78,7 @@ export const ContactSupportScreen: React.FC = () => {
               weight='semibold'
               style={[styles.emailButtonText, { color: theme.colors.onPrimary }]}
             >
-              Send Email
+              {t('profile.supportScreen.sendEmail')}
             </Text>
           </Pressable>
         </Card>
@@ -95,7 +96,7 @@ export const ContactSupportScreen: React.FC = () => {
             size='xs'
             style={[styles.noteText, { color: theme.colors.onSurfaceVariant }]}
           >
-            For urgent food safety concerns, please include your order number in the subject line.
+            {t('profile.supportScreen.note')}
           </Text>
         </View>
       </ScrollView>

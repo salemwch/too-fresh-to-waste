@@ -433,7 +433,19 @@
     "a11yIncreaseQuantityHint": "Réserve un panier de plus sur cette offre",
     "a11yBackButton": "Retour",
     "a11yBackButtonHint": "Revient à l'écran précédent",
-    "a11yReserveOffer": "Réserver cette offre"
+    "a11yReserveOffer": "Réserver cette offre",
+    "itemsLeft_one": "{{count}} restant",
+    "itemsLeft_other": "{{count}} restants",
+    "itemsLeftPlus": "5+ restants",
+    "a11yItemsLeft": ", {{count}} articles restants",
+    "a11ySoldOut": ", épuisé",
+    "pickUpToday": "🕐 À retirer aujourd'hui : {{time}}",
+    "types": {
+      "surprise_bag": "Panier surprise",
+      "specific_items": "Articles spécifiques",
+      "meal_deal": "Offre repas",
+      "parcels_bag": "Panier colis"
+    }
   },
   "orders": {
     "active": "En cours",
@@ -644,7 +656,18 @@
     "a11yViewPrivacyPolicy": "Voir la politique de confidentialité",
     "a11yViewTerms": "Voir les conditions générales",
     "a11yEditLeaderboardDisplay": "Modifier l’affichage dans le classement",
-    "a11yEditLeaderboardHint": "Ouvre les réglages de confidentialité du classement"
+    "a11yEditLeaderboardHint": "Ouvre les réglages de confidentialité du classement",
+    "supportScreen": {
+      "title": "Nous sommes là pour vous aider",
+      "subtitle": "Une question ou un problème ? Écrivez-nous et nous vous répondrons dès que possible.",
+      "emailLabel": "SUPPORT PAR E-MAIL",
+      "responseTime": "Réponse habituelle sous 24 heures",
+      "sendEmail": "Envoyer un e-mail",
+      "note": "Pour toute urgence liée à la sécurité alimentaire, indiquez votre numéro de commande dans l'objet.",
+      "cannotOpenTitle": "Impossible d'ouvrir la messagerie",
+      "cannotOpenMessage": "Envoyez-nous directement un e-mail à {{email}}",
+      "a11ySendEmailHint": "Ouvre votre application de messagerie pour contacter {{email}}"
+    }
   },
   "settings": {
     "notifications": "Notifications",
@@ -815,7 +838,8 @@
     "a11yChangeLocationHint": "Appuyez pour changer votre position",
     "a11yEnableNearby": "Activer la localisation pour voir les offres à proximité",
     "a11yBannerHint": "Contient les options pour activer ou masquer la localisation",
-    "a11yRequestPermissionHint": "Demande l’autorisation de localisation pour trouver des offres"
+    "a11yRequestPermissionHint": "Demande l’autorisation de localisation pour trouver des offres",
+    "chosenLocation": "Lieu choisi"
   },
   "navigation": {
     "searchOffers": "Rechercher des offres",
@@ -967,7 +991,11 @@
     "a11yGoOnline": "Passer en ligne",
     "a11yGoOffline": "Passer hors ligne",
     "a11yGoOnlineHint": "Affiche les commandes de livraison à proximité et vous envoie les alertes",
-    "a11yGoOfflineHint": "Empêche les nouvelles commandes et alertes de vous parvenir"
+    "a11yGoOfflineHint": "Empêche les nouvelles commandes et alertes de vous parvenir",
+    "availableOrders": "Commandes disponibles",
+    "orderDetails": "Détails de la commande",
+    "online": "En ligne",
+    "offline": "Hors ligne"
   },
   "leaderboard": {
     "a11yCloseDiscount": "Fermer la fenêtre de réduction",

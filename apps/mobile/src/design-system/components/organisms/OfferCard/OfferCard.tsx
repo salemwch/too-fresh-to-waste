@@ -30,12 +30,7 @@ import { ShimmerBlock } from '../../atoms/ShimmerBlock/ShimmerBlock';
 import { Text } from '../../atoms/Text';
 import { useShimmerAnimation } from '../../atoms/ShimmerBlock/useShimmerAnimation';
 
-import {
-  formatPickupTime,
-  formatDistance,
-  formatStartTime,
-  offerTypeLabels,
-} from './OfferCard.types';
+import { formatPickupTime, formatDistance, formatStartTime } from './OfferCard.types';
 
 import type { MascotVariant, OfferCardProps } from './OfferCard.types';
 
@@ -353,13 +348,13 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
     if (isNotStarted && startTimeText !== null) {
       label += `, starts at ${startTimeText}`;
     } else if (itemsLeft > 0) {
-      label += `, ${itemsLeft} items left`;
+      label += t('offers.a11yItemsLeft', { count: itemsLeft });
     } else {
-      label += ', Sold out';
+      label += t('offers.a11ySoldOut');
     }
 
     return label;
-  }, [accessibilityLabel, distanceText, isNotStarted, itemsLeft, offer, startTimeText]);
+  }, [accessibilityLabel, distanceText, isNotStarted, itemsLeft, offer, startTimeText, t]);
 
   // ==================== Render Functions ====================
 
@@ -403,7 +398,9 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         {showItemsLeft && itemsLeft > 0 && (
           <View style={styles.itemsLeftBadge}>
             <Text variant='label.small' style={styles.itemsLeftText}>
-              {`${itemsLeft > 5 ? '5+' : itemsLeft} left`}
+              {itemsLeft > 5
+                ? t('offers.itemsLeftPlus')
+                : t('offers.itemsLeft', { count: itemsLeft })}
             </Text>
           </View>
         )}
@@ -533,7 +530,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
   const renderTitle = () => (
     <View style={styles.titleContainer}>
       <View style={styles.typeBadge}>
-        <Text style={styles.typeBadgeText}>{offerTypeLabels[offer.type]}</Text>
+        <Text style={styles.typeBadgeText}>{t(`offers.types.${offer.type}`)}</Text>
       </View>
       <Text
         variant='body.small'
@@ -571,7 +568,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
             numberOfLines={1}
             style={styles.pickupTime}
           >
-            🕐 Pick up today : {pickupTime}
+            {t('offers.pickUpToday', { time: pickupTime })}
           </Text>
         )}
         {hasDistance && (

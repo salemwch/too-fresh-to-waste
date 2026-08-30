@@ -67,6 +67,15 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
   const TEXT_TERTIARY = c.onSurfaceVariant;
   const TEXT_DISABLED = colorTokens.base.neutral[500]; // no role at this step; M16-a
   const BORDER_SUBTLE = c.outlineVariant;
+  /*
+   * Control boundaries take `outline`, not `outlineVariant`. The delivery-mode
+   * and payment-method cards are selectable controls, so WCAG 1.4.11 wants 3:1
+   * against the page. Measured on device: outlineVariant (#E0E0E0) gave 1.26
+   * on #FAFAFA, while the selected card's success border gave 4.91 - so an
+   * unselected option was effectively borderless. See colors.ts, which defines
+   * outline as "boundaries that identify a control (must pass 3.0)".
+   */
+  const BORDER_CONTROL = c.outline;
   const BRAND_PRIMARY = c.primary;
   const SUCCESS_BORDER = c.success;
   const ERROR_BORDER = c.error;
@@ -153,7 +162,7 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
       paddingHorizontal: 6,
       borderRadius: 16,
       borderWidth: 1.5,
-      borderColor: BORDER_SUBTLE,
+      borderColor: BORDER_CONTROL,
       backgroundColor: SURFACE,
       gap: 6,
       position: 'relative',

@@ -79,7 +79,7 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({ onPress }) => {
       <View style={styles.locationTextContainer}>
         {/* "Chosen Location" Label */}
         <Text color={theme.colors.onSurfaceVariant} style={styles.locationLabel}>
-          Chosen Location
+          {t('location.chosenLocation')}
         </Text>
 
         {/* Location Name - Pre-formatted from selector ✅ */}

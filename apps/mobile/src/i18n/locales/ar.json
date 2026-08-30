@@ -433,7 +433,23 @@
     "a11yIncreaseQuantityHint": "يحجز كيسًا واحدًا إضافيًا من هذا العرض",
     "a11yBackButton": "رجوع",
     "a11yBackButtonHint": "يعود إلى الشاشة السابقة",
-    "a11yReserveOffer": "حجز هذا العرض"
+    "a11yReserveOffer": "حجز هذا العرض",
+    "itemsLeftPlus": "+5 متبقٍ",
+    "a11yItemsLeft": "، بقي {{count}} عنصر",
+    "a11ySoldOut": "، نفدت الكمية",
+    "itemsLeft_zero": "لم يتبقَ شيء",
+    "itemsLeft_one": "بقيت واحدة",
+    "itemsLeft_two": "بقيتا اثنتان",
+    "itemsLeft_few": "بقيت {{count}}",
+    "itemsLeft_many": "بقيت {{count}}",
+    "itemsLeft_other": "بقيت {{count}}",
+    "pickUpToday": "🕐 الاستلام اليوم : {{time}}",
+    "types": {
+      "surprise_bag": "حقيبة المفاجأة",
+      "specific_items": "أصناف محددة",
+      "meal_deal": "عرض وجبة",
+      "parcels_bag": "حقيبة طرود"
+    }
   },
   "orders": {
     "active": "نشطة",
@@ -644,7 +660,18 @@
     "a11yViewPrivacyPolicy": "عرض سياسة الخصوصية",
     "a11yViewTerms": "عرض الشروط والأحكام",
     "a11yEditLeaderboardDisplay": "تعديل العرض في لوحة الصدارة",
-    "a11yEditLeaderboardHint": "يفتح إعدادات خصوصية لوحة الصدارة"
+    "a11yEditLeaderboardHint": "يفتح إعدادات خصوصية لوحة الصدارة",
+    "supportScreen": {
+      "title": "نحن هنا لمساعدتك",
+      "subtitle": "هل لديك سؤال أو واجهتك مشكلة؟ راسلنا وسنرد عليك في أقرب وقت ممكن.",
+      "emailLabel": "الدعم عبر البريد الإلكتروني",
+      "responseTime": "الرد عادةً خلال 24 ساعة",
+      "sendEmail": "إرسال بريد إلكتروني",
+      "note": "للحالات العاجلة المتعلقة بسلامة الأغذية، يرجى ذكر رقم طلبك في عنوان الرسالة.",
+      "cannotOpenTitle": "تعذّر فتح البريد الإلكتروني",
+      "cannotOpenMessage": "يرجى مراسلتنا مباشرة على {{email}}",
+      "a11ySendEmailHint": "يفتح تطبيق البريد لديك للتواصل مع {{email}}"
+    }
   },
   "settings": {
     "notifications": "الإشعارات",
@@ -815,7 +842,8 @@
     "a11yChangeLocationHint": "اضغط لتغيير موقعك",
     "a11yEnableNearby": "فعّل الموقع لرؤية العروض القريبة",
     "a11yBannerHint": "يحتوي على خيارات لتفعيل الموقع أو إخفائه",
-    "a11yRequestPermissionHint": "يطلب إذن الموقع للعثور على العروض القريبة"
+    "a11yRequestPermissionHint": "يطلب إذن الموقع للعثور على العروض القريبة",
+    "chosenLocation": "الموقع المختار"
   },
   "navigation": {
     "searchOffers": "البحث عن عروض",
@@ -971,7 +999,11 @@
     "a11yGoOnline": "الاتصال بالإنترنت",
     "a11yGoOffline": "الانتقال إلى وضع عدم الاتصال",
     "a11yGoOnlineHint": "يبدأ بعرض طلبات التوصيل القريبة وإرسال التنبيهات إليك",
-    "a11yGoOfflineHint": "يمنع وصول طلبات التوصيل والتنبيهات الجديدة إليك"
+    "a11yGoOfflineHint": "يمنع وصول طلبات التوصيل والتنبيهات الجديدة إليك",
+    "availableOrders": "الطلبات المتاحة",
+    "orderDetails": "تفاصيل الطلب",
+    "online": "متصل",
+    "offline": "غير متصل"
   },
   "leaderboard": {
     "a11yCloseDiscount": "إغلاق نافذة الخصم",

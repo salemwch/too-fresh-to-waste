@@ -60,6 +60,8 @@ function LogoutButton() {
 }
 
 export default function DriverStack() {
+  const { t } = useTranslation();
+
   return (
     <Stack.Navigator
       initialRouteName='DriverOrdersList'
@@ -77,22 +79,22 @@ export default function DriverStack() {
       <Stack.Screen
         name='DriverOrdersList'
         component={DriverOrdersListScreen}
-        options={{ title: 'Available Orders' }}
+        options={{ title: t('driver.availableOrders') }}
       />
       <Stack.Screen
         name='DriverOrderDetail'
         component={DriverOrderDetailScreen}
-        options={{ title: 'Order Details' }}
+        options={{ title: t('driver.orderDetails') }}
       />
       <Stack.Screen
         name='DriverActiveOrder'
         component={DriverActiveOrderScreen}
-        options={{ title: 'Active Delivery' }}
+        options={{ title: t('driver.activeDelivery') }}
       />
       <Stack.Screen
         name='DriverEarnings'
         component={DriverEarningsScreen}
-        options={{ title: 'Earnings' }}
+        options={{ title: t('driver.earnings') }}
       />
     </Stack.Navigator>
   );

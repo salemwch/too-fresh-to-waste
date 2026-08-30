@@ -103,7 +103,6 @@ const BACKLOG: Readonly<Record<string, number>> = {
   'features/loyalty/components/RecentActivityList.tsx': 3,
   'features/orders/components/ReviewModal.tsx': 3,
   'features/orders/screens/OrderHistoryScreen.tsx': 3,
-  'features/profile/screens/ContactSupportScreen.tsx': 3,
   'features/profile/screens/EditProfileScreen.tsx': 3,
   'features/profile/screens/SecurityScreen.tsx': 3,
   'features/search/components/EstablishmentBottomSheet/EstablishmentBottomSheet.tsx': 3,
@@ -123,7 +122,6 @@ const BACKLOG: Readonly<Record<string, number>> = {
   'features/offers/components/ReviewSummarySection.tsx': 1,
   'features/search/components/ActiveFilterChips.tsx': 1,
   'features/search/components/FilterBottomSheet.tsx': 1,
-  'navigation/components/LocationHeader.tsx': 1,
 };
 
 describe('hardcoded user-facing strings', () => {

@@ -451,7 +451,7 @@ export default function DriverOrdersListScreen({ navigation }: Props) {
       <View
         style={[styles.statusDot, isOnline ? styles.statusDotOnline : styles.statusDotOffline]}
       />
-      <Text style={styles.statusText}>{isOnline ? 'Online' : 'Offline'}</Text>
+      <Text style={styles.statusText}>{isOnline ? t('driver.online') : t('driver.offline')}</Text>
 
       <Switch
         value={isOnline}

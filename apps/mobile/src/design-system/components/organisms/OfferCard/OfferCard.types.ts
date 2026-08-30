@@ -203,7 +203,12 @@ export interface OfferCardProps {
 }
 
 /**
- * Helper type for mapping OfferType to display strings
+ * Helper type for mapping OfferType to display strings.
+ *
+ * @deprecated Not used for rendering any more - these are English-only, and the
+ * type chip showed "SURPRISE BAG" in Arabic and French. The UI reads
+ * `offers.types.<OfferType>` from i18n instead. Kept for any non-display
+ * consumer; do not reintroduce it into a rendered string.
  */
 export const offerTypeLabels: Record<OfferType, string> = {
   surprise_bag: 'Surprise Bag',
