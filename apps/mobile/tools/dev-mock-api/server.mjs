@@ -123,6 +123,32 @@ const leaderboardEntry = rank => ({
   isCurrentUser: rank === CURRENT_USER_RANK,
 });
 
+/** The one LoyaltyAccount fixture. Both /loyalty/account and its aliases use it. */
+const loyaltyAccount = () => ({
+      _id: 'dev-loyalty-0001',
+      userId: USER.userId,
+      totalPoints: 340,
+      availablePoints: 340,
+      lifetimePointsEarned: 620,
+      totalOrdersCount: 34,
+      totalBagsSaved: 34,
+      totalAmountSpent: 272,
+      // TierName is capitalised. Lowercase 'bronze' matched no TIER_CONFIGS key
+      // and threw "Cannot read property 'minPoints' of undefined".
+      currentTier: 'Silver',
+      badges: [],
+      pointsHistory: [],
+      referralCount: 2,
+      joinedAt: iso(-90 * 864e5),
+      lastActivity: iso(-864e5),
+      isActive: true,
+      loginStreak: { current: 4, longest: 9, lastLoginDate: iso(-864e5) },
+      purchaseStreak: { current: 2, longest: 6, lastPurchaseDate: iso(-2 * 864e5) },
+      reviewTracking: { totalReviews: 3, lastReviewAt: iso(-5 * 864e5) },
+      referralCode: 'DEVCODE',
+      leaderboardConsent: { hasConsented: true, isAnonymous: false, decidedAt: iso(-30 * 864e5) },
+});
+
 const ESTABLISHMENT = {
   _id: 'dev-est-0001',
   name: 'Boulangerie du Lac',
@@ -473,47 +499,45 @@ const routes = [
   /* Shapes from packages/shared/src/types/loyalty.types.ts:61 and :88. Both
    * were surfacing in the UNMATCHED log and left Loyalty and Leaderboard
    * stuck on their skeletons. */
-  ['GET', /^\/loyalty\/account$/, () =>
-    ok({
-      _id: 'dev-loyalty-0001',
-      userId: USER.userId,
-      totalPoints: 340,
-      availablePoints: 340,
-      lifetimePointsEarned: 620,
-      totalOrdersCount: 34,
-      totalBagsSaved: 34,
-      totalAmountSpent: 272,
-      currentTier: 'bronze',
-      badges: [],
-      pointsHistory: [],
-      referralCount: 2,
-      joinedAt: iso(-90 * 864e5),
-      lastActivity: iso(-864e5),
-      isActive: true,
-      loginStreak: { current: 4, longest: 9, lastLoginDate: iso(-864e5) },
-      purchaseStreak: { current: 2, longest: 6, lastPurchaseDate: iso(-2 * 864e5) },
-      reviewTracking: { totalReviews: 3, lastReviewAt: iso(-5 * 864e5) },
-      referralCode: 'DEVCODE',
-      leaderboardConsent: { hasConsented: true, isAnonymous: false, decidedAt: iso(-30 * 864e5) },
-    })],
+  ['GET', /^\/loyalty\/account$/, () => ok(loyaltyAccount())],
 
+  /*
+   * Shape is GamificationStats from packages/shared/src/types/loyalty.types.ts.
+   * loginStreak, purchaseStreak and reviews were missing, so StreakCard threw
+   * "Cannot read property 'pointsEarnedThisMonth' of undefined" and took the
+   * Loyalty screen into the error boundary. All three are required by the
+   * contract; the partial fixture was the bug.
+   */
   ['GET', /^\/loyalty\/gamification$/, () =>
     ok({
       referralCode: 'DEVCODE',
       friendReferrals: { pending: 1, completed: 2, pointsReward: 50, pendingDetails: [] },
       businessReferrals: { pending: 0, completed: 0, pointsReward: 100, pendingDetails: [] },
+      loginStreak: {
+        currentStreak: 4,
+        pointsEarnedThisMonth: 40,
+        maxPointsPerMonth: 100,
+        daysRequired: 7,
+        longestStreak: 9,
+      },
+      purchaseStreak: {
+        bagsThisPeriod: 2,
+        bagsRequired: 3,
+        daysRemaining: 5,
+        completedThisMonth: false,
+        totalStreaksCompleted: 3,
+      },
+      reviews: {
+        totalReviews: 3,
+        totalPointsFromReviews: 45,
+        pointsPerReview: 15,
+        minWordsRequired: 10,
+      },
     })],
 
-  ['GET', /^\/loyalty\/(me|summary|points)/, () =>
-    ok({
-      points: 340,
-      totalBagsSaved: 34,
-      totalOrdersCount: 34,
-      tier: 'silver',
-      currentStreak: 4,
-      longestStreak: 9,
-      nextTierPoints: 500,
-    })],
+  /* Aliases for the same account. One object, so the two can never drift. */
+  /* Aliases for the same account object, so the two can never drift apart. */
+  ['GET', /^\/loyalty\/(me|summary|points)$/, () => ok(loyaltyAccount())],
   ['GET', /^\/loyalty\/activity/, () =>
     page([
       { _id: 'a1', type: 'earn', points: 10, description: 'Saved a bag', createdAt: iso(-864e5) },
