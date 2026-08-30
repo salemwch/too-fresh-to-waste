@@ -59,18 +59,38 @@ const isLocalApi = (baseUrl: string): boolean => {
 };
 
 /**
+ * Which role the fixture session carries.
+ *
+ * The driver flow has four screens that a consumer session can never reach,
+ * because `RootNavigator` renders `DriverStack` only when
+ * `user.role === UserRole.DRIVER`. That guard is the real one and is not
+ * touched: this only decides which role the *fixture user* has, exactly as a
+ * real driver account would. `MOBILE_ALLOWED_ROLES` already permits `driver`,
+ * so nothing about authorization is relaxed to make this work.
+ *
+ * Set `DEV_AUTH_ROLE=driver` in `.env.development` and run the mock with
+ * `MOCK_ROLE=driver`. The two must agree - `GET /auth/me` overwrites the stored
+ * user moments after boot, so a mismatch shows as the app changing stacks
+ * mid-launch.
+ *
+ * Anything other than the exact string `driver` is treated as consumer.
+ */
+export const devAuthRole = (raw: string | undefined): 'consumer' | 'driver' =>
+  raw === 'driver' ? 'driver' : 'consumer';
+
+/**
  * The fixture user. Deliberately `.invalid` - a reserved TLD that can never
  * resolve - so this address cannot collide with, or be mistaken for, a real
  * account. It mirrors `tools/dev-mock-api/server.mjs`, which serves the same
  * user from `GET /auth/me`.
  */
-const DEV_USER = {
+const devUser = (role: 'consumer' | 'driver') => ({
   userId: 'dev-user-000000000001',
-  email: 'dev.consumer@example.invalid',
+  email: `dev.${role}@example.invalid`,
   firstName: 'Dev',
-  lastName: 'Consumer',
+  lastName: role === 'driver' ? 'Driver' : 'Consumer',
   phoneNumber: '+21600000000',
-  role: 'consumer',
+  role,
   status: 'active',
   isEmailVerified: true,
   isPhoneVerified: true,
@@ -79,7 +99,7 @@ const DEV_USER = {
   createdAt: '2026-05-31T00:00:00.000Z',
   updatedAt: '2026-08-29T00:00:00.000Z',
   authProvider: 'local',
-} as const;
+});
 
 /*
  * Obviously-fake, and obviously not secrets - but they must still be shaped
@@ -151,7 +171,8 @@ export async function seedDevSessionIfEnabled(): Promise<DevSessionResult> {
     }
 
     await SecureStorage.setTokens(DEV_ACCESS_TOKEN, DEV_REFRESH_TOKEN);
-    await SecureStorage.setUserData(JSON.stringify(DEV_USER));
+    const role = devAuthRole(Config['DEV_AUTH_ROLE']);
+    await SecureStorage.setUserData(JSON.stringify(devUser(role)));
     await SecureStorage.setSessionMetadata(
       new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       new Date().toISOString(),
@@ -160,7 +181,7 @@ export async function seedDevSessionIfEnabled(): Promise<DevSessionResult> {
     Logger.warn(
       '[DEV-SESSION] Seeded a fixture session against a local mock API. ' +
         'This build cannot do this against a real backend.',
-      { platform: Platform.OS, api: environment.api.baseUrl },
+      { platform: Platform.OS, api: environment.api.baseUrl, role },
     );
 
     return { seeded: true, reason: 'seeded' };

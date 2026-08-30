@@ -14,7 +14,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { devSessionBlockedReason } from '../devSession';
+import { devAuthRole, devSessionBlockedReason } from '../devSession';
 
 const MOBILE_ROOT = join(__dirname, '..', '..', '..');
 
@@ -144,5 +144,36 @@ describe('the entry point keeps it behind __DEV__', () => {
 
   it('does not import the module at the top level', () => {
     expect(entry).not.toMatch(/^import .*devSession/mu);
+  });
+});
+
+describe('devAuthRole - which role the fixture session carries', () => {
+  it('returns driver only for the exact string', () => {
+    expect(devAuthRole('driver')).toBe('driver');
+  });
+
+  it.each([
+    ['undefined', undefined],
+    ['empty', ''],
+    ['consumer', 'consumer'],
+    ['DRIVER (wrong case)', 'DRIVER'],
+    ['Driver', 'Driver'],
+    ['driver ', 'driver '],
+    ['admin', 'admin'],
+    ['merchant', 'merchant'],
+  ])('falls back to consumer for %s', (_label, raw) => {
+    // Anything unrecognised must land on the least-privileged fixture rather
+    // than the one that unlocks an extra navigation stack.
+    expect(devAuthRole(raw as string | undefined)).toBe('consumer');
+  });
+
+  it('never returns a role the mobile app disallows', () => {
+    // MOBILE_ALLOWED_ROLES permits consumer and driver only. A fixture that
+    // could produce `admin` or `merchant` would be logged straight back out by
+    // the auth slice, which would look like a broken fixture rather than a
+    // refused role.
+    for (const raw of ['admin', 'merchant', 'moderator', 'location_manager']) {
+      expect(['consumer', 'driver']).toContain(devAuthRole(raw));
+    }
   });
 });

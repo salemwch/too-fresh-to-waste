@@ -70,13 +70,29 @@ const page = (items, total = items.length) =>
 
 /* ------------------------------------------------------------------ fixtures */
 
+/**
+ * Which role this mock serves, and therefore which stack the app routes to.
+ *
+ *   MOCK_ROLE=driver node tools/dev-mock-api/server.mjs
+ *
+ * It must match `DEV_AUTH_ROLE` in .env.development, because the seeder writes
+ * the stored user and `GET /auth/me` overwrites it a moment later - a mismatch
+ * shows as the app flipping stacks on boot.
+ *
+ * The app's *real* guard does the routing either way: RootNavigator renders
+ * DriverStack only when `user.role === UserRole.DRIVER`, and
+ * MOBILE_ALLOWED_ROLES gates which roles may use the app at all. Nothing here
+ * bypasses either.
+ */
+const ROLE = process.env.MOCK_ROLE === 'driver' ? 'driver' : 'consumer';
+
 const USER = {
   userId: 'dev-user-000000000001',
-  email: 'dev.consumer@example.invalid',
+  email: `dev.${ROLE}@example.invalid`,
   firstName: 'Dev',
-  lastName: 'Consumer',
+  lastName: ROLE === 'driver' ? 'Driver' : 'Consumer',
   phoneNumber: '+21600000000',
-  role: 'consumer',
+  role: ROLE,
   status: 'active',
   isEmailVerified: true,
   isPhoneVerified: true,
@@ -258,6 +274,62 @@ const ORDERS = [
   order(4, 'cancelled'),
 ];
 
+
+/* ------------------------------------------------------------ driver fixtures */
+
+/** Shapes from features/driver/services/driver.service.ts (27, 77, 86). */
+const driverOrder = (i, status, over = {}) => ({
+  _id: `dev-dorder-${String(i).padStart(4, '0')}`,
+  orderNumber: `TFW-D${2000 + i}`,
+  customerId: {
+    _id: 'dev-customer-0001',
+    firstName: 'Amel',
+    lastName: 'Ben Salah',
+    phoneNumber: '+21611111111',
+  },
+  establishmentId: ESTABLISHMENT,
+  driverId: status === 'pending' ? null : DRIVER_PROFILE.userId,
+  deliveryFee: 4,
+  driverEarnings: 3,
+  deliveryMode: 'delivery',
+  status,
+  items: [{ offerId: 'dev-offer-0000', offerTitle: 'Surprise Bag', quantity: 1, unitPrice: 8, totalPrice: 8 }],
+  deliveryAddress: {
+    street: '24 Avenue Habib Bourguiba',
+    city: 'Tunis',
+    postalCode: '1000',
+    coordinates: { latitude: 36.8008, longitude: 10.1817 },
+  },
+  establishmentAddress: {
+    street: '12 Rue du Lac',
+    city: 'Tunis',
+    coordinates: { latitude: 36.8333, longitude: 10.2333 },
+  },
+  collectionStartTime: iso(1800e3),
+  collectionEndTime: iso(5400e3),
+  expiresAt: iso(6 * 3600e3),
+  totalAmount: 12,
+  paymentDetails: { method: 'cash', amount: 12 },
+  createdAt: iso(-1800e3),
+  updatedAt: iso(),
+  ...over,
+});
+
+const DRIVER_PROFILE = {
+  _id: 'dev-driver-0001',
+  userId: 'dev-user-000000000001',
+  idCardNumber: '00000000',
+  address: 'Tunis, Tunisia',
+  isOnline: true,
+  lastOnlineAt: iso(-600e3),
+};
+
+const AVAILABLE_ORDERS = [driverOrder(0, 'confirmed'), driverOrder(1, 'confirmed')];
+const ACTIVE_ORDER = driverOrder(2, 'driver_assigned', {
+  driverAssignedAt: iso(-900e3),
+});
+const DRIVER_HISTORY = [driverOrder(3, 'delivered', { deliveredAt: iso(-864e5) })];
+
 /* -------------------------------------------------------------------- routes */
 
 /** [method, RegExp, handler] - first match wins. */
@@ -296,12 +368,57 @@ const routes = [
    * whole tab tree into the QueryErrorBoundary. */
   ['POST', /^\/proximity-search\/offers$/, () => page(NEARBY_RESULTS)],
   ['POST', /^\/proximity-search\/establishments$/, () => page([ESTABLISHMENT])],
-  ['POST', /^\/proximity-search\/map-establishments$/, () => page([ESTABLISHMENT])],
+  /* ProximitySearchResult<MapEstablishment> - wrapped, and MapEstablishment has
+   * its own flat shape (geo.types.ts:128). A bare establishment here threw
+   * "Cannot read property '_id' of undefined" from SearchScreen and put a
+   * LogBox toast over the tab bar, which is what made navigation taps vanish. */
+  ['POST', /^\/proximity-search\/map-establishments$/, () =>
+    page([
+      {
+        item: {
+          _id: ESTABLISHMENT._id,
+          name: ESTABLISHMENT.name,
+          type: 'bakery',
+          profileImage: null,
+          coordinates: { latitude: 36.8333, longitude: 10.2333 },
+          address: {
+            street: '12 Rue du Lac',
+            city: 'Tunis',
+            state: 'Tunis',
+            postalCode: '1000',
+            country: 'Tunisia',
+            formattedAddress: '12 Rue du Lac, Tunis',
+          },
+          averageRating: 4.6,
+          totalReviews: 128,
+          isVerified: true,
+          activeOfferCount: 3,
+          offers: [
+            {
+              _id: 'dev-offer-0000',
+              title: 'Surprise Bag',
+              description: 'End of day selection.',
+              pricing: { originalPrice: 24, discountedPrice: 8, discountPercentage: 67, currency: 'TND' },
+              availableFrom: iso(-3600e3),
+              availableUntil: iso(6 * 3600e3),
+            },
+          ],
+        },
+        distance: { meters: 1200, kilometers: 1.2, formatted: '1.2 km' },
+        geoData: { coordinates: { latitude: 36.8333, longitude: 10.2333 } },
+      },
+    ])],
   ['GET', /^\/proximity-search\/quick-search/, () => page(NEARBY_RESULTS)],
 
   ['GET', /^\/establishments\/?$/, () => page([ESTABLISHMENT])],
   ['GET', /^\/establishments\/[^/]+$/, () => ok(ESTABLISHMENT)],
 
+  ['POST', /^\/orders\/?$/, () => ok(ORDERS[0])],
+  ['POST', /^\/orders\/[^/]+\/retry-payment$/, () => ok({ payUrl: 'https://example.invalid/pay' })],
+  ['GET', /^\/notifications\/preferences$/, () =>
+    ok({ pushEnabled: true, favoriteStoreOffers: true, orderUpdates: true, marketing: false })],
+  ['PUT', /^\/notifications\/preferences$/, () => ok({ updated: true })],
+  ['PATCH', /^\/notifications\/preferences$/, () => ok({ updated: true })],
   ['GET', /^\/orders\/?$/, () => page(ORDERS)],
   /* The real endpoint the Orders tab calls. Without it this fell through to
    * the `/orders/:id` rule below and returned a single object, which the list
@@ -446,13 +563,50 @@ const routes = [
   ['GET', /^\/donations\/(pool|impact|current)/, () =>
     ok({ goal: 'TSHIRTS', target: 500, raised: 213, status: 'ACTIVE', season: 1 })],
 
-  ['GET', /^\/drivers\/me/, () => ok({ driverId: 'dev-driver-1', isOnline: false, status: 'offline' })],
-  ['GET', /^\/drivers\/orders\/available/, () => page([])],
-  ['GET', /^\/drivers\/orders\/active/, () => ok(null)],
+  ['GET', /^\/drivers\/me$/, () => ok(DRIVER_PROFILE)],
+  ['GET', /^\/drivers\/orders\/available/, () => page(AVAILABLE_ORDERS)],
+  /* `MOCK_DRIVER_IDLE=1` reports no active delivery.
+   *
+   * DriverOrdersListScreen hides the available-orders list while a delivery is
+   * in progress, so DriverOrderDetailScreen - which is only reachable by
+   * tapping an available order - cannot be opened otherwise. Both states are
+   * worth seeing, and this switches between them without editing fixtures. */
+  ['GET', /^\/drivers\/orders\/active/, () =>
+    ok(process.env.MOCK_DRIVER_IDLE === '1' ? null : ACTIVE_ORDER)],
+  ['GET', /^\/drivers\/orders\/history/, () =>
+    ok({ orders: DRIVER_HISTORY, total: DRIVER_HISTORY.length, page: 1, limit: 20 })],
+  /* DriverEarningsSummary - the field names are today/thisWeek/thisMonth/allTime,
+   * not today/week/month. A wrong key renders a blank figure rather than an
+   * error, which is the quiet failure this file keeps producing. */
   ['GET', /^\/drivers\/earnings/, () =>
-    ok({ today: 12, week: 84, month: 320, totalDeliveries: 41, currency: 'TND' })],
+    ok({
+      today: 12,
+      thisWeek: 84,
+      thisMonth: 320,
+      allTime: 1240,
+      deliveriesToday: 4,
+      deliveriesAllTime: 412,
+      currency: 'TND',
+    })],
+  ['PATCH', /^\/drivers\/status/, () => ok({ ...DRIVER_PROFILE, isOnline: true })],
+  ['POST', /^\/drivers\/status/, () => ok({ ...DRIVER_PROFILE, isOnline: true })],
+  ['POST', /^\/drivers\/location/, () => ok({ updated: true })],
+  ['PATCH', /^\/drivers\/orders\/[^/]+\/(accept|pickup|deliver|unassign)$/, () =>
+    ok(ACTIVE_ORDER)],
+  ['POST', /^\/drivers\/orders\/[^/]+\/(accept|pickup|deliver|unassign)$/, () =>
+    ok(ACTIVE_ORDER)],
 
   ['GET', /^\/notifications/, () => page([])],
+  /* The establishment review summary is an object, not a list.
+   * `ReviewSummarySection` reads `summary.averageRating.toFixed(1)` with no
+   * guard, so the empty page this used to fall through to red-screened Offer
+   * Details. Same unguarded-read class as DL-10. */
+  ['GET', /^\/reviews\/establishment\/[^/]+\/summary$/, () =>
+    ok({
+      averageRating: 4.6,
+      totalReviews: 128,
+      ratingBreakdown: { 5: 80, 4: 30, 3: 10, 2: 5, 1: 3 },
+    })],
   ['GET', /^\/reviews/, () => page([])],
   /* The manual city search geocodes rather than listing cities. Without this
    * the location modal can never be satisfied on an emulator with no GPS fix,
@@ -527,6 +681,36 @@ const server = createServer((req, res) => {
     res.end(json);
   });
 });
+
+/**
+ * A real socket.io endpoint, not a stub.
+ *
+ * The app opens a socket for order notifications. Without a server the client
+ * retries forever, and each attempt logs `[SocketService] Connection error` -
+ * eleven of them during one boot in the last pass. Those are warnings rather
+ * than errors, but LogBox renders over `[0,1208][720,1280]`, which is exactly
+ * the tab bar, so anything it shows makes navigation taps land on
+ * "Dismiss"/"Minimize" instead of a tab.
+ *
+ * Attaching the real server is the honest fix: the warnings disappear because
+ * the connection succeeds, not because anything was silenced. socket.io is
+ * already in the workspace (the backend depends on it), so this adds no
+ * dependency.
+ *
+ * If it ever cannot be loaded, the mock still serves HTTP - the socket is a
+ * convenience for the verification rig, not a requirement of it.
+ */
+try {
+  const { Server } = await import('socket.io');
+  const io = new Server(server, { cors: { origin: '*' }, path: '/socket.io/' });
+  io.on('connection', socket => {
+    console.log(`  socket connected: ${socket.id}`);
+    socket.on('disconnect', () => console.log(`  socket disconnected: ${socket.id}`));
+  });
+  console.log('socket.io attached');
+} catch (error) {
+  console.log(`socket.io not attached (${error.message}) - HTTP mock still serving`);
+}
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`dev mock API on http://127.0.0.1:${PORT}  (strips /api/v1)`);

@@ -69,6 +69,14 @@ if (__DEV__) {
   const { seedDevLocationIfEnabled } = require('./src/dev/devLocation');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   seedDevLocationIfEnabled(require('./src/store').store);
+
+  // The driver screens do not read the persisted location: they call
+  // Geolocation.watchPosition and gate on its result, so on an emulator with no
+  // GPS they never leave "Acquiring GPS signal". This returns one fixed fix so
+  // that flow is reachable. Permission handling is deliberately not patched.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { seedDevGeolocationIfEnabled } = require('./src/dev/devGeolocation');
+  seedDevGeolocationIfEnabled();
 }
 
 // ============================================================================
