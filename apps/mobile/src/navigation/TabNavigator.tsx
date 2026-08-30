@@ -17,7 +17,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StackActions } from '@react-navigation/native';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, View, StyleSheet } from 'react-native';
+import { Platform, PixelRatio, View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/design-system/components/atoms';
@@ -29,6 +29,7 @@ import { HomeStack } from './HomeStack';
 import { OrdersStack } from './OrdersStack';
 import { ProfileStack } from './ProfileStack';
 import { SearchStack } from './SearchStack';
+import { getTabBarHeight } from './utils/tabBarHeight';
 
 import type { TabParamList } from './types';
 
@@ -51,6 +52,16 @@ const TabNavigatorComponent: React.FC = () => {
     flex: 1,
     backgroundColor: theme.colors.surface,
   };
+
+  // Grows with the OS font scale so tab labels are never clipped. See
+  // navigation/utils/tabBarHeight.ts for the derivation and why it must be
+  // `height` rather than `minHeight`.
+  const tabBarHeight = getTabBarHeight({
+    fontScale: PixelRatio.getFontScale(),
+    bottomInset: insets.bottom,
+    labelFontSize: theme.typography.fontSize.xs,
+    platform: Platform.OS === 'ios' ? 'ios' : 'android',
+  });
 
   /**
    * Get icon name based on tab and focus state
@@ -98,9 +109,10 @@ const TabNavigatorComponent: React.FC = () => {
           shadowColor: 'transparent',
           shadowOffset: { width: 0, height: 0 },
           shadowRadius: 0,
-          // Height expands to cover the Android navigation bar inset so the
-          // tab bar background fills the full bottom edge in edge-to-edge mode.
-          height: Platform.OS === 'ios' ? 88 : 56 + insets.bottom,
+          // Covers the Android navigation bar inset so the tab bar background
+          // fills the full bottom edge in edge-to-edge mode, and grows with the
+          // OS font scale. See the derivation above.
+          height: tabBarHeight,
           paddingBottom: Platform.OS === 'ios' ? 24 : 8,
           paddingTop: 8,
         },

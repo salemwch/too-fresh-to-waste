@@ -150,7 +150,20 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: TOOLBAR_HEIGHT,
+    /*
+     * `minHeight`, not `height`.
+     *
+     * 56dp is the Material toolbar spec and stays the height at every normal
+     * font scale, because the title content is shorter than that. At a 2.0x
+     * system font scale it is not: the title grew taller than the fixed box and
+     * overflowed *upward* into the status bar, because the toolbar sits below
+     * `paddingTop: insets.top`. Device-verified on 2026-08-30.
+     *
+     * A minimum lets the bar grow with its content instead, which is the whole
+     * point of the setting - and renders identically at 1.0x-1.5x, where the
+     * content never reaches 56dp.
+     */
+    minHeight: TOOLBAR_HEIGHT,
     paddingHorizontal: 4,
   },
   leftContainer: {

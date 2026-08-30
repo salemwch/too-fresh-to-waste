@@ -253,7 +253,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
               </View>
 
               {/* Favorite store offers toggle */}
-              <View style={styles.row}>
+              {/* The colour is required. `styles.row` sets borderBottomWidth
+                  but no borderBottomColor, and React Native's default border
+                  colour is black - so this row rendered a full-strength black
+                  rule (20.12 contrast) directly below its sibling's #E0E0E0
+                  one. Device-verified on 2026-08-30. */}
+              <View style={[styles.row, { borderBottomColor: theme.colors.outlineVariant }]}>
                 <View style={styles.rowText}>
                   <Text
                     variant='body.medium'

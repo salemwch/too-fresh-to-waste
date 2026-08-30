@@ -234,7 +234,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
-    height: 48,
+    /*
+     * `minHeight`, not `height`. The input inside is 15px and scales with the
+     * OS font setting; at 2.0x that is 30px of glyph in a fixed 48px box with
+     * padding, and the placeholder was clipped top and bottom.
+     * Device-verified on 2026-08-30.
+     *
+     * Unchanged below 2.0x, where the content never exceeds 48.
+     */
+    minHeight: 48,
   },
 
   // Search icon on the left

@@ -124,15 +124,25 @@ const styles = StyleSheet.create({
     marginEnd: 8,
     justifyContent: 'center',
   },
+  /*
+   * No hardcoded `lineHeight` on either of these.
+   *
+   * `fontSize` is scaled by the OS accessibility setting; a literal
+   * `lineHeight` is not. At a 2.0x system font scale these were 20px and 28px
+   * of glyph inside 12px and 18px line boxes, so both lines were clipped.
+   * Device-verified on 2026-08-30.
+   *
+   * Letting React Native derive the line height from the (already scaled) font
+   * keeps the ratio correct at every scale. At 1.0x the derived values are
+   * within a pixel of the literals they replace, so the header looks the same.
+   */
   locationLabel: {
     fontSize: 10,
-    lineHeight: 12,
     fontWeight: '500',
     marginBottom: 2,
   },
   locationText: {
     fontSize: 14,
-    lineHeight: 18,
     fontWeight: '600',
   },
 });
