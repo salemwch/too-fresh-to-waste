@@ -1394,3 +1394,177 @@ Ordered by what would most change a release decision.
 **Not certified.** `DESIGN_CERTIFICATION.md` has deliberately not been created.
 Items 1-3 above are open defects with device evidence, and items 6-8 are
 coverage that does not exist yet.
+
+---
+
+# Part 6 - Blocker Remediation
+
+**Run date:** 2026-08-30 **Device:** BlueStacks, Android 9, 720x1280 @ 240 dpi
+(1 dp = 1.5 px) **Theme:** light only. `defaultTheme='light'`,
+`DARK_MODE_ENABLED=false` and `lockToLight` untouched. **Environment:**
+`.env.development` restored to the normal development values - production API,
+no `ENABLE_DEV_AUTH`. Verified byte-identical to `.env.development.bak`.
+
+## 48. Fixed
+
+### B1 - Header rows lost content at large font scales (was Part 5 F7)
+
+A row of two or three text children breaks at large font scales: every child
+grows, none can shrink below its own text, and whatever sits last is squeezed
+off the edge. Two places on the driver flow were affected.
+
+| Row                         | Failure at 2.0x                                     |
+| --------------------------- | --------------------------------------------------- |
+| `AppHeader` title + actions | Title collapsed to "Livrais.."; actions kept theirs |
+| Driver header card          | Delivery status badge pushed off the card entirely  |
+
+Both now reflow to a column, sharing one rule in
+`design-system/utils/largeFontScale.ts`.
+
+**The threshold is measured, not chosen.** At 1.3x the rows still fit on a 720
+px / 240 dpi screen; at 1.5x they do not. Stacking earlier would change the
+layout for users who never needed it, so the threshold is 1.5.
+
+Reflow was picked over every alternative on purpose. Capping the scale,
+shrinking the font, ellipsising, or dropping the least important child all work
+by **showing the user less text**, which is the opposite of what they asked the
+OS for. The requirement was explicit that the status badge must not be clipped
+and important content must not be truncated; a column satisfies both.
+
+`AppHeader` only restructures when there is a right element to move. A header
+with no actions has no crowding to solve and keeps its original single row.
+
+The status badge is now `flexShrink: 0` and the order-number row
+`flexShrink: 1`, so even in the row layout the badge cannot be the thing that
+yields - the order number is a reference the driver rarely reads, the status
+tells them where to go.
+
+**Regression coverage.** `largeFontScale` is driven across the whole
+accessibility range including degenerate platform values (18 tests).
+`AppHeader.fontScale.test.tsx` asserts the actual layout branch by `testID` at
+1.0x, 1.3x, 1.5x and 2.0x, not merely that text exists - an earlier draft only
+checked for the presence of the title, which passed against the broken code too,
+because the title was present, just truncated. Both mutations fail the suite:
+never stacking (2 failures) and always stacking (2 failures).
+
+### B2 - Two touch targets under 44 dp (was Part 5 blocker 3)
+
+| Control                      | Before      | After                     | How                         |
+| ---------------------------- | ----------- | ------------------------- | --------------------------- |
+| Bottom tab buttons           | 96 x 40 dp  | **96 x 44 dp - measured** | Bar padding 8 -> 6          |
+| OfferCard establishment link | 212 x 20 dp | 212 x 44 dp               | `hitSlop` 12 top and bottom |
+
+The tab fix needed the mechanism, not a guess: react-navigation sizes each tab
+button as the **bar height minus the bar's vertical padding**, so 56 - 8 - 8
+left 40 dp. At 6 it is exactly 44, and the bar keeps its 56 dp height - the
+icons move 2 dp, which is not perceptible. `tabBarHeight.ts` was updated in step
+with it, and now asserts the 44 dp button invariant directly rather than only
+the bar height.
+
+`hitSlop` was chosen for the establishment link because it grows the touch area
+**without moving a single pixel of layout** - the requirement was not to change
+the visual size of the controls.
+
+**Device-measured after the fix, at 1.0x:**
+
+```
+Home      144x66px = 96x44dp  PASS
+Search    144x66px = 96x44dp  PASS
+Favorites 144x66px = 96x44dp  PASS
+Orders    144x66px = 96x44dp  PASS
+Profile   144x66px = 96x44dp  PASS
+```
+
+66 px / 1.5 = 44 dp exactly, against 60 px / 40 dp before.
+
+## 49. Pending product/design decision
+
+### OfferCard `maxWidth: 270` dp - recorded, deliberately unchanged
+
+Full entry with evidence: **`.claude/work/offercard-width-decision.md`**.
+
+| Width  | Available | Rendered | Used | Unused       |
+| ------ | --------- | -------- | ---- | ------------ |
+| 320 dp | 256 dp    | 256 dp   | 100% | 0 dp (0%)    |
+| 390 dp | 326 dp    | 270 dp   | 83%  | 56 dp (17%)  |
+| 430 dp | 366 dp    | 270 dp   | 74%  | 96 dp (26%)  |
+| 480 dp | 416 dp    | 270 dp   | 65%  | 146 dp (35%) |
+
+Measured on Favorites: card renders 405 px in a 624 px row, left-aligned at
+x=48. 405 px is exactly 270 dp x 1.5, confirming the cap is what binds.
+
+**It is invisible at 320 dp and worsens with width** - which is why it survived
+review, since the narrowest device is the one people check.
+
+Recommendation is Option A (move the cap to the carousels that need it), with
+Option B as the lower-risk choice near a release. RTL and Search are listed as
+unconfirmed in the entry rather than assumed.
+
+## 50. Verification
+
+| Check                      | Result                                                     |
+| -------------------------- | ---------------------------------------------------------- |
+| `tsc --noEmit`             | Clean (excluding the known `rehydrationOrchestrator` debt) |
+| `eslint src`               | Clean                                                      |
+| Jest                       | **119 suites / 1919 tests** passed                         |
+| Visual regression          | **422 snapshots**, **zero drift**                          |
+| Android production release | **BUILD SUCCESSFUL**                                       |
+| Dev markers in bundle      | **0**, both UTF-8 and UTF-16LE, controls found             |
+
+**Zero snapshot drift is the load-bearing result here.** The matrix renders at a
+normal font scale, so an unchanged baseline is positive evidence that the reflow
+and the tab padding are inert at 1.0x - exactly the "preserve normal appearance"
+requirement.
+
+### Device verification actually performed
+
+| What                    | Result                                                                                                |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| Tab touch targets, 1.0x | **VERIFIED** - all five at 96x44 dp                                                                   |
+| Cold start at 2.0x      | **VERIFIED** - no fatal, no render error                                                              |
+| Tab labels at 2.0x      | **VERIFIED** - all five fully rendered, not clipped                                                   |
+| Error states at 2.0x    | **VERIFIED** - network banner wraps to two lines; "Couldn't load these offers" + Retry render in full |
+
+### Device verification NOT performed, and why
+
+Restoring `.env.development` removed `ENABLE_DEV_AUTH` and repointed the app at
+the production API, which is what the environment is supposed to look like. That
+also makes the driver flow and populated lists unreachable on the emulator.
+
+**Not re-verified on device after the fix:**
+
+- The driver header reflow at 1.3x / 1.5x / 2.0x in en, fr and ar. The fix is
+  covered by unit tests that assert the layout branch and by mutation testing,
+  but it has not been seen rendered since the change.
+- The OfferCard establishment link's 44 dp target, which needs a populated
+  Favorites or Home list.
+- The full 3-locale x 4-scale matrix requested in step 4.
+
+Re-running these needs `ENABLE_DEV_AUTH=true` and the mock API base URL put back
+temporarily. **This is the one outstanding item in this pass.**
+
+## 51. Remaining limitations
+
+1. **The device matrix above has not been re-run since the fix.** Unit tests and
+   mutation checks cover the decision; pixels do not.
+2. **New, not fixed:** the Home search input reports a 319 x 21 dp touch node.
+   The surrounding bar is 48 dp and is what a user aims at, so this is likely
+   the inner `TextInput` rather than the real target - but it was measured, not
+   dismissed, and has not been confirmed either way.
+3. **`OfferCard.establishmentName` still hardcodes `lineHeight: 20` against
+   `fontSize: 16`** - the same font-scale class as the Part 4 D6 defects.
+4. **~35 files remain on the hardcoded-string ratchet.**
+5. **Single device.** No notch, foldable, tablet, or Android 13+ coverage.
+6. **The backend is a mock** in every authenticated pass to date.
+7. **Not inspected in fr/ar:** Search, Orders, Order Details, Offer Details;
+   Contact Support in Arabic.
+8. **Dark mode remains unverified by design** and is off in production.
+
+## 52. Certification status
+
+**Not certified.** `DESIGN_CERTIFICATION.md` has deliberately not been created.
+
+The two engineering blockers from Part 5 are fixed and gated. What stands
+between this and certification is now (a) the device re-verification in §50, (b)
+the OfferCard width decision, which is a product call rather than a defect, and
+(c) the coverage listed in §51.
