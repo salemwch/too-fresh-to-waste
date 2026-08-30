@@ -216,6 +216,40 @@ const order = (i, status, deliveryMode = 'pickup') => {
   };
 };
 
+/**
+ * Proximity search does not return bare offers. It returns
+ * `ProximitySearchResult<NearbyOffer>` - `{ item, distance, geoData }` - and
+ * `groupOffersByEstablishment` destructures `result.item` with no guard, so a
+ * bare-offer fixture threw `iterator method is not callable` and took the whole
+ * tab tree into the error boundary.
+ *
+ * `NearbyOffer` is also flatter than `Offer`: the establishment is three
+ * denormalised fields (`establishmentId`, `establishmentName`,
+ * `establishmentLogo`), not a populated object.
+ *
+ * Both shapes from packages/shared/src/types/geo.types.ts:67 and :102.
+ */
+const nearbyResult = (i) => ({
+  item: {
+    _id: `dev-offer-${String(i).padStart(4, '0')}`,
+    title: ['Surprise Bag', 'Pastry Box', 'Sandwich Deal', 'Veggie Basket'][i % 4],
+    description: 'A mixed selection of what is left at the end of the day.',
+    establishmentId: ESTABLISHMENT._id,
+    establishmentName: ESTABLISHMENT.name,
+    establishmentLogo: null,
+    pricing: { originalPrice: 24, discountedPrice: 8, discountPercentage: 67, currency: 'TND' },
+    availableFrom: iso(-3600e3),
+    availableUntil: iso(6 * 3600e3),
+    availableQuantity: 3,
+    categories: ['bakery'],
+    images: [],
+  },
+  distance: { meters: 1200 + i * 400, kilometers: 1.2 + i * 0.4, formatted: `${(1.2 + i * 0.4).toFixed(1)} km` },
+  geoData: { coordinates: { latitude: 36.8065 + i * 0.002, longitude: 10.1815 + i * 0.002 } },
+});
+
+const NEARBY_RESULTS = Array.from({ length: 6 }, (_, i) => nearbyResult(i));
+
 const ORDERS = [
   order(0, 'confirmed'),
   order(1, 'ready_for_pickup'),
@@ -256,16 +290,34 @@ const routes = [
     return ok(OFFERS.find(o => o.id === id) ?? OFFERS[0]);
   }],
 
+  /* Search runs on proximity search, not /offers. These are POSTs, which the
+   * catch-all used to answer with `{}` - an object, and SearchScreen spreads
+   * the result, so it threw `iterator method is not callable` and took the
+   * whole tab tree into the QueryErrorBoundary. */
+  ['POST', /^\/proximity-search\/offers$/, () => page(NEARBY_RESULTS)],
+  ['POST', /^\/proximity-search\/establishments$/, () => page([ESTABLISHMENT])],
+  ['POST', /^\/proximity-search\/map-establishments$/, () => page([ESTABLISHMENT])],
+  ['GET', /^\/proximity-search\/quick-search/, () => page(NEARBY_RESULTS)],
+
   ['GET', /^\/establishments\/?$/, () => page([ESTABLISHMENT])],
   ['GET', /^\/establishments\/[^/]+$/, () => ok(ESTABLISHMENT)],
 
   ['GET', /^\/orders\/?$/, () => page(ORDERS)],
+  /* The real endpoint the Orders tab calls. Without it this fell through to
+   * the `/orders/:id` rule below and returned a single object, which the list
+   * read as no orders - so the tab showed its empty state and looked correct
+   * while proving nothing about OrderCard. Found in the mock's request log. */
+  ['GET', /^\/orders\/my-orders/, () => page(ORDERS)],
   ['GET', /^\/orders\/[^/]+$/, (m, url) => {
     const id = url.pathname.split('/').pop();
     return ok(ORDERS.find(o => o._id === id) ?? ORDERS[0]);
   }],
 
-  ['GET', /^\/favorites\/ids$/, () => ok([OFFERS[0]._id, OFFERS[3]._id])],
+  /* `{ ids }`, not a bare array - `getFavoriteIds` unwraps to
+   * `{ ids: string[] }`. Returning the array directly made the unwrap yield
+   * undefined, which TanStack Query reports as "data is undefined" and LogBox
+   * then renders over the tab bar, swallowing every navigation tap. */
+  ['GET', /^\/favorites\/ids$/, () => ok({ ids: [OFFERS[0].id, OFFERS[3].id] })],
   ['GET', /^\/favorites\/stats$/, () => ok({ offers: 2, establishments: 1, total: 3 })],
   /* An empty favourites list, deliberately.
    *
@@ -281,6 +333,40 @@ const routes = [
    * shape that might not match the backend's. */
   ['GET', /^\/favorites/, () =>
     ok({ favorites: [], total: 0, page: 1, limit: 20, totalPages: 0, hasNext: false, hasPrev: false })],
+
+  /* Shapes from packages/shared/src/types/loyalty.types.ts:61 and :88. Both
+   * were surfacing in the UNMATCHED log and left Loyalty and Leaderboard
+   * stuck on their skeletons. */
+  ['GET', /^\/loyalty\/account$/, () =>
+    ok({
+      _id: 'dev-loyalty-0001',
+      userId: USER.userId,
+      totalPoints: 340,
+      availablePoints: 340,
+      lifetimePointsEarned: 620,
+      totalOrdersCount: 34,
+      totalBagsSaved: 34,
+      totalAmountSpent: 272,
+      currentTier: 'bronze',
+      badges: [],
+      pointsHistory: [],
+      referralCount: 2,
+      joinedAt: iso(-90 * 864e5),
+      lastActivity: iso(-864e5),
+      isActive: true,
+      loginStreak: { current: 4, longest: 9, lastLoginDate: iso(-864e5) },
+      purchaseStreak: { current: 2, longest: 6, lastPurchaseDate: iso(-2 * 864e5) },
+      reviewTracking: { totalReviews: 3, lastReviewAt: iso(-5 * 864e5) },
+      referralCode: 'DEVCODE',
+      leaderboardConsent: { hasConsented: true, isAnonymous: false, decidedAt: iso(-30 * 864e5) },
+    })],
+
+  ['GET', /^\/loyalty\/gamification$/, () =>
+    ok({
+      referralCode: 'DEVCODE',
+      friendReferrals: { pending: 1, completed: 2, pointsReward: 50, pendingDetails: [] },
+      businessReferrals: { pending: 0, completed: 0, pointsReward: 100, pendingDetails: [] },
+    })],
 
   ['GET', /^\/loyalty\/(me|summary|points)/, () =>
     ok({
@@ -421,9 +507,16 @@ const server = createServer((req, res) => {
         unmatched.add(key);
         console.log(`UNMATCHED ${key}${body ? ` body=${body.slice(0, 160)}` : ''}`);
       }
-      // An empty collection, not a 404: surfaces the screen's empty state,
-      // which is a state worth looking at, rather than a network error.
-      payload = method === 'GET' ? page([], 0) : ok({});
+      /* An empty collection, not a 404: surfaces the screen's empty state,
+       * which is a state worth looking at, rather than a network error.
+       *
+       * An empty *list* for every method, including POST. This used to return
+       * `{}` for non-GET and that was actively harmful: screens spread the
+       * result, and a bare object is not iterable, so an unmatched POST threw
+       * `iterator method is not callable` and tripped the error boundary for
+       * the entire tab tree - far noisier than the empty state this default
+       * exists to produce. A list degrades quietly; an object does not. */
+      payload = page([], 0);
     }
 
     const json = JSON.stringify(payload);

@@ -60,6 +60,15 @@ if (__DEV__) {
       require('react-native').DevSettings.reload();
     }
   });
+
+  // Seeds a manual location so LocationSelectionModal does not gate the
+  // authenticated screens on an emulator with no GPS fix. Dispatches the
+  // slice's own setManualLocation once the store has rehydrated - it does not
+  // touch permission state, and it leaves an existing location alone.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { seedDevLocationIfEnabled } = require('./src/dev/devLocation');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  seedDevLocationIfEnabled(require('./src/store').store);
 }
 
 // ============================================================================
