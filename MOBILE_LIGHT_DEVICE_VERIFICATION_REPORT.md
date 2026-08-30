@@ -653,3 +653,299 @@ Stated plainly rather than implied:
 - Everything still open from `MOBILE_LIGHT_MODE_REMEDIATION_REPORT.md` §6.
 
 **The design system is not certified, and this pass does not certify it.**
+
+---
+
+---
+
+# Part 3 - Authenticated Sweep, Location Blocker Removed
+
+**Date:** 2026-08-30 **Status:** substantially complete - not certified
+
+Dark mode was not enabled at any point. `DARK_MODE_ENABLED` is still `false`,
+`defaultTheme` is still `light`, and the device stayed in light mode
+(`mCurUiMode=0x11`) for every capture in this pass.
+
+---
+
+## 25. The blocker, and how it was removed
+
+Part 2 §20 recorded ten screens as NOT REACHED behind `LocationSelectionModal`,
+which is presented over the tab navigator whenever `location.coordinates` is
+null and whose scrim swallows every tab tap.
+
+`src/dev/devLocation.ts` dispatches **`setManualLocation`** - the same action
+the real city-search flow dispatches - once the store has rehydrated.
+
+The existing schema was inspected before anything was written, as instructed,
+and reused rather than duplicated:
+
+| Concern           | What was reused                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| Action            | `setManualLocation` from `store/slices/locationSlice.ts`                                          |
+| Payload           | the slice's own `{ coordinates: LocationCoordinates, name: string }`                              |
+| Reducer behaviour | sets `source: 'manual'`, clears the GPS name cache - identical to a real pick                     |
+| Persistence       | redux-persist through the existing `locationTransform`, which strips only `error` and `isLoading` |
+
+No parallel state format, no direct MMKV write, no new reducer.
+
+**It does not touch location authorization.** `permissionStatus` is untouched,
+no permission is faked, and the production GPS path is unchanged. It also
+refuses to overwrite an existing location, so it seeds an empty slice rather
+than acting as a reset.
+
+### Rehydration ordering
+
+This subscribes to the store rather than dispatching once, because redux-persist
+replaces the slice wholesale when `REHYDRATE` lands - a seed dispatched earlier
+is silently discarded and looks exactly like the fixture never ran. Asserted
+directly in the tests.
+
+### Isolation
+
+The same three gates as the session seeder, through the same predicate:
+`__DEV__`, `ENABLE_DEV_AUTH === 'true'`, and an API base URL on
+localhost/127.0.0.1/10.0.2.2.
+
+**15 tests**, mutation-checked: ignoring rehydration fails 5, overwriting an
+existing location fails 2, dropping the gate fails 2. One test asserts the only
+action dispatched is `location/setManualLocation` and that nothing
+permission-related is dispatched.
+
+**Confirmed on device:** the header reads "Chosen Location / Tunis, Tunisia",
+the modal never appears, and the Search map centres on Tunis.
+
+---
+
+## 26. Screens reached in this pass
+
+| Screen            | Status                     | Evidence                                                                       |
+| ----------------- | -------------------------- | ------------------------------------------------------------------------------ |
+| **Home**          | **VERIFIED**               | Content, skeletons, offer carousels; five measurements                         |
+| **Search**        | **VERIFIED**               | Google map centred on the seeded location, Map/List toggle, search field       |
+| **Orders**        | **VERIFIED**               | Active(3)/History(2), three `OrderCard`s; four measurements                    |
+| **Order Details** | **VERIFIED**               | Items, pricing breakdown, pickup details, confirm-pickup OTP field             |
+| **Profile**       | **VERIFIED**               | Avatar, points card, leaderboard and impact cards, account list                |
+| **Favorites**     | **VERIFIED** (empty state) | Reached; populated list not exercised (§29)                                    |
+| **Leaderboard**   | **PARTIAL**                | Skeleton loading state rendered and captured; content blocked by a fixture gap |
+| Loyalty           | **NOT REACHED**            | Not navigated to in the time available                                         |
+| Settings          | **NOT REACHED**            | Not navigated to                                                               |
+| Checkout          | **NOT REACHED**            | Requires an offer-to-checkout flow not driven                                  |
+| Driver screens    | **NOT REACHED**            | Requires a driver-role session; the fixture user is a consumer                 |
+
+Seven of the eleven target screens were reached. Four were not, and no
+verification is claimed for them.
+
+---
+
+## 27. Measurements
+
+All sampled from the framebuffer.
+
+### 27.1 OrderCard - the last item the brief named
+
+| Element                                       | Rendered  | Was       | Ratio                 | Verdict            |
+| --------------------------------------------- | --------- | --------- | --------------------- | ------------------ |
+| **Establishment line ("Boulangerie du Lac")** | `#616161` | `#9E9E9E` | **5.93** on `#FAFAFA` | **M16-a VERIFIED** |
+| Order number `#TFW-1000`                      | `#616161` | `#9E9E9E` | 5.93                  | M16-a VERIFIED     |
+| Pickup line                                   | `#616161` | `#9E9E9E` | 5.93                  | M16-a VERIFIED     |
+| Title                                         | `#212121` | unchanged | 15.9                  | correct            |
+| Card dotted divider                           | `#EDEDED` | -         | -                     | decorative         |
+
+The establishment line is the site the audit singled out as "the most-seen card
+in the app". It was 2.57 and is now 5.93.
+
+### 27.2 Home, Order Details, Profile
+
+| Element                                      | Rendered  | Verdict                                  |
+| -------------------------------------------- | --------- | ---------------------------------------- |
+| Home search placeholder                      | `#616161` | M16-a VERIFIED (5.93)                    |
+| OfferCard pickup line / struck price         | `#616161` | M16-a VERIFIED                           |
+| OfferCard divider                            | `#E0E0E0` | M17 - dividers unchanged                 |
+| Order Details `#TFW-1000`                    | `#616161` | M16-a VERIFIED                           |
+| Profile email                                | `#616161` | M16-a VERIFIED                           |
+| Profile "Edit Profile" button border         | `#1E4448` | `primary`, correct for an outline button |
+| `ManualLocationModal` field border (focused) | `#1E4448` | focus state correct                      |
+
+---
+
+## 28. Findings
+
+### DL-13 - `OrderCard` misses the entire delivery status chain - **P1** - NOT FIXED
+
+Device-confirmed: an order with `status: 'out_for_delivery'` renders a badge
+reading **"UNKNOWN"**.
+
+`OrderCard.tsx:56` declares its **own** `STATUS_CONFIG` covering **10 of the
+13** `OrderStatus` values. The three missing are `DRIVER_ASSIGNED`,
+`OUT_FOR_DELIVERY` and `DELIVERED` - the whole delivery chain - and all fall
+through to `DEFAULT_STATUS = { label: 'Unknown' }`.
+
+The app already has a correct map. `features/orders/utils/orderStatus.ts` covers
+all thirteen, is translated, and carries an exhaustiveness test whose own
+comment says "an exhaustiveness test now enforces that". **`OrderCard` does not
+use it.** The card bypasses the audited map in favour of a private, incomplete,
+untranslated copy.
+
+Two defects in one:
+
+1. A delivery order shows the wrong status to the user.
+2. Every label in that map is **hardcoded English** - `'Pending'`,
+   `'Confirmed'`, `'Ready'`, `'Cancelled'`. Confirmed on device in **both**
+   other locales: the French screen shows "Mes commandes / En cours /
+   Historique" with **"CONFIRMED" / "READY" / "UNKNOWN"** badges, and the Arabic
+   screen shows "طلباتي / نشطة / السجل" with the same English badges.
+
+Evidence: `U2-orders.png` (en), `FR3-orders.png` (fr), `AR4-home-fs13.png` (ar,
+1.3x).
+
+### DL-14 - three untranslated strings on the most-seen screens - **P1** - NOT FIXED
+
+Device-confirmed in French **and** Arabic:
+
+| String                          | Location                                   |
+| ------------------------------- | ------------------------------------------ |
+| "Chosen Location"               | `navigation/components/LocationHeader.tsx` |
+| "3 left"                        | `OfferCard` quantity badge                 |
+| "Pick up today : 18:00 - 20:00" | `OfferCard` pickup line                    |
+
+Plus, on Orders, "Pickup Today", "1x Bag" and the status labels from DL-13.
+
+These are members of the 92-string backlog catalogued in
+`MOBILE_LIGHT_MODE_REMEDIATION_REPORT.md` §4.2 and pinned by
+`i18n/__tests__/hardcodedStrings.test.ts`. What is new is that they are now
+**confirmed to affect Home and Orders in both non-English locales** - the two
+most-seen screens, in the primary commercial language.
+
+### DL-15 - Profile uses three off-palette gradients - **P2** - NOT FIXED
+
+Sampled endpoint colours:
+
+| Card               | Gradient              | In the design system?                                           |
+| ------------------ | --------------------- | --------------------------------------------------------------- |
+| My Points          | `#025755` → `#2BB498` | start near-brand teal; `#2BB498` mint is not a token            |
+| **Leaderboard**    | `#8873F7` → `#5C44E1` | **violet/indigo - entirely foreign**                            |
+| **Mercy & Impact** | `#E6726C` → `#BA498D` | coral start is near `accent[500]`; `#BA498D` magenta is foreign |
+
+The brand is teal `#1E4448`, gold `#C4A25A`, coral `#F55449`. Six gradient stops
+here, none tokenised. This is `DESIGN.md` hard-rule territory (never invent a
+design value; never use raw hex) on a screen every user visits.
+
+### DL-16 - the confirm-pickup code field has no perceivable border - **P2** - NOT FIXED
+
+`ConfirmPickupSection` uses a hardcoded
+`FALLBACK_BORDER = colorTokens.base.neutral[300]`, not `colors.outline`.
+Rendered `#E0E0E0` on `#FAFAFA` = **1.26**, where WCAG 1.4.11 asks 3.0 of a
+boundary that identifies a control. M17 never reached it because it does not
+read the token.
+
+Same class as DL-9 (the Home search field). Two now, which suggests the pattern
+is "components that predate the token" rather than two isolated misses.
+
+### DL-17 - the same status is styled two different ways - **P2** - NOT FIXED
+
+A `CONFIRMED` order renders as:
+
+- **Order Details** - solid `#2196F3` fill, white text
+- **OrderCard** - `#DBEAFE` tint with `#1E40AF` text
+
+Different treatments for the same state on two screens one tap apart, and
+`OrderCard`'s pair is Tailwind blue, a palette the MD2 migration removed from
+the rest of the app. Documented in part as `DESIGN.md` §19-E25 (status tints
+stay literal); the cross-screen inconsistency is new.
+
+---
+
+## 29. Localization and font scale - what was actually run
+
+|                                           | English | French  | Arabic / RTL |
+| ----------------------------------------- | ------- | ------- | ------------ |
+| Home                                      | 1.0x    | 1.0x    | 1.0x         |
+| Orders                                    | 1.0x    | 1.0x    | **1.3x**     |
+| Search, Order Details, Profile, Favorites | 1.0x    | not run | not run      |
+
+**RTL mirroring is correct.** On Home: the location pin moves right, the gift
+and heart icons move left, the search field right-aligns with its magnifier on
+the right, the offer carousel flows right-to-left, the price row reverses, the
+tab bar reverses, and the community-goal counter renders Arabic-Indic numerals
+(`١,٢٤٠ / ٢,٠٠٠`). On Orders at 1.3x: thumbnails move right, status badges move
+left, the price row reverses. **No clipping and no overlap at 1.3x in RTL.**
+
+Not run on the authenticated side: **1.5x and 2.0x**, and French/Arabic for
+Search, Order Details, Profile and Favorites.
+
+---
+
+## 30. Interaction and states
+
+| Check                    | Result                                                                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Navigation               | Tab bar, card → Order Details, back - all worked once the LogBox overlay was gone                                                     |
+| Modals                   | `LocationSelectionModal` and `ManualLocationModal` both rendered and measured                                                         |
+| Scrolling                | Home carousels scroll horizontally; Orders and Profile scroll vertically                                                              |
+| Loading                  | Home skeletons and the Leaderboard skeleton captured                                                                                  |
+| Empty                    | Orders empty state, Favorites empty state, manual-location empty results                                                              |
+| Error                    | GPS error banner, global error boundary                                                                                               |
+| Success                  | Order Details pricing/confirm-pickup rendered                                                                                         |
+| Safe areas               | Content clears the status bar in all three locales                                                                                    |
+| Keyboard                 | Verified in Part 1 only; not re-run on authenticated screens                                                                          |
+| Dropdowns, bottom sheets | Not exercised                                                                                                                         |
+| **Touch targets (M13)**  | **Still NOT REACHED** - `ChallengeHeader` is behind the Leaderboard content that did not load, and `FilterBottomSheet` was not opened |
+
+### A note on why navigation kept failing
+
+Worth recording because it cost several cycles and would cost anyone else the
+same: **React Native's LogBox toast occupies `[0,1208][720,1280]`, which is
+exactly the tab bar.** While any console error is outstanding, every tab tap
+lands on "Dismiss"/"Minimize" instead of the tab. Screenshots look normal, so it
+presents as "taps do nothing". Clearing the underlying errors fixed navigation;
+`uiautomator dump` is what identified it.
+
+---
+
+## 31. Verification gate
+
+| Check                         | Result                                          |
+| ----------------------------- | ----------------------------------------------- |
+| `tsc --noEmit`                | clean                                           |
+| `eslint src index.js --quiet` | clean                                           |
+| Unit tests                    | **113 suites, 1786 tests** passed               |
+| Snapshots                     | 422 passed                                      |
+| Dev fixture tests             | 41 (26 session + 15 location), mutation-checked |
+
+---
+
+## 32. Environment state
+
+- `.env.production` and `.env.staging` untouched. Verified before this run: both
+  still point at their real APIs and carry no `ENABLE_DEV_AUTH`.
+- `.env.development` is **still pointed at the local mock** with
+  `ENABLE_DEV_AUTH=true`, deliberately, per the instruction not to restore it
+  until the sweep is finished. `.env.development.bak` holds the original and is
+  now gitignored.
+- Device restored to `en-US` at font scale 1.0.
+- Release isolation is unchanged and still enforced by tests: `__DEV__`, an
+  explicit flag absent from staging and production, and a localhost-only API
+  requirement. The mock server is a standalone Node script under `tools/` and is
+  never bundled.
+
+---
+
+## 33. Still open
+
+**Screens:** Loyalty, Settings, Checkout and the driver flow were not reached.
+The driver screens need a driver-role session; the fixture user is a consumer,
+so reaching them needs a second fixture role.
+
+**Matrix:** 1.5x and 2.0x on authenticated screens; French and Arabic beyond
+Home and Orders; dropdowns and bottom sheets; keyboard on authenticated screens.
+
+**M13 touch targets remain unverified on a device** across all three passes.
+
+**Product/design decisions:** DL-13 (adopt the shared status map in
+`OrderCard`), DL-15 (whether the Profile gradients are sanctioned), DL-16 and
+DL-9 (whether control borders that bypass the token should be brought onto it),
+DL-17 (one status, one treatment), plus everything still open in
+`MOBILE_LIGHT_MODE_REMEDIATION_REPORT.md` §6.
+
+**The design system is not certified, and this pass does not certify it.**
