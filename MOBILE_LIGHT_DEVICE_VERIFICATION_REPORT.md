@@ -1568,3 +1568,208 @@ The two engineering blockers from Part 5 are fixed and gated. What stands
 between this and certification is now (a) the device re-verification in §50, (b)
 the OfferCard width decision, which is a product call rather than a defect, and
 (c) the coverage listed in §51.
+
+---
+
+# Part 7 - Device Verification of the Two Fixes
+
+**Run date:** 2026-08-30 / 2026-08-31 **Device:** BlueStacks, Android 9 (API
+28), 720 x 1280 @ 240 dpi (1 dp = 1.5 px) **Build:**
+`com.toofreshtowaste.app.dev`, **rebuilt** (`assembleDevDebug`) and
+reinstalled - `react-native-config` bakes env into native `BuildConfig`, so a
+Metro reload would not have picked up the temporary configuration. **Theme:**
+light only. `defaultTheme`, `DARK_MODE_ENABLED` and `lockToLight` untouched.
+`.env.production` and `.env.staging` untouched.
+
+## 53. Were the two fixes rendered and verified?
+
+**Yes. Both were rendered on the device and verified by measured geometry, not
+by eye.**
+
+### Fix 1 - Header reflow: VERIFIED
+
+Driver active-order screen, English, all four scales:
+
+| Scale | Layout       | Truncated | Clipped past edge | Status-bar overlap | Status badge          |
+| ----- | ------------ | --------- | ----------------- | ------------------ | --------------------- |
+| 1.0x  | single row   | NONE      | NONE              | NONE               | x=516..660 visible    |
+| 1.3x  | single row   | NONE      | NONE              | NONE               | x=465..660 visible    |
+| 1.5x  | **reflowed** | NONE      | NONE              | NONE               | visible               |
+| 2.0x  | **reflowed** | NONE      | NONE              | NONE               | **x=72..359 visible** |
+
+The reflow engages exactly at the designed 1.5x threshold and not before:
+
+- **1.3x** - title, name and sign-out all on one row at y=57..100.
+- **1.5x** - title takes the full width (x=78..708) at y=60..109; the actions
+  drop to their own row at y=139..180.
+
+**1.0x is unchanged.** Title at x=78..498, name at x=504..596, sign-out at
+x=621..694, badge at x=516..660 - the same single-row arrangement as before the
+change. The 422 unchanged snapshots say the same thing independently, since the
+matrix renders at a normal font scale.
+
+**The badge was the defect and it is fixed.** At 2.0x it previously ran off the
+card's right edge; it now sits at x=72..359, wholly on screen, on its own line.
+
+#### A second truncation found and fixed during this pass
+
+The first 2.0x run showed the title fixed but the driver name still reading "Dev
+Dri..". The header reflow had given the row a full width to use, so space was
+not the constraint - `driverName` carried `maxWidth: 100`, a fixed cap that does
+not scale with the text inside it. The cap is now multiplied by the font scale,
+which leaves 1.0x pixel-identical. Re-measured at 2.0x: "Dev Driver" renders at
+x=347..524, complete.
+
+This is worth recording because the reflow alone looked like a pass. Only
+reading the geometry rather than the screenshot showed a second, independent
+fixed-width assumption underneath it.
+
+#### Locales
+
+| Locale | Scale | Title                          | Actions row | Badge                               |
+| ------ | ----- | ------------------------------ | ----------- | ----------------------------------- |
+| en     | 2.0x  | "Active Delivery" x=78..708    | y=139..192  | "Collect from store" x=72..359      |
+| fr     | 2.0x  | "Livraison en cours" x=78..708 | y=139..192  | "Récupérer au commerce" x=72..462   |
+| ar     | 2.0x  | "التوصيل الجاري" x=12..642     | y=139..192  | "الاستلام من المتجر" **x=398..648** |
+
+No truncation, no clipping, no status-bar overlap in any of the three.
+
+**RTL mirrors correctly.** In Arabic the back control sits at x=666..705 (right
+edge), the title runs to the left, the actions row is left-aligned, and the
+badge mirrors to x=398..648 - the opposite side from English, as it should be.
+
+### Fix 2 - Touch targets: ONE VERIFIED, ONE WITHDRAWN
+
+#### Tab items: VERIFIED at 44 dp
+
+Measured from `uiautomator` bounds, 1.0x:
+
+| Tab       | English                  | Arabic (RTL)          |
+| --------- | ------------------------ | --------------------- |
+| Home      | 144x66 px = **96x44 dp** | x=576..720 = 96x44 dp |
+| Search    | 144x66 px = **96x44 dp** | x=432..576 = 96x44 dp |
+| Favorites | 144x66 px = **96x44 dp** | x=288..432 = 96x44 dp |
+| Orders    | 144x66 px = **96x44 dp** | x=144..288 = 96x44 dp |
+| Profile   | 144x66 px = **96x44 dp** | x=0..144 = 96x44 dp   |
+
+66 px / 1.5 = 44 dp exactly, against 60 px / 40 dp before the change. The bar
+keeps its 56 dp height; only the icons move 2 dp, which is the one intentional
+shift. Arabic confirms the bar mirrors (Home right, Profile left) with identical
+geometry.
+
+#### Establishment link: the finding was WRONG, and is withdrawn
+
+**The 212 x 20 dp "violation" reported in Parts 5 and 6 was a
+mis-classification, and the `hitSlop` fix for it did nothing.**
+
+Device testing is what exposed it. Tapping 15 px above the link's top edge -
+inside the 18 px `hitSlop` - navigated to **OfferDetails**, not the
+establishment. So did tapping in the dead centre of the link. The reason:
+
+```tsx
+disabled={!onEstablishmentPress}
+```
+
+and `grep` across the repo finds **no caller that passes
+`onEstablishmentPress`**. The control is disabled on every screen it renders on.
+Taps fall through to the card, which opens the offer.
+
+A permanently disabled control is not an interactive target, so WCAG 2.5.5 does
+not apply to it and there was never a 44 dp violation here.
+
+There **is** a real defect, a smaller one: it advertised
+`accessibilityRole='button'` with "View <establishment>" to screen readers while
+doing nothing - promising an action that does not exist. The button semantics
+and the `hitSlop` are now both conditional on a handler actually being passed,
+so the control exposes itself as the plain text it currently is, and becomes a
+correctly-sized button the day a caller wires it up.
+
+**Method note:** `uiautomator` reports layout bounds and **not** `hitSlop`, so
+bounds alone can neither confirm nor refute a `hitSlop` fix. The
+Remove-favourite button reports 28 x 29 dp and is genuinely 44 x 45 dp once its
+8 dp slop is counted. Any target claim resting on `hitSlop` has to be settled by
+tapping outside the visual bounds, which is what was done here.
+
+## 54. Localization check
+
+| Area               | en                  | fr           | ar / RTL            |
+| ------------------ | ------------------- | ------------ | ------------------- |
+| AppHeader (driver) | **VERIFIED**        | **VERIFIED** | **VERIFIED**        |
+| Driver header card | **VERIFIED**        | **VERIFIED** | **VERIFIED**        |
+| Tab bar geometry   | **VERIFIED**        | not measured | **VERIFIED**        |
+| Consumer AppHeader | **VERIFIED** (1.0x) | not measured | **VERIFIED** (1.0x) |
+
+French tab geometry was not measured. The bar is a fixed five-column split whose
+size does not depend on label text, and en and ar both measure 144 x 66 px, so
+fr is expected to match - but it is **inferred, not measured**, and is recorded
+that way.
+
+## 55. Final regression
+
+| Check                      | Result                                                     |
+| -------------------------- | ---------------------------------------------------------- |
+| `tsc --noEmit`             | Clean (excluding the known `rehydrationOrchestrator` debt) |
+| `eslint src`               | Clean                                                      |
+| Jest                       | **119 suites / 1919 tests** passed                         |
+| Visual regression          | **422 snapshots**, **zero drift**                          |
+| Android production release | **BUILD SUCCESSFUL**                                       |
+
+Zero drift is again the load-bearing result: the matrix renders at a normal font
+scale, so an unchanged baseline is positive evidence that the reflow, the tab
+padding, the scaled name cap and the a11y gating are all inert at 1.0x.
+
+### Evidence captured
+
+- `P7-driver-2.0-en.png` - reflowed header, badge on its own line
+- `P7-driver-2.0-en-fixed.png` - after the `maxWidth` fix, name complete
+- `P7-driver-2.0-ar.png` - RTL reflow with the badge mirrored
+- Geometry dumps per scale and locale, as tabulated above
+
+## 56. Remaining limitations
+
+1. **French tab geometry inferred, not measured** (§54).
+2. **The consumer `AppHeader` was measured at 1.0x only** in en and ar. The
+   reflow is shared code and was exercised at all four scales on the driver
+   stack, but the consumer header has not been seen at 1.5x or 2.0x in this
+   pass.
+3. **`OfferCard.establishmentName` still hardcodes `lineHeight: 20` against
+   `fontSize: 16`** - the same font-scale class as the Part 4 D6 defects. It did
+   not surface as a clipping defect in these runs, but the pattern is the one
+   that caused them.
+4. **The Home search input reports a 319 x 21 dp node.** The surrounding bar is
+   48 dp and is what a user aims at, so this is very likely the inner
+   `TextInput`; it has still not been settled by a tap test either way.
+5. **Home offer fixtures render "from Unknown"** - `/offers/urgent` does not
+   populate the establishment, so the establishment row could only be exercised
+   on Favorites. A fixture gap, not a product defect.
+6. **Single device.** 720 x 1280 / 240 dpi, Android 9. No notch, foldable,
+   tablet or Android 13+ coverage.
+7. **The backend is a mock** in every authenticated pass to date.
+8. **~35 files remain on the hardcoded-string ratchet.**
+9. **Not inspected in fr/ar:** Search, Orders, Order Details, Offer Details;
+   Contact Support in Arabic.
+10. **Dark mode remains unverified by design** and is off in production.
+
+## 57. Remaining design / product decisions
+
+**OfferCard `maxWidth: 270` dp** - unchanged, as instructed. Full entry with
+measurements, per-width impact, affected screens, options and a recommendation:
+`.claude/work/offercard-width-decision.md`.
+
+Summary: renders 405 px in a 624 px row on the test device; 35% of the row
+unused at 480 dp, 26% at 430 dp, 17% at 390 dp, 0% at 320 dp. Invisible on the
+narrowest device, which is why it was never caught. Recommendation is to move
+the cap to the carousels that need it. RTL and Search remain unconfirmed in that
+entry.
+
+## 58. Certification status
+
+**Not certified.** `DESIGN_CERTIFICATION.md` has deliberately not been created.
+
+Both engineering blockers from Part 5 are now closed: the header reflow is
+verified on device across four font scales and three locales, and the tab touch
+targets measure 44 dp. The third item turned out not to be a defect and has been
+withdrawn with its reasoning.
+
+What remains before certification is the coverage in §56 and the product
+decision in §57 - not open defects.

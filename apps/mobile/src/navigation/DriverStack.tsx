@@ -1,6 +1,6 @@
 import React, { createElement, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, PixelRatio, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { logoutAsync } from '@/features/auth/store/authSlice';
@@ -19,6 +19,9 @@ import type { DriverStackParamList } from './types';
 const Stack = createNativeStackNavigator<DriverStackParamList>();
 
 const PRIMARY = colorTokens.base.primary[500];
+
+/** Base cap for the driver name in the header, scaled by the OS font setting. */
+const DRIVER_NAME_MAX_WIDTH = 100;
 const { base: sp } = spacingTokens;
 
 function LogoutButton() {
@@ -42,7 +45,19 @@ function LogoutButton() {
   return (
     <View style={styles.headerRight}>
       {user ? (
-        <Text style={styles.driverName} numberOfLines={1}>
+        /*
+         * The 100dp cap has to scale with the text inside it. Left fixed, the
+         * name ellipsised to "Dev Dri.." at a 2.0x font scale even after the
+         * header reflow gave the row a full width to use - the cap, not the
+         * space, was the constraint. Multiplying keeps 1.0x pixel-identical.
+         */
+        <Text
+          style={[
+            styles.driverName,
+            { maxWidth: DRIVER_NAME_MAX_WIDTH * PixelRatio.getFontScale() },
+          ]}
+          numberOfLines={1}
+        >
           {user.firstName} {user.lastName}
         </Text>
       ) : null}
@@ -110,7 +125,7 @@ const styles = StyleSheet.create({
   driverName: {
     color: 'rgba(255,255,255,0.75)',
     fontSize: 13,
-    maxWidth: 100,
+    maxWidth: DRIVER_NAME_MAX_WIDTH,
   },
   logoutBtn: {
     backgroundColor: 'rgba(255,255,255,0.15)',

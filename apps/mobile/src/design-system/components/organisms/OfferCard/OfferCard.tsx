@@ -491,17 +491,32 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         <Pressable
           onPress={handleEstablishmentPress}
           disabled={!onEstablishmentPress}
-          accessibilityRole='button'
-          accessibilityLabel={t('offers.a11yViewEstablishment', { name: offer.establishment.name })}
-          accessibilityHint={t('offers.a11yEstablishmentHint')}
-          style={styles.establishmentNameContainer}
           /*
-           * The label is one 20dp line, so the pressable was 20dp tall against
-           * a 44dp minimum. hitSlop rather than padding: it grows the touch
-           * area without moving a single pixel of the card's layout.
-           * 20 + 12 + 12 = 44.
+           * Button semantics only when there is actually a handler.
+           *
+           * No caller passes `onEstablishmentPress` today, so this Pressable is
+           * disabled everywhere it renders - a device tap on it falls through
+           * to the card and opens the offer. Advertising
+           * `accessibilityRole='button'` with "View <establishment>" told a
+           * screen-reader user an action existed that does nothing, which is
+           * worse than exposing it as the plain text it currently is.
+           *
+           * When a caller does pass a handler the button semantics and the
+           * hitSlop both apply: the label is a single 20dp line, so
+           * 12 + 20 + 12 brings the touch target to the 44dp minimum without
+           * moving any layout.
            */
-          hitSlop={{ top: 12, bottom: 12, left: 0, right: 0 }}
+          {...(onEstablishmentPress
+            ? {
+                accessibilityRole: 'button' as const,
+                accessibilityLabel: t('offers.a11yViewEstablishment', {
+                  name: offer.establishment.name,
+                }),
+                accessibilityHint: t('offers.a11yEstablishmentHint'),
+                hitSlop: { top: 12, bottom: 12, left: 0, right: 0 },
+              }
+            : {})}
+          style={styles.establishmentNameContainer}
         >
           <Text
             variant='body.medium'
