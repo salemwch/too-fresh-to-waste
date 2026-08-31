@@ -5,9 +5,13 @@
 > the web app; `DESIGN.md` §21 records every contradiction found between the two
 > and how it was resolved.
 >
-> Known gaps still open here: the spacing block below documents the **current
-> overridden** Tailwind scale (see `DESIGN.md` §19-E5), and the radius block
-> documents web's scale, which `DESIGN.md` §6.1 unifies onto mobile's (§19-E6).
+> Known gap still open here: the radius block documents web's scale, which
+> `DESIGN.md` §6.1 unifies onto mobile's (§19-E6). That migration has not
+> landed.
+>
+> The spacing block below is **current and correct**. §19-E5 was resolved on
+> 2026-08-24: Tailwind's numeric keys are no longer overridden, so `p-4` is the
+> default 16px. An earlier version of this note said otherwise.
 
 ## Design System Reference
 

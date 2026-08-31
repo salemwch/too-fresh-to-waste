@@ -388,7 +388,10 @@ rebase/merge, regenerate and verify.
 
 - iOS builds require macOS with Xcode — require explicit confirmation.
 - Shared package changes require Metro cache reset: `pnpm metro:reset`.
-- `src/store/rehydrationOrchestrator.ts` has pre-existing TS errors.
+- `src/store/rehydrationOrchestrator.tsx` no longer has TS errors. This entry
+  used to say it did, and named the wrong extension;
+  `pnpm --filter @foodwaste/mobile type-check` is clean at HEAD. Do not add new
+  `@ts-expect-error` on its account.
 - Mobile edge-to-edge: `edgeToEdgeEnabled=true`, never pass
   `translucent`/`backgroundColor` to `<StatusBar>`.
 
@@ -396,16 +399,18 @@ rebase/merge, regenerate and verify.
 
 ## Verification Gates
 
-| Scope of change          | Command to run                                         |
-| ------------------------ | ------------------------------------------------------ |
-| Backend only             | `pnpm --filter @foodwaste/backend check:ts`            |
-| Web only                 | `pnpm --filter @foodwaste/web type-check`              |
-| Mobile only              | `pnpm --filter @foodwaste/mobile type-check`           |
-| `packages/shared` change | `pnpm build:deps` → then `pnpm metro:reset` for mobile |
-| Before any PR (backend)  | `pnpm --filter @foodwaste/backend check:all`           |
-| Cross-app change         | `pnpm type-check` (full monorepo)                      |
-| Any `*.schema.ts` index  | `verify:indexes:strict`, then `db:create-indexes`      |
-| Any `package.json` edit  | `pnpm check:lockfile`                                  |
+| Scope of change          | Command to run                                               |
+| ------------------------ | ------------------------------------------------------------ |
+| Backend only             | `pnpm --filter @foodwaste/backend check:ts`                  |
+| Web only                 | `pnpm --filter @foodwaste/web type-check`                    |
+| Mobile only              | `pnpm --filter @foodwaste/mobile type-check`                 |
+| `packages/shared` change | `pnpm build:deps` → then `pnpm metro:reset` for mobile       |
+| Before any PR (backend)  | `pnpm --filter @foodwaste/backend check:all`                 |
+| Cross-app change         | `pnpm type-check` (full monorepo)                            |
+| Any `*.schema.ts` index  | `verify:indexes:strict`, then `db:create-indexes`            |
+| Any `package.json` edit  | `pnpm check:lockfile`                                        |
+| Web UI change            | `pnpm --filter @foodwaste/web check:design`                  |
+| Mobile UI change         | `pnpm --filter @foodwaste/mobile test` (422 style snapshots) |
 
 `check:ts` covers `scripts/` as well as `src/` and `test/`.
 
@@ -517,11 +522,40 @@ belongs in the system, update the token/component rule and `DESIGN.md`
 **Deliberate deviations go in §19 Known Exceptions.** An undocumented deviation
 is a defect.
 
-Current gap analysis, with evidence and effort estimates:
-[`DESIGN_AUDIT_REPORT.md`](./DESIGN_AUDIT_REPORT.md). Three P0 findings are
-open; `DESIGN.md` §19-E1 (dark mode cannot render) and §19-E5 (Tailwind numeric
-spacing keys are overridden, so `p-4` is 24px and the default `<Button>` renders
-96px tall) are the ones that affect everyday work.
+**For the current state, read
+[`DESIGN_SYSTEM_MIGRATION_FINAL_REPORT.md`](./DESIGN_SYSTEM_MIGRATION_FINAL_REPORT.md).**
+It supersedes the counts in [`DESIGN_AUDIT_REPORT.md`](./DESIGN_AUDIT_REPORT.md)
+(web) and [`MOBILE_DESIGN_AUDIT_REPORT.md`](./MOBILE_DESIGN_AUDIT_REPORT.md)
+(mobile), both of which describe the codebase **before** the migration and are
+kept as history.
+
+`DESIGN.md` §19 remains the authoritative status of every exception.
+
+**§19-E1 and §19-E5 are resolved.** This file previously warned that dark mode
+could not render and that Tailwind's numeric spacing keys were overridden, so
+`p-4` meant 24px. Both were fixed on 2026-08-24 and re-verified at HEAD: `body`
+uses `bg-background text-foreground`, and `tailwind.config.ts` defines only the
+named scale, so **`p-4` is Tailwind's default 16px**. Do not code around either.
+
+What does affect everyday work:
+
+- **Mobile production is light-only.** `DARK_MODE_ENABLED = false` in
+  `design-system/providers/themeRollout.ts`; `App.tsx` passes `lockToLight`. The
+  dark palette and its half of the snapshot matrix still exist and are tested,
+  but dark mode has **never been verified on a device**. Do not enable it
+  without that pass. (§19-E27)
+- **Web has no visual baselines.** No web route has been visually verified at
+  any viewport, locale or theme. (§19-E17)
+- **Mobile spacing and typography are partially migrated**, not finished: the
+  residue is values with no token (6/10/14 px spacing, 11/13/15 px type). Adding
+  one is a §20 governance event, not a local decision.
+- **Mobile radius is not migrated**, and the web/mobile radius scales are still
+  transposed. §6.1 declares mobile's canonical; the code does not follow it yet.
+  (§19-E6)
+- **Decisions, not defects:** D1-D6 and D8 in
+  [`DESIGN_DECISIONS_PENDING.md`](./DESIGN_DECISIONS_PENDING.md) are verified
+  real and deliberately unimplemented - each needs a product, brand or design
+  call. D7 is resolved.
 
 > **Note on `.claude/rules/ui-ux.md`:** it is stale on fonts, the component
 > list, the `secondary` value, and the status-badge pattern. Where it disagrees
