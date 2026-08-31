@@ -544,9 +544,10 @@ when a screen feels wrong.
 ### 4.2 Tailwind's numeric keys stay at their defaults
 
 **Do not overload Tailwind's numeric spacing keys with a semantic scale.** This
-is a hard rule, and the reason is documented at length in
-`DESIGN_AUDIT_REPORT.md` Part 1: the current config does exactly that, and it is
-the product's largest open defect.
+is a hard rule. The reason is documented at length in `DESIGN_AUDIT_REPORT.md`
+Part 1, which describes the config **as it was**: it overloaded the numeric
+keys, and that was then the product's largest open defect. It no longer does -
+see `RESOLVED` below.
 
 - Named tokens (`p-md`, `gap-lg`) carry **semantic rhythm**.
 - Numeric keys (`p-1`, `p-4`, `gap-2`) keep **Tailwind's default `n x 4px`** and
@@ -1679,7 +1680,15 @@ unresolved visual cases, in
 `lg` 8; mobile has `md` 8 / `lg` 12. §6.1 adopts the mobile scale as canonical.
 Web must migrate, which also means `--radius` moves from `0.5rem` to `0.75rem`
 so `rounded-lg` resolves to 12px. This is a visible change to every card and
-button. Sequence it **after** E5 to keep visual diffs readable.
+button.
+
+The "sequence after E5" condition is **met** - E5 is resolved, so ordering no
+longer gates this. What remains is approval, not evidence: **192 Playwright
+baselines are committed** under `apps/web/tests/visual/__screenshots__` across
+12 viewport x theme x locale combinations (156 component, 36 route), so a radius
+change would show its effect on every shadcn primitive before it ships. Run
+`pnpm --filter @foodwaste/web test:visual`. Measured 2026-08-31. See
+`DESIGN_DECISIONS_PENDING.md` D6.
 
 **E7. `.glass` is defined as a general dashboard utility.** `OPEN` (needs a
 design decision) Re-verified 2026-08-24: **76 usages**, all merchant dashboard
@@ -1736,8 +1745,10 @@ constrains marketing design and is accepted as the cost of AA compliance.
 
 **E16. 961 usages of fractional spacing keys.** `OPEN` `1.5`/`2.5`/`3.5`
 (388/219/354). These were never overridden, so developers migrated toward them
-to escape the broken integer scale. They are not wrong today, but after E5 lands
-they should be reviewed - many will read more clearly as named tokens.
+to escape the integer scale as it then was. They are not wrong today. **E5 has
+since been resolved, so the review this entry was waiting on is unblocked** -
+many of these will read more clearly as named tokens. The count has not been
+re-measured since the original pass.
 
 **E18. The `accent` ramp diverges between web and mobile.** `OPEN` 7 of 10 steps
 differ. Only `50` (`#FFF5F4`), `500` (`#F55449`) and `900` (`#751A13`) agree.
@@ -1963,7 +1974,7 @@ saved to AsyncStorage.
 
 This is a **rollout gate, not a retreat**. Every part of dark mode stays in the
 codebase and in CI: the dark token ramp, the themed styles across every screen,
-the WCAG contrast ratchets, the light/dark difference gate, and 390 snapshot
+the WCAG contrast ratchets, the light/dark difference gate, and **422** snapshot
 baselines - of which the dark cells still run and still assert they differ from
 their light counterparts. Turning it on is one boolean.
 
@@ -1990,6 +2001,57 @@ outstanding.
 **Update 2026-08-24.** Partly superseded. All 22 public routes have now been
 opened in a real browser and reviewed - see `UX_VISUAL_AUDIT.md`. The 45
 authenticated routes remain unopened, so the claim still holds for those.
+
+**Update 2026-08-31.** Further narrowed, and the earlier framing was too
+absolute. A committed Playwright suite exists
+(`apps/web/tests/visual/__screenshots__`, `pnpm test:visual`): **192 baselines**
+over 12 viewport x theme x locale combinations - 156 component, 36 route. So
+component rendering **is** under automated visual regression. What remains true
+is route coverage: baselines exist for **3 routes**, not 22 and not 67.
+
+**E30. Mobile visual and device coverage.** `ACCEPTED` E17 above is
+**web-scoped** - it is about routes opened in a browser. Mobile has since
+acquired coverage of its own, recorded here so this document is not read as
+claiming mobile is unverified.
+
+Web is **not** uncovered either: 192 Playwright baselines are committed under
+`apps/web/tests/visual/__screenshots__` across 12 viewport x theme x locale
+combinations. What E17 describes is narrower than "no coverage" - route
+baselines exist for **3 routes**, so the great majority of routes still have no
+image of record.
+
+**What exists (measured 2026-08-31):**
+
+- **422 snapshot baselines across 12 matrices**, spanning device x theme x
+  locale. These capture **resolved styles, not pixels**, which is why an
+  unchanged baseline is meaningful evidence that a change is inert.
+- **Real-device verification** on BlueStacks, Android 9 (API 28), 720x1280 @ 240
+  dpi. All 14 target screens reached, including the four driver screens via the
+  real `UserRole.DRIVER` guard.
+- Font scales **1.0x / 1.3x / 1.5x / 2.0x**, each by cold start - changing the
+  scale on a running app truncates text without re-laying out, which reads as a
+  layout regression that is not there.
+- Locales **en / fr / ar (RTL)** on the verified screens.
+- Contrast measured from framebuffer pixels using the darkest glyph pixel;
+  single-pixel sampling reads anti-aliased edges and understates by a factor of
+  four.
+
+**What this does NOT establish:**
+
+- **One device only.** No notch, foldable, tablet, or Android 13+ behaviour. No
+  iOS device has been used at any point.
+- **The backend was a mock** in every authenticated pass. Six defects across the
+  passes were fixture-versus-contract drift.
+- **Dark mode has never been rendered on hardware** - see E27.
+- Search, Orders, Order Details and Offer Details were not inspected in fr/ar;
+  Contact Support was not inspected in ar.
+- Payment beyond the cash path, the order lifecycle past confirmation, and
+  offline/permission-denied states were never driven.
+
+**This is coverage, not certification.** `DESIGN_CERTIFICATION.md` does not
+exist and nothing here should be read as implying it could. Full detail:
+`MOBILE_LIGHT_DEVICE_VERIFICATION_REPORT.md` and
+`DESIGN_SYSTEM_MIGRATION_FINAL_REPORT.md`.
 
 ---
 

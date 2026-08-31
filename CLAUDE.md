@@ -544,8 +544,10 @@ What does affect everyday work:
   dark palette and its half of the snapshot matrix still exist and are tested,
   but dark mode has **never been verified on a device**. Do not enable it
   without that pass. (§19-E27)
-- **Web has no visual baselines.** No web route has been visually verified at
-  any viewport, locale or theme. (§19-E17)
+- **Web visual coverage is component-deep, not route-wide.** 192 Playwright
+  baselines exist (`pnpm --filter @foodwaste/web test:visual`) covering 13
+  components across 12 viewport x theme x locale combinations, but only **3
+  routes**. No authenticated route has a baseline. (§19-E17, §19-E30)
 - **Mobile spacing and typography are partially migrated**, not finished: the
   residue is values with no token (6/10/14 px spacing, 11/13/15 px type). Adding
   one is a §20 governance event, not a local decision.

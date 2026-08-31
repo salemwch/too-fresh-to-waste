@@ -212,10 +212,18 @@ The mobile matrix renders no pixels - it captures resolved styles - which is
 precisely why an unchanged baseline is meaningful evidence that a font-scale
 reflow is inert at 1.0x.
 
-**E17 ("visual coverage has not been performed") remains `OPEN` for web.**
-`DESIGN_DECISIONS_PENDING.md` D6 refers to "240 screenshot baselines"; **no such
-baselines exist in the working tree.** Any decision resting on them needs them
-created first.
+**Correction (2026-08-31).** An earlier draft of this report said web had
+**zero** image baselines. That was wrong, and the error was mine: the search
+used `-path "*baseline*"` while the directory is `__screenshots__`.
+
+The actual position: **192 committed baselines**, run by
+`pnpm --filter @foodwaste/web test:visual`. Component rendering **is** under
+automated visual regression - 156 baselines over 13 components. Route coverage
+is the narrow part: **3 routes** have an image of record, so most public routes
+and all 45 authenticated routes do not.
+
+`DESIGN_DECISIONS_PENDING.md` D6 said "240 screenshot baselines". The real
+number is 192; the entry has been corrected rather than the figure repeated.
 
 ---
 
@@ -330,7 +338,7 @@ evidence that this is the rig's main weakness.
   measured)
 - Consumer `AppHeader` at 1.5x/2.0x (the shared reflow was exercised on the
   driver stack)
-- Every authenticated **web** route - no visual baseline exists for any of them
+- Every authenticated **web** route - none of the 45 has a visual baseline
 
 ---
 
@@ -366,10 +374,11 @@ Nothing on this list is an open defect. They are gaps in **evidence** and
 
 ### Blocking - evidence that does not exist
 
-1. **Web has no visual baselines at all.** `DESIGN.md` E17 is still `OPEN` and
-   accurate: no web route has been visually verified at any viewport, locale or
-   theme. `DESIGN_DECISIONS_PENDING.md` D6 assumes 240 baselines that are not in
-   the repository.
+1. **Web route coverage is 3 routes.** Components are covered - 156 baselines
+   over 13 components x 12 combinations - but only 3 routes have an image of
+   record, and none of the 45 authenticated routes do. (An earlier draft of this
+   report claimed there were no baselines at all; that was wrong and is
+   corrected in §10.)
 2. **Mobile device coverage is one emulator.** No second form factor, no iOS, no
    Android 13+.
 3. **No authenticated pass has run against the real backend.**

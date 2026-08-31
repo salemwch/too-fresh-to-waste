@@ -103,10 +103,9 @@ a brand decision. **Not actioned.**
 adopting it changes the corner radius of **every card, button and input** in the
 product, and `--radius` moves `0.5rem` -> `0.75rem`.
 
-Unlike the others here, this one **can** now be verified: the 240 screenshot
-baselines would show exactly what moves. It is listed as a decision rather than
-a task because "every corner in the product changes" deserves a yes before the
-work, not after.
+Unlike the others here, this one **can** be verified before it ships. It is
+listed as a decision rather than a task because "every corner in the product
+changes" deserves a yes before the work, not after.
 
 **Exact impact if approved.** Web `borderRadius` changes `md` 12->8, `lg` 8->12,
 `xl` 20->16, `2xl` 24->20, and `--radius` moves `0.5rem`->`0.75rem`. Every
@@ -115,9 +114,26 @@ shadcn primitive is affected: `Button`/`Input`/`Select`/`Tabs` use `rounded-md`,
 select, tab strip, card and modal in the product changes corner radius, on
 public and authenticated routes alike.
 
-**Verifiable.** All 240 baselines would move; the diff would show exactly what
-changes on the 22 public routes. The 45 authenticated routes would change with
-no baseline to check them against.
+**Verifiable, and here is the actual evidence available** (re-measured
+2026-08-31 - an earlier version of this entry said "240 baselines", which was
+not accurate):
+
+`apps/web/tests/visual/__screenshots__` holds **192 committed Playwright
+baselines** across 12 viewport x theme x locale combinations:
+
+| Spec                 | Baselines | Covers                          |
+| -------------------- | --------- | ------------------------------- |
+| `components.spec.ts` | 156       | 13 components x 12 combinations |
+| `routes.spec.ts`     | 36        | **3 routes** x 12 combinations  |
+
+Run with `pnpm --filter @foodwaste/web test:visual`.
+
+**What that does and does not prove.** Every shadcn primitive this change
+touches - Button, Input, Select, Tabs, Card, Dialog - is in the component
+baselines, so the corner-radius change would be visible there before it ships.
+That is the important half. What it will not show is those primitives **in
+situ**: 3 routes have an image of record, so the other public routes and all 45
+authenticated routes would change with nothing to check them against.
 
 **Not actioned. Ready to execute on approval.**
 
@@ -136,8 +152,12 @@ LTR baseline moved. See `DESIGN.md` §19-E22.
 
 ## D8. Remaining `left-` / `right-` offsets (V9 remainder)
 
-**Verified.** 62 `left-*` and 53 `right-*` remain after the V9 pass converted
-106 margin, padding and text-alignment utilities.
+**Verified.** Re-measured 2026-08-31: **65 `left-*` and 56 `right-*`** across
+**38 files** remain after the V9 pass converted 106 margin, padding and
+text-alignment utilities. (The original entry recorded 62 / 53; the small rise
+is incidental to other work, not a regression in the V9 pass.) Margin and
+padding are fully converted - `ml-*`/`mr-*` now measure **0**, `pl-*`/`pr-*`
+measure **2**.
 
 These were left on purpose. Absolute offsets need per-site judgment: some are
 direction-neutral pairs (`left-0 right-0`), some sit in SVG or LTR-locked
