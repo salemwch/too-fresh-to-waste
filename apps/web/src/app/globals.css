@@ -15,10 +15,32 @@
     --secondary: 41 47% 56%;
     --secondary-foreground: 180 100% 3%;
     --accent: 4 90% 62%;
-    --accent-foreground: 0 0% 98%;
+    /*
+     * Dark ink, not white. White on this coral is 3.38 and fails AA for text;
+     * dark ink is 5.76. DESIGN.md 2.4 has approved this pairing since the
+     * table was written - globals.css was the thing out of step, and 21-C8
+     * says so. The coral fill itself is untouched, so the brand accent is
+     * unchanged for icons, borders and indicators. (19-E1)
+     */
+    --accent-foreground: 180 100% 3%;
     --muted: 174 8% 93%;
     --muted-foreground: 174 8% 40%;
-    --destructive: 0 84% 60%;
+    /*
+     * error #D32F2F, darkened from 0 84% 60% (#EF4343).
+     *
+     * White on the old fill was 3.78 and failed AA; here it is 4.98, which is
+     * the "error" row 2.4 already approves. Darkening the fill rather than
+     * inking the text keeps white-on-red, which is what a destructive control
+     * is expected to look like - 19-E2 option (b).
+     *
+     * 19-E2 names "error-600 #C62828" for this. No such token exists in this
+     * repo; the error red is #D32F2F in tailwind.config.ts and in 2.4. Used
+     * that rather than introducing a value the system does not define.
+     *
+     * This also lifts the 91 text-destructive sites from 3.78 to 4.98, since
+     * darkening a fill and darkening text move the same way.
+     */
+    --destructive: 0 65.1% 50.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 174 8% 90%;
     --input: 174 8% 90%;

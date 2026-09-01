@@ -20,7 +20,7 @@
 | Token                                 | Hex          | Usage                         |
 | ------------------------------------- | ------------ | ----------------------------- |
 | `primary-500` / `hsl(var(--primary))` | #1E4448      | Brand primary, CTAs, links    |
-| `accent-500` / `hsl(var(--accent))`   | #F55449      | Danger, highlights, badges    |
+| `accent-500` / `hsl(var(--accent))`   | #F55449      | Highlights, icons, indicators |
 | `secondary` / `hsl(var(--secondary))` | #C4A25A      | Gold. Dark-ground accent only |
 | `hsl(var(--background))`              | white / dark | Page background               |
 | `hsl(var(--card))`                    | white / dark | Card backgrounds              |
@@ -30,9 +30,23 @@
 | `success`                             | #2E7D32      | Confirmed, paid               |
 | `error`                               | #D32F2F      | Errors, destructive           |
 | `warning`                             | #F57C00      | Pending, expiring             |
+| `hsl(var(--destructive))`             | #D32F2F      | Destructive fills and text    |
 
 **Rule**: Never use raw hex values in components. Use Tailwind tokens or CSS
 variables.
+
+**`accent-500` and `hsl(var(--accent))` are the same colour but not the same
+role.** The ramp step is the brand coral for **non-text marks** - icons,
+borders, indicators - where 3:1 is the bar and it passes. `--accent` is the
+shadcn fill role, and anything painted on it must use
+`hsl(var(--accent-foreground))`, which is **dark ink**, not white. White on
+coral is 3.38 and fails AA; dark ink is 5.76. See `DESIGN.md` §2.4 and §19-E1.
+
+**`--destructive` was `#EF4343` and is now the `error` red `#D32F2F`**, so white
+text on it passes at 4.98 instead of 3.78 (§19-E2). The row above used to list
+`accent-500` for "danger", which is no longer right: destructive fills and
+`text-destructive` both resolve to `--destructive`, and coral is not a danger
+colour.
 
 ### Spacing (8pt grid)
 

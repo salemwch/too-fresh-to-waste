@@ -227,12 +227,19 @@ Measured. **Use this table; do not guess.**
 | `secondary`   | 2.42 FAIL  | 8.06 PASS     | **dark ink** `180 100% 3%` |
 | `warning`     | 2.70 FAIL  | 7.22 PASS     | **dark ink**               |
 | `info`        | 3.12 FAIL  | 6.25 PASS     | **dark ink**               |
-| `accent`      | 3.38 FAIL  | 5.78 PASS     | **dark ink**               |
-| `destructive` | 3.78 FAIL  | 5.17 PASS     | see §19-E2 (unresolved)    |
+| `accent`      | 3.38 FAIL  | 5.76 PASS     | **dark ink**               |
+| `destructive` | 4.98 PASS  | 3.92 FAIL     | **white**                  |
 
-Two of these contradict what `globals.css` ships today: `--accent-foreground`
-and `--destructive-foreground` are both white. Both are live WCAG failures. See
-§19-E1 and §19-E2.
+**Both rows were reconciled with `globals.css` on 2026-09-01 (§19-E1, §19-E2).**
+`--accent-foreground` is now dark ink, and `--destructive` was darkened to the
+`error` fill so its white foreground passes. The `destructive` row above is
+measured against the new fill; against the previous `0 84% 60%` it read 3.78
+FAIL / 5.17 PASS.
+
+The two were fixed from opposite ends on purpose. `accent` moved its
+**foreground**, because coral is the brand accent and darkening it would shift
+the brand. `destructive` moved its **fill**, because white-on-red is what a
+destructive control is expected to look like and dark ink on red reads wrong.
 
 ### 2.5 Status badges - the accessible pattern
 
@@ -1630,19 +1637,51 @@ the §2.6 ramp (`--primary`, `--primary-foreground`, `--accent`,
 `:root` was left untouched, and every value was confirmed in the compiled
 bundle.
 
-**Still open, light mode only:** `--accent-foreground` is white on coral =
-**3.38**, an AA failure on `Button variant="ghost"` hover. Per §2.4 it should be
-dark ink. Not changed in that pass, which was scoped to dark mode; it is a
-one-token fix.
+**Light mode closed 2026-09-01.** `--accent-foreground` was white on coral =
+**3.38**, an AA failure on `Button variant="ghost"` hover. It is now dark ink
+(`180 100% 3%`) = **5.76**, which is what §2.4 had approved all along; the CSS
+was the thing out of step (§21-C8). The coral fill is unchanged, so the brand
+accent still reads as coral for icons, borders and indicators.
 
-**E2. `destructive` has no compliant foreground.** `UNRESOLVED` (light mode)
-_Dark mode was fixed 2026-08-24_ - `--destructive` is now `error-300` with dark
-ink (6.54). The light-mode question below is untouched. White on
-`destructive #EF4343` is 3.78 (fails); dark ink is 5.17 (passes) but a red
-button with dark text reads wrong. Darkening the fill to `error-600 #C62828`
-gives 5.62 with white text. **Needs a design decision** between: (a) dark ink on
-the current red, (b) darken the fill and keep white text. Recommendation: (b).
-Not actioned - this is a brand call, not an engineering one.
+One site did not follow from the token: the merchant establishment save button
+hardcoded `text-white` on `bg-accent` rather than using
+`text-accent-foreground`, so it had to be changed with it. Its
+`hover:bg-accent/90` sits on a **dark** card, so the hover darkens and measures
+5.04.
+
+`bg-accent` on the establishment avatar chip keeps `text-white`: at 20px bold it
+is large text and passes at 3.38 against the 3:1 threshold. Recorded so the
+deviation is deliberate rather than missed.
+
+**E2. `destructive` has no compliant foreground.** `RESOLVED 2026-09-01` _Dark
+mode was fixed 2026-08-24_ - `--destructive` is now `error-300` with dark ink
+(6.54). **Light mode is now fixed too, by option (b).** White on
+`destructive #EF4343` was 3.78 (failed); the fill was darkened to the `error`
+red `#D32F2F` (`0 65.1% 50.6%`), where white measures **4.98** - the value §2.4
+already approves on the `error` row. Option (a), dark ink on the old red, passed
+at 5.17 but a red button with dark text reads wrong.
+
+**The recommendation named `error-600 #C62828`. That token does not exist in
+this repo** - the error red is `#D32F2F` in `tailwind.config.ts` and in §2.4.
+Using the value the system defines rather than introducing one it does not is
+why the measured result is 4.98 and not the 5.62 the recommendation predicted.
+Both clear AA.
+
+Fixed in two places, because the token is redefined per route group:
+`app/globals.css` and
+`(merchant-onboarding)/merchant-signup/merchant-signup.css`, where the scoped
+block shipped stock shadcn red (`#EF4444`, white = 3.76).
+
+The fill change carries the **91 `text-destructive`** call sites with it, from
+3.78 to 4.98 on white - darkening a fill and darkening text move the same way.
+
+**Still open, and narrower: the hover states.** `hover:bg-destructive/90`
+(`Button`) and `hover:bg-destructive/80` (`Badge`) composite the fill toward the
+white page, which lightens it. White text measures **4.37** and **3.75** on
+those. Both improved (from 3.40 and 3.02) and neither reaches 4.5. Fading a
+filled control toward the page is the shadcn default and is the wrong direction
+for a fill that has to stay dark enough to carry white text; the fix is a darker
+hover step, which this system does not currently define. **Tracked as E31.**
 
 **E3. `warning` and `info` have no accessible tint shade.** `ACCEPTED` Neither
 ramp contains a shade reaching 4.5:1 on its own 10% tint (best: `warning-600`
@@ -2053,6 +2092,61 @@ exist and nothing here should be read as implying it could. Full detail:
 `MOBILE_LIGHT_DEVICE_VERIFICATION_REPORT.md` and
 `DESIGN_SYSTEM_MIGRATION_FINAL_REPORT.md`.
 
+**E31. Opacity hover lightens a filled control.** `OPEN` Found while closing E2,
+and not previously recorded anywhere.
+
+`Button variant="destructive"` uses `hover:bg-destructive/90` and `Badge` uses
+`hover:bg-destructive/80`. On a white page those composite the fill **toward the
+background**, so it gets lighter exactly when the label still has to sit on it:
+
+| State                     | Fill      | White text | Verdict  |
+| ------------------------- | --------- | ---------- | -------- |
+| resting `bg-destructive`  | `#D32F2F` | **4.98**   | PASS     |
+| `hover:bg-destructive/90` | `#D74444` | **4.37**   | **FAIL** |
+| `hover:bg-destructive/80` | `#DC5959` | **3.75**   | **FAIL** |
+
+Both improved with the E2 fill change (from 3.40 and 3.02) and neither reaches
+4.5. Hover is a reachable state carrying the same label, so this is a real
+residue of E2 rather than a theoretical one.
+
+`bg-accent/90` is **not** affected. Its one site sits on a dark card, so the
+same alpha darkens instead of lightening: 5.04.
+
+The rule this breaks is that a filled control should **darken** on hover, not
+fade toward the page. Fixing it needs a darker step for the error red, which
+this system does not define, so it is a §20 governance event rather than a local
+edit. **Needs a decision:** add an `error-600`/`error-700` step and use it for
+hover, or replace the alpha hover with a scrim overlay. Not actioned.
+`tests/visual/contrast.spec.ts` asserts the resting states only, so it stays
+green on this known gap; add the hover cases when it is closed.
+
+**E32. The screenshot suite cannot detect a colour-token change.** `ACCEPTED`
+Discovered while verifying E1 and E2: the token change shipped in the compiled
+CSS, the page rendered the new colours, and all **252** visual tests passed
+against baselines still holding the old ones. Two independent causes, both
+structural:
+
+1. **`maxDiffPixelRatio: 0.01` is a fraction of the whole image.** The
+   highlighted option's label in `select-open-selected.png` is 775 px of a
+   1280x900 shot - **0.067%**. Flipping it from near-white to near-black moves
+   every one of those pixels and still lands two orders of magnitude under the
+   budget.
+2. **Playwright's per-pixel `threshold` defaults to 0.2 in YIQ space**, a
+   squared-delta budget of `35215 x 0.2^2` = **1408.6**. `--destructive` moving
+   `#EF4343` -> `#D32F2F` is a delta of **260.7**, so the comparator counts
+   _zero_ changed pixels. It would need `threshold < 0.086` to see it.
+
+Both thresholds are correct for the job they do - they absorb font hinting and
+sub-pixel antialiasing across machines - so neither is being changed. The
+conclusion is narrower and worth stating plainly: **an unchanged screenshot
+baseline is evidence about layout, not about colour.** §19-E30's "zero drift"
+results should be read that way.
+
+The gap is covered instead by `tests/visual/contrast.spec.ts`, which reads the
+computed colours the browser resolved and applies the WCAG formula to them - no
+pixels, no tolerance to tune. It is mutation-checked: reverting either token
+turns all four cases red with the documented ratios (3.62, 3.62, 3.78, 3.24).
+
 ---
 
 ## 20. Governance Rule
@@ -2160,17 +2254,20 @@ occurrences and 92 arbitrary colour classes are open defects, not exceptions. No
 contradiction in principle; a large gap in practice.
 
 **C8. Foreground colours in `globals.css`.** `--accent-foreground` and
-`--destructive-foreground` are both white, contradicting §2.4. **Resolution:**
-measured at 3.38 and 3.78 against their fills - both are live AA failures. §2.4
-is correct; the CSS is wrong. `accent` is resolved (dark ink, 5.78);
-`destructive` is not - see below.
+`--destructive-foreground` were both white, contradicting §2.4. **Resolution:**
+measured at 3.38 and 3.78 against their fills - both were live AA failures. §2.4
+was correct; the CSS was wrong. **Both closed 2026-09-01** - `accent` took dark
+ink (5.76), `destructive` kept white and darkened its fill instead (4.98). See
+§19-E1 and §19-E2.
 
 ### Unresolved - require a human decision
 
-**U1. `destructive` foreground (§19-E2).** No compliant option preserves both
-the red fill and white text. Choices: dark ink on the current red (5.17), or
-darken the fill to `error-600 #C62828` and keep white (5.62). This is a brand
-call. **No change made.**
+**U1. `destructive` foreground (§19-E2).** `RESOLVED 2026-09-01` - the second
+option was taken: the fill darkened to the existing `error` red `#D32F2F` and
+white was kept, measuring 4.98. The original wording named `error-600 #C62828`,
+which is not a token this repo defines. **A narrower question remains open as
+E31:** the `/90` and `/80` hover states still measure 4.37 and 3.75, because
+fading a fill toward a white page lightens it.
 
 **U2. `border` contrast (§19-E4).** `border`/`input` is 1.24:1 against white,
 below the 3:1 that WCAG 1.4.11 requires for a control boundary. Either darken
@@ -2196,6 +2293,7 @@ pass at 360/768/1280, in `en`/`fr`/`ar`, in both themes.
 Append-only. Record what changed and why, so a future reader can tell a
 deliberate decision from a drift.
 
-| Date       | Change                                                                                                                                                                                                                                                                                                                                                                |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-24 | Rewritten as the governance system. Colour rules rebuilt on measured contrast; §2.5 badge pattern replaced after the tint pattern failed AA for 7/8 statuses; spacing moved to named tokens per §4.2; radius unified on the mobile scale (§6.1, E6); §19 and §21 added. Supersedes the descriptive version at `DESIGN.v2.bak.md` and the original at `DESIGN.md.bak`. |
+| Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-24 | Rewritten as the governance system. Colour rules rebuilt on measured contrast; §2.5 badge pattern replaced after the tint pattern failed AA for 7/8 statuses; spacing moved to named tokens per §4.2; radius unified on the mobile scale (§6.1, E6); §19 and §21 added. Supersedes the descriptive version at `DESIGN.v2.bak.md` and the original at `DESIGN.md.bak`.                                                                                                                                                                                                 |
+| 2026-09-01 | §19-E1 and §19-E2 closed for light mode - the two AA text failures on coral. `--accent-foreground` moved to dark ink (3.38 -> 5.76); `--destructive` darkened to the existing `error` red `#D32F2F` (3.78 -> 4.98), fixed in `globals.css` **and** the scoped `merchant-signup.css`. §2.4 rows updated to the new measurements. Two new exceptions opened by the same work: **E31**, alpha hover lightens a filled control (4.37 / 3.75), and **E32**, the screenshot suite cannot detect a colour-token change - covered instead by `tests/visual/contrast.spec.ts`. |

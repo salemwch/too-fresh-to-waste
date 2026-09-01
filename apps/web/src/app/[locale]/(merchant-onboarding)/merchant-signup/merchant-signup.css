@@ -31,7 +31,13 @@
   --accent: 170 20% 95%;
   --accent-foreground: 174 72% 17%;
 
-  --destructive: 0 84.2% 60.2%;
+  /*
+   * error #D32F2F, matching globals.css. This scoped block shipped stock
+   * shadcn red (#EF4444), where white text measures 3.76 and fails AA; here it
+   * is 4.98. Same 19-E2 fix, second site - the token is redefined for this
+   * route group, so the change in globals.css does not reach it.
+   */
+  --destructive: 0 65.1% 50.6%;
   --destructive-foreground: 0 0% 100%;
 
   --border: 170 15% 88%;

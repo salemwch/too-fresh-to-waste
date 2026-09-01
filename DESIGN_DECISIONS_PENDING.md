@@ -10,24 +10,56 @@ Nothing here is blocked on effort. Each is blocked on someone deciding.
 
 ---
 
-## D1. Coral fills cannot carry white text (V5 / DESIGN.md §19-E2)
+## D1. Coral fills cannot carry white text (V5 / DESIGN.md §19-E1, §19-E2)
 
-**Verified.** `--accent` is coral; `--accent-foreground` is white. Measured
-**3.38:1** - below the 4.5 AA needs for text.
+**RESOLVED 2026-09-01.** Both failures are fixed. The entry is kept for the
+reasoning, not as open work.
 
-Now visible in a committed baseline: `select-open-selected.png` shows the
-highlighted menu item as white-on-coral.
+**Was:** `--accent` is coral with a white `--accent-foreground` = **3.38:1**.
+Same shape on `--destructive`: white on it is **3.78:1**. Both below AA's 4.5.
 
-Same shape on `--destructive`: white on it is **3.78:1**.
+| Option                                | Consequence                                                 |
+| ------------------------------------- | ----------------------------------------------------------- |
+| Dark ink on the existing coral        | Passes at 5.76. A red button with dark text reads unusually |
+| Darken the fill (`error-600 #C62828`) | Passes with white text, but is no longer the brand coral    |
+| Reserve coral for non-text marks only | Passes 3:1 as a non-text indicator; loses coral CTAs        |
 
-| Option                                | Consequence                                                      |
-| ------------------------------------- | ---------------------------------------------------------------- |
-| Dark ink on the existing coral        | Passes at 5.78. A red button with dark text reads unusually      |
-| Darken the fill (`error-600 #C62828`) | Passes at 5.62 with white text, but is no longer the brand coral |
-| Reserve coral for non-text marks only | Passes 3:1 as a non-text indicator; loses coral CTAs             |
+**What was done - the two were fixed from opposite ends, deliberately:**
 
-**Recommendation:** darken the fill for text-bearing surfaces, keep brand coral
-for icons, borders and indicators. **Not actioned - this is a brand call.**
+- **`accent` moved its foreground** to dark ink: **3.38 -> 5.76**. DESIGN.md
+  §2.4 had approved that pairing since the table was written, so this
+  implemented a decided position rather than taking a new one (§21-C8). The
+  coral fill is untouched, so brand coral survives for icons, borders and
+  indicators.
+- **`destructive` moved its fill** to the existing `error` red `#D32F2F`,
+  keeping white: **3.78 -> 4.98**. White-on-red is what a destructive control is
+  expected to look like, which is why the fill moved and the text did not.
+
+`error-600 #C62828`, named in the option table above, **is not a token this repo
+defines.** The error red is `#D32F2F` in `tailwind.config.ts` and in §2.4, which
+is what was used - hence 4.98 rather than the 5.62 the recommendation predicted.
+Both clear AA.
+
+Fixed in **two** files, because the token is redefined per route group:
+`app/globals.css` and `merchant-signup/merchant-signup.css`, the latter shipping
+stock shadcn red (`#EF4444`, white = 3.76). One hardcoded `text-white` on
+`bg-accent` - the merchant establishment save button - had to move to
+`text-accent-foreground` with it.
+
+The fill change carries the **91 `text-destructive`** sites from 3.78 to 4.98,
+since darkening a fill and darkening text move the same way.
+
+**Two new findings came out of the fix, both now in DESIGN.md §19:**
+
+- **E31** - `hover:bg-destructive/90` and `/80` fade the fill toward the white
+  page, so hover measures **4.37** and **3.75**. Improved, still failing, still
+  open; needs a darker error step this system does not define.
+- **E32** - this entry previously said the failure was "now visible in a
+  committed baseline: `select-open-selected.png` shows the highlighted menu item
+  as white-on-coral." That was true of the image and **false as evidence.** All
+  252 visual tests passed against baselines still holding the old colours.
+  Screenshot comparison cannot detect a colour-token change of this size;
+  `tests/visual/contrast.spec.ts` now covers it by measuring computed colours.
 
 ---
 

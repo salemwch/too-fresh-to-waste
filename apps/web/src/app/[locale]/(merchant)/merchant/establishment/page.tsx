@@ -699,7 +699,7 @@ export default function MerchantEstablishmentPage() {
               type='button'
               onClick={doSave}
               disabled={isSaving || activeTab === 'documents'}
-              className='flex items-center gap-1.5 rounded-full bg-accent hover:bg-accent/90 disabled:opacity-50 px-md py-1.5 text-xs font-medium text-white transition-colors'
+              className='flex items-center gap-1.5 rounded-full bg-accent hover:bg-accent/90 disabled:opacity-50 px-md py-1.5 text-xs font-medium text-accent-foreground transition-colors'
             >
               {isSaving ? (
                 <Loader2 className='h-3.5 w-3.5 animate-spin' />
