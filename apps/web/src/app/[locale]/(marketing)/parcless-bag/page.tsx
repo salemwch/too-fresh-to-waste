@@ -6,6 +6,9 @@ import { setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/layout';
 import ParclessBagClient from './_components/ParclessBagClient';
 
+// Scoped palette for this page only; see the header comment in the file.
+import './parcless-bag.css';
+
 interface PageProps {
   params: Promise<{ locale: string }>;
 }

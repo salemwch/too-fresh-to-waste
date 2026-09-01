@@ -2154,6 +2154,85 @@ computed colours the browser resolved and applies the WCAG formula to them - no
 pixels, no tolerance to tune. It is mutation-checked: reverting either token
 turns all four cases red with the documented ratios (3.62, 3.62, 3.78, 3.24).
 
+**E33. `/parcless-bag` has its own pinned palette.** `ACCEPTED 2026-09-01`
+Resolves D3.
+
+The page is art-directed - a dark teal ground, a cream ground, gold, sage and
+terracotta - but it was built on `bg-primary` / `text-primary`, which invert
+under `.dark` while the hardcoded colours painted on them do not. Auditing all
+44 of its text pairings found **25 failing in light and 40 in dark**. Most of
+the dark column was that one bug, not forty separate ones.
+
+**The ground is pinned rather than themed.** `parcless-bag.css` declares ten
+`--pb-*` tokens on `.parcless-bag-theme`, scoped to the page's own `<main>`
+following the `merchant-signup.css` precedent. There is no `.dark` block and
+there must not be one: the page renders identically in both themes, which is the
+normal treatment for an art-directed marketing page and is what keeps a fixed
+foreground legible on a fixed background. Verified - the light and dark route
+baselines are now **pixel-identical at all three viewports**, while `login.png`
+still differs across themes, so the theme is genuinely applied and this page is
+genuinely opting out.
+
+The shared `<Header />` renders outside that element and keeps the real design
+system. `--pb-*` names are used rather than overriding `--primary`, so a
+component dropped onto this page still resolves the global tokens.
+
+**Colour changes, all derived rather than chosen** - same hue and saturation,
+minimum lightness move that clears the worst ground each one is painted on:
+
+| Token            | Was       | Now       | Worst ratio      |
+| ---------------- | --------- | --------- | ---------------- |
+| sage             | `#7FA896` | `#9FBEB0` | 3.24 -> **4.51** |
+| terracotta       | `#C05F4A` | `#AB4F3B` | 3.37 -> **4.51** |
+| gold, small text | `#C4A25A` | `#C6A55F` | 4.40 -> **4.53** |
+| ink on light     | `#1E4448` | `#0A1C1E` | 3.35 -> **7.23** |
+| muted subtitle   | `#5A7A72` | `#527068` | 3.96 -> **4.56** |
+
+One terracotta serves both roles - 4.51 as text on cream and 5.37 under the
+white label on its own fill - so the page did not gain a second one. The ink is
+not a new value either: `#0A1C1E` was already the marquee colour.
+
+**`opacity-[0.82]` on the shared benefit body was removed.** It blended each
+label toward its own card and cost every one of the five variants roughly 0.8 of
+contrast; it is why the sage body measured 3.23 rather than 4.02. The five body
+colours are already muted by choice, so the alpha was doing the same job twice.
+Two low-alpha foregrounds were raised for the same reason: the input placeholder
+0.28 -> 0.70 (1.95 -> 4.50) and the CTA note 0.35 -> 0.65 (2.48 -> 4.79).
+
+**Three decorations are `aria-hidden` rather than claimed exempt.** The `01/02`
+step watermark tops out at 2.34 even opaque, and the `&ldquo;` ornament at
+2.04 - neither can meet 3:1 as text, and both are genuinely redundant (document
+order and step titles; a fully legible `<blockquote>` at 14.74). The benefit and
+step emoji are pictograms that paint as colour glyphs and ignore `color`
+entirely, so a ratio computed from their inherited colour is meaningless. They
+are taken out of the accessibility tree, which is what makes the exemption real
+rather than asserted, and given an explicit colour so they stay legible if a
+platform renders them monochrome.
+
+**Non-text uses were left alone**, per the audit: the bag illustration's
+gradient stops, the white/black surface tints, the gold hairline borders and the
+terracotta drop shadow. The terracotta fill itself still clears 1.4.11 at 3:1
+against cream.
+
+**Gated by `tests/visual/contrast.spec.ts`**, which walks every visible text
+node under the scope and asserts AA against the composited background, across 3
+viewports x {light-en, dark-en, light-ar, light-fr}. **60/60 pass; 0 of 87 text
+nodes fail.** A selector list was deliberately not used - the bug that started
+this was structural, and a list of remembered pairings would not have caught it.
+Mutation-checked: reverting sage alone turns 14 nodes red at the pre-fix ratios.
+
+Two things that gate found in itself and are worth keeping:
+
+- **`fixtures.ts` calls `addStyleTag` before `goto`**, so its
+  animation-disabling style is destroyed by the navigation. Screenshots are
+  unaffected because Playwright disables animations at capture time, but an
+  `evaluate`-based check reads mid-transition values - the first run reported 40
+  phantom 1.00 ratios. The parcless-bag case settles the page itself; the
+  fixture is not changed here.
+- **Derive against the rounded colour, not the float.** The muted subtitle was
+  first set to `38.4%` lightness, which scored 4.51 as a float and **4.49** once
+  the browser resolved it to an 8-bit triple.
+
 ---
 
 ## 20. Governance Rule
@@ -2304,3 +2383,4 @@ deliberate decision from a drift.
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-08-24 | Rewritten as the governance system. Colour rules rebuilt on measured contrast; §2.5 badge pattern replaced after the tint pattern failed AA for 7/8 statuses; spacing moved to named tokens per §4.2; radius unified on the mobile scale (§6.1, E6); §19 and §21 added. Supersedes the descriptive version at `DESIGN.v2.bak.md` and the original at `DESIGN.md.bak`.                                                                                                                                                                                                 |
 | 2026-09-01 | §19-E1 and §19-E2 closed for light mode - the two AA text failures on coral. `--accent-foreground` moved to dark ink (3.38 -> 5.76); `--destructive` darkened to the existing `error` red `#D32F2F` (3.78 -> 4.98), fixed in `globals.css` **and** the scoped `merchant-signup.css`. §2.4 rows updated to the new measurements. Two new exceptions opened by the same work: **E31**, alpha hover lightens a filled control (4.37 / 3.75), and **E32**, the screenshot suite cannot detect a colour-token change - covered instead by `tests/visual/contrast.spec.ts`. |
+| 2026-09-01 | §19-E33 opened and D3 resolved. `/parcless-bag` was built on `bg-primary` / `text-primary`, which invert under `.dark` while its hardcoded colours do not: 25 of 44 text pairings failed in light and 40 in dark. Its palette is now pinned to ten page-scoped `--pb-*` tokens with **no `.dark` block**, so it renders identically in both themes; five values moved by the minimum lightness step on their own hue. 0 of 87 text nodes fail, gated by `tests/visual/contrast.spec.ts`.                                                                              |

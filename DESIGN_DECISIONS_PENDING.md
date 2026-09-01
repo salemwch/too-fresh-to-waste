@@ -76,37 +76,40 @@ name the compensating affordances. **Not actioned.**
 
 ## D3. `/parcless-bag` runs a parallel palette (V6)
 
-**Verified.** 41 raw hex in two files. Five values exist in no token file:
+**RESOLVED 2026-09-01** as `DESIGN.md` §19-E33. Kept for the reasoning.
 
-`#F2EBD9` (14) · `#7FA896` (8) · `#C05F4A` (5) · `#3D6B5C` (5) · `#3A4F48` (2)
+**Was:** 41 raw hex in two files, five values in no token file - `#F2EBD9` (14)
+· `#7FA896` (8) · `#C05F4A` (5) · `#3D6B5C` (5) · `#3A4F48` (2). The open
+question was whether the page had forked the brand deliberately.
 
-One marketing page has effectively forked the brand. Either map each to an
-existing token (changes how the page looks) or promote them to `brand.*` with
-contrast measurements (blesses a second palette).
+**The audit that settled it** (`.claude/work/parcless-bag-palette-audit.md`)
+found something underneath the brand question that was not product-owned: all 8
+sage usages were body text, terracotta carried body text and white labels, and
+`bg-primary` inverts under `.dark` while the hardcoded foregrounds do not.
+Measured across all 44 text pairings: **25 failing in light, 40 in dark.**
 
-**Usage audited 2026-09-01 - `.claude/work/parcless-bag-palette-audit.md`.** The
-brand question below is unchanged, but the audit found an accessibility failure
-underneath it that is not product-owned:
+**What was done - the palette was kept, the mechanism was changed.** The brand
+question is answered in favour of "deliberately distinct": ten `--pb-*` tokens
+in `parcless-bag.css`, scoped to the page's own `<main>`, with **no `.dark`
+block**. The page no longer participates in theming, which is the normal
+treatment for an art-directed marketing page. Light and dark route baselines are
+now pixel-identical at all three viewports.
 
-- **All 8 `#7FA896` usages are body text** on `bg-primary`, measuring **3.23 to
-  4.02**. None sits on the cream ground the palette was previously measured
-  against, so the recorded 2.22 was against a background sage is never painted
-  on.
-- **`#C05F4A` is 3 body-text usages** (3.55 on cream) **and 2 backgrounds**. The
-  backgrounds clear 1.4.11 at 3:1; the white text on them measures **3.37 to
-  4.22**.
-- **Dark theme:** `bg-primary` inverts to `#54ACB6` and the hardcoded sage does
-  not, so six strings land at a ratio of **1.00** - invisible.
+Five values moved, each derived on its own hue and saturation by the minimum
+lightness step that clears the worst ground it is painted on - sage
+`#7FA896`->`#9FBEB0`, terracotta `#C05F4A`->`#AB4F3B`, gold for small text
+`#C4A25A`->`#C6A55F`, ink on light grounds `#1E4448`->`#0A1C1E` (already the
+marquee colour, so not a new value), muted subtitle `#5A7A72`->`#527068`. A
+single terracotta covers both its roles, so the page did not gain a second one.
+Non-text uses - the illustration, surface tints, hairline borders, the drop
+shadow - were left alone.
 
-11 of 14 text roles fail AA. **D3 is therefore a certification blocker, not an
-intentional exception.**
+**0 of 87 text nodes now fail**, gated by `tests/visual/contrast.spec.ts` across
+3 viewports x {light-en, dark-en, light-ar, light-fr}, mutation-checked.
 
-**Still not actioned.** Product owns whether this page is on-brand or
-deliberately distinct, and owns which remedy to take. What is no longer open is
-whether the current state can simply be documented and kept.
-
-Visual coverage now exists: `/parcless-bag` carries 12 route baselines in
-`tests/visual/routes.spec.ts`, viewport-only, in both themes.
+**Not a redesign.** Layout, type scale, spacing and composition are untouched;
+the light-mode baselines moved by 3.6k-9.4k pixels, which is the recoloured text
+and nothing else.
 
 ---
 

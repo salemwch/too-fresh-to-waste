@@ -1,5 +1,5 @@
 ---
-status: in-review
+status: done
 scope: web
 gate: pnpm --filter @foodwaste/web test:visual
 ---
@@ -167,7 +167,33 @@ The baselines are non-vacuous: the spec asserts a 200 before screenshotting, and
 the dominant-colour sample above shows the real hero ground in both themes
 rather than a blank or error page.
 
-## What is NOT decided here
+## Resolved 2026-09-01
+
+**Implemented as `DESIGN.md` §19-E33.** The finding below stands as written;
+this section records what was done about it.
+
+The audit scoped itself to the two colours, as asked. Widening the same
+measurement to **every** text pairing on the page found 25 failing in light and
+**40 in dark** - because `bg-primary` inverts under `.dark` while the hardcoded
+foregrounds do not. The two audited colours were 8 of the 25.
+
+So the fix is structural first: the palette is pinned to ten `--pb-*` tokens on
+the page's own `<main>` with **no `.dark` block**, and the page stops
+participating in theming. Five values then moved by the minimum lightness step
+on their own hue - sage `#7FA896` -> `#9FBEB0`, terracotta `#C05F4A` ->
+`#AB4F3B` (one value covering both its roles), gold for small text, the ink on
+light grounds, and the muted subtitle. `opacity-[0.82]` came off the shared
+benefit body, and two low-alpha foregrounds were raised.
+
+**0 of 87 text nodes fail** in either theme, gated by
+`tests/visual/contrast.spec.ts` across all 12 project combinations and
+mutation-checked.
+
+**The dark-mode section below understated it.** It reported six sage strings at
+1.00. Every hardcoded foreground on the inverting ground was affected, not only
+sage - the audit simply was not looking at the others.
+
+## What was NOT decided here
 
 Per the brief: no redesign, no palette remap, no product decision.
 

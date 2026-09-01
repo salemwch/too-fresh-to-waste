@@ -79,7 +79,7 @@ function BagSVG() {
         />
 
         {/* Zellige accent pattern */}
-        <g opacity='0.12' style={{ stroke: 'hsl(var(--secondary))' }} strokeWidth='0.8'>
+        <g opacity='0.12' style={{ stroke: 'hsl(var(--pb-gold))' }} strokeWidth='0.8'>
           <path d='M90 168 L110 190 L90 212 L70 190 Z' />
           <path d='M130 168 L150 190 L130 212 L110 190 Z' />
           <path d='M170 168 L190 190 L170 212 L150 190 Z' />
@@ -94,7 +94,7 @@ function BagSVG() {
         {/* Leaf logo mark */}
         <path
           d='M175 268 Q180 245 185 268 Q190 282 180 288 Q170 282 175 268Z'
-          fill='#3D6B5C'
+          fill='hsl(var(--pb-forest))'
           opacity='0.9'
         />
         <line
@@ -102,7 +102,7 @@ function BagSVG() {
           y1='268'
           x2='180'
           y2='288'
-          style={{ stroke: 'hsl(var(--secondary))' }}
+          style={{ stroke: 'hsl(var(--pb-gold))' }}
           strokeWidth='0.9'
           opacity='0.55'
         />
@@ -114,7 +114,7 @@ function BagSVG() {
           fontFamily='serif'
           fontSize='16'
           fontWeight='400'
-          style={{ fill: 'hsl(var(--secondary))' }}
+          style={{ fill: 'hsl(var(--pb-gold))' }}
           textAnchor='middle'
           opacity='0.92'
           letterSpacing='2'
@@ -125,14 +125,14 @@ function BagSVG() {
         {/* Handles */}
         <path
           d='M110 110 C110 54 148 42 180 42 C212 42 250 54 250 110'
-          style={{ stroke: 'hsl(var(--secondary))' }}
+          style={{ stroke: 'hsl(var(--pb-gold))' }}
           strokeWidth='7'
           fill='none'
           strokeLinecap='round'
         />
         <path
           d='M110 110 C110 54 148 42 180 42 C212 42 250 54 250 110'
-          stroke='#1E4448'
+          stroke='hsl(var(--pb-ground))'
           strokeWidth='3.5'
           fill='none'
           strokeLinecap='round'
@@ -164,20 +164,20 @@ function HeroSection() {
 
   return (
     <section
-      className='h-screen min-h-[680px] bg-primary grid grid-cols-1 lg:grid-cols-2 relative overflow-hidden'
+      className='h-screen min-h-[680px] bg-[hsl(var(--pb-ground))] grid grid-cols-1 lg:grid-cols-2 relative overflow-hidden'
       style={{ backgroundImage: ZELLIGE_LIGHT }}
     >
       {/* Left - headline */}
       <div className='flex flex-col justify-end px-5xl py-5xl lg:px-4xl lg:py-6xl relative z-10'>
         <p
-          className='text-secondary text-[0.68rem] font-semibold tracking-[0.22em] uppercase mb-3xl'
+          className='text-[hsl(var(--pb-gold-text))] text-[0.68rem] font-semibold tracking-[0.22em] uppercase mb-3xl'
           style={{ opacity: 0, animation: 'fadeUp 0.8s ease forwards 0.2s' }}
         >
           {t('eyebrow')}
         </p>
 
         <h1
-          className='text-[#F2EBD9] mb-3xl'
+          className='text-[hsl(var(--pb-surface))] mb-3xl'
           style={{
             ...SERIF,
             fontSize: 'clamp(3.4rem, 5.5vw, 5.2rem)',
@@ -189,17 +189,18 @@ function HeroSection() {
         >
           <span className='block'>{t('headline.line1')}</span>
           <span className='block'>
-            {t('headline.line2')} <em className='text-secondary'>{t('headline.line2Em')}</em>
+            {t('headline.line2')}{' '}
+            <em className='text-[hsl(var(--pb-gold-text))]'>{t('headline.line2Em')}</em>
           </span>
           {t('headline.line3Em') && (
             <span className='block'>
-              <em className='text-secondary'>{t('headline.line3Em')}</em>
+              <em className='text-[hsl(var(--pb-gold-text))]'>{t('headline.line3Em')}</em>
             </span>
           )}
         </h1>
 
         <p
-          className='text-[#7FA896] text-[0.98rem] font-light leading-[1.75] max-w-[370px] mb-11'
+          className='text-[hsl(var(--pb-sage))] text-[0.98rem] font-light leading-[1.75] max-w-[370px] mb-11'
           style={{ opacity: 0, animation: 'fadeUp 0.9s ease forwards 0.6s' }}
         >
           {t('subtitle')}
@@ -211,7 +212,7 @@ function HeroSection() {
         >
           <a
             href='#cta'
-            className='bg-secondary text-primary font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-5xl py-lg rounded-full flex items-center gap-sm transition-all hover:-translate-y-xxs hover:bg-[#F2EBD9] hover:shadow-[0_14px_42px_rgba(196,163,90,0.38)]'
+            className='bg-[hsl(var(--pb-gold))] text-[hsl(var(--pb-ink))] font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-5xl py-lg rounded-full flex items-center gap-sm transition-all hover:-translate-y-xxs hover:bg-[hsl(var(--pb-surface))] hover:shadow-[0_14px_42px_rgba(196,163,90,0.38)]'
           >
             {t('ctaPartner')}
             <svg
@@ -226,7 +227,7 @@ function HeroSection() {
             </svg>
           </a>
           <button
-            className='text-[rgba(242,235,217,0.65)] text-[0.84rem] underline underline-offset-4 bg-transparent border-0 px-sm py-lg cursor-pointer transition-colors hover:text-secondary'
+            className='text-[hsl(var(--pb-surface)/0.65)] text-[0.84rem] underline underline-offset-4 bg-transparent border-0 px-sm py-lg cursor-pointer transition-colors hover:text-[hsl(var(--pb-gold-text))]'
             onClick={() => scrollTo('concept')}
           >
             {t('ctaLearnMore')}
@@ -244,7 +245,7 @@ function HeroSection() {
         className='absolute bottom-11 left-5xl lg:left-4xl flex items-center gap-md'
         style={{ opacity: 0, animation: 'fadeUp 1s ease forwards 1.4s' }}
       >
-        <span className='text-[0.62rem] tracking-[0.22em] uppercase text-[#7FA896]'>
+        <span className='text-[0.62rem] tracking-[0.22em] uppercase text-[hsl(var(--pb-sage))]'>
           {t('scrollHint')}
         </span>
       </div>
@@ -258,7 +259,7 @@ function MarqueeStrip() {
   const items = t.raw('items') as string[];
 
   return (
-    <div className='bg-secondary py-[22px] overflow-hidden'>
+    <div className='bg-[hsl(var(--pb-gold))] py-[22px] overflow-hidden'>
       <div
         className='flex whitespace-nowrap'
         style={{ animation: 'marqueeScroll 22s linear infinite' }}
@@ -268,10 +269,13 @@ function MarqueeStrip() {
           <div key={copy} className='flex items-center flex-shrink-0'>
             {items.map(item => (
               <div key={item} className='flex items-center gap-6xl pe-6xl flex-shrink-0'>
-                <span className='text-[#0A1C1E] text-[1.05rem] italic flex-shrink-0' style={SERIF}>
+                <span
+                  className='text-[hsl(var(--pb-ink))] text-[1.05rem] italic flex-shrink-0'
+                  style={SERIF}
+                >
                   {item}
                 </span>
-                <span className='w-[5px] h-[5px] rounded-full bg-[#0A1C1E] flex-shrink-0' />
+                <span className='w-[5px] h-[5px] rounded-full bg-[hsl(var(--pb-ink))] flex-shrink-0' />
               </div>
             ))}
           </div>
@@ -290,15 +294,15 @@ function ConceptSection() {
   return (
     <section
       id='concept'
-      className='bg-[#F2EBD9] px-5xl py-5xl lg:px-5xl lg:py-28 grid grid-cols-1 lg:grid-cols-2 gap-[72px] items-center'
+      className='bg-[hsl(var(--pb-surface))] px-5xl py-5xl lg:px-5xl lg:py-28 grid grid-cols-1 lg:grid-cols-2 gap-[72px] items-center'
     >
       {/* Left */}
       <div>
-        <p className='rv text-[#C05F4A] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[18px]'>
+        <p className='rv text-[hsl(var(--pb-terracotta))] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[18px]'>
           {t('label')}
         </p>
         <h2
-          className='rv d1 text-primary mb-2xl'
+          className='rv d1 text-[hsl(var(--pb-ink))] mb-2xl'
           style={{
             ...SERIF,
             fontSize: 'clamp(2.4rem, 3.8vw, 3.6rem)',
@@ -306,14 +310,14 @@ function ConceptSection() {
             lineHeight: 1.1,
           }}
         >
-          {t('headlineBefore')} <em className='text-[#3D6B5C]'>{t('headlineEm')}</em>
+          {t('headlineBefore')} <em className='text-[hsl(var(--pb-forest))]'>{t('headlineEm')}</em>
           <br />
           {t('headlineAfter')}
         </h2>
-        <p className='rv d2 text-[#3A4F48] text-[0.96rem] font-light leading-[1.82] mb-xl'>
+        <p className='rv d2 text-[hsl(var(--pb-slate))] text-[0.96rem] font-light leading-[1.82] mb-xl'>
           {t('body1')}
         </p>
-        <p className='rv d2 text-[#3A4F48] text-[0.96rem] font-light leading-[1.82]'>
+        <p className='rv d2 text-[hsl(var(--pb-slate))] text-[0.96rem] font-light leading-[1.82]'>
           {t('body2')}
         </p>
         <div className='rv d3 flex flex-wrap gap-[10px] mt-3xl'>
@@ -322,8 +326,8 @@ function ConceptSection() {
               key={tag}
               className={`text-[0.68rem] font-medium tracking-[0.1em] uppercase px-[18px] py-sm rounded-full ${
                 i === 0
-                  ? 'bg-primary text-[#F2EBD9]'
-                  : 'text-primary border border-[rgba(30,68,72,0.35)]'
+                  ? 'bg-[hsl(var(--pb-ground))] text-[hsl(var(--pb-surface))]'
+                  : 'text-[hsl(var(--pb-ink))] border border-[hsl(var(--pb-ground)/0.35)]'
               }`}
             >
               {tag}
@@ -335,31 +339,34 @@ function ConceptSection() {
       {/* Right - stat card */}
       <div className='rv d2 relative'>
         <span
-          className='absolute -top-[18px] right-4xl z-10 bg-[#C05F4A] text-white rounded-full px-[22px] py-[10px] text-[0.72rem] font-semibold tracking-[0.08em] uppercase shadow-[0_8px_28px_rgba(192,95,74,0.45)]'
+          className='absolute -top-[18px] right-4xl z-10 bg-[hsl(var(--pb-terracotta))] text-white rounded-full px-[22px] py-[10px] text-[0.72rem] font-semibold tracking-[0.08em] uppercase shadow-[0_8px_28px_rgba(171,79,59,0.45)]'
           style={{ animation: 'floatItem 3s ease-in-out infinite' }}
         >
           {t('badge')}
         </span>
-        <div className='bg-primary rounded-[22px] p-11 relative overflow-hidden'>
-          <p className='text-secondary text-[0.62rem] tracking-[0.2em] uppercase mb-[18px]'>
+        <div className='bg-[hsl(var(--pb-ground))] rounded-[22px] p-11 relative overflow-hidden'>
+          <p className='text-[hsl(var(--pb-gold-text))] text-[0.62rem] tracking-[0.2em] uppercase mb-[18px]'>
             {t('statLabel')}
           </p>
           <p
-            className='text-[#F2EBD9] leading-none mb-[6px]'
+            className='text-[hsl(var(--pb-surface))] leading-none mb-[6px]'
             style={{ ...SERIF, fontSize: '5.5rem', fontWeight: 300 }}
           >
-            <span className='text-secondary'>73</span>%
+            <span className='text-[hsl(var(--pb-gold-text))]'>73</span>%
           </p>
-          <p className='text-[#7FA896] text-[0.87rem] font-light leading-[1.65] mb-5xl'>
+          <p className='text-[hsl(var(--pb-sage))] text-[0.87rem] font-light leading-[1.65] mb-5xl'>
             {t('statDesc')}
           </p>
           <div className='grid grid-cols-2 gap-lg'>
             {miniStats.map(({ n, l }) => (
               <div key={n} className='bg-[rgba(255,255,255,0.055)] rounded-xl p-[18px]'>
-                <p className='text-secondary text-[1.75rem] font-light' style={SERIF}>
+                <p
+                  className='text-[hsl(var(--pb-gold-text))] text-[1.75rem] font-light'
+                  style={SERIF}
+                >
                   {n}
                 </p>
-                <p className='text-[#7FA896] text-[0.68rem] font-light mt-xs'>{l}</p>
+                <p className='text-[hsl(var(--pb-sage))] text-[0.68rem] font-light mt-xs'>{l}</p>
               </div>
             ))}
           </div>
@@ -376,20 +383,21 @@ function HowItWorksSection() {
 
   return (
     <section
-      className='bg-primary px-5xl py-5xl lg:px-5xl lg:py-28 relative overflow-hidden'
+      className='bg-[hsl(var(--pb-ground))] px-5xl py-5xl lg:px-5xl lg:py-28 relative overflow-hidden'
       style={{ backgroundImage: ZELLIGE_DARK }}
     >
       <div className='text-center mb-[72px] rv'>
-        <p className='text-secondary text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[14px]'>
+        <p className='text-[hsl(var(--pb-gold-text))] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[14px]'>
           {t('label')}
         </p>
         <h2
-          className='text-[#F2EBD9] mb-[14px]'
+          className='text-[hsl(var(--pb-surface))] mb-[14px]'
           style={{ ...SERIF, fontSize: 'clamp(2.4rem, 3.8vw, 3.6rem)', fontWeight: 400 }}
         >
-          {t('headlineBefore')} <em className='text-secondary'>{t('headlineEm')}</em>
+          {t('headlineBefore')}{' '}
+          <em className='text-[hsl(var(--pb-gold-text))]'>{t('headlineEm')}</em>
         </h2>
-        <p className='text-[#7FA896] text-[0.96rem] font-light max-w-[460px] mx-auto leading-[1.72]'>
+        <p className='text-[hsl(var(--pb-sage))] text-[0.96rem] font-light max-w-[460px] mx-auto leading-[1.72]'>
           {t('subtitle')}
         </p>
       </div>
@@ -400,22 +408,42 @@ function HowItWorksSection() {
             key={n}
             className={`rv d${i + 1} bg-[rgba(255,255,255,0.04)] border border-[rgba(196,163,90,0.14)] rounded-[20px] p-11 transition-all duration-300 hover:bg-[rgba(196,163,90,0.08)] hover:border-[rgba(196,163,90,0.38)] hover:-translate-y-sm`}
           >
+            {/*
+              Watermark. At 18% gold on the card it measures 1.29, and even at
+              full opacity it only reaches 2.34 - it cannot meet 3:1 as text.
+              It is decoration: the step is already carried by document order
+              and by the step title, so it is hidden from assistive tech rather
+              than left in the tree failing.
+            */}
             <p
-              className='text-[rgba(196,163,90,0.18)] leading-none mb-xl'
+              aria-hidden='true'
+              className='text-[hsl(var(--pb-gold)/0.18)] leading-none mb-xl'
               style={{ ...SERIF, fontSize: '4.5rem', fontWeight: 300 }}
             >
               {n}
             </p>
-            <div className='w-[46px] h-[46px] bg-secondary rounded-[11px] flex items-center justify-center mb-[22px] text-[1.3rem]'>
+            {/*
+              Decorative pictogram; the step title carries the meaning. It set
+              no colour of its own, so it inherited `--foreground` from <body> -
+              the one thing on this page still tied to the app theme, which put
+              near-white on the gold chip at 2.32 in dark mode. Pinned to the
+              page ink (7.23) and taken out of the accessibility tree.
+            */}
+            <div
+              aria-hidden='true'
+              className='w-[46px] h-[46px] bg-[hsl(var(--pb-gold))] text-[hsl(var(--pb-ink))] rounded-[11px] flex items-center justify-center mb-[22px] text-[1.3rem]'
+            >
               {icon}
             </div>
             <h3
-              className='text-[#F2EBD9] mb-[14px]'
+              className='text-[hsl(var(--pb-surface))] mb-[14px]'
               style={{ ...SERIF, fontSize: '1.5rem', fontWeight: 400 }}
             >
               {title}
             </h3>
-            <p className='text-[#7FA896] text-[0.88rem] font-light leading-[1.72]'>{body}</p>
+            <p className='text-[hsl(var(--pb-sage))] text-[0.88rem] font-light leading-[1.72]'>
+              {body}
+            </p>
           </div>
         ))}
       </div>
@@ -427,15 +455,27 @@ function HowItWorksSection() {
 type BenefitType = 'dark' | 'green' | 'gold' | 'light' | 'terra';
 
 const BENEFIT_STYLES: Record<BenefitType, { bg: string; title: string; body: string }> = {
-  dark: { bg: 'bg-primary', title: 'text-secondary', body: 'text-[#7FA896]' },
-  green: { bg: 'bg-[#3D6B5C]', title: 'text-[#F2EBD9]', body: 'text-[#F2EBD9]' },
-  gold: { bg: 'bg-secondary', title: 'text-primary', body: 'text-primary' },
-  light: {
-    bg: 'bg-[#E8DFC8] border border-[rgba(30,68,72,0.1)]',
-    title: 'text-primary',
-    body: 'text-primary',
+  dark: {
+    bg: 'bg-[hsl(var(--pb-ground))]',
+    title: 'text-[hsl(var(--pb-gold-text))]',
+    body: 'text-[hsl(var(--pb-sage))]',
   },
-  terra: { bg: 'bg-[#C05F4A]', title: 'text-white', body: 'text-white' },
+  green: {
+    bg: 'bg-[hsl(var(--pb-forest))]',
+    title: 'text-[hsl(var(--pb-surface))]',
+    body: 'text-[hsl(var(--pb-surface))]',
+  },
+  gold: {
+    bg: 'bg-[hsl(var(--pb-gold))]',
+    title: 'text-[hsl(var(--pb-ink))]',
+    body: 'text-[hsl(var(--pb-ink))]',
+  },
+  light: {
+    bg: 'bg-[hsl(var(--pb-surface-2))] border border-[rgba(30,68,72,0.1)]',
+    title: 'text-[hsl(var(--pb-ink))]',
+    body: 'text-[hsl(var(--pb-ink))]',
+  },
+  terra: { bg: 'bg-[hsl(var(--pb-terracotta))]', title: 'text-white', body: 'text-white' },
 };
 
 const BENEFIT_LAYOUT: Array<{ type: BenefitType; wide?: boolean; icon: string }> = [
@@ -452,20 +492,22 @@ function BenefitsSection() {
   const benefitTexts = t.raw('items') as Array<{ title: string; body: string; big?: string }>;
 
   return (
-    <section className='bg-[#F2EBD9] px-5xl py-5xl lg:px-5xl lg:py-28'>
+    <section className='bg-[hsl(var(--pb-surface))] px-5xl py-5xl lg:px-5xl lg:py-28'>
       <div className='mb-[52px] rv'>
-        <p className='text-[#C05F4A] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[10px]'>
+        <p className='text-[hsl(var(--pb-terracotta))] text-[0.63rem] font-semibold tracking-[0.26em] uppercase mb-[10px]'>
           {t('label')}
         </p>
         <h2
-          className='text-primary mb-[10px]'
+          className='text-[hsl(var(--pb-ink))] mb-[10px]'
           style={{ ...SERIF, fontSize: 'clamp(2.4rem, 3.8vw, 3.6rem)', fontWeight: 400 }}
         >
-          {t('headlineBefore')} <em className='text-[#3D6B5C]'>{t('headlineEm')}</em>
+          {t('headlineBefore')} <em className='text-[hsl(var(--pb-forest))]'>{t('headlineEm')}</em>
           <br />
           {t('headlineAfter')}
         </h2>
-        <p className='text-[#5A7A72] text-[0.96rem] font-light'>{t('subtitle')}</p>
+        <p className='text-[hsl(var(--pb-slate-muted))] text-[0.96rem] font-light'>
+          {t('subtitle')}
+        </p>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[18px]'>
@@ -477,19 +519,36 @@ function BenefitsSection() {
               key={i}
               className={`rv d${(i % 3) + 1} ${s.bg} ${layout.wide ? 'lg:col-span-2' : ''} rounded-[20px] p-[38px] transition-transform duration-300 hover:-translate-y-1.5`}
             >
-              <span className='block text-[1.9rem] mb-[22px]'>{layout.icon}</span>
+              {/*
+                Decorative pictogram - the card title says the same thing. It is
+                also emoji, which paint as colour glyphs and ignore `color`
+                entirely, so a contrast ratio computed from the inherited ink is
+                meaningless. It inherited `--pb-ink` and measured 1.84 on the
+                two dark cards. Hidden from assistive tech, and given the card's
+                own body colour so it stays legible if a platform renders the
+                glyph monochrome.
+              */}
+              <span aria-hidden='true' className={`block text-[1.9rem] mb-[22px] ${s.body}`}>
+                {layout.icon}
+              </span>
               <h3
                 className={`${s.title} mb-[10px]`}
                 style={{ ...SERIF, fontSize: '1.45rem', fontWeight: 400, lineHeight: 1.2 }}
               >
                 {text.title}
               </h3>
-              <p className={`${s.body} text-[0.84rem] font-light leading-[1.72] opacity-[0.82]`}>
-                {text.body}
-              </p>
+              {/*
+                No opacity here. It used to carry `opacity-[0.82]`, which blends
+                the label toward its own card and cost every variant roughly 0.8
+                of contrast - it is why the sage body measured 3.23 rather than
+                4.02, and the terracotta body 3.37 rather than 4.22. The five
+                body colours are already muted by choice; the alpha was doing
+                the same job twice.
+              */}
+              <p className={`${s.body} text-[0.84rem] font-light leading-[1.72]`}>{text.body}</p>
               {text.big && (
                 <span
-                  className='block mt-2xl leading-none text-secondary'
+                  className='block mt-2xl leading-none text-[hsl(var(--pb-gold-text))]'
                   style={{ ...SERIF, fontSize: '3.8rem', fontWeight: 300 }}
                 >
                   {text.big}
@@ -508,15 +567,21 @@ function QuoteSection() {
   const t = useTranslations('parclessBag.quote');
 
   return (
-    <section className='bg-[#F2EBD9] px-5xl py-6xl lg:px-5xl flex flex-col items-center text-center'>
+    <section className='bg-[hsl(var(--pb-surface))] px-5xl py-6xl lg:px-5xl flex flex-col items-center text-center'>
+      {/*
+        Typographic ornament, not content - the quotation is a real
+        <blockquote> below and measures 14.74. Gold on cream tops out at 2.04
+        even opaque, so this is hidden rather than counted as text.
+      */}
       <div
-        className='rv text-secondary leading-[0.4] mb-4xl'
+        aria-hidden='true'
+        className='rv text-[hsl(var(--pb-gold))] leading-[0.4] mb-4xl'
         style={{ ...SERIF, fontSize: '7rem', opacity: 0.38 }}
       >
         &ldquo;
       </div>
       <blockquote
-        className='rv text-primary max-w-[680px] mb-3xl'
+        className='rv text-[hsl(var(--pb-ink))] max-w-[680px] mb-3xl'
         style={{
           ...SERIF,
           fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)',
@@ -527,7 +592,7 @@ function QuoteSection() {
       >
         {t('text')}
       </blockquote>
-      <cite className='rv text-[#C05F4A] text-[0.74rem] font-semibold tracking-[0.16em] uppercase not-italic'>
+      <cite className='rv text-[hsl(var(--pb-terracotta))] text-[0.74rem] font-semibold tracking-[0.16em] uppercase not-italic'>
         {t('cite')}
       </cite>
     </section>
@@ -550,13 +615,16 @@ function CTASection() {
   };
 
   return (
-    <section id='cta' className='bg-primary px-5xl py-6xl lg:px-5xl relative overflow-hidden'>
+    <section
+      id='cta'
+      className='bg-[hsl(var(--pb-ground))] px-5xl py-6xl lg:px-5xl relative overflow-hidden'
+    >
       <div className='max-w-[680px] relative z-10'>
-        <p className='rv text-secondary text-[0.62rem] tracking-[0.26em] uppercase mb-[18px]'>
+        <p className='rv text-[hsl(var(--pb-gold-text))] text-[0.62rem] tracking-[0.26em] uppercase mb-[18px]'>
           {t('label')}
         </p>
         <h2
-          className='rv text-[#F2EBD9] mb-[18px]'
+          className='rv text-[hsl(var(--pb-surface))] mb-[18px]'
           style={{
             ...SERIF,
             fontSize: 'clamp(2.4rem, 3.8vw, 3.6rem)',
@@ -566,9 +634,9 @@ function CTASection() {
         >
           {t('headline')}
           <br />
-          <em className='text-secondary'>{t('headlineEm')}</em>
+          <em className='text-[hsl(var(--pb-gold-text))]'>{t('headlineEm')}</em>
         </h2>
-        <p className='rv text-[#7FA896] text-[0.96rem] font-light leading-[1.75] mb-5xl'>
+        <p className='rv text-[hsl(var(--pb-sage))] text-[0.96rem] font-light leading-[1.75] mb-5xl'>
           {t('body')}
         </p>
 
@@ -582,12 +650,14 @@ function CTASection() {
             onChange={e => setEmail(e.target.value)}
             placeholder={t('placeholder')}
             required
-            className='flex-1 bg-[rgba(255,255,255,0.07)] border border-[rgba(196,163,90,0.28)] rounded-full px-[22px] py-[15px] text-[#F2EBD9] text-[0.88rem] outline-none focus:border-secondary transition-colors placeholder:text-[rgba(242,235,217,0.28)]'
+            className='flex-1 bg-[rgba(255,255,255,0.07)] border border-[rgba(196,163,90,0.28)] rounded-full px-[22px] py-[15px] text-[hsl(var(--pb-surface))] text-[0.88rem] outline-none focus:border-[hsl(var(--pb-gold))] transition-colors placeholder:text-[hsl(var(--pb-surface)/0.7)]'
           />
           <button
             type='submit'
             className={`flex items-center justify-center gap-sm font-semibold text-[0.82rem] tracking-[0.09em] uppercase px-5xl py-lg rounded-full flex-shrink-0 transition-all hover:-translate-y-xxs ${
-              submitted ? 'bg-[#3D6B5C] text-white' : 'bg-secondary text-primary hover:bg-[#F2EBD9]'
+              submitted
+                ? 'bg-[hsl(var(--pb-forest))] text-white'
+                : 'bg-[hsl(var(--pb-gold))] text-[hsl(var(--pb-ink))] hover:bg-[hsl(var(--pb-surface))]'
             }`}
           >
             {submitted ? (
@@ -610,7 +680,9 @@ function CTASection() {
           </button>
         </form>
 
-        <p className='rv mt-[13px] text-[0.72rem] text-[rgba(242,235,217,0.35)]'>{t('note')}</p>
+        <p className='rv mt-[13px] text-[0.72rem] text-[hsl(var(--pb-surface)/0.65)]'>
+          {t('note')}
+        </p>
       </div>
     </section>
   );
@@ -621,7 +693,12 @@ export default function ParclessBagClient() {
   useScrollReveal();
 
   return (
-    <main role='main'>
+    /*
+     * `parcless-bag-theme` pins this page's palette so it does not invert with
+     * the app theme - see parcless-bag.css. It sits on <main> rather than
+     * higher up so the shared <Header /> keeps the real design-system tokens.
+     */
+    <main role='main' className='parcless-bag-theme'>
       <HeroSection />
       <MarqueeStrip />
       <ConceptSection />
