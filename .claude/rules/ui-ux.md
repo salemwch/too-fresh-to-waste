@@ -171,13 +171,23 @@ between two saturated hues reads as a clash rather than a pairing.
 
 This keeps one system with a light and a dark half, rather than two accents
 competing. Gold owns the dark ground; #017C6E owns the light one; coral stays
-reserved for destructive and error states.
+out of both and is not used as a general decorative accent.
+
+An earlier version of this line said coral was "reserved for destructive and
+error states". That stopped being true on 2026-09-01: destructive resolves to
+`--destructive` (`#D32F2F`), not to coral. Coral's remaining job is the
+`--accent` fill role and non-text marks - see the colour table above.
 
 ### One accent, one display face
 
-Gold (`secondary`, #C4A25A) is the only accent. Coral (`accent-500`) is reserved
-for destructive and error states, never decoration - two accents made the
-rollout map read as a different product from the rest of the site.
+Gold (`secondary`, #C4A25A) is the only accent. Coral (`accent-500`) is never
+decoration - two accents made the rollout map read as a different product from
+the rest of the site.
+
+This used to read "coral is reserved for destructive and error states". Since
+2026-09-01 that is the `error` red `#D32F2F` (`--destructive`), not coral. The
+constraint on coral is unchanged - it is still not a decorative accent - but the
+job it was reserved _for_ moved.
 
 `font-heading` resolves to **Comfortaa** and is the only display face on
 marketing; `font-sans` is **Quicksand**. Both are rounded geometric sans, so
