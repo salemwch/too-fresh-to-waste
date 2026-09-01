@@ -128,18 +128,19 @@ and **not** `hitSlop`, so bounds alone can neither confirm nor refute any
 
 ## 6. Colour and token migrations
 
-| Item                                     | Status                                          |
-| ---------------------------------------- | ----------------------------------------------- |
-| Mobile foreign greys -> neutral tokens   | **FIXED.** 172 migrated, 16 remain              |
-| `CheckoutScreen` parallel palette        | **FIXED**                                       |
-| `outline` / `outlineVariant` role split  | **FIXED** (E28 documents the new contract)      |
-| Mobile 26-colour unconstrained palette   | **CONSTRAINED** (E20)                           |
-| Two Tailwind greys kept raw              | **INTENTIONAL**, on accessibility grounds (E24) |
-| `warning`/`info` 700 step added          | **FIXED** (E29)                                 |
-| Web `accent` vs mobile `accent` ramp     | **DEFERRED** - brand decision (D5 / E18)        |
-| Coral cannot carry white text (3.38)     | **DEFERRED** - brand decision (D1 / E1, E2)     |
-| `border` at 1.24 against white           | **DEFERRED** - design decision (D2 / E4)        |
-| `parcless-bag` parallel palette (41 hex) | **DEFERRED** - product decision (D3)            |
+| Item                                     | Status                                            |
+| ---------------------------------------- | ------------------------------------------------- |
+| Mobile foreign greys -> neutral tokens   | **FIXED.** 172 migrated, 16 remain                |
+| `CheckoutScreen` parallel palette        | **FIXED**                                         |
+| `outline` / `outlineVariant` role split  | **FIXED** (E28 documents the new contract)        |
+| Mobile 26-colour unconstrained palette   | **CONSTRAINED** (E20)                             |
+| Two Tailwind greys kept raw              | **INTENTIONAL**, on accessibility grounds (E24)   |
+| `warning`/`info` 700 step added          | **FIXED** (E29)                                   |
+| Web `accent` vs mobile `accent` ramp     | **DEFERRED** - brand decision (D5 / E18)          |
+| Coral cannot carry white text (3.38)     | **FIXED 2026-09-01** (D1 / E1, E2)                |
+| `border` at 1.24 against white           | **DEFERRED** - design decision (D2 / E4)          |
+| `parcless-bag` parallel palette (41 hex) | **FIXED 2026-09-01** (D3 / E33)                   |
+| Destructive hover fades the fill         | **FIXED 2026-09-01** (E31), found while fixing D1 |
 
 ---
 
@@ -385,9 +386,16 @@ Nothing on this list is an open defect. They are gaps in **evidence** and
 
 ### Blocking - decisions only a human can make
 
-4. **D1** coral cannot carry white text (3.38) - brand call
-5. **D2** `border` at 1.24 - accept or darken
-6. **D3** `parcless-bag`'s 41 raw hex - on-brand or deliberately distinct
+> **Updated 2026-09-01.** D1 and D3 were the two AA text failures on this list
+> and are now implemented, so they are no longer decisions. The rest stand.
+
+4. ~~**D1** coral cannot carry white text~~ - **DONE**, §19-E1 / E2. Dark ink on
+   coral (5.76) and the destructive fill darkened to `error-500` (4.98). E31,
+   the hover residue, is also closed.
+5. **D2** `border` at 1.24 - accept or darken. **This is still a Level AA gap**
+   (1.4.11 wants 3:1 for a control boundary), not merely a consistency question.
+6. ~~**D3** `parcless-bag`'s 41 raw hex~~ - **DONE**, §19-E33. Palette kept and
+   pinned to page-scoped tokens; 0 of 87 text nodes fail in either theme.
 7. **D4** `.glass` on 76 dashboard cards - accept the repaint cost or restyle
 8. **D5** `accent` ramp divergence - tint or second coral
 9. **D6** radius transposition - approve and every corner in the product changes

@@ -225,6 +225,12 @@ Computed against `background #FFFFFF`. **AA text = 4.5, AA non-text = 3.0.**
 
 Measured. **Use this table; do not guess.**
 
+**The "white text" column is measured against pure `#FFFFFF`.** The tokens
+actually ship `#FAFAFA` (`0 0% 98%`), which reads about 0.2 lower -
+`destructive` is 4.98 here and 4.76 as shipped. Both clear AA, but measure
+against the real foreground when a pairing is close to the line: computing
+§19-E31 against pure white is exactly how its recorded figures came out wrong.
+
 | Fill          | White text | Dark ink text | **Approved foreground**    |
 | ------------- | ---------- | ------------- | -------------------------- |
 | `primary`     | 10.63 PASS | 1.84 FAIL     | **white**                  |
