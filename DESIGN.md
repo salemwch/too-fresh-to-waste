@@ -138,7 +138,14 @@ non-500 accent value comes from.
 | `primary-800` | `#0B1819` | 186 41% 7%  | Max-contrast surface                |
 | `primary-900` | `#050A0B` | 186 41% 3%  | Near-black teal                     |
 
-**Accent - coral.** Urgency and destructive only, never decoration.
+**Accent - coral.** Urgency, never decoration.
+
+**On web, coral is no longer the destructive colour.** `--destructive` resolves
+to the `error` red `#D32F2F` as of 2026-09-01 (§19-E2), because coral could not
+carry a legible label. Coral keeps the `--accent` fill role and every non-text
+mark - icons, borders, indicators - where 3:1 is the bar and it passes. The
+`destructive` role in the table below is web-historic; on mobile, where the ramp
+is separate, it still applies.
 
 | Token        | Web (`tailwind.config.ts`) | Mobile (`colors.ts`) | Role                             |
 | ------------ | -------------------------- | -------------------- | -------------------------------- |
