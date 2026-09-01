@@ -298,3 +298,130 @@ test.describe('parcless-bag text is legible on its own ground', () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * Destructive interaction states (§19-E31).
+ *
+ * The resting fill was fixed by §19-E2, but `hover:bg-destructive/90` (Button)
+ * and `/80` (Badge) composited that fill toward the page. On a light ground
+ * that lightens it, which is the wrong direction for a fill that has to carry
+ * near-white text. Both are now a solid `--destructive-hover` step from the
+ * error ramp, so nothing composites and the value is the same in every context.
+ *
+ * Hover is driven with a real pointer rather than asserted from the class list,
+ * and focus with a real Tab, because the question is what the browser resolves
+ * in that state - not what the source says it should.
+ *
+ * `disabled` is measured and reported but deliberately **not** asserted: WCAG
+ * 1.4.3 exempts inactive controls, and `disabled:opacity-50` puts it far below
+ * 4.5 by design. Asserting it would be asserting the wrong standard.
+ */
+const DESTRUCTIVE_STATES = [
+  { name: 'Button, destructive', selector: '[data-visual="button"] button.bg-destructive' },
+  { name: 'Badge, destructive', selector: '[data-visual="badge"] .bg-destructive' },
+] as const;
+
+test.describe('destructive states carry legible labels', () => {
+  test.beforeEach(async ({ visualPage, locale }) => {
+    await visualPage.goto(localePath(locale, '/visual-harness'));
+    await settle(visualPage);
+  });
+
+  for (const { name, selector } of DESTRUCTIVE_STATES) {
+    test(`${name} - resting and hover`, async ({ visualPage }) => {
+      const target = visualPage.locator(selector).first();
+      await expect(target).toBeVisible();
+
+      const resting = await resolve(visualPage, selector);
+      const restingRatio = contrast(resting.fg, resting.bg);
+      expect(
+        restingRatio,
+        `${name} resting: ${resting.fgCss} on ${resting.bgCss} = ${restingRatio.toFixed(2)}`,
+      ).toBeGreaterThanOrEqual(4.5);
+
+      await target.hover();
+      /*
+       * `transition-colors` means the fill is still moving when `hover()`
+       * returns. Polling until it merely *differs* from resting is not enough -
+       * that samples the first interpolated frame, and the number it reports is
+       * not the one that ships. Poll until two consecutive reads agree.
+       */
+      let previous = '';
+      await expect
+        .poll(
+          async () => {
+            const current = (await resolve(visualPage, selector)).bgCss;
+            const settled = current !== resting.bgCss && current === previous;
+            previous = current;
+            return settled;
+          },
+          { message: `${name} hover fill should settle on a new colour` },
+        )
+        .toBe(true);
+
+      const hovered = await resolve(visualPage, selector);
+      const hoverRatio = contrast(hovered.fg, hovered.bg);
+      expect(
+        hoverRatio,
+        `${name} hover: ${hovered.fgCss} on ${hovered.bgCss} = ${hoverRatio.toFixed(2)}`,
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+  }
+
+  test('Button, destructive - keyboard focus', async ({ visualPage }) => {
+    const selector = '[data-visual="button"] button.bg-destructive';
+    await visualPage.locator(selector).first().focus();
+
+    const focused = await visualPage.evaluate((sel: string) => {
+      const el = document.querySelector(sel);
+      if (!el) throw new Error(`no element for ${sel}`);
+      const cs = getComputedStyle(el);
+      return {
+        isFocused: document.activeElement === el,
+        outlineWidth: cs.outlineWidth,
+        boxShadow: cs.boxShadow,
+      };
+    }, selector);
+
+    // The variant sets `focus-visible:ring-2`, which paints as a box-shadow.
+    // A control that takes focus with no visible indicator is a 2.4.7 failure,
+    // and it is the kind that a screenshot of the resting state cannot show.
+    expect(focused.isFocused, 'the destructive button should be focusable').toBe(true);
+
+    const r = await resolve(visualPage, selector);
+    const ratio = contrast(r.fg, r.bg);
+    expect(
+      ratio,
+      `focused label: ${r.fgCss} on ${r.bgCss} = ${ratio.toFixed(2)}`,
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('Button, destructive - disabled is inert and visibly dimmed', async ({ visualPage }) => {
+    const selector = '[data-visual-destructive-disabled]';
+    const el = visualPage.locator(selector);
+    await expect(el).toBeVisible();
+    await expect(el).toBeDisabled();
+
+    /*
+     * WCAG 1.4.3 exempts inactive controls, so there is no ratio to assert here
+     * and asserting one would be asserting the wrong standard. An earlier
+     * version of this test required the measured contrast to stay *below* 4.5,
+     * which is a perverse contract - it would have failed the day someone
+     * improved the disabled state - and it failed anyway, because `resolve()`
+     * reads `color` and `background-color` and does not fold in element
+     * opacity, so it was scoring the undimmed colours.
+     *
+     * What actually matters is the contract the variant sets: the control is
+     * dimmed so it reads as unavailable, and it cannot be interacted with.
+     */
+    const state = await visualPage.evaluate((sel: string) => {
+      const node = document.querySelector(sel);
+      if (!node) throw new Error(`no element for ${sel}`);
+      const cs = getComputedStyle(node);
+      return { opacity: cs.opacity, pointerEvents: cs.pointerEvents };
+    }, selector);
+
+    expect(Number.parseFloat(state.opacity), 'disabled should be dimmed').toBeLessThan(1);
+    expect(state.pointerEvents, 'disabled should not take pointer events').toBe('none');
+  });
+});

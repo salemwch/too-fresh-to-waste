@@ -39,6 +39,8 @@
    */
   --destructive: 0 65.1% 50.6%;
   --destructive-foreground: 0 0% 100%;
+  /* error-600, as in globals.css. White on it is 5.62. */
+  --destructive-hover: 0 66.4% 46.7%;
 
   --border: 170 15% 88%;
   --input: 170 15% 88%;
@@ -89,6 +91,14 @@
   --accent-foreground: 0 0% 95%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 95%;
+  /*
+   * error-600 here too, not the global dark error-100. This scope's fill is
+   * near-black (#7F1D1D) under LIGHT text, the opposite arrangement to the app
+   * dark theme, so the pale step would give 1.2. error-600 measures 5.03.
+   * Custom properties inherit, so omitting this would silently take the wrong
+   * one.
+   */
+  --destructive-hover: 0 66.4% 46.7%;
   --border: 174 30% 20%;
   --input: 174 30% 20%;
   --ring: 170 50% 60%;

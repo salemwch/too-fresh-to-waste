@@ -42,6 +42,13 @@
      */
     --destructive: 0 65.1% 50.6%;
     --destructive-foreground: 0 0% 98%;
+    /*
+     * error-600. A filled control must DARKEN on hover, not fade toward the
+     * page - `hover:bg-destructive/90` composited the fill toward white and
+     * dropped #FAFAFA on it from 4.76 to 4.18 (19-E31). This is the ramp's own
+     * pressed step, 5.38, and it is a solid colour so nothing composites.
+     */
+    --destructive-hover: 0 66.4% 46.7%;
     --border: 174 8% 90%;
     --input: 174 8% 90%;
     --ring: 186 41% 20%;
@@ -65,6 +72,14 @@
     --muted-foreground: 174 8% 55%;
     --destructive: 0 69% 67%;
     --destructive-foreground: 180 100% 3%;
+    /*
+     * error-100. The dark fill is light and carries dark ink, so hover has to
+     * move the other way: darkening here reduced contrast, and the Badge's
+     * `/80` reached 4.41 over the page - a dark-mode instance of 19-E31 that
+     * the original entry did not record. error-100 is the next lighter step in
+     * the ramp and measures 13.85 with the ink.
+     */
+    --destructive-hover: 354 100% 90.2%;
     --border: 180 10% 15%;
     --input: 180 10% 15%;
     --ring: 186 40% 52%;

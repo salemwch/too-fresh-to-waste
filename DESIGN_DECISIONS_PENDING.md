@@ -35,10 +35,14 @@ Same shape on `--destructive`: white on it is **3.78:1**. Both below AA's 4.5.
   keeping white: **3.78 -> 4.98**. White-on-red is what a destructive control is
   expected to look like, which is why the fill moved and the text did not.
 
-`error-600 #C62828`, named in the option table above, **is not a token this repo
-defines.** The error red is `#D32F2F` in `tailwind.config.ts` and in §2.4, which
-is what was used - hence 4.98 rather than the 5.62 the recommendation predicted.
-Both clear AA.
+`error-600 #C62828`, named in the option table above - this entry claimed it was
+**"not a token this repo defines"**, and that was **wrong**. It is `error[600]`
+in the mobile ramp, and DESIGN.md §2.5 cites `error-600` with a measured ratio;
+what was missing was a web Tailwind exposure, added 2026-09-01 for §19-E31.
+
+The resting fill is unaffected: `#D32F2F` is `error-500` and a 500 step is right
+for a resting fill, which is why the result is 4.98 rather than the predicted
+5.62. Both clear AA.
 
 Fixed in **two** files, because the token is redefined per route group:
 `app/globals.css` and `merchant-signup/merchant-signup.css`, the latter shipping
@@ -51,9 +55,11 @@ since darkening a fill and darkening text move the same way.
 
 **Two new findings came out of the fix, both now in DESIGN.md §19:**
 
-- **E31** - `hover:bg-destructive/90` and `/80` fade the fill toward the white
-  page, so hover measures **4.37** and **3.75**. Improved, still failing, still
-  open; needs a darker error step this system does not define.
+- **E31** - `hover:bg-destructive/90` and `/80` faded the fill toward the page.
+  **Resolved 2026-09-01**: re-measured at HEAD they were 4.25 and 3.64 (the
+  figures here were computed against pure white, not the real `#FAFAFA`
+  foreground), plus an unrecorded dark-mode Badge instance at ~4.4. Both now use
+  a solid `--destructive-hover` from the existing error ramp.
 - **E32** - this entry previously said the failure was "now visible in a
   committed baseline: `select-open-selected.png` shows the highlighted menu item
   as white-on-coral." That was true of the image and **false as evidence.** All

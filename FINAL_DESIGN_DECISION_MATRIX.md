@@ -242,10 +242,18 @@ page-scoped tokens with no `.dark` block, five values moved by the minimum
 lightness step on their own hue, and 0 of 87 measured text nodes fail in either
 theme. Light and dark baselines are pixel-identical.
 
-**That is not the same as being ready to certify.** One AA gap remains open on
-web - §19-E31, the `/90` and `/80` destructive hover states at 4.37 and 3.75 -
-and it is a reachable label below AA, not a consistency question. The mobile
-limitations recorded in §19-E27 and §19-E30 are unchanged.
+**§19-E31 is also closed (2026-09-01).** The destructive hover states were an
+alpha that composited the fill toward the page; re-measured at HEAD they were
+**4.25** and **3.64** rather than the 4.37 and 3.75 recorded here, and a
+dark-mode Badge instance at ~4.4 had never been recorded at all. Both now use a
+solid `--destructive-hover` from the existing error ramp - `error-600` in light
+(5.38), `error-100` in dark (13.85) - and normal, hover, focus and disabled are
+gated in `contrast.spec.ts`.
+
+**No known AA text failure remains open on web.** That is not the same as being
+ready to certify: the mobile limitations in §19-E27 and §19-E30 are unchanged,
+no authenticated web route has a baseline, and nothing here has been checked
+against a screen reader or a real assistive-tech pass.
 
 **D1 is DONE (2026-09-01).** `--accent-foreground` moved to dark ink (3.38 ->
 5.76) and `--destructive` darkened to the existing `error` red (3.78 -> 4.98),

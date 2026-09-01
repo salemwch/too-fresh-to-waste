@@ -103,6 +103,11 @@ export default async function VisualHarnessPage({
           <Button variant='outline' disabled>
             Disabled outline
           </Button>
+          {/* 19-E31 checks hover, focus and disabled on the destructive
+              variant; the disabled one had no representative here. */}
+          <Button variant='destructive' disabled data-visual-destructive-disabled>
+            Disabled destructive
+          </Button>
         </Row>
         <Row label='arabic'>
           <Button>{ARABIC_SAMPLE}</Button>

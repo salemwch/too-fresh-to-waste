@@ -1668,11 +1668,16 @@ red `#D32F2F` (`0 65.1% 50.6%`), where white measures **4.98** - the value §2.4
 already approves on the `error` row. Option (a), dark ink on the old red, passed
 at 5.17 but a red button with dark text reads wrong.
 
-**The recommendation named `error-600 #C62828`. That token does not exist in
-this repo** - the error red is `#D32F2F` in `tailwind.config.ts` and in §2.4.
-Using the value the system defines rather than introducing one it does not is
-why the measured result is 4.98 and not the 5.62 the recommendation predicted.
-Both clear AA.
+**The recommendation named `error-600 #C62828`.** This entry used to say that
+token "does not exist in this repo". **That was wrong** - it is `error[600]` in
+the mobile ramp and §2.5 already cites `error-600` with a measured ratio. What
+did not exist was a _web Tailwind exposure_ of it, added 2026-09-01 as
+`destructive.hover` (see E31).
+
+The resting fill is unaffected by the correction: `#D32F2F` is `error-500`, and
+a 500 step is the right choice for a resting fill regardless - which is why the
+measured result is 4.98 rather than the 5.62 the recommendation predicted. Both
+clear AA.
 
 Fixed in two places, because the token is redefined per route group:
 `app/globals.css` and
@@ -1688,7 +1693,8 @@ white page, which lightens it. White text measures **4.37** and **3.75** on
 those. Both improved (from 3.40 and 3.02) and neither reaches 4.5. Fading a
 filled control toward the page is the shadcn default and is the wrong direction
 for a fill that has to stay dark enough to carry white text; the fix is a darker
-hover step, which this system does not currently define. **Tracked as E31.**
+hover step. **Fixed 2026-09-01 - see E31**, using `error-600` from the existing
+ramp; the claim that the system did not define one was wrong.
 
 **E3. `warning` and `info` have no accessible tint shade.** `ACCEPTED` Neither
 ramp contains a shade reaching 4.5:1 on its own 10% tint (best: `warning-600`
@@ -2099,33 +2105,75 @@ exist and nothing here should be read as implying it could. Full detail:
 `MOBILE_LIGHT_DEVICE_VERIFICATION_REPORT.md` and
 `DESIGN_SYSTEM_MIGRATION_FINAL_REPORT.md`.
 
-**E31. Opacity hover lightens a filled control.** `OPEN` Found while closing E2,
-and not previously recorded anywhere.
+**E31. Opacity hover on a filled control lightens it.** `RESOLVED 2026-09-01`
 
-`Button variant="destructive"` uses `hover:bg-destructive/90` and `Badge` uses
-`hover:bg-destructive/80`. On a white page those composite the fill **toward the
-background**, so it gets lighter exactly when the label still has to sit on it:
+`Button variant="destructive"` used `hover:bg-destructive/90` and `Badge`
+`hover:bg-destructive/80`. On a light page those composite the fill **toward the
+background**, so it gets lighter exactly when the label still has to sit on it.
 
-| State                     | Fill      | White text | Verdict  |
-| ------------------------- | --------- | ---------- | -------- |
-| resting `bg-destructive`  | `#D32F2F` | **4.98**   | PASS     |
-| `hover:bg-destructive/90` | `#D74444` | **4.37**   | **FAIL** |
-| `hover:bg-destructive/80` | `#DC5959` | **3.75**   | **FAIL** |
+**Re-measured in the browser at HEAD before changing anything** - the figures
+first recorded here were computed against pure white rather than the real
+`--destructive-foreground` (`#FAFAFA`), so the failure was slightly worse than
+written:
 
-Both improved with the E2 fill change (from 3.40 and 3.02) and neither reaches
-4.5. Hover is a reachable state carrying the same label, so this is a real
-residue of E2 rather than a theoretical one.
+| State                     | Recorded     | Actually measured | Now       |
+| ------------------------- | ------------ | ----------------- | --------- |
+| light, Button `hover:/90` | 4.37         | **4.25**          | **5.38**  |
+| light, Badge `hover:/80`  | 3.75         | **3.64**          | **5.38**  |
+| dark, Badge `hover:/80`   | not recorded | **4.4x**          | **13.85** |
 
-`bg-accent/90` is **not** affected. Its one site sits on a dark card, so the
-same alpha darkens instead of lightening: 5.04.
+**The dark instance was missed entirely.** This entry only ever described light
+mode. In dark the fill is light and carries dark ink, so an alpha hover darkens
+it and _also_ loses contrast; the Badge's `/80` fell just under 4.5 over the
+page background. Button's `/90` passed at 5.35, which is why nothing flagged it.
 
-The rule this breaks is that a filled control should **darken** on hover, not
-fade toward the page. Fixing it needs a darker step for the error red, which
-this system does not define, so it is a §20 governance event rather than a local
-edit. **Needs a decision:** add an `error-600`/`error-700` step and use it for
-hover, or replace the alpha hover with a scrim overlay. Not actioned.
-`tests/visual/contrast.spec.ts` asserts the resting states only, so it stays
-green on this known gap; add the hover cases when it is closed.
+**Fixed with the ramp's own steps, not an invented value.**
+
+| Scope                         | Token               | Value            | Ratio     |
+| ----------------------------- | ------------------- | ---------------- | --------- |
+| `:root`                       | `error-600 #C62828` | `0 66.4% 46.7%`  | **5.38**  |
+| `.dark`                       | `error-100 #FFCDD2` | `354 100% 90.2%` | **13.85** |
+| `.merchant-signup-theme`      | `error-600`         | same             | **5.62**  |
+| `.merchant-signup-theme.dark` | `error-600`         | same             | **5.03**  |
+
+Both hovers are now the solid `--destructive-hover`, so nothing composites and
+the value does not depend on what is behind the control.
+
+**The direction of the hover is per-theme, and that is the point.** Light mode
+darkens (`500 -> 600`) because the fill carries near-white text; dark mode
+lightens (`300 -> 100`) because the fill carries dark ink. A single alpha cannot
+express that, which is why it failed in both themes for opposite reasons.
+
+**`merchant-signup.css` needed its own value, and would have failed silently
+without one.** Custom properties inherit, so that scope - which redefines
+`--destructive` - would have taken `.dark`'s pale `error-100` against its own
+near-black `#7F1D1D` fill under light text: about 1.2. It takes `error-600` in
+both its blocks instead, because its arrangement is the opposite of the app's.
+
+**Correction to two earlier entries.** §19-E2 and D1 both said
+`error-600 #C62828` "does not exist in this repo". That was wrong. It exists as
+`error[600]` in `apps/mobile/src/design-system/tokens/colors.ts`, and §2.5 of
+this document already cites `error-600` with a measured ratio. What did not
+exist was a **web Tailwind exposure** of it - now added as `destructive.hover`.
+The E2 fix itself is unaffected: `#D32F2F` is `error-500` and was the right
+choice for the resting fill either way.
+
+**Verified across normal, hover, focus and disabled** by
+`tests/visual/contrast.spec.ts`, in all 12 project combinations. Hover is driven
+with a real pointer and polled until two consecutive reads agree - polling only
+until the colour _differs_ samples the first interpolated frame of
+`transition-colors` and reports a number that never ships. Focus is driven with
+a real `focus()` and asserts the element actually takes focus. **Disabled is
+measured but not asserted against 4.5** - 1.4.3 exempts inactive controls, so
+the test asserts the real contract instead: dimmed, and `pointer-events: none`.
+Mutation-checked: restoring either alpha turns the gate red at 4.25 / 3.64 /
+4.4x.
+
+**No visual drift from the fix.** `#C62828` occurs **zero** times across every
+committed baseline, because no baseline renders a hover state - so the token
+change could not have moved one. The 24 baselines that did change (`button.png`,
+`button-focus.png` x 12) are entirely the disabled destructive button added to
+the harness for this work.
 
 **E32. The screenshot suite cannot detect a colour-token change.** `ACCEPTED`
 Discovered while verifying E1 and E2: the token change shipped in the compiled
@@ -2384,3 +2432,4 @@ deliberate decision from a drift.
 | 2026-08-24 | Rewritten as the governance system. Colour rules rebuilt on measured contrast; §2.5 badge pattern replaced after the tint pattern failed AA for 7/8 statuses; spacing moved to named tokens per §4.2; radius unified on the mobile scale (§6.1, E6); §19 and §21 added. Supersedes the descriptive version at `DESIGN.v2.bak.md` and the original at `DESIGN.md.bak`.                                                                                                                                                                                                 |
 | 2026-09-01 | §19-E1 and §19-E2 closed for light mode - the two AA text failures on coral. `--accent-foreground` moved to dark ink (3.38 -> 5.76); `--destructive` darkened to the existing `error` red `#D32F2F` (3.78 -> 4.98), fixed in `globals.css` **and** the scoped `merchant-signup.css`. §2.4 rows updated to the new measurements. Two new exceptions opened by the same work: **E31**, alpha hover lightens a filled control (4.37 / 3.75), and **E32**, the screenshot suite cannot detect a colour-token change - covered instead by `tests/visual/contrast.spec.ts`. |
 | 2026-09-01 | §19-E33 opened and D3 resolved. `/parcless-bag` was built on `bg-primary` / `text-primary`, which invert under `.dark` while its hardcoded colours do not: 25 of 44 text pairings failed in light and 40 in dark. Its palette is now pinned to ten page-scoped `--pb-*` tokens with **no `.dark` block**, so it renders identically in both themes; five values moved by the minimum lightness step on their own hue. 0 of 87 text nodes fail, gated by `tests/visual/contrast.spec.ts`.                                                                              |
+| 2026-09-01 | §19-E31 resolved. The destructive hover was an alpha (`/90`, `/80`) that composited the fill toward the page; re-measured at HEAD it was 4.25 / 3.64 in light, and a dark-mode Badge instance at ~4.4 had never been recorded. Both now use a solid `--destructive-hover` from the existing error ramp - `error-600` in light (5.38), `error-100` in dark (13.85), `error-600` in both `merchant-signup` scopes. Normal, hover, focus and disabled are gated in `contrast.spec.ts`. Corrects the E2/D1 claim that `error-600 #C62828` did not exist.                  |

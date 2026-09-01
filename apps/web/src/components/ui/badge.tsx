@@ -11,8 +11,9 @@ const badgeVariants = cva(
         default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
         secondary:
           'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        // Solid hover step, not an alpha: see globals.css and DESIGN.md 19-E31.
         destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
+          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive-hover',
         outline: 'text-foreground',
       },
     },
