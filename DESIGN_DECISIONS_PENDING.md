@@ -52,8 +52,29 @@ One marketing page has effectively forked the brand. Either map each to an
 existing token (changes how the page looks) or promote them to `brand.*` with
 contrast measurements (blesses a second palette).
 
-**Not actioned - product owns whether this page is on-brand or deliberately
-distinct.**
+**Usage audited 2026-09-01 - `.claude/work/parcless-bag-palette-audit.md`.** The
+brand question below is unchanged, but the audit found an accessibility failure
+underneath it that is not product-owned:
+
+- **All 8 `#7FA896` usages are body text** on `bg-primary`, measuring **3.23 to
+  4.02**. None sits on the cream ground the palette was previously measured
+  against, so the recorded 2.22 was against a background sage is never painted
+  on.
+- **`#C05F4A` is 3 body-text usages** (3.55 on cream) **and 2 backgrounds**. The
+  backgrounds clear 1.4.11 at 3:1; the white text on them measures **3.37 to
+  4.22**.
+- **Dark theme:** `bg-primary` inverts to `#54ACB6` and the hardcoded sage does
+  not, so six strings land at a ratio of **1.00** - invisible.
+
+11 of 14 text roles fail AA. **D3 is therefore a certification blocker, not an
+intentional exception.**
+
+**Still not actioned.** Product owns whether this page is on-brand or
+deliberately distinct, and owns which remedy to take. What is no longer open is
+whether the current state can simply be documented and kept.
+
+Visual coverage now exists: `/parcless-bag` carries 12 route baselines in
+`tests/visual/routes.spec.ts`, viewport-only, in both themes.
 
 ---
 

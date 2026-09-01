@@ -23,6 +23,16 @@ const ROUTES = [
   { name: 'home', path: '/' },
   { name: 'login', path: '/login' },
   { name: 'food-waste-facts', path: '/food-waste-facts' },
+  /*
+   * parcless-bag is the only marketing page built entirely from raw hex rather
+   * than tokens (DESIGN_DECISIONS_PENDING.md D3), so it cannot drift *with* the
+   * token set and nothing else would catch it drifting on its own.
+   *
+   * The dark-theme projects are the point of adding it. `bg-primary` is the one
+   * token the page does use, and it inverts under `.dark` while every hardcoded
+   * foreground sitting on top of it stays put.
+   */
+  { name: 'parcless-bag', path: '/parcless-bag' },
 ] as const;
 
 test.describe('public routes', () => {
