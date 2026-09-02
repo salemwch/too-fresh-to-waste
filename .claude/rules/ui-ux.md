@@ -26,7 +26,8 @@
 | `hsl(var(--card))`                    | white / dark | Card backgrounds              |
 | `hsl(var(--muted))`                   | gray-100     | Subtle backgrounds            |
 | `hsl(var(--muted-foreground))`        | gray-500     | Placeholder text              |
-| `hsl(var(--border))`                  | gray-200     | Dividers, input borders       |
+| `hsl(var(--border))`                  | gray-200     | Dividers, card borders        |
+| `hsl(var(--input))`                   | gray-400     | Input/select/textarea borders |
 | `success`                             | #2E7D32      | Confirmed, paid               |
 | `error`                               | #D32F2F      | Errors, destructive           |
 | `warning`                             | #F57C00      | Pending, expiring             |

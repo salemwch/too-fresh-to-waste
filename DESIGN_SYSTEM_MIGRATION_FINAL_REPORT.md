@@ -138,7 +138,7 @@ and **not** `hitSlop`, so bounds alone can neither confirm nor refute any
 | `warning`/`info` 700 step added          | **FIXED** (E29)                                   |
 | Web `accent` vs mobile `accent` ramp     | **DEFERRED** - brand decision (D5 / E18)          |
 | Coral cannot carry white text (3.38)     | **FIXED 2026-09-01** (D1 / E1, E2)                |
-| `border` at 1.24 against white           | **DEFERRED** - design decision (D2 / E4)          |
+| `border` at 1.24 against white           | **FIXED 2026-09-01** (D2 / E4)                    |
 | `parcless-bag` parallel palette (41 hex) | **FIXED 2026-09-01** (D3 / E33)                   |
 | Destructive hover fades the fill         | **FIXED 2026-09-01** (E31), found while fixing D1 |
 
@@ -350,7 +350,7 @@ evidence that this is the rig's main weakness.
 | Web tokens and spacing   | **Ready**                      | `check:spacing` clean, 162 files; 854 tests            | None                                               |
 | Web dark mode            | **Ready**                      | E1 resolved, verified in compiled bundle               | None                                               |
 | Web RTL                  | **Mostly ready**               | `DirectionProvider` in place; `ml/mr` at 0             | Reviewed pass on 121 absolute offsets (D8)         |
-| Web visual coverage      | **NOT VERIFIED**               | 0 baselines exist                                      | Create baselines before any radius decision        |
+| Web visual coverage      | **192 baselines**              | 13 components + 3 routes x 12 combos                   | Authenticated routes remain uncovered (§19-E17)    |
 | Mobile colour tokens     | **Ready**                      | 16 foreign greys left of 172; contrast device-measured | Optional cleanup of the residue                    |
 | Mobile spacing           | **Partial**                    | 197 off-grid of 1018, from 491                         | Decide tokens for 6/10/14 or accept                |
 | Mobile typography        | **Partial**                    | 120 off-scale of 297, from 152                         | Decide tokens for 11/13/15 or accept               |
@@ -392,8 +392,9 @@ Nothing on this list is an open defect. They are gaps in **evidence** and
 4. ~~**D1** coral cannot carry white text~~ - **DONE**, §19-E1 / E2. Dark ink on
    coral (5.76) and the destructive fill darkened to `error-500` (4.98). E31,
    the hover residue, is also closed.
-5. **D2** `border` at 1.24 - accept or darken. **This is still a Level AA gap**
-   (1.4.11 wants 3:1 for a control boundary), not merely a consistency question.
+5. ~~**D2** `border` at 1.24~~ - **DONE**, §19-E4. `--input` darkened to
+   3.22-3.65 across both themes and CSS scopes; `--border` unchanged for
+   decorative use.
 6. ~~**D3** `parcless-bag`'s 41 raw hex~~ - **DONE**, §19-E33. Palette kept and
    pinned to page-scoped tokens; 0 of 87 text nodes fail in either theme.
 7. **D4** `.glass` on 76 dashboard cards - accept the repaint cost or restyle

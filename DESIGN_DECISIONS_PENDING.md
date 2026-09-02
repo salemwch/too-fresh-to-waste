@@ -71,12 +71,21 @@ since darkening a fill and darkening text move the same way.
 
 ## D2. `border` is 1.24:1 against white (DESIGN.md §19-E4)
 
-**Verified.** `--border` / `--input` = `174 8% 90%`. WCAG 1.4.11 wants 3:1 for a
-boundary that identifies a control.
+**RESOLVED 2026-09-01.** `--input` is darkened to >= 3:1 in both themes and both
+CSS scopes (globals and merchant-signup). `--border` stays unchanged for
+decorative dividers, cards and separators.
 
-Most design systems accept this and lean on label, placement and focus ring
-instead. Either darken the input border specifically, or accept formally and
-name the compensating affordances. **Not actioned.**
+| Scope                 | Before        | After         | Ratio         |
+| --------------------- | ------------- | ------------- | ------------- |
+| globals light         | `174 8% 90%`  | `174 8% 50%`  | 1.24 -> 3.65  |
+| globals dark          | `180 10% 15%` | `180 10% 38%` | 1.33 -> 3.25  |
+| merchant-signup light | `170 15% 88%` | `170 15% 50%` | ~1.24 -> 3.39 |
+| merchant-signup dark  | `174 30% 20%` | `174 30% 38%` | ~1.23 -> 3.22 |
+
+The split follows the same approach as mobile M17 (outline vs outlineVariant):
+control boundaries pass 3:1, decorative borders stay subtle.
+
+Gated by `tests/visual/contrast.spec.ts` "input boundary meets 1.4.11".
 
 ---
 

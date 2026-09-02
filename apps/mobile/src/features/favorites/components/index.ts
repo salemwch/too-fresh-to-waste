@@ -5,3 +5,4 @@
 
 export * from './FavoriteOfferCard';
 export * from './DeletedOfferCard';
+export * from './FavoriteEstablishmentRow';

@@ -554,12 +554,10 @@ What does affect everyday work:
 - **Mobile radius is not migrated**, and the web/mobile radius scales are still
   transposed. §6.1 declares mobile's canonical; the code does not follow it yet.
   (§19-E6)
-- **Decisions, not defects:** D2, D4, D5, D6 and D8 in
+- **Decisions, not defects:** D4, D5, D6 and D8 in
   [`DESIGN_DECISIONS_PENDING.md`](./DESIGN_DECISIONS_PENDING.md) are verified
   real and deliberately unimplemented - each needs a product, brand or design
-  call. D1, D3 and D7 are resolved. **D2 is the one that is also a Level AA
-  gap** (`border` at 1.24 against 1.4.11's 3:1), so it is a decision with a
-  compliance consequence, not only a consistency one.
+  call. D1, D2, D3 and D7 are resolved.
 
 > **Note on `.claude/rules/ui-ux.md`:** it is stale on fonts, the component
 > list, the `secondary` value, and the status-badge pattern. Where it disagrees

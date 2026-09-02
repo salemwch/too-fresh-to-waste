@@ -18,12 +18,12 @@ import { colorTokens } from '@/design-system/tokens/colors';
 import { CtaState, OfferStatus } from '@/features/offers/types';
 import { Logger } from '@/utils/logger';
 
-import { DeletedOfferCard, FavoriteOfferCard } from '../components';
+import { FavoriteEstablishmentRow } from '../components';
 import { useFavoritesInfinite } from '../hooks';
 import { favoritesService } from '../services';
 import { FavoriteType } from '../types';
 
-import type { FavoritesResponse } from '../types';
+import type { FavoriteEstablishmentGroupData, FavoriteGroupItem } from '../components';
 import type { Offer, OfferListItem } from '@/features/offers/types';
 import type { FavoritesScreenNavigationProp } from '@/navigation/types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
@@ -110,8 +110,6 @@ const COLORS = {
   textInverse: '#FFFFFF',
   shadow: '#000',
 } as const;
-
-type FavoriteListItem = FavoritesResponse['favorites'][number];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object';
@@ -210,6 +208,40 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
 
   const favorites = useMemo(() => data?.pages.flatMap(page => page.favorites) ?? [], [data]);
 
+  const groupedFavorites = useMemo((): FavoriteEstablishmentGroupData[] => {
+    const map = new Map<string, FavoriteEstablishmentGroupData>();
+
+    for (const fav of favorites) {
+      if (fav.type !== FavoriteType.OFFER) continue;
+
+      let establishmentName = 'Unknown';
+      let offer: OfferListItem | null = null;
+      let isDeleted = false;
+
+      if (isOfferListItem(fav.itemId) || isOfferDocument(fav.itemId)) {
+        offer = toOfferListItem(fav.itemId);
+        establishmentName = offer.establishment.name;
+      } else {
+        isDeleted = true;
+      }
+
+      const item: FavoriteGroupItem = {
+        favoriteId: fav._id,
+        offer,
+        isDeleted,
+      };
+
+      const existing = map.get(establishmentName);
+      if (existing) {
+        existing.items.push(item);
+      } else {
+        map.set(establishmentName, { establishmentName, items: [item] });
+      }
+    }
+
+    return Array.from(map.values());
+  }, [favorites]);
+
   useFocusEffect(
     useCallback(() => {
       void refetch();
@@ -282,34 +314,14 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
     setEstablishmentType(filter?.establishmentType);
   }, []);
 
-  const renderFavoriteItem = useCallback(
-    ({ item }: { item: FavoriteListItem }) => {
-      if (item.type === FavoriteType.OFFER) {
-        if (isOfferListItem(item.itemId) || isOfferDocument(item.itemId)) {
-          const offer = toOfferListItem(item.itemId);
-
-          return (
-            <FavoriteOfferCard
-              offer={offer}
-              variant='default'
-              imageAspectRatio={16 / 9}
-              onPress={handleOfferPress}
-              style={styles.favoriteCard}
-              testID={`favorite-offer-${offer.id}`}
-            />
-          );
-        }
-
-        return (
-          <DeletedOfferCard
-            onRemove={() => handleRemoveDeletedFavorite(item._id)}
-            style={styles.favoriteCard}
-          />
-        );
-      }
-
-      return null;
-    },
+  const renderEstablishmentGroup = useCallback(
+    ({ item }: { item: FavoriteEstablishmentGroupData }) => (
+      <FavoriteEstablishmentRow
+        group={item}
+        onOfferPress={handleOfferPress}
+        onRemoveDeleted={handleRemoveDeletedFavorite}
+      />
+    ),
     [handleOfferPress, handleRemoveDeletedFavorite],
   );
 
@@ -317,14 +329,13 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
     () =>
       isFetchingNextPage ? (
         <View style={styles.loadingMore}>
-          <SkeletonOfferCard imageAspectRatio={16 / 9} style={styles.skeletonCard} />
-          <SkeletonOfferCard imageAspectRatio={16 / 9} style={styles.skeletonCard} />
+          <SkeletonOfferCard imageAspectRatio={1.8} style={styles.skeletonCard} />
         </View>
       ) : null,
     [isFetchingNextPage],
   );
 
-  const hasFavorites = favorites.length > 0;
+  const hasFavorites = groupedFavorites.length > 0;
 
   const renderFilterChip = (filter: CategoryFilter) => {
     const isSelected = selectedFilter === filter.id;
@@ -374,10 +385,9 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
         </View>
 
         {isLoading && !refreshing && (
-          <View style={styles.listContainer}>
-            <SkeletonOfferCard imageAspectRatio={16 / 9} style={styles.skeletonCard} />
-            <SkeletonOfferCard imageAspectRatio={16 / 9} style={styles.skeletonCard} />
-            <SkeletonOfferCard imageAspectRatio={16 / 9} style={styles.skeletonCard} />
+          <View style={styles.loadingContainer}>
+            <SkeletonOfferCard imageAspectRatio={1.8} style={styles.skeletonCard} />
+            <SkeletonOfferCard imageAspectRatio={1.8} style={styles.skeletonCard} />
           </View>
         )}
 
@@ -435,13 +445,12 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
         {!isLoading && !error && hasFavorites && (
           <View style={styles.favoritesSection}>
             <FlashList
-              data={favorites}
-              renderItem={renderFavoriteItem}
-              keyExtractor={item => item._id}
+              data={groupedFavorites}
+              renderItem={renderEstablishmentGroup}
+              keyExtractor={item => item.establishmentName}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContainer}
-              estimatedItemSize={120}
+              estimatedItemSize={240}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               ListFooterComponent={renderListFooter}
@@ -602,13 +611,10 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   favoritesSection: {
-    paddingHorizontal: 16,
+    paddingTop: 4,
   },
-  listContainer: {
+  loadingContainer: {
     paddingHorizontal: 16,
-  },
-  favoriteCard: {
-    marginBottom: 16,
   },
   skeletonCard: {
     marginBottom: 16,

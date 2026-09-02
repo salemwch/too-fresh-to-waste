@@ -261,7 +261,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[4]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -596,7 +596,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[4]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -931,7 +931,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[4]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1266,7 +1266,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[4]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1601,7 +1601,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[4]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -1936,7 +1936,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[4]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2271,7 +2271,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[4]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -2606,7 +2606,7 @@ exports[`CheckoutScreen establishment outside the delivery zone outside-delivery
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[4]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -5615,7 +5615,7 @@ exports[`CheckoutScreen no stored user location no-user-location large-light-en 
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -5912,7 +5912,7 @@ exports[`CheckoutScreen no stored user location no-user-location small-dark-en 1
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -6209,7 +6209,7 @@ exports[`CheckoutScreen no stored user location no-user-location small-light-en 
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -6506,7 +6506,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-dark-a
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -6803,7 +6803,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-dark-e
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -7100,7 +7100,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -7397,7 +7397,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -7694,7 +7694,7 @@ exports[`CheckoutScreen no stored user location no-user-location standard-light-
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -8377,7 +8377,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -8652,7 +8652,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -8927,7 +8927,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -9202,7 +9202,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -9477,7 +9477,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -9752,7 +9752,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -10027,7 +10027,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -10302,7 +10302,7 @@ exports[`CheckoutScreen online payment disabled by the server flag online-paymen
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -10599,7 +10599,7 @@ exports[`CheckoutScreen phone not verified phone-unverified large-light-en 1`] =
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -10896,7 +10896,7 @@ exports[`CheckoutScreen phone not verified phone-unverified small-dark-en 1`] = 
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -11193,7 +11193,7 @@ exports[`CheckoutScreen phone not verified phone-unverified small-light-en 1`] =
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -11490,7 +11490,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-dark-ar 1`]
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -11787,7 +11787,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-dark-en 1`]
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -12084,7 +12084,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-ar 1`
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -12381,7 +12381,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-en 1`
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -12678,7 +12678,7 @@ exports[`CheckoutScreen phone not verified phone-unverified standard-light-fr 1`
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -12975,7 +12975,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -13272,7 +13272,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -13569,7 +13569,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -13866,7 +13866,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -14163,7 +14163,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -14460,7 +14460,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -14757,7 +14757,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,
@@ -15054,7 +15054,7 @@ exports[`CheckoutScreen pickup, cash, online payment available default-pickup-ca
     "paddingVertical": 8,
   },
   "View[0]/RCTScrollView[0]/View[0]/View[0]/View[3]/View[1]/View[1]/Text[1]": {
-    "color": "#059669",
+    "color": "#1B5E20",
     "fontSize": 14,
     "fontWeight": "600",
     "letterSpacing": 0,

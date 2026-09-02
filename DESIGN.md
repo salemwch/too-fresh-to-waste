@@ -219,7 +219,8 @@ Computed against `background #FFFFFF`. **AA text = 4.5, AA non-text = 3.0.**
   3:1 applies.
 - For coloured text on light surfaces use `primary`, `brand-green`, `success`,
   `error`, or the darker ramp shades in §2.5.
-- `border` at 1.24 does not meet 1.4.11 for a control boundary. See §19-E4.
+- `border` at 1.24 does not meet 1.4.11 for a control boundary. **Fixed** in
+  §19-E4: `--input` is darkened to 3.22-3.65 while `--border` stays unchanged.
 
 ### 2.4 Foreground pairing - which text colour goes on which fill
 
@@ -1709,12 +1710,24 @@ fill + dark ink** pattern (§2.5), which passes at 7.22 and 6.25. Revisit only i
 a tinted variant becomes a hard requirement; that would need `warning` to shift
 toward deep-orange, a hue change requiring brand sign-off.
 
-**E4. `border` is 1.24:1 against white.** `UNRESOLVED` WCAG 1.4.11 requires 3:1
-for boundaries that identify a control. The current `border`/`input` token does
-not meet it, so input boundaries are technically non-compliant. Most design
-systems accept this and rely on label, placement and focus ring as the
-affordance. **Needs a decision:** darken the input border specifically, or
-document acceptance with the compensating affordances named. Not actioned.
+**E4. `border` is 1.24:1 against white.** `RESOLVED 2026-09-01` `--input` is
+split from `--border` and darkened to pass 3:1; `--border` is unchanged for
+decorative dividers, cards and separators.
+
+| Context                      | Old           | New           | Ratio on surface  |
+| ---------------------------- | ------------- | ------------- | ----------------- |
+| globals light on white       | `174 8% 90%`  | `174 8% 50%`  | 1.24 -> **3.65**  |
+| globals dark on card         | `180 10% 15%` | `180 10% 38%` | 1.33 -> **3.25**  |
+| merchant-signup light        | `170 15% 88%` | `170 15% 50%` | ~1.24 -> **3.39** |
+| merchant-signup dark on card | `174 30% 20%` | `174 30% 38%` | ~1.23 -> **3.22** |
+
+Scope: every consumer of `border-input` - Input, Select, Textarea, Button
+(outline variant) and the one `bg-input` toggle. Card, Separator, Dialog, Tabs
+and other `border-border` consumers are unaffected.
+
+Gated by `tests/visual/contrast.spec.ts` "input boundary meets 1.4.11", which
+measures the browser's resolved `borderColor` against both the inside and
+outside surfaces in all project combinations.
 
 **E5. Tailwind numeric spacing keys are overridden.** `RESOLVED 2026-08-24` The
 override of keys 0-10 is removed and replaced with the named tokens in §4.1;
@@ -1947,10 +1960,15 @@ and fails.
 > light pairs now pass. Migrating these tints onto the light `*Container` roles
 > would no longer make them worse.
 >
-> E25 stays **OPEN** anyway, for two narrower reasons. All four _dark_ pairs
-> still fail, and Checkout's own `SUCCESS_TEXT` on `SUCCESS_SURFACE` is still
-> 3.6 - that pair is hardcoded and was never a token problem. Adopting §2.5 is
-> still the fix; it is now a component change rather than a blocked one.
+> E25 stays **OPEN** anyway: all four _dark_ pairs still fail, and clearing it
+> fully means adopting §2.5 on mobile (audit finding M18).
+>
+> **Update 2026-09-01.** The hardcoded `SUCCESS_TEXT` (`#059669`, 3.6 on
+> `SUCCESS_SURFACE`) in `OrderSuccessModal` and `CheckoutScreen.styles.ts` is
+> fixed: both now use `success[600]` (`#1B5E20`), giving 7.53 on `#F0FDF4` and
+> 6.94 on `#D1FAE5`. The AA text failure on these two surfaces is closed; E25
+> remains OPEN for the dark container pairs and the broader tint-to-solid
+> migration.
 
 This is the mobile face of the web finding in `.claude/rules/ui-ux.md`, and §2.5
 of this document already prescribes the fix: a solid fill rather than a tint.
@@ -2409,10 +2427,9 @@ which is not a token this repo defines. **A narrower question remains open as
 E31:** the `/90` and `/80` hover states still measure 4.37 and 3.75, because
 fading a fill toward a white page lightens it.
 
-**U2. `border` contrast (§19-E4).** `border`/`input` is 1.24:1 against white,
-below the 3:1 that WCAG 1.4.11 requires for a control boundary. Either darken
-the input border or formally accept with compensating affordances named. **No
-change made.**
+**U2. `border` contrast (§19-E4).** `RESOLVED 2026-09-01` `--input` darkened to
+3.22-3.65 across both themes and both CSS scopes. `--border` stays unchanged for
+decorative use. Gated by `tests/visual/contrast.spec.ts`.
 
 **U3. Mobile button `sm` (§19-E13).** Mobile uses 32px; §5.1 standardises 36px.
 Whether to change mobile or carve out a platform exception is deferred to the E6
@@ -2439,3 +2456,4 @@ deliberate decision from a drift.
 | 2026-09-01 | §19-E1 and §19-E2 closed for light mode - the two AA text failures on coral. `--accent-foreground` moved to dark ink (3.38 -> 5.76); `--destructive` darkened to the existing `error` red `#D32F2F` (3.78 -> 4.98), fixed in `globals.css` **and** the scoped `merchant-signup.css`. §2.4 rows updated to the new measurements. Two new exceptions opened by the same work: **E31**, alpha hover lightens a filled control (4.37 / 3.75), and **E32**, the screenshot suite cannot detect a colour-token change - covered instead by `tests/visual/contrast.spec.ts`. |
 | 2026-09-01 | §19-E33 opened and D3 resolved. `/parcless-bag` was built on `bg-primary` / `text-primary`, which invert under `.dark` while its hardcoded colours do not: 25 of 44 text pairings failed in light and 40 in dark. Its palette is now pinned to ten page-scoped `--pb-*` tokens with **no `.dark` block**, so it renders identically in both themes; five values moved by the minimum lightness step on their own hue. 0 of 87 text nodes fail, gated by `tests/visual/contrast.spec.ts`.                                                                              |
 | 2026-09-01 | §19-E31 resolved. The destructive hover was an alpha (`/90`, `/80`) that composited the fill toward the page; re-measured at HEAD it was 4.25 / 3.64 in light, and a dark-mode Badge instance at ~4.4 had never been recorded. Both now use a solid `--destructive-hover` from the existing error ramp - `error-600` in light (5.38), `error-100` in dark (13.85), `error-600` in both `merchant-signup` scopes. Normal, hover, focus and disabled are gated in `contrast.spec.ts`. Corrects the E2/D1 claim that `error-600 #C62828` did not exist.                  |
+| 2026-09-01 | §19-E4 resolved (D2). `--input` split from `--border` and darkened to pass WCAG 1.4.11's 3:1 for control boundaries: `174 8% 50%` in globals light (3.65 on white), `180 10% 38%` in globals dark (3.25 on card), matching values in merchant-signup. `--border` stays unchanged for cards, dividers and separators. Follows the same pattern as mobile M17 (outline vs outlineVariant). Gated by `tests/visual/contrast.spec.ts` "input boundary meets 1.4.11".                                                                                                      |

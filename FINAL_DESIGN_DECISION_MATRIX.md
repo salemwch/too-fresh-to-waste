@@ -45,7 +45,7 @@ test.
 
 | ID  | Decision             | Class                     | Cert blocker?   | Recommendation                    |
 | --- | -------------------- | ------------------------- | --------------- | --------------------------------- |
-| D1  | Coral foreground     | **Accessibility blocker** | **Yes**         | Implement - option (b)            |
+| D1  | Coral foreground     | ~~Accessibility blocker~~ | ~~Yes~~ DONE    | ~~Implement - option (b)~~ Done   |
 | D2  | Border contrast      | Accessibility - contested | No              | Implement narrow fix, or accept   |
 | D3  | Parcless Bag palette | Product / brand           | No (one caveat) | Document as exception             |
 | D4  | `.glass`             | Performance               | No              | Document as exception             |
@@ -54,7 +54,8 @@ test.
 | D8  | left/right offsets   | Consistency + RTL risk    | No              | Reviewed pass, not a codemod      |
 | -   | OfferCard width      | Product / UX              | No              | Decide; implement with a baseline |
 
-**One accessibility blocker: D1.**
+~~One accessibility blocker: D1.~~ **All accessibility blockers resolved (D1
+2026-09-01, D3 2026-09-01).**
 
 ---
 
@@ -72,14 +73,17 @@ test.
 | **8. What changes under the recommendation** | `--destructive` and the text-bearing coral fill darken to an existing ramp step (`error-600 #C62828`, **5.62** with white text). Coral CTAs become perceptibly deeper.                                                                                                                                                                                                                                               |
 | **9. What does not change**                  | Coral stays the brand accent for **icons, borders, indicators and non-text marks**, which only need 3:1 under 1.4.11 and already pass. The ramp is not redefined. `accent-500` stays where it is for non-text use.                                                                                                                                                                                                   |
 | **10. Migration risk**                       | **Low-medium.** Token-level, one value. The baselines will show every affected primitive before it ships. Risk is aesthetic acceptance, not breakage.                                                                                                                                                                                                                                                                |
-| **11. Required for certification**           | **Was yes. DONE 2026-09-01.** Resting states pass and are gated. **E31 remains open**: the `/90` and `/80` hover states still measure 4.37 and 3.75, so the label is a reachable failing surface on hover.                                                                                                                                                                                                           |
+| **11. Required for certification**           | **Was yes. DONE 2026-09-01.** Resting states pass and are gated. ~~E31 remains open~~ **E31 also resolved 2026-09-01** - see §19-E31 and the Certification impact section below.                                                                                                                                                                                                                                     |
 | **12. Recommended decision**                 | **Implemented, split by token.** `destructive` took option (b) - fill darkened to the existing `error` red `#D32F2F`, white kept (4.98). `accent` took option (a) instead, because DESIGN.md §2.4 had already approved dark ink on coral (5.76) and darkening the fill would have shifted the brand accent.                                                                                                          |
 | **13. Alternative**                          | Option (a) dark ink on the existing coral - passes at 5.78, no brand shift, but a red button with dark text reads unusual. Option (c) reserve coral for non-text entirely - passes, but removes coral CTAs.                                                                                                                                                                                                          |
-| **14. Now or exception?**                    | **Implemented.** An AA text failure is not eligible to be an intentional exception - which is also why E31 cannot be filed as one and stays open.                                                                                                                                                                                                                                                                    |
+| **14. Now or exception?**                    | **Implemented.** ~~An AA text failure is not eligible to be an intentional exception - which is also why E31 cannot be filed as one and stays open.~~ Both D1 and E31 resolved 2026-09-01.                                                                                                                                                                                                                           |
 
 ---
 
 ## D2. `border` is 1.24:1 against white
+
+**RESOLVED 2026-09-01.** Recommendation 12 was taken: `--input` darkened,
+`--border` unchanged.
 
 |                                              |                                                                                                                                                                                                                                                                                                                                                                        |
 | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -96,7 +100,7 @@ test.
 | **11. Required for certification**           | **No.** This is a contested reading of 1.4.11 with named compensating affordances, not an unambiguous failure like D1.                                                                                                                                                                                                                                                 |
 | **12. Recommended decision**                 | **Darken `--input` only, to a measured >= 3:1 value from the existing neutral ramp.** Do not invent a hex. Leave `--border` alone.                                                                                                                                                                                                                                     |
 | **13. Alternative**                          | Formal acceptance in §19-E4, naming label + placement + focus ring as the compensating affordances. This is what most design systems do and is defensible - but it must be written down, not assumed.                                                                                                                                                                  |
-| **14. Now or exception?**                    | **Either is legitimate.** If not implemented, upgrade E4 from `UNRESOLVED` to `ACCEPTED` with the affordances named. Leaving it `UNRESOLVED` indefinitely is the one bad option.                                                                                                                                                                                       |
+| **14. Now or exception?**                    | ~~Either is legitimate. If not implemented, upgrade E4 from `UNRESOLVED` to `ACCEPTED` with the affordances named.~~ **Implemented 2026-09-01.** E4 resolved.                                                                                                                                                                                                          |
 
 ---
 
@@ -260,25 +264,26 @@ against a screen reader or a real assistive-tech pass.
 in `globals.css` and in the scoped `merchant-signup.css`. Gated by
 `tests/visual/contrast.spec.ts`, which is mutation-checked.
 
-**It left one residue, tracked as §19-E31 rather than as part of D1:**
+~~It left one residue, tracked as §19-E31 rather than as part of D1:
 `hover:bg-destructive/90` and `/80` fade the fill toward the white page, so
-hover measures **4.37** and **3.75**. That is still a reachable label below AA.
-Closing it needs a darker error step the system does not define, which makes it
-a §20 governance event rather than a continuation of this fix.
+hover measures 4.37 and 3.75. That is still a reachable label below AA. Closing
+it needs a darker error step the system does not define, which makes it a §20
+governance event rather than a continuation of this fix.~~ **E31 resolved
+2026-09-01** - solid `--destructive-hover` replaced the alpha composites.
 
-**D2 is contested rather than failing** - a shortfall against 1.4.11 with named
-compensating affordances. It needs a decision, not necessarily a change; what it
-cannot stay is `UNRESOLVED` with no position recorded.
+~~**D2 is contested rather than failing**~~ - **RESOLVED 2026-09-01.** `--input`
+darkened to 3.22-3.65 while `--border` stays unchanged. The 1.4.11 gap is
+closed.
 
-**D3 is now a blocker.** The audit in
-`.claude/work/parcless-bag-palette-audit.md` classified all 14 occurrences of
-the two colours by role and measured each against its real ground. **All 8 sage
-usages are body text** on `bg-primary` at 3.23-4.02; terracotta carries body
-text at 3.55 on cream and white text at 3.37-4.22 on itself. Its two
-_background_ uses are fine at 3:1 - what fails is the text. **In dark mode
-`bg-primary` inverts to `#54ACB6` while sage does not, putting six strings at a
-ratio of 1.00.** The brand question D3 has always carried is still open and
-still product-owned; the AA failure underneath it is not.
+~~**D3 is now a blocker.**~~ **D3 is DONE (2026-09-01) - see above.** ~~The
+audit in `.claude/work/parcless-bag-palette-audit.md` classified all 14
+occurrences of the two colours by role and measured each against its real
+ground. **All 8 sage usages are body text** on `bg-primary` at 3.23-4.02;
+terracotta carries body text at 3.55 on cream and white text at 3.37-4.22 on
+itself. Its two _background_ uses are fine at 3:1 - what fails is the text. **In
+dark mode `bg-primary` inverts to `#54ACB6` while sage does not, putting six
+strings at a ratio of 1.00.** The brand question D3 has always carried is still
+open and still product-owned; the AA failure underneath it is not.~~
 
 **D4, D5, D6, D8 and OfferCard width are not certification blockers.** They are
 consistency, performance, brand and product questions. Treating any of them as a

@@ -371,6 +371,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   offerCardItem: {
+    width: HOME_UI_CONFIG.CAROUSEL_CARD_VISIBLE_WIDTH,
+    maxWidth: HOME_UI_CONFIG.CAROUSEL_CARD_VISIBLE_WIDTH,
     marginEnd: sp[3],
     marginVertical: 3,
   },

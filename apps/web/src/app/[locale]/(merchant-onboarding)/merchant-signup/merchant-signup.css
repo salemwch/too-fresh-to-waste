@@ -43,7 +43,8 @@
   --destructive-hover: 0 66.4% 46.7%;
 
   --border: 170 15% 88%;
-  --input: 170 15% 88%;
+  /* D2/E4: hsl(170 15% 50%) = #6C938C, 3.39 on white. */
+  --input: 170 15% 50%;
   --ring: 174 72% 17%;
 
   --radius: 0.75rem;
@@ -100,6 +101,7 @@
    */
   --destructive-hover: 0 66.4% 46.7%;
   --border: 174 30% 20%;
-  --input: 174 30% 20%;
+  /* D2/E4 dark: hsl(174 30% 38%) = #447E78, 3.22 on --card. */
+  --input: 174 30% 38%;
   --ring: 170 50% 60%;
 }

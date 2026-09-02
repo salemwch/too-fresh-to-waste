@@ -425,3 +425,84 @@ test.describe('destructive states carry legible labels', () => {
     expect(state.pointerEvents, 'disabled should not take pointer events').toBe('none');
   });
 });
+
+/**
+ * Input boundary contrast (D2/E4, WCAG 1.4.11).
+ *
+ * `--input` was identical to `--border` at ~1.24:1 against the page, far below
+ * the 3:1 floor for "visual information required to identify a control." Now
+ * `--input` is darkened to >= 3:1 while `--border` stays unchanged for
+ * decorative dividers, cards and separators.
+ *
+ * This measures the browser's resolved `borderColor` against both the inside
+ * (the input's own background) and outside (the parent surface), so the gate
+ * catches a regression on either edge.
+ */
+test.describe('input boundary meets 1.4.11', () => {
+  test.beforeEach(async ({ visualPage, locale }) => {
+    await visualPage.goto(localePath(locale, '/visual-harness'));
+    await settle(visualPage);
+  });
+
+  test('border-input passes 3:1 on both edges', async ({ visualPage }) => {
+    const result = await visualPage.evaluate(() => {
+      const parse = (css: string): number[] => {
+        const m = css.match(/-?[\d.]+/g);
+        if (!m) return [0, 0, 0, 1];
+        const [r = 0, g = 0, b = 0, a = 1] = m.map(Number);
+        return [r, g, b, a];
+      };
+      const chan = (c: number): number => {
+        const v = (c ?? 0) / 255;
+        return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      };
+      const lum = (c: number[]): number =>
+        0.2126 * chan(c[0] ?? 0) + 0.7152 * chan(c[1] ?? 0) + 0.0722 * chan(c[2] ?? 0);
+      const ratio = (a: number[], b: number[]): number =>
+        (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+
+      const compositeUp = (start: Element): number[] => {
+        const layers: number[][] = [];
+        let node: Element | null = start;
+        while (node) {
+          const bg = parse(getComputedStyle(node).backgroundColor);
+          if ((bg[3] ?? 0) > 0) {
+            layers.push(bg);
+            if ((bg[3] ?? 0) >= 1) break;
+          }
+          node = node.parentElement;
+        }
+        layers.push(parse(getComputedStyle(document.body).backgroundColor));
+        let out = [255, 255, 255];
+        for (let i = layers.length - 1; i >= 0; i--) {
+          const l = layers[i];
+          if (!l) continue;
+          const a = l[3] ?? 1;
+          out = [0, 1, 2].map(k => (l[k] ?? 0) * a + (out[k] ?? 0) * (1 - a));
+        }
+        return out;
+      };
+
+      const el = document.querySelector('#vh-input');
+      if (!el) throw new Error('no #vh-input in harness');
+      const border = parse(getComputedStyle(el).borderColor);
+      const inside = compositeUp(el);
+      const outside = el.parentElement ? compositeUp(el.parentElement) : inside;
+
+      return {
+        borderCss: getComputedStyle(el).borderColor,
+        insideRatio: Math.round(ratio(border, inside) * 100) / 100,
+        outsideRatio: Math.round(ratio(border, outside) * 100) / 100,
+      };
+    });
+
+    expect(
+      result.insideRatio,
+      `border on inside: ${result.borderCss} = ${result.insideRatio}`,
+    ).toBeGreaterThanOrEqual(3);
+    expect(
+      result.outsideRatio,
+      `border on outside: ${result.borderCss} = ${result.outsideRatio}`,
+    ).toBeGreaterThanOrEqual(3);
+  });
+});

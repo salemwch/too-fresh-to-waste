@@ -32,12 +32,12 @@ const { base: sp } = spacingTokens;
  * they are also the reason this screen is not yet fully dark-ready - recorded
  * rather than papered over.
  *
- * SUCCESS_TEXT on SUCCESS_SURFACE is itself 3.6 and already fails AA. That is
- * pre-existing and is NOT changed here; it belongs to the same M18 decision.
+ * SUCCESS_TEXT was #059669 at 3.6 on SUCCESS_SURFACE - fixed to success[600]
+ * (#1B5E20) at 7.53 as part of E25.
  */
 const SUCCESS_SURFACE = '#F0FDF4';
 const SUCCESS_TINT = '#D1FAE5';
-export const SUCCESS_TEXT = '#059669';
+export const SUCCESS_TEXT = colorTokens.base.success[600];
 const WARNING_SURFACE = '#FEF3C7';
 export const WARNING_TEXT = '#92400E';
 const ERROR_SURFACE = '#FEF2F2';

@@ -28,16 +28,16 @@
     /*
      * error #D32F2F, darkened from 0 84% 60% (#EF4343).
      *
-     * White on the old fill was 3.78 and failed AA; here it is 4.98, which is
-     * the "error" row 2.4 already approves. Darkening the fill rather than
-     * inking the text keeps white-on-red, which is what a destructive control
-     * is expected to look like - 19-E2 option (b).
+     * White on the old fill was 3.78 and failed AA; here it is 4.77 with the
+     * shipped #FAFAFA foreground (4.98 against pure white). Darkening the fill
+     * rather than inking the text keeps white-on-red, which is what a
+     * destructive control is expected to look like - 19-E2 option (b).
      *
      * 19-E2 names "error-600 #C62828" for this. No such token exists in this
      * repo; the error red is #D32F2F in tailwind.config.ts and in 2.4. Used
      * that rather than introducing a value the system does not define.
      *
-     * This also lifts the 91 text-destructive sites from 3.78 to 4.98, since
+     * This also lifts the 91 text-destructive sites from 3.78 to 4.77, since
      * darkening a fill and darkening text move the same way.
      */
     --destructive: 0 65.1% 50.6%;
@@ -50,7 +50,13 @@
      */
     --destructive-hover: 0 66.4% 46.7%;
     --border: 174 8% 90%;
-    --input: 174 8% 90%;
+    /*
+     * Control-boundary colour, split from --border for WCAG 1.4.11.
+     * --border stays at 90% for decorative dividers, cards and separators;
+     * --input darkens to pass 3:1 on --background (white).
+     * hsl(174 8% 50%) = #758A88, measured 3.65 on #FFFFFF. (D2/E4)
+     */
+    --input: 174 8% 50%;
     --ring: 186 41% 20%;
     --radius: 0.5rem;
   }
@@ -81,7 +87,8 @@
      */
     --destructive-hover: 354 100% 90.2%;
     --border: 180 10% 15%;
-    --input: 180 10% 15%;
+    /* D2/E4 dark: hsl(180 10% 38%) = #576B6B, 3.25 on --card, 3.46 on --background. */
+    --input: 180 10% 38%;
     --ring: 186 40% 52%;
   }
 
