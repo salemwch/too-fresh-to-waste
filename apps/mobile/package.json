@@ -48,6 +48,8 @@
     "clean:cache": "pnpm clean:metro",
     "android:clean": "cd android && gradlew clean",
     "check:fresh-install": "powershell -ExecutionPolicy Bypass -File ./scripts/fresh-install-check.ps1",
+    "check:assets": "node scripts/check-assets.js",
+    "assets:optimize": "node scripts/optimize-assets.js",
     "ios:clean": "cd ios && xcodebuild clean -workspace FoodWasteApp.xcworkspace -scheme FoodWasteApp",
     "clean:full": "pnpm clean && pnpm android:clean && rimraf node_modules && pnpm install",
     "// PERFORMANCE BENCHMARKS": "",
@@ -143,6 +145,7 @@
     "prettier": "^3.8.4",
     "react-test-renderer": "19.1.0",
     "rimraf": "^5.0.5",
+    "sharp": "0.35.3",
     "typescript": "^5.9.3"
   },
   "engines": {

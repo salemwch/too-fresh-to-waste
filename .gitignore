@@ -135,6 +135,13 @@ lint_*.txt
 !apps/web/public/favicon.ico
 !apps/mobile/android/app/src/main/res/**/*.png
 
+# Exception: bundled mobile app assets. Metro resolves these imports at build
+# time, so a clone without them cannot bundle at all - `*.webp` above had been
+# silently excluding bag-wall, boal, leaf and waving-hand, which four screens
+# import. These are density-capped UI illustrations (tens of KB each), not the
+# multi-MB source masters this block exists to keep out.
+!apps/mobile/src/assets/**/*.webp
+
 # Security scanning tools
 snyk
 snyk.exe
@@ -221,3 +228,7 @@ results/
 
 # Phase 6.5 device-verification screenshots - evidence, not source
 apps/mobile/device-verification/shots/
+
+# Mobile illustration source masters (multi-MB; see assets-src/README.md)
+apps/mobile/assets-src/*.png
+apps/mobile/assets-src/*.jpg

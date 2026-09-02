@@ -26,10 +26,11 @@ module.exports = {
   overrides: [
     {
       /*
-       * Build tooling config, loaded by Node as CommonJS before any bundler is
-       * involved. Metro, Babel and Jest read these with require(), so `import`
-       * is not an option here and no-require-imports is reporting the only
-       * form that works.
+       * Build tooling config and Node CLI scripts, loaded by Node as CommonJS
+       * before any bundler is involved. Metro, Babel and Jest read these with
+       * require(), so `import` is not an option here and no-require-imports is
+       * reporting the only form that works. `scripts/*.js` are the asset
+       * pipeline and its budget guard - same story, run by node, never bundled.
        */
       files: [
         '*.config.js',
@@ -38,6 +39,7 @@ module.exports = {
         'react-native.config.js',
         'metro.config.js',
         'babel.config.js',
+        'scripts/*.js',
       ],
       // Node/Jest globals: these run outside the app bundle, so the React
       // Native env does not declare `require`, `module`, `__dirname` or `jest`.
