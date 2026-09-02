@@ -32,8 +32,8 @@ import { LocationPickerBottomSheet, LocationHeader } from '@/navigation/componen
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
 
-import heartInHandsImg from '../../../assets/images/heart-in-hands.png';
-import surpriseBoxImg from '../../../assets/images/surprise-box.png';
+import heartInHandsImg from '../../../assets/images/heart-in-hands.webp';
+import surpriseBoxImg from '../../../assets/images/surprise-box.webp';
 import {
   HomeSearchBar,
   HomeOfferSection,
