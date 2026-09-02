@@ -4,76 +4,97 @@
  * Memoised and driven by a single `userTier` prop: it sat inside the header's
  * useMemo alongside the countdown, so it was rebuilt once a second for no
  * reason. It only changes when the user's rank crosses the prize cutoff.
+ *
+ * The grand-prize card names the elected prize once the community's vote has
+ * decided, and falls back to "Community's choice" while it has not. That is the
+ * whole point of the card: it must never name a prize the vote has not chosen,
+ * because the user plans around what it says.
  */
 
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import {
-  BG_CARD,
-  BORDER_CARD,
-  BORDER_GOLD,
+  BG_GOLD_CARD,
+  BG_MINT_CARD,
+  BORDER_MINT,
   CHAMPION_GOLD,
-  GOLD_04,
-  GOLD_10,
-  TEXT_30,
-  TEXT_WHITE,
+  DISCOUNT_INK,
+  GOLD_15,
+  GOLD_45,
+  GOLD_INK,
+  SURFACE,
+  TEXT_MUTED,
+  TEXT_PRIMARY,
 } from '../../constants/palette';
 import { DEFAULT_PRIZE_RANKS, firstDiscountRank } from '../../utils/prizeTiers';
 
 import type { GrandPrizePresentation } from '../../utils/prizePresentation';
 import type { RowTier } from '../../utils/prizeTiers';
+import { colorTokens, withAlpha } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
-const { base: sp } = spacingTokens;
+const { base: sp, radius } = spacingTokens;
+
+const MINT_ICON_BG = withAlpha(colorTokens.base.success[500], 0.12);
 
 const styles = StyleSheet.create({
   block: {
     flexDirection: 'row',
-    gap: 10,
+    gap: sp[3],
     paddingHorizontal: sp[5],
-    marginBottom: 8,
+    marginBottom: sp.sm,
   },
   card: {
     flex: 1,
-    padding: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    backgroundColor: BG_CARD,
+    /*
+     * The top padding is not decorative. The "your tier" badge is a corner tab
+     * pinned to top:0, and at the previous 16px padding the title row began
+     * inside the tab's own box — the badge sat over the second word of
+     * "Community's Choice". 24px clears it, and both cards carry it so they
+     * stay aligned even though only one shows a badge.
+     */
+    paddingTop: sp.lg,
+    paddingHorizontal: sp.md,
+    paddingBottom: sp.md,
+    borderRadius: radius.xl,
+    minHeight: 128,
     borderWidth: 1,
-    borderColor: BORDER_CARD,
   },
-  cardWinning: {
-    borderColor: BORDER_GOLD,
-    backgroundColor: GOLD_04,
-    ...Platform.select({
-      ios: {
-        shadowColor: CHAMPION_GOLD,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      android: { elevation: 3 },
-    }),
+  cardGrand: { backgroundColor: BG_GOLD_CARD, borderColor: GOLD_45 },
+  cardDiscount: { backgroundColor: BG_MINT_CARD, borderColor: BORDER_MINT },
+  top: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  iconCircleGrand: { backgroundColor: GOLD_15 },
+  iconCircleDiscount: { backgroundColor: MINT_ICON_BG },
+  icon: { fontSize: 20 },
+  name: { flex: 1, fontSize: 14, lineHeight: 17, fontWeight: '800', color: TEXT_PRIMARY },
+  tier: { fontSize: 12, color: TEXT_MUTED, marginTop: sp.sm, fontWeight: '600' },
+  footer: { marginTop: 'auto', paddingTop: sp[3], fontSize: 12, fontWeight: '700' },
+  footerGrand: { color: GOLD_INK },
+  footerDiscount: { color: DISCOUNT_INK },
   youBadge: {
     position: 'absolute',
-    top: 6,
-    insetInlineEnd: 8,
-    fontSize: 8,
-    fontWeight: '700',
-    color: CHAMPION_GOLD,
-    backgroundColor: GOLD_10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
+    top: 0,
+    insetInlineEnd: 0,
+    fontSize: 10,
+    lineHeight: 12,
+    fontWeight: '800',
+    color: SURFACE,
+    backgroundColor: CHAMPION_GOLD,
+    paddingHorizontal: sp.sm,
+    paddingVertical: sp.xs,
+    borderStartEndRadius: radius.xl,
+    borderEndStartRadius: radius.lg,
     overflow: 'hidden',
   },
-  icon: { fontSize: 24, marginBottom: 6 },
-  name: { fontSize: 12, fontWeight: '700', color: TEXT_WHITE },
-  nameGold: { color: CHAMPION_GOLD },
-  tier: { fontSize: 9, color: TEXT_30, marginTop: 3, fontWeight: '600' },
 });
 
 interface TierCardProps {
@@ -90,8 +111,11 @@ interface TierCardProps {
    * so the prop identity stays stable across renders.
    */
   tierLabelRank: number;
+  /** Already-resolved footer line. */
+  footer: string;
   /** Whether this is the tier the current user is on track for. */
   isYours: boolean;
+  variant: 'grand' | 'discount';
 }
 
 const TierCard: React.FC<TierCardProps> = ({
@@ -99,19 +123,34 @@ const TierCard: React.FC<TierCardProps> = ({
   name,
   tierLabelKey,
   tierLabelRank,
+  footer,
   isYours,
+  variant,
 }) => {
   const { t } = useTranslation();
+  const isGrand = variant === 'grand';
 
   return (
-    <View style={[styles.card, isYours && styles.cardWinning]}>
+    <View style={[styles.card, isGrand ? styles.cardGrand : styles.cardDiscount]}>
       {isYours && <Text style={styles.youBadge}>{t('leaderboard.yourTierBadge')}</Text>}
-      <Text style={styles.icon}>{icon}</Text>
-      <Text style={[styles.name, isYours && styles.nameGold]} numberOfLines={2}>
-        {name}
-      </Text>
+
+      <View style={styles.top}>
+        <View
+          style={[styles.iconCircle, isGrand ? styles.iconCircleGrand : styles.iconCircleDiscount]}
+        >
+          <Text style={styles.icon}>{icon}</Text>
+        </View>
+        <Text style={styles.name} numberOfLines={2}>
+          {name}
+        </Text>
+      </View>
+
       <Text style={styles.tier}>
         {t(tierLabelKey, { count: tierLabelRank, rank: tierLabelRank })}
+      </Text>
+
+      <Text style={[styles.footer, isGrand ? styles.footerGrand : styles.footerDiscount]}>
+        {footer}
       </Text>
     </View>
   );
@@ -138,21 +177,31 @@ const PrizeTierCardsComponent: React.FC<PrizeTierCardsProps> = ({
   grandPrize = UNDECIDED_PRIZE,
 }) => {
   const { t } = useTranslation();
+  const isDecided = grandPrize.name != null;
 
   return (
     <View style={styles.block}>
       <TierCard
+        variant='grand'
         icon={grandPrize.icon}
         name={grandPrize.name ?? t('leaderboard.prizeVotedByCommunity')}
         tierLabelKey='leaderboard.tierTopWinners'
         tierLabelRank={prizeRanks}
+        // Once the vote has decided, the card states the result; while it is
+        // open it asks for a vote. Saying "chosen by the community" before a
+        // choice exists would be a lie the user acts on.
+        footer={t(
+          isDecided ? 'leaderboard.prizeChosenByCommunity' : 'leaderboard.voteForFavorites',
+        )}
         isYours={userTier === 'grandPrize'}
       />
       <TierCard
+        variant='discount'
         icon='🎁'
         name={t('leaderboard.prizeDiscount')}
         tierLabelKey='leaderboard.tierBelowPrize'
         tierLabelRank={firstDiscountRank(prizeRanks)}
+        footer={t('leaderboard.keepClimbing')}
         isYours={userTier === 'discount'}
       />
     </View>

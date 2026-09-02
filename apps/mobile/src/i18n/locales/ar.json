@@ -1084,7 +1084,13 @@
     "ticketRank": "المركز #{{rank}}",
     "statusPending": "في انتظار التحقق",
     "statusVerified": "تم التحقق",
-    "statusDelivered": "تم التسليم"
+    "statusDelivered": "تم التسليم",
+    "heroBody": "اجمع النقاط، وتسلّق الترتيب، وساعد مجتمعنا على الفوز بمكافآت رائعة.",
+    "winningBand": "أفضل {{count}} · يفوزون بالجائزة الكبرى",
+    "discountBand": "المرتبة {{rank}}+ · خصم 10٪",
+    "prizeChosenByCommunity": "اختاره المجتمع",
+    "voteForFavorites": "صوّت وادعم مفضّليك!",
+    "keepClimbing": "واصل الصعود!"
   },
   "voting": {
     "a11ySelectPrizeHint": "يحدد هذه الجائزة كخيارك في التصويت",

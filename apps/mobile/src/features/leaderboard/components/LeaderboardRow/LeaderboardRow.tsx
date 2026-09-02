@@ -3,6 +3,12 @@
  *
  * Memoised: the list re-renders on scroll and on every countdown tick, while an
  * individual row's data changes only when the leaderboard refetches.
+ *
+ * Ranks 1-3 carry the podium's own metals — gold, silver, bronze — taken from
+ * the same palette constants the podium uses, so the two cannot drift into
+ * disagreeing about who is second. A number alone never communicated that the
+ * top three are the ones who actually win; the colour, plus the rule the screen
+ * draws under rank 3, is what does.
  */
 
 import React, { memo } from 'react';
@@ -11,26 +17,40 @@ import { StyleSheet, Text, View } from 'react-native';
 import { UserAvatar } from '../UserAvatar';
 
 import {
-  BG_CARD,
-  BG_CARD_TOP5,
-  BORDER_CARD,
-  BORDER_CARD_TOP5,
-  BORDER_GOLD,
+  BG_GOLD_CARD,
+  BORDER_CARD_LIGHT,
+  BRONZE,
+  BRONZE_BORDER,
+  BRONZE_TINT,
   CHAMPION_GOLD,
-  GOLD_06,
-  GOLD_10,
-  GOLD_80,
-  TEXT_25,
-  TEXT_30,
-  TEXT_40,
-  TEXT_85,
-  WHITE_04,
+  GOLD_45,
+  GOLD_INK,
+  SILVER,
+  SILVER_BORDER,
+  SILVER_TINT,
+  SURFACE,
+  TEXT_MUTED,
+  TEXT_PRIMARY,
+  TEXT_TERTIARY,
 } from '../../constants/palette';
 import { DEFAULT_PRIZE_RANKS } from '../../utils/prizeTiers';
 
 import type { LeaderboardEntry } from '../../types/leaderboard.types';
+import { spacingTokens } from '@/design-system/tokens/spacing';
+
+const { base: sp, radius } = spacingTokens;
 
 const AVATAR_SIZE = 36;
+
+/**
+ * Place → its metal. Only the three winning places appear here; everything else
+ * falls through to the neutral row, which is the point.
+ */
+const MEDAL: Record<number, { chip: string; bg: string; border: string }> = {
+  1: { chip: CHAMPION_GOLD, bg: BG_GOLD_CARD, border: GOLD_45 },
+  2: { chip: SILVER, bg: SILVER_TINT, border: SILVER_BORDER },
+  3: { chip: BRONZE, bg: BRONZE_TINT, border: BRONZE_BORDER },
+};
 
 const styles = StyleSheet.create({
   row: {
@@ -38,42 +58,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     padding: 10,
-    marginHorizontal: 16,
-    marginBottom: 5,
-    borderRadius: 12,
-    backgroundColor: BG_CARD,
+    marginHorizontal: sp[5],
+    marginBottom: sp.sm,
+    borderRadius: radius.lg,
+    backgroundColor: SURFACE,
     borderWidth: 1,
-    borderColor: BORDER_CARD,
+    borderColor: BORDER_CARD_LIGHT,
   },
-  rowTopRank: {
-    backgroundColor: BG_CARD_TOP5,
-    borderColor: BORDER_CARD_TOP5,
-  },
-  rowMe: {
-    borderColor: BORDER_GOLD,
-    backgroundColor: GOLD_06,
-  },
+  /** The viewer's own row, whatever their rank. */
+  rowMe: { borderColor: GOLD_45, borderWidth: 1.5 },
 
-  rankCol: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
+  rankChip: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: WHITE_04,
+    backgroundColor: BORDER_CARD_LIGHT,
   },
-  rankColTopRank: { backgroundColor: GOLD_10 },
-  rankNum: { fontSize: 11, fontWeight: '700', color: TEXT_30 },
-  rankNumTopRank: { color: CHAMPION_GOLD },
+  rankNum: { fontSize: 12, fontWeight: '800', color: TEXT_MUTED },
+  rankNumMedal: { color: SURFACE },
 
   nameCol: { flex: 1, minWidth: 0 },
-  fullName: { fontSize: 13, fontWeight: '600', color: TEXT_85 },
-  fullNameMe: { color: CHAMPION_GOLD, fontWeight: '700' },
-  badgeLabel: { fontSize: 10, color: TEXT_25, marginTop: 1 },
+  fullName: { fontSize: 14, fontWeight: '700', color: TEXT_PRIMARY },
+  /**
+   * Finding yourself in a long list is the row's second job. The border alone
+   * is too quiet for that at a glance, so the name carries the accent too.
+   */
+  fullNameMe: { fontWeight: '800', color: GOLD_INK },
+  badgeLabel: { fontSize: 12, color: TEXT_TERTIARY, marginTop: 1 },
 
-  ptsText: { fontSize: 12, fontWeight: '700', color: TEXT_40 },
-  ptsTextTopRank: { color: GOLD_80 },
-  ptsTextMe: { color: CHAMPION_GOLD },
+  ptsText: { fontSize: 14, fontWeight: '800', color: TEXT_PRIMARY },
+  ptsTextChampion: { color: CHAMPION_GOLD },
 });
 
 export interface LeaderboardRowProps {
@@ -86,15 +102,21 @@ const LeaderboardRowComponent: React.FC<LeaderboardRowProps> = ({
   entry,
   prizeRanks = DEFAULT_PRIZE_RANKS,
 }) => {
-  // Marks the prize-winning ranks. Rank-based only: after a season that fell
-  // short the top ranks keep this styling, because it marks position, not a
-  // prize entitlement — the tier cards are what state what is actually won.
-  const isTopRank = entry.rank <= prizeRanks;
+  // Rank-based only: after a season that fell short the top ranks keep this
+  // styling, because it marks position, not a prize entitlement — the tier
+  // cards are what state what is actually won.
+  const medal = entry.rank <= prizeRanks ? MEDAL[entry.rank] : undefined;
 
   return (
-    <View style={[styles.row, isTopRank && styles.rowTopRank, entry.isCurrentUser && styles.rowMe]}>
-      <View style={[styles.rankCol, isTopRank && styles.rankColTopRank]}>
-        <Text style={[styles.rankNum, isTopRank && styles.rankNumTopRank]}>{entry.rank}</Text>
+    <View
+      style={[
+        styles.row,
+        medal != null && { backgroundColor: medal.bg, borderColor: medal.border },
+        entry.isCurrentUser && styles.rowMe,
+      ]}
+    >
+      <View style={[styles.rankChip, medal != null && { backgroundColor: medal.chip }]}>
+        <Text style={[styles.rankNum, medal != null && styles.rankNumMedal]}>{entry.rank}</Text>
       </View>
 
       <UserAvatar
@@ -115,13 +137,7 @@ const LeaderboardRowComponent: React.FC<LeaderboardRowProps> = ({
         )}
       </View>
 
-      <Text
-        style={[
-          styles.ptsText,
-          isTopRank && styles.ptsTextTopRank,
-          entry.isCurrentUser && styles.ptsTextMe,
-        ]}
-      >
+      <Text style={[styles.ptsText, entry.rank === 1 && styles.ptsTextChampion]}>
         {entry.totalPoints.toLocaleString()} pt
       </Text>
     </View>

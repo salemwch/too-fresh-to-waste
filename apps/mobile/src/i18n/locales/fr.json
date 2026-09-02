@@ -1068,7 +1068,13 @@
     "ticketRank": "Rang #{{rank}}",
     "statusPending": "En attente de vérification",
     "statusVerified": "Vérifié",
-    "statusDelivered": "Livré"
+    "statusDelivered": "Livré",
+    "heroBody": "Gagnez des points, grimpez au classement et aidez la communauté à gagner de superbes récompenses.",
+    "winningBand": "Top {{count}} · gagnent le grand prix",
+    "discountBand": "Rang {{rank}}+ · 10 % de réduction",
+    "prizeChosenByCommunity": "Élu par la communauté",
+    "voteForFavorites": "Votez pour vos favoris !",
+    "keepClimbing": "Continuez à grimper !"
   },
   "voting": {
     "a11ySelectPrizeHint": "Sélectionne ce prix comme votre choix de vote",

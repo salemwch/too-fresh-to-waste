@@ -1,15 +1,20 @@
 /**
  * LeaderboardScreen — Grand Prize Community Challenge
  *
- * Layout (dark premium theme):
- *  Block 1: "Grand Prize" header + countdown timer (days:hrs:mins:secs)
- *  Block 2: Prize cards (Smartphone / Discount) with "winning" indicator
- *  Block 3: Top 5 podium (order: 5, 3, 1, 2, 4 — natural rise-and-fall)
- *  Block 4: Clean ranked list
+ * Layout (cream ground, dark hero):
+ *  Block 1: Grand Prize hero card — trophy, countdown, end date
+ *  Block 2: Prize tier cards (grand prize / discount) with "your tier" marker
+ *  Block 3: Top 3 podium (order: 3, 1, 2 — champion centre)
+ *  Block 4: Ranked list, the winning band named above it and a rule beneath
+ *           the last winning place
+ *
+ * The screen was a dark surface until the 2026-09-02 redesign. The two dark
+ * cards that remain — the hero and the countdown inside it — are the reason
+ * `constants/palette.ts` still carries its dark-ground values.
  */
 
 import { FlashList } from '@shopify/flash-list';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 
@@ -26,7 +31,7 @@ import { PrivacyConsentModal } from '../components/PrivacyConsentModal';
 import { WinnerCelebrationModal } from '../components/WinnerCelebrationModal';
 import { LeaderboardRow } from '../components/LeaderboardRow';
 import { ChallengeHeader } from '../components/ChallengeHeader';
-import { PodiumTop5 } from '../components/PodiumTop5';
+import { PodiumTop3 } from '../components/PodiumTop3';
 import { PrizeTierCards } from '../components/PrizeTierCards';
 import { PrizeInfoModal } from '../components/PrizeInfoModal';
 import { useLeaderboard } from '../hooks/useLeaderboard';
@@ -40,13 +45,14 @@ import {
 import { useActiveVotingCycle } from '@/features/voting/hooks/useVoting';
 import { getBallotPrizeRows, getGrandPrizePresentation } from '../utils/prizePresentation';
 import {
-  BG_DARK,
+  BG_CREAM,
   CHAMPION_GOLD,
+  DIVIDER,
   GOLD_06,
   GOLD_15,
-  TEXT_25,
-  TEXT_40,
-  TEXT_85,
+  GOLD_INK,
+  TEXT_MUTED,
+  TEXT_PRIMARY,
 } from '../constants/palette';
 import { DEFAULT_PRIZE_RANKS, getRowTier } from '../utils/prizeTiers';
 
@@ -67,7 +73,7 @@ interface Props {
   navigation: MainStackNavigationProp;
 }
 
-export const LeaderboardScreen: React.FC<Props> = () => {
+export const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const { user } = useUserProfile();
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -182,6 +188,35 @@ export const LeaderboardScreen: React.FC<Props> = () => {
   const openPrizeModal = useCallback(() => setShowPrizeModal(true), []);
   const closePrizeModal = useCallback(() => setShowPrizeModal(false), []);
 
+  /*
+   * The info button lives in the navigation header rather than in the hero
+   * card, because the trophy now occupies the card's top-right corner where it
+   * used to sit. The header is already rendered for this screen and already
+   * follows the theme, so this is the button's natural home.
+   */
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          style={styles.headerBtn}
+          hitSlop={8}
+          onPress={openPrizeModal}
+          accessibilityRole='button'
+          accessibilityLabel={t('leaderboard.a11yShowPrizeInfo')}
+          accessibilityHint={t('common.a11yOpensDetailsHint')}
+          testID='leaderboard-info-button'
+        >
+          <Icon
+            name='information-circle-outline'
+            family='Ionicons'
+            size={24}
+            color={TEXT_PRIMARY}
+          />
+        </Pressable>
+      ),
+    });
+  }, [navigation, openPrizeModal, t]);
+
   const handleRetry = useCallback(() => {
     refetch().catch(() => undefined);
   }, [refetch]);
@@ -203,20 +238,41 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 
   const keyExtractor = useCallback((item: LeaderboardEntry) => item.userId, []);
   const renderItem = useCallback(
-    ({ item }: { item: LeaderboardEntry }) => <LeaderboardRow entry={item} />,
-    [],
+    ({ item }: { item: LeaderboardEntry }) => (
+      <>
+        {/*
+         * The rule that says where winning stops. Drawn before the first row
+         * that wins nothing, so it reads as a boundary rather than a heading,
+         * and it names what the ranks below it do get — the medals alone say
+         * "these three are special" without saying what the others receive.
+         */}
+        {item.rank === prizeRanks + 1 && (
+          <View style={styles.cutline}>
+            <View style={styles.cutlineRule} />
+            <Text style={styles.cutlineText}>
+              {t('leaderboard.discountBand', { rank: item.rank })}
+            </Text>
+            <View style={styles.cutlineRule} />
+          </View>
+        )}
+        <LeaderboardRow entry={item} prizeRanks={prizeRanks} />
+      </>
+    ),
+    // prizeRanks is the season's real winner count, so the medals and the rule
+    // follow it rather than the module default.
+    [prizeRanks, t],
   );
 
   // ── List header ────────────────────────────────────────────────────────────
   const ListHeader = useMemo(
     () => (
       <View>
-        <ChallengeHeader endDate={goal?.endDate} onInfoPress={openPrizeModal} />
+        <ChallengeHeader endDate={goal?.endDate} />
 
         <PrizeTierCards userTier={userTier} prizeRanks={prizeRanks} grandPrize={grandPrize} />
 
         {/* Block 3: Podium */}
-        {allEntries.length >= 2 && <PodiumTop5 entries={allEntries} />}
+        {allEntries.length >= 2 && <PodiumTop3 entries={allEntries} />}
 
         {/* Section header for list */}
         <View style={styles.listHeader}>
@@ -228,27 +284,22 @@ export const LeaderboardScreen: React.FC<Props> = () => {
           </Text>
         </View>
 
+        {/* Names the winning band before the first row, so the medals below
+            are read as a prize tier rather than as decoration. */}
+        {allEntries.length > 0 && (
+          <Text style={styles.winBand}>{t('leaderboard.winningBand', { count: prizeRanks })}</Text>
+        )}
+
         {/* Error state */}
         {isError && (
           <Pressable style={styles.centerState} onPress={handleRetry} accessibilityRole='button'>
-            <Icon name='refresh-outline' family='Ionicons' size={28} color={TEXT_40} />
+            <Icon name='refresh-outline' family='Ionicons' size={28} color={TEXT_MUTED} />
             <Text style={styles.errorText}>{t('leaderboard.tapToRetry')}</Text>
           </Pressable>
         )}
       </View>
     ),
-    [
-      allEntries,
-      goal?.endDate,
-      isError,
-      handleRetry,
-      userTier,
-      prizeRanks,
-      grandPrize,
-      data,
-      t,
-      openPrizeModal,
-    ],
+    [allEntries, goal?.endDate, isError, handleRetry, userTier, prizeRanks, grandPrize, data, t],
   );
 
   return (
@@ -393,12 +444,25 @@ export const LeaderboardScreen: React.FC<Props> = () => {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: BG_CREAM },
   skeletonOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: BG_DARK,
+    backgroundColor: BG_CREAM,
   },
   listContent: { paddingBottom: 80 },
+  /**
+   * A full 44x44 box rather than a smaller one propped up by hitSlop. The
+   * button this replaces was 36x36 + hitSlop, which met the target only because
+   * of the slop; sizing the box itself means the visual and the tappable area
+   * are the same thing.
+   */
+  headerBtn: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: sp.sm,
+  },
 
   // ── Block 4: List ──
   listHeader: {
@@ -407,14 +471,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: sp[5],
     marginBottom: sp[3],
-    marginTop: 4,
+    marginTop: sp.xs,
   },
-  listTitle: { fontSize: 15, fontWeight: '700', color: TEXT_85 },
-  listMeta: { fontSize: 10, color: TEXT_25, fontWeight: '500' },
+  listTitle: { fontSize: 20, fontWeight: '800', color: TEXT_PRIMARY },
+  listMeta: { fontSize: 12, color: TEXT_MUTED, fontWeight: '600' },
+
+  winBand: {
+    paddingHorizontal: sp[5],
+    marginBottom: sp.sm,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: GOLD_INK,
+  },
+  cutline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: sp.sm,
+    paddingHorizontal: sp[5],
+    marginTop: sp.xs,
+    marginBottom: 10,
+  },
+  cutlineRule: { flex: 1, height: 1, backgroundColor: DIVIDER },
+  cutlineText: { fontSize: 12, fontWeight: '700', color: TEXT_MUTED },
 
   // ── States ──
   centerState: { alignItems: 'center', paddingVertical: 40, gap: 8 },
-  errorText: { fontSize: 14, color: TEXT_40 },
+  errorText: { fontSize: 14, color: TEXT_MUTED },
   loadMoreSpinner: { alignItems: 'center', paddingVertical: 16 },
   viewMoreBtn: {
     flexDirection: 'row',

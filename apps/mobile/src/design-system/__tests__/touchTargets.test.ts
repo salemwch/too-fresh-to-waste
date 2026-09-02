@@ -124,7 +124,13 @@ describe('touch targets (M13)', () => {
   it('still finds the undersized touchables it is meant to police', () => {
     // If the block parser broke, `small` would be empty and the assertion below
     // would pass while checking nothing.
-    expect(small.length).toBeGreaterThanOrEqual(6);
+    //
+    // Lowered 6 -> 5 on 2026-09-03: the leaderboard redesign removed the
+    // ChallengeHeader info button, a 36x36 box that reached 44 only through
+    // hitSlop. Its replacement in the navigation header is a real 44x44 box, so
+    // it is correctly no longer in this population. The floor tracks the number
+    // that actually exist; it is a canary for a broken scan, not a budget.
+    expect(small.length).toBeGreaterThanOrEqual(5);
   });
 
   it('gives every touchable with a pinned sub-44px box a hitSlop', () => {

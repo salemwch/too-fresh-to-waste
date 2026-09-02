@@ -43,6 +43,16 @@ const JOBS = [
     fit: 'cover',
     usedBy: 'features/donations/components/ImpactBanner.tsx (styles.illustration)',
   },
+  {
+    // 4096x4096 master, 4.83 MiB. Painted into a 150dp box on the Grand Prize
+    // hero, so the same reasoning as box-card applies: everything past 4x the
+    // render box is decoded and thrown away.
+    src: 'prizeTrophy.png',
+    out: 'prize-trophy',
+    box: { w: 150, h: 150 },
+    fit: 'contain',
+    usedBy: 'features/leaderboard/components/ChallengeHeader (styles.trophy)',
+  },
 ];
 
 const SCALES = [
@@ -79,7 +89,9 @@ async function main() {
     }
     const meta = await sharp(srcPath).metadata();
     const base = baseSize(meta, job.box, job.fit);
-    console.log(`\n${job.src}  ${meta.width}x${meta.height} -> ${job.box.w}x${job.box.h}dp ${job.fit}`);
+    console.log(
+      `\n${job.src}  ${meta.width}x${meta.height} -> ${job.box.w}x${job.box.h}dp ${job.fit}`,
+    );
     console.log(`  ${job.usedBy}`);
     for (const { s, suffix } of SCALES) {
       const dest = path.join(OUT_DIR, `${job.out}${suffix}.webp`);
@@ -89,13 +101,15 @@ async function main() {
         .toFile(dest);
       const size = fs.statSync(dest).size;
       grand += size;
-      console.log(`  ${(suffix || '@1x').padEnd(6)} ${String(size).padStart(7)} B  ${path.basename(dest)}`);
+      console.log(
+        `  ${(suffix || '@1x').padEnd(6)} ${String(size).padStart(7)} B  ${path.basename(dest)}`,
+      );
     }
   }
   console.log(`\nTotal emitted: ${(grand / 1024).toFixed(1)} KiB`);
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });

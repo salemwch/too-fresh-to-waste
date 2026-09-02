@@ -6,7 +6,7 @@
  * This is the point of the component. The tick fires once a second, and while
  * the value lived on LeaderboardScreen it sat in the ListHeader useMemo's
  * dependency array — so every second the whole header subtree was rebuilt:
- * both prize cards, the section header, and PodiumTop5 with its five FastImage
+ * both prize cards, the section header, and the podium with its FastImage
  * avatars. Keeping the state here means a tick re-renders four <Text> nodes and
  * nothing else.
  *

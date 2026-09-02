@@ -1068,7 +1068,13 @@
     "ticketRank": "Rank #{{rank}}",
     "statusPending": "Pending Verification",
     "statusVerified": "Verified",
-    "statusDelivered": "Delivered"
+    "statusDelivered": "Delivered",
+    "heroBody": "Earn points, climb the ranks, and help our community win amazing rewards.",
+    "winningBand": "Top {{count}} · win the grand prize",
+    "discountBand": "Rank {{rank}}+ · 10% discount",
+    "prizeChosenByCommunity": "Chosen by the community",
+    "voteForFavorites": "Vote & support your favorites!",
+    "keepClimbing": "Keep climbing!"
   },
   "voting": {
     "a11ySelectPrizeHint": "Selects this prize as your vote choice",
