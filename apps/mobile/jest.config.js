@@ -29,4 +29,18 @@ module.exports = {
       functions: 17,
     },
   },
+
+  /*
+   * The react-native preset resolves packages through their `browser` field,
+   * which for `yaml` points at an ESM build Jest cannot parse. `yaml` is
+   * reached only by src/__tests__/metroSentryResolver.test.ts, which loads the
+   * real metro.config.js (metro-config → cosmiconfig → yaml). Map it back to
+   * the package's own CJS `main` - same library, same version, different
+   * module format - so the guard test exercises the genuine config instead of
+   * a mock of it.
+   */
+  moduleNameMapper: {
+    ...rnBase.moduleNameMapper,
+    '^yaml$': '<rootDir>/../../node_modules/yaml/dist/index.js',
+  },
 };

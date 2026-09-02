@@ -173,12 +173,15 @@ const config = {
      */
     extraNodeModules: {
       '@foodwaste/shared': path.resolve(workspaceRoot, 'packages/shared/src'),
-      // Stub web-only Sentry modules (~400KB savings)
-      // These are re-exported by @sentry/browser but never used on React Native
-      '@sentry-internal/replay': path.resolve(projectRoot, 'src/stubs/sentry-web-stub.js'),
-      '@sentry-internal/feedback': path.resolve(projectRoot, 'src/stubs/sentry-web-stub.js'),
-      '@sentry-internal/replay-canvas': path.resolve(projectRoot, 'src/stubs/sentry-web-stub.js'),
-      '@sentry-internal/browser-utils': path.resolve(projectRoot, 'src/stubs/sentry-web-stub.js'),
+      // Web-only Sentry packages used to be "stubbed" here. That never worked:
+      // extraNodeModules is a FALLBACK consulted only when normal node_modules
+      // resolution fails, and these packages are physically installed, so the
+      // stub was never resolved once (verified against the production
+      // sourcemap - the stub file was absent, the 299 KiB of
+      // @sentry-internal/replay was not). The working mechanism is the
+      // vendor's own `includeWebReplay: false` on withSentryConfig at the
+      // bottom of this file, which intercepts resolution BEFORE node_modules
+      // lookup. Guarded by src/__tests__/metroSentryResolver.test.ts.
     },
 
     /**
@@ -508,5 +511,16 @@ if (isDev && process.env.METRO_DEBUG) {
 /**
  * Merge custom config with React Native defaults
  * Custom settings override defaults where conflicts exist
+ *
+ * `includeWebReplay: false` installs Sentry's own resolveRequest interceptor,
+ * which resolves anything matching /@sentry(-internal)?\/replay/ to an empty
+ * module on android/ios bundles. Without it the DOM session-replay code ships:
+ * @sentry-internal/replay (299 KiB) + replay-canvas (32 KiB) of source in the
+ * production bundle, none of it reachable - replay here is configured
+ * exclusively through Sentry.mobileReplayIntegration(), the native
+ * implementation. The SDK defaults this option to true, so it must stay
+ * explicit. Guarded by src/__tests__/metroSentryResolver.test.ts.
  */
-module.exports = withSentryConfig(mergeConfig(getDefaultConfig(__dirname), config));
+module.exports = withSentryConfig(mergeConfig(getDefaultConfig(__dirname), config), {
+  includeWebReplay: false,
+});
