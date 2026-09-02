@@ -62,5 +62,9 @@ module.exports = {
     // Binary assets stub — prevents transform errors for images/fonts
     '\\.(ttf|otf|png|jpg|jpeg|gif|webp|svg)$': '<rootDir>/jest.assetStub.js',
   },
-  transformIgnorePatterns: [`node_modules/(?!(${RN_ESM_PACKAGES})/)`],
+  // The optional path group lets a package match at any depth: pnpm nests
+  // transitive copies under their parent, and anchoring the name directly
+  // after the first node_modules segment would leave every nested copy
+  // untransformed.
+  transformIgnorePatterns: [`node_modules/(?!(?:.*/)?(${RN_ESM_PACKAGES})/)`],
 };

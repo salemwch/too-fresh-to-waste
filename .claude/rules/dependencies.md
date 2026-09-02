@@ -187,3 +187,58 @@ Verified per app with `-P`, as the rule above demands rather than assuming:
 Recorded in `pnpm.auditConfig.ignoreGhsas`. Re-check when React Native ships a
 Metro release that drops or replaces `image-size` — that is the only thing that
 can clear it, and no override can.
+
+## The patched version can be the breaking one (2026-09-02)
+
+`decode-uri-component` GHSA-vcc3-ghjq-m6fr: vulnerable `<=0.4.2`, patched
+`>=0.5.0`. Accepted, in `pnpm.auditConfig.ignoreGhsas`. The reasoning matters
+more than the entry, because the fix looked clean by every gate this repo runs.
+
+**Where it is.** Verified per app with `-P`, not at the root:
+
+- **mobile production**, one path:
+  `@react-navigation/native > @react-navigation/core > query-string 7.1.3 > decode-uri-component 0.2.2`
+- **backend production**: no path. **web production**: no path.
+
+So it is reachable, and reachable on attacker-supplied input: React Navigation
+parses every deep link through it. A hostile `foodwaste://` or universal link
+with a pathological percent-encoded query can pin the JS thread.
+
+**Why it is accepted rather than fixed.** The impact ceiling is a hang in the
+app's own process, on a link the user chose to open. No server component parses
+these, nothing is disclosed, and nothing crosses a trust boundary that was not
+already crossed by opening the link. That is worth less than the alternative.
+
+**Why the override does not work.** 0.5.0 and 0.4.1 are ESM-only: their exports
+map declares a single `default` condition, so there is no CJS build. But
+`query-string@7.1.3` is CommonJS and does
+
+```js
+const decodeComponent = require('decode-uri-component');
+```
+
+Under 0.5.0 that binds the module namespace object, not the function, so
+`decodeComponent(...)` throws `TypeError: decodeComponent is not a function` on
+**every deep link carrying a query param**. In this app that is password reset
+and email verification: the two flows that arrive by email and cannot be reached
+any other way.
+
+**This is the part to remember.** The override passed everything:
+`pnpm install`, all three type-checks, the web production build, the release
+AAB, and 2,500+ tests across backend, web and mobile. Metro bundled it happily
+and the sourcemap confirmed the 0.5.0 source was embedded. Bundling is not
+running: no existing test ever parsed a deep-link path, so no existing test
+could execute the decoder.
+`apps/mobile/src/navigation/__tests__/linking.test.ts` was written for this, and
+9 of its 12 cases fail on 0.5.0 and pass on 0.2.2. Keep it. It is the only thing
+standing between this override and a silently broken password reset.
+
+**Re-check when** any of these changes, and re-run that suite as the gate:
+
+- `@react-navigation/core` drops `query-string`, or moves to a major that
+  imports the decoder rather than requiring it (7.21.1 still requires it)
+- `query-string` ships a release whose CJS build interops with an ESM decoder
+- `decode-uri-component` backports the fix to a CJS line
+
+Do not raise it by bumping `query-string` alone: React Navigation pins the major
+it expects, and the failure mode here is silent at build time.

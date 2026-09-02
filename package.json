@@ -205,7 +205,8 @@
       "ignoreGhsas": [
         "GHSA-mh99-v99m-4gvg",
         "GHSA-5p2g-fcmc-qvqq",
-        "GHSA-w3rx-r6r6-pgpr"
+        "GHSA-w3rx-r6r6-pgpr",
+        "GHSA-vcc3-ghjq-m6fr"
       ]
     }
   }
