@@ -144,6 +144,15 @@ function initSentryIfNeeded(): void {
       enableLogs: false,
       replaysSessionSampleRate: 0,
       replaysOnErrorSampleRate: 1,
+      /**
+       * Low-volume production tracing, enabled for one reason: app-start and
+       * slow/frozen-frame telemetry from real devices. Every startup number we
+       * have today comes from one x86 emulator translating arm64 - decisions
+       * about startup work need field data, not lab guesses. 10% keeps the
+       * quota cost and per-device overhead negligible while the install base
+       * is small; revisit the rate before any large marketing push.
+       */
+      tracesSampleRate: 0.1,
       integrations: [Sentry.mobileReplayIntegration()],
     });
     Logger.info('[App] Sentry initialized successfully');
