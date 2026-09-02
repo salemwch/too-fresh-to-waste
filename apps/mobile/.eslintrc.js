@@ -39,7 +39,7 @@ module.exports = {
         'react-native.config.js',
         'metro.config.js',
         'babel.config.js',
-        'scripts/*.js',
+        'scripts/**/*.js',
       ],
       // Node/Jest globals: these run outside the app bundle, so the React
       // Native env does not declare `require`, `module`, `__dirname` or `jest`.

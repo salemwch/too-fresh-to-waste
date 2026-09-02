@@ -50,6 +50,7 @@
     "check:fresh-install": "powershell -ExecutionPolicy Bypass -File ./scripts/fresh-install-check.ps1",
     "check:assets": "node scripts/check-assets.js",
     "assets:optimize": "node scripts/optimize-assets.js",
+    "assets:subset-icons": "node scripts/subset-icon-font.js",
     "ios:clean": "cd ios && xcodebuild clean -workspace FoodWasteApp.xcworkspace -scheme FoodWasteApp",
     "clean:full": "pnpm clean && pnpm android:clean && rimraf node_modules && pnpm install",
     "// PERFORMANCE BENCHMARKS": "",
@@ -146,6 +147,7 @@
     "react-test-renderer": "19.1.0",
     "rimraf": "^5.0.5",
     "sharp": "0.35.3",
+    "subset-font": "2.7.0",
     "typescript": "^5.9.3"
   },
   "engines": {

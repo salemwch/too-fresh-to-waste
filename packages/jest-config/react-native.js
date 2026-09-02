@@ -52,7 +52,13 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@foodwaste/shared$': '<rootDir>/../../packages/shared/src',
-    '^@react-native-vector-icons/(.*)$': '<rootDir>/jest.vectorIconsStub.js',
+    // Bare package imports only ('@react-native-vector-icons/ionicons') — the
+    // icon COMPONENTS need stubbing because they touch native font loading.
+    // Deep imports ('.../ionicons/glyphmaps/Ionicons.json') are plain data and
+    // must resolve for real: the icon-font subset guard reads the glyphmap to
+    // verify every referenced icon exists in the shipped font, and the old
+    // catch-all pattern handed it the stub's source text instead of JSON.
+    '^@react-native-vector-icons/([^/]+)$': '<rootDir>/jest.vectorIconsStub.js',
     // Binary assets stub — prevents transform errors for images/fonts
     '\\.(ttf|otf|png|jpg|jpeg|gif|webp|svg)$': '<rootDir>/jest.assetStub.js',
   },
