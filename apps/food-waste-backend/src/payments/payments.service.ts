@@ -14,6 +14,7 @@ import {
 } from '../orders/schemas/order.schema';
 
 import { PaymentQueryDto } from './dto/payment-query.dto';
+import { MerchantWallet, MerchantWalletDocument } from './schemas/merchant-wallet.schema';
 import { Payment, PaymentDocument, PaymentStatus } from './schemas/payment.schema';
 
 interface PaymentOverviewStats {
@@ -88,9 +89,28 @@ export class PaymentService {
   constructor(
     @InjectModel(Payment.name) readonly paymentModel: Model<PaymentDocument>,
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
+    @InjectModel(MerchantWallet.name) private readonly walletModel: Model<MerchantWalletDocument>,
     private readonly regexSecurityUtil: RegexSecurityUtil,
   ) {
     void this.logger;
+  }
+
+  async getMyWallet(
+    merchantId: string,
+    establishmentId?: string,
+  ): Promise<{ availableBalance: number; pendingBalance: number; currency: string }> {
+    const query: FilterQuery<MerchantWalletDocument> = {
+      merchantId: new Types.ObjectId(merchantId),
+      ...(establishmentId ? { establishmentId: new Types.ObjectId(establishmentId) } : {}),
+    };
+
+    const wallets = await this.walletModel.find(query).lean();
+
+    return {
+      availableBalance: wallets.reduce((sum, w) => sum + w.availableBalance, 0),
+      pendingBalance: wallets.reduce((sum, w) => sum + w.pendingBalance, 0),
+      currency: wallets[0]?.currency ?? 'TND',
+    };
   }
 
   async findAllCursor(

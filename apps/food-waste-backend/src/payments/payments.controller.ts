@@ -124,6 +124,35 @@ export class PaymentController {
     };
   }
   @ApiOperation({
+    summary: 'Get my wallet balance',
+    description:
+      'Available and pending payout balance for the authenticated merchant, summed across all establishments unless establishmentId is given.',
+  })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description: 'Scope to a single establishment',
+  })
+  @ApiResponse({ status: 200, description: 'Wallet balance retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Merchant access required' })
+  @Get('my-wallet')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MERCHANT)
+  async getMyWallet(
+    @Request() req: AuthenticatedRequest,
+    @Query('establishmentId') establishmentId?: string,
+  ) {
+    const wallet = await this.paymentService.getMyWallet(req.user.userId, establishmentId);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Wallet balance retrieved successfully',
+      data: wallet,
+    };
+  }
+
+  @ApiOperation({
     summary: 'Get consumer payments',
     description: 'Retrieve paginated list of payments made by the authenticated consumer',
   })
