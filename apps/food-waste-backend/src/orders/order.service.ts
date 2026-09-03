@@ -29,6 +29,7 @@ import { perfLog, perfStart } from '../common/utils/perf-log.util';
 import {
   DEFAULT_DRIVER_DELIVERY_EARNINGS,
   DEFAULT_FLAT_DELIVERY_FEE,
+  MERCHANT_EARNINGS_EXPR,
   calculateDeliveryEconomics,
   calculateFoodRevenueSplit,
   calculateOrderPricing,
@@ -101,6 +102,7 @@ interface OrderStatsResult {
   _id: null;
   totalOrders: number;
   totalRevenue: number;
+  totalEarnings: number;
   totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
@@ -153,6 +155,7 @@ export interface CustomerLocationResponse {
 export interface OrderStatsResponse {
   totalOrders: number;
   totalRevenue: number;
+  totalEarnings: number;
   /** Retail value of food rescued (sum of items[].originalPrice * quantity for completed orders) */
   totalOriginalValue: number;
   pendingOrders: number;
@@ -1707,6 +1710,20 @@ export class OrdersService {
                   ],
                 },
               },
+              totalEarnings: {
+                $sum: {
+                  $cond: [
+                    {
+                      $in: [
+                        '$status',
+                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                      ],
+                    },
+                    MERCHANT_EARNINGS_EXPR,
+                    0,
+                  ],
+                },
+              },
               totalOriginalValue: {
                 $sum: {
                   $cond: [
@@ -1782,6 +1799,7 @@ export class OrdersService {
           result[0] ?? {
             totalOrders: 0,
             totalRevenue: 0,
+            totalEarnings: 0,
             totalOriginalValue: 0,
             pendingOrders: 0,
             confirmedOrders: 0,

@@ -161,3 +161,20 @@ export function calculateFoodRevenueSplit(subtotal: number): FoodRevenueSplit {
     netCommission: round(platformFee - donation),
   };
 }
+
+/**
+ * Mongo aggregation expression for a single order's merchant earnings.
+ * Mirrors {@link calculateFoodRevenueSplit}'s `merchantAmount` — splits
+ * `pricing.subtotal`, never `pricing.total`. Shared by every aggregation
+ * that reports what a merchant actually earned, as opposed to what the
+ * customer paid.
+ *
+ * Rounded to 3 decimals (millimes — see {@link round} above) for the same
+ * reason `calculateFoodRevenueSplit` rounds in JS: `subtotal * 0.81` is not
+ * exactly representable in IEEE-754 (e.g. `20 * 0.81 === 16.200000000000003`),
+ * and an unrounded `$multiply` would leak that drift into every consumer that
+ * sums this expression across orders.
+ */
+export const MERCHANT_EARNINGS_EXPR = {
+  $round: [{ $multiply: ['$pricing.subtotal', MERCHANT_FOOD_SHARE] }, 3],
+};
