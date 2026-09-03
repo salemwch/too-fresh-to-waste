@@ -25,6 +25,7 @@ export interface TimeSeries {
 
 export interface BusinessMetrics {
   totalRevenue: MetricValue;
+  totalEarnings: MetricValue;
   totalOrders: MetricValue;
   averageOrderValue: MetricValue;
   conversionRate: MetricValue;
