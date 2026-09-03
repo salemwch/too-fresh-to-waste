@@ -65,6 +65,7 @@ export interface PaginationMeta {
 export interface OrderStatsResponse {
   totalOrders: number;
   totalRevenue: number;
+  totalEarnings: number;
   /** Retail value of food rescued (sum of originalPrice * quantity for completed orders) */
   totalOriginalValue: number;
   pendingOrders: number;
@@ -192,6 +193,7 @@ interface MetricValue {
 
 export interface BusinessMetrics {
   totalRevenue: MetricValue;
+  totalEarnings: MetricValue;
   totalOrders: MetricValue;
   averageOrderValue: MetricValue;
   conversionRate: MetricValue;
@@ -247,8 +249,17 @@ export interface RevenueChartItem {
   /** Day of month — only present when granularity is 'day'. */
   day?: number;
   revenue: number;
+  earnings: number;
   orderCount: number;
   bagCount: number;
+}
+
+// ─── Merchant Wallet ──────────────────────────────────────────────────────
+
+export interface MerchantWallet {
+  availableBalance: number;
+  pendingBalance: number;
+  currency: string;
 }
 
 // ─── My Establishment ────────────────────────────────────────────────────────

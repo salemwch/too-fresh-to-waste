@@ -21,7 +21,8 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
   const carbonQuery = useCarbonMetrics();
   const socialQuery = useSocialImpact();
 
-  const revenue = stats?.totalRevenue ?? 0;
+  const revenue = stats?.totalRevenue ?? 0; // gross — used ONLY for savingsPercent below
+  const earnings = stats?.totalEarnings ?? 0; // net — what the merchant actually keeps
   const originalValue = stats?.totalOriginalValue ?? 0;
   const completionRate =
     stats && stats.totalOrders > 0
@@ -47,7 +48,7 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
     },
     {
       title: t('revenue.title'),
-      value: formatValue(revenue),
+      value: formatValue(earnings),
       unit: t('revenue.unit'),
       delta: t('revenue.delta', { rate: completionRate }),
       icon: Coins,
