@@ -206,10 +206,10 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
   const cards: Omit<KpiCardProps, 'index'>[] = [
     {
       title: t('kpi.revenue'),
-      value: formatCurrency(data.totalRevenue?.value),
+      value: formatCurrency(data.totalEarnings?.value),
       unit: 'TND',
-      trend: data.totalRevenue?.trend,
-      changePercent: data.totalRevenue?.changePercentage,
+      trend: data.totalEarnings?.trend,
+      changePercent: data.totalEarnings?.changePercentage,
       icon: DollarSign,
     },
     {
@@ -288,8 +288,8 @@ function RevenueChart({
   t: ReturnType<typeof useTranslations>;
 }) {
   const peak = data.reduce(
-    (max, d) => (d.revenue > max.revenue ? d : max),
-    data[0] ?? { label: '', revenue: 0 },
+    (max, d) => (d.earnings > max.earnings ? d : max),
+    data[0] ?? { label: '', earnings: 0 },
   );
 
   return (
@@ -338,15 +338,15 @@ function RevenueChart({
               />
               <Area
                 type='monotone'
-                dataKey='revenue'
+                dataKey='earnings'
                 stroke='#1E4448'
                 strokeWidth={2.5}
                 fill='url(#revenueGradient)'
               />
-              {peak.revenue > 0 && (
+              {peak.earnings > 0 && (
                 <ReferenceDot
                   x={peak.label}
-                  y={peak.revenue}
+                  y={peak.earnings}
                   r={6}
                   fill='#FF7973'
                   stroke='white'

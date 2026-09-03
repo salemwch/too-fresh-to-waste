@@ -666,7 +666,7 @@
         "sustainability": "Sustainability"
       },
       "kpi": {
-        "revenue": "Revenue",
+        "revenue": "My Earnings",
         "totalOrders": "Total Orders",
         "avgOrderValue": "Avg. Order Value",
         "conversionRate": "Conversion Rate",
@@ -674,10 +674,10 @@
         "co2Avoided": "CO₂ Avoided"
       },
       "revenueChart": {
-        "title": "Revenue Trend",
-        "subtitle": "Revenue over time",
+        "title": "Earnings Trend",
+        "subtitle": "Your earnings over time",
         "tooltip": {
-          "revenue": "Revenue",
+          "revenue": "Earnings",
           "orders": "Orders"
         }
       },

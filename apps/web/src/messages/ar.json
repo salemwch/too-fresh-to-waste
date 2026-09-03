@@ -666,7 +666,7 @@
         "sustainability": "الاستدامة"
       },
       "kpi": {
-        "revenue": "الإيرادات",
+        "revenue": "أرباحي",
         "totalOrders": "إجمالي الطلبات",
         "avgOrderValue": "متوسط قيمة الطلب",
         "conversionRate": "معدل التحويل",
@@ -674,10 +674,10 @@
         "co2Avoided": "CO₂ المُتجنَّب"
       },
       "revenueChart": {
-        "title": "اتجاه الإيرادات",
-        "subtitle": "الإيرادات عبر الزمن",
+        "title": "اتجاه الأرباح",
+        "subtitle": "أرباحك عبر الزمن",
         "tooltip": {
-          "revenue": "الإيرادات",
+          "revenue": "الأرباح",
           "orders": "الطلبات"
         }
       },
