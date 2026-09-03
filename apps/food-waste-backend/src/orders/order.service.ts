@@ -140,6 +140,7 @@ export interface RevenueChartResponse {
   /** Day of month — only set when granularity is 'day'. */
   day?: number;
   revenue: number;
+  earnings: number;
   orderCount: number;
   bagCount: number;
 }
@@ -1914,6 +1915,7 @@ export class OrdersService {
             $group: {
               _id: groupId,
               revenue: { $sum: '$pricing.total' },
+              earnings: { $sum: MERCHANT_EARNINGS_EXPR },
               orderCount: { $sum: 1 },
               bagCount: { $sum: { $sum: '$items.quantity' } },
             },
@@ -1924,6 +1926,7 @@ export class OrdersService {
         const results = await this.orderModel.aggregate<{
           _id: Record<string, number>;
           revenue: number;
+          earnings: number;
           orderCount: number;
           bagCount: number;
         }>(pipeline);
@@ -1959,6 +1962,7 @@ export class OrdersService {
     results: Array<{
       _id: Record<string, number>;
       revenue: number;
+      earnings: number;
       orderCount: number;
       bagCount: number;
     }>,
@@ -1982,6 +1986,7 @@ export class OrdersService {
             month,
             day,
             revenue: found?.revenue ?? 0,
+            earnings: found?.earnings ?? 0,
             orderCount: found?.orderCount ?? 0,
             bagCount: found?.bagCount ?? 0,
           });
@@ -2009,6 +2014,7 @@ export class OrdersService {
             month,
             week: isoWeek,
             revenue: found?.revenue ?? 0,
+            earnings: found?.earnings ?? 0,
             orderCount: found?.orderCount ?? 0,
             bagCount: found?.bagCount ?? 0,
           });
@@ -2027,6 +2033,7 @@ export class OrdersService {
             year,
             month,
             revenue: found?.revenue ?? 0,
+            earnings: found?.earnings ?? 0,
             orderCount: found?.orderCount ?? 0,
             bagCount: found?.bagCount ?? 0,
           });
