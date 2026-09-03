@@ -1,5 +1,5 @@
 ---
-status: ready-for-dev
+status: done
 scope: cross-app
 gate:
   pnpm --filter @foodwaste/backend check:all && pnpm --filter @foodwaste/web
