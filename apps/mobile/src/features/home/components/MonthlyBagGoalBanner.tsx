@@ -74,13 +74,24 @@ const AnimatedProgressBar = ({
   );
 };
 
-const MonthlyBagGoalBannerComponent = () => {
+export interface MonthlyBagGoalBannerProps {
+  /**
+   * Where the card goes. Required rather than optional: this used to be an
+   * empty handler with a "navigate in the future" comment, while the card drew
+   * a chevron and announced "Opens more details" to screen readers — so it
+   * promised a destination and delivered nothing. Making the prop mandatory
+   * means a caller cannot reintroduce that silently.
+   */
+  onPress: () => void;
+}
+
+const MonthlyBagGoalBannerComponent: React.FC<MonthlyBagGoalBannerProps> = ({ onPress }) => {
   const { t } = useTranslation();
   const { data: stats, isLoading, isError } = useMonthlyBagGoal();
 
   const handlePress = useCallback(() => {
-    // Navigate to prize details in the future
-  }, []);
+    onPress();
+  }, [onPress]);
 
   if (isLoading || (stats === undefined && !isError)) {
     return <SkeletonMonthlyBagGoal />;

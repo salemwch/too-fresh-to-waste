@@ -185,9 +185,6 @@ interface Section {
  *
  * Best Practice: Keep parent component thin - delegate logic to hooks and components
  */
-/** ImpactBanner requires onExpand; nothing on this screen reacts to it. */
-const NOOP = (): void => {};
-
 /** Config by section id, so renderSection is a lookup rather than a switch. */
 const OFFER_SECTION_BY_ID = Object.fromEntries(
   HOME_OFFER_SECTIONS.map(section => [section.id, section]),
@@ -603,14 +600,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         case 'impactBanner':
           return (
             <View style={styles.bannerWrapper}>
-              <ImpactBanner onExpand={NOOP} />
+              <ImpactBanner onExpand={handleCharityPress} />
             </View>
           );
 
         case 'monthlyBagGoal':
           return (
             <View style={styles.bannerWrapper}>
-              <MonthlyBagGoalBanner />
+              <MonthlyBagGoalBanner onPress={handleLeaderboardPress} />
             </View>
           );
 
@@ -663,6 +660,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       offerSectionData,
       handleOfferPress,
       handleSeeAll,
+      handleCharityPress,
+      handleLeaderboardPress,
       t,
     ],
   );
