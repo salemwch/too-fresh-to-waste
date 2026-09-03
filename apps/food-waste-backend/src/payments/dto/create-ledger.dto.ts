@@ -9,7 +9,10 @@ export interface CreateLedgerDto {
   orderId: Types.ObjectId;
   paymentId: Types.ObjectId;
   establishmentId: Types.ObjectId;
+  /** Gross amount the customer paid — kept for the ledger's audit record only. */
   orderTotal: number;
+  /** Food line only (excludes delivery fee) — this is what the 81/19 split is computed on. */
+  subtotal: number;
 }
 
 /**

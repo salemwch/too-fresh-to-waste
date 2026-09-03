@@ -5,6 +5,7 @@ import { ClientSession, Model, Types } from 'mongoose';
 import { AppLoggerService } from 'src/common/services/logger.service';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 
+import { calculateFoodRevenueSplit } from '../../orders/utils/order-pricing.util';
 import {
   CreateLedgerDto,
   BankTransferParams,
@@ -37,19 +38,13 @@ interface MerchantPayoutStatusStat {
 export class PayoutService {
   private readonly logger = new Logger(PayoutService.name);
 
-  // Revenue split: 81% merchant / 19% platform
-  private readonly MERCHANT_SHARE = 0.81;
-  private readonly PLATFORM_FEE_RATE = 0.19;
-
   constructor(
     @InjectModel(MerchantPayoutLedger.name)
     private readonly ledgerModel: Model<MerchantPayoutLedgerDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly appLogger: AppLoggerService,
-  ) {
-    void this.PLATFORM_FEE_RATE;
-  }
+  ) {}
 
   /**
    * Creates a ledger entry when pickup is confirmed
@@ -70,9 +65,8 @@ export class PayoutService {
       throw new Error(`Merchant not found: ${data.merchantId}`);
     }
 
-    // Calculate revenue split
-    const merchantAmount = Math.round(data.orderTotal * this.MERCHANT_SHARE);
-    const platformFee = data.orderTotal - merchantAmount;
+    // Calculate revenue split — food subtotal only, never the gross total.
+    const { merchantAmount, platformFee } = calculateFoodRevenueSplit(data.subtotal);
 
     const ledgerEntry = new this.ledgerModel({
       merchantId: data.merchantId,

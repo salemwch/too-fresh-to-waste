@@ -1310,6 +1310,7 @@ export class OrdersService {
                 paymentId: payment._id,
                 establishmentId: order.establishmentId._id,
                 orderTotal: order.pricing.total,
+                subtotal: order.pricing.subtotal,
               },
               session,
             );
