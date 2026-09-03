@@ -32,13 +32,8 @@ import { LocationPickerBottomSheet, LocationHeader } from '@/navigation/componen
 import { reverseGeocodeAsync } from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
 
-/*
- * The header reuses the two illustrations the cards below it already carry, so
- * the shortcut and its destination look like the same thing. They replace a
- * pair of flat line-art marks that shared nothing with the content they led to.
- */
-import boxCardImg from '../../../assets/images/box-card.webp';
-import saveLivesImg from '../../../assets/images/save-lives.webp';
+import heartInHandsImg from '../../../assets/images/heart-in-hands.webp';
+import surpriseBoxImg from '../../../assets/images/surprise-box.webp';
 import {
   HomeSearchBar,
   HomeOfferSection,
@@ -95,9 +90,8 @@ const HomeHeaderRight: React.FC<HeaderRightProps> = ({ onCharityPress, onLeaderb
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
         <Image
-          source={saveLivesImg}
-          style={headerRightStyles.charityIcon}
-          resizeMode='contain'
+          source={heartInHandsImg}
+          style={headerRightStyles.icon}
           accessibilityIgnoresInvertColors
         />
       </Pressable>
@@ -110,9 +104,8 @@ const HomeHeaderRight: React.FC<HeaderRightProps> = ({ onCharityPress, onLeaderb
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
         <Image
-          source={boxCardImg}
-          style={headerRightStyles.prizeIcon}
-          resizeMode='contain'
+          source={surpriseBoxImg}
+          style={[headerRightStyles.icon, headerRightStyles.surpriseIcon]}
           accessibilityIgnoresInvertColors
         />
       </Pressable>
@@ -129,15 +122,8 @@ const headerRightStyles = StyleSheet.create({
     paddingBottom: 4,
   },
   button: { padding: 8, marginStart: 8 },
-  /*
-   * Sized to each illustration's own aspect rather than forced into one square
-   * box: save-lives is 1.79:1 and box-card is 1:1, so a shared 28x28 would
-   * letterbox the hands down to 28x16 and make the pair look mismatched. Both
-   * end up ~26dp of visual mass, and the 8dp padding plus hitSlop keeps the
-   * touch target at 44.
-   */
-  charityIcon: { width: 40, height: 22 },
-  prizeIcon: { width: 26, height: 26 },
+  icon: { width: 28, height: 28 },
+  surpriseIcon: { width: 24, height: 24 },
 });
 
 // ============================================================================
