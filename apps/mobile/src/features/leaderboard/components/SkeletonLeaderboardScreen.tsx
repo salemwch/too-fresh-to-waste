@@ -4,11 +4,17 @@ import { View, StyleSheet } from 'react-native';
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
+import { BG_CREAM, GOLD_15 } from '../constants/palette';
+
 const { base: sp } = spacingTokens;
 
-const BG_DARK = '#0a1e20';
-const SHIMMER_BASE = 'rgba(255,255,255,0.04)';
-const SHIMMER_HIGHLIGHT = 'rgba(255,255,255,0.08)';
+/*
+ * Tints for the cream ground, not the dark one this screen used to have. A
+ * skeleton is the first thing drawn, so leaving it dark meant every load
+ * flashed a near-black screen and then snapped to cream.
+ */
+const SHIMMER_BASE = 'rgba(30,68,72,0.06)';
+const SHIMMER_HIGHLIGHT = 'rgba(30,68,72,0.12)';
 const COLORS: [string, string, string] = [SHIMMER_BASE, SHIMMER_HIGHLIGHT, SHIMMER_BASE];
 
 const SkeletonLeaderboardComponent: React.FC = () => {
@@ -78,7 +84,7 @@ const SkeletonLeaderboardComponent: React.FC = () => {
 export const SkeletonLeaderboardScreen = memo(SkeletonLeaderboardComponent);
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: BG_CREAM },
 
   // Block 1: Header
   headerBlock: {
@@ -107,7 +113,7 @@ const styles = StyleSheet.create({
     height: 58,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(196,162,90,0.12)',
+    borderColor: GOLD_15,
   },
   cdColonSpace: { width: 6 },
   endDateBar: {
@@ -167,7 +173,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 5,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    backgroundColor: 'rgba(30,68,72,0.03)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.035)',
   },

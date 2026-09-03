@@ -39,13 +39,22 @@ import { spacingTokens } from '@/design-system/tokens/spacing';
 
 const { base: sp, radius } = spacingTokens;
 
-/**
- * Wide enough to set the body in three lines in English, narrow enough to clear
- * the trophy. French needs four lines at this width, which the card absorbs by
- * growing rather than by clipping.
- */
-const BODY_WIDTH = 180;
 const TROPHY_SIZE = 140;
+
+/**
+ * Horizontal space the text column gives up so it never runs under the trophy.
+ *
+ * A reserve rather than a fixed text width. `maxWidth: 180` was the first
+ * attempt and it was wrong: it pinned the copy to 180dp on every device, so a
+ * 480dp-wide screen set the same three short lines against 270dp of empty card.
+ * Reserving the trophy's own footprint instead lets the column take whatever is
+ * left, so the copy fills a wide screen and still clears the artwork on a narrow
+ * one.
+ *
+ * Less than TROPHY_SIZE because the trophy is inset past the card edge and its
+ * PNG carries transparent margin on the left.
+ */
+const TROPHY_RESERVE = TROPHY_SIZE - 28;
 
 const styles = StyleSheet.create({
   block: {
@@ -72,12 +81,13 @@ const styles = StyleSheet.create({
     color: MINT,
     marginTop: sp.xs,
   },
+  /** Every line of copy clears the trophy, so none of them can run under it. */
+  textColumn: { paddingInlineEnd: TROPHY_RESERVE },
   body: {
     fontSize: 14,
     lineHeight: 19,
     color: TEXT_85,
     marginTop: 10,
-    maxWidth: BODY_WIDTH,
   },
   trophy: {
     position: 'absolute',
@@ -113,9 +123,11 @@ const ChallengeHeaderComponent: React.FC<ChallengeHeaderProps> = ({ endDate }) =
         end={{ x: 1, y: 1 }}
         style={styles.hero}
       >
-        <Text style={styles.title}>{t('leaderboard.grandPrize')}</Text>
-        <Text style={styles.subtitle}>{t('leaderboard.communityMilestone')}</Text>
-        <Text style={styles.body}>{t('leaderboard.heroBody')}</Text>
+        <View style={styles.textColumn}>
+          <Text style={styles.title}>{t('leaderboard.grandPrize')}</Text>
+          <Text style={styles.subtitle}>{t('leaderboard.communityMilestone')}</Text>
+          <Text style={styles.body}>{t('leaderboard.heroBody')}</Text>
+        </View>
 
         <Image
           source={trophyImg}
