@@ -141,6 +141,52 @@
 # uses @react-native-community/geolocation and react-native-keychain instead.
 
 # ============================================================================
+# THIRD-PARTY BLANKET RULES — INVESTIGATED, LEFT AS SHIPPED
+# ============================================================================
+# Nothing below is a rule in THIS file — these are notes on libraries whose own
+# AAR-bundled consumer rule is a broad `-keep …{*;}`, recording why it wasn't
+# narrowed from here, so the same investigation isn't redone from scratch.
+
+# react-native-svg@15.15.5 ships exactly one rule
+# (node_modules/react-native-svg/android/proguard-rules.pro):
+#   -keep public class com.horcrux.svg.** {*;}
+# ~1,592 of this app's ~20,194 kept seeds.txt entries (2026-09-03 production
+# build) come from this single rule — the largest addressable-looking bucket
+# after react-native core, Sentry, and GMS/Firebase, all of which are
+# correctness-required and out of this app's control regardless.
+#
+# Investigated (2026-09-04) whether it's narrowable, using the same method as
+# the React Native JNI-surface analysis above: grepped every .cpp/.h in the
+# package — including the generated Fabric/TurboModule codegen — for
+# "Lcom/horcrux/…" string literals and fbjni's findClassStatic/javaClassStatic
+# idiom. Zero matches; this library's native layer never looks up a Java class
+# by string.
+#
+# But a *confirmed* reflection dependency exists on the Java side:
+# RenderableView.mergeProperties()/resetProperties()
+# (android/src/main/java/com/horcrux/svg/RenderableView.java:789,809) call
+# `getClass().getField(fieldName)` where `fieldName` comes from a JS-supplied
+# `propList` prop (SVG's property-merging feature, e.g. for `<use>`). The
+# field name is externally controlled at runtime — R8 cannot enumerate it
+# statically, so it cannot be renamed or removed. 18 of this package's ~50
+# classes extend RenderableView (CircleView, PathView, RectView, GroupView,
+# TextView, ImageView, etc. — the actual per-element view classes, the ones
+# with the most fields), so a meaningful, confirmed-necessary core of the
+# blanket rule is not optional.
+#
+# The remaining ~32 classes (filter primitives, gradients, parsers, value
+# utilities like SVGLength/ViewBox/PropHelper) were NOT individually audited
+# for their own reflection/serialization surfaces — that would need the same
+# per-file rigor applied above, is unbounded work, and the maximum possible
+# win is capped well under the full 1,592 given the confirmed core. Google's
+# actual Play requirement (25% minimum, and only for apps with >10MB DEX —
+# see support.google.com/googleplay/android-developer/answer/17492799) does
+# not apply to this app's ~6MB DEX size regardless, so there is no compliance
+# pressure driving further narrowing. Decision: leave the shipped rule as-is.
+# Revisit only if react-native-svg becomes a much larger share of the app, or
+# if the library ships narrower rules upstream.
+
+# ============================================================================
 # GENERAL ANDROID
 # ============================================================================
 
