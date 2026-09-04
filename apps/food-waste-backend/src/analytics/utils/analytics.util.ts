@@ -54,11 +54,32 @@ export class AnalyticsUtil {
       version: '1.0.0',
     };
 
-    const keyString = JSON.stringify(
-      keyObject,
-      Object.keys(keyObject).sort((a, b) => a.localeCompare(b)),
-    );
+    // An array replacer filters keys recursively at every nesting level, not
+    // just the top — `Object.keys(keyObject).sort()` (4 top-level names) also
+    // got applied inside `filters`, so none of `filters`' own keys (dateRange,
+    // establishmentIds, ...) ever matched and the whole payload was silently
+    // stripped before hashing. Every call collapsed to the same cache key
+    // regardless of the actual filter content. Canonicalize (sort keys at
+    // every level) into a plain object first, then a replacer-free stringify.
+    const keyString = JSON.stringify(this.canonicalize(keyObject));
     return createHash('md5').update(keyString).digest('hex');
+  }
+
+  /** Deterministic JSON — sorts object keys at every nesting level so semantically
+   *  identical filters always hash the same regardless of construction order. */
+  private static canonicalize(value: unknown): unknown {
+    if (Array.isArray(value)) {
+      return value.map(item => this.canonicalize(item));
+    }
+    if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+      return Object.keys(value as Record<string, unknown>)
+        .sort((a, b) => a.localeCompare(b))
+        .reduce<Record<string, unknown>>((acc, key) => {
+          acc[key] = this.canonicalize((value as Record<string, unknown>)[key]);
+          return acc;
+        }, {});
+    }
+    return value;
   }
 
   /**
