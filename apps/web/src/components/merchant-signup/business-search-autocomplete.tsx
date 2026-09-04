@@ -266,7 +266,7 @@ export function BusinessSearchAutocomplete({
     <div ref={containerRef} className='relative'>
       {/* Search input */}
       <div className='relative'>
-        <Search className='absolute left-3.5 top-xs/2 h-4 w-4 -translate-y-xs/2 text-muted-foreground' />
+        <Search className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
         <Input
           type='search'
           placeholder={t('searchPlaceholder')}
@@ -279,7 +279,7 @@ export function BusinessSearchAutocomplete({
           autoComplete='off'
         />
         {/* Right icon: spinner when loading, X to clear when idle with text */}
-        <div className='absolute right-3.5 top-xs/2 flex h-4 w-4 -translate-y-xs/2 items-center justify-center'>
+        <div className='absolute right-3.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center'>
           {isLoading || isSelectingDetails ? (
             <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
           ) : query.length > 0 ? (

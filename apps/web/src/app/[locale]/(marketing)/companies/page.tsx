@@ -269,7 +269,7 @@ export default function CompaniesPage() {
       <section className='py-6xl px-2xl relative overflow-hidden bg-cream'>
         {/* Large watermark */}
         <p
-          className='absolute top-xs/2 left-xs/2 -translate-x-xs/2 -translate-y-xs/2 text-[10rem] md:text-[16rem] font-black pointer-events-none select-none whitespace-nowrap font-heading leading-none text-brand-teal/[.04]'
+          className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10rem] md:text-[16rem] font-black pointer-events-none select-none whitespace-nowrap font-heading leading-none text-brand-teal/[.04]'
           aria-hidden='true'
         >
           IMPACT

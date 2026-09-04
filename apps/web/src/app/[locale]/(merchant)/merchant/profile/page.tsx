@@ -246,7 +246,7 @@ export default function MerchantProfilePage() {
             {t('firstName')}
           </Label>
           <div className='relative'>
-            <User className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
+            <User className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
             <Input
               id='firstName'
               value={firstName}
@@ -264,7 +264,7 @@ export default function MerchantProfilePage() {
             {t('lastName')}
           </Label>
           <div className='relative'>
-            <User className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
+            <User className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
             <Input
               id='lastName'
               value={lastName}
@@ -282,7 +282,7 @@ export default function MerchantProfilePage() {
             {t('email')}
           </Label>
           <div className='relative'>
-            <Mail className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
+            <Mail className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
             <Input
               id='email'
               type='email'
@@ -301,7 +301,7 @@ export default function MerchantProfilePage() {
             {t('phone')}
           </Label>
           <div className='relative'>
-            <Phone className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
+            <Phone className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
             <Input
               id='phone'
               type='tel'
@@ -347,7 +347,7 @@ export default function MerchantProfilePage() {
               {t('currentPassword')}
             </Label>
             <div className='relative'>
-              <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
+              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
               <Input
                 id='currentPw'
                 type={showCurrent ? 'text' : 'password'}
@@ -361,7 +361,7 @@ export default function MerchantProfilePage() {
               <button
                 type='button'
                 onClick={() => setShowCurrent(v => !v)}
-                className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
+                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
                 aria-label={showCurrent ? t('hidePassword') : t('showPassword')}
               >
                 {showCurrent ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
@@ -375,7 +375,7 @@ export default function MerchantProfilePage() {
               {t('newPassword')}
             </Label>
             <div className='relative'>
-              <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
+              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
               <Input
                 id='newPassword'
                 type={showNew ? 'text' : 'password'}
@@ -389,7 +389,7 @@ export default function MerchantProfilePage() {
               <button
                 type='button'
                 onClick={() => setShowNew(v => !v)}
-                className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
+                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
                 aria-label={showNew ? t('hidePassword') : t('showPassword')}
               >
                 {showNew ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}
@@ -403,7 +403,7 @@ export default function MerchantProfilePage() {
               {t('confirmPassword')}
             </Label>
             <div className='relative'>
-              <Lock className='absolute left-2.5 top-xs/2 h-3.5 w-3.5 -translate-y-xs/2 text-slate-400 pointer-events-none' />
+              <Lock className='absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 pointer-events-none' />
               <Input
                 id='confirmPassword'
                 type={showConfirm ? 'text' : 'password'}
@@ -417,7 +417,7 @@ export default function MerchantProfilePage() {
               <button
                 type='button'
                 onClick={() => setShowConfirm(v => !v)}
-                className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
+                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
                 aria-label={showConfirm ? t('hidePassword') : t('showPassword')}
               >
                 {showConfirm ? <EyeOff className='h-3.5 w-3.5' /> : <Eye className='h-3.5 w-3.5' />}

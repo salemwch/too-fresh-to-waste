@@ -236,7 +236,7 @@ function AllOffersTable({
       {/* Filters */}
       <div className='flex flex-wrap gap-sm'>
         <div className='relative flex-1 min-w-48'>
-          <Search className='absolute start-2.5 top-xs/2 -translate-y-xs/2 size-3.5 text-muted-foreground' />
+          <Search className='absolute start-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground' />
           <Input
             value={search}
             onChange={e => handleSearch(e.target.value)}

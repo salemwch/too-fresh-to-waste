@@ -197,7 +197,7 @@ export function ForgotPasswordForm() {
                     <span className='text-destructive'>*</span>
                   </label>
                   <div className='relative'>
-                    <Mail className='absolute left-3.5 top-xs/2 h-4 w-4 -translate-y-xs/2 text-muted-foreground pointer-events-none' />
+                    <Mail className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
                     <Input
                       id='email'
                       type='email'

@@ -812,7 +812,7 @@ export function MerchantOffersView() {
         {/* ── Toolbar: search · type filter · sort ─────────────────────────── */}
         <div className='flex items-center gap-sm flex-wrap'>
           <div className='relative flex-1 min-w-[180px]'>
-            <Search className='absolute left-md top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400 pointer-events-none' />
+            <Search className='absolute left-md top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none' />
             <input
               type='text'
               placeholder={t('merchantOffers.searchPlaceholder')}
@@ -827,7 +827,7 @@ export function MerchantOffersView() {
               <button
                 type='button'
                 onClick={() => setSearch('')}
-                className='absolute right-2.5 top-xs/2 -translate-y-xs/2 text-slate-400 hover:text-slate-600'
+                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600'
               >
                 <X className='h-3.5 w-3.5' />
               </button>

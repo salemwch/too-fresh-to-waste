@@ -54,7 +54,7 @@ export function AdminDataTable<T extends { _id?: string; id?: string }>({
       {/* Toolbar */}
       <div className='flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between'>
         <div className='relative max-w-sm flex-1'>
-          <Search className='absolute start-2.5 top-xs/2 size-3 -translate-y-xs/2 text-muted-foreground' />
+          <Search className='absolute start-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground' />
           <Input
             value={searchValue}
             onChange={e => onSearchChange(e.target.value)}

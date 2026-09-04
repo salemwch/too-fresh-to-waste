@@ -896,7 +896,7 @@ export default function MerchantOrdersPage() {
       {/* Search + history toggle */}
       <div className='shrink-0 flex items-center gap-md'>
         <div className='relative flex-1 max-w-sm'>
-          <Search className='absolute start-md top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none' />
+          <Search className='absolute start-md top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none' />
           <input
             type='search'
             className='w-full h-9 rounded-lg border border-input bg-background ps-5xl pe-md text-xs focus:outline-none focus:ring-1 focus:ring-ring'

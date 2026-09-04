@@ -215,7 +215,7 @@ export function ResetPasswordForm() {
                     <span className='text-destructive'>*</span>
                   </label>
                   <div className='relative'>
-                    <Lock className='absolute left-3.5 top-xs/2 h-4 w-4 -translate-y-xs/2 text-muted-foreground pointer-events-none' />
+                    <Lock className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
                     <Input
                       id='password'
                       type={showPassword ? 'text' : 'password'}
@@ -229,7 +229,7 @@ export function ResetPasswordForm() {
                     <button
                       type='button'
                       onClick={() => setShowPassword(v => !v)}
-                      className='absolute right-3.5 top-xs/2 -translate-y-xs/2 text-muted-foreground hover:text-foreground'
+                      className='absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
                       tabIndex={-1}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
@@ -249,7 +249,7 @@ export function ResetPasswordForm() {
                     <span className='text-destructive'>*</span>
                   </label>
                   <div className='relative'>
-                    <Lock className='absolute left-3.5 top-xs/2 h-4 w-4 -translate-y-xs/2 text-muted-foreground pointer-events-none' />
+                    <Lock className='absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
                     <Input
                       id='confirmPassword'
                       type={showConfirm ? 'text' : 'password'}
@@ -263,7 +263,7 @@ export function ResetPasswordForm() {
                     <button
                       type='button'
                       onClick={() => setShowConfirm(v => !v)}
-                      className='absolute right-3.5 top-xs/2 -translate-y-xs/2 text-muted-foreground hover:text-foreground'
+                      className='absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
                       tabIndex={-1}
                       aria-label={showConfirm ? 'Hide password' : 'Show password'}
                     >

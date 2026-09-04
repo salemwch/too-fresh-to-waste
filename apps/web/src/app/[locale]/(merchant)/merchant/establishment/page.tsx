@@ -1046,7 +1046,7 @@ export default function MerchantEstablishmentPage() {
                     Phone
                   </label>
                   <div className='relative'>
-                    <Phone className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                    <Phone className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                     <Input
                       id='est-phone'
                       type='tel'
@@ -1065,7 +1065,7 @@ export default function MerchantEstablishmentPage() {
                     Website
                   </label>
                   <div className='relative'>
-                    <Globe className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                    <Globe className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                     <Input
                       id='est-website'
                       type='url'
@@ -1086,7 +1086,7 @@ export default function MerchantEstablishmentPage() {
                   Email
                 </label>
                 <div className='relative'>
-                  <Mail className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                  <Mail className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                   <Input
                     id='est-email'
                     type='email'
@@ -1107,7 +1107,7 @@ export default function MerchantEstablishmentPage() {
                       Address
                     </span>
                     <div className='relative'>
-                      <MapPin className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                      <MapPin className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                       <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 ps-4xl pe-md flex items-center text-xs text-slate-600 truncate'>
                         {establishment.address.street ?? '—'}
                       </div>
@@ -1119,7 +1119,7 @@ export default function MerchantEstablishmentPage() {
                         City
                       </span>
                       <div className='relative'>
-                        <MapPin className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                        <MapPin className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                         <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 ps-4xl pe-md flex items-center text-xs text-slate-600'>
                           {establishment.address.city ?? '—'}
                         </div>
@@ -1130,7 +1130,7 @@ export default function MerchantEstablishmentPage() {
                         Postal Code
                       </span>
                       <div className='relative'>
-                        <Hash className='absolute left-2.5 top-xs/2 -translate-y-xs/2 h-3.5 w-3.5 text-slate-400' />
+                        <Hash className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                         <div className='h-7 rounded-lg border border-slate-200 bg-slate-50 ps-4xl pe-md flex items-center text-xs text-slate-600'>
                           {establishment.address.postalCode ?? '—'}
                         </div>

@@ -55,7 +55,7 @@ export function InviteMemberDialog({ orgId, establishments, trigger }: InviteMem
               Email
             </label>
             <div className='relative'>
-              <Mail className='absolute start-md top-xs/2 -translate-y-xs/2 size-4 text-muted-foreground' />
+              <Mail className='absolute start-md top-1/2 -translate-y-1/2 size-4 text-muted-foreground' />
               <input
                 id='inviteEmail'
                 type='email'

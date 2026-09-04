@@ -671,7 +671,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                     )}
                   >
                     {pct >= 70 && (
-                      <Flame className='absolute -top-sm left-xs/2 -translate-x-xs/2 h-3.5 w-3.5 text-orange-500' />
+                      <Flame className='absolute -top-sm left-1/2 -translate-x-1/2 h-3.5 w-3.5 text-orange-500' />
                     )}
                     {pct}%
                   </button>

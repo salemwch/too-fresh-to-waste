@@ -239,7 +239,7 @@ function HeroSection({ locale }: { locale: Locale }) {
                   {...(phone.lead ? { fetchPriority: 'high' as const } : {})}
                 />
                 <div
-                  className='absolute left-xs/2 -translate-x-xs/2'
+                  className='absolute left-1/2 -translate-x-1/2'
                   style={{
                     bottom: phone.shadow.bottom,
                     width: phone.shadow.width,

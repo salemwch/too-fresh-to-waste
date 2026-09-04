@@ -40,7 +40,7 @@ function AdminHeader({ navGroups }: { navGroups: NavGroup[] }) {
 
       <div className='flex-1 max-w-sm mx-sm hidden md:block'>
         <div className='relative group'>
-          <Search className='absolute left-2.5 top-xs/2 -translate-y-xs/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-primary-500' />
+          <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-primary-500' />
           <input
             type='text'
             placeholder={t('search')}

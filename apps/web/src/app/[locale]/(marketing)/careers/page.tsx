@@ -571,7 +571,7 @@ export default function CareersPage() {
                     <div key={stage.region} className='relative'>
                       {/* Step dot */}
                       <div
-                        className={`hidden lg:flex absolute -top-[3px] left-xs/2 -translate-x-xs/2 w-6 h-6 rounded-full border-2 border-white items-center justify-center shadow-md z-10 ${art.active ? 'bg-brand-teal' : 'bg-primary-500/25'}`}
+                        className={`hidden lg:flex absolute -top-[3px] left-1/2 -translate-x-1/2 w-6 h-6 rounded-full border-2 border-white items-center justify-center shadow-md z-10 ${art.active ? 'bg-brand-teal' : 'bg-primary-500/25'}`}
                         aria-hidden='true'
                       />
 

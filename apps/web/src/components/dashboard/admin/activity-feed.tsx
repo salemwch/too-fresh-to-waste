@@ -208,7 +208,7 @@ function FilterSelect({
           </option>
         ))}
       </select>
-      <ChevronDown className='pointer-events-none absolute end-1.5 top-xs/2 size-3 -translate-y-xs/2 text-muted-foreground' />
+      <ChevronDown className='pointer-events-none absolute end-1.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground' />
     </div>
   );
 }
@@ -279,7 +279,7 @@ export function ActivityFeed({
           }))}
         />
         <div className='relative ms-auto'>
-          <Search className='absolute start-sm top-xs/2 size-3 -translate-y-xs/2 text-muted-foreground' />
+          <Search className='absolute start-sm top-1/2 size-3 -translate-y-1/2 text-muted-foreground' />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
