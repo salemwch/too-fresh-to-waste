@@ -41,6 +41,8 @@
     "migration:unset-refresh-tokens:execute": "ts-node -r tsconfig-paths/register scripts/migrations/unset-legacy-refresh-tokens.ts --execute",
     "migration:rename-service-fee": "ts-node -r tsconfig-paths/register scripts/migrations/rename-service-fee-to-delivery-fee.ts",
     "migration:rename-service-fee:execute": "ts-node -r tsconfig-paths/register scripts/migrations/rename-service-fee-to-delivery-fee.ts --execute",
+    "migration:backfill-ledger-subtotal-split": "ts-node -r tsconfig-paths/register scripts/migrations/backfill-payout-ledger-subtotal-split.ts",
+    "migration:backfill-ledger-subtotal-split:execute": "ts-node -r tsconfig-paths/register scripts/migrations/backfill-payout-ledger-subtotal-split.ts --execute",
     "audit:missing-required": "ts-node -r tsconfig-paths/register scripts/audit-missing-required-fields.ts",
     "db:audit-indexes": "ts-node -r tsconfig-paths/register scripts/audit-indexes.ts",
     "db:create-indexes": "ts-node -r tsconfig-paths/register scripts/create-indexes.ts",
