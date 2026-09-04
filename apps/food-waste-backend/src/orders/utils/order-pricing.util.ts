@@ -175,6 +175,6 @@ export function calculateFoodRevenueSplit(subtotal: number): FoodRevenueSplit {
  * and an unrounded `$multiply` would leak that drift into every consumer that
  * sums this expression across orders.
  */
-export const MERCHANT_EARNINGS_EXPR = {
+export const MERCHANT_EARNINGS_EXPR = Object.freeze({
   $round: [{ $multiply: ['$pricing.subtotal', MERCHANT_FOOD_SHARE] }, 3],
-};
+});

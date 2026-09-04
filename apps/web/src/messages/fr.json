@@ -2034,7 +2034,7 @@
       "available": "Disponible",
       "pending": "En attente de règlement",
       "availableNote": "Prêt pour votre prochain versement.",
-      "pendingNote": "Encore en cours — devient disponible une fois la fenêtre de retrait terminée."
+      "pendingNote": "Encore en cours - devient disponible une fois la fenêtre de retrait terminée."
     },
     "greeting": "Félicitations, {name}.",
     "impactStatement": "Votre impact aujourd'hui est équivalent à {trees} arbres plantés.",

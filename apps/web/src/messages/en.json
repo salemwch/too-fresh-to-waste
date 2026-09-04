@@ -2035,7 +2035,7 @@
       "available": "Available",
       "pending": "Pending settlement",
       "availableNote": "Ready for your next payout.",
-      "pendingNote": "Still clearing — moves to available once the pickup window closes."
+      "pendingNote": "Still clearing - moves to available once the pickup window closes."
     },
     "greeting": "Congratulations, {name}.",
     "impactStatement": "Your impact today is equivalent to {trees} trees planted.",

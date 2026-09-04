@@ -55,29 +55,29 @@ directly adjacent — not because it was asked for.
 
 ### Backend
 
-- [ ] Add `MERCHANT_EARNINGS_EXPR` (or equivalent helper) to
+- [x] Add `MERCHANT_EARNINGS_EXPR` (or equivalent helper) to
       `orders/utils/order-pricing.util.ts` — acceptance: used by all three call
       sites below, no duplicated `$multiply` literal.
-- [ ] `order.service.ts: getOrderStats()` — add `totalEarnings` to the
+- [x] `order.service.ts: getOrderStats()` — add `totalEarnings` to the
       aggregation and `OrderStatsResponse`. Acceptance: for a completed delivery
       order with subtotal 20 / deliveryFee 4 / total 24, `totalEarnings` = 16.2,
       not 19.44.
-- [ ] `order.service.ts: getRevenueChart()` — add `earnings` per bucket to
+- [x] `order.service.ts: getRevenueChart()` — add `earnings` per bucket to
       `RevenueChartResponse`. Acceptance: gap-filled buckets (existing
       `fillChartGaps` behavior) still zero-fill `earnings` too.
-- [ ] `analytics.service.ts: calculateCurrentBusinessMetrics()` — switch the
+- [x] `analytics.service.ts: calculateCurrentBusinessMetrics()` — switch the
       revenue source from `Payment.amount` aggregation to the same
       `Order.pricing` formula as the other two, add `totalEarnings` to
       `BusinessMetrics`. `averageOrderValue` stays derived from the existing
       gross `totalRevenue`, unchanged.
-- [ ] Fix the ledger bug: `order.service.ts:1312`
+- [x] Fix the ledger bug: `order.service.ts:1312`
       `orderTotal: order.pricing.total` → `order.pricing.subtotal`;
       `payout.service.ts: createLedgerEntry()` replace
       `orderTotal * MERCHANT_SHARE` with `calculateFoodRevenueSplit(subtotal)`.
       Acceptance: a ledger-path test (same shape as `payout-split-base.spec.ts`)
       proves a delivery order's `merchantAmount` is 81% of subtotal, not total —
       this is the exact gap the existing test's own comment flags as uncovered.
-- [ ] New endpoint `GET /payments/my-wallet` (merchant-scoped, optional
+- [x] New endpoint `GET /payments/my-wallet` (merchant-scoped, optional
       `establishmentId` query param following the existing pattern) →
       `{ availableBalance, pendingBalance, currency }`, summed across all of the
       merchant's establishments when no `establishmentId` is given. Acceptance:
@@ -86,27 +86,27 @@ directly adjacent — not because it was asked for.
 
 ### Frontend
 
-- [ ] `types/dashboard.ts` — add `totalEarnings` to `OrderStatsResponse`,
+- [x] `types/dashboard.ts` — add `totalEarnings` to `OrderStatsResponse`,
       `earnings` to `RevenueChartItem`, `totalEarnings` to `BusinessMetrics`,
       new `MerchantWallet` response type.
-- [ ] `impact-cards.tsx` — "Earned Revenue" card reads `stats.totalEarnings`.
+- [x] `impact-cards.tsx` — "Earned Revenue" card reads `stats.totalEarnings`.
       `savingsPercent` calculation is untouched (still reads
       `stats.totalRevenue`).
-- [ ] `analytics-page.tsx` `KpiCards` — "Revenue" card reads
+- [x] `analytics-page.tsx` `KpiCards` — "Revenue" card reads
       `data.totalEarnings`; relabel title to make the net framing explicit (e.g.
       "My Earnings").
-- [ ] `analytics-page.tsx` `RevenueChart` — `dataKey` switches to `earnings`;
+- [x] `analytics-page.tsx` `RevenueChart` — `dataKey` switches to `earnings`;
       title/subtitle relabeled to match.
-- [ ] No change to `TrendChart` (main dashboard) — confirmed it plots
+- [x] No change to `TrendChart` (main dashboard) — confirmed it plots
       `bagCount`, not revenue, despite sharing the revenue-chart query.
-- [ ] No change to `OrdersChart`, `averageOrderValue`, "Revenue Rescued" card.
-- [ ] New `dashboardKeys.myWallet(estId?)` query key + `useMyWallet()` hook in
+- [x] No change to `OrdersChart`, `averageOrderValue`, "Revenue Rescued" card.
+- [x] New `dashboardKeys.myWallet(estId?)` query key + `useMyWallet()` hook in
       `use-merchant-dashboard.ts`, following the existing hook conventions
       (staleTime, `activeEstablishmentId` scoping).
-- [ ] New small `WalletBalanceCard` component (or extend an existing panel —
+- [x] New small `WalletBalanceCard` component (or extend an existing panel —
       decide at implementation time which reads more consistently with
       `DESIGN.md` card patterns) showing available + pending balance.
-- [ ] `en.json` / `fr.json` / `ar.json` — updated together for every relabeled
+- [x] `en.json` / `fr.json` / `ar.json` — updated together for every relabeled
       key and the new wallet card copy.
 
 ## Decisions
@@ -136,9 +136,55 @@ directly adjacent — not because it was asked for.
 - **`averageOrderValue` stays gross** — it's a basket-size metric (how much a
   customer typically spends), not an earnings metric; swapping it to net would
   answer a different question than its label asks.
+- **`MERCHANT_EARNINGS_EXPR` needed a `$round(..., 3)` wrapper** beyond the
+  plan's literal `{ $multiply: ['$pricing.subtotal', MERCHANT_FOOD_SHARE] }`
+  snippet, to avoid IEEE-754 float drift (e.g. `20 * 0.81 = 16.200000000000003`
+  without it). Confirmed via final whole-branch review.
+- **`apps/web/scripts/spacing-baseline.json` needed regenerating**
+  (`check:spacing --write`) because `WalletBalanceCard`'s new (but fully reused,
+  pre-approved) classes triggered the spacing-drift gate - verified to contain
+  zero unrelated drift, only physical-to-logical key renames at identical pixel
+  values. Confirmed via final whole-branch review.
+- **Several new frontend tests use `.toBeTruthy()`/`.toBeNull()` instead of
+  `.toBeInTheDocument()`**, because `@testing-library/jest-dom` is not installed
+  anywhere in this monorepo. Confirmed via final whole-branch review.
+- **The full manual UI walkthrough (seeded merchant login, live rendered
+  numbers, Arabic RTL check) was never performed** - no seeded merchant test
+  account exists in this environment. All automated gates (backend `check:all`,
+  web type-check/lint/test) are clean, but nobody has looked at the actual
+  rendered page. Confirmed via final whole-branch review.
 
 ## Open questions
 
-None blocking. Deferred, non-blocking follow-ups raised during scoping:
-downloadable earnings statement export, monthly earnings goal (mirroring the
-existing bags-saved goal), pickup vs delivery earnings breakdown.
+None blocking on the work above. Deferred, non-blocking follow-ups raised during
+scoping: downloadable earnings statement export, monthly earnings goal
+(mirroring the existing bags-saved goal), pickup vs delivery earnings breakdown.
+
+Raised by the final whole-branch review, explicitly **not** fixed in that pass -
+each needs a human decision before anyone acts on it:
+
+- Every `MerchantPayoutLedger` row written before this branch's fix still holds
+  the old, incorrectly-split amount (`total × 0.81` instead of
+  `subtotal × 0.81`) and is still `PENDING_SETTLEMENT` - will be paid out at the
+  wrong amount by the next monthly payout run unless someone decides whether to
+  backfill-correct those rows, accept the discrepancy, or something else.
+- `WalletBalanceCard` (added in this branch) can structurally only ever show
+  money from online (Konnect) orders - a merchant who only takes cash-on-pickup
+  will see a permanent `0.00 / 0.00` sitting directly above an "Earned Revenue"
+  card that correctly counts their cash earnings, with copy ("moves to available
+  once the pickup window closes") that will never come true for them. Needs a
+  decision: caveat the copy, hide the card for cash-only merchants, or accept as
+  a known v1 limitation.
+- `POST /analytics/business-metrics` (a pre-existing endpoint, not modified by
+  this branch except to add the new `totalEarnings` field) has no server-side
+  merchant-scoping - any authenticated pro-tier user can pass another merchant's
+  `establishmentId` and read their business metrics, and a merchant with no
+  active establishment set sees platform-wide totals instead of their own. This
+  branch put a first-person "My Earnings" label on top of that endpoint's
+  output, making the pre-existing gap more consequential. Separately,
+  `apps/food-waste-backend/src/analytics/services/analytics.service.ts`'s
+  `fetchRealTimeMetrics` method (untouched by this branch) filters `Payment` by
+  `status: 'paid'`, which does not exist in `PaymentStatus` - so the admin
+  real-time dashboard's "revenue today" figure is permanently zero. Both are
+  pre-existing bugs outside this branch's scope; flagging here so they aren't
+  lost.

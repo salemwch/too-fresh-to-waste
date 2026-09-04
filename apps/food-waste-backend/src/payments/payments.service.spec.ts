@@ -79,4 +79,23 @@ describe('PaymentService.getMyWallet', () => {
 
     expect(result).toEqual({ availableBalance: 0, pendingBalance: 0, currency: 'TND' });
   });
+
+  it('rejects a malformed establishmentId with a clean 400 instead of throwing inside Types.ObjectId', async () => {
+    await expect(service.getMyWallet(merchantId.toString(), 'not-an-object-id')).rejects.toThrow(
+      'Invalid establishmentId format',
+    );
+    expect(walletModel.find).not.toHaveBeenCalled();
+  });
+
+  it('treats a missing field as 0 rather than NaN when a lean() wallet document lacks a balance', async () => {
+    walletModel.find.mockReturnValue({
+      lean: jest
+        .fn()
+        .mockResolvedValue([{ availableBalance: undefined, pendingBalance: 20, currency: 'TND' }]),
+    });
+
+    const result = await service.getMyWallet(merchantId.toString());
+
+    expect(result).toEqual({ availableBalance: 0, pendingBalance: 20, currency: 'TND' });
+  });
 });

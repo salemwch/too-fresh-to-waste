@@ -30,7 +30,7 @@ interface MerchantPayoutStatusStat {
  *
  * Manages merchant payout ledger entries and processes monthly payouts.
  * Implements the TGTG-style payment model with:
- * - 75% merchant / 25% platform revenue split
+ * - 81% merchant / 19% platform revenue split
  * - Monthly payout aggregation
  * - Stubbed bank transfer (ready for real integration)
  */
@@ -47,8 +47,18 @@ export class PayoutService {
   ) {}
 
   /**
+   * TND is quoted to three decimals (millimes). Matches the rounding
+   * convention in `order-pricing.util.ts`'s `round()` - summing many
+   * already-rounded ledger entries can still drift in IEEE-754
+   * (e.g. `129.60000000000002`), so the summed total is rounded again here.
+   */
+  private round(value: number): number {
+    return parseFloat(value.toFixed(3));
+  }
+
+  /**
    * Creates a ledger entry when pickup is confirmed
-   * Calculates 75/25 split and records for future payout
+   * Calculates 81/19 split and records for future payout
    *
    * @param data - Order and payment details
    * @param session - MongoDB session for transaction support
@@ -145,6 +155,14 @@ export class PayoutService {
           entryCount: { $sum: 1 },
         },
       },
+      {
+        // Ledger entries are already rounded to millimes, but summing many
+        // of them can still drift in IEEE-754 - round the total too.
+        $addFields: {
+          totalAmount: { $round: ['$totalAmount', 3] },
+          totalPlatformFee: { $round: ['$totalPlatformFee', 3] },
+        },
+      },
       { $sort: { totalAmount: -1 } },
     ]);
     return aggregation;
@@ -190,7 +208,7 @@ export class PayoutService {
 
     const merchantName = firstPendingEntry.merchantName;
     const merchantEmail = firstPendingEntry.merchantEmail;
-    const totalAmount = pendingEntries.reduce((sum, e) => sum + e.merchantAmount, 0);
+    const totalAmount = this.round(pendingEntries.reduce((sum, e) => sum + e.merchantAmount, 0));
     const entryIds = pendingEntries.map(e => e._id);
 
     // Execute bank transfer (stubbed)
