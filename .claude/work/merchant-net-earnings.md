@@ -188,3 +188,41 @@ each needs a human decision before anyone acts on it:
   real-time dashboard's "revenue today" figure is permanently zero. Both are
   pre-existing bugs outside this branch's scope; flagging here so they aren't
   lost.
+
+## Resolutions (follow-up session, 2026-09-04)
+
+All three open questions above and the wallet copy gap were decided and closed
+in a follow-up session:
+
+- **Legacy ledger rows: backfilled.** User chose to correct rather than accept
+  the discrepancy. `scripts/migrations/backfill-payout-ledger-subtotal-split.ts`
+  (dry-run by default,
+  `pnpm migration:backfill-ledger-subtotal-split[:execute]`), scoped to
+  `PENDING_SETTLEMENT` rows only - `PAID_OUT` is a reconciliation decision, not
+  a data-correction one, and stays untouched. Verified against seeded local
+  data: corrects a delivery-order row, leaves an already-correct pickup-order
+  row alone, skips (never guesses at) a row whose order no longer resolves, and
+  never touches a `PAID_OUT` row. Has not yet been run with `--execute` against
+  the real database - that's an operational step for whoever owns the production
+  deploy, not something run from this session.
+- **`WalletBalanceCard` cash-order blind spot: copy reworded.** User chose to
+  clarify now rather than hide the card or accept as a v1 limitation. Retitled
+  "Payout Balance" → "Online Payout Balance" (all 3 locales), which correctly
+  scopes the existing notes without adding new UI.
+- **`POST /analytics/business-metrics` scoping gap: fixed.** Restricted to
+  `MERCHANT`/`LOCATION_MANAGER` via `RolesGuard` (previously any
+  `ProSubscriptionGuard`-passing consumer could call it). `establishmentIds` is
+  now resolved server-side from ownership/assignment -
+  `AnalyticsService.resolveEffectiveEstablishmentIds()` - client input can only
+  narrow within what the caller owns, never expand past it, and an empty
+  resolved set returns a zero-valued response instead of falling through to an
+  unfiltered (platform-wide) query. Covered by
+  `analytics/services/__tests__/business-metrics-scoping.spec.ts` and
+  `analytics/controllers/__tests__/business-metrics-scoping.spec.ts`.
+- **`fetchRealTimeMetrics` stuck-at-zero: fixed.** `status: 'paid'` →
+  `{ $in: [PaymentStatus.EARNED, PaymentStatus.COMPLETED] }`, matching the same
+  pair `getAdminPaymentStats` already uses. Covered by
+  `analytics/services/__tests__/real-time-revenue-today.spec.ts`.
+
+Full backend suite verified clean after all four changes: 93/93 suites,
+1580/1580 tests, `check:ts` clean.
