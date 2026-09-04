@@ -2030,7 +2030,7 @@
       }
     },
     "walletBalance": {
-      "title": "Solde à verser",
+      "title": "Solde des paiements en ligne",
       "available": "Disponible",
       "pending": "En attente de règlement",
       "availableNote": "Prêt pour votre prochain versement.",

@@ -2031,7 +2031,7 @@
       }
     },
     "walletBalance": {
-      "title": "Payout Balance",
+      "title": "Online Payout Balance",
       "available": "Available",
       "pending": "Pending settlement",
       "availableNote": "Ready for your next payout.",
