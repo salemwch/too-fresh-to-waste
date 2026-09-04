@@ -26,6 +26,7 @@ import type {
   BusinessMetrics,
   BusinessMetricsRequest,
   CustomerLocationItem,
+  MerchantWallet,
 } from '@/types/dashboard';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
@@ -65,6 +66,7 @@ export const dashboardKeys = {
   customerLocations: (limit: number, estId?: string) =>
     [...dashboardKeys.all, 'customer-locations', limit, estId ?? 'all'] as const,
   pricingSuggestions: () => [...dashboardKeys.all, 'pricing-suggestions'] as const,
+  myWallet: (estId?: string) => [...dashboardKeys.all, 'my-wallet', estId ?? 'all'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -548,5 +550,21 @@ export function usePricingSuggestions() {
       return response.data.data;
     },
     staleTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Merchant's wallet balance (available + pending payout).
+ * Backend: GET /payments/my-wallet
+ */
+export function useMyWallet() {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
+  return useQuery({
+    queryKey: dashboardKeys.myWallet(estId ?? undefined),
+    queryFn: async (): Promise<MerchantWallet> => {
+      const response = await dashboardService.getMyWallet(estId ?? undefined);
+      return response.data.data;
+    },
+    staleTime: 60 * 1000,
   });
 }

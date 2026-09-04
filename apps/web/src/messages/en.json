@@ -666,7 +666,7 @@
         "sustainability": "Sustainability"
       },
       "kpi": {
-        "revenue": "Revenue",
+        "revenue": "My Earnings",
         "totalOrders": "Total Orders",
         "avgOrderValue": "Avg. Order Value",
         "conversionRate": "Conversion Rate",
@@ -674,10 +674,10 @@
         "co2Avoided": "CO₂ Avoided"
       },
       "revenueChart": {
-        "title": "Revenue Trend",
-        "subtitle": "Revenue over time",
+        "title": "Earnings Trend",
+        "subtitle": "Your earnings over time",
         "tooltip": {
-          "revenue": "Revenue",
+          "revenue": "Earnings",
           "orders": "Orders"
         }
       },
@@ -2029,6 +2029,13 @@
         "delta": "footprint avoided",
         "note": "Water that would have been spent producing this food."
       }
+    },
+    "walletBalance": {
+      "title": "Payout Balance",
+      "available": "Available",
+      "pending": "Pending settlement",
+      "availableNote": "Ready for your next payout.",
+      "pendingNote": "Still clearing - moves to available once the pickup window closes."
     },
     "greeting": "Congratulations, {name}.",
     "impactStatement": "Your impact today is equivalent to {trees} trees planted.",

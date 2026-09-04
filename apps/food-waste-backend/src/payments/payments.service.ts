@@ -1,7 +1,13 @@
 import { UserRole } from '@foodwaste/shared';
-import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types, PipelineStage, FilterQuery } from 'mongoose';
+import { Model, Types, PipelineStage, FilterQuery, isValidObjectId } from 'mongoose';
 
 import { toObjectId } from 'src/common/utils/mongo.utils';
 import { RegexSecurityUtil } from 'src/common/utils/regex-security.util';
@@ -14,6 +20,7 @@ import {
 } from '../orders/schemas/order.schema';
 
 import { PaymentQueryDto } from './dto/payment-query.dto';
+import { MerchantWallet, MerchantWalletDocument } from './schemas/merchant-wallet.schema';
 import { Payment, PaymentDocument, PaymentStatus } from './schemas/payment.schema';
 
 interface PaymentOverviewStats {
@@ -88,9 +95,35 @@ export class PaymentService {
   constructor(
     @InjectModel(Payment.name) readonly paymentModel: Model<PaymentDocument>,
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
+    @InjectModel(MerchantWallet.name) private readonly walletModel: Model<MerchantWalletDocument>,
     private readonly regexSecurityUtil: RegexSecurityUtil,
   ) {
     void this.logger;
+  }
+
+  async getMyWallet(
+    merchantId: string,
+    establishmentId?: string,
+  ): Promise<{ availableBalance: number; pendingBalance: number; currency: string }> {
+    if (establishmentId && !isValidObjectId(establishmentId)) {
+      throw new BadRequestException('Invalid establishmentId format');
+    }
+
+    const query: FilterQuery<MerchantWalletDocument> = {
+      merchantId: new Types.ObjectId(merchantId),
+      ...(establishmentId ? { establishmentId: new Types.ObjectId(establishmentId) } : {}),
+    };
+
+    const wallets = await this.walletModel.find(query).lean();
+
+    // .lean() returns raw BSON - Mongoose schema defaults (availableBalance:
+    // 0, pendingBalance: 0) are not applied, so a document missing either
+    // path would otherwise sum to NaN.
+    return {
+      availableBalance: wallets.reduce((sum, w) => sum + (w.availableBalance ?? 0), 0),
+      pendingBalance: wallets.reduce((sum, w) => sum + (w.pendingBalance ?? 0), 0),
+      currency: wallets[0]?.currency ?? 'TND',
+    };
   }
 
   async findAllCursor(

@@ -29,6 +29,7 @@ import { perfLog, perfStart } from '../common/utils/perf-log.util';
 import {
   DEFAULT_DRIVER_DELIVERY_EARNINGS,
   DEFAULT_FLAT_DELIVERY_FEE,
+  MERCHANT_EARNINGS_EXPR,
   calculateDeliveryEconomics,
   calculateFoodRevenueSplit,
   calculateOrderPricing,
@@ -101,6 +102,7 @@ interface OrderStatsResult {
   _id: null;
   totalOrders: number;
   totalRevenue: number;
+  totalEarnings: number;
   totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
@@ -138,6 +140,7 @@ export interface RevenueChartResponse {
   /** Day of month — only set when granularity is 'day'. */
   day?: number;
   revenue: number;
+  earnings: number;
   orderCount: number;
   bagCount: number;
 }
@@ -153,6 +156,7 @@ export interface CustomerLocationResponse {
 export interface OrderStatsResponse {
   totalOrders: number;
   totalRevenue: number;
+  totalEarnings: number;
   /** Retail value of food rescued (sum of items[].originalPrice * quantity for completed orders) */
   totalOriginalValue: number;
   pendingOrders: number;
@@ -1310,6 +1314,7 @@ export class OrdersService {
                 paymentId: payment._id,
                 establishmentId: order.establishmentId._id,
                 orderTotal: order.pricing.total,
+                subtotal: order.pricing.subtotal,
               },
               session,
             );
@@ -1706,6 +1711,20 @@ export class OrdersService {
                   ],
                 },
               },
+              totalEarnings: {
+                $sum: {
+                  $cond: [
+                    {
+                      $in: [
+                        '$status',
+                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+                      ],
+                    },
+                    MERCHANT_EARNINGS_EXPR,
+                    0,
+                  ],
+                },
+              },
               totalOriginalValue: {
                 $sum: {
                   $cond: [
@@ -1781,6 +1800,7 @@ export class OrdersService {
           result[0] ?? {
             totalOrders: 0,
             totalRevenue: 0,
+            totalEarnings: 0,
             totalOriginalValue: 0,
             pendingOrders: 0,
             confirmedOrders: 0,
@@ -1895,6 +1915,7 @@ export class OrdersService {
             $group: {
               _id: groupId,
               revenue: { $sum: '$pricing.total' },
+              earnings: { $sum: MERCHANT_EARNINGS_EXPR },
               orderCount: { $sum: 1 },
               bagCount: { $sum: { $sum: '$items.quantity' } },
             },
@@ -1905,6 +1926,7 @@ export class OrdersService {
         const results = await this.orderModel.aggregate<{
           _id: Record<string, number>;
           revenue: number;
+          earnings: number;
           orderCount: number;
           bagCount: number;
         }>(pipeline);
@@ -1940,6 +1962,7 @@ export class OrdersService {
     results: Array<{
       _id: Record<string, number>;
       revenue: number;
+      earnings: number;
       orderCount: number;
       bagCount: number;
     }>,
@@ -1963,6 +1986,7 @@ export class OrdersService {
             month,
             day,
             revenue: found?.revenue ?? 0,
+            earnings: found?.earnings ?? 0,
             orderCount: found?.orderCount ?? 0,
             bagCount: found?.bagCount ?? 0,
           });
@@ -1990,6 +2014,7 @@ export class OrdersService {
             month,
             week: isoWeek,
             revenue: found?.revenue ?? 0,
+            earnings: found?.earnings ?? 0,
             orderCount: found?.orderCount ?? 0,
             bagCount: found?.bagCount ?? 0,
           });
@@ -2008,6 +2033,7 @@ export class OrdersService {
             year,
             month,
             revenue: found?.revenue ?? 0,
+            earnings: found?.earnings ?? 0,
             orderCount: found?.orderCount ?? 0,
             bagCount: found?.bagCount ?? 0,
           });

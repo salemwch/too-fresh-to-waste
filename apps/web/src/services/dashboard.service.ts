@@ -26,6 +26,7 @@ import type {
   RealTimeMetrics,
   CustomerLocationItem,
   PricingSuggestions,
+  MerchantWallet,
 } from '@/types/dashboard';
 
 const ORDERS_BASE = '/orders';
@@ -36,6 +37,7 @@ const DONATIONS_BASE = '/donations';
 const COMMUNITY_GOAL_BASE = '/community-goal';
 const SUSTAINABILITY_BASE = '/sustainability';
 const LEADERBOARD_BASE = '/leaderboard';
+const PAYMENTS_BASE = '/payments';
 
 export const dashboardService = {
   /**
@@ -145,6 +147,18 @@ export const dashboardService = {
     return apiClient.get<BackendEnvelope<MyEstablishment[]>>(
       `${ESTABLISHMENTS_BASE}/my-establishment`,
     );
+  },
+
+  /**
+   * GET /payments/my-wallet?establishmentId=
+   * Available/pending payout balance for the authenticated merchant.
+   */
+  getMyWallet(establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<MerchantWallet>>(`${PAYMENTS_BASE}/my-wallet`, {
+      params: {
+        ...(establishmentId ? { establishmentId } : {}),
+      },
+    });
   },
 
   /**

@@ -13,6 +13,7 @@ import {
   ReportingBar,
   StreakWidget,
   SmartPricingPanel,
+  WalletBalanceCard,
 } from '@/components/dashboard/merchant';
 import { useOrderStats, useRevenueChart, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { type DatePreset, PRESET_CONFIG } from '@/types/dashboard';
@@ -54,6 +55,9 @@ export default function MerchantDashboardPage() {
 
       {/* ── Daily listing streak ── */}
       <StreakWidget onListOffer={() => setPanelOpen(true)} disabled={isTrialSuspended} />
+
+      {/* ── Payout balance ── */}
+      <WalletBalanceCard />
 
       {/* ── Impact KPI cards ── */}
       {orderStatsQuery.isLoading ? (

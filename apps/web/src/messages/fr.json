@@ -666,7 +666,7 @@
         "sustainability": "Durabilité"
       },
       "kpi": {
-        "revenue": "Chiffre d'affaires",
+        "revenue": "Mes gains",
         "totalOrders": "Total des commandes",
         "avgOrderValue": "Panier moyen",
         "conversionRate": "Taux de conversion",
@@ -674,10 +674,10 @@
         "co2Avoided": "CO₂ évité"
       },
       "revenueChart": {
-        "title": "Tendance du chiffre d'affaires",
-        "subtitle": "Revenus au fil du temps",
+        "title": "Tendance des gains",
+        "subtitle": "Vos gains au fil du temps",
         "tooltip": {
-          "revenue": "Revenus",
+          "revenue": "Gains",
           "orders": "Commandes"
         }
       },
@@ -2028,6 +2028,13 @@
         "delta": "empreinte évitée",
         "note": "Eau qui aurait été consommée pour produire ces aliments."
       }
+    },
+    "walletBalance": {
+      "title": "Solde à verser",
+      "available": "Disponible",
+      "pending": "En attente de règlement",
+      "availableNote": "Prêt pour votre prochain versement.",
+      "pendingNote": "Encore en cours - devient disponible une fois la fenêtre de retrait terminée."
     },
     "greeting": "Félicitations, {name}.",
     "impactStatement": "Votre impact aujourd'hui est équivalent à {trees} arbres plantés.",

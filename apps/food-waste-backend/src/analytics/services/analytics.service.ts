@@ -15,7 +15,8 @@ import {
   EstablishmentDocument,
 } from '../../establishments/schemas/establishment.schema';
 import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
-import { Order, OrderDocument } from '../../orders/schemas/order.schema';
+import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
+import { MERCHANT_EARNINGS_EXPR } from '../../orders/utils/order-pricing.util';
 import { Payment, PaymentDocument } from '../../payments/schemas/payment.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import {
@@ -77,11 +78,6 @@ interface UserLocationAggregationResult {
 
 interface RevenueTodayAggregationResult {
   total: number;
-}
-
-interface RevenueAggregationResult {
-  totalRevenue: number;
-  count: number;
 }
 
 interface OrderMetricsAggregationResult {
@@ -226,6 +222,10 @@ export class AnalyticsService {
         totalRevenue: AnalyticsUtil.calculateMetricValue(
           currentMetrics.totalRevenue,
           previousMetrics?.totalRevenue,
+        ),
+        totalEarnings: AnalyticsUtil.calculateMetricValue(
+          currentMetrics.totalEarnings,
+          previousMetrics?.totalEarnings,
         ),
         totalOrders: AnalyticsUtil.calculateMetricValue(
           currentMetrics.totalOrders,
@@ -559,29 +559,26 @@ export class AnalyticsService {
 
   private async calculateCurrentBusinessMetrics(filters: AnalyticsFilters) {
     const matchPipeline = AnalyticsUtil.createMatchPipeline(filters);
+    const completedStatuses = [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED];
 
-    const [revenueResult, orderResult] = await Promise.all([
-      this.paymentModel.aggregate<RevenueAggregationResult>([
-        ...matchPipeline,
-        { $match: { status: 'paid' } },
-        {
-          $group: {
-            _id: null,
-            totalRevenue: { $sum: '$amount' },
-            count: { $sum: 1 },
-          },
-        },
-      ]),
-
-      this.orderModel.aggregate<OrderMetricsAggregationResult>([
+    const [orderResult] = await Promise.all([
+      this.orderModel.aggregate<
+        OrderMetricsAggregationResult & { totalRevenue: number; totalEarnings: number }
+      >([
         ...matchPipeline,
         {
           $group: {
             _id: null,
             totalOrders: { $sum: 1 },
             completedOrders: {
+              $sum: { $cond: [{ $in: ['$status', completedStatuses] }, 1, 0] },
+            },
+            totalRevenue: {
+              $sum: { $cond: [{ $in: ['$status', completedStatuses] }, '$pricing.total', 0] },
+            },
+            totalEarnings: {
               $sum: {
-                $cond: [{ $in: ['$status', ['picked_up', 'completed', 'delivered']] }, 1, 0],
+                $cond: [{ $in: ['$status', completedStatuses] }, MERCHANT_EARNINGS_EXPR, 0],
               },
             },
           },
@@ -589,12 +586,14 @@ export class AnalyticsService {
       ]),
     ]);
 
-    const totalRevenue = revenueResult[0]?.totalRevenue ?? 0;
+    const totalRevenue = orderResult[0]?.totalRevenue ?? 0;
+    const totalEarnings = orderResult[0]?.totalEarnings ?? 0;
     const totalOrders = orderResult[0]?.totalOrders ?? 0;
     const completedOrders = orderResult[0]?.completedOrders ?? 0;
 
     return {
       totalRevenue,
+      totalEarnings,
       totalOrders,
       averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
       conversionRate: totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0,
