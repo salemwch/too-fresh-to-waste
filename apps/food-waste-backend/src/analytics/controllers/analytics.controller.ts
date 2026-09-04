@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Query,
+  Request,
   UseGuards,
   Logger,
   HttpCode,
@@ -20,8 +21,12 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 
+import { UserRole } from '@foodwaste/shared';
+
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { GetUser } from '../../common/decorators/get-user.decorator';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { AuthenticatedRequest, GetUser } from '../../common/decorators/get-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { ProSubscriptionGuard } from '../../common/guards/pro-subscription.guard';
 import {
   BusinessMetricsRequestDto,
@@ -118,14 +123,36 @@ export class AnalyticsController {
   })
   @ApiResponse({ status: 400, description: 'Invalid request parameters' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Merchant or location manager access required' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async getBusinessMetrics(
     @Body() request: BusinessMetricsRequestDto,
-    @GetUser('id') userId: string,
+    @Request() req: AuthenticatedRequest,
   ): Promise<BusinessMetrics> {
-    this.logger.log(`Getting business metrics for user ${userId}`);
-    const result = await this.analyticsService.getBusinessMetrics(request);
-    return result;
+    this.logger.log(`Getting business metrics for user ${req.user.userId}`);
+
+    // Never trust client-supplied establishmentIds directly: scope to what
+    // this caller actually owns (or is assigned to), so a merchant/location
+    // manager can only ever see their own establishments' data.
+    const effectiveEstablishmentIds = await this.analyticsService.resolveEffectiveEstablishmentIds(
+      req.user.userId,
+      req.user.role,
+      req.user.assignedEstablishmentId ?? null,
+      request.filters.establishmentIds,
+    );
+
+    if (effectiveEstablishmentIds.length === 0) {
+      return this.analyticsService.emptyBusinessMetrics();
+    }
+
+    const scopedRequest: BusinessMetricsRequestDto = {
+      ...request,
+      filters: { ...request.filters, establishmentIds: effectiveEstablishmentIds },
+    };
+
+    return this.analyticsService.getBusinessMetrics(scopedRequest);
   }
 
   // ==================== User Analytics ====================

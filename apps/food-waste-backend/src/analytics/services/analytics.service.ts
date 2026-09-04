@@ -1,3 +1,4 @@
+import { UserRole } from '@foodwaste/shared';
 import {
   Injectable,
   Logger,
@@ -7,7 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 // Import schemas
 import {
@@ -17,7 +18,7 @@ import {
 import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
 import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
 import { MERCHANT_EARNINGS_EXPR } from '../../orders/utils/order-pricing.util';
-import { Payment, PaymentDocument } from '../../payments/schemas/payment.schema';
+import { Payment, PaymentDocument, PaymentStatus } from '../../payments/schemas/payment.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import {
   FOOD_IMPACT_COEFFICIENTS,
@@ -40,6 +41,7 @@ import {
   AnalyticsFilters,
   AggregationOptions,
   CacheStatistics,
+  MetricValue,
 } from '../interfaces/analytics.interface';
 import { CacheService } from '../../common/services/cache.service';
 import { AnalyticsCache, AnalyticsCacheDocument } from '../schemas/analytics-cache.schema';
@@ -119,7 +121,7 @@ export class AnalyticsService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Establishment.name)
-    private readonly _establishmentModel: Model<EstablishmentDocument>,
+    private readonly establishmentModel: Model<EstablishmentDocument>,
     @InjectModel(Offer.name) private readonly offerModel: Model<OfferDocument>,
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     @InjectModel(Payment.name) private readonly paymentModel: Model<PaymentDocument>,
@@ -129,9 +131,74 @@ export class AnalyticsService {
     private readonly redisCache: CacheService,
   ) {
     this.cacheEnabled = this.configService.get<boolean>('ANALYTICS_CACHE_ENABLED', true);
-    void this._establishmentModel;
     void this._convertAggregationToInterface;
     void this._estimateWeightWithRules;
+  }
+
+  // ==================== Authorization Scoping ====================
+
+  /**
+   * Resolves which establishment IDs a MERCHANT/LOCATION_MANAGER caller is
+   * actually allowed to see business metrics for, ignoring anything in the
+   * request that isn't theirs.
+   *
+   * `POST /analytics/business-metrics` used to pass the client-supplied
+   * `establishmentIds` straight into the match pipeline with no ownership
+   * check, and treated an *empty* list as "no filter" (platform-wide data) —
+   * a merchant with no `activeEstablishmentId` set saw every merchant's
+   * revenue. Both are closed here: the caller can never expand past what they
+   * own, and "owns nothing yet" resolves to an explicit empty result
+   * (handled by the controller), never to an unfiltered query.
+   *
+   * LOCATION_MANAGER is scoped to their single assigned establishment,
+   * ignoring any establishmentIds the request supplied — a location manager
+   * has exactly one establishment by construction.
+   */
+  async resolveEffectiveEstablishmentIds(
+    userId: string,
+    userRole: UserRole,
+    assignedEstablishmentId: string | null,
+    requestedEstablishmentIds: string[] | undefined,
+  ): Promise<string[]> {
+    if (userRole === UserRole.LOCATION_MANAGER) {
+      return assignedEstablishmentId ? [assignedEstablishmentId] : [];
+    }
+
+    const owned = await this.establishmentModel
+      .find({ ownerId: new Types.ObjectId(userId) })
+      .select('_id')
+      .lean();
+    const ownedIds = owned.map(e => e._id.toString());
+
+    if (!requestedEstablishmentIds?.length) {
+      return ownedIds;
+    }
+
+    const ownedSet = new Set(ownedIds);
+    const intersected = requestedEstablishmentIds.filter(id => ownedSet.has(id));
+    // A request naming only establishments the caller doesn't own must not
+    // silently fall through to "no filter" (platform-wide) — fall back to
+    // the caller's own set instead of trusting the (entirely foreign) input.
+    return intersected.length > 0 ? intersected : ownedIds;
+  }
+
+  /** Zero-valued response for a caller whose effective establishment set is empty. */
+  emptyBusinessMetrics(): BusinessMetrics {
+    const zero: MetricValue = { value: 0, trend: 'stable' };
+    return {
+      totalRevenue: zero,
+      totalEarnings: zero,
+      totalOrders: zero,
+      averageOrderValue: zero,
+      conversionRate: zero,
+      customerAcquisitionCost: zero,
+      customerLifetimeValue: zero,
+      foodWasteSaved: zero,
+      carbonFootprintReduced: zero,
+      waterSaved: zero,
+      packagingSaved: zero,
+      energySaved: zero,
+    };
   }
 
   // ==================== DTO Conversion Helpers ====================
@@ -511,7 +578,11 @@ export class AnalyticsService {
           {
             $match: {
               createdAt: { $gte: todayStart },
-              status: 'paid',
+              // 'paid' was never a PaymentStatus value — this matched zero
+              // documents, so "revenue today" was permanently 0. EARNED/
+              // COMPLETED is the same "money actually landed" filter used by
+              // getAdminPaymentStats (admin/services/payment-management.service.ts).
+              status: { $in: [PaymentStatus.EARNED, PaymentStatus.COMPLETED] },
             },
           },
           {
