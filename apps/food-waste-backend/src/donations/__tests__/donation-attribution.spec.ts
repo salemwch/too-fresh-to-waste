@@ -43,4 +43,26 @@ describe('resolveEstablishmentId', () => {
 
     await expect(resolveEstablishmentId(orderId.toString(), undefined, lookup)).resolves.toBeNull();
   });
+
+  it('falls through to the order lookup when the event id is malformed, instead of throwing', async () => {
+    // `plainToClass` copies the RabbitMQ payload with no runtime validation, so
+    // `establishmentId` on the event can be present but not a valid ObjectId. A
+    // malformed id must degrade the same way a missing one does - fall back to
+    // the order lookup - never construct `new Types.ObjectId(...)` off it and
+    // throw, which would lose the whole donation, not just its attribution.
+    const lookup = jest.fn().mockResolvedValue({ establishmentId });
+
+    const result = await resolveEstablishmentId(orderId.toString(), 'not-an-object-id', lookup);
+
+    expect(lookup).toHaveBeenCalledWith(orderId.toString());
+    expect(result?.toString()).toBe(establishmentId.toString());
+  });
+
+  it('resolves to null rather than rejecting when the event id is malformed and the fallback lookup also fails', async () => {
+    const lookup = jest.fn().mockRejectedValue(new Error('mongo down'));
+
+    await expect(
+      resolveEstablishmentId(orderId.toString(), 'not-an-object-id', lookup),
+    ).resolves.toBeNull();
+  });
 });

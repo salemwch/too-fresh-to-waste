@@ -34,13 +34,22 @@ type OrderEstablishmentLookup = (
  * carry it, so fall back to one order read. Never throw: a donation that cannot
  * resolve its establishment is still a donation, and losing it to satisfy an
  * attribution field would be the worse bug.
+ *
+ * `fromEvent` arrives via `plainToClass` on an untrusted RabbitMQ payload with
+ * no runtime validation, so it can be present but malformed. `isValid` guards
+ * the `new Types.ObjectId(...)` call rather than widening the try/catch around
+ * it: a malformed id should fall through to the order lookup like a missing
+ * one would, not be treated as a terminal failure that skips the fallback
+ * entirely. Widening the catch would return null immediately on a malformed
+ * event id even when the order lookup could have resolved the real
+ * establishment - throwing away a fallback that still had a chance to work.
  */
 export async function resolveEstablishmentId(
   orderId: string,
   fromEvent: string | undefined,
   lookup: OrderEstablishmentLookup,
 ): Promise<Types.ObjectId | null> {
-  if (fromEvent) {
+  if (fromEvent && Types.ObjectId.isValid(fromEvent)) {
     return new Types.ObjectId(fromEvent);
   }
 
