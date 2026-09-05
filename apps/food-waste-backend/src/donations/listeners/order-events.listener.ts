@@ -12,21 +12,54 @@
 import { RabbitSubscribe, Nack } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { InjectModel } from '@nestjs/mongoose';
 import { plainToClass } from 'class-transformer';
-import { Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { OrderCompletedEvent } from '../../common/events';
 import {
   PLATFORM_FOOD_SHARE,
   DONATION_RATE_OF_COMMISSION,
 } from '../../orders/utils/order-pricing.util';
+import { Order, OrderDocument } from '../../orders/schemas/order.schema';
 import { DonationsService } from '../donations.service';
+
+type OrderEstablishmentLookup = (
+  orderId: string,
+) => Promise<{ establishmentId?: Types.ObjectId } | null>;
+
+/**
+ * The event gained establishmentId in the release that added merchant
+ * attribution. Messages already in the RabbitMQ queue at deploy time do not
+ * carry it, so fall back to one order read. Never throw: a donation that cannot
+ * resolve its establishment is still a donation, and losing it to satisfy an
+ * attribution field would be the worse bug.
+ */
+export async function resolveEstablishmentId(
+  orderId: string,
+  fromEvent: string | undefined,
+  lookup: OrderEstablishmentLookup,
+): Promise<Types.ObjectId | null> {
+  if (fromEvent) {
+    return new Types.ObjectId(fromEvent);
+  }
+
+  try {
+    const order = await lookup(orderId);
+    return order?.establishmentId ? new Types.ObjectId(order.establishmentId) : null;
+  } catch {
+    return null;
+  }
+}
 
 @Injectable()
 export class OrderEventsListener {
   private readonly logger = new Logger(OrderEventsListener.name);
 
-  constructor(private readonly donationsService: DonationsService) {}
+  constructor(
+    private readonly donationsService: DonationsService,
+    @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
+  ) {}
 
   // ============================================
   // ORDER COMPLETED HANDLERS
@@ -79,9 +112,30 @@ export class OrderEventsListener {
       );
 
       if (donationAmount > 0) {
+        const establishmentId = await resolveEstablishmentId(
+          event.orderId,
+          event.establishmentId,
+          async id => {
+            // Assigned rather than `return await`: require-await wants the
+            // await, no-return-await forbids returning it directly.
+            const order = await this.orderModel
+              .findById(id)
+              .select('establishmentId')
+              .lean<{ establishmentId?: Types.ObjectId }>()
+              .exec();
+            return order;
+          },
+        );
+
+        if (!establishmentId) {
+          this.logger.warn(`Donation for order ${event.orderId} has no establishment attribution`);
+        }
+
         await this.donationsService.createDonation({
           userId: new Types.ObjectId(event.userId),
           orderId: new Types.ObjectId(event.orderId),
+          merchantId: new Types.ObjectId(event.merchantId),
+          ...(establishmentId ? { establishmentId } : {}),
           amount: donationAmount,
           metadata: {
             platform: 'web',

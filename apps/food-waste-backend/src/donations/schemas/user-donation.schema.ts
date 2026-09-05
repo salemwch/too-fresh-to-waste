@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Query, Types } from 'mongoose';
 
+import { DonationGoalCategory } from '@foodwaste/shared';
+
 import { applySoftDeleteFilter } from '../../common/utils/soft-delete-aggregate.util';
 
 export type UserDonationDocument = UserDonation & Document;
@@ -42,6 +44,26 @@ export class UserDonation {
   @Prop({ required: true, type: Types.ObjectId, ref: 'DonationPool' })
   donationPoolId!: Types.ObjectId;
 
+  /**
+   * The merchant whose sale produced this contribution. Denormalized rather
+   * than joined through the order: the merchant ledger is read on every
+   * dashboard load, and a $lookup between user_donations and orders on that
+   * path is the N+1-shaped cost .claude/rules/performance.md rule 7 forbids.
+   */
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
+  merchantId!: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Establishment' })
+  establishmentId?: Types.ObjectId;
+
+  /**
+   * The goal the pool was funding at the moment of contribution. Captured here
+   * because DonationPool.activeGoalCategory rotates in place - reading it later
+   * returns today's goal, not the one this money went to.
+   */
+  @Prop({ type: String, enum: DonationGoalCategory })
+  goalCategoryAtContribution?: DonationGoalCategory;
+
   @Prop({ required: true, min: 0 })
   amount!: number;
 
@@ -78,6 +100,7 @@ export const UserDonationSchema = SchemaFactory.createForClass(UserDonation);
 
 // Compound indexes for efficient queries
 UserDonationSchema.index({ userId: 1, contributedAt: -1 });
+UserDonationSchema.index({ merchantId: 1, contributedAt: -1 });
 UserDonationSchema.index({ donationPoolId: 1, userId: 1 });
 UserDonationSchema.index({ orderId: 1 }, { unique: true });
 UserDonationSchema.index({ isDeleted: 1, userId: 1 });
