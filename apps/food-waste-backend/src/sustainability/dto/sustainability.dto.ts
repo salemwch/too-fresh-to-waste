@@ -1,6 +1,8 @@
 import { IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
+import { DonationGoalCategory } from '@foodwaste/shared';
+
 export class UpdateMonthlyGoalDto {
   @Type(() => Number)
   @IsInt()
@@ -71,9 +73,26 @@ export interface StreakResponse {
   longestStreak: number;
   freezesAvailable: number;
   lastListedDate: string | null;
-  /** True after 18:00 Tunis time if no offer listed today — triggers urgency UI */
+  /** True after 18:00 Tunis time if no offer listed today - triggers urgency UI */
   streakAtRisk: boolean;
   listedToday: boolean;
   /** How many more streak days until the next freeze is earned (awarded every 7 days) */
   nextFreezeAt: number;
+}
+
+// ── Fund ledger ────────────────────────────────────────────────────────────
+
+export interface FundedItem {
+  category: DonationGoalCategory;
+  count: number;
+  amountTnd: number;
+}
+
+export interface FundLedgerResponse {
+  totalTnd: number;
+  currency: 'TND';
+  contributionCount: number;
+  items: FundedItem[];
+  totalItems: number;
+  firstContributionAt: string | null;
 }
