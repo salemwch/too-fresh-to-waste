@@ -115,7 +115,7 @@ export function formatDateTime(locale: string, iso: string | null): string | nul
 const monthYearFormatters = new Map<string, Intl.DateTimeFormat>();
 
 /**
- * Month and year only — `March 2026`. For "contributing since" style copy,
+ * Month and year only - `March 2026`. For "contributing since" style copy,
  * where day-level precision reads as false precision.
  */
 export function formatMonthYear(locale: string, iso: string | null): string | null {
