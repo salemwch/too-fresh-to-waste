@@ -68,17 +68,23 @@ async function run(): Promise<void> {
     throw new Error('No database handle after connecting.');
   }
 
+  // Read off the live connection, never the raw URI - the URI carries the
+  // password. This is the first line of output in both modes so an operator
+  // with a misconfigured .env sees the real target before anything is read,
+  // let alone written.
+  log(`Target: ${conn.connection.host}/${conn.connection.name} (${dryRun ? 'dry run' : 'EXECUTE'})`);
+
   const donations = db.collection<DonationRow>(DONATIONS);
   const orders = db.collection<OrderRow>(ORDERS);
 
   const pending = await donations
     .find({ merchantId: { $exists: false } })
+    .project<DonationRow>({ orderId: 1 })
     .toArray();
   log(`${pending.length} donation(s) without merchant attribution`);
 
   if (pending.length === 0) {
     log('Nothing to do.');
-    await conn.disconnect();
     return;
   }
 
@@ -142,11 +148,13 @@ async function run(): Promise<void> {
   if (dryRun) {
     log('Re-run with --execute to write.');
   }
-
-  await conn.disconnect();
 }
 
-run().catch((error: unknown) => {
-  console.error(error);
-  process.exit(1);
-});
+run()
+  .catch((error: unknown) => {
+    console.error('Migration failed:', error);
+    process.exitCode = 1;
+  })
+  .finally(() => {
+    void mongoose.disconnect();
+  });
