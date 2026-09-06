@@ -27,6 +27,7 @@ import type {
   CustomerLocationItem,
   PricingSuggestions,
   MerchantWallet,
+  FundLedgerResponse,
 } from '@/types/dashboard';
 
 const ORDERS_BASE = '/orders';
@@ -409,6 +410,21 @@ export const dashboardService = {
     return apiClient.get(`${SUSTAINABILITY_BASE}/reports/carbon-balance`, {
       responseType: 'blob',
     });
+  },
+
+  /**
+   * GET /sustainability/fund-ledger?establishmentId=
+   * Charity donation contributions funded by this merchant's orders.
+   */
+  getFundLedger(establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<FundLedgerResponse>>(
+      `${SUSTAINABILITY_BASE}/fund-ledger`,
+      {
+        params: {
+          ...(establishmentId ? { establishmentId } : {}),
+        },
+      },
+    );
   },
 
   // ── Leaderboard ────────────────────────────────────────────────────────────

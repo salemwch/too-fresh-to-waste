@@ -27,6 +27,7 @@ import type {
   BusinessMetricsRequest,
   CustomerLocationItem,
   MerchantWallet,
+  FundLedgerResponse,
 } from '@/types/dashboard';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
@@ -67,6 +68,8 @@ export const dashboardKeys = {
     [...dashboardKeys.all, 'customer-locations', limit, estId ?? 'all'] as const,
   pricingSuggestions: () => [...dashboardKeys.all, 'pricing-suggestions'] as const,
   myWallet: (estId?: string) => [...dashboardKeys.all, 'my-wallet', estId ?? 'all'] as const,
+  fundLedger: (establishmentId?: string) =>
+    ['dashboard', 'fund-ledger', establishmentId ?? 'all'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -387,6 +390,22 @@ export function useSocialImpact(since?: string) {
     queryKey: dashboardKeys.socialImpact(since, estId ?? undefined),
     queryFn: async (): Promise<SocialImpactResponse> => {
       const response = await dashboardService.getSocialImpact(since, estId ?? undefined);
+      return response.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Charity donation contributions funded by this merchant's completed orders.
+ * Backend: GET /sustainability/fund-ledger?establishmentId=
+ */
+export function useFundLedger() {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
+  return useQuery({
+    queryKey: dashboardKeys.fundLedger(estId ?? undefined),
+    queryFn: async (): Promise<FundLedgerResponse> => {
+      const response = await dashboardService.getFundLedger(estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
