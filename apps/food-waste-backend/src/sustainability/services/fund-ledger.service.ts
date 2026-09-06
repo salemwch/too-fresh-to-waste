@@ -35,6 +35,53 @@ export function toFundedItems(amountByCategory: Record<string, number>): FundedI
   }, []);
 }
 
+/** One row out of the `$group` stage in {@link FundLedgerService.getFundLedger}. */
+export interface FundLedgerAggregationRow {
+  _id: string | null;
+  amount: number;
+  count: number;
+  first: Date;
+}
+
+/**
+ * Folds the raw aggregation rows into the response the controller returns.
+ *
+ * Pulled out of `getFundLedger` so the branching here - summing money for
+ * rows with a null goal category while excluding them from `items`, and
+ * picking the earliest `first` across rows rather than the first row seen -
+ * can be unit-tested without touching MongoDB. The `$match`/`$group`
+ * pipeline stays in the service; it is declarative and has nothing to branch
+ * on.
+ */
+export function accumulateFundLedgerRows(rows: FundLedgerAggregationRow[]): FundLedgerResponse {
+  const amountByCategory: Record<string, number> = {};
+  let totalTnd = 0;
+  let contributionCount = 0;
+  let firstContributionAt: Date | null = null;
+
+  for (const row of rows) {
+    totalTnd += row.amount;
+    contributionCount += row.count;
+    if (row._id) {
+      amountByCategory[row._id] = (amountByCategory[row._id] ?? 0) + row.amount;
+    }
+    if (row.first && (!firstContributionAt || row.first < firstContributionAt)) {
+      firstContributionAt = row.first;
+    }
+  }
+
+  const items = toFundedItems(amountByCategory);
+
+  return {
+    totalTnd: Math.round(totalTnd * 1000) / 1000,
+    currency: 'TND',
+    contributionCount,
+    items,
+    totalItems: items.reduce((sum, item) => sum + item.count, 0),
+    firstContributionAt: firstContributionAt ? firstContributionAt.toISOString() : null,
+  };
+}
+
 @Injectable()
 export class FundLedgerService {
   constructor(
@@ -51,12 +98,7 @@ export class FundLedgerService {
     }
 
     const rows = await this.userDonationModel
-      .aggregate<{
-        _id: string | null;
-        amount: number;
-        count: number;
-        first: Date;
-      }>([
+      .aggregate<FundLedgerAggregationRow>([
         { $match: match },
         {
           $group: {
@@ -69,31 +111,6 @@ export class FundLedgerService {
       ])
       .exec();
 
-    const amountByCategory: Record<string, number> = {};
-    let totalTnd = 0;
-    let contributionCount = 0;
-    let firstContributionAt: Date | null = null;
-
-    for (const row of rows) {
-      totalTnd += row.amount;
-      contributionCount += row.count;
-      if (row._id) {
-        amountByCategory[row._id] = (amountByCategory[row._id] ?? 0) + row.amount;
-      }
-      if (row.first && (!firstContributionAt || row.first < firstContributionAt)) {
-        firstContributionAt = row.first;
-      }
-    }
-
-    const items = toFundedItems(amountByCategory);
-
-    return {
-      totalTnd: Math.round(totalTnd * 1000) / 1000,
-      currency: 'TND',
-      contributionCount,
-      items,
-      totalItems: items.reduce((sum, item) => sum + item.count, 0),
-      firstContributionAt: firstContributionAt ? firstContributionAt.toISOString() : null,
-    };
+    return accumulateFundLedgerRows(rows);
   }
 }
