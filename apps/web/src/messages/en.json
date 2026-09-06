@@ -2145,6 +2145,23 @@
       "plastic": "kg plastic",
       "kmNotDriven": "km not driven",
       "treesPlanted": "trees planted"
+    },
+    "fundLedger": {
+      "title": "Community fund",
+      "subtitle": "Funded by your sales, from our platform fee",
+      "totalLabel": "contributed so far",
+      "itemsLabel": "items funded",
+      "since": "since {date}",
+      "empty": "Your first sale starts this",
+      "emptyHint": "Every order you fulfil sends part of our platform fee to the community fund.",
+      "error": "We could not load your community fund right now.",
+      "categories": {
+        "TSHIRTS": "t-shirts",
+        "PANTS": "trousers",
+        "SHOES": "shoes",
+        "CHILDREN_STUDIES": "school kits",
+        "MEDICINE": "medicine packs"
+      }
     }
   },
   "merchantSignup": {
