@@ -69,7 +69,7 @@ export const dashboardKeys = {
   pricingSuggestions: () => [...dashboardKeys.all, 'pricing-suggestions'] as const,
   myWallet: (estId?: string) => [...dashboardKeys.all, 'my-wallet', estId ?? 'all'] as const,
   fundLedger: (establishmentId?: string) =>
-    ['dashboard', 'fund-ledger', establishmentId ?? 'all'] as const,
+    [...dashboardKeys.all, 'fund-ledger', establishmentId ?? 'all'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
