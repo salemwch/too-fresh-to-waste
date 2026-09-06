@@ -5,6 +5,7 @@ import { Model, Types } from 'mongoose';
 import { GOAL_SEQUENCE } from '../../donations/constants/goal-sequence.constant';
 import { DEFAULT_CATEGORY_PRICES } from '../../donations/interfaces/donation.interface';
 import { UserDonation, UserDonationDocument } from '../../donations/schemas/user-donation.schema';
+import { Establishment } from '../../establishments/schemas/establishment.schema';
 import type { FundLedgerResponse, FundedItem } from '../dto/sustainability.dto';
 
 /**
@@ -95,7 +96,37 @@ export class FundLedgerService {
   constructor(
     @InjectModel(UserDonation.name)
     private readonly userDonationModel: Model<UserDonationDocument>,
+    @InjectModel(Establishment.name)
+    private readonly establishmentModel: Model<Establishment>,
   ) {}
+
+  /**
+   * The owning merchant of an establishment, as a string id.
+   *
+   * Donations are attributed to `order.merchantId`, which `order.service.ts`
+   * sets to `establishment.ownerId` - never to a location manager's own user
+   * id. A location manager therefore cannot read the ledger with their own
+   * id: the `$match` would return zero rows and the card would show a new-shop
+   * empty state to an establishment that has been trading for months.
+   *
+   * Returns null when the establishment is missing, soft-deleted or has no
+   * owner. The caller must refuse the request in that case: falling back to
+   * the caller's own id would silently widen the ledger past the one
+   * establishment the manager is allowed to see.
+   */
+  async resolveEstablishmentOwnerId(establishmentId: string): Promise<string | null> {
+    if (!Types.ObjectId.isValid(establishmentId)) {
+      return null;
+    }
+
+    const establishment = await this.establishmentModel
+      .findById(new Types.ObjectId(establishmentId))
+      .select('ownerId')
+      .lean<{ ownerId?: Types.ObjectId } | null>()
+      .exec();
+
+    return establishment?.ownerId ? establishment.ownerId.toString() : null;
+  }
 
   async getFundLedger(merchantId: string, establishmentId?: string): Promise<FundLedgerResponse> {
     const match: Record<string, unknown> = {
