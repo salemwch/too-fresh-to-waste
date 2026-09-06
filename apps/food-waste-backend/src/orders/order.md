@@ -1,6 +1,7 @@
 # Orders Module Documentation
 
-> **Module:** `src/orders/` | **Status:** Production Ready | **Last Updated:** January 15, 2026
+> **Module:** `src/orders/` | **Status:** Production Ready | **Last Updated:**
+> January 15, 2026
 
 ## Table of Contents
 
@@ -21,7 +22,10 @@
 
 ## Overview
 
-The Orders module implements the complete order lifecycle for the "Too Good To Go" (TGTG) business model, managing surplus food orders from creation through pickup confirmation. It orchestrates payment processing, inventory management, loyalty rewards, gamification, and automatic donation calculations.
+The Orders module implements the complete order lifecycle for the "Too Good To
+Go" (TGTG) business model, managing surplus food orders from creation through
+pickup confirmation. It orchestrates payment processing, inventory management,
+loyalty rewards, gamification, and automatic donation calculations.
 
 ### Core Responsibilities
 
@@ -32,7 +36,8 @@ The Orders module implements the complete order lifecycle for the "Too Good To G
 - ✅ Brute-force protection (5 failed attempts → lockout)
 - ✅ Automatic order expiration with refund processing
 - ✅ Loyalty points awarding (10 points per bag)
-- ✅ Gamification integration (friend referrals, purchase streaks, business referrals)
+- ✅ Gamification integration (friend referrals, purchase streaks, business
+  referrals)
 - ✅ Donation tracking (1% of order total)
 - ✅ Merchant payout ledger creation
 
@@ -106,13 +111,16 @@ Legacy Support:
 
 #### 1. Order Creation (order.service.ts:303)
 
-- **Phone Verification Required**: Users must have verified phone number to place orders
+- **Phone Verification Required**: Users must have verified phone number to
+  place orders
 - **Minimum Booking Window**: 30 minutes from now (prevents last-minute orders)
 - **Maximum Booking Window**: 30 days (inventory planning constraint)
 - **Inventory Validation**: Atomic check-and-reserve using MongoDB transactions
-- **Time Slot Validation**: Ensures pickup slot is available and not fully booked
+- **Time Slot Validation**: Ensures pickup slot is available and not fully
+  booked
 - **Donation Calculation**: 1% of total order goes to community food relief
-  - Formula: `total * 0.01` (derived from 20% platform fee \* 5% donation percentage)
+  - Formula: `total * 0.01` (derived from 20% platform fee \* 5% donation
+    percentage)
 
 #### 2. Cancellation Policy (order.service.ts:886)
 
@@ -120,7 +128,8 @@ Legacy Support:
 
 - ✅ **Full Refund**: Cancel >1 hour before pickup start time
 - ❌ **No Cancellation**: Within 1 hour of pickup (protects merchants)
-- 🔄 **Automatic Refund**: Processed via `RefundService.processCancelledOrderRefund()`
+- 🔄 **Automatic Refund**: Processed via
+  `RefundService.processCancelledOrderRefund()`
 
 **Merchant Cancellation:**
 
@@ -294,6 +303,13 @@ const donationAmount = this.donationsService
 await this.donationsService.createDonation({
   userId: customerId,
   orderId: finalOrder._id,
+  // Required since the merchant fund ledger shipped: the ledger aggregates
+  // donations by merchantId, so a donation written without one belongs to no
+  // merchant and appears on no dashboard.
+  merchantId: finalOrder.merchantId,
+  ...(finalOrder.establishmentId
+    ? { establishmentId: finalOrder.establishmentId }
+    : {}),
   amount: finalOrder.donationAmount,
   currency: 'TND',
   metadata: { platform: 'mobile' },
@@ -554,7 +570,10 @@ if (filters.search) {
   const safeRegex = this.regexSecurityUtil.buildSafeRegexQuery(filters.search);
 
   if (safeRegex) {
-    query.$or = [{ orderNumber: safeRegex }, { items: { $elemMatch: { offerTitle: safeRegex } } }];
+    query.$or = [
+      { orderNumber: safeRegex },
+      { items: { $elemMatch: { offerTitle: safeRegex } } },
+    ];
   } else {
     this.appLogger.warn(`Invalid search pattern blocked: ${filters.search}`);
   }
@@ -608,8 +627,7 @@ async findById(orderId: string, userId?: string, userRole?: UserRole) {
 
 ### 1. Merchant-Approved Order Expiration
 
-**Cron:** Every 10 minutes
-**File:** `order.service.ts:131`
+**Cron:** Every 10 minutes **File:** `order.service.ts:131`
 
 ```typescript
 @Cron(CronExpression.EVERY_10_MINUTES)
@@ -622,8 +640,7 @@ async expireApprovedOrdersCron() {
 
 ### 2. RESERVED Order Expiration with Refund
 
-**Cron:** Every 10 minutes
-**File:** `order.service.ts:207`
+**Cron:** Every 10 minutes **File:** `order.service.ts:207`
 
 ```typescript
 @Cron(CronExpression.EVERY_10_MINUTES)
@@ -761,7 +778,8 @@ if (!customer.phoneNumber || !customer.isPhoneVerified) {
     message: 'Phone verification required to place orders',
     code: 'PHONE_VERIFICATION_REQUIRED',
     requiresPhoneSetup: !customer.phoneNumber,
-    requiresPhoneVerification: !!customer.phoneNumber && !customer.isPhoneVerified,
+    requiresPhoneVerification:
+      !!customer.phoneNumber && !customer.isPhoneVerified,
   });
 }
 ```
@@ -879,11 +897,9 @@ pnpm test:watch orders
 
 ## Owners & Maintainers
 
-**Primary Owner:** Backend Core Team
-**Contact:** backend-core@toofreshtowaste.com
-**Slack:** #backend-core
+**Primary Owner:** Backend Core Team **Contact:**
+backend-core@toofreshtowaste.com **Slack:** #backend-core
 
 ---
 
-**Last Updated:** January 15, 2026
-**Next Review:** April 15, 2026
+**Last Updated:** January 15, 2026 **Next Review:** April 15, 2026
