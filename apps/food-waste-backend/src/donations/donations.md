@@ -659,6 +659,14 @@ const donationAmount = this.donationsService.calculateDonationAmount(order.total
 await this.donationsService.createDonation({
   userId: order.userId,
   orderId: order._id,
+  // Required. The merchant whose sale produced the contribution, which is
+  // the establishment owner - the same value order.merchantId carries. It
+  // is what the merchant fund ledger aggregates on.
+  merchantId: order.merchantId,
+  // Optional. Scopes the ledger to one establishment for a multi-site
+  // merchant. Omit it (conditional spread) rather than passing undefined:
+  // exactOptionalPropertyTypes rejects `Types.ObjectId | undefined`.
+  ...(order.establishmentId ? { establishmentId: order.establishmentId } : {}),
   amount: donationAmount,
   currency: 'TND',
   metadata: {
@@ -980,6 +988,10 @@ export class OrdersService {
       await this.donationsService.createDonation({
         userId: new Types.ObjectId(userId),
         orderId: order._id,
+        merchantId: order.merchantId, // required - the establishment owner
+        ...(order.establishmentId
+          ? { establishmentId: order.establishmentId }
+          : {}),
         amount: donationAmount,
         currency: 'TND',
         metadata: {

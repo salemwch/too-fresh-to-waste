@@ -242,6 +242,9 @@ export class DonationsService {
         userId: input.userId,
         orderId: input.orderId,
         donationPoolId: pool._id,
+        merchantId: input.merchantId,
+        ...(input.establishmentId ? { establishmentId: input.establishmentId } : {}),
+        goalCategoryAtContribution: pool.activeGoalCategory,
         amount: input.amount,
         moneySaved: input.moneySaved ?? 0,
         currency:

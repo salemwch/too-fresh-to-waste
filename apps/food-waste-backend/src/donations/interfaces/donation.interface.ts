@@ -27,6 +27,8 @@ export interface DonationCalculationResult {
 export interface CreateDonationInput {
   userId: Types.ObjectId;
   orderId: Types.ObjectId;
+  merchantId: Types.ObjectId;
+  establishmentId?: Types.ObjectId;
   amount: number;
   moneySaved?: number;
   currency?: string;

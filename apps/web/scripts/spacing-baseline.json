@@ -3580,6 +3580,27 @@
       "inset:0": 2
     }
   },
+  "apps/web/src/components/dashboard/merchant/fund-ledger-card.tsx": {
+    "A": {
+      "p:24": 3,
+      "gap:8": 3,
+      "mb:16": 1,
+      "mt:2": 3,
+      "gap:4": 1,
+      "mt:16": 1,
+      "px:16": 1,
+      "py:4": 1,
+      "mt:4": 1
+    },
+    "B": {
+      "square:40": 1
+    },
+    "C": {
+      "h:40": 1,
+      "w:40": 1,
+      "min-w:0": 1
+    }
+  },
   "apps/web/src/components/dashboard/merchant/impact-cards.tsx": {
     "A": {
       "gap:16": 2,

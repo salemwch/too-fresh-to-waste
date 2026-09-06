@@ -483,6 +483,24 @@ export interface DonationStats {
   completedGoals: DonationGoalCategory[];
 }
 
+// ─── Fund Ledger ─────────────────────────────────────────────────────────────
+// Reuses DonationGoalCategory from the Donation Pool section above.
+
+export interface FundedItem {
+  category: DonationGoalCategory;
+  count: number;
+  amountTnd: number;
+}
+
+export interface FundLedgerResponse {
+  totalTnd: number;
+  currency: 'TND';
+  contributionCount: number;
+  items: FundedItem[];
+  totalItems: number;
+  firstContributionAt: string | null;
+}
+
 // ─── Community Bag Goal ─────────────────────────────────────────────────────
 
 export type MonthlyGoalStatus = 'active' | 'completed' | 'archived';

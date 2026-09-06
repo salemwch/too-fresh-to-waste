@@ -12,6 +12,9 @@ const customConfig = {
   ...nextBase,
   displayName: 'web',
 
+  // Adds jest-dom's DOM matchers (toBeInTheDocument, etc.) to `expect`.
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+
   /*
    * Playwright specs live in tests/visual and import @playwright/test, which is
    * not a Jest runner. Without this Jest collects them and every suite fails to

@@ -1,0 +1,105 @@
+'use client';
+
+import { HeartHandshake } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+
+import { useFundLedger } from '@/hooks/use-merchant-dashboard';
+import { formatMonthYear } from '@/lib/format';
+
+export function FundLedgerCard() {
+  const t = useTranslations('dashboard.fundLedger');
+  const locale = useLocale();
+  const { data, isLoading, isError } = useFundLedger();
+
+  if (isLoading) {
+    return (
+      <div
+        data-testid='fund-ledger-skeleton'
+        className='glass rounded-2xl shadow-soft h-[140px] animate-pulse bg-white/30'
+      />
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className='glass rounded-2xl shadow-soft p-lg'>
+        <p className='text-sm text-primary-500/65'>{t('error')}</p>
+      </div>
+    );
+  }
+
+  if (!data || data.contributionCount === 0) {
+    return (
+      <div className='glass rounded-2xl shadow-soft p-lg flex flex-col items-center text-center gap-sm'>
+        {/* Decorative. The heading beside it carries the meaning, and
+            lucide-react does not set aria-hidden itself. */}
+        <HeartHandshake size={32} aria-hidden='true' className='text-primary-500/40' />
+        <h3 className='font-heading text-md text-primary-500'>{t('empty')}</h3>
+        <p className='text-xs text-primary-500/65 max-w-xs'>{t('emptyHint')}</p>
+      </div>
+    );
+  }
+
+  // A category that funded money but no whole item is carried by the TND total.
+  // Rendering "0 school kits" reads as failure for a real contribution.
+  const fundedItems = data.items.filter(item => item.count > 0);
+  // null when firstContributionAt is null/unparseable - never prints "since null"
+  // or a raw ISO string.
+  const sinceDate = formatMonthYear(locale, data.firstContributionAt);
+
+  return (
+    <div className='glass rounded-2xl shadow-soft p-lg'>
+      <div className='flex items-center gap-sm mb-md'>
+        <div className='h-10 w-10 rounded-xl bg-primary-500/[0.08] grid place-items-center text-primary-500 shrink-0'>
+          {/* Decorative, same as the empty state: the card title is the label. */}
+          <HeartHandshake size={18} aria-hidden='true' />
+        </div>
+        <div className='min-w-0'>
+          <div className='font-heading text-lg text-primary-500 leading-tight'>{t('title')}</div>
+          <p className='text-xs text-primary-500/65 mt-xxs'>{t('subtitle')}</p>
+        </div>
+      </div>
+
+      <div className='flex items-baseline gap-xs'>
+        <span className='font-heading text-4xl text-primary-500 tracking-tight'>
+          {data.totalTnd.toFixed(3)}
+        </span>
+        <span className='text-sm text-primary-500/60 font-medium'>{data.currency}</span>
+      </div>
+      <p className='text-xs text-primary-500/50 mt-xxs'>{t('totalLabel')}</p>
+      {sinceDate && (
+        <p data-testid='fund-ledger-since' className='text-xs text-primary-500/50 mt-xxs'>
+          {t('since', { date: sinceDate })}
+        </p>
+      )}
+
+      {/*
+        This one gate covers both the chip list and the totals line below it.
+        `fundedItems.length > 0` and `data.totalItems > 0` are provably
+        equivalent, not merely correlated: the backend sets totalItems to the
+        sum of the same per-category counts that fundedItems filters on, so
+        totalItems is 0 exactly when every count is 0, which is exactly when
+        fundedItems is empty. Splitting them into two conditions would add a
+        branch that cannot be reached.
+      */}
+      {fundedItems.length > 0 && (
+        <>
+          <ul className='mt-md flex flex-wrap gap-sm'>
+            {fundedItems.map(item => (
+              <li
+                key={item.category}
+                className='rounded-full bg-primary-500/[0.06] px-md py-xs text-xs text-primary-500'
+              >
+                <span className='font-semibold'>{item.count}</span>{' '}
+                {t(`categories.${item.category}`)}
+              </li>
+            ))}
+          </ul>
+          <p data-testid='fund-ledger-items-total' className='text-xs text-primary-500/50 mt-xs'>
+            <span className='font-semibold'>{data.totalItems}</span> {t('itemsLabel')}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}

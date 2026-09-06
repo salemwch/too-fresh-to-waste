@@ -14,6 +14,7 @@ import {
   StreakWidget,
   SmartPricingPanel,
   WalletBalanceCard,
+  FundLedgerCard,
 } from '@/components/dashboard/merchant';
 import { useOrderStats, useRevenueChart, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { type DatePreset, PRESET_CONFIG } from '@/types/dashboard';
@@ -65,6 +66,9 @@ export default function MerchantDashboardPage() {
       ) : (
         <ImpactCards stats={orderStatsQuery.data} />
       )}
+
+      {/* ── Community fund ledger ── */}
+      <FundLedgerCard />
 
       {/* ── Trend chart + Campaign side panel ── */}
       <div className='grid grid-cols-1 xl:grid-cols-3 gap-[24px]'>

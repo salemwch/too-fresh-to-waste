@@ -112,6 +112,25 @@ export function formatDateTime(locale: string, iso: string | null): string | nul
   return formatter.format(date);
 }
 
+const monthYearFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Month and year only - `March 2026`. For "contributing since" style copy,
+ * where day-level precision reads as false precision.
+ */
+export function formatMonthYear(locale: string, iso: string | null): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+
+  let formatter = monthYearFormatters.get(locale);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' });
+    monthYearFormatters.set(locale, formatter);
+  }
+  return formatter.format(date);
+}
+
 const relativeFormatters = new Map<string, Intl.RelativeTimeFormat>();
 
 const RELATIVE_UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [

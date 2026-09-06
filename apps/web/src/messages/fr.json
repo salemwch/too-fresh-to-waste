@@ -2144,6 +2144,23 @@
       "plastic": "kg plastique",
       "kmNotDriven": "km non parcourus",
       "treesPlanted": "arbres plantés"
+    },
+    "fundLedger": {
+      "title": "Fonds communautaire",
+      "subtitle": "Financé par vos ventes, sur notre commission",
+      "totalLabel": "collecté jusqu'à présent",
+      "itemsLabel": "articles financés",
+      "since": "depuis {date}",
+      "empty": "Votre première vente lance ce fonds",
+      "emptyHint": "Chaque commande honorée envoie une part de notre commission au fonds communautaire.",
+      "error": "Impossible de charger votre fonds communautaire pour le moment.",
+      "categories": {
+        "TSHIRTS": "t-shirts",
+        "PANTS": "pantalons",
+        "SHOES": "chaussures",
+        "CHILDREN_STUDIES": "kits scolaires",
+        "MEDICINE": "kits de médicaments"
+      }
     }
   },
   "merchantSignup": {

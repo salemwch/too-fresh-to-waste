@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { CommonModule } from '../common/common.module';
+import { Order, OrderSchema } from '../orders/schemas/order.schema';
 
 import { DonationsAdminController } from './donations-admin.controller';
 import { DonationsController } from './donations.controller';
@@ -28,6 +29,7 @@ import { UserDonation, UserDonationSchema } from './schemas/user-donation.schema
       { name: DonationPoolSnapshot.name, schema: DonationPoolSnapshotSchema },
       { name: UserDonation.name, schema: UserDonationSchema },
       { name: PoolContributor.name, schema: PoolContributorSchema },
+      { name: Order.name, schema: OrderSchema },
     ]),
     BullModule.registerQueue({
       name: 'donations',

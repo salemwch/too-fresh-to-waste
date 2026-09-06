@@ -22,8 +22,14 @@ export class OrderCompletedEvent {
       isFirstOrder?: boolean;
       paymentMethod?: string;
     },
-    /** Bag price before delivery fee — used for charity calculation (5% of platform cut) */
+    /** Bag price before delivery fee - used for charity calculation (5% of platform cut) */
     public readonly subtotalAmount: number = totalAmount,
+    /**
+     * Optional on purpose. Messages serialized before this field existed are
+     * still in the queue across a deploy; the donation listener falls back to an
+     * order lookup rather than rejecting them.
+     */
+    public readonly establishmentId?: string,
   ) {}
 }
 

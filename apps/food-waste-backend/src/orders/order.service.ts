@@ -1378,6 +1378,11 @@ export class OrdersService {
               isFirstOrder: false,
             },
             order.pricing?.subtotal || 0,
+            order.establishmentId
+              ? (
+                  (order.establishmentId as { _id?: unknown })._id ?? order.establishmentId
+                ).toString()
+              : undefined,
           ),
         );
         this.appLogger.log(
