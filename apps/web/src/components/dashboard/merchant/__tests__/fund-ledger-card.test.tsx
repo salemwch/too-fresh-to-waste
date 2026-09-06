@@ -7,6 +7,7 @@ jest.mock('@/hooks/use-merchant-dashboard');
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) =>
     values ? `${key}:${JSON.stringify(values)}` : key,
+  useLocale: () => 'en',
 }));
 
 const mockUseFundLedger = useFundLedger as jest.MockedFunction<typeof useFundLedger>;
@@ -91,5 +92,60 @@ describe('FundLedgerCard', () => {
 
     expect(screen.queryByText('categories.TSHIRTS')).not.toBeInTheDocument();
     expect(screen.getByText(/4/)).toBeInTheDocument();
+  });
+
+  it('shows the total number of funded items using itemsLabel', () => {
+    mockState({
+      data: {
+        totalTnd: 47.35,
+        currency: 'TND',
+        contributionCount: 12,
+        items: [
+          { category: 'TSHIRTS', count: 3, amountTnd: 35 },
+          { category: 'MEDICINE', count: 2, amountTnd: 12.35 },
+        ],
+        totalItems: 5,
+        firstContributionAt: '2026-03-01T00:00:00.000Z',
+      },
+    });
+    render(<FundLedgerCard />);
+
+    const itemsTotal = screen.getByTestId('fund-ledger-items-total');
+    expect(within(itemsTotal).getByText('5')).toBeTruthy();
+    expect(within(itemsTotal).getByText('itemsLabel')).toBeTruthy();
+  });
+
+  it('shows the since line with a formatted date when firstContributionAt is set', () => {
+    mockState({
+      data: {
+        totalTnd: 10,
+        currency: 'TND',
+        contributionCount: 3,
+        items: [{ category: 'MEDICINE', count: 1, amountTnd: 10 }],
+        totalItems: 1,
+        firstContributionAt: '2026-03-01T00:00:00.000Z',
+      },
+    });
+    render(<FundLedgerCard />);
+
+    expect(screen.getByTestId('fund-ledger-since')).toBeTruthy();
+    // Never a raw ISO string, regardless of how it is formatted.
+    expect(screen.queryByText(/2026-03-01/)).toBeNull();
+  });
+
+  it('hides the since line when firstContributionAt is null, even with contributions', () => {
+    mockState({
+      data: {
+        totalTnd: 10,
+        currency: 'TND',
+        contributionCount: 3,
+        items: [{ category: 'MEDICINE', count: 1, amountTnd: 10 }],
+        totalItems: 1,
+        firstContributionAt: null,
+      },
+    });
+    render(<FundLedgerCard />);
+
+    expect(screen.queryByTestId('fund-ledger-since')).toBeNull();
   });
 });

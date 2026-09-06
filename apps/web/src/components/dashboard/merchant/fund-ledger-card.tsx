@@ -1,12 +1,14 @@
 'use client';
 
 import { HeartHandshake } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 import { useFundLedger } from '@/hooks/use-merchant-dashboard';
+import { formatMonthYear } from '@/lib/format';
 
 export function FundLedgerCard() {
   const t = useTranslations('dashboard.fundLedger');
+  const locale = useLocale();
   const { data, isLoading, isError } = useFundLedger();
 
   if (isLoading) {
@@ -30,7 +32,7 @@ export function FundLedgerCard() {
     return (
       <div className='glass rounded-2xl shadow-soft p-lg flex flex-col items-center text-center gap-sm'>
         <HeartHandshake size={32} className='text-primary-500/40' />
-        <h3 className='font-display text-md text-primary-500'>{t('empty')}</h3>
+        <h3 className='font-heading text-md text-primary-500'>{t('empty')}</h3>
         <p className='text-xs text-primary-500/65 max-w-xs'>{t('emptyHint')}</p>
       </div>
     );
@@ -39,6 +41,9 @@ export function FundLedgerCard() {
   // A category that funded money but no whole item is carried by the TND total.
   // Rendering "0 school kits" reads as failure for a real contribution.
   const fundedItems = data.items.filter(item => item.count > 0);
+  // null when firstContributionAt is null/unparseable — never prints "since null"
+  // or a raw ISO string.
+  const sinceDate = formatMonthYear(locale, data.firstContributionAt);
 
   return (
     <div className='glass rounded-2xl shadow-soft p-lg'>
@@ -47,30 +52,41 @@ export function FundLedgerCard() {
           <HeartHandshake size={18} />
         </div>
         <div className='min-w-0'>
-          <div className='font-display text-lg text-primary-500 leading-tight'>{t('title')}</div>
+          <div className='font-heading text-lg text-primary-500 leading-tight'>{t('title')}</div>
           <p className='text-xs text-primary-500/65 mt-xxs'>{t('subtitle')}</p>
         </div>
       </div>
 
       <div className='flex items-baseline gap-xs'>
-        <span className='font-display text-4xl text-primary-500 tracking-tight'>
+        <span className='font-heading text-4xl text-primary-500 tracking-tight'>
           {data.totalTnd.toFixed(3)}
         </span>
         <span className='text-sm text-primary-500/60 font-medium'>{data.currency}</span>
       </div>
       <p className='text-xs text-primary-500/50 mt-xxs'>{t('totalLabel')}</p>
+      {sinceDate && (
+        <p data-testid='fund-ledger-since' className='text-xs text-primary-500/50 mt-xxs'>
+          {t('since', { date: sinceDate })}
+        </p>
+      )}
 
       {fundedItems.length > 0 && (
-        <ul className='mt-md flex flex-wrap gap-sm'>
-          {fundedItems.map(item => (
-            <li
-              key={item.category}
-              className='rounded-full bg-primary-500/[0.06] px-md py-xs text-xs text-primary-500'
-            >
-              <span className='font-semibold'>{item.count}</span> {t(`categories.${item.category}`)}
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className='mt-md flex flex-wrap gap-sm'>
+            {fundedItems.map(item => (
+              <li
+                key={item.category}
+                className='rounded-full bg-primary-500/[0.06] px-md py-xs text-xs text-primary-500'
+              >
+                <span className='font-semibold'>{item.count}</span>{' '}
+                {t(`categories.${item.category}`)}
+              </li>
+            ))}
+          </ul>
+          <p data-testid='fund-ledger-items-total' className='text-xs text-primary-500/50 mt-xs'>
+            <span className='font-semibold'>{data.totalItems}</span> {t('itemsLabel')}
+          </p>
+        </>
       )}
     </div>
   );
