@@ -115,37 +115,28 @@ describe('FundLedgerCard', () => {
     expect(within(itemsTotal).getByText('itemsLabel')).toBeTruthy();
   });
 
-  it('shows the since line with a formatted date when firstContributionAt is set', () => {
-    mockState({
-      data: {
-        totalTnd: 10,
-        currency: 'TND',
-        contributionCount: 3,
-        items: [{ category: 'MEDICINE', count: 1, amountTnd: 10 }],
-        totalItems: 1,
-        firstContributionAt: '2026-03-01T00:00:00.000Z',
-      },
-    });
-    render(<FundLedgerCard />);
+  it('shows the since line only when firstContributionAt is present', () => {
+    // A single component instance driven through both states via rerender,
+    // so the assertion depends on the guard actually tracking its input -
+    // two separate tests each asserting one state cannot tell "the guard
+    // is wired correctly" apart from "the feature was never built", since
+    // a hardcoded default satisfies whichever single assertion it matches.
+    const base = {
+      totalTnd: 10,
+      currency: 'TND' as const,
+      contributionCount: 3,
+      items: [{ category: 'MEDICINE' as const, count: 1, amountTnd: 10 }],
+      totalItems: 1,
+    };
 
+    mockState({ data: { ...base, firstContributionAt: null } });
+    const { rerender } = render(<FundLedgerCard />);
+    expect(screen.queryByTestId('fund-ledger-since')).toBeNull();
+
+    mockState({ data: { ...base, firstContributionAt: '2026-03-01T00:00:00.000Z' } });
+    rerender(<FundLedgerCard />);
     expect(screen.getByTestId('fund-ledger-since')).toBeTruthy();
     // Never a raw ISO string, regardless of how it is formatted.
     expect(screen.queryByText(/2026-03-01/)).toBeNull();
-  });
-
-  it('hides the since line when firstContributionAt is null, even with contributions', () => {
-    mockState({
-      data: {
-        totalTnd: 10,
-        currency: 'TND',
-        contributionCount: 3,
-        items: [{ category: 'MEDICINE', count: 1, amountTnd: 10 }],
-        totalItems: 1,
-        firstContributionAt: null,
-      },
-    });
-    render(<FundLedgerCard />);
-
-    expect(screen.queryByTestId('fund-ledger-since')).toBeNull();
   });
 });
