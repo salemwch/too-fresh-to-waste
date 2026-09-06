@@ -33,9 +33,18 @@ describe('toFundedItems', () => {
     expect(toFundedItems({})).toEqual([]);
   });
 
-  it('ignores a category that is not in the price table', () => {
-    // Defensive: a goal category added to the enum but not priced would
-    // otherwise divide by undefined and emit NaN onto a public page.
+  it('ignores a key that is not a goal category at all', () => {
+    // What this actually exercises: the `amountTnd === undefined` early
+    // return. `toFundedItems` iterates GOAL_SEQUENCE, so a key outside that
+    // sequence is never read and simply drops out.
+    //
+    // It does NOT reach the `!price || price <= 0` guard below it. That guard
+    // is unreachable by construction: DEFAULT_CATEGORY_PRICES is typed
+    // Record<DonationGoalCategory, ...> with all five categories priced
+    // positive, so every key GOAL_SEQUENCE yields has a price. The guard stays
+    // as a compile-time-unenforceable safety net for a future category added
+    // to the enum and the sequence but not to the price table; nothing here
+    // covers it.
     const items = toFundedItems({ NOT_A_GOAL: 50 } as Record<string, number>);
 
     expect(items).toEqual([]);
@@ -53,9 +62,17 @@ describe('toFundedItems', () => {
     ]);
   });
 
-  it('handles the pre-backfill category being absent', () => {
+  it('emits no item for the pre-backfill null category key', () => {
     // Donations written before goalCategoryAtContribution existed group under
-    // a null key. They contribute TND but no item breakdown.
+    // a null _id, which stringifies to the key "null". They contribute TND
+    // (accumulateFundLedgerRows adds them to totalTnd) but no item breakdown.
+    //
+    // Same path as the test above: "null" is not in GOAL_SEQUENCE, so this
+    // exercises the `amountTnd === undefined` early return, not the
+    // `!price || price <= 0` guard. Kept as a separate case because the cause
+    // is different - a real production data shape rather than a bad key - and
+    // a regression that started emitting an item for it would be a visible
+    // bug on the card.
     const items = toFundedItems({ null: 40 } as Record<string, number>);
 
     expect(items).toEqual([]);
@@ -152,6 +169,42 @@ describe('accumulateFundLedgerRows', () => {
     const result = accumulateFundLedgerRows(rows);
 
     expect(result.firstContributionAt).toBe(new Date('2026-01-10T00:00:00.000Z').toISOString());
+  });
+
+  it('keeps an earlier date when a later row carries a null first', () => {
+    // `$min` returns null for a group whose documents all lack contributedAt,
+    // so `first` is genuinely nullable however the schema declares it. The
+    // null row is deliberately second: dropping the `row.first &&` guard makes
+    // `null < <a Date>` coerce to `0 < <ms>` = true, which overwrites the real
+    // earliest date with null and the card silently loses its "since" line.
+    const rows: FundLedgerAggregationRow[] = [
+      row({
+        _id: DonationGoalCategory.TSHIRTS,
+        amount: 20,
+        count: 1,
+        first: new Date('2026-02-01T00:00:00.000Z'),
+      }),
+      row({ _id: null, amount: 5, count: 1, first: null }),
+    ];
+
+    const result = accumulateFundLedgerRows(rows);
+
+    expect(result.firstContributionAt).toBe(new Date('2026-02-01T00:00:00.000Z').toISOString());
+    // The null-first row's money is still counted - only its date is skipped.
+    expect(result.totalTnd).toBe(25);
+    expect(result.contributionCount).toBe(2);
+  });
+
+  it('reports a null firstContributionAt when every row has a null first', () => {
+    const rows: FundLedgerAggregationRow[] = [
+      row({ _id: null, amount: 5, count: 1, first: null }),
+      row({ _id: DonationGoalCategory.MEDICINE, amount: 10, count: 1, first: null }),
+    ];
+
+    const result = accumulateFundLedgerRows(rows);
+
+    expect(result.firstContributionAt).toBeNull();
+    expect(result.totalTnd).toBe(15);
   });
 
   it('sets totalItems to the sum of the item counts, not the raw contribution count', () => {

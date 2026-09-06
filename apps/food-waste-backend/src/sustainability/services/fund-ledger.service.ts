@@ -40,7 +40,15 @@ export interface FundLedgerAggregationRow {
   _id: string | null;
   amount: number;
   count: number;
-  first: Date;
+  /**
+   * Nullable on purpose. `$min` returns `null` when every document in the
+   * group is missing `contributedAt`, and `required: true` on the schema is a
+   * write validator that does nothing for documents already stored - a
+   * donation written before the field existed still hydrates without it. The
+   * `row.first &&` guard in {@link accumulateFundLedgerRows} is load-bearing,
+   * not dead code.
+   */
+  first: Date | null;
 }
 
 /**
