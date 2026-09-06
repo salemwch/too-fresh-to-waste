@@ -60,6 +60,20 @@ export class UserDonation {
    * The goal the pool was funding at the moment of contribution. Captured here
    * because DonationPool.activeGoalCategory rotates in place - reading it later
    * returns today's goal, not the one this money went to.
+   *
+   * Known approximation, deliberately accepted. When a contribution tips the
+   * pool past its target, `donations.service.ts` cascades the overflow into
+   * the next goal category, but this field books the whole amount under the
+   * category that was active at write time. The split donation is therefore
+   * over-attributed to the outgoing goal and under-attributed to the incoming
+   * one.
+   *
+   * The error is bounded to one donation per rotation, and a single donation
+   * is `subtotal * 0.19 * 0.05` - well under a TND. Splitting the field into
+   * per-category amounts would double the write and complicate every read of
+   * the ledger to correct a rounding-scale figure that no merchant-facing
+   * number exposes. Revisit only if the ledger ever has to reconcile against
+   * per-goal pool totals to the millime.
    */
   @Prop({ type: String, enum: DonationGoalCategory })
   goalCategoryAtContribution?: DonationGoalCategory;

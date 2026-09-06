@@ -29,6 +29,27 @@ type OrderEstablishmentLookup = (
 ) => Promise<{ establishmentId?: Types.ObjectId } | null>;
 
 /**
+ * The ids on `OrderCompletedEvent` that `createDonation` turns into
+ * `Types.ObjectId` and that the schema marks required. Every one of them
+ * arrives on an unvalidated RabbitMQ payload.
+ */
+export const REQUIRED_DONATION_ID_FIELDS = ['userId', 'orderId', 'merchantId'] as const;
+
+export type RequiredDonationIdField = (typeof REQUIRED_DONATION_ID_FIELDS)[number];
+
+/**
+ * Which required ids on the event are not valid ObjectIds.
+ *
+ * Exported so the branch is testable without a broker or a database. An empty
+ * array means the event is safe to turn into a donation.
+ */
+export function findInvalidDonationIds(
+  event: Pick<OrderCompletedEvent, RequiredDonationIdField>,
+): RequiredDonationIdField[] {
+  return REQUIRED_DONATION_ID_FIELDS.filter(field => !Types.ObjectId.isValid(event[field]));
+}
+
+/**
  * The event gained establishmentId in the release that added merchant
  * attribution. Messages already in the RabbitMQ queue at deploy time do not
  * carry it, so fall back to one order read. Never throw: a donation that cannot
@@ -115,12 +136,39 @@ export class OrderEventsListener {
     try {
       this.logger.log(`Processing order.completed event for donations: ${event.orderId}`);
 
-      // Charity is 5% of platform's 19% food commission — calculated from subtotal only, not delivery fee
+      // Charity is 5% of platform's 19% food commission - calculated from subtotal only, not delivery fee
       const donationAmount = parseFloat(
         (event.subtotalAmount * PLATFORM_FOOD_SHARE * DONATION_RATE_OF_COMMISSION).toFixed(3),
       );
 
       if (donationAmount > 0) {
+        /*
+         * `event` is a plainToClass copy of an untrusted RabbitMQ payload with
+         * no runtime validation, so merchantId can be present but malformed.
+         * Constructing `new Types.ObjectId(...)` off it throws into the catch
+         * below, which swallows the error - losing the entire donation, not
+         * just its attribution. Writing one with a bogus merchant is worse
+         * still: the money would be attributed to nobody and would never
+         * appear on any ledger, while looking successful in the logs.
+         *
+         * Refuse instead, and log at error level so the gap is visible. This
+         * is the same guard `resolveEstablishmentId` applies to the optional
+         * establishmentId; the required ids had the worse consequence and
+         * were the unguarded ones left in this function. All three required
+         * ids are checked, not merchantId alone - userId and orderId reach
+         * `new Types.ObjectId(...)` on the same unvalidated payload, in the
+         * same expression, with the same swallowed failure.
+         */
+        const invalidIds = findInvalidDonationIds(event);
+        if (invalidIds.length > 0) {
+          this.logger.error(
+            `Skipping donation for order ${event.orderId}: ${invalidIds
+              .map(field => `${field}="${String(event[field])}"`)
+              .join(', ')} not a valid ObjectId, so the contribution cannot be attributed`,
+          );
+          return;
+        }
+
         const establishmentId = await resolveEstablishmentId(
           event.orderId,
           event.establishmentId,
