@@ -55,15 +55,15 @@ import { ThemeProvider } from '@/design-system/providers';
  * standard iPhone 14 / Pixel 7 class
  * large    iPhone 15 Pro Max class
  */
-export const DEVICES = {
+const DEVICES = {
   small: { width: 320, height: 568 },
   standard: { width: 390, height: 844 },
   large: { width: 430, height: 932 },
 } as const;
 
-export type DeviceName = keyof typeof DEVICES;
-export type ThemeName = 'light' | 'dark';
-export type LocaleName = 'en' | 'fr' | 'ar';
+type DeviceName = keyof typeof DEVICES;
+type ThemeName = 'light' | 'dark';
+type LocaleName = 'en' | 'fr' | 'ar';
 
 export interface MatrixCase {
   device: DeviceName;
@@ -72,7 +72,7 @@ export interface MatrixCase {
 }
 
 /** Each axis exercised once, rather than the full 18-cell cross product. */
-export const DEFAULT_CASES: MatrixCase[] = [
+const DEFAULT_CASES: MatrixCase[] = [
   { device: 'standard', theme: 'light', locale: 'en' },
   { device: 'standard', theme: 'dark', locale: 'en' },
   { device: 'standard', theme: 'light', locale: 'fr' },
@@ -103,7 +103,7 @@ export const FULL_CASES: MatrixCase[] = [
   { device: 'large', theme: 'light', locale: 'en' },
 ];
 
-export const caseName = (c: MatrixCase): string => `${c.device}-${c.theme}-${c.locale}`;
+const caseName = (c: MatrixCase): string => `${c.device}-${c.theme}-${c.locale}`;
 
 /* ------------------------------------------------------- style capture ---- */
 
@@ -202,7 +202,7 @@ const trackedStyle = (style: unknown): StyleRecord | null => {
  * carried tracked style - otherwise skipping an unstyled wrapper would silently
  * renumber everything after it.
  */
-export function captureStyles(tree: unknown): Record<string, StyleRecord> {
+function captureStyles(tree: unknown): Record<string, StyleRecord> {
   const found: Record<string, StyleRecord> = {};
 
   const put = (key: string, style: StyleRecord): void => {
@@ -277,7 +277,7 @@ export const FROZEN_NOW = new Date('2026-01-15T10:30:00.000Z');
 let restoreDimensions: (() => void) | null = null;
 
 /** Apply one matrix cell. Returns a teardown that restores the real globals. */
-export function applyCase(c: MatrixCase): () => void {
+function applyCase(c: MatrixCase): () => void {
   const size = DEVICES[c.device];
   const realGet = Dimensions.get.bind(Dimensions);
   const realRTL = I18nManager.isRTL;
@@ -306,7 +306,7 @@ export function applyCase(c: MatrixCase): () => void {
  * The theme is forced rather than inferred, so a run does not depend on the
  * host machine's appearance setting.
  */
-export function renderCase(ui: React.ReactElement, c: MatrixCase) {
+function renderCase(ui: React.ReactElement, c: MatrixCase) {
   const teardown = applyCase(c);
   // Frozen here rather than in each spec's beforeAll: a determinism guarantee
   // you have to remember to opt into is one that eventually gets forgotten, and

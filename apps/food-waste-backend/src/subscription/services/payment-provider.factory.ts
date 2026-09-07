@@ -4,8 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { KonnectService } from './konnect.service';
 import { StubPaymentService } from './stub-payment.service';
 
-export const PAYMENT_PROVIDER_ENV = 'PAYMENT_PROVIDER';
-export const STUB_PAYMENT_PROVIDER = 'stub';
+const PAYMENT_PROVIDER_ENV = 'PAYMENT_PROVIDER';
+const STUB_PAYMENT_PROVIDER = 'stub';
 
 /**
  * Thrown at bootstrap, not at request time, when the stub is configured in a

@@ -18,7 +18,7 @@ export interface LocalizedText {
   ar: string;
 }
 
-export interface CityFaq {
+interface CityFaq {
   question: LocalizedText;
   answer: LocalizedText;
 }

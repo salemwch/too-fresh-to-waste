@@ -71,6 +71,6 @@ export function WalletBalanceCard() {
   );
 }
 
-export function WalletBalanceCardSkeleton() {
+function WalletBalanceCardSkeleton() {
   return <div className='glass rounded-2xl p-lg shadow-soft h-[132px] animate-pulse bg-white/30' />;
 }

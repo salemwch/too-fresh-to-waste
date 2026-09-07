@@ -73,8 +73,6 @@ export interface SeedableStore {
   subscribe: (listener: () => void) => () => void;
 }
 
-export type DevLocationOutcome = 'blocked' | 'seeded' | 'already-set' | 'waiting-for-rehydration';
-
 /**
  * Seeds a manual location once the store has rehydrated.
  *

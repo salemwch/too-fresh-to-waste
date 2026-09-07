@@ -19,7 +19,7 @@ const iso = (offsetMinutes: number): string =>
   new Date(FROZEN_NOW.getTime() + offsetMinutes * 60_000).toISOString();
 
 /** Avenue Habib Bourguiba, Tunis - GeoJSON order is [lng, lat]. */
-export const ESTABLISHMENT_LNG_LAT: [number, number] = [10.1817, 36.8008];
+const ESTABLISHMENT_LNG_LAT: [number, number] = [10.1817, 36.8008];
 
 export const makeOffer = (overrides: Partial<Offer> = {}): Offer =>
   ({

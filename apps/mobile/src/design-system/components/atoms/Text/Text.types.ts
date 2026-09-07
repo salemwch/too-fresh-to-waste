@@ -8,7 +8,7 @@ import type { StyleProp, TextProps as RNTextProps, TextStyle } from 'react-nativ
 /**
  * Semantic text colours, resolved against the active theme by `Text`.
  */
-export type TextColorName = 'primary' | 'secondary' | 'error' | 'warning' | 'success' | 'white';
+type TextColorName = 'primary' | 'secondary' | 'error' | 'warning' | 'success' | 'white';
 
 export interface TextProps
   extends

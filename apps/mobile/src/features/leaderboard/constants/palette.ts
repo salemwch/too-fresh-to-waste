@@ -27,15 +27,10 @@ export const PRIMARY = primary[500];
 // ── Gold accent ──
 export const CHAMPION_GOLD = '#c4a25a';
 
-export const GOLD_04 = withAlpha(CHAMPION_GOLD, 0.04);
 export const GOLD_06 = withAlpha(CHAMPION_GOLD, 0.06);
 export const GOLD_10 = withAlpha(CHAMPION_GOLD, 0.1);
 export const GOLD_15 = withAlpha(CHAMPION_GOLD, 0.15);
-/** Podium: medal ring, champion points, top-3 points. */
-export const GOLD_35 = withAlpha(CHAMPION_GOLD, 0.35);
 export const GOLD_45 = withAlpha(CHAMPION_GOLD, 0.45);
-export const GOLD_60 = withAlpha(CHAMPION_GOLD, 0.6);
-export const GOLD_80 = withAlpha(CHAMPION_GOLD, 0.8);
 /** Gold dark enough to pass AA as text on the cream ground (5.1:1). */
 export const GOLD_INK = '#9A7B36';
 
@@ -63,13 +58,6 @@ export const BG_PODIUM_FIRST = '#EFE6D3';
 
 // ── Cards on the cream ground ──
 export const SURFACE = neutral[0];
-/**
- * Light-surface card edge. Deliberately a new export rather than a change to
- * BORDER_CARD: that one is a white tint meant for the dark ground, it is still
- * used there, and `__tests__/paletteParity.test.ts` pins it so an accidental
- * colour shift cannot pass unnoticed. Redefining it would have made that guard
- * fail for a reason it was never written to catch.
- */
 export const BORDER_CARD_LIGHT = withAlpha(primary[500], 0.08);
 export const BORDER_MINT = withAlpha(success[500], 0.16);
 export const BORDER_SUBTLE = neutral[100];
@@ -80,23 +68,15 @@ export const DIVIDER = '#E4E7E7';
 export const BG_DARK = '#0a1e20';
 export const HERO_FROM = '#20494B';
 export const HERO_TO = '#173A3C';
-export const WHITE_04 = withAlpha(neutral[0], 0.04);
-export const WHITE_08 = withAlpha(neutral[0], 0.08);
-export const WHITE_10 = withAlpha(neutral[0], 0.1);
-export const WHITE_12 = withAlpha(neutral[0], 0.12);
-/** Header info button — lighter than the card tints so it reads as tappable. */
-export const WHITE_05 = withAlpha(neutral[0], 0.05);
 
 // ── Text on the dark cards ──
 export const TEXT_WHITE = neutral[0];
 export const TEXT_85 = withAlpha(neutral[0], 0.85);
-export const TEXT_60 = withAlpha(neutral[0], 0.6);
 export const TEXT_40 = withAlpha(neutral[0], 0.4);
 export const TEXT_30 = withAlpha(neutral[0], 0.3);
 export const TEXT_25 = withAlpha(neutral[0], 0.25);
 /** Hero subtitle: the mint that reads as "in progress" on the dark ground. */
 export const MINT = success[300];
-export const MINT_PILL = success[100];
 
 // ── Text on the cream ground ──
 export const TEXT_PRIMARY = '#0F2628';
@@ -118,12 +98,3 @@ export const OVERLAY = withAlpha(neutral[1000], 0.45);
 export const HANDLE_GREY = '#E8EEEF';
 /** Discount tier chip — a green tint with no counterpart in the token scale. */
 export const DISCOUNT_TINT = '#F0FDF4';
-
-// ── Dark-ground values, still in use ──
-// The hero card and the closing banner keep the dark surface, so these stay.
-// They are also pinned by __tests__/paletteParity.test.ts.
-export const BG_CARD = withAlpha(neutral[0], 0.02);
-export const BG_CARD_TOP5 = withAlpha(CHAMPION_GOLD, 0.02);
-export const BORDER_CARD = withAlpha(neutral[0], 0.035);
-export const BORDER_CARD_TOP5 = withAlpha(CHAMPION_GOLD, 0.06);
-export const BORDER_GOLD = withAlpha(CHAMPION_GOLD, 0.3);

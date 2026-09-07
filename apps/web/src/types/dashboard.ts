@@ -486,7 +486,7 @@ export interface DonationStats {
 // ─── Fund Ledger ─────────────────────────────────────────────────────────────
 // Reuses DonationGoalCategory from the Donation Pool section above.
 
-export interface FundedItem {
+interface FundedItem {
   category: DonationGoalCategory;
   count: number;
   amountTnd: number;

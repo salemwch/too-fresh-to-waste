@@ -75,6 +75,8 @@ const config: KnipConfig = {
         'src/services/NotificationService.ts',
         'src/utils/offlineManager.ts',
         'src/utils/nativeModuleLogger.ts',
+        // index.js loads this via dynamic require() inside a __DEV__ guard.
+        'src/dev/devSession.ts',
       ],
       project: ['src/**/*.{ts,tsx}'],
       jest: {
@@ -113,6 +115,9 @@ const config: KnipConfig = {
         // THIS workspace at runtime, so the devDependency is required here — but
         // knip cannot follow a string literal across a workspace boundary.
         'jest-environment-jsdom',
+        // Side-effect import in jest.setup.ts (`import '@testing-library/jest-dom'`)
+        // augments Jest's expect with DOM matchers. Knip cannot trace bare imports.
+        '@testing-library/jest-dom',
       ],
     },
 

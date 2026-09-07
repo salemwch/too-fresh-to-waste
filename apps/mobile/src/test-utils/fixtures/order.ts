@@ -19,7 +19,7 @@ import { FROZEN_NOW } from '../visualMatrix';
 import type { Order } from '@foodwaste/shared';
 
 /** The frozen day, as the `YYYY-MM-DD` the pickup fields use. */
-export const FROZEN_DAY = FROZEN_NOW.toISOString().slice(0, 10);
+const FROZEN_DAY = FROZEN_NOW.toISOString().slice(0, 10);
 
 /**
  * A paid, confirmed pickup order whose window is currently **open** - the frozen
@@ -78,28 +78,3 @@ export const makeOrder = (overrides: Partial<Order> = {}): Order =>
     updatedAt: `${FROZEN_DAY}T08:05:00.000Z`,
     ...overrides,
   }) as Order;
-
-/**
- * A delivery order in the driver chain.
- *
- * The two chains are separate state machines (CLAUDE.md), and the driver screens
- * only ever see this one - so the driver baselines are built from this rather
- * than from `makeOrder`, which would put them in a pickup state they can never
- * actually be in.
- */
-export const makeDeliveryOrder = (overrides: Partial<Order> = {}): Order =>
-  makeOrder({
-    _id: 'order-fixture-delivery',
-    orderNumber: 'ORD-5507',
-    status: OrderStatus.DRIVER_ASSIGNED,
-    deliveryMode: 'delivery',
-    pricing: {
-      subtotal: 12,
-      discountAmount: 12,
-      taxAmount: 0,
-      deliveryFee: 4,
-      total: 16,
-      currency: 'TND',
-    },
-    ...overrides,
-  });

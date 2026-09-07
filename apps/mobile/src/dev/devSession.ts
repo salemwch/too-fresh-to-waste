@@ -120,7 +120,7 @@ const DEV_ACCESS_TOKEN = 'eyJhbGciOiJub25lIn0.eyJzdWIiOiJkZXYtZml4dHVyZSJ9.not-a
 const DEV_REFRESH_TOKEN =
   'eyJhbGciOiJub25lIn0.eyJzdWIiOiJkZXYtZml4dHVyZS1yZWZyZXNoIn0.not-a-real-signature';
 
-export interface DevSessionResult {
+interface DevSessionResult {
   seeded: boolean;
   reason: string;
 }

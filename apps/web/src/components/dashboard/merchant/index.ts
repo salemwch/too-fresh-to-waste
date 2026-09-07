@@ -11,4 +11,4 @@ export { ReportingBar } from './reporting-bar';
 export { StreakWidget } from './streak-widget';
 export { FundLedgerCard } from './fund-ledger-card';
 export { SmartPricingPanel } from './smart-pricing-panel';
-export { WalletBalanceCard, WalletBalanceCardSkeleton } from './wallet-balance-card';
+export { WalletBalanceCard } from './wallet-balance-card';
