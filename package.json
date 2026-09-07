@@ -60,9 +60,6 @@
     "security:sast:ci": "semgrep --config=.semgrep/rules.yml --config=p/owasp-top-ten --config=p/jwt --config=p/nodejs --config=p/react --config=p/secrets --exclude=node_modules --exclude=dist --exclude=.next --exclude=android --exclude=ios --exclude=pnpm-lock.yaml --json apps/ packages/",
     "prepare-release": "turbo run build test:ci security:check && pnpm audit"
   },
-  "dependencies": {
-    "tslib": "^2.8.1"
-  },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
