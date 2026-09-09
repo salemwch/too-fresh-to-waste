@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 scope: cross-app
 gate:
   pnpm lint && pnpm type-check && pnpm test && pnpm --filter @foodwaste/web
