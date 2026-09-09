@@ -1,5 +1,26 @@
 import type { KnipConfig } from 'knip';
 
+/*
+ * tslib is invisible to knip by construction, and removing it takes production
+ * down. packages/tsconfig/base.json sets `"importHelpers": true`, which every
+ * workspace inherits, so tsc injects `require("tslib")` at EMIT time. Knip
+ * reads source, where nothing ever writes that import - so it reports the
+ * dependency as unused and is wrong every single time.
+ *
+ * This is not hypothetical. 5e9d4ad deleted it on exactly that advice and
+ * broke the Render build (TS2354, "module 'tslib' cannot be found"), fixed in
+ * 349cca26. It stayed green locally because tslib was still reachable through
+ * a dev-only chain ending in @unrs/resolver-binding-wasm32-wasi - an optional,
+ * platform-specific binary that installs on Windows and not on Alpine.
+ *
+ * Both packages/shared/dist and apps/food-waste-backend/dist carry the runtime
+ * require, so this is a production dependency, not a build-time one.
+ *
+ * Re-check only if `importHelpers` is turned off in packages/tsconfig/base.json.
+ * Until then, a report of "tslib is unused" is a knip limitation, not a finding.
+ */
+const TSLIB_IGNORE = 'tslib';
+
 const config: KnipConfig = {
   // ─── Binaries available via devDependencies but unresolvable in pnpm
   // hoisted monorepo, or installed globally / via npx on CI/servers.
@@ -8,6 +29,14 @@ const config: KnipConfig = {
   // satisfied, and recognises the second as a system binary. Re-adding them
   // only produces a "remove from ignoreBinaries" hint.
   ignoreBinaries: ['pm2', 'dot', 'gradlew', 'pod', 'fastlane', 'semgrep'],
+
+  /*
+   * Reported against packages/tsconfig/base.json, the file that turns
+   * importHelpers on. That package ships JSON presets and has no node_modules,
+   * so there is nothing there to resolve against - the consuming workspaces are
+   * where tslib is actually declared. See the note above TSLIB_IGNORE.
+   */
+  ignoreUnresolved: [TSLIB_IGNORE],
 
   ignoreDependencies: [
     '@react-native/eslint-config',
@@ -55,6 +84,7 @@ const config: KnipConfig = {
         'src/seeds/**/*.ts',
       ],
       project: ['src/**/*.ts'],
+      ignoreDependencies: [TSLIB_IGNORE],
       jest: {
         config: ['jest.config.js'],
         entry: ['src/**/*.spec.ts', 'src/**/*.test.ts', 'test/**/*.ts'],
@@ -129,6 +159,7 @@ const config: KnipConfig = {
       // false "unused file" positives.
       entry: ['src/**/*.ts'],
       project: ['src/**/*.ts'],
+      ignoreDependencies: [TSLIB_IGNORE],
     },
 
     // ─── UI package (library — consumed by web) ──────────────────────────

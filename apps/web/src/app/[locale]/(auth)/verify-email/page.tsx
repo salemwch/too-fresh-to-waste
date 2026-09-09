@@ -128,7 +128,7 @@ function VerifyEmailInner() {
           </Link>
 
           <div className='flex max-w-xl flex-1 flex-col justify-center'>
-            <span className='mb-xs inline-block w-fit rounded-full bg-white/15 px-md py-xs text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-lg sm:px-xl sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
+            <span className='mb-xs inline-block w-fit rounded-full bg-white/15 px-md py-xs text-xs font-semibold uppercase tracking-[0.2em] text-white/80 sm:mb-lg sm:px-xl sm:py-1.5 sm:text-[10px] sm:tracking-[0.25em]'>
               {tHero('heroBadge')}
             </span>
             <h1
@@ -140,7 +140,7 @@ function VerifyEmailInner() {
             <p className='mb-xs text-xs leading-snug text-white/75 sm:mb-lg sm:text-sm sm:leading-relaxed lg:mb-2xl lg:text-lg'>
               {tHero('heroTitleAccent')}
             </p>
-            <p className='hidden text-white/60 sm:block sm:text-xs lg:text-base'>
+            <p className='hidden text-white/75 sm:block sm:text-xs lg:text-base'>
               {tHero('heroDescription')}
             </p>
           </div>
@@ -160,7 +160,7 @@ function VerifyEmailInner() {
                     >
                       {stat.value}
                     </div>
-                    <div className='truncate text-[9px] text-white/60 sm:text-[10px] lg:text-xs'>
+                    <div className='truncate text-xs text-white/75 sm:text-[10px] lg:text-xs'>
                       {stat.label}
                     </div>
                   </div>
@@ -172,7 +172,7 @@ function VerifyEmailInner() {
               <p className='text-[10px] italic leading-relaxed text-white/70 sm:text-xs lg:text-sm'>
                 &ldquo;{tHero('testimonialQuote')}&rdquo;
               </p>
-              <p className='mt-xs text-[9px] font-medium text-white/50 sm:text-[10px] lg:text-xs'>
+              <p className='mt-xs text-xs font-medium text-white/75 sm:text-[10px] lg:text-xs'>
                 {tHero('testimonialAuthor')}
               </p>
             </div>

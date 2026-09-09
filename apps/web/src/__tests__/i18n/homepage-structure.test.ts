@@ -27,7 +27,7 @@ const LOCALES = [
 type Messages = {
   hero: Record<string, unknown>;
   section2: Record<string, unknown>;
-  section3: { benefits: Record<string, string> };
+  section3: { benefits: Record<string, Record<string, string>> };
   section4: { slides: Record<string, { title: string; description: string }> };
   section5: Record<string, unknown>;
   audienceSplit: Record<string, unknown>;
@@ -98,8 +98,20 @@ describe('homepage copy across locales', () => {
     // "GET REWARDS BY REDEEM YOUR POINT" shipped in the largest type on its
     // section. A grammar checker is out of scope, but the specific shape that
     // broke - a preposition followed by a bare verb - is worth pinning.
+    // Each benefit is now a { chip, title, body } object rather than a bare
+    // string, so walk to the string leaves. Reading `Object.values` one level
+    // deep would hand `toMatch` an object and throw rather than assert.
+    const strings = (value: unknown): string[] =>
+      typeof value === 'string'
+        ? [value]
+        : typeof value === 'object' && value !== null
+          ? Object.values(value).flatMap(strings)
+          : [];
+
     for (const [, messages] of LOCALES) {
-      for (const value of Object.values(as(messages).section3.benefits)) {
+      const leaves = strings(as(messages).section3.benefits);
+      expect(leaves.length).toBeGreaterThan(0);
+      for (const value of leaves) {
         expect(value).not.toMatch(/\b(by|to|for)\s+(redeem|get|earn)\b/i);
       }
     }

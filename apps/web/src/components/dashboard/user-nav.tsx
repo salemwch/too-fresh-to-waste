@@ -44,7 +44,7 @@ export function UserNav() {
             <p className='text-[11px] font-medium text-slate-900 leading-tight'>
               {user.firstName} {user.lastName}
             </p>
-            <p className='text-[9px] text-slate-500'>{t('nav.merchant')}</p>
+            <p className='text-xs text-slate-500'>{t('nav.merchant')}</p>
           </div>
           <ChevronDown className='h-3 w-3 text-slate-400 flex-shrink-0' />
         </button>

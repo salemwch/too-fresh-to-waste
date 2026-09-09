@@ -180,7 +180,7 @@ export function DashboardWelcomeHeader({ establishment }: DashboardWelcomeHeader
               <div className='text-[10px] uppercase tracking-wider text-primary-500/60'>Rank</div>
               <div className='text-[13px] font-semibold text-primary-500'>
                 {rank > 0 ? (
-                  <span className='text-brand-coral'>#{rank}</span>
+                  <span className='text-brand-green'>#{rank}</span>
                 ) : (
                   <span className='text-primary-500/40'>—</span>
                 )}

@@ -121,7 +121,7 @@ const HEADER_STATUS_STYLES: Record<string, string> = {
   pending: 'bg-amber-500/20 border border-amber-400/30 text-amber-300',
   suspended: 'bg-red-500/20 border border-red-400/30 text-red-300',
   rejected: 'bg-red-500/20 border border-red-400/30 text-red-300',
-  inactive: 'bg-white/10 border border-white/20 text-white/60',
+  inactive: 'bg-white/10 border border-white/20 text-white/75',
 };
 
 function computeProfileCompletion(est: MyEstablishment): number {
@@ -683,7 +683,7 @@ export default function MerchantEstablishmentPage() {
               <h1 className='text-xl sm:text-2xl font-display font-bold text-white leading-tight truncate'>
                 {establishment.name}
               </h1>
-              <p className='text-xs text-white/60'>{t('description')}</p>
+              <p className='text-xs text-white/75'>{t('description')}</p>
             </div>
           </div>
           {/* Right: action buttons */}

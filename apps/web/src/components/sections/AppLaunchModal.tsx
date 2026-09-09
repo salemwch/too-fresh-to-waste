@@ -11,7 +11,7 @@ export function AppLaunchModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={v => !v && close()}>
-      <DialogContent className='sm:max-w-[380px] p-0 gap-0 overflow-hidden rounded-3xl border-0 shadow-2xl [&>button]:top-lg [&>button]:right-lg [&>button]:text-white/50 [&>button]:hover:text-white [&>button]:opacity-100'>
+      <DialogContent className='sm:max-w-[380px] p-0 gap-0 overflow-hidden rounded-3xl border-0 shadow-2xl [&>button]:top-lg [&>button]:right-lg [&>button]:text-white/75 [&>button]:hover:text-white [&>button]:opacity-100'>
         <DialogTitle className='sr-only'>{t('title')}</DialogTitle>
 
         <div
@@ -28,7 +28,7 @@ export function AppLaunchModal() {
           >
             {t('heading')}
           </h2>
-          <p className='text-sm text-white/60'>{t('description')}</p>
+          <p className='text-sm text-white/75'>{t('description')}</p>
         </div>
 
         <div className='bg-white px-2xl py-xl'>

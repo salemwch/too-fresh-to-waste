@@ -133,7 +133,7 @@ function AdminAvatar({ firstName, email }: { firstName: string; email: string })
   return (
     <div
       className={cn(
-        'flex size-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white',
+        'flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white',
         emailToColor(email),
       )}
     >

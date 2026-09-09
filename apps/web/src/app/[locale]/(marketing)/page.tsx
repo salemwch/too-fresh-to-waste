@@ -10,7 +10,6 @@ import {
   Section5,
   InfiniteMarquee,
   AudienceSplit,
-  Rewards,
 } from '@/components/sections';
 import { HashScrollHandler } from '@/components/HashScrollHandler';
 import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
@@ -88,11 +87,8 @@ export default async function HomePage({ params }: HomePageProps) {
         {/* Section 3: Why Use Too Fresh To Waste - Animated "Cycle of Good" */}
         <Section3Animated />
 
-        {/* Section 4: How to Use the App & Get Points - Card Carousel */}
+        {/* Section 4: How it works (horizontal scroll) + Points and prizes */}
         <Section4 />
-
-        {/* Points and prizes, which used to be steps 5 and 6 of the journey */}
-        <Rewards />
 
         {/* Section 5: FAQ - Frequently Asked Questions */}
         <Section5 />
@@ -198,7 +194,7 @@ function HeroSection({ locale }: { locale: Locale }) {
           <div className='mt-4xl flex w-full flex-col items-stretch gap-md sm:flex-row sm:justify-center lg:justify-start'>
             <Link
               href='/merchant-signup'
-              className='bg-secondary text-primary-500 hover:bg-white rounded-full px-3xl py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500 transition-all duration-300 hover:scale-105 sm:text-base'
+              className='bg-secondary text-secondary-foreground hover:bg-white rounded-full px-3xl py-3.5 text-center text-sm font-bold tracking-wide whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500 transition-all duration-300 hover:scale-105 sm:text-base'
               aria-label={t('cta.merchant')}
             >
               {t('cta.merchant')}

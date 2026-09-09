@@ -115,13 +115,31 @@
     }
   },
   "section3": {
-    "titleLine1": "CE QUE VOUS Y GAGNEZ",
-    "titleLine2": "À CHAQUE PANIER",
+    "titleLine1": "POURQUOI UTILISER",
+    "titleLine2": "TOO FRESH TO WASTE",
+    "eyebrow": "Quatre raisons, un panier",
+    "bagAlt": "Un panier surprise Too Fresh To Waste, rempli de produits frais",
     "benefits": {
-      "saveMoney": "DE BONS PRODUITS À MOITIÉ PRIX OU MOINS",
-      "earnPoints": "DES ALIMENTS QUI AURAIENT ÉTÉ JETÉS",
-      "getRewards": "DES POINTS À CHAQUE COMMANDE",
-      "helpPlanet": "MOINS DE GASPILLAGE, MOINS DE CARBONE"
+      "saveMoney": {
+        "chip": "-50% OU PLUS",
+        "title": "De bons produits à moitié prix ou moins",
+        "body": "Mêmes produits, même commerce, même jour. Vous arrivez simplement à la fin."
+      },
+      "yourMoney": {
+        "chip": "À PARTIR DE 5 TND",
+        "title": "Économisez et achetez plus pour moins",
+        "body": "Découvrez des paniers surprises remplis de délicieuses nourritures."
+      },
+      "community": {
+        "chip": "5% DE CE QUE NOUS GAGNONS",
+        "title": "Vêtements, école et médicaments",
+        "body": "5% de ce que nous gagnons aide des familles, des enfants et des personnes âgées."
+      },
+      "planet": {
+        "chip": "2,5 KG CO₂e · 190 L D'EAU",
+        "title": "Vous devenez un héros pour la planète",
+        "body": "Jusqu'à un dixième des gaz à effet de serre vient du gaspillage. Pas du vôtre."
+      }
     }
   },
   "dream": {
@@ -3390,7 +3408,7 @@
     },
     "families": {
       "label": "Un enfant a ce qu’il lui faut",
-      "body": "Simplement en sauvant un repas, vous aidez des familles près de chez vous. Nous reversons 5% de ce que nous gagnons sur chaque panier pour offrir l’essentiel : chaussures, fournitures scolaires, médicaments. Aucun don supplémentaire n’est demandé - juste plus d’impact."
+      "body": "Nous reversons 5% de ce que nous gagnons sur chaque panier aux familles près de chez vous : vêtements, fournitures scolaires et médicaments pour les aînés."
     },
     "prize": {
       "label": "Remporter",

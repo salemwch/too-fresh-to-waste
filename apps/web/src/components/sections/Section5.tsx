@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { BedDouble, Bike, Dumbbell, Gift, Smartphone, Ticket } from 'lucide-react';
 import Image from 'next/image';
 
+import { useScrollReveal } from '@/hooks/useScrollReveal';
+
 interface FAQ {
   id: number;
   question: string;
@@ -14,6 +16,7 @@ interface FAQ {
 export default function Section5() {
   const t = useTranslations('section5');
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const sectionRef = useScrollReveal<HTMLElement>();
 
   // FAQ data - using translation keys
   const faqs: FAQ[] = [
@@ -29,6 +32,7 @@ export default function Section5() {
 
   return (
     <section
+      ref={sectionRef}
       id='faq'
       className='bg-brand-cream flex justify-center items-center py-3xl md:py-4xl px-lg relative'
       aria-labelledby='faq-heading'
@@ -37,7 +41,7 @@ export default function Section5() {
         {/* Main Title */}
         <div className='flex flex-col md:flex-row items-start justify-center '>
           {/* Left Side: Image */}
-          <div className='w-full md:w-5/12 flex-shrink-0'>
+          <div className='sr-left w-full md:w-5/12 flex-shrink-0'>
             <div className='w-full md:w-7/12 flex-shrink-0'>
               {' '}
               {/* Increased from 5/12 to 7/12 */}
@@ -55,17 +59,27 @@ export default function Section5() {
           {/* Right Side: FAQ Content */}
           <div className='w-full md:w-7/12'>
             {/* Section Label */}
-            <p className='text-primary-500 text-sm font-semibold uppercase tracking-wide mb-sm'>
+            <p
+              className='sr-right text-primary-500 text-sm font-semibold uppercase tracking-wide mb-sm'
+              style={{ '--sr-delay': '0.2s' } as React.CSSProperties}
+            >
               {t('sectionLabel')}
             </p>
 
             {/* Heading */}
-            <h2 id='faq-heading' className='text-slate-900 text-2xl md:text-3xl font-bold mb-md'>
+            <h2
+              id='faq-heading'
+              className='sr-right text-slate-900 text-2xl md:text-3xl font-bold mb-md'
+              style={{ '--sr-delay': '0.4s' } as React.CSSProperties}
+            >
               {t('title')}
             </h2>
 
             {/* Description */}
-            <p className='text-slate-600 text-sm md:text-base leading-relaxed mb-2xl'>
+            <p
+              className='sr-right text-slate-600 text-base md:text-md leading-relaxed mb-2xl'
+              style={{ '--sr-delay': '0.6s' } as React.CSSProperties}
+            >
               {t('description')}
             </p>
 
@@ -75,7 +89,17 @@ export default function Section5() {
                 const isExpanded = openIndex === index;
 
                 return (
-                  <div key={faq.id} className='border-b border-slate-300'>
+                  /*
+                    sr-up on the row, never on the answer panel: the panel
+                    already animates its own opacity and max-height for the
+                    expand, and a second opacity transition on the same element
+                    would fight it.
+                  */
+                  <div
+                    key={faq.id}
+                    className='sr-up border-b border-slate-300'
+                    style={{ '--sr-delay': `${0.7 + index * 0.15}s` } as React.CSSProperties}
+                  >
                     <h3>
                       <button
                         type='button'

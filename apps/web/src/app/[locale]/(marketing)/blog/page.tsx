@@ -126,13 +126,13 @@ function PostCard({ post, loc }: { post: PostMeta; loc: Locale }) {
             {post.tags.slice(0, 2).map(tag => (
               <span
                 key={tag}
-                className='text-[10px] uppercase tracking-wider text-brand-coral bg-brand-coral/10 px-sm py-xxs rounded-full'
+                className='text-[10px] uppercase tracking-wider text-brand-green bg-brand-coral/10 px-sm py-xxs rounded-full'
               >
                 {tags[tag] ?? tag}
               </span>
             ))}
           </div>
-          <h2 className='font-heading text-xl font-light leading-snug text-brand-deep group-hover:text-brand-coral transition-colors'>
+          <h2 className='font-heading text-xl font-light leading-snug text-brand-deep group-hover:text-brand-green transition-colors'>
             {post.title}
           </h2>
           <p className='mt-md text-sm leading-relaxed text-brand-deep/65 line-clamp-3'>
@@ -175,7 +175,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
           </p>
           <div className='grid gap-4xl md:grid-cols-12'>
             <h1 className='md:col-span-6 font-heading text-6xl font-light leading-[0.92] md:text-7xl'>
-              {ui.headingA} <em className='italic text-brand-coral'>{ui.headingEm}</em>.
+              {ui.headingA} <em className='italic text-brand-green'>{ui.headingEm}</em>.
             </h1>
             <p className='md:col-span-5 md:col-start-8 self-end text-lg leading-relaxed text-brand-deep/65'>
               {ui.lede}
@@ -202,20 +202,20 @@ export default async function BlogPage({ params }: BlogPageProps) {
                   </div>
                 )}
                 <div className='bg-white/60 p-4xl md:p-3xl flex flex-col justify-center'>
-                  <p className='text-[10px] uppercase tracking-wider text-brand-coral mb-lg'>
+                  <p className='text-[10px] uppercase tracking-wider text-brand-green mb-lg'>
                     {ui.latest}
                   </p>
                   <div className='flex flex-wrap gap-1.5 mb-xl'>
                     {featured.tags.slice(0, 3).map(tag => (
                       <span
                         key={tag}
-                        className='text-[10px] uppercase tracking-wider text-brand-coral bg-brand-coral/10 px-sm py-xxs rounded-full'
+                        className='text-[10px] uppercase tracking-wider text-brand-green bg-brand-coral/10 px-sm py-xxs rounded-full'
                       >
                         {tags[tag] ?? tag}
                       </span>
                     ))}
                   </div>
-                  <h2 className='font-heading text-3xl font-light leading-snug md:text-4xl group-hover:text-brand-coral transition-colors'>
+                  <h2 className='font-heading text-3xl font-light leading-snug md:text-4xl group-hover:text-brand-green transition-colors'>
                     {featured.title}
                   </h2>
                   <p className='mt-lg text-sm leading-relaxed text-brand-deep/65 max-w-md'>
@@ -228,7 +228,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
                       {featured.readTime} {ui.minRead}
                     </span>
                   </div>
-                  <span className='mt-2xl inline-flex items-center gap-sm text-sm text-brand-deep group-hover:text-brand-coral transition-colors'>
+                  <span className='mt-2xl inline-flex items-center gap-sm text-sm text-brand-deep group-hover:text-brand-green transition-colors'>
                     {ui.readArticle}{' '}
                     <span className='transition-transform group-hover:translate-x-xs'>→</span>
                   </span>

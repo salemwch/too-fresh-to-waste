@@ -25,7 +25,7 @@ function StatChip({
 }) {
   return (
     <div className='flex flex-col gap-xs'>
-      <span className='flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'>
+      <span className='flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] text-white/75 uppercase'>
         <Icon className='size-3.5 shrink-0' aria-hidden='true' />
         {label}
       </span>
@@ -49,7 +49,7 @@ function StatusPill({ role }: { role: StopRole }) {
       ? 'text-primary-500 border-secondary bg-secondary'
       : role === 'next'
         ? 'text-secondary border-secondary'
-        : 'text-white/40 border-white/25';
+        : 'text-white/75 border-white/25';
 
   return (
     <span
@@ -127,9 +127,9 @@ function Stop({
           aria-hidden='true'
           className={cn(
             'flex h-10 w-10 flex-none items-center justify-center rounded-full border text-[11px] font-bold tabular-nums',
-            isLive && 'border-secondary bg-secondary text-primary-500',
+            isLive && 'border-secondary bg-secondary text-secondary-foreground',
             isNext && 'border-secondary text-secondary bg-transparent',
-            !isLive && !isNext && 'border-white/20 text-white/40',
+            !isLive && !isNext && 'border-white/20 text-white/75',
           )}
         >
           {String(index + 1).padStart(2, '0')}
@@ -164,7 +164,7 @@ function Stop({
         {isNext ? (
           <UnlockMeter zone={zone} />
         ) : (
-          <p className='mt-1.5 text-[11px] text-white/55 tabular-nums'>
+          <p className='mt-1.5 text-[11px] text-white/75 tabular-nums'>
             {hasHistory(zone)
               ? t('liveSummary', { partners: zone.partners, bags: zone.bagsRescued })
               : t('waiting', { count: zone.peopleWaiting })}
@@ -184,7 +184,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
 
   return (
     <aside className='rounded-xl border border-white/15 bg-white/[0.05] p-2xl'>
-      <p className='text-[10px] font-medium tracking-[0.2em] text-white/50 uppercase'>
+      <p className='text-[10px] font-medium tracking-[0.2em] text-white/75 uppercase'>
         {t('panel.eyebrow')}
       </p>
       <h3 className='font-heading mt-sm text-2xl leading-none text-white md:text-3xl'>
@@ -198,7 +198,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
 
       <dl className='mt-xl grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/15 bg-white/10'>
         <div className='bg-primary-500 flex flex-col gap-xs p-md'>
-          <dt className='text-[10px] tracking-[0.15em] text-white/50 uppercase'>
+          <dt className='text-[10px] tracking-[0.15em] text-white/75 uppercase'>
             {t('panel.signed')}
           </dt>
           <dd className='font-heading text-lg leading-none text-white tabular-nums' dir='ltr'>
@@ -208,7 +208,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
           </dd>
         </div>
         <div className='bg-primary-500 flex flex-col gap-xs p-md'>
-          <dt className='text-[10px] tracking-[0.15em] text-white/50 uppercase'>
+          <dt className='text-[10px] tracking-[0.15em] text-white/75 uppercase'>
             {t('panel.waiting')}
           </dt>
           <dd className='font-heading text-lg leading-none text-white tabular-nums' dir='ltr'>
@@ -217,7 +217,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
         </div>
         {zone.foundingTarget > 0 && (
           <div className='bg-primary-500 col-span-2 flex flex-col gap-xs p-md'>
-            <dt className='text-[10px] tracking-[0.15em] text-white/50 uppercase'>
+            <dt className='text-[10px] tracking-[0.15em] text-white/75 uppercase'>
               {t('panel.remaining')}
             </dt>
             <dd className='font-heading text-lg leading-none text-white tabular-nums' dir='ltr'>
@@ -251,12 +251,12 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
             value={email}
             onChange={event => setEmail(event.target.value)}
             placeholder={t('form.emailPlaceholder')}
-            className='focus:border-secondary focus:ring-secondary/40 w-full rounded-full border border-white/20 bg-white/5 px-xl py-md text-sm text-white placeholder:text-white/40 focus:ring-2 focus:outline-none'
+            className='focus:border-secondary focus:ring-secondary/40 w-full rounded-full border border-white/20 bg-white/5 px-xl py-md text-sm text-white placeholder:text-white/75 focus:ring-2 focus:outline-none'
           />
           <button
             type='submit'
             disabled={mutation.isPending}
-            className='bg-secondary text-primary-500 flex items-center justify-center gap-sm rounded-full px-xl py-md text-sm font-bold transition-transform duration-200 hover:scale-[1.02] disabled:opacity-60'
+            className='bg-secondary text-secondary-foreground flex items-center justify-center gap-sm rounded-full px-xl py-md text-sm font-bold transition-transform duration-200 hover:scale-[1.02] disabled:opacity-60'
           >
             {mutation.isPending ? t('form.submitting') : t('form.submit')}
             <ArrowRight className='size-4 shrink-0 rtl:rotate-180' aria-hidden='true' />
@@ -269,7 +269,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
         </form>
       )}
 
-      <p className='mt-lg text-[11px] leading-relaxed text-white/45'>{t('panel.fine')}</p>
+      <p className='mt-lg text-[11px] leading-relaxed text-white/75'>{t('panel.fine')}</p>
     </aside>
   );
 }
@@ -319,7 +319,7 @@ export default function RolloutMap() {
       <div className='mx-auto flex max-w-6xl flex-col gap-6xl'>
         <div className='flex flex-wrap items-end justify-between gap-4xl border-b border-white/15 pb-4xl'>
           <div>
-            <p className='text-[10px] font-medium tracking-[0.22em] text-white/50 uppercase'>
+            <p className='text-[10px] font-medium tracking-[0.22em] text-white/75 uppercase'>
               {t('eyebrow')}
             </p>
             <h2
@@ -374,19 +374,19 @@ export default function RolloutMap() {
                 <tr>
                   <th
                     scope='col'
-                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/75 uppercase'
                   >
                     {t('board.destination')}
                   </th>
                   <th
                     scope='col'
-                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/75 uppercase'
                   >
                     {t('board.market')}
                   </th>
                   <th
                     scope='col'
-                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/50 uppercase'
+                    className='border-b border-white/15 px-lg py-md text-start text-[10px] font-medium tracking-[0.16em] text-white/75 uppercase'
                   >
                     {t('board.status')}
                   </th>
@@ -398,7 +398,7 @@ export default function RolloutMap() {
                     <td className='font-heading border-b border-white/[0.07] px-lg py-md text-white'>
                       {t(`board.countries.${key}.name`)}
                     </td>
-                    <td className='border-b border-white/[0.07] px-lg py-md text-white/60'>
+                    <td className='border-b border-white/[0.07] px-lg py-md text-white/75'>
                       {t(`board.countries.${key}.market`)}
                     </td>
                     <td className='border-b border-white/[0.07] px-lg py-md'>
@@ -407,7 +407,7 @@ export default function RolloutMap() {
                           'rounded-sm border px-1.5 py-xxs text-[10px] font-medium tracking-[0.14em] uppercase',
                           key === 'tunisia'
                             ? 'text-secondary border-secondary'
-                            : 'border-white/25 text-white/40',
+                            : 'border-white/25 text-white/75',
                         )}
                       >
                         {t(key === 'tunisia' ? 'board.boarding' : 'board.scheduled')}
@@ -418,7 +418,7 @@ export default function RolloutMap() {
               </tbody>
             </table>
           </div>
-          <p className='max-w-2xl text-sm text-white/55 italic'>{t('board.closing')}</p>
+          <p className='max-w-2xl text-sm text-white/75 italic'>{t('board.closing')}</p>
         </div>
       </div>
     </section>

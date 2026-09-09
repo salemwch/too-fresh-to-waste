@@ -1,213 +1,181 @@
 'use client';
 
 import Image from 'next/image';
-import { Trophy } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
+import { useScrollReveal } from '@/hooks/useScrollReveal';
+
 /**
- * Section 3: Why Use Too Fresh To Waste
+ * Section 3: why use Too Fresh To Waste.
  *
- * Features:
- * - Background color #f9f3f0 (cream/beige)
- * - Two-line title: "WHY USE" (green) + "TOO FRESH TO WASTE" (coral red)
- * - Centered bag image with 4 benefit icons
- * - Grid layout with text positioned around the bag
- * - Fully responsive (grid on desktop, stacked on mobile)
+ * "Unpack". The four benefits are not captions floating around a photograph -
+ * they are things that came out of the bag, hung as paper tags on strings and
+ * pegged around it. Each tag swings on its own punch hole when you reach it.
+ *
+ * The four are two pairs, and the layout says so without a label: the start
+ * column is what you take home, the end column is what everyone else gets.
+ *
+ * One DOM tree, not two. The previous version rendered every benefit twice,
+ * once for desktop and once for mobile, which meant every copy change had to
+ * be made in two places and the two drifted. Below xl these are a plain
+ * responsive grid; at xl they become a three-column grid with the bag in the
+ * middle column, spanning both rows. Everything directional - rotation, string origin, the RTL mirror -
+ * lives in the `.tftw-tag` block in globals.css, because all of it is gated on
+ * breakpoint and writing direction together.
  */
+
+/** Position at xl. `t`/`b` is the row, `l`/`r` the column. */
+type Slot = 'tl' | 'bl' | 'tr' | 'br';
+
+interface Benefit {
+  /** key under the `section3.benefits` namespace */
+  key: 'saveMoney' | 'yourMoney' | 'community' | 'planet';
+  slot: Slot;
+  /** grid cell plus any hand-hung offset, applied at xl and above only */
+  place: string;
+  reveal: 'sr-left' | 'sr-right';
+  delay: string;
+}
+
+/*
+ * DOM order is the order these stack on mobile: the two you take home, then
+ * the two the city keeps. `place` carries the desktop cell, so the stacked
+ * order and the placed order can differ without a second copy of the markup.
+ *
+ * These are grid cells, not absolute offsets. An earlier version pinned the
+ * top card with `top-[76px]` and the bottom one with `bottom-[96px]` inside a
+ * fixed `min-h-[720px]`, which only holds while the copy stays the length it
+ * was when the numbers were picked. It did not: the taller community and
+ * planet cards ran into each other. Rows that size to their content cannot
+ * overlap at any copy length, in any of the three locales.
+ *
+ * Placement is by column number, and the grid itself mirrors in Arabic, so
+ * column 1 is the reading-start side in every locale.
+ *
+ * No per-card `mt-*` offsets. Two of these carried a small "hand-hung" stagger,
+ * which is precisely what made the gap between the left pair differ from the
+ * gap between the right pair. Row one now tops out level across both columns.
+ */
+const BENEFITS: readonly Benefit[] = [
+  {
+    key: 'saveMoney',
+    slot: 'tl',
+    place: 'xl:col-start-1 xl:row-start-1',
+    reveal: 'sr-left',
+    delay: '0.25s',
+  },
+  {
+    key: 'yourMoney',
+    slot: 'bl',
+    place: 'xl:col-start-1 xl:row-start-2',
+    reveal: 'sr-left',
+    delay: '0.7s',
+  },
+  {
+    key: 'community',
+    slot: 'tr',
+    place: 'xl:col-start-3 xl:row-start-1',
+    reveal: 'sr-right',
+    delay: '0.25s',
+  },
+  {
+    key: 'planet',
+    slot: 'br',
+    place: 'xl:col-start-3 xl:row-start-2',
+    reveal: 'sr-right',
+    delay: '0.7s',
+  },
+];
+
 export default function Section3Animated() {
   const t = useTranslations('section3');
+  const sectionRef = useScrollReveal<HTMLElement>();
 
   return (
-    <section id='features' className='bg-brand-cream md:pb-3xl' aria-labelledby='features-heading'>
-      <div className='container mx-auto max-w-7xl'>
-        {/* Title Section */}
-        <div className='text-center mb-xs'>
+    <section
+      ref={sectionRef}
+      id='features'
+      // pb-0 on mobile: the next section's wave rises ~43px above its own top
+      // edge at the deepest dip, so a 64px gap parked the bag just clear of it.
+      // At 0 the bag bottom falls inside the wave and is covered by it.
+      className='bg-brand-cream pb-0 md:pb-5xl'
+      aria-labelledby='features-heading'
+    >
+      <div className='container relative z-10 mx-auto max-w-7xl px-lg'>
+        <div className='sr-up text-center'>
+          <p className='text-brand-green mb-md text-sm font-bold uppercase tracking-[0.28em]'>
+            {t('eyebrow')}
+          </p>
+          {/*
+            Line two is the brand name, so it outranks the question that
+            introduces it.
+
+            brand-green, not brand-coral. The comment here used to cite ~3.2:1
+            and call it "large text only", but that figure belongs to
+            accent-500 (#F55449). This element renders brand-coral (#ff7973),
+            measured at 2.32 on cream - which fails even the 3:1 large-text
+            bar. tailwind.config.ts already records that number and names
+            #017C6E as the light-surface accent for exactly this reason; it
+            measures 4.65 here, clearing AA for normal text, never mind large.
+          */}
           <h2
             id='features-heading'
-            className='text-primary-500 text-3xl md:text-4xl lg:text-5xl mb-sm'
+            className='text-primary-500 text-3xl leading-none md:text-4xl lg:text-5xl'
             style={{ fontWeight: 900 }}
           >
             {t('titleLine1')}
             <span
-              className='text-brand-coral text-4xl md:text-5xl lg:text-6xl block'
-              style={{ fontWeight: 999 }}
+              className='text-brand-green block text-4xl md:text-5xl lg:text-6xl'
+              style={{ fontWeight: 900 }}
             >
               {t('titleLine2')}
             </span>
           </h2>
         </div>
 
-        {/* Desktop: Bag with Left and Right Text - Grid Layout */}
-        <div className='hidden xl:grid grid-cols-3 gap-x-4xl lg:gap-x-6xl gap-y-lg lg:gap-y-2xl pb-4xl items-center justify-items-center max-w-[1400px] mx-auto'>
-          {/* Row 1, Col 1: Enjoy Good Food - 75% OFF */}
-          <div className='flex flex-col items-end text-end w-[320px] self-end'>
-            <Image
-              src='/images/low-price.png'
-              alt='Low Price'
-              width={60}
-              height={60}
-              className='mb-md'
-              loading='lazy'
-            />
-            <p
-              className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
-              style={{ fontWeight: 900 }}
-            >
-              {t('benefits.saveMoney')}
-            </p>
-          </div>
+        {/*
+          The xl row gap is generous because each tag's string and peg hang
+          about 40px above it, outside the card box. The container's own top
+          margin does the same job for row one.
 
-          {/* Row 1-2, Col 2: Center - Bag Image (spans 2 rows) */}
-          <div className='relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px] row-span-2'>
+          `items-start` at xl so each card sizes to its own content rather
+          than stretching to fill the row. This avoids the visible bottom
+          whitespace that stretch creates on the shorter card of each pair.
+        */}
+        <div className='mt-2xl grid grid-cols-1 gap-lg md:grid-cols-2 xl:mt-4xl xl:items-start xl:grid-cols-[268px_1fr_268px] xl:gap-x-3xl xl:gap-y-4xl'>
+          {BENEFITS.map(benefit => (
+            <article
+              key={benefit.key}
+              className={`${benefit.reveal} tftw-tag tftw-tag--${benefit.slot} ${benefit.place} bg-card pt-lg px-lg pb-sm shadow-lg relative rounded-md`}
+              style={{ '--sr-delay': benefit.delay } as React.CSSProperties}
+            >
+              <span className='tftw-tag__peg' aria-hidden='true' />
+              <span className='tftw-tag__string' aria-hidden='true' />
+              <span className='tftw-tag__hole' aria-hidden='true' />
+
+              <p className='bg-primary-500/5 text-primary-500 px-sm py-xxs mb-sm inline-block rounded-sm text-sm font-bold tracking-[0.1em]'>
+                {t(`benefits.${benefit.key}.chip`)}
+              </p>
+              <h3 className='text-primary-500 mb-xs text-md font-bold leading-tight'>
+                {t(`benefits.${benefit.key}.title`)}
+              </h3>
+              <p className='text-muted-foreground text-md leading-normal'>
+                {t(`benefits.${benefit.key}.body`)}
+              </p>
+            </article>
+          ))}
+
+          <div
+            className='sr-scale mt-xl flex justify-center md:col-span-2 xl:col-span-1 xl:col-start-2 xl:row-start-1 xl:row-span-2 xl:mt-0 xl:self-center'
+            style={{ '--sr-delay': '0.5s' } as React.CSSProperties}
+          >
             <Image
               src='/images/bag.webp'
-              alt='Too Fresh To Waste bag'
-              fill
-              className='object-contain drop-shadow-2xl'
-              style={{ top: '40px' }}
-              sizes='(min-width: 1024px) 600px, 500px'
-              loading='lazy'
-            />
-          </div>
-
-          {/* Row 1, Col 3: Help Others Live */}
-          <div className='flex flex-col items-start text-start w-[320px] self-end'>
-            <Image
-              src='/icons/share.png'
-              alt='Help Others'
-              width={60}
-              height={60}
-              className='mb-md'
-              loading='lazy'
-            />
-            <p
-              className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
-              style={{ fontWeight: 900 }}
-            >
-              {t('benefits.earnPoints')}
-            </p>
-          </div>
-
-          {/* Row 2, Col 1: Get Rewards */}
-          <div className='flex flex-col items-end text-end w-[320px]'>
-            {/* A trophy rather than a gift box: this benefit is about winning
-                the Big Prize, and a wrapped present read as a giveaway. Drawn
-                rather than a raster asset so it stays sharp at any density. */}
-            <Trophy
-              className='text-secondary mb-md h-[60px] w-[60px]'
-              strokeWidth={1.5}
-              aria-hidden='true'
-            />
-            <p
-              className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
-              style={{ fontWeight: 900 }}
-            >
-              {t('benefits.getRewards')}
-            </p>
-          </div>
-
-          {/* Row 2, Col 3: Help the Planet */}
-          <div className='flex flex-col items-start text-start w-[320px]'>
-            <Image
-              src='/images/help.png'
-              alt='Help Planet'
-              width={60}
-              height={60}
-              className='mb-md'
-              loading='lazy'
-            />
-            <p
-              className='text-primary-500 text-2xl leading-tight min-h-[3.5rem]'
-              style={{ fontWeight: 900 }}
-            >
-              {t('benefits.helpPlanet')}
-            </p>
-          </div>
-        </div>
-
-        {/* Mobile & Tablet: Icons and Text Above Bag */}
-        <div className='xl:hidden flex flex-col items-center px-lg md:px-4xl lg:px-3xl'>
-          {/* Icons and Text Grid - 2 columns */}
-          <div className='grid grid-cols-2 gap-x-lg gap-y-2xl md:gap-x-2xl md:gap-y-4xl lg:gap-x-6xl lg:gap-y-6xl mb-4xl w-full max-w-md md:max-w-lg lg:max-w-2xl'>
-            {/* 1. Enjoy Good Food - 75% OFF */}
-            <div className='flex flex-col items-center text-center px-sm'>
-              <Image
-                src='/images/low-price.png'
-                alt='Low Price'
-                width={50}
-                height={50}
-                className='mb-sm md:w-14 md:h-14 lg:w-16 lg:h-16'
-                loading='lazy'
-              />
-              <p
-                className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
-                style={{ fontWeight: 900 }}
-              >
-                {t('benefits.saveMoney')}
-              </p>
-            </div>
-
-            {/* 2. Help Others Live */}
-            <div className='flex flex-col items-center text-center px-sm'>
-              <Image
-                src='/icons/share.png'
-                alt='Help Others'
-                width={50}
-                height={50}
-                className='mb-sm md:w-14 md:h-14 lg:w-16 lg:h-16'
-                loading='lazy'
-              />
-              <p
-                className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
-                style={{ fontWeight: 900 }}
-              >
-                {t('benefits.earnPoints')}
-              </p>
-            </div>
-
-            {/* 3. Get Rewards */}
-            <div className='flex flex-col items-center text-center px-sm'>
-              <Trophy
-                className='text-secondary mb-sm h-12 w-12'
-                strokeWidth={1.5}
-                aria-hidden='true'
-              />
-              <p
-                className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
-                style={{ fontWeight: 900 }}
-              >
-                {t('benefits.getRewards')}
-              </p>
-            </div>
-
-            {/* 4. Help the Planet */}
-            <div className='flex flex-col items-center text-center px-sm'>
-              <Image
-                src='/images/help.png'
-                alt='Help Planet'
-                width={50}
-                height={50}
-                className='mb-sm md:w-14 md:h-14 lg:w-16 lg:h-16'
-                loading='lazy'
-              />
-              <p
-                className='text-primary-500 text-sm md:text-base lg:text-lg font-bold leading-tight'
-                style={{ fontWeight: 900 }}
-              >
-                {t('benefits.helpPlanet')}
-              </p>
-            </div>
-          </div>
-
-          {/* Bag Image */}
-          <div className='w-full max-w-sm md:max-w-md lg:max-w-lg mx-auto'>
-            <Image
-              src='/images/bag.webp'
-              alt='Too Fresh To Waste bag'
-              width={500}
-              height={500}
-              className='w-full h-auto object-contain drop-shadow-xl'
-              sizes='(max-width: 640px) calc(100vw - 2rem), (max-width: 768px) 384px, (max-width: 1024px) 448px, 512px'
+              alt={t('bagAlt')}
+              width={520}
+              height={520}
+              className='h-auto w-[min(74vw,380px)] object-contain drop-shadow-2xl xl:w-[520px]'
+              sizes='(min-width: 1280px) 520px, (min-width: 768px) 380px, 74vw'
               loading='lazy'
             />
           </div>

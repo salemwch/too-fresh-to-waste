@@ -85,7 +85,7 @@ export function Sidebar({ items }: SidebarProps) {
                 'relative flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] transition-all',
                 isActive
                   ? 'bg-white/[0.1] text-white'
-                  : 'text-white/60 hover:text-white hover:bg-white/[0.06]',
+                  : 'text-white/75 hover:text-white hover:bg-white/[0.06]',
               )}
             >
               {isActive && (
@@ -94,12 +94,12 @@ export function Sidebar({ items }: SidebarProps) {
               <Icon size={16} className='shrink-0' />
               <span className='flex-1 truncate'>{tNav(item.titleKey)}</span>
               {isPro && (
-                <span className='text-[9px] font-bold px-[5px] py-[2px] rounded border border-gold/50 text-gold leading-none shrink-0 tracking-wide'>
+                <span className='text-xs font-bold px-[5px] py-[2px] rounded border border-gold/50 text-gold leading-none shrink-0 tracking-wide'>
                   PRO
                 </span>
               )}
               {badge !== null && (
-                <span className='min-w-[18px] h-[18px] rounded-full bg-brand-coral text-white text-[9px] flex items-center justify-center font-medium px-[3px] shrink-0'>
+                <span className='min-w-[18px] h-[18px] rounded-full bg-brand-coral text-white text-xs flex items-center justify-center font-medium px-[3px] shrink-0'>
                   {badge > 99 ? '99+' : badge}
                 </span>
               )}
@@ -132,7 +132,7 @@ export function Sidebar({ items }: SidebarProps) {
               <div className='text-[13px] font-medium text-white truncate group-hover:text-white/90'>
                 {user.firstName} {user.lastName}
               </div>
-              <div className='text-[11px] text-white/50 truncate'>{user.email}</div>
+              <div className='text-[11px] text-white/75 truncate'>{user.email}</div>
             </div>
           </Link>
         )}
@@ -144,7 +144,7 @@ export function Sidebar({ items }: SidebarProps) {
               'flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] transition-colors',
               pathname.startsWith(`/${locale}${settingsItem.href}`)
                 ? 'bg-white/[0.1] text-white'
-                : 'text-white/60 hover:text-white hover:bg-white/[0.06]',
+                : 'text-white/75 hover:text-white hover:bg-white/[0.06]',
             )}
           >
             <settingsItem.icon size={16} />
@@ -154,7 +154,7 @@ export function Sidebar({ items }: SidebarProps) {
 
         <button
           onClick={logout}
-          className='w-full flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors'
+          className='w-full flex items-center gap-[10px] px-[12px] py-[9px] rounded-xl text-[13px] text-white/75 hover:text-white hover:bg-white/[0.06] transition-colors'
         >
           <LogOut size={16} />
           {t('logout')}

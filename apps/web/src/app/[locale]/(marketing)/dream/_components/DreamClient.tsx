@@ -32,7 +32,7 @@ function ProofRow() {
           >
             {value(key)}
           </dd>
-          <dt className='text-sm text-white/60'>{t(`proof.${key}`)}</dt>
+          <dt className='text-sm text-white/75'>{t(`proof.${key}`)}</dt>
         </div>
       ))}
     </dl>
@@ -50,7 +50,7 @@ export default function DreamClient() {
         aria-labelledby='dream-heading'
       >
         <div className='relative mx-auto flex max-w-4xl flex-col items-center gap-3xl text-center'>
-          <p className='dream-rise text-[11px] font-medium tracking-[0.28em] text-white/50 uppercase'>
+          <p className='dream-rise text-[11px] font-medium tracking-[0.28em] text-white/75 uppercase'>
             {t('eyebrow')}
           </p>
 
@@ -74,7 +74,7 @@ export default function DreamClient() {
           <div className='dream-rise d3 flex flex-col gap-md sm:flex-row'>
             <Link
               href='/merchant-signup'
-              className='bg-secondary text-primary-500 rounded-full px-4xl py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
+              className='bg-secondary text-secondary-foreground rounded-full px-4xl py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
             >
               {t('cta.primary')}
             </Link>
@@ -95,7 +95,7 @@ export default function DreamClient() {
       >
         <div className='mx-auto grid max-w-6xl gap-6xl lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-4xl'>
           <div className='flex flex-col gap-xl'>
-            <p className='text-[11px] font-medium tracking-[0.22em] text-white/50 uppercase'>
+            <p className='text-[11px] font-medium tracking-[0.22em] text-white/75 uppercase'>
               {t('problem.eyebrow')}
             </p>
             <h2
@@ -123,7 +123,7 @@ export default function DreamClient() {
       >
         <div className='mx-auto flex max-w-6xl flex-col gap-6xl'>
           <div className='flex flex-col gap-lg'>
-            <p className='text-[11px] font-medium tracking-[0.22em] text-white/50 uppercase'>
+            <p className='text-[11px] font-medium tracking-[0.22em] text-white/75 uppercase'>
               {t('wins.eyebrow')}
             </p>
             <h2
@@ -138,13 +138,13 @@ export default function DreamClient() {
             {WINNERS.map(key => (
               <article key={key} className='bg-primary-500 flex flex-col gap-md p-2xl'>
                 <h3 className='font-heading text-lg text-white'>{t(`wins.${key}.who`)}</h3>
-                <p className='text-sm leading-relaxed text-white/65'>{t(`wins.${key}.what`)}</p>
+                <p className='text-sm leading-relaxed text-white/75'>{t(`wins.${key}.what`)}</p>
               </article>
             ))}
           </div>
 
           <ProofRow />
-          <p className='text-xs text-white/40'>{t('proof.note')}</p>
+          <p className='text-xs text-white/75'>{t('proof.note')}</p>
         </div>
       </section>
 
@@ -160,7 +160,7 @@ export default function DreamClient() {
           <p className='max-w-xl text-base leading-relaxed text-white/70'>{t('close.body')}</p>
           <Link
             href='/merchant-signup'
-            className='bg-secondary text-primary-500 rounded-full px-4xl py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
+            className='bg-secondary text-secondary-foreground rounded-full px-4xl py-3.5 text-sm font-bold whitespace-nowrap transition-transform duration-200 hover:scale-105 md:text-base'
           >
             {t('close.cta')}
           </Link>

@@ -451,12 +451,12 @@ export default async function MarketplaceSurpriseBagPage({ params }: PageProps) 
                 className='flex items-center gap-4xl font-bold text-white text-xs uppercase tracking-[0.2em]'
               >
                 <span>Zero Waste</span>
-                <span className='text-white/40'>✦</span>
+                <span className='text-white/75'>✦</span>
                 {ticker.map(line => (
                   <span key={line}>{line}</span>
                 ))}
                 <span>No Setup Fee</span>
-                <span className='text-white/40'>✦</span>
+                <span className='text-white/75'>✦</span>
               </div>
             ))}
           </div>

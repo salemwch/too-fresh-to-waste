@@ -311,7 +311,7 @@ export default function Header() {
                   {t('cta.downloadApp')}
                 </button>
                 <span
-                  className={`text-base font-light select-none ${isScrolledState ? 'text-primary-500/40' : 'text-white/40'}`}
+                  className={`text-base font-light select-none ${isScrolledState ? 'text-primary-500/40' : 'text-white/75'}`}
                 >
                   |
                 </span>
@@ -391,7 +391,7 @@ export default function Header() {
                     )}
                     <p
                       className={`text-[10px] font-bold uppercase tracking-widest mb-md ${
-                        isScrolledState ? 'text-primary-500/60' : 'text-white/50'
+                        isScrolledState ? 'text-primary-500/60' : 'text-white/75'
                       }`}
                     >
                       {section.title}
@@ -404,7 +404,7 @@ export default function Header() {
                           className={`group flex items-start gap-xs text-base py-xs transition-colors leading-snug ${
                             isScrolledState
                               ? 'text-gray-800 hover:text-primary-500'
-                              : 'text-white hover:text-white/60'
+                              : 'text-white hover:text-white/75'
                           }`}
                           onClick={() => setOpenDropdown(null)}
                         >
@@ -478,7 +478,7 @@ export default function Header() {
                           {item.dropdown.map(section => (
                             <div key={section.title}>
                               <p
-                                className={`px-md pt-md pb-xs text-[10px] font-bold uppercase tracking-widest ${isScrolledState ? 'text-primary-500/50' : 'text-white/50'}`}
+                                className={`px-md pt-md pb-xs text-[10px] font-bold uppercase tracking-widest ${isScrolledState ? 'text-primary-500/50' : 'text-white/75'}`}
                               >
                                 {section.title}
                               </p>

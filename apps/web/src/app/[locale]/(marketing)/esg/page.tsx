@@ -381,7 +381,7 @@ export default async function ESGPage({ params }: PageProps) {
                   <span className='text-secondary-light italic'>{t('hero.titleEm2')}</span>
                 </h1>
 
-                <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-4xl max-w-xl'>
+                <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-4xl max-w-xl'>
                   {t('hero.lede')}
                 </p>
 
@@ -686,7 +686,7 @@ export default async function ESGPage({ params }: PageProps) {
                 {t('tunisia.titleStart')}{' '}
                 <span className='text-secondary-light italic'>{t('tunisia.titleEm')}</span>
               </h2>
-              <p className='text-white/65 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
+              <p className='text-white/75 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed'>
                 {t('tunisia.lede')}
               </p>
             </div>
@@ -705,7 +705,7 @@ export default async function ESGPage({ params }: PageProps) {
                     <h3 className='font-bold text-base text-white mb-md leading-snug'>
                       {item.title}
                     </h3>
-                    <p className='text-sm text-white/65 leading-relaxed'>{item.body}</p>
+                    <p className='text-sm text-white/75 leading-relaxed'>{item.body}</p>
                   </div>
                 );
               })}
@@ -718,7 +718,7 @@ export default async function ESGPage({ params }: PageProps) {
                 <p className='font-heading text-xl lg:text-2xl font-bold text-white mb-sm'>
                   {t('tunisia.calloutTitle')}
                 </p>
-                <p className='text-white/65 text-sm lg:text-base leading-relaxed'>
+                <p className='text-white/75 text-sm lg:text-base leading-relaxed'>
                   {t('tunisia.calloutBody')}
                 </p>
               </div>
@@ -809,14 +809,14 @@ export default async function ESGPage({ params }: PageProps) {
               {/* Glow */}
 
               <div className='relative'>
-                <p className='text-white/65 text-xs font-bold uppercase tracking-[0.3em] mb-lg'>
+                <p className='text-white/75 text-xs font-bold uppercase tracking-[0.3em] mb-lg'>
                   {t('cta.eyebrow')}
                 </p>
                 <h2 className='font-heading text-3xl lg:text-5xl font-bold text-white leading-tight mb-xl'>
                   {t('cta.titleStart')}{' '}
                   <span className='text-secondary-light italic'>{t('cta.titleEm')}</span>
                 </h2>
-                <p className='text-white/65 text-base lg:text-lg leading-relaxed mb-6xl max-w-xl mx-auto'>
+                <p className='text-white/75 text-base lg:text-lg leading-relaxed mb-6xl max-w-xl mx-auto'>
                   {t('cta.body')}
                 </p>
                 <div className='flex flex-col sm:flex-row gap-lg justify-center'>

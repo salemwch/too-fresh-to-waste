@@ -56,7 +56,7 @@ export function SidebarNav({ items, collapsed = false }: SidebarNavProps) {
               {!collapsed && isPro && (
                 <span
                   className={cn(
-                    'text-[9px] font-bold px-1.5 py-xxs rounded border leading-none tracking-wide',
+                    'text-xs font-bold px-1.5 py-xxs rounded border leading-none tracking-wide',
                     isActive ? 'border-white/50 text-white' : 'border-amber-400/50 text-amber-500',
                   )}
                 >

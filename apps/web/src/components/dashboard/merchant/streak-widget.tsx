@@ -61,7 +61,7 @@ export function StreakWidget({ onListOffer, disabled }: StreakWidgetProps) {
               </span>
               <span className='text-sm text-primary-500/60 font-medium'>{t('days')}</span>
               {isRecord && (
-                <span className='flex items-center gap-xxs text-[10px] font-semibold text-brand-coral uppercase tracking-wider'>
+                <span className='flex items-center gap-xxs text-[10px] font-semibold text-brand-green uppercase tracking-wider'>
                   <Trophy size={10} />
                   {t('record')}
                 </span>

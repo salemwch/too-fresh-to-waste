@@ -197,7 +197,7 @@ export default function CommunityPage() {
           className='glass rounded-2xl p-[24px] shadow-soft'
         >
           <div className='flex items-center gap-md mb-[20px]'>
-            <div className='h-10 w-10 rounded-xl bg-brand-coral/10 grid place-items-center text-brand-coral'>
+            <div className='h-10 w-10 rounded-xl bg-brand-coral/10 grid place-items-center text-brand-green'>
               <Heart size={18} />
             </div>
             <div>
@@ -227,7 +227,7 @@ export default function CommunityPage() {
 
           <div className='flex items-end justify-between mb-sm'>
             <span className='text-xs text-primary-500/60'>{t('collectionProgress')}</span>
-            <span className='font-semibold text-brand-coral'>{donations.progressPercentage}%</span>
+            <span className='font-semibold text-brand-green'>{donations.progressPercentage}%</span>
           </div>
           <div className='h-2 w-full rounded-full bg-primary-500/[0.08] overflow-hidden'>
             <motion.div

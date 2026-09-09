@@ -4721,12 +4721,12 @@
       "py:56": 1,
       "py:80": 1,
       "gap:64": 1,
-      "gap:8": 3,
+      "gap:8": 2,
       "gap:24": 1,
       "gap:16": 2,
       "p:40": 2,
       "p:64": 2,
-      "mt:4": 2
+      "mt:4": 1
     },
     "B": {
       "size:28": 2,
@@ -4841,19 +4841,6 @@
       "mt:4": 3
     }
   },
-  "apps/web/src/components/sections/Rewards.tsx": {
-    "A": {
-      "px:24": 1,
-      "py:56": 1,
-      "py:80": 1,
-      "gap:64": 1,
-      "gap:16": 2,
-      "p:40": 1
-    },
-    "B": {
-      "size:24": 1
-    }
-  },
   "apps/web/src/components/sections/RolloutMap.tsx": {
     "A": {
       "gap:4": 4,
@@ -4923,50 +4910,28 @@
   },
   "apps/web/src/components/sections/Section3Animated.tsx": {
     "A": {
-      "pb:48": 1,
-      "mb:4": 1,
-      "mb:8": 5,
-      "gap-x:64": 1,
-      "gap-x:96": 2,
-      "gap-y:24": 1,
-      "gap-y:40": 2,
-      "pb:64": 1,
-      "mb:16": 4,
-      "px:24": 1,
-      "px:64": 1,
-      "px:48": 1,
-      "gap-x:24": 1,
-      "gap-x:40": 1,
+      "pb:0": 2,
+      "pb:80": 1,
+      "px:24": 2,
+      "mb:16": 1,
+      "mt:40": 1,
+      "gap:24": 1,
+      "mt:64": 1,
+      "gap-x:48": 1,
       "gap-y:64": 1,
-      "gap-y:96": 1,
-      "mb:64": 1,
-      "px:8": 4
-    },
-    "B": {
-      "square:48": 1
-    },
-    "C": {
-      "w:56": 3,
-      "h:56": 3,
-      "w:64": 3,
-      "h:64": 3,
-      "h:48": 1,
-      "w:48": 1
+      "pt:24": 1,
+      "pb:8": 1,
+      "px:8": 1,
+      "py:2": 1,
+      "mb:8": 1,
+      "mb:4": 1,
+      "mt:32": 1,
+      "mt:0": 1
     }
   },
   "apps/web/src/components/sections/Section4.tsx": {
-    "A": {
-      "pt:40": 1,
-      "pt:0": 1,
-      "pb:48": 1,
-      "pb:64": 1,
-      "px:24": 1,
-      "mb:8": 1,
-      "mb:40": 1
-    },
-    "D": {
-      "top:0": 1,
-      "left:0": 1
+    "B": {
+      "size:28": 1
     }
   },
   "apps/web/src/components/sections/Section5.tsx": {

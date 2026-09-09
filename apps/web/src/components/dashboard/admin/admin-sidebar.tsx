@@ -156,7 +156,7 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
                         <Icon size={15} className='shrink-0' />
                         <span className='flex-1 truncate'>{tNav(item.titleKey)}</span>
                         {item.badge !== undefined && item.badge > 0 && (
-                          <span className='min-w-[18px] h-[18px] rounded-full bg-brand-coral text-white text-[9px] flex items-center justify-center font-medium px-[3px] shrink-0'>
+                          <span className='min-w-[18px] h-[18px] rounded-full bg-brand-coral text-white text-xs flex items-center justify-center font-medium px-[3px] shrink-0'>
                             {item.badge > 99 ? '99+' : item.badge}
                           </span>
                         )}
@@ -194,7 +194,7 @@ export function AdminSidebar({ groups, collapsedGroups }: AdminSidebarProps) {
               <div className='text-[13px] font-medium text-white truncate group-hover:text-white/90'>
                 {user.firstName} {user.lastName}
               </div>
-              <div className='text-[11px] text-white/50 truncate'>{user.email}</div>
+              <div className='text-[11px] text-white/75 truncate'>{user.email}</div>
             </div>
           </Link>
         )}

@@ -6,4 +6,3 @@ export { default as Newsletter } from './Newsletter';
 export { default as InfiniteMarquee } from './InfiniteMarquee';
 export { default as RolloutMap } from './RolloutMap';
 export { default as AudienceSplit } from './AudienceSplit';
-export { default as Rewards } from './Rewards';

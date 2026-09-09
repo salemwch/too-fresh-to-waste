@@ -153,7 +153,7 @@ interface KpiCardProps {
 function KpiCard({ title, value, unit, trend, changePercent, icon: Icon, index }: KpiCardProps) {
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
   const trendColor =
-    trend === 'up' ? 'text-brand-coral' : trend === 'down' ? 'text-red-500' : 'text-primary-500/40';
+    trend === 'up' ? 'text-brand-green' : trend === 'down' ? 'text-red-500' : 'text-primary-500/40';
 
   return (
     <motion.div
@@ -272,7 +272,7 @@ function RevenueTooltip({ active, payload, label, t }: any) {
         {(payload[0].value ?? 0).toFixed(2)} TND
       </div>
       {payload[0].payload?.orderCount !== undefined && (
-        <div className='text-[11px] font-medium text-brand-coral mt-xs'>
+        <div className='text-[11px] font-medium text-brand-green mt-xs'>
           {t('revenueChart.tooltip.orders')}: {payload[0].payload.orderCount}
         </div>
       )}
@@ -611,10 +611,10 @@ function ErrorState({ message }: { message: string }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className='flex items-center gap-md rounded-xl bg-brand-coral/10 border border-brand-coral/20 p-[16px]'
+      className='flex items-center gap-md rounded-xl bg-destructive/10 border border-destructive/20 p-[16px]'
     >
-      <AlertCircle size={18} className='text-brand-coral shrink-0' />
-      <p className='text-sm text-brand-coral'>{message}</p>
+      <AlertCircle size={18} className='text-destructive shrink-0' />
+      <p className='text-sm text-destructive'>{message}</p>
     </motion.div>
   );
 }

@@ -584,7 +584,7 @@ export default function CareersPage() {
                             {stage.region}
                           </h3>
                           {art.active && (
-                            <span className='text-[9px] font-black uppercase tracking-widest bg-primary-500 text-white px-sm py-xxs rounded-full leading-none'>
+                            <span className='text-xs font-black uppercase tracking-widest bg-primary-500 text-white px-sm py-xxs rounded-full leading-none'>
                               {t('vision.nowBadge')}
                             </span>
                           )}

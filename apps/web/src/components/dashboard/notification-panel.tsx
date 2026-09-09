@@ -52,7 +52,7 @@ export function NotificationBell() {
       >
         <Bell className='w-3.5 h-3.5 text-slate-600' />
         {unreadCount > 0 && (
-          <span className='absolute -top-xxs -right-xxs min-w-[14px] h-3.5 rounded-full bg-red-500 text-white text-[8px] font-bold flex items-center justify-center px-[2px] leading-none pointer-events-none'>
+          <span className='absolute -top-xxs -right-xxs min-w-[14px] h-3.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center px-[2px] leading-none pointer-events-none'>
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -66,7 +66,7 @@ export function NotificationBell() {
             <div className='flex items-center gap-sm'>
               <span className='text-xs font-semibold text-slate-900'>Notifications</span>
               {unreadCount > 0 && (
-                <span className='rounded-full bg-red-100 text-red-600 text-[9px] font-bold px-1.5 py-xxs leading-tight'>
+                <span className='rounded-full bg-red-100 text-red-600 text-xs font-bold px-1.5 py-xxs leading-tight'>
                   {unreadCount} new
                 </span>
               )}

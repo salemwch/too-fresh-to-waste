@@ -115,13 +115,31 @@
     }
   },
   "section3": {
-    "titleLine1": "WHAT YOU GET",
-    "titleLine2": "WITH EVERY BAG",
+    "titleLine1": "WHY USE",
+    "titleLine2": "TOO FRESH TO WASTE",
+    "eyebrow": "Four reasons, one bag",
+    "bagAlt": "A Too Fresh To Waste surprise bag, full of fresh food",
     "benefits": {
-      "saveMoney": "GOOD FOOD AT HALF PRICE OR LESS",
-      "earnPoints": "FOOD THAT WOULD HAVE BEEN THROWN AWAY",
-      "getRewards": "POINTS ON EVERY ORDER",
-      "helpPlanet": "LESS WASTE, LESS CARBON"
+      "saveMoney": {
+        "chip": "-50% OR MORE",
+        "title": "Good food at half price or less",
+        "body": "Same food, same shop, same day. You just arrive at the end of it."
+      },
+      "yourMoney": {
+        "chip": "FROM 5 TND",
+        "title": "Save your money and buy more for less",
+        "body": "Discover surprise bags full of delicious food."
+      },
+      "community": {
+        "chip": "5% OF WHAT WE EARN",
+        "title": "Clothes, school and medicine",
+        "body": "5% of what we earn helps families, children and older people."
+      },
+      "planet": {
+        "chip": "2.5 KG CO₂e · 190 L WATER",
+        "title": "You become a hero for the planet",
+        "body": "Up to a tenth of greenhouse gas comes from food waste. Never from yours."
+      }
     }
   },
   "dream": {
@@ -3386,7 +3404,7 @@
     },
     "families": {
       "label": "A child gets what they need",
-      "body": "Simply by saving a meal, you are helping families near you. We donate 5% of our earnings from every bag to provide essentials like shoes, school books, and medicine. No extra donations required - just extra impact."
+      "body": "We give 5% of what we earn on every bag to families near you: clothes, school equipment, and medicine for the elderly."
     },
     "prize": {
       "label": "Win",

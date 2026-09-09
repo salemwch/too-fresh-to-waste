@@ -283,3 +283,213 @@
 [dir='rtl'] body {
   font-family: var(--font-noto-arabic), var(--font-quicksand), system-ui, sans-serif;
 }
+
+/* ===========================================================================
+ * Section 3 "Unpack" - components/sections/Section3Animated.tsx
+ *
+ * The four benefits hang off the bag as paper tags on strings. Everything
+ * directional lives here rather than in the component, because all of it is
+ * gated on breakpoint AND on writing direction, and that reads far better in
+ * one block than spread across arbitrary Tailwind values on four elements.
+ *
+ * Below xl the tags are a plain responsive grid: no rotation, no strings, no
+ * swing. That is why the rotations are custom properties scoped to a media
+ * query and not inline style props - an inline value would apply at every
+ * width and there would be no clean way to switch it off.
+ * ======================================================================== */
+.tftw-tag {
+  --tag-rot: 0deg;
+  --tag-rot-from: 0deg;
+  /* horizontal position of the punch hole, as a share of the tag's width */
+  --tag-ox: 50%;
+}
+
+@media (min-width: 1280px) {
+  .tftw-tag {
+    transform: rotate(var(--tag-rot));
+    transform-origin: var(--tag-ox) -34px;
+  }
+  .tftw-tag--tl {
+    --tag-rot: -3.5deg;
+    --tag-rot-from: -14deg;
+    --tag-ox: 78%;
+  }
+  .tftw-tag--tr {
+    --tag-rot: 3deg;
+    --tag-rot-from: 12deg;
+    --tag-ox: 22%;
+  }
+  .tftw-tag--bl {
+    --tag-rot: 2.5deg;
+    --tag-rot-from: 10deg;
+    --tag-ox: 64%;
+  }
+  .tftw-tag--br {
+    --tag-rot: -2deg;
+    --tag-rot-from: -8deg;
+    --tag-ox: 36%;
+  }
+
+  /*
+   * Mirrored for Arabic. The punch hole must stay on the side of the tag that
+   * faces the bag, and transform-origin is physical, so it cannot follow the
+   * logical `start`/`end` insets the component uses. These four lines are the
+   * whole of the RTL handling.
+   */
+  [dir='rtl'] .tftw-tag--tl {
+    --tag-ox: 22%;
+  }
+  [dir='rtl'] .tftw-tag--tr {
+    --tag-ox: 78%;
+  }
+  [dir='rtl'] .tftw-tag--bl {
+    --tag-ox: 36%;
+  }
+  [dir='rtl'] .tftw-tag--br {
+    --tag-ox: 64%;
+  }
+
+  .tftw-tag__peg,
+  .tftw-tag__string,
+  .tftw-tag__hole {
+    position: absolute;
+    left: var(--tag-ox);
+  }
+  .tftw-tag__peg {
+    @apply bg-primary-500;
+    top: -40px;
+    width: 9px;
+    height: 9px;
+    margin-left: -4.5px;
+    border-radius: 9999px;
+  }
+  .tftw-tag__string {
+    top: -34px;
+    width: 1.5px;
+    height: 34px;
+    background: linear-gradient(hsl(var(--primary)), transparent);
+  }
+  .tftw-tag__hole {
+    @apply bg-brand-cream shadow-inner;
+    top: 11px;
+    width: 11px;
+    height: 11px;
+    margin-left: -5.5px;
+    border-radius: 9999px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /*
+   * Scroll-triggered entrance with no JavaScript at all. Firefox has not
+   * shipped scroll-driven animations, so it takes the @supports fallback:
+   * the tags are simply present. That is a complete, correct rendering, not a
+   * broken one, which is why this is preferred to an IntersectionObserver on a
+   * marketing section.
+   */
+  @supports (animation-timeline: view()) {
+    @keyframes tftw-tag-in {
+      from {
+        opacity: 0;
+        transform: translateY(-22px) rotate(var(--tag-rot-from));
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotate(var(--tag-rot));
+      }
+    }
+    .tftw-tag {
+      animation: tftw-tag-in linear both;
+      animation-timeline: view();
+      animation-range: entry 6% cover 24%;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    @keyframes tftw-tag-swing {
+      0%,
+      100% {
+        transform: rotate(calc(var(--tag-rot) - 1.6deg));
+      }
+      50% {
+        transform: rotate(calc(var(--tag-rot) + 1.6deg));
+      }
+    }
+    /* the tag swings on its punch hole, the way a real one would */
+    .tftw-tag:hover,
+    .tftw-tag:focus-within {
+      animation: tftw-tag-swing 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+  }
+}
+
+/* ── Scroll-reveal entrance animations ── */
+
+/*
+ * The hidden start state is gated on `scripting: enabled`, because only
+ * JavaScript can ever undo it - `data-revealed` is set by an
+ * IntersectionObserver. A browser with JS off, or one too old to know this
+ * query, skips the whole block and renders the sections plainly visible.
+ * Ungated, a failed bundle would leave three marketing sections permanently
+ * blank, and blank to a crawler that does not execute scripts.
+ */
+@media (scripting: enabled) {
+  .sr-left,
+  .sr-right,
+  .sr-up,
+  .sr-scale {
+    opacity: 0;
+    transition:
+      opacity 2.1s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 2.1s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--sr-delay, 0s);
+  }
+
+  .sr-left {
+    transform: translateX(-60px);
+  }
+  .sr-right {
+    transform: translateX(60px);
+  }
+  .sr-up {
+    transform: translateY(40px);
+  }
+  .sr-scale {
+    transform: scale(0.85);
+  }
+
+  /* the two horizontal entrances follow the reading direction */
+  [dir='rtl'] .sr-left {
+    transform: translateX(60px);
+  }
+  [dir='rtl'] .sr-right {
+    transform: translateX(-60px);
+  }
+
+  [data-revealed='true'] .sr-left,
+  [data-revealed='true'] .sr-right,
+  [data-revealed='true'] .sr-up,
+  [data-revealed='true'] .sr-scale {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+
+  /*
+   * Under reduced motion the reveal still runs, as a fade with no movement.
+   * The setting suppresses vestibular-triggering motion - translation,
+   * scaling, parallax - not every state change, and a plain opacity
+   * transition is the accepted substitute. Killing the reveal outright
+   * instead painted every section at its final state before it was ever
+   * scrolled to, which is what made this read as broken.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .sr-left,
+    .sr-right,
+    .sr-up,
+    .sr-scale {
+      transform: none !important;
+      transition: opacity 1.5s ease !important;
+      transition-delay: var(--sr-delay, 0s) !important;
+    }
+  }
+}

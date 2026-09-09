@@ -169,7 +169,7 @@ const mdxComponents = {
   ),
   a: ({ children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
-      className='text-brand-coral underline underline-offset-2 hover:text-brand-deep transition-colors'
+      className='text-brand-green underline underline-offset-2 hover:text-brand-deep transition-colors'
       target={props.href?.startsWith('http') ? '_blank' : undefined}
       rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
       {...props}
@@ -179,13 +179,13 @@ const mdxComponents = {
   ),
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
     <ul
-      className='space-y-sm my-xl ps-xl list-disc marker:text-brand-coral text-[15px] text-brand-deep/80'
+      className='space-y-sm my-xl ps-xl list-disc marker:text-brand-green text-[15px] text-brand-deep/80'
       {...props}
     />
   ),
   ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
     <ol
-      className='space-y-sm my-xl ps-xl list-decimal marker:text-brand-coral text-[15px] text-brand-deep/80'
+      className='space-y-sm my-xl ps-xl list-decimal marker:text-brand-green text-[15px] text-brand-deep/80'
       {...props}
     />
   ),
@@ -286,7 +286,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
             {post.tags.map(tag => (
               <span
                 key={tag}
-                className='text-[10px] uppercase tracking-wider text-brand-coral bg-brand-coral/10 px-2.5 py-xs rounded-full'
+                className='text-[10px] uppercase tracking-wider text-brand-green bg-brand-coral/10 px-2.5 py-xs rounded-full'
               >
                 {tags[tag] ?? tag}
               </span>
@@ -301,9 +301,9 @@ export default async function BlogPostPage({ params }: PostPageProps) {
           {/* Meta */}
           <div className='mt-2xl flex flex-wrap items-center gap-lg text-[11px] uppercase tracking-wider text-brand-deep/40'>
             <span>{post.author}</span>
-            <span className='text-brand-coral'>·</span>
+            <span className='text-brand-green'>·</span>
             <time dateTime={post.date}>{formatDate(post.date, loc)}</time>
-            <span className='text-brand-coral'>·</span>
+            <span className='text-brand-green'>·</span>
             <span>
               {post.readTime} {ui.minRead}
             </span>
@@ -344,7 +344,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
         {related.length > 0 && (
           <section className='border-t border-brand-deep/10 bg-white/30'>
             <div className='mx-auto w-full max-w-[1400px] px-4xl py-14'>
-              <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-md'>
+              <p className='text-xs uppercase tracking-[0.25em] text-brand-green mb-md'>
                 {ui.keepReading}
               </p>
               <h2 className='font-heading text-3xl font-light mb-4xl'>{ui.moreArticles}</h2>
@@ -362,7 +362,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
                           </span>
                         ))}
                       </div>
-                      <h3 className='font-heading text-xl font-light leading-snug group-hover:text-brand-coral transition-colors'>
+                      <h3 className='font-heading text-xl font-light leading-snug group-hover:text-brand-green transition-colors'>
                         {p.title}
                       </h3>
                       <p className='mt-sm text-sm text-brand-deep/55 line-clamp-2'>
@@ -382,7 +382,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
         {/* ── CTA ───────────────────────────────────────────────────── */}
         <section className='bg-brand-deep text-brand-cream py-14'>
           <div className='mx-auto w-full max-w-[720px] px-4xl text-center'>
-            <p className='text-xs uppercase tracking-[0.25em] text-brand-coral mb-lg'>
+            <p className='text-xs uppercase tracking-[0.25em] text-brand-green mb-lg'>
               {ui.ctaEyebrow}
             </p>
             <h2 className='font-heading text-3xl font-light md:text-4xl mb-xl'>{ui.ctaHeadline}</h2>

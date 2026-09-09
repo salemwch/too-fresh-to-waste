@@ -37,7 +37,7 @@ function MiniBarChart({
         const height = maxVal > 0 ? (val / maxVal) * 100 : 0;
         return (
           <div key={i} className='flex-1 flex flex-col items-center gap-xs'>
-            <span className='text-[9px] text-muted-foreground tabular-nums'>
+            <span className='text-xs text-muted-foreground tabular-nums'>
               {val}
               {unit}
             </span>
@@ -50,7 +50,7 @@ function MiniBarChart({
                 style={{ height: `${height}%`, marginTop: `${100 - height}%` }}
               />
             </div>
-            <span className='text-[9px] text-muted-foreground'>{String(item[labelKey])}</span>
+            <span className='text-xs text-muted-foreground'>{String(item[labelKey])}</span>
           </div>
         );
       })}

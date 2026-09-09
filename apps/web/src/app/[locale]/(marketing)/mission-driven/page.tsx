@@ -120,7 +120,7 @@ function Door({
       >
         <div className='flex items-center gap-2xl lg:gap-6xl min-w-0'>
           <span
-            className={`font-heading text-sm font-bold tabular-nums transition-colors duration-500 shrink-0 ${hovered ? 'text-white/30' : 'text-primary-500/20'}`}
+            className={`font-heading text-sm font-bold tabular-nums transition-colors duration-500 shrink-0 ${hovered ? 'text-white/75' : 'text-primary-500/20'}`}
           >
             {num}
           </span>
@@ -131,7 +131,7 @@ function Door({
               {label}
             </p>
             <p
-              className={`text-sm mt-1.5 transition-all duration-500 leading-snug ${hovered ? 'text-white/60 max-h-10 opacity-100' : 'text-primary-500/0 max-h-0 opacity-0'}`}
+              className={`text-sm mt-1.5 transition-all duration-500 leading-snug ${hovered ? 'text-white/75 max-h-10 opacity-100' : 'text-primary-500/0 max-h-0 opacity-0'}`}
             >
               {tagline}
             </p>

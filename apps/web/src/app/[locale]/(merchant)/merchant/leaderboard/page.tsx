@@ -141,7 +141,7 @@ function LeaderboardRow({
         <div className='text-[13px] font-medium text-primary-500 truncate'>
           {entry.displayName}
           {isMe && (
-            <span className='ms-sm text-[10px] text-brand-coral font-semibold uppercase tracking-wide'>
+            <span className='ms-sm text-[10px] text-brand-green font-semibold uppercase tracking-wide'>
               You
             </span>
           )}
@@ -237,7 +237,7 @@ export default function LeaderboardPage() {
               <div className='text-[10px] uppercase tracking-wider text-primary-500/60 mb-xs'>
                 Your Rank
               </div>
-              <div className='font-display text-5xl text-brand-coral tabular-nums'>#{myRank}</div>
+              <div className='font-display text-5xl text-brand-green tabular-nums'>#{myRank}</div>
               <div className='text-xs text-primary-500/50 mt-xs'>
                 of {totalParticipants} establishments
               </div>
@@ -270,7 +270,7 @@ export default function LeaderboardPage() {
         {/* Leaderboard list */}
         <div className='glass rounded-2xl shadow-soft overflow-hidden'>
           <div className='flex items-center gap-sm px-[20px] py-[16px] border-b border-primary-500/[0.06]'>
-            <Trophy size={16} className='text-brand-coral' />
+            <Trophy size={16} className='text-brand-green' />
             <span className='text-[13px] font-semibold text-primary-500'>Top Merchants</span>
           </div>
 

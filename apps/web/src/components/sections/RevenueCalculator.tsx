@@ -18,12 +18,12 @@ function SliderRow({ label, value, min, max, step, unit, onChange }: SliderRowPr
   return (
     <div>
       <div className='flex items-baseline justify-between mb-sm'>
-        <p className='text-white/55 text-xs font-bold uppercase tracking-[0.15em]'>{label}</p>
+        <p className='text-white/75 text-xs font-bold uppercase tracking-[0.15em]'>{label}</p>
         <div className='flex items-baseline gap-xs'>
           <span className='font-heading text-3xl font-bold text-white tabular-nums leading-none'>
             {value}
           </span>
-          <span className='text-white/40 text-sm font-medium'>{unit}</span>
+          <span className='text-white/75 text-sm font-medium'>{unit}</span>
         </div>
       </div>
       <input
@@ -43,11 +43,11 @@ function SliderRow({ label, value, min, max, step, unit, onChange }: SliderRowPr
         aria-valuenow={value}
       />
       <div className='flex justify-between mt-1.5'>
-        <span className='text-white/35 text-[10px]'>
+        <span className='text-white/75 text-[10px]'>
           {min}
           {unit}
         </span>
-        <span className='text-white/35 text-[10px]'>
+        <span className='text-white/75 text-[10px]'>
           {max}
           {unit}
         </span>
@@ -144,26 +144,34 @@ export default function RevenueCalculator() {
         <div className='bg-white/10 border border-white/10 rounded-3xl p-3xl relative overflow-hidden'>
           {/* coral glow */}
 
-          <p className='text-white/60 text-[10px] font-bold uppercase tracking-widest mb-sm'>
+          <p className='text-white/75 text-[10px] font-bold uppercase tracking-widest mb-sm'>
             Monthly revenue
           </p>
           <div className='flex items-baseline gap-sm mb-sm'>
             <span className='font-heading text-5xl lg:text-6xl font-bold text-white tabular-nums leading-none'>
               {fmt(revenuePerMonth)}
             </span>
-            <span className='text-white/60 text-xl font-normal'>TND</span>
+            <span className='text-white/75 text-xl font-normal'>TND</span>
           </div>
-          <p className='text-white/55 text-xs'>
+          <p className='text-white/75 text-xs'>
             {bags} bags × {bagPrice % 1 === 0 ? bagPrice : bagPrice.toFixed(1)} TND × {days} days
           </p>
 
           <div className='mt-xl pt-xl border-t border-white/10 flex items-baseline justify-between gap-lg'>
-            <p className='text-white/60 text-[10px] font-bold uppercase tracking-widest shrink-0'>
+            <p className='text-white/75 text-[10px] font-bold uppercase tracking-widest shrink-0'>
               Per year
             </p>
             <p className='font-heading text-3xl font-bold text-brand-coral tabular-nums'>
               {fmt(revenuePerYear)}{' '}
-              <span className='text-brand-coral/80 text-lg font-normal'>TND</span>
+              {/*
+                Not coral. The figure above is 28px bold, so it counts as large
+                text and clears the 3:1 bar at 3.11 on this ground (#35575A -
+                the stacked white tints lift it well off the flat teal). This
+                suffix is 18px regular, which is normal text needing 4.5, and
+                coral at 80% measured 2.46. It is a unit label, so it does not
+                need the accent to do its job.
+              */}
+              <span className='text-white/75 text-lg font-normal'>TND</span>
             </p>
           </div>
         </div>
@@ -190,7 +198,7 @@ export default function RevenueCalculator() {
           </div>
         </div>
 
-        <p className='text-white/40 text-[10px] text-center leading-relaxed'>
+        <p className='text-white/75 text-[10px] text-center leading-relaxed'>
           * Estimates based on WRAP &amp; WWF food waste data. CO₂ at 2 kg/bag · water at 300 L/bag.
         </p>
       </div>

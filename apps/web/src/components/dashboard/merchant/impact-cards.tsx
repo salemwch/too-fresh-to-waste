@@ -99,7 +99,7 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
               <div className='h-9 w-9 rounded-lg bg-primary-500/[0.08] grid place-items-center text-primary-500'>
                 <Icon size={17} />
               </div>
-              <div className='flex items-center gap-xs text-[10px] font-medium text-brand-coral text-end'>
+              <div className='flex items-center gap-xs text-[10px] font-medium text-brand-green text-end'>
                 <TrendingUp size={11} className='shrink-0' />
                 {card.delta}
               </div>

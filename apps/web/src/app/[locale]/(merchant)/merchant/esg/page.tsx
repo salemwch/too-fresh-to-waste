@@ -143,7 +143,7 @@ function EsgContent() {
           {(tier?.allTiers ?? []).map(tierItem => (
             <div key={tierItem.name} className='flex items-center gap-md'>
               {tierItem.reached ? (
-                <CheckCircle2 size={18} className='text-brand-coral shrink-0' />
+                <CheckCircle2 size={18} className='text-brand-green shrink-0' />
               ) : (
                 <Circle size={18} className='text-primary-500/25 shrink-0' />
               )}
@@ -158,7 +158,7 @@ function EsgContent() {
                 </div>
               </div>
               {tierItem.reached && (
-                <span className='text-[10px] px-sm py-xxs rounded-full bg-brand-coral/10 text-brand-coral font-medium'>
+                <span className='text-[10px] px-sm py-xxs rounded-full bg-brand-coral/10 text-brand-green font-medium'>
                   {t('reached')}
                 </span>
               )}

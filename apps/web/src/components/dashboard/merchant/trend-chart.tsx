@@ -30,7 +30,7 @@ function CustomTooltip({ active, payload, label, bagsUnit, peakLabel }: any) {
         {v} {bagsUnit}
       </div>
       {isRecord && v > 0 && (
-        <div className='mt-xs text-[11px] font-medium text-brand-coral'>{peakLabel}</div>
+        <div className='mt-xs text-[11px] font-medium text-brand-green'>{peakLabel}</div>
       )}
     </div>
   );
