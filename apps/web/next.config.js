@@ -42,6 +42,25 @@ const nextConfig = {
   reactStrictMode: true,
 
   /*
+   * React Compiler (stable, v1.0.0).
+   *
+   * Auto-memoises components and hooks at build time, so a value only
+   * recomputes when its inputs actually change. This app has 149 client
+   * components and hand-written memoisation in just 26 files - the other ~123
+   * re-render whenever their parent does.
+   *
+   * Safe to enable here specifically because the ESLint work in 6c3fd90b
+   * already fixed all 33 react-hooks violations. The compiler silently skips
+   * any component it cannot prove safe, so those fixes are what turn this from
+   * near-no-op into real coverage.
+   *
+   * Babel transform rather than experimental.turbopackRustReactCompiler: the
+   * Rust port is faster but experimental, and this decides what ships to
+   * production. Re-evaluate when it becomes the default.
+   */
+  reactCompiler: true,
+
+  /*
    * No `eslint` key here.
    *
    * Next 16 removed it along with `next lint`, and warns "Invalid next.config.js
