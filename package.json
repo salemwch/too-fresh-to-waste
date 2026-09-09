@@ -58,7 +58,8 @@
     "security:check": "turbo run security:check",
     "security:sast": "semgrep --config=.semgrep/rules.yml --config=p/owasp-top-ten --config=p/jwt --config=p/nodejs --config=p/react --config=p/secrets --exclude=node_modules --exclude=dist --exclude=.next --exclude=android --exclude=ios --exclude=pnpm-lock.yaml apps/ packages/",
     "security:sast:ci": "semgrep --config=.semgrep/rules.yml --config=p/owasp-top-ten --config=p/jwt --config=p/nodejs --config=p/react --config=p/secrets --exclude=node_modules --exclude=dist --exclude=.next --exclude=android --exclude=ios --exclude=pnpm-lock.yaml --json apps/ packages/",
-    "prepare-release": "turbo run build test:ci security:check && pnpm audit"
+    "prepare-release": "turbo run build test:ci security:check && pnpm audit",
+    "check:tslib": "node scripts/check-tslib-helpers.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",

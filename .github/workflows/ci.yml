@@ -62,6 +62,13 @@ jobs:
       - name: Verify lockfile matches every package.json
         run: pnpm install --frozen-lockfile --lockfile-only --ignore-scripts
 
+      # importHelpers makes tsc emit require("tslib"), which no source file
+      # writes and no type-check or unit test observes. Runs before install:
+      # it reads manifests only, and a missing tslib fails the Docker build
+      # rather than anything here.
+      - name: Verify tslib is declared where importHelpers is on
+        run: pnpm check:tslib
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

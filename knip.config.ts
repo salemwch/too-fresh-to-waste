@@ -30,15 +30,11 @@ const config: KnipConfig = {
   // only produces a "remove from ignoreBinaries" hint.
   ignoreBinaries: ['pm2', 'dot', 'gradlew', 'pod', 'fastlane', 'semgrep'],
 
-  /*
-   * Reported against packages/tsconfig/base.json, the file that turns
-   * importHelpers on. That package ships JSON presets and has no node_modules,
-   * so there is nothing there to resolve against - the consuming workspaces are
-   * where tslib is actually declared. See the note above TSLIB_IGNORE.
-   */
-  ignoreUnresolved: [TSLIB_IGNORE],
-
   ignoreDependencies: [
+    // Global, not per-workspace: six workspaces inherit importHelpers and any
+    // new one will too, so scoping this would just be a list to forget to
+    // update. See the note above TSLIB_IGNORE.
+    TSLIB_IGNORE,
     '@react-native/eslint-config',
     '@types/multer',
     '@foodwaste/jest-config',
@@ -84,7 +80,6 @@ const config: KnipConfig = {
         'src/seeds/**/*.ts',
       ],
       project: ['src/**/*.ts'],
-      ignoreDependencies: [TSLIB_IGNORE],
       jest: {
         config: ['jest.config.js'],
         entry: ['src/**/*.spec.ts', 'src/**/*.test.ts', 'test/**/*.ts'],
@@ -159,7 +154,6 @@ const config: KnipConfig = {
       // false "unused file" positives.
       entry: ['src/**/*.ts'],
       project: ['src/**/*.ts'],
-      ignoreDependencies: [TSLIB_IGNORE],
     },
 
     // ─── UI package (library — consumed by web) ──────────────────────────
