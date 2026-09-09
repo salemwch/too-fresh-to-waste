@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useToday, daysUntil } from '@/hooks/useClock';
 import {
   Trophy,
   Loader2,
@@ -89,6 +90,8 @@ function KpiCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminMonthlyBagGoalPage() {
+  // Day-quantised clock rather than Date.now() in render - see hooks/useClock.
+  const today = useToday();
   const t = useTranslations('dashboard.adminCommunityGoal');
 
   const { data: goal, isLoading, refetch, isFetching } = useAdminMonthlyBagGoal();
@@ -101,13 +104,23 @@ export default function AdminMonthlyBagGoalPage() {
   const [resetDialog, setResetDialog] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  useEffect(() => {
-    if (goal) {
-      setTargetCount(String(goal.targetCount));
-      setSeasonName(goal.seasonName ?? '');
-      setEndDate(goal.endDate ? goal.endDate.slice(0, 10) : '');
-    }
-  }, [goal]);
+  /*
+   * Populate the form once the goal loads.
+   *
+   * Adjusted during render rather than in an effect: React re-runs this
+   * component with the populated values before committing, so the inputs are
+   * never painted empty for a frame after the fetch resolves.
+   *
+   * Keyed on the goal object identity, exactly as the previous `[goal]`
+   * dependency was, so refetch behaviour is unchanged.
+   */
+  const [syncedGoal, setSyncedGoal] = useState(goal);
+  if (goal && goal !== syncedGoal) {
+    setSyncedGoal(goal);
+    setTargetCount(String(goal.targetCount));
+    setSeasonName(goal.seasonName ?? '');
+    setEndDate(goal.endDate ? goal.endDate.slice(0, 10) : '');
+  }
 
   const isDirty =
     goal &&
@@ -147,9 +160,7 @@ export default function AdminMonthlyBagGoalPage() {
 
   const progressPct = goal?.progressPercentage ?? 0;
 
-  const daysLeft = goal?.endDate
-    ? Math.max(0, Math.ceil((new Date(goal.endDate).getTime() - Date.now()) / 86_400_000))
-    : null;
+  const daysLeft = goal?.endDate ? daysUntil(goal.endDate, today) : null;
 
   return (
     <div className='space-y-2xl'>

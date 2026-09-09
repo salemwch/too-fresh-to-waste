@@ -1,4 +1,3 @@
-/* eslint-disable require-await */
 import { NotFoundException } from '@nestjs/common';
 import { Types } from 'mongoose';
 

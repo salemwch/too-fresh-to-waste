@@ -235,41 +235,60 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
   // (e.g. preset "Lunch 12:00" while today's clock is past 12:00), the browser
   // displays the first real option visually while React holds the old value,
   // so the first onChange never fires. We correct state immediately.
-  useEffect(() => {
+  /*
+   * Keep the From select on a value it actually offers.
+   *
+   * Corrected during render: the reason this exists is that the <select>
+   * displays the first real option while React still holds the stale value, so
+   * the first onChange never fires. An effect fixed that a commit too late -
+   * the mismatched frame was still painted. Adjusting here means the select and
+   * the state agree on the render that reaches the screen.
+   */
+  const [lastFromInputs, setLastFromInputs] = useState({ pickupDay, customOpen });
+  if (lastFromInputs.pickupDay !== pickupDay || lastFromInputs.customOpen !== customOpen) {
+    setLastFromInputs({ pickupDay, customOpen });
     const available = getAvailableFromTimes(pickupDay);
-    if (pickupFrom === 'now') return; // 'now' is always valid for today
-    if (pickupDay === 'today' && available.length === 0) {
-      // No scheduled slots remain — only 'now' is valid; snap state to match the select
-      setPickupFrom('now');
-      return;
+    if (pickupFrom !== 'now') {
+      // 'now' is always valid for today
+      if (pickupDay === 'today' && available.length === 0) {
+        // No scheduled slots remain - only 'now' is valid
+        setPickupFrom('now');
+      } else if (!available.includes(pickupFrom)) {
+        setPickupFrom(available[0] ?? PICKUP_PRESETS[0].from);
+      }
     }
-    if (!available.includes(pickupFrom)) {
-      setPickupFrom(available[0] ?? PICKUP_PRESETS[0].from);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickupDay, customOpen]);
+  }
 
   // ── Sync pickupUntil when pickupFrom changes ──────────────────────────────
   // Ensures the Until select never holds a value that's before From.
   // Defaults to ~1 hr after From; falls back to first valid slot.
-  useEffect(() => {
+  /*
+   * Keep Until after From, defaulting to roughly an hour later. Same reasoning
+   * as the From correction above: done during render so the two selects are
+   * never painted in a contradictory state.
+   */
+  const [lastFrom, setLastFrom] = useState(pickupFrom);
+  if (lastFrom !== pickupFrom) {
+    setLastFrom(pickupFrom);
     const available = getAvailableUntilTimes(pickupFrom);
-    if (available.includes(pickupUntil)) return;
-    const now = new Date();
-    const fH =
-      pickupFrom === 'now' ? now.getHours() : Number.parseInt(pickupFrom.split(':')[0] ?? '0', 10);
-    const fM =
-      pickupFrom === 'now'
-        ? now.getMinutes()
-        : Number.parseInt(pickupFrom.split(':')[1] ?? '0', 10);
-    const fromMins = fH * 60 + fM;
-    const oneHourSlot = available.find(t => {
-      const [h = 0, m = 0] = t.split(':').map(Number);
-      return (h === 0 && m === 0 ? 1440 : h * 60 + m) >= fromMins + 60;
-    });
-    setPickupUntil(oneHourSlot ?? available[0] ?? '00:00');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickupFrom]);
+    if (!available.includes(pickupUntil)) {
+      const now = new Date();
+      const fH =
+        pickupFrom === 'now'
+          ? now.getHours()
+          : Number.parseInt(pickupFrom.split(':')[0] ?? '0', 10);
+      const fM =
+        pickupFrom === 'now'
+          ? now.getMinutes()
+          : Number.parseInt(pickupFrom.split(':')[1] ?? '0', 10);
+      const fromMins = fH * 60 + fM;
+      const oneHourSlot = available.find(slot => {
+        const [h = 0, m = 0] = slot.split(':').map(Number);
+        return (h === 0 && m === 0 ? 1440 : h * 60 + m) >= fromMins + 60;
+      });
+      setPickupUntil(oneHourSlot ?? available[0] ?? '00:00');
+    }
+  }
 
   // ── Esc key ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -288,31 +307,54 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
 
   // Keep the suggestion in step with the type, title and quantity — until the
   // merchant writes their own, at which point it is theirs and we leave it be.
-  useEffect(() => {
-    if (descriptionTouched) return;
-    setDescription(autoDescription(t, bagType, title.trim() || defaultTitle, quantity));
-  }, [t, defaultTitle, bagType, title, quantity, descriptionTouched]);
+  /*
+   * The suggestion follows type/title/quantity until the merchant edits it,
+   * after which the text is theirs. Recomputed on the render where an input
+   * changed rather than in an effect, so the textarea never shows the previous
+   * suggestion for a frame before catching up.
+   */
+  const nextSuggestion = descriptionTouched
+    ? null
+    : autoDescription(t, bagType, title.trim() || defaultTitle, quantity);
+  if (nextSuggestion !== null && nextSuggestion !== description) {
+    setDescription(nextSuggestion);
+  }
 
   // ── Reset on open ────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!open) return;
-    setTitle(defaultTitle);
-    setQuantity(1);
-    setBagType('surprise_bag');
-    setDescription(autoDescription(t, 'surprise_bag', defaultTitle, 1));
-    setDescriptionTouched(false);
-    setRawPrice(DEFAULT_PRICE.toFixed(3));
-    setDiscount(DEFAULT_DISCOUNT);
-    setPickupDay('today');
-    setPickupFrom(PICKUP_PRESETS[0].from);
-    setPickupUntil(PICKUP_PRESETS[0].until);
-    setCustomOpen(false);
-    setImageFile(null);
-    setImagePreview('');
-    setErrorMsg('');
-    setSuccessMsg('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  /*
+   * Reset the form each time the panel opens.
+   *
+   * Adjusted on the open transition during render, not in an effect. React
+   * discards the in-progress render and re-runs the component with the reset
+   * values before committing, so a merchant never sees the previous bag's
+   * details flash before the form clears - which is what the effect version
+   * did, and what react-hooks reports as a cascading render.
+   *
+   * A `key` on the call sites would be the shorter fix, but this panel stays
+   * mounted while closed and fades out via `opacity-0` (see the backdrop
+   * below). Remounting it would cut the close animation.
+   */
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setTitle(defaultTitle);
+      setQuantity(1);
+      setBagType('surprise_bag');
+      setDescription(autoDescription(t, 'surprise_bag', defaultTitle, 1));
+      setDescriptionTouched(false);
+      setRawPrice(DEFAULT_PRICE.toFixed(3));
+      setDiscount(DEFAULT_DISCOUNT);
+      setPickupDay('today');
+      setPickupFrom(PICKUP_PRESETS[0].from);
+      setPickupUntil(PICKUP_PRESETS[0].until);
+      setCustomOpen(false);
+      setImageFile(null);
+      setImagePreview('');
+      setErrorMsg('');
+      setSuccessMsg('');
+    }
+  }
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const decrement = useCallback(() => setQuantity(q => Math.max(1, q - 1)), []);

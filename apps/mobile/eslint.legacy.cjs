@@ -1,5 +1,6 @@
 'use strict';
 
+/** Legacy-format config object, consumed by eslint.config.js via FlatCompat. */
 module.exports = {
   root: true,
   /*

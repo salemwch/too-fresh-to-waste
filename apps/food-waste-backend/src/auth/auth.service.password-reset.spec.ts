@@ -23,7 +23,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 
-// eslint-disable-next-line import/no-restricted-paths
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { PhoneNumberService } from '../common/services/phone-number.service';
 import { EmailService } from '../email/email.service';

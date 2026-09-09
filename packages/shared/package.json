@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --build",
     "dev": "tsc --build --watch",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --cache",
+    "lint": "eslint . --cache",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --cache",
     "type-check": "tsc --noEmit",
     "test": "jest --passWithNoTests",

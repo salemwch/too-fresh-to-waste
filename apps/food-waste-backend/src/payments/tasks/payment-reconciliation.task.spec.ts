@@ -1,4 +1,3 @@
-/* eslint-disable require-await */
 import { getModelToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
 import { Types } from 'mongoose';

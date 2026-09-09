@@ -1,4 +1,3 @@
-/* eslint-disable require-await */
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';

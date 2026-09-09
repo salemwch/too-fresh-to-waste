@@ -130,7 +130,7 @@ test.describe('@audit a11y probe', () => {
         };
       });
 
-      // eslint-disable-next-line no-console
+       
       console.log(`PROBE ${path} ${JSON.stringify(facts)}`);
       expect(res?.status()).toBe(200);
     });

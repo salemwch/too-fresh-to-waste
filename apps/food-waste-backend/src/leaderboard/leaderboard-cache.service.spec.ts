@@ -1,4 +1,3 @@
-/* eslint-disable require-await */
 import { LeaderboardCacheService } from './leaderboard-cache.service';
 
 const USER_A = '660000000000000000000001';

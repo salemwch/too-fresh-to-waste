@@ -59,7 +59,7 @@ base.describe('@audit reveal check', () => {
         return { docHeight: document.body.scrollHeight, sections: all.length, invisible, samples };
       });
 
-      // eslint-disable-next-line no-console
+       
       console.log(`REVEAL ${path} ${JSON.stringify(stats)}`);
       expect(stats.docHeight).toBeGreaterThan(0);
     });

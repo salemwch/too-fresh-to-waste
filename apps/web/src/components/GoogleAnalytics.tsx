@@ -1,7 +1,45 @@
 'use client';
 
 import { GoogleAnalytics as NextGoogleAnalytics } from '@next/third-parties/google';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
+
+/*
+ * Consent and Do Not Track live in the browser, not in React: one in
+ * localStorage plus a `cookie-consent-declined` event, the other on
+ * `navigator`. Reading them through useSyncExternalStore rather than copying
+ * them into state with an effect means the decision is derived, not stored -
+ * so it cannot drift, and there is no mount render that says "load analytics"
+ * before the effect corrects it.
+ *
+ * Both take a server snapshot of `false`: nothing loads during SSR, and the
+ * real values are read on the client without a hydration mismatch.
+ */
+
+const CONSENT_DECLINED_EVENT = 'cookie-consent-declined';
+
+function subscribeToConsent(onChange: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener(CONSENT_DECLINED_EVENT, onChange);
+  // Another tab writing the cookie decision should count too.
+  window.addEventListener('storage', onChange);
+  return () => {
+    window.removeEventListener(CONSENT_DECLINED_EVENT, onChange);
+    window.removeEventListener('storage', onChange);
+  };
+}
+
+const getConsentDeclined = (): boolean => localStorage.getItem('cookie-consent') === 'declined';
+
+/** DNT is fixed for the life of the document, so there is nothing to subscribe to. */
+const subscribeToDnt = (): (() => void) => () => {};
+
+const getDntEnabled = (): boolean =>
+  navigator.doNotTrack === '1' ||
+  window.doNotTrack === '1' ||
+  // @ts-expect-error - IE/Edge legacy property
+  navigator.msDoNotTrack === '1';
+
+const noOnServer = (): boolean => false;
 
 interface GoogleAnalyticsProps {
   measurementId: string;
@@ -30,28 +68,13 @@ export function GoogleAnalytics({
   respectDNT = true,
   enabled = true,
 }: Readonly<GoogleAnalyticsProps>) {
-  const [shouldLoad, setShouldLoad] = useState(false);
+  const consentDeclined = useSyncExternalStore(subscribeToConsent, getConsentDeclined, noOnServer);
+  const dntEnabled = useSyncExternalStore(subscribeToDnt, getDntEnabled, noOnServer);
 
-  useEffect(() => {
-    const isDNTEnabled =
-      respectDNT &&
-      (navigator.doNotTrack === '1' ||
-        window.doNotTrack === '1' ||
-        // @ts-expect-error - IE/Edge legacy property
-        navigator.msDoNotTrack === '1');
-
-    const cookieConsent = localStorage.getItem('cookie-consent');
-    const isConsentDeclined = cookieConsent === 'declined';
-
-    const shouldEnable = Boolean(enabled && !isDNTEnabled && !isConsentDeclined && measurementId);
-    setShouldLoad(shouldEnable);
-
-    function handleDeclined() {
-      setShouldLoad(false);
-    }
-    window.addEventListener('cookie-consent-declined', handleDeclined);
-    return () => window.removeEventListener('cookie-consent-declined', handleDeclined);
-  }, [measurementId, enabled, respectDNT]);
+  // Derived, not stored: there is no state that can disagree with the browser.
+  const shouldLoad = Boolean(
+    enabled && measurementId && !consentDeclined && !(respectDNT && dntEnabled),
+  );
 
   // Don't render if not enabled
   if (!shouldLoad) {

@@ -25,7 +25,7 @@ test.describe('@audit detail', () => {
         };
       }),
     );
-    // eslint-disable-next-line no-console
+     
     console.log('COMPANIES_INPUTS ' + JSON.stringify(info, null, 1));
     expect(info.length).toBeGreaterThan(0);
   });
@@ -49,7 +49,7 @@ test.describe('@audit detail', () => {
         .filter(e => !e.inline) // WCAG 2.5.8 exempts inline links in text
         .slice(0, 20),
     );
-    // eslint-disable-next-line no-console
+     
     console.log('HOME_SMALL_TARGETS ' + JSON.stringify(small, null, 1));
     expect(Array.isArray(small)).toBe(true);
   });

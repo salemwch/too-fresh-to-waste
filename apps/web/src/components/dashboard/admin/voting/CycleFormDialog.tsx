@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Button,
   Dialog,
@@ -68,8 +68,16 @@ export function CycleFormDialog({
   const [recipientCount, setRecipientCount] = useState(DEFAULT_RECIPIENT_COUNT);
   const [prizes, setPrizes] = useState<PrizeFormItem[]>(DEFAULT_PRIZES);
 
-  // Sync state when editingCycle changes (or dialog opens for a new cycle)
-  useEffect(() => {
+  /*
+   * Load the cycle being edited, or clear the form for a new one.
+   *
+   * Adjusted during render on a change of cycle or open state: React re-runs
+   * with the right values before committing, so the previous cycle is never
+   * shown for a frame in the dialog for a different one.
+   */
+  const [lastSync, setLastSync] = useState({ editingCycle, open });
+  if (lastSync.editingCycle !== editingCycle || lastSync.open !== open) {
+    setLastSync({ editingCycle, open });
     if (editingCycle) {
       setName(editingCycle.name);
       setStartDate(toDateInput(editingCycle.cycleStartDate));
@@ -100,7 +108,7 @@ export function CycleFormDialog({
       setRecipientCount(5);
       setPrizes(DEFAULT_PRIZES);
     }
-  }, [editingCycle, open]);
+  }
 
   // ─── Submit ───────────────────────────────────────────────────────────────
 

@@ -45,13 +45,26 @@ function relativeDate(iso: string) {
   return `${days}d ago`;
 }
 
-function getActionCategoryIcon(action: string) {
-  if (action.startsWith('user_')) return ShieldAlert;
-  if (action.startsWith('establishment_')) return Shield;
-  if (action.startsWith('order_')) return Activity;
-  if (action.startsWith('review_')) return Eye;
-  if (action.startsWith('system_') || action.startsWith('bulk_')) return Settings;
-  return Activity;
+/**
+ * Renders the icon for an action category.
+ *
+ * Replaces a `getActionCategoryIcon()` helper whose result was assigned to a
+ * capitalised local and rendered as `<Icon />`. Nothing was really constructed -
+ * it returned one of a fixed set of imported lucide icons - but a dynamic JSX
+ * tag is not statically determinable, so the React Compiler could not tell that
+ * from a component defined during render, and reported it at both call sites.
+ */
+function ActionCategoryIcon({ action, className }: { action: string; className?: string }) {
+  // Literal tags, not `<Icon />` from a variable. A dynamic tag is not
+  // statically determinable, so the compiler cannot tell a stable imported icon
+  // from a component defined per render - which is what it was reporting.
+  if (action.startsWith('user_')) return <ShieldAlert className={className} />;
+  if (action.startsWith('establishment_')) return <Shield className={className} />;
+  if (action.startsWith('order_')) return <Activity className={className} />;
+  if (action.startsWith('review_')) return <Eye className={className} />;
+  if (action.startsWith('system_') || action.startsWith('bulk_'))
+    return <Settings className={className} />;
+  return <Activity className={className} />;
 }
 
 function getActionCategory(action: string): 'admin' | 'security' | 'system' {
@@ -72,7 +85,6 @@ function AuditDetailDrawer({
   onClose: () => void;
 }) {
   if (!entry) return null;
-  const ActionIcon = getActionCategoryIcon(entry.action);
 
   return (
     <Sheet open={open} onOpenChange={v => !v && onClose()}>
@@ -82,7 +94,7 @@ function AuditDetailDrawer({
           <div className='-mx-2xl -mt-2xl mb-0 border-b border-border/60 bg-muted/20 px-2xl pb-xl pt-xl pe-14'>
             <div className='flex items-start gap-md'>
               <div className='rounded-lg p-sm bg-muted'>
-                <ActionIcon className='size-5 text-foreground' />
+                <ActionCategoryIcon action={entry.action} className='size-5 text-foreground' />
               </div>
               <div>
                 <p className='text-base font-semibold capitalize'>
@@ -294,10 +306,12 @@ function AuditLogContent() {
       key: 'action',
       header: t('columns.action'),
       render: e => {
-        const Icon = getActionCategoryIcon(e.action);
         return (
           <div className='flex items-center gap-sm'>
-            <Icon className='size-3.5 text-muted-foreground shrink-0' />
+            <ActionCategoryIcon
+              action={e.action}
+              className='size-3.5 text-muted-foreground shrink-0'
+            />
             <span className='text-xs capitalize'>{e.action.replace(/_/g, ' ')}</span>
           </div>
         );

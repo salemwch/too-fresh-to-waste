@@ -1,4 +1,3 @@
-/* eslint-disable no-script-url */
 import { plainToInstance } from 'class-transformer';
 import { validate, IsString, IsEmail, IsUrl, IsMongoId } from 'class-validator';
 

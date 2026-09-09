@@ -219,19 +219,23 @@ function ReactivateModal({ offer, isPending, onClose, onConfirm, t }: Reactivate
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  // Correct stale "from" value when day changes
-  useEffect(() => {
+  /*
+   * Correct a stale From value when the day changes.
+   *
+   * Adjusted during render: the <select> already shows the new day's first
+   * option while React holds the old value, so an effect corrected it a commit
+   * after the mismatch was painted. Doing it here also retires the
+   * exhaustive-deps suppression, since the comparison is explicit.
+   */
+  const [lastDay, setLastDay] = useState(day);
+  if (lastDay !== day) {
+    setLastDay(day);
     if (day === 'today') {
-      if (pickupFrom !== 'now' && !fromOptions.includes(pickupFrom)) {
-        setFrom('now');
-      }
-    } else {
-      if (pickupFrom === 'now' || !fromOptions.includes(pickupFrom)) {
-        setFrom(fromOptions[0] ?? '12:00');
-      }
+      if (pickupFrom !== 'now' && !fromOptions.includes(pickupFrom)) setFrom('now');
+    } else if (pickupFrom === 'now' || !fromOptions.includes(pickupFrom)) {
+      setFrom(fromOptions[0] ?? '12:00');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [day]);
+  }
 
   function applyPreset(preset: (typeof PRESET_KEYS)[number]) {
     const available = getAvailableFromTimes(day);

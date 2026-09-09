@@ -19,9 +19,15 @@ function AcceptInvitationInner() {
   const token = searchParams.get('token');
   const router = useRouter();
 
-  const [state, setState] = useState<PageState>('loading');
+  /*
+   * A missing token is decided here, not by an effect. There is nothing to
+   * fetch, so the page is already in its final state and the loading spinner
+   * that the effect version painted for one frame was never going to resolve.
+   * The effect below now only does the async verification.
+   */
+  const [state, setState] = useState<PageState>(token ? 'loading' : 'error');
   const [invitation, setInvitation] = useState<InvitationVerifyResponse | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(token ? '' : 'No invitation token provided');
   const [submitting, setSubmitting] = useState(false);
 
   const [firstName, setFirstName] = useState('');
@@ -30,11 +36,7 @@ function AcceptInvitationInner() {
   const [phoneNumber, setPhoneNumber] = useState('');
 
   useEffect(() => {
-    if (!token) {
-      setError('No invitation token provided');
-      setState('error');
-      return;
-    }
+    if (!token) return;
 
     organizationService
       .verifyInvitation(token)

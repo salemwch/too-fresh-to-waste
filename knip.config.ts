@@ -21,6 +21,30 @@ import type { KnipConfig } from 'knip';
  */
 const TSLIB_IGNORE = 'tslib';
 
+/*
+ * ESLint plugins reached through FlatCompat.
+ *
+ * The flat configs consume the shared presets and eslint-config-next by name -
+ * `compat.extends('@foodwaste/eslint-config/react-native')` - because those
+ * configs are still authored in the legacy format. Knip resolves static
+ * imports, not config strings, so every plugin they pull in reads as an unused
+ * devDependency. Same blind spot as `jest-environment-jsdom` below, which is
+ * named as a bare string in packages/jest-config.
+ *
+ * Deleting any of these breaks `pnpm lint` immediately, so the check that they
+ * are genuinely needed is the lint run itself.
+ */
+const FLAT_COMPAT_ESLINT_PLUGINS = [
+  '@foodwaste/eslint-config',
+  '@typescript-eslint/eslint-plugin',
+  '@typescript-eslint/parser',
+  'eslint-config-prettier',
+  'eslint-plugin-prettier',
+  'eslint-plugin-react',
+  'eslint-plugin-react-hooks',
+  'eslint-plugin-react-native',
+];
+
 const config: KnipConfig = {
   // ─── Binaries available via devDependencies but unresolvable in pnpm
   // hoisted monorepo, or installed globally / via npx on CI/servers.
@@ -31,6 +55,7 @@ const config: KnipConfig = {
   ignoreBinaries: ['pm2', 'dot', 'gradlew', 'pod', 'fastlane', 'semgrep'],
 
   ignoreDependencies: [
+    ...FLAT_COMPAT_ESLINT_PLUGINS,
     // Global, not per-workspace: six workspaces inherit importHelpers and any
     // new one will too, so scoping this would just be a list to forget to
     // update. See the note above TSLIB_IGNORE.
@@ -104,6 +129,12 @@ const config: KnipConfig = {
         'src/dev/devSession.ts',
       ],
       project: ['src/**/*.{ts,tsx}'],
+      ignoreDependencies: [
+        // Named in eslint.legacy.cjs's extends/plugins, which FlatCompat reads
+        // as config strings. The rest of that preset's plugins are covered by
+        // FLAT_COMPAT_ESLINT_PLUGINS in the global list above.
+        'eslint-plugin-react-native-a11y',
+      ],
       jest: {
         entry: ['src/**/*.test.{ts,tsx}', 'src/**/*.spec.{ts,tsx}'],
       },
@@ -135,6 +166,11 @@ const config: KnipConfig = {
       // and exits non-zero, which is what a CI gate reads as a failure.
       jest: false,
       ignoreDependencies: [
+        // Reached via compat.extends('next/core-web-vitals'), 'next/typescript'
+        // and 'plugin:jsx-a11y/recommended' in eslint.config.mjs - config
+        // strings, which knip does not resolve.
+        'eslint-config-next',
+        'eslint-plugin-jsx-a11y',
         // Named as a bare string in packages/jest-config/next.js
         // (`testEnvironment: 'jest-environment-jsdom'`). Jest resolves it from
         // THIS workspace at runtime, so the devDependency is required here — but
@@ -176,18 +212,6 @@ const config: KnipConfig = {
     },
 
     // ─── Shared ESLint presets ──────────────────────────────────────────────
-    'packages/eslint-config': {
-      ignoreDependencies: [
-        // Referenced by ./react and ./react-native, and deliberately declared
-        // optional: a consumer importing only ./base or ./nest (the backend)
-        // must not be forced to install React lint plugins. Knip sees the
-        // reference and wants them non-optional, which would invert that.
-        'eslint-plugin-react',
-        'eslint-plugin-react-hooks',
-        'eslint-plugin-react-native',
-      ],
-    },
-
     // ─── Shared tsconfig presets (JSON only — no source) ────────────────────
     'packages/tsconfig': {
       ignoreDependencies: [

@@ -29,33 +29,38 @@ function VerifyEmailInner() {
   const token = searchParams.get('token') ?? '';
   const statusParam = searchParams.get('status');
 
-  const [state, setState] = useState<VerifyState>('loading');
-  const [errorMessage, setErrorMessage] = useState('');
+  /*
+   * Three of the four outcomes are decided by the URL alone: the backend GET
+   * redirect reports success or failure in `status`, and a link with no token
+   * cannot be verified at all. Only the fourth - a direct link carrying a token
+   * - needs a request.
+   *
+   * Those three are resolved in the initialiser rather than by an effect that
+   * corrected the state one commit later. That correction is what react-hooks
+   * reports, and it was visible: the page flashed its loading spinner before
+   * showing an outcome it already knew.
+   */
+  const initialErrorMessage =
+    statusParam === 'error'
+      ? t('verifyEmailFailedMessage')
+      : !statusParam && !token
+        ? t('verifyEmailMissingToken')
+        : '';
+  const initialState: VerifyState =
+    statusParam === 'success' ? 'success-consumer' : initialErrorMessage ? 'error' : 'loading';
+
+  const [state, setState] = useState<VerifyState>(initialState);
+  const [errorMessage, setErrorMessage] = useState(initialErrorMessage);
   const calledRef = useRef(false);
   const appRedirectAttempted = useRef(false);
 
   useEffect(() => {
     if (calledRef.current) return;
 
-    // Case 1: Arrived via backend GET redirect with status param (no token needed)
-    if (statusParam === 'success') {
-      setState('success-consumer');
-      calledRef.current = true;
-      return;
-    }
-    if (statusParam === 'error') {
-      setState('error');
-      setErrorMessage(t('verifyEmailFailedMessage'));
-      calledRef.current = true;
-      return;
-    }
-
-    // Case 2: Direct link with token — verify via POST
-    if (!token) {
-      setState('error');
-      setErrorMessage(t('verifyEmailMissingToken'));
-      return;
-    }
+    // The status-param and missing-token outcomes are already resolved in the
+    // initialiser above; this effect exists only for the POST verification.
+    if (statusParam === 'success' || statusParam === 'error') return;
+    if (!token) return;
 
     calledRef.current = true;
 

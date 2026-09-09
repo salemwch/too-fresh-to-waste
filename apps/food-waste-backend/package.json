@@ -182,7 +182,7 @@
     "dependency-cruiser": "^17.4.3",
     "dotenv": "^17.4.2",
     "mongodb": "^6.20.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",

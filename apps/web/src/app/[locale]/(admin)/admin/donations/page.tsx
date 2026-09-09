@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   HeartHandshake,
@@ -140,28 +140,34 @@ export default function AdminDonationPoolPage() {
   const [seasonDialog, setSeasonDialog] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Sync form with fetched data
-  useEffect(() => {
-    if (pool) {
-      setTargetAmount(String(pool.targetAmount));
-      setCause(pool.cause);
-      setActiveGoalCategory(pool.activeGoalCategory);
-      setTargetDate(pool.targetDate ? pool.targetDate.slice(0, 10) : '');
-      if (pool.categoryProgress?.length) {
-        const pricing = {} as Record<
-          DonationGoalCategory,
-          { itemPrice: string; targetCount: string }
-        >;
-        for (const cp of pool.categoryProgress) {
-          pricing[cp.category] = {
-            itemPrice: String(cp.itemPrice),
-            targetCount: String(cp.targetCount),
-          };
-        }
-        setCategoryPricing(prev => ({ ...prev, ...pricing }));
+  /*
+   * Populate the form once the pool loads.
+   *
+   * Adjusted during render rather than in an effect, so the inputs are never
+   * painted empty for a frame after the fetch resolves. Keyed on the pool
+   * object identity, exactly as the previous [pool] dependency was.
+   */
+  const [syncedPool, setSyncedPool] = useState(pool);
+  if (pool && pool !== syncedPool) {
+    setSyncedPool(pool);
+    setTargetAmount(String(pool.targetAmount));
+    setCause(pool.cause);
+    setActiveGoalCategory(pool.activeGoalCategory);
+    setTargetDate(pool.targetDate ? pool.targetDate.slice(0, 10) : '');
+    if (pool.categoryProgress?.length) {
+      const pricing = {} as Record<
+        DonationGoalCategory,
+        { itemPrice: string; targetCount: string }
+      >;
+      for (const cp of pool.categoryProgress) {
+        pricing[cp.category] = {
+          itemPrice: String(cp.itemPrice),
+          targetCount: String(cp.targetCount),
+        };
       }
+      setCategoryPricing(prev => ({ ...prev, ...pricing }));
     }
-  }, [pool]);
+  }
 
   function updateCategoryField(
     cat: DonationGoalCategory,

@@ -249,10 +249,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           route, so the class is set by this inline snippet instead.
           See lib/theme-script.ts and DESIGN.md 19-E16.
         */}
-        <script
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: themeInitScript }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {/* next/font/google self-hosts all fonts at build time — no runtime
             fetch to fonts.googleapis.com or fonts.gstatic.com is needed.
             Preconnect hints to those origins were removed to avoid opening

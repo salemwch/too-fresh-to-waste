@@ -295,13 +295,19 @@ export default function RolloutMap() {
   const nextZone = useMemo(() => zones?.find(z => z.status === 'coming_soon'), [zones]);
 
   const roles = useMemo<StopRole[]>(() => {
-    let nextTaken = false;
-    return (zones ?? []).map(zone => {
+    const list = zones ?? [];
+    /*
+     * Which entry is "next" is a property of the list, so find it up front
+     * rather than carrying a `nextTaken` flag that the map callback flips on
+     * its first match. The flag was a closure variable reassigned from inside
+     * the callback, which the React Compiler reports - it cannot tell that map
+     * runs the callback immediately and exactly once per item. The index
+     * comparison says the same thing without the mutation.
+     */
+    const nextIndex = list.findIndex(z => z.status === 'coming_soon');
+    return list.map((zone, index) => {
       if (zone.status === 'active') return 'live';
-      if (zone.status === 'coming_soon' && !nextTaken) {
-        nextTaken = true;
-        return 'next';
-      }
+      if (index === nextIndex) return 'next';
       return 'queued';
     });
   }, [zones]);

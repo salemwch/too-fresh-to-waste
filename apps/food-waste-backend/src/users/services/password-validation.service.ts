@@ -11,7 +11,7 @@ import { USER_AUDIT_LOG_MAX } from '../../common/constants/document-limits.const
 import { User, UserDocument } from '../schemas/user.schema';
 
 // language-common main entry has a CJS decompress bug — load adjacency graphs directly
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const adjacencyGraphs =
   require('@zxcvbn-ts/language-common/dist/adjacencyGraphs.json.cjs') as OptionsGraph;
 

@@ -1,4 +1,3 @@
-/* eslint-disable require-await */
 import { Test } from '@nestjs/testing';
 
 import { CronLockService } from '../../common/services/cron-lock.service';

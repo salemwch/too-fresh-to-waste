@@ -313,6 +313,39 @@ export default function MerchantEstablishmentPage() {
   );
 
   // ── Load establishment (re-fetches when dropdown selection changes) ──────────
+  /*
+   * Declared above the effect that calls it. It is a hoisted function
+   * declaration so the old bottom placement ran, but the compiler is right
+   * that reading a binding before its declaration means the earlier reference
+   * cannot track later changes to it.
+   */
+  function populateForm(est: MyEstablishment) {
+    setName(est.name ?? '');
+    setDescription(est.description ?? '');
+    setType(est.type ?? '');
+    setWebsite(est.website ?? '');
+    setPhoneNumber(est.phoneNumber ?? '');
+    setEmail(est.email ?? '');
+    setAcceptsReservations(est.acceptsReservations ?? false);
+    setCuisineTypes(est.cuisineTypes ?? []);
+
+    if (est.businessHours) {
+      const merged = {
+        ...Object.fromEntries(DAYS.map(d => [d, { ...DEFAULT_DAY_HOURS }])),
+      } as Record<Day, DayHours>;
+      for (const day of DAYS) {
+        const raw = est.businessHours[day];
+        if (raw)
+          merged[day] = {
+            open: raw.open ?? '09:00',
+            close: raw.close ?? '18:00',
+            closed: raw.closed ?? false,
+          };
+      }
+      setBusinessHours(merged);
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
 
@@ -348,33 +381,6 @@ export default function MerchantEstablishmentPage() {
       cancelled = true;
     };
   }, [activeEstablishmentId]);
-
-  function populateForm(est: MyEstablishment) {
-    setName(est.name ?? '');
-    setDescription(est.description ?? '');
-    setType(est.type ?? '');
-    setWebsite(est.website ?? '');
-    setPhoneNumber(est.phoneNumber ?? '');
-    setEmail(est.email ?? '');
-    setAcceptsReservations(est.acceptsReservations ?? false);
-    setCuisineTypes(est.cuisineTypes ?? []);
-
-    if (est.businessHours) {
-      const merged = {
-        ...Object.fromEntries(DAYS.map(d => [d, { ...DEFAULT_DAY_HOURS }])),
-      } as Record<Day, DayHours>;
-      for (const day of DAYS) {
-        const raw = est.businessHours[day];
-        if (raw)
-          merged[day] = {
-            open: raw.open ?? '09:00',
-            close: raw.close ?? '18:00',
-            closed: raw.closed ?? false,
-          };
-      }
-      setBusinessHours(merged);
-    }
-  }
 
   // ── Save handler ──────────────────────────────────────────────────────────────
   async function doSave() {
@@ -621,7 +627,15 @@ export default function MerchantEstablishmentPage() {
   const pendingDocs = LEGAL_DOCS.filter(d => !establishment.legalDocuments?.[d.urlKey]).length;
 
   // ── Save button (shared between Profile and Hours tabs) ───────────────────
-  const SaveBar = () => (
+  /*
+   * A render helper, not a component.
+   *
+   * Declared inside the page and rendered as a JSX element, React saw a fresh
+   * component type on every render of the page and remounted the save bar in
+   * both tabs - discarding button focus mid-save. It holds no state and calls
+   * no hooks, so calling it inlines the same JSX with none of that.
+   */
+  const renderSaveBar = () => (
     <div className='flex items-center justify-between pt-sm border-t border-slate-100 mt-lg'>
       <div className='flex-1'>
         {saveError && (
@@ -1142,7 +1156,7 @@ export default function MerchantEstablishmentPage() {
             </section>
           </div>
 
-          <SaveBar />
+          {renderSaveBar()}
         </form>
       )}
 
@@ -1250,7 +1264,7 @@ export default function MerchantEstablishmentPage() {
               })}
             </div>
           </section>
-          <SaveBar />
+          {renderSaveBar()}
         </form>
       )}
 

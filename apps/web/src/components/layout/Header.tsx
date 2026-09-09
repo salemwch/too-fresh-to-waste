@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useHasMounted } from '@/hooks/useHasMounted';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
@@ -27,9 +28,9 @@ interface NavItem {
 export default function Header() {
   const t = useTranslations('header');
   const { isScrolled } = useScrollPosition(50);
+  const hasMounted = useHasMounted();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { open: openLaunchModal } = useAppLaunchModal();
-  const [hasMounted, setHasMounted] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openMobileAccordion, setOpenMobileAccordion] = useState<string | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -130,10 +131,6 @@ export default function Header() {
   ];
 
   useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  useEffect(() => {
     window.scrollTo(0, 0);
     const timer = setTimeout(() => {
       window.scrollTo(0, 0);
@@ -152,12 +149,24 @@ export default function Header() {
     };
   }, [isMobileMenuOpen]);
 
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isScrolled]);
+  /*
+   * Close the mobile menu when the page scrolls.
+   *
+   * Adjusted during render rather than in an effect: React re-runs the
+   * component immediately with the new state, before committing, so the menu
+   * never paints in its open state after a scroll. The effect version
+   * committed the open menu first and closed it on a second pass, which is the
+   * cascading render react-hooks reports.
+   *
+   * This also retires the exhaustive-deps suppression that was here - the
+   * previous-value comparison is explicit now, so there is no lying dep array
+   * to silence.
+   */
+  const [lastScrolled, setLastScrolled] = useState(isScrolled);
+  if (lastScrolled !== isScrolled) {
+    setLastScrolled(isScrolled);
+    if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+  }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(prev => {

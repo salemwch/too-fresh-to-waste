@@ -27,7 +27,7 @@ const OUTPUT_FILE = 'openapi.json';
 const REQUEST_TIMEOUT_MS = 10_000;
 
 async function fetchSpec() {
-  const urlArg = process.argv.find((arg) => arg.startsWith('--url='));
+  const urlArg = process.argv.find(arg => arg.startsWith('--url='));
   const baseUrl = urlArg ? urlArg.split('=')[1] : DEFAULT_BACKEND_URL;
   const specUrl = `${baseUrl}${SPEC_ENDPOINT}`;
 
@@ -40,7 +40,7 @@ async function fetchSpec() {
       headers: { Accept: 'application/json' },
     });
   } catch (err) {
-    if (err.name === 'TimeoutError') {
+    if (err instanceof Error && err.name === 'TimeoutError') {
       console.error(`[openapi] Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s`);
     } else {
       console.error(`[openapi] Cannot reach backend at ${baseUrl}`);
@@ -56,7 +56,23 @@ async function fetchSpec() {
     process.exit(1);
   }
 
-  const spec = await response.json();
+  /**
+   * Only the fields this script actually reads. `response.json()` resolves to
+   * `any`, which is what produced the unsafe-member-access warnings - naming
+   * the shape fixes them at the source rather than switching the rule off.
+   *
+   * @typedef {object} OpenApiSpec
+   * @property {string} [openapi]
+   * @property {string} [swagger]
+   * @property {Record<string, unknown>} [paths]
+   * @property {{ schemas?: Record<string, unknown> }} [components]
+   * @property {{ version?: string, title?: string }} [info]
+   */
+
+  // An explicit cast, not a bare annotation: assigning `any` to a typed binding
+  // is still an unsafe assignment, and this is the one place the untyped
+  // response crosses into typed code.
+  const spec = /** @type {OpenApiSpec} */ (await response.json());
 
   // Validate OpenAPI structure
   if (!spec.openapi && !spec.swagger) {
@@ -65,7 +81,7 @@ async function fetchSpec() {
   }
 
   const outputPath = resolve(__dirname, '..', OUTPUT_FILE);
-  writeFileSync(outputPath, JSON.stringify(spec, null, 2) + '\n');
+  writeFileSync(outputPath, `${JSON.stringify(spec, null, 2)}\n`);
 
   const pathCount = Object.keys(spec.paths || {}).length;
   const schemaCount = Object.keys(spec.components?.schemas || {}).length;
@@ -78,4 +94,7 @@ async function fetchSpec() {
   console.log(`[openapi]   Schemas:  ${schemaCount}`);
 }
 
-fetchSpec();
+fetchSpec().catch(err => {
+  console.error('[openapi] Unexpected failure:', err instanceof Error ? err.message : err);
+  process.exit(1);
+});

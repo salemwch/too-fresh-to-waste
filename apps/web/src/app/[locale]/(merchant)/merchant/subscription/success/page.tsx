@@ -9,14 +9,23 @@ import { subscriptionService } from '@/services/subscription.service';
 export default function SubscriptionSuccessPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const paymentRef = searchParams.get('payment_ref');
+
+  /*
+   * With no payment reference there is nothing to verify, so the page is
+   * already in its final state - decided in the initialiser rather than by an
+   * effect that sets it a commit later. That spared render showed a spinner for
+   * a frame on a page that was never going to load anything, which is the
+   * cascading render react-hooks reports.
+   *
+   * The effect below is now only the async call, which is what an effect is for.
+   */
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(
+    paymentRef ? 'verifying' : 'success',
+  );
 
   useEffect(() => {
-    const paymentRef = searchParams.get('payment_ref');
-    if (!paymentRef) {
-      setStatus('success');
-      return;
-    }
+    if (!paymentRef) return;
 
     subscriptionService
       .verifyPayment(paymentRef)
@@ -26,7 +35,7 @@ export default function SubscriptionSuccessPage() {
       .catch(() => {
         setStatus('success');
       });
-  }, [searchParams]);
+  }, [paymentRef]);
 
   if (status === 'verifying') {
     return (

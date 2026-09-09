@@ -295,9 +295,17 @@ function OrderColumn({
 }: OrderColumnProps) {
   const [historyPage, setHistoryPage] = useState(1);
 
-  useEffect(() => {
+  /*
+   * Toggling history back on starts at page 1 rather than wherever the merchant
+   * had paged to. Adjusted during render so the first page is what gets
+   * painted - the effect version rendered the stale page number once, then
+   * corrected it.
+   */
+  const [lastShowHistory, setLastShowHistory] = useState(showHistory);
+  if (lastShowHistory !== showHistory) {
+    setLastShowHistory(showHistory);
     setHistoryPage(1);
-  }, [showHistory]);
+  }
 
   const totalHistoryPages = Math.max(1, Math.ceil(historyOrders.length / HISTORY_PAGE_SIZE));
   const paginatedHistory = useMemo(() => {

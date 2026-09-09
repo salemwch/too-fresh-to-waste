@@ -455,30 +455,43 @@ function SecurityTab() {
 
 // ─── Sessions Tab ───────────────────────────────────────────────────────────
 
-function getDeviceIcon(device: SessionDeviceInfo | undefined) {
+/**
+ * Icon for the device a session came from.
+ *
+ * Literal JSX tags rather than returning a component and rendering the result
+ * through a capitalised local. A dynamic tag is not statically determinable, so
+ * the React Compiler could not tell a stable imported icon from a component
+ * defined during render.
+ */
+function DeviceIcon({
+  device,
+  className,
+}: {
+  device: SessionDeviceInfo | undefined;
+  className?: string;
+}) {
   const haystack = describeDevice(device)?.toLowerCase();
-  if (!haystack) return Monitor;
+  if (!haystack) return <Monitor className={className} />;
   if (
     haystack.includes('mobile') ||
     haystack.includes('android') ||
     haystack.includes('iphone') ||
     haystack.includes('ios')
   )
-    return Smartphone;
+    return <Smartphone className={className} />;
   if (
     haystack.includes('chrome') ||
     haystack.includes('firefox') ||
     haystack.includes('safari') ||
     haystack.includes('edge')
   )
-    return Globe;
-  return Laptop;
+    return <Globe className={className} />;
+  return <Laptop className={className} />;
 }
 
 function SessionCard({ session }: { session: ActiveSession }) {
   const t = useTranslations('dashboard.settings.sessions');
   const terminateSession = useTerminateSession();
-  const DeviceIcon = getDeviceIcon(session.deviceInfo);
   const deviceLabel = describeDevice(session.deviceInfo);
   const ipAddress = session.deviceInfo?.ipAddress;
   // Falls back to when the session started: a session with no recorded activity
@@ -490,7 +503,7 @@ function SessionCard({ session }: { session: ActiveSession }) {
     <div className='flex items-center justify-between rounded-xl border border-border p-lg'>
       <div className='flex items-center gap-md'>
         <div className='size-10 rounded-lg bg-primary-500/[0.08] flex items-center justify-center'>
-          <DeviceIcon className='size-5 text-primary-500' />
+          <DeviceIcon device={session.deviceInfo} className='size-5 text-primary-500' />
         </div>
         <div>
           <div className='flex items-center gap-sm'>

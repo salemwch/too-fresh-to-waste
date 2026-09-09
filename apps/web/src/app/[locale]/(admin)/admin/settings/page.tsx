@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Settings,
@@ -155,15 +155,20 @@ export default function AdminSettingsPage() {
     errors?: string[];
   } | null>(null);
 
-  // Initialise form when config loads
-  useEffect(() => {
-    if (config && !platform) {
-      setPlatform({ ...config.platformSettings });
-      setSecurity({ ...config.securitySettings });
-      setNotifications({ ...config.notificationSettings });
-      setPayment({ ...config.paymentSettings });
-    }
-  }, [config, platform]);
+  /*
+   * Initialise the form once the config arrives.
+   *
+   * Done during render rather than in an effect. The `!platform` guard is
+   * already idempotent - it stops matching as soon as the first assignment
+   * lands - so no previous-value tracking is needed, and React re-runs with the
+   * populated form before committing instead of painting empty inputs first.
+   */
+  if (config && !platform) {
+    setPlatform({ ...config.platformSettings });
+    setSecurity({ ...config.securitySettings });
+    setNotifications({ ...config.notificationSettings });
+    setPayment({ ...config.paymentSettings });
+  }
 
   function handleSave() {
     if (!platform || !security || !notifications || !payment) return;

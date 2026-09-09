@@ -4,6 +4,8 @@ import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { locales, type Locale, localeConfig } from '@/i18n/config';
 import { useState, useRef, useEffect } from 'react';
+import { useHasMounted } from '@/hooks/useHasMounted';
+import { writeLocaleCookie } from '@/lib/locale-cookie';
 import { createPortal } from 'react-dom';
 import { cn } from '@foodwaste/ui';
 
@@ -23,16 +25,12 @@ export function LanguageSwitcher({
   const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
+  // Gates the portal: there is no document to portal into on the server.
+  const mounted = useHasMounted();
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Set mounted state for portal
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Update dropdown position when opened
   useEffect(() => {
@@ -73,11 +71,7 @@ export function LanguageSwitcher({
   }, [isOpen]);
 
   const handleLocaleChange = (newLocale: Locale) => {
-    // Set cookie to persist language preference (1 year expiry)
-    const maxAge = 365 * 24 * 60 * 60; // 1 year in seconds
-    document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${maxAge}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
-
-    // Navigate to the new locale
+    writeLocaleCookie(newLocale);
     router.replace(pathname, { locale: newLocale });
     setIsOpen(false);
   };
@@ -202,10 +196,7 @@ export function LanguageSwitcherCompact({ className = '' }: { className?: string
     const nextIndex = (currentIndex + 1) % locales.length;
     const nextLocale = locales[nextIndex] ?? locales[0];
 
-    // Set cookie to persist language preference (1 year expiry)
-    const maxAge = 365 * 24 * 60 * 60; // 1 year in seconds
-    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=${maxAge}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
-
+    writeLocaleCookie(nextLocale);
     router.replace(pathname, { locale: nextLocale });
   };
 

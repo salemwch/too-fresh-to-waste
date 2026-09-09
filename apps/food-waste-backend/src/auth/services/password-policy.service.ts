@@ -16,7 +16,7 @@ import { ZxcvbnFactory, type OptionsGraph } from '@zxcvbn-ts/core';
 import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
 // language-common main entry has a CJS decompress bug — load adjacency graphs directly
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const adjacencyGraphs =
   require('@zxcvbn-ts/language-common/dist/adjacencyGraphs.json.cjs') as OptionsGraph;
 

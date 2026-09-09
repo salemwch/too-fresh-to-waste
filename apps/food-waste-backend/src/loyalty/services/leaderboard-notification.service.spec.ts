@@ -1,4 +1,3 @@
-/* eslint-disable require-await */
 import { LeaderboardNotificationService } from './leaderboard-notification.service';
 
 const USER_CHAMPION = '660000000000000000000001';

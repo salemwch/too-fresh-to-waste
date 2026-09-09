@@ -20,7 +20,7 @@ import { EventBusService } from 'src/common/services/event-bus/event-bus.service
 import { PhoneNumberService } from 'src/common/services/phone-number.service';
 import { CryptoUtil } from 'src/common/utils/crypto.util';
 import { EmailService } from 'src/email/email.service';
-// eslint-disable-next-line import/no-restricted-paths -- intentional: referral processing moved inline for reliability
+
 import { UsersService } from 'src/users/user.service';
 
 import { UserRegisteredEvent } from '../common/events';

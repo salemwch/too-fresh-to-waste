@@ -31,14 +31,23 @@ export function useScrollPosition(threshold: number = 50): ScrollPosition {
     };
   });
 
-  // CRITICAL: Reset scroll state when pathname changes
-  // This ensures headers always show the correct color on new pages
-  useEffect(() => {
-    setScrollPosition({
-      scrollY: 0,
-      isScrolled: false,
-    });
-  }, [pathname]);
+  /*
+   * Reset scroll state when the route changes, so a header does not stay in its
+   * scrolled colour on a freshly navigated page.
+   *
+   * Adjusted during render rather than in an effect. This is React's documented
+   * "adjusting state when a prop changes" pattern: React discards the render
+   * and re-runs the component immediately, before committing or painting, so
+   * the reset value is what lands on screen. The previous effect version
+   * committed the stale position first and corrected it on a second pass -
+   * a cascading render, which is exactly what react-hooks flags here.
+   * https://react.dev/learn/you-might-not-need-an-effect
+   */
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (lastPathname !== pathname) {
+    setLastPathname(pathname);
+    setScrollPosition({ scrollY: 0, isScrolled: false });
+  }
 
   useEffect(() => {
     // Only run on client side

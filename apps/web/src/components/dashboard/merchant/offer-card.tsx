@@ -73,7 +73,6 @@ export function OfferCard({
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const cfg = (STATUS_CONFIG[offer.status] ?? STATUS_CONFIG['draft'])!;
 
   const isDraft = offer.status === 'draft';
@@ -102,8 +101,17 @@ export function OfferCard({
   const dang = 'bg-white border border-red-200 text-red-500 hover:bg-red-50 active:scale-[0.97]';
   const ghost = 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed';
 
-  // ── Action buttons per status ───────────────────────────────────────────
-  function Actions() {
+  /*
+   * A render helper, not a component.
+   *
+   * Declared inside OfferCard and rendered as <Actions />, React saw a new
+   * component type on every parent render and remounted the whole action bar -
+   * losing focus and any transition mid-flight. It holds no state and calls no
+   * hooks, so calling it as a plain function inlines the same JSX with none of
+   * that. Extracting it to module scope would mean threading eight props
+   * through for no benefit.
+   */
+  function renderActions() {
     if (offer.status === 'draft') {
       return (
         <>
@@ -332,7 +340,7 @@ export function OfferCard({
 
       {/* ── Action bar ── */}
       <div className='flex items-center gap-sm px-lg py-2.5 border-t border-slate-100 bg-slate-50/60 flex-wrap'>
-        <Actions />
+        {renderActions()}
       </div>
 
       {/* ── Inline delete confirm ── */}

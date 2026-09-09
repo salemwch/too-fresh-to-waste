@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CalendarClock, Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -45,21 +45,28 @@ export function ExtendTrialDialog({
   const [dateValue, setDateValue] = useState<string>('');
   const [notes, setNotes] = useState('');
 
-  useEffect(() => {
-    if (!open) return;
-    setMode('days');
-    setDays(30);
-    setNotes('');
-    if (currentTrialEndsAt) {
-      const base = new Date(currentTrialEndsAt);
-      base.setDate(base.getDate() + 30);
-      setDateValue(toDateInputValue(base.toISOString()));
-    } else {
-      const base = new Date();
+  /*
+   * Reset the form each time the dialog opens, so a previous establishment's
+   * values never carry over.
+   *
+   * Adjusted on the open transition during render: React re-runs with the reset
+   * values before committing, so the stale entry is never painted. The effect
+   * version showed it for one frame, which is the cascading render react-hooks
+   * reports.
+   */
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setMode('days');
+      setDays(30);
+      setNotes('');
+      // Default to 30 days past the current end date, or 30 days from today.
+      const base = currentTrialEndsAt ? new Date(currentTrialEndsAt) : new Date();
       base.setDate(base.getDate() + 30);
       setDateValue(toDateInputValue(base.toISOString()));
     }
-  }, [open, currentTrialEndsAt]);
+  }
 
   function handleConfirm() {
     const payload: ExtendTrialPayload = { sendNotification: true };

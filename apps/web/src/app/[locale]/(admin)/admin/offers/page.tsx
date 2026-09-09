@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { useCurrentHour, MS_PER_HOUR } from '@/hooks/useClock';
 import {
   useOfferStats,
   useAdminOffers,
@@ -904,6 +905,9 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
 // ─── Expiring offers tab ─────────────────────────────────────────────────────
 
 function ExpiringTab({ t }: { t: ReturnType<typeof useTranslations> }) {
+  // Hour-quantised clock, not Date.now() in render: this list shows whole hours,
+  // so it re-computes on the hour instead of drifting per render.
+  const currentHour = useCurrentHour();
   const { data, isLoading } = useExpiringOffers(24);
   const items = (data ?? []) as ExpiringOfferItem[];
 
@@ -922,7 +926,7 @@ function ExpiringTab({ t }: { t: ReturnType<typeof useTranslations> }) {
           {items.map((item: ExpiringOfferItem) => {
             const hoursLeft = Math.max(
               0,
-              Math.round((new Date(item.availableUntil).getTime() - Date.now()) / 3_600_000),
+              Math.round((new Date(item.availableUntil).getTime() - currentHour) / MS_PER_HOUR),
             );
             return (
               <div

@@ -4,12 +4,16 @@ import { useState } from 'react';
 import { AlertCircle, Clock, CreditCard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
+import { useToday } from '@/hooks/useClock';
 import { SubscriptionModal } from './subscription-modal';
 
 const WARNING_THRESHOLD_DAYS = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export function TrialStatusBanner() {
+  // Stable day-quantised clock. Reading Date.now() in render made this
+  // component non-reproducible and left the count stale overnight.
+  const today = useToday();
   const t = useTranslations('subscription');
   const { data: establishment } = useMyEstablishment();
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,7 +60,7 @@ export function TrialStatusBanner() {
 
   if (establishment.subscriptionStatus === 'paid' && establishment.subscriptionExpiresAt) {
     const expiresAt = new Date(establishment.subscriptionExpiresAt);
-    const msRemaining = expiresAt.getTime() - Date.now();
+    const msRemaining = expiresAt.getTime() - today;
     if (msRemaining <= 0) return null;
 
     const daysRemaining = Math.ceil(msRemaining / MS_PER_DAY);
@@ -91,7 +95,7 @@ export function TrialStatusBanner() {
   }
 
   const trialEndsAt = new Date(establishment.trialEndsAt);
-  const msRemaining = trialEndsAt.getTime() - Date.now();
+  const msRemaining = trialEndsAt.getTime() - today;
   if (msRemaining <= 0) return null;
 
   const daysRemaining = Math.ceil(msRemaining / MS_PER_DAY);

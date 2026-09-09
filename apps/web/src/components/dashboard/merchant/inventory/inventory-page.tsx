@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
+import { useToday, MS_PER_DAY } from '@/hooks/useClock';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -237,9 +238,10 @@ function InventoryItemCard({
 }) {
   const t = useTranslations('dashboard.inventory');
 
-  const daysUntilExpiry = Math.ceil(
-    (new Date(item.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-  );
+  // Day-quantised clock rather than Date.now() in render: keeps this row
+  // reproducible, and the badge re-computes at midnight instead of going stale.
+  const today = useToday();
+  const daysUntilExpiry = Math.ceil((new Date(item.expiryDate).getTime() - today) / MS_PER_DAY);
   const isExpiringSoon = daysUntilExpiry > 0 && daysUntilExpiry <= 3;
 
   return (
