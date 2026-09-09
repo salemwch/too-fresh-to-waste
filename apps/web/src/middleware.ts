@@ -1,3 +1,31 @@
+/*
+ * This file stays `middleware.ts`. That is a deliberate compatibility decision,
+ * not an oversight, and it costs one warning on every build:
+ *
+ *   ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+ *
+ * Next 16 renamed the convention to `proxy` and deprecated this one. Renaming is
+ * a one-way move off the Edge runtime, and this file cannot survive it:
+ *
+ *   "Proxy defaults to using the Node.js runtime. The `runtime` config option is
+ *    not available in Proxy files. Setting the `runtime` config option in Proxy
+ *    will throw an error."
+ *     - node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md
+ *
+ * So there is no opt-back. `npx @next/codemod middleware-to-proxy` would rename
+ * the file and the function and leave no way to ask for Edge again.
+ *
+ * Everything below is written for Edge on purpose: `jose` rather than
+ * `jsonwebtoken` because Edge has WebCrypto and no Node crypto, and the
+ * __Host--prefixed HttpOnly cookies are read at the network boundary so an
+ * unauthenticated request never reaches the app. Moving to Node would put JWT
+ * verification back inside the application runtime and give up the CDN-adjacent
+ * execution this depends on.
+ *
+ * The 25 contract tests in src/__tests__/middleware.test.ts pin this behaviour
+ * with real signed JWTs. Revisit only when `proxy` supports the Edge runtime, or
+ * when the auth model no longer needs verification before the app boots.
+ */
 import createMiddleware from 'next-intl/middleware';
 import { type NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
