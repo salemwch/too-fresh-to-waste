@@ -1,6 +1,17 @@
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'edge';
+/*
+ * No `runtime = 'edge'` here any more.
+ *
+ * Next 16 disables static generation for any page on the edge runtime, so
+ * keeping it turned this route from a build-time artifact into an on-demand
+ * one - the single page behind the 275 -> 274 drop in generated pages. Next 16
+ * also deprecates the edge runtime generally.
+ *
+ * `ImageResponse` from next/og runs on the Node runtime, so dropping the export
+ * restores the Next 15 behaviour rather than changing it. The middleware is a
+ * separate case and deliberately stays on edge: it verifies JWTs with `jose`.
+ */
 export const alt = 'Too Fresh To Waste';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';

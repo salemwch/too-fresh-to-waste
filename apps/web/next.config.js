@@ -41,10 +41,15 @@ const nextConfig = {
   // React strict mode for better practices
   reactStrictMode: true,
 
-  // Disable ESLint during build (run separately with pnpm lint)
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  /*
+   * No `eslint` key here.
+   *
+   * Next 16 removed it along with `next lint`, and warns "Invalid next.config.js
+   * options detected" if it is left in place. It held
+   * `ignoreDuringBuilds: true`, which is now the only behaviour available:
+   * `next build` no longer runs ESLint at all. Linting is a separate gate
+   * (`pnpm lint`, and the CI job), so nothing is lost by dropping it.
+   */
 
   // Performance
   compress: true,

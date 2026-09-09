@@ -2,26 +2,19 @@
  * Web ESLint config (flat, ESLint 9).
  *
  * `next lint` is removed in Next.js 16 and `eslint-config-next@16` requires
- * ESLint >= 9, so this workspace moves to the ESLint CLI at the same time as
- * the flat-config migration.
+ * ESLint >= 9, so this workspace uses the ESLint CLI directly.
  *
- * eslint-config-next still ships in the legacy `extends` format, so it comes
- * through FlatCompat rather than being spread directly.
+ * eslint-config-next 16 ships native flat config - `core-web-vitals` and
+ * `typescript` are plain config arrays - so they are spread rather than passed
+ * through FlatCompat. Under 15 they were legacy `extends` objects and needed
+ * the bridge; feeding a flat array to FlatCompat throws on a circular structure
+ * while it tries to serialise the plugin objects for schema validation.
+ *
  */
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-import { FlatCompat } from '@eslint/eslintrc';
-import js from '@eslint/js';
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
+import nextTypeScript from 'eslint-config-next/typescript';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 import globals from 'globals';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
 
 export default [
   {
@@ -38,7 +31,22 @@ export default [
     ],
   },
 
-  ...compat.extends('next/core-web-vitals', 'next/typescript', 'plugin:jsx-a11y/recommended'),
+  ...nextCoreWebVitals,
+  ...nextTypeScript,
+
+  /*
+   * jsx-a11y's full recommended set, applied as rules only.
+   *
+   * eslint-config-next 16 registers the jsx-a11y plugin itself, so extending
+   * its recommended config on top now throws "Cannot redefine plugin". But
+   * Next only enables 6 of the 34 recommended rules, so simply dropping the
+   * extend would quietly cut accessibility coverage by 28 rules - a real
+   * regression wearing the costume of a config cleanup. Spreading the ruleset
+   * keeps every rule the app had under Next 15 without touching registration.
+   */
+  {
+    rules: { ...jsxA11y.flatConfigs.recommended.rules },
+  },
 
   {
     rules: {

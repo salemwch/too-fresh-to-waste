@@ -166,11 +166,14 @@ const config: KnipConfig = {
       // and exits non-zero, which is what a CI gate reads as a failure.
       jest: false,
       ignoreDependencies: [
-        // Reached via compat.extends('next/core-web-vitals'), 'next/typescript'
-        // and 'plugin:jsx-a11y/recommended' in eslint.config.mjs - config
-        // strings, which knip does not resolve.
-        'eslint-config-next',
-        'eslint-plugin-jsx-a11y',
+        /*
+         * eslint-config-next and eslint-plugin-jsx-a11y are deliberately NOT
+         * listed here. Under Next 15 they were reached through
+         * compat.extends(...) config strings, which knip cannot resolve. Next
+         * 16 ships eslint-config-next as native flat config, so
+         * eslint.config.mjs now imports both statically and knip follows them
+         * on its own - keeping the ignores would just hide a real removal.
+         */
         // Named as a bare string in packages/jest-config/next.js
         // (`testEnvironment: 'jest-environment-jsdom'`). Jest resolves it from
         // THIS workspace at runtime, so the devDependency is required here — but
