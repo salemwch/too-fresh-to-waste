@@ -1,5 +1,6 @@
 ---
-status: ready-for-dev
+status: draft
+blocked-on: product decision - locale-conditional font stack for ar
 scope: web
 gate: pnpm --filter @foodwaste/web test:visual
 ---
@@ -87,26 +88,60 @@ sufficient on its own - `system-ui` at position 2 still blocks. Any fix has to
 get `var(--font-noto-arabic)` in front of the Latin face's entire fallback
 chain.
 
-## Options
+## Options - A and B were built, measured, and both fail
 
-- **A. Drop `fallback` from Quicksand/Comfortaa.** `adjustFontFallback: true`
-  already generates a size-matched local fallback face, so the hand-written
-  array is mostly redundant. Smallest change; needs checking that the generated
-  face still covers the "webfont failed to load" case the array was added for.
-- **B. Put `var(--font-noto-arabic)` first in the Tailwind stacks.** Matching is
-  per character, so Latin would fall through Noto to Quicksand. Risk: Noto Sans
-  Arabic does carry Latin digits and basic Latin, which would then render in
-  Noto rather than Quicksand.
-- **C. Locale-conditional stack**, applying an Arabic-first family on `ar` only.
-  Explicitly rejected when the current stack was written; revisit only if A and
-  B both fail.
+Both were implemented against a real production build and reverted. What the
+experiment established, in order:
 
-Recommendation: A, verified with the same browser probe used above, then
-re-baseline the Arabic screenshots.
+**1. next/font's generated fallback faces carry no `unicode-range`.** Removing
+an explicit `fallback` makes next/font emit
+`@font-face{font-family:Noto Sans Arabic Fallback;src:local(Arial);size-adjust:121.35%}`.
+Because it is unranged it matches _every_ codepoint, so wherever it sits it
+swallows everything after it. This is what kills **option A**: dropping
+`fallback` from Quicksand/Comfortaa just puts an unranged `Quicksand Fallback`
+in front of Noto, and Arabic is blocked exactly as before.
+
+**2. `adjustFontFallback: false` does not suppress that face in next 16.3.4.**
+The docs say it should ("A boolean value that sets whether an automatic fallback
+font should be used"). Verified on a clean build with `.next` and
+`node_modules/.cache` both deleted: the face is still emitted and still lands in
+the variable. Only supplying an explicit `fallback` suppresses it.
+
+**3. Noto Sans Arabic is not Arabic-only.** Its face 4 declares `U+??`, which is
+U+0000-U+00FF - the whole of Basic Latin and Latin-1. So **option B** does not
+work either: with `var(--font-noto-arabic)` first, Latin text renders in Noto.
+Measured at 200px on `/en`, string `Handgloves`:
+
+```
+  rendered   1110      <- what the page actually painted
+  quicksand  1103
+  noto       1110      <- rendered === noto
+  arial      1054
+```
+
+That is the whole Latin site silently restyled, which is a far worse regression
+than the one being fixed.
+
+This also corrects the premise in the source comment a second time. It is not
+only that the Latin fallbacks carry Arabic - Noto carries Latin too. The two
+families overlap in both directions, so **no single shared stack can order them
+correctly**. Whichever goes first captures text that belongs to the other.
+
+- **C. Locale-conditional stack** - put an Arabic-first family on `ar` only, and
+  leave en/fr exactly as they are. Now the only remaining option, because the
+  overlap above makes a shared stack unsolvable by ordering.
+
+Recommendation: C, but it is a **product decision, not a defect fix**. The
+current stack's defining choice was "no locale conditional", and C reverses it.
+That needs a `DESIGN.md` §3.1 call before any code changes, which is why nothing
+was implemented here.
 
 ## Tasks & Acceptance
 
-- [ ] Decide A / B / C and record it in `DESIGN.md` §3.1
+- [ ] **Product/design call required first**: accept a locale-conditional font
+      stack for `ar`, reversing the "no locale conditional" decision. Nothing
+      below can start until this is answered.
+- [ ] Record the decision in `DESIGN.md` §3.1
 - [ ] Implement, then re-run the probe: `document.fonts` must list
       `Noto Sans Arabic` after rendering an Arabic glyph
 - [ ] Confirm Latin rendering is unchanged on `en` and `fr` baselines
@@ -122,6 +157,19 @@ re-baseline the Arabic screenshots.
   current (still-wrong) rendering so the suite is green and future regressions
   are visible; they will need updating again when this is fixed. Recorded rather
   than silently carried.
+
+- 2026-09-10: Options A and B implemented against a production build, measured,
+  and reverted. See the Options section - A is defeated by next/font's unranged
+  generated fallback faces, B by Noto Sans Arabic declaring `U+??` and therefore
+  covering Latin-1. `adjustFontFallback: false` does not suppress the generated
+  face in 16.3.4 despite the documented contract. No code from either attempt
+  was kept; `git status` was clean afterwards.
+
+  The conclusion is stronger than "not now": because the two families overlap in
+  **both** directions, a single shared stack cannot be ordered correctly at all.
+  Option C is the only remaining route and it reverses a documented design
+  decision, so it stops here for a product call rather than being introduced
+  inside the Next 16 migration.
 
 ## Open questions
 
