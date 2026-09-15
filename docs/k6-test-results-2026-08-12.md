@@ -136,7 +136,7 @@ Additionally: stub payment service had a 1000× amount inflation (double
 docker compose up -d mongodb mongo-init redis backend
 
 # 2. Create indexes (must happen before backend processes first boot)
-DATABASE_URL="mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true" \
+DATABASE_URL="mongodb://$MONGO_ROOT_USERNAME:$MONGO_ROOT_PASSWORD@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true" \
   pnpm --filter @foodwaste/backend db:create-indexes
 
 # 3. Seed fixtures

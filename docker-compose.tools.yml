@@ -1,0 +1,104 @@
+# ============================================================================
+# LOCAL ADMIN UIs - opt-in overlay
+# ============================================================================
+#
+#   docker compose -f docker-compose.yml -f docker-compose.tools.yml up -d
+#
+# These three services are database and metrics browsers. They are NOT in
+# docker-compose.yml, and that separation is the point rather than a style
+# choice: Compose interpolates every ${VAR:?...} in a file at parse time even
+# for services in an inactive profile, so keeping them in the main file would
+# force every developer to invent a Grafana password before they could start
+# the API. In their own file they cost nothing until you ask for them.
+#
+# All three previously published on 0.0.0.0 with static credentials:
+#   grafana          3001 -> admin / admin123
+#   mongo-express    8081 -> admin / admin123, connected to Mongo as root
+#   redis-commander  8082 -> NO AUTHENTICATION AT ALL
+#
+# They now bind to 127.0.0.1 only and read their credentials from .env.
+# Never expose these off localhost, and never run this overlay in a shared or
+# production environment.
+# ============================================================================
+
+services:
+  # ============================================
+  # Grafana (Metrics Visualization)
+  # ============================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: foodwaste-grafana
+    restart: unless-stopped
+    ports:
+      # Loopback only. The previous "3001:3000" bound every interface, putting
+      # a Grafana admin login on the LAN.
+      - "127.0.0.1:3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USERNAME:?set it in .env at the repo root - see .env.example}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set it in .env at the repo root - see .env.example}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel,grafana-clock-panel
+      GF_SERVER_ROOT_URL: http://localhost:3001
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - foodwaste-network
+
+  # ============================================
+  # Mongo Express (Optional - Database UI)
+  # ============================================
+  mongo-express:
+    image: mongo-express:latest
+    container_name: foodwaste-mongo-express
+    restart: unless-stopped
+    ports:
+      # Loopback only. This UI fronts the database; it was previously reachable
+      # from the LAN with a static password.
+      - "127.0.0.1:8081:8081"
+    environment:
+      # Connects with the APPLICATION account, not root. mongo-express is a
+      # browsing UI; it has no reason to hold cluster-admin rights, and this
+      # gives MONGO_APP_USERNAME the runtime consumer it previously lacked.
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_APP_USERNAME:?set it in .env at the repo root - see .env.example}:${MONGO_APP_PASSWORD:?set it in .env at the repo root - see .env.example}@mongodb:27017/foodwaste?authSource=foodwaste
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "false"
+      ME_CONFIG_MONGODB_AUTH_DATABASE: foodwaste
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME:?set it in .env at the repo root - see .env.example}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:?set it in .env at the repo root - see .env.example}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - foodwaste-network
+
+  # ============================================
+  # Redis Commander (Optional - Redis UI)
+  # ============================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: foodwaste-redis-commander
+    restart: unless-stopped
+    ports:
+      # Loopback only. This was "8082:8081" with no authentication of any kind.
+      - "127.0.0.1:8082:8081"
+    environment:
+      # Matches --requirepass in docker-compose.yml. Left as the literal on
+      # purpose: parameterising the Redis credential is a separate decision,
+      # recorded as a follow-up rather than made here.
+      REDIS_HOSTS: local:redis:6379:0:redis_dev_password
+      # redis-commander ships with no auth. Without these two it is an open
+      # Redis browser for anyone who can reach the port.
+      HTTP_USER: ${REDIS_COMMANDER_USERNAME:?set it in .env at the repo root - see .env.example}
+      HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:?set it in .env at the repo root - see .env.example}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - foodwaste-network
+
+# grafana_data is declared here as well as in docker-compose.yml so this
+# overlay is valid on its own terms; Compose merges the two declarations.
+volumes:
+  grafana_data:
+    name: foodwaste-grafana-data

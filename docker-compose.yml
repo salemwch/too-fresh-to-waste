@@ -25,10 +25,17 @@ services:
     container_name: foodwaste-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      # Loopback only. Container-to-container traffic uses the compose
+      # network (mongodb:27017) and is unaffected; this governs host access
+      # alone, so mongosh/Compass and the host-side db:create-indexes step
+      # still work while the database stops answering the LAN.
+      - "127.0.0.1:27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?set it in .env at the repo root - see .env.example}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set it in .env at the repo root - see .env.example}
+      # Consumed by scripts/mongo-init.js, which refuses to run without them.
+      MONGO_APP_USERNAME: ${MONGO_APP_USERNAME:?set it in .env at the repo root - see .env.example}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?set it in .env at the repo root - see .env.example}
       MONGO_INITDB_DATABASE: foodwaste
     volumes:
       - mongodb_data:/data/db
@@ -37,10 +44,32 @@ services:
     networks:
       - foodwaste-network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
+      # Deterministic: satisfiable ONLY by the final mongod, never by the
+      # temporary server the entrypoint runs while executing the scripts in
+      # docker-entrypoint-initdb.d. Two properties separate them, and this
+      # asserts both at once:
+      #
+      #   - the temporary server binds 127.0.0.1 only, so it is unreachable
+      #     at the container's network name `mongodb`
+      #   - the temporary server runs without --auth, so it cannot satisfy an
+      #     authenticated connection
+      #
+      # The previous check was `mongosh localhost:27017/test` with no
+      # credentials, which the temporary server answers happily. That made
+      # `service_healthy` fire in the middle of initialisation: mongo-init was
+      # released, mongod then restarted underneath it, and mongo-init died with
+      # ECONNREFUSED. Retrying would have hidden the race; this removes it.
+      #
+      # `quit(...)` makes the exit code authoritative instead of depending on
+      # grepping stdout.
+      test:
+        [
+          "CMD-SHELL",
+          'mongosh "mongodb://$$MONGO_INITDB_ROOT_USERNAME:$$MONGO_INITDB_ROOT_PASSWORD@mongodb:27017/admin?directConnection=true" --quiet --eval ''quit(db.runCommand({ping:1}).ok === 1 ? 0 : 1)''',
+        ]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 12
       start_period: 20s
     # Mongo runs as a SINGLE-NODE REPLICA SET, not a standalone.
     #
@@ -84,12 +113,15 @@ services:
     restart: "no"
     networks:
       - foodwaste-network
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?set it in .env at the repo root - see .env.example}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set it in .env at the repo root - see .env.example}
     entrypoint:
       - bash
       - -c
       - |
         set -e
-        URI="mongodb://admin:password123@mongodb:27017/admin?directConnection=true"
+        URI="mongodb://$${MONGO_ROOT_USERNAME}:$${MONGO_ROOT_PASSWORD}@mongodb:27017/admin?directConnection=true"
 
         # rs.status() throws NotYetInitialized (code 94) until initiated, so the
         # error code is the idempotency check — re-running never re-initiates.
@@ -109,11 +141,19 @@ services:
 
         # Election takes a moment. Without this wait the backend can connect
         # before a PRIMARY exists and fail its first write.
+        # An election genuinely takes time and emits no event to wait on, so
+        # this one is a poll by necessity. It is bounded: an unbounded `until`
+        # loop turns a stuck election into a hung compose run with no message.
         echo "waiting for PRIMARY..."
-        until mongosh "$$URI" --quiet --eval 'db.hello().isWritablePrimary' | grep -q true; do
+        for _ in $$(seq 1 60); do
+          if mongosh "$$URI" --quiet --eval 'quit(db.hello().isWritablePrimary ? 0 : 1)'; then
+            echo "MongoDB is PRIMARY and accepting writes"
+            exit 0
+          fi
           sleep 1
         done
-        echo "MongoDB is PRIMARY and accepting writes"
+        echo "ERROR: no PRIMARY elected within 60s" >&2
+        exit 1
 
   # ============================================
   # Redis Cache & Queue
@@ -123,7 +163,10 @@ services:
     container_name: foodwaste-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      # Loopback only - see the mongodb note. Chosen over parameterising
+      # the Redis credential because it removes the exposure without
+      # changing a credential value.
+      - "127.0.0.1:6379:6379"
     command: >
       redis-server
       --requirepass redis_dev_password
@@ -149,8 +192,11 @@ services:
     container_name: foodwaste-rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672" # AMQP protocol
-      - "15672:15672" # Management UI
+      # Loopback only - see the mongodb note.
+      - "127.0.0.1:5672:5672" # AMQP protocol
+      # The management UI is an authenticated admin console; it has no
+      # business being on the LAN in a dev stack.
+      - "127.0.0.1:15672:15672" # Management UI
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: rabbitmq_dev_password
@@ -185,6 +231,16 @@ services:
     # size PM2 the way it does on Render, where a limit always exists.
     mem_limit: 3g
     ports:
+      # DELIBERATELY bound on all interfaces, unlike every other service.
+      # apps/mobile/.env.example documents real-device testing as
+      # "Use your computer's local IP (e.g. 192.168.1.100)", so a physical
+      # handset on the same Wi-Fi must reach this port. Loopback would also
+      # break BlueStacks, which is a separate VM rather than a host-loopback
+      # alias like the standard Android emulator's 10.0.2.2.
+      #
+      # This is an accepted local-development exposure: the API enforces
+      # authentication, and the stack is not intended to run anywhere but a
+      # developer machine. Do not copy this pattern to a shared host.
       - "3000:3000"
     # The image CMD is `pm2-runtime ... --env production`, and PM2 applies the
     # ecosystem file's env_production block to the child process — which
@@ -242,7 +298,7 @@ services:
       # alongside it for a single-node set reached by container hostname:
       # without it the driver uses the replica-set member name from the config,
       # which is only resolvable inside the compose network.
-      DATABASE_URL: mongodb://admin:password123@mongodb:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
+      DATABASE_URL: mongodb://${MONGO_ROOT_USERNAME:?set it in .env at the repo root - see .env.example}:${MONGO_ROOT_PASSWORD:?set it in .env at the repo root - see .env.example}@mongodb:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
 
       # Redis
       REDIS_HOST: redis
@@ -259,8 +315,10 @@ services:
       RABBITMQ_MESSAGE_TTL: 86400000
 
       # JWT (Development only - NEVER use these in production)
-      JWT_SECRET: dev_jwt_secret_please_change_in_production
-      JWT_REFRESH_SECRET: dev_jwt_refresh_secret_please_change_in_production
+      # env.validation.ts now rejects these two literals by name, so the stack
+      # cannot start on them even if someone pastes them back.
+      JWT_SECRET: ${JWT_SECRET:?set it in .env at the repo root - see .env.example}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set it in .env at the repo root - see .env.example}
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
 
@@ -303,7 +361,9 @@ services:
     container_name: foodwaste-prometheus
     restart: unless-stopped
     ports:
-      - "9090:9090"
+      # Loopback only. Prometheus has no authentication at all, and its
+      # /metrics scrape targets and query API expose internal topology.
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -317,66 +377,6 @@ services:
       - foodwaste-network
     depends_on:
       - backend
-
-  # ============================================
-  # Grafana (Metrics Visualization)
-  # ============================================
-  grafana:
-    image: grafana/grafana:latest
-    container_name: foodwaste-grafana
-    restart: unless-stopped
-    ports:
-      - "3001:3000"
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin123
-      GF_INSTALL_PLUGINS: grafana-piechart-panel,grafana-clock-panel
-      GF_SERVER_ROOT_URL: http://localhost:3001
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-    depends_on:
-      - prometheus
-    networks:
-      - foodwaste-network
-
-  # ============================================
-  # Mongo Express (Optional - Database UI)
-  # ============================================
-  mongo-express:
-    image: mongo-express:latest
-    container_name: foodwaste-mongo-express
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: password123
-      ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongodb:27017/
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: admin123
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    networks:
-      - foodwaste-network
-
-  # ============================================
-  # Redis Commander (Optional - Redis UI)
-  # ============================================
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: foodwaste-redis-commander
-    restart: unless-stopped
-    ports:
-      - "8082:8081"
-    environment:
-      REDIS_HOSTS: local:redis:6379:0:redis_dev_password
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - foodwaste-network
 
 # ============================================
 # Networks

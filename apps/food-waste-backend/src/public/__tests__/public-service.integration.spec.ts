@@ -16,15 +16,14 @@ import mongoose, { Connection, Model, Types } from 'mongoose';
 import { GeozoneSchema, GeozoneStatus } from '../../admin/schemas/geozone.schema';
 import { BAG_IMPACT } from '../../analytics/constants/sustainability.constants';
 import { PublicService } from '../public.service';
+import { requireMongoTestUri } from '../../../test/helpers/mongo-test-uri';
 import {
   WaitlistAudience,
   WaitlistEntrySchema,
   type WaitlistEntryDocument,
 } from '../../waitlist/schemas/waitlist-entry.schema';
 
-const MONGO_URI =
-  process.env['MONGO_TEST_URI'] ??
-  'mongodb://admin:password123@localhost:27017/admin?replicaSet=rs0&directConnection=true';
+const MONGO_URI = requireMongoTestUri();
 
 /** Cache-aside that actually stores, so a stale read would be caught. */
 const makeCache = () => {

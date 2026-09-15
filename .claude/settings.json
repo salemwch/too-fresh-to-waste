@@ -5,7 +5,15 @@
       "Bash(git push origin master --force)",
       "Bash(rm -rf /)",
       "Bash(rm -rf C:*)",
-      "Edit(.env*)"
+      "Edit(.env)",
+      "Edit(**/.env)",
+      "Edit(.env.local)",
+      "Edit(**/.env.local)",
+      "Edit(**/.env.*.local)",
+      "Edit(**/.env.development*)",
+      "Edit(**/.env.staging*)",
+      "Edit(**/.env.production*)",
+      "Edit(**/.env.test*)"
     ]
   },
   "enabledPlugins": {

@@ -14,10 +14,9 @@ import { UserRole } from '@foodwaste/shared';
 
 import { OrdersService } from '../order.service';
 import { OrderSchema, OrderStatus, type OrderDocument } from '../schemas/order.schema';
+import { requireMongoTestUri } from '../../../test/helpers/mongo-test-uri';
 
-const MONGO_URI =
-  process.env['MONGO_TEST_URI'] ??
-  'mongodb://admin:password123@localhost:27017/admin?replicaSet=rs0&directConnection=true';
+const MONGO_URI = requireMongoTestUri();
 
 /** 20 TND food + 4 TND delivery = 24 TND charged. Earnings = 81% of the 20, not the 24. */
 const FOOD = 20;

@@ -29,10 +29,9 @@ import mongoose, { Connection, Model, Types } from 'mongoose';
 
 import { OffersService } from '../offers.service';
 import { OfferSchema, OfferStatus, type OfferDocument } from '../schemas/offer.schema';
+import { requireMongoTestUri } from '../../../test/helpers/mongo-test-uri';
 
-const MONGO_URI =
-  process.env['MONGO_TEST_URI'] ??
-  'mongodb://admin:password123@localhost:27017/admin?replicaSet=rs0&directConnection=true';
+const MONGO_URI = requireMongoTestUri();
 
 const TIMEZONE = 'Africa/Tunis';
 const DAY_MS = 24 * 60 * 60 * 1000;
