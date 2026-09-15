@@ -88,8 +88,17 @@ jobs:
     name: Semgrep SAST
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Only run on PRs to avoid noise on every push — CodeQL covers scheduled runs
-    if: github.event_name == 'pull_request'
+    # Runs on push and pull_request both (the workflow's `on:` triggers), so
+    # master is covered rather than only the PR that targets it.
+    #
+    # This was `if: github.event_name == 'pull_request'`, on the reasoning that
+    # CodeQL covered scheduled runs. It does not cover these rules: the custom
+    # rulesets here encode confirmed findings from the backend audit and have
+    # no CodeQL equivalent, so anything merged outside a PR — a direct push, an
+    # admin merge, a hotfix — was never checked against them.
+    #
+    # Make this job a required status check in branch protection; the workflow
+    # file cannot enforce that on its own.
 
     container:
       image: semgrep/semgrep:latest
@@ -163,9 +172,12 @@ jobs:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
         continue-on-error: true # Advisory only — see the blocking step above
 
+      # The producing step is continue-on-error, so the SARIF may not exist.
+      # Guard on the file rather than on `always()` alone, or a skipped
+      # advisory scan turns into a red upload step and buries the real gate.
       - name: Upload Semgrep results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('semgrep-results.sarif') != ''
         with:
           sarif_file: semgrep-results.sarif
           category: semgrep

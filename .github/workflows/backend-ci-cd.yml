@@ -662,6 +662,25 @@ jobs:
       - name: Install k6
         uses: grafana/setup-k6-action@v1
 
+      - name: Generate ephemeral MongoDB credentials
+        run: |
+          # Single-run credentials for the throwaway compose stack. Nothing is
+          # persisted and no value is committed - regenerating per job is what
+          # keeps a weak shared default (admin/password123) out of the repo.
+          ROOT_PW="$(openssl rand -hex 24)"
+          APP_PW="$(openssl rand -hex 24)"
+          echo "::add-mask::$ROOT_PW"
+          echo "::add-mask::$APP_PW"
+          {
+            echo "MONGO_ROOT_USERNAME=ci_root"
+            echo "MONGO_ROOT_PASSWORD=$ROOT_PW"
+            echo "MONGO_APP_USERNAME=ci_app"
+            echo "MONGO_APP_PASSWORD=$APP_PW"
+            # db:create-indexes and seed:loadtest run on the HOST, not in a
+            # container, so they need localhost rather than the compose alias.
+            echo "DATABASE_URL=mongodb://ci_root:$ROOT_PW@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true"
+          } >> "$GITHUB_ENV"
+
       - name: Start stack
         env:
           # The throttler is per-IP and a load generator is one IP, so at the
@@ -671,9 +690,6 @@ jobs:
           THROTTLE_LIMIT: "1000000"
           THROTTLE_TTL: "60000"
           PAYMENT_PROVIDER: stub
-          # db:create-indexes runs on the host, not in a container, so it needs
-          # its own connection string.
-          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
         run: |
           # Indexes MUST exist before the backend starts. autoIndex is off, so
           # nothing creates them at boot — and the backend seeds default rows
@@ -695,7 +711,6 @@ jobs:
           # against the real client those calls no-op and the fixtures come out
           # unusable, so the script refuses to run without the stub.
           PAYMENT_PROVIDER: stub
-          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
         run: pnpm --filter @foodwaste/backend seed:loadtest
 
       - name: Run gate suite
@@ -749,14 +764,31 @@ jobs:
         if: steps.changes.outputs.racy == 'true'
         uses: grafana/setup-k6-action@v1
 
+      - name: Generate ephemeral MongoDB credentials
+        if: steps.changes.outputs.racy == 'true'
+        run: |
+          # Single-run credentials for the throwaway compose stack. Nothing is
+          # persisted and no value is committed - regenerating per job is what
+          # keeps a weak shared default (admin/password123) out of the repo.
+          ROOT_PW="$(openssl rand -hex 24)"
+          APP_PW="$(openssl rand -hex 24)"
+          echo "::add-mask::$ROOT_PW"
+          echo "::add-mask::$APP_PW"
+          {
+            echo "MONGO_ROOT_USERNAME=ci_root"
+            echo "MONGO_ROOT_PASSWORD=$ROOT_PW"
+            echo "MONGO_APP_USERNAME=ci_app"
+            echo "MONGO_APP_PASSWORD=$APP_PW"
+            # db:create-indexes and seed:loadtest run on the HOST, not in a
+            # container, so they need localhost rather than the compose alias.
+            echo "DATABASE_URL=mongodb://ci_root:$ROOT_PW@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true"
+          } >> "$GITHUB_ENV"
+
       - name: Start stack
         if: steps.changes.outputs.racy == 'true'
         env:
           THROTTLE_LIMIT: "1000000"
           PAYMENT_PROVIDER: stub
-          # db:create-indexes runs on the host, not in a container, so it needs
-          # its own connection string.
-          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
         run: |
           # Indexes MUST exist before the backend starts. autoIndex is off, so
           # nothing creates them at boot — and the backend seeds default rows
@@ -777,7 +809,6 @@ jobs:
           # against the real client those calls no-op and the fixtures come out
           # unusable, so the script refuses to run without the stub.
           PAYMENT_PROVIDER: stub
-          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
         run: pnpm --filter @foodwaste/backend seed:loadtest
 
       - name: Run concurrency suite
@@ -787,7 +818,6 @@ jobs:
       - name: Verify database invariants
         if: steps.changes.outputs.racy == 'true'
         env:
-          DATABASE_URL: mongodb://admin:password123@localhost:27017/foodwaste?authSource=admin&replicaSet=rs0&directConnection=true
         # k6 sees HTTP responses; double-crediting is invisible from there
         # because every response is a 200. This is the half that can see it.
         run: pnpm --filter @foodwaste/backend verify:loadtest-invariants
