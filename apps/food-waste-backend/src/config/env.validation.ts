@@ -10,6 +10,33 @@
 import Joi from 'joi';
 
 import { PROCESS_ROLE_VALUES, ProcessRole } from './process-role';
+import {
+  JWT_EXPIRES_IN_DEFAULT,
+  JWT_REFRESH_EXPIRES_IN_DEFAULT,
+  JWT_REFRESH_REMEMBER_ME_EXPIRES_IN_DEFAULT,
+} from './token-lifetimes';
+import { describeWeakSecret } from './weak-secrets';
+
+/**
+ * A secret that is long enough AND is not a known development literal.
+ *
+ * `name` is only used to build the error message; the offending value is
+ * never echoed, because validation errors are logged at startup.
+ */
+function strongSecret(name: string): Joi.StringSchema {
+  return Joi.string()
+    .min(32)
+    .custom((value: string, helpers) => {
+      const reason = describeWeakSecret(value);
+      // A dedicated code, not `any.invalid`: JWT_REFRESH_SECRET also uses
+      // `.invalid(Joi.ref('JWT_SECRET'))`, and sharing one code let that
+      // rule's message swallow the denylist reason.
+      return reason === null ? value : helpers.error('secret.weak', { reason });
+    })
+    .messages({
+      'secret.weak': `${name} {{#reason}}. Generate one with: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`,
+    });
+}
 
 export const envValidationSchema = Joi.object({
   // ── Application ──────────────────────────────────────────────────────
@@ -53,16 +80,26 @@ export const envValidationSchema = Joi.object({
   REDIS_USERNAME: Joi.string().default('default'),
 
   // ── JWT (required — no fallback secrets allowed) ─────────────────────
-  JWT_SECRET: Joi.string().min(32).required().messages({
+  //
+  // `min(32)` alone did not enforce that heading. The value in
+  // docker-compose.yml is 42 characters and passed, so the gate accepted the
+  // exact literal it existed to reject. `strongSecret` adds the denylist; the
+  // `invalid(Joi.ref(...))` below adds the "must differ" rule that the error
+  // message already claimed but nothing checked.
+  JWT_SECRET: strongSecret('JWT_SECRET').required().messages({
     'any.required':
       "JWT_SECRET is required (generate with: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\")",
     'string.min': 'JWT_SECRET must be at least 32 characters',
   }),
-  JWT_REFRESH_SECRET: Joi.string().min(32).required().messages({
-    'any.required': 'JWT_REFRESH_SECRET is required and must differ from JWT_SECRET',
-    'string.min': 'JWT_REFRESH_SECRET must be at least 32 characters',
-  }),
-  JWT_EXPIRES_IN: Joi.string().default('15m'),
+  JWT_REFRESH_SECRET: strongSecret('JWT_REFRESH_SECRET')
+    .required()
+    .invalid(Joi.ref('JWT_SECRET'))
+    .messages({
+      'any.required': 'JWT_REFRESH_SECRET is required and must differ from JWT_SECRET',
+      'string.min': 'JWT_REFRESH_SECRET must be at least 32 characters',
+      'any.invalid': 'JWT_REFRESH_SECRET must differ from JWT_SECRET',
+    }),
+  JWT_EXPIRES_IN: Joi.string().default(JWT_EXPIRES_IN_DEFAULT),
   /**
    * Standard (non "remember me") refresh token lifetime.
    *
@@ -74,13 +111,15 @@ export const envValidationSchema = Joi.object({
    * short-lived. The cookie maxAge in auth.controller.ts already documents the
    * intent as 30 days; this now matches it.
    */
-  JWT_REFRESH_EXPIRES_IN: Joi.string().default('30d'),
+  JWT_REFRESH_EXPIRES_IN: Joi.string().default(JWT_REFRESH_EXPIRES_IN_DEFAULT),
   /**
    * "Remember me" refresh token lifetime. Longer by design — the user opted in.
    * Declared explicitly so the value is validated and discoverable rather than
    * living only as a `??` fallback inside token.service.ts.
    */
-  JWT_REFRESH_REMEMBER_ME_EXPIRES_IN: Joi.string().default('365d'),
+  JWT_REFRESH_REMEMBER_ME_EXPIRES_IN: Joi.string().default(
+    JWT_REFRESH_REMEMBER_ME_EXPIRES_IN_DEFAULT,
+  ),
 
   // ── CORS ─────────────────────────────────────────────────────────────
   CORS_ORIGINS: Joi.when('NODE_ENV', {

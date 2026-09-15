@@ -1,5 +1,18 @@
 import type { Response } from 'express';
 
+import {
+  JWT_EXPIRES_IN_DEFAULT,
+  JWT_REFRESH_EXPIRES_IN_DEFAULT,
+} from '../../config/token-lifetimes';
+
+/**
+ * Session cookie lifetime.
+ *
+ * Named rather than inlined so `setSessionCookie` and `getSecurityConfig`
+ * cannot disagree about it, which is exactly how the refresh lifetime drifted.
+ */
+export const SESSION_COOKIE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 /**
  * Environment-aware cookie names.
  *
@@ -147,7 +160,7 @@ export class CookieSecurityUtil {
     sessionId: string,
     isProduction: boolean,
     domain?: string,
-    expiresInMs: number = 24 * 60 * 60 * 1000,
+    expiresInMs: number = SESSION_COOKIE_MAX_AGE_MS,
   ): void {
     if (!this.isValidCookieValue(sessionId)) {
       throw new Error('Invalid session ID format for cookie');
@@ -195,10 +208,23 @@ export class CookieSecurityUtil {
           ? 'omitted (__Host-)'
           : (this.normalizeDomain(domain) ?? 'current-domain-only'),
       },
+      /*
+       * Read from configuration, never restated here.
+       *
+       * These three were hardcoded as '15 minutes' / '365 days' / '24 hours'.
+       * The refresh default moved to 30d — precisely because a 365-day refresh
+       * token is a year-long account-takeover window on a bearer credential —
+       * and this block kept reporting the old figure. A security-reporting
+       * surface that states a lifetime the system does not use is worse than
+       * one that states nothing, because it is trusted.
+       *
+       * Reported in the raw configuration format ('30d', not 'thirty days') so
+       * the output is comparable against the environment by inspection.
+       */
       tokenLifetime: {
-        accessToken: '15 minutes',
-        refreshToken: '365 days',
-        session: '24 hours',
+        accessToken: process.env['JWT_EXPIRES_IN'] ?? JWT_EXPIRES_IN_DEFAULT,
+        refreshToken: process.env['JWT_REFRESH_EXPIRES_IN'] ?? JWT_REFRESH_EXPIRES_IN_DEFAULT,
+        session: `${SESSION_COOKIE_MAX_AGE_MS}ms`,
       },
       compliance: {
         owasp: 'OWASP Top 10 2021 — A01, A03, A05',
