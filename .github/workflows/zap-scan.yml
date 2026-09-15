@@ -133,7 +133,7 @@ jobs:
       # ── ZAP Full Scan (active — manual only, never on auto-trigger) ────────
       - name: ZAP Full Scan
         if: steps.target.outputs.type == 'full'
-        uses: zaproxy/action-full-scan@v0.12.0
+        uses: zaproxy/action-full-scan@v0.13.0
         with:
           target: ${{ steps.target.outputs.url }}
           rules_file_name: .github/zap/baseline-rules.tsv
