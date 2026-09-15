@@ -8,6 +8,12 @@ on:
       - "packages/shared/**"
       - ".github/workflows/backend-ci-cd.yml"
       - "pnpm-lock.yaml"
+  # Declared so the pipeline can be run on demand. Job-level conditions
+  # already branch on `github.event_name == 'workflow_dispatch'` (see the
+  # staging deploy gate), but without this trigger that condition could never
+  # be true and the pipeline could not be re-run without a new commit.
+  workflow_dispatch:
+
   pull_request:
     branches: [main, master, develop]
     paths:
