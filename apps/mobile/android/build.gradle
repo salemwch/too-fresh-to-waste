@@ -125,7 +125,7 @@ allprojects {
             // react-native-geolocation-service 5.3.1 compatible with GMS 21.3.0
             // react-native-maps 1.15.6 (stable with RN 0.81.0) uses GMS Maps 18.0.x
             // Source: https://firebase.google.com/support/release-notes/android
-            force("com.google.android.gms:play-services-base:18.5.0")
+            force("com.google.android.gms:play-services-base:18.10.1")
             force("com.google.android.gms:play-services-location:21.3.0")
             force("com.google.android.gms:play-services-maps:19.0.0")
             force("com.google.android.gms:play-services-basement:18.4.0")
