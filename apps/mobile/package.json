@@ -93,7 +93,7 @@
     "react-hook-form": "^7.79.0",
     "react-i18next": "15.5.1",
     "react-native": "0.81.0",
-    "react-native-config": "^1.6.1",
+    "react-native-config": "^1.7.2",
     "react-native-fast-image": "8.6.3",
     "react-native-gesture-handler": "^2.22.2",
     "react-native-haptic-feedback": "^2.3.3",
