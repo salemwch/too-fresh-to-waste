@@ -1,8 +1,17 @@
 /**
  * Active Filter Chips
  *
- * Displays currently active filters as removable chips
- * Shows at the top of search results
+ * Displays currently active filters as removable chips.
+ *
+ * ── Establishment categories are deliberately NOT chipped here ─────────────
+ * They are set from the home category rail, and the selected tile is already
+ * their indicator. Rendering a second chip for the same selection gave the
+ * user two things to look at and two places to clear one filter from - and
+ * the chip sat under the search bar, visually attached to a control that no
+ * longer owns establishment type at all.
+ *
+ * So this row shows only what the filter bottom sheet owns. The rail clears
+ * its own selection by tapping the tile again.
  */
 
 import React, { useMemo } from 'react';
@@ -13,14 +22,12 @@ import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
 import {
-  ESTABLISHMENT_TYPE_OPTIONS,
   CUISINE_TYPE_OPTIONS,
   CATEGORY_OPTIONS,
   OFFER_TYPE_OPTIONS,
 } from '../constants/filterOptions';
 
 import type { FilterState } from '../types/filter.types';
-import type { EstablishmentType } from '@/features/offers/types/offer.types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
 const { base: sp } = spacingTokens;
@@ -32,10 +39,17 @@ const { base: sp } = spacingTokens;
 interface ActiveFilterChipsProps {
   filters: FilterState;
   onRemoveOfferType: () => void;
-  onRemoveEstablishmentType: (type: EstablishmentType) => void;
   onRemoveCuisineType: (cuisine: string) => void;
   onRemoveCategory: (category: string) => void;
   onClearAll: () => void;
+}
+
+interface ChipData {
+  id: string;
+  label: string;
+  /** Emoji marker, for filter groups that still use one. */
+  emoji?: string;
+  onRemove: () => void;
 }
 
 // ============================================================================
@@ -45,7 +59,6 @@ interface ActiveFilterChipsProps {
 export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
   filters,
   onRemoveOfferType,
-  onRemoveEstablishmentType,
   onRemoveCuisineType,
   onRemoveCategory,
   onClearAll,
@@ -55,7 +68,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
 
   // Build chip data from filters
   const chips = useMemo(() => {
-    const result: Array<{ id: string; label: string; icon?: string; onRemove: () => void }> = [];
+    const result: ChipData[] = [];
 
     // Offer type
     if (filters.offerType !== undefined && filters.offerType !== null) {
@@ -64,24 +77,11 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
         result.push({
           id: `offer-${filters.offerType}`,
           label: option.label,
-          icon: option.icon,
+          emoji: option.icon,
           onRemove: onRemoveOfferType,
         });
       }
     }
-
-    // Establishment types
-    filters.establishmentTypes.forEach(type => {
-      const option = ESTABLISHMENT_TYPE_OPTIONS.find(o => o.value === type);
-      if (option) {
-        result.push({
-          id: `establishment-${type}`,
-          label: option.label,
-          icon: option.icon,
-          onRemove: () => onRemoveEstablishmentType(type),
-        });
-      }
-    });
 
     // Cuisine types
     filters.cuisineTypes.forEach(cuisine => {
@@ -90,7 +90,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
         result.push({
           id: `cuisine-${cuisine}`,
           label: option.label,
-          icon: option.flag,
+          emoji: option.flag,
           onRemove: () => onRemoveCuisineType(cuisine),
         });
       }
@@ -103,20 +103,14 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
         result.push({
           id: `category-${category}`,
           label: option.label,
-          ...(option.icon != null && { icon: option.icon }),
+          ...(option.icon != null && { emoji: option.icon }),
           onRemove: () => onRemoveCategory(category),
         });
       }
     });
 
     return result;
-  }, [
-    filters,
-    onRemoveOfferType,
-    onRemoveEstablishmentType,
-    onRemoveCuisineType,
-    onRemoveCategory,
-  ]);
+  }, [filters, onRemoveOfferType, onRemoveCuisineType, onRemoveCategory]);
 
   if (chips.length === 0) return null;
 
@@ -130,6 +124,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
         {chips.map(chip => (
           <View
             key={chip.id}
+            testID={`active-filter-chip-${chip.id}`}
             style={[
               styles.chip,
               {
@@ -138,16 +133,17 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
               },
             ]}
           >
-            {chip.icon && <Text style={styles.chipIcon}>{chip.icon}</Text>}
+            {chip.emoji != null && <Text style={styles.chipIcon}>{chip.emoji}</Text>}
             <Text variant='caption' style={[styles.chipLabel, { color: colors.accent }]}>
               {chip.label}
             </Text>
             <Pressable
               accessibilityRole='button'
-              accessibilityLabel={`Remove ${chip.label} filter`}
+              accessibilityLabel={t('common.a11yRemoveFilter', { label: chip.label })}
               accessibilityHint={t('common.a11yRemoveFilterHint')}
               onPress={chip.onRemove}
               style={styles.removeButton}
+              testID={`active-filter-remove-${chip.id}`}
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
             >
               <Icon name='close' size={14} color={colors.accent} />
@@ -160,12 +156,13 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
           accessibilityRole='button'
           style={[styles.clearAllButton, { borderColor: colors.onSurfaceVariant }]}
           onPress={onClearAll}
+          testID='active-filter-clear-all'
         >
           <Text
             variant='caption'
             style={[styles.clearAllLabel, { color: colors.onSurfaceVariant }]}
           >
-            Clear All
+            {t('search.clearAll')}
           </Text>
         </Pressable>
       </ScrollView>

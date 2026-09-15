@@ -20,7 +20,6 @@ import {
   Utensils,
   UtensilsCrossed,
   Coffee,
-  ShoppingBasket,
   ShoppingBag,
   Building2,
   Package,
@@ -33,6 +32,7 @@ import {
   PawPrint,
   Flower2,
   Fish,
+  Warehouse,
 } from 'lucide-react';
 import { Button, Input, Label } from '@foodwaste/ui';
 import { Link } from '@/i18n/routing';
@@ -75,8 +75,10 @@ function guessTypeFromGoogleTypes(googleTypes?: string[]): EstablishmentType {
     meal_delivery: EstablishmentType.FAST_FOOD,
     fast_food_restaurant: EstablishmentType.FAST_FOOD,
     sushi_restaurant: EstablishmentType.SUSHI_RESTAURANT,
-    grocery_or_supermarket: EstablishmentType.GROCERY_STORE,
-    grocery_store: EstablishmentType.GROCERY_STORE,
+    grocery_or_supermarket: EstablishmentType.SUPERMARKET,
+    // GROCERY_STORE is no longer offered in the picker, so guessing it would
+    // pre-select a value the form cannot render. Fall through to OTHER.
+    grocery_store: EstablishmentType.OTHER,
     supermarket: EstablishmentType.SUPERMARKET,
     butcher_shop: EstablishmentType.BUTCHER_SHOP,
     liquor_store: EstablishmentType.BEVERAGE_SHOP,
@@ -106,8 +108,8 @@ const ESTABLISHMENT_TYPE_OPTIONS: {
   { value: EstablishmentType.BUFFET_RESTAURANT, labelKey: 'typeBuffet', Icon: UtensilsCrossed },
   { value: EstablishmentType.SUSHI_RESTAURANT, labelKey: 'typeSushi', Icon: Fish },
   { value: EstablishmentType.TAKEAWAY, labelKey: 'typeTakeaway', Icon: ShoppingBag },
-  { value: EstablishmentType.GROCERY_STORE, labelKey: 'typeGrocery', Icon: ShoppingBasket },
   { value: EstablishmentType.SUPERMARKET, labelKey: 'typeSupermarket', Icon: Store },
+  { value: EstablishmentType.WHOLESALER, labelKey: 'typeWholesaler', Icon: Warehouse },
   { value: EstablishmentType.FRUIT_VEGETABLES, labelKey: 'typeFruitVeg', Icon: Apple },
   { value: EstablishmentType.BUTCHER_SHOP, labelKey: 'typeButcher', Icon: Scissors },
   { value: EstablishmentType.BEVERAGE_SHOP, labelKey: 'typeBeverage', Icon: GlassWater },

@@ -26,7 +26,12 @@ interface FilterAppliedProperties {
 }
 
 interface FilterRemovedProperties {
-  filterType: 'offerType' | 'establishmentType' | 'cuisineType' | 'category';
+  filterType:
+    | 'offerType'
+    | 'establishmentType'
+    | 'establishmentCategory'
+    | 'cuisineType'
+    | 'category';
   value: string;
   source: string;
   [key: string]: string | number | boolean | string[] | undefined;

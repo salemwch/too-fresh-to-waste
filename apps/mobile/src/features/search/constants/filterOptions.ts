@@ -4,28 +4,27 @@
  * Predefined filter options for the search experience
  */
 
-import { EstablishmentType, OfferType } from '@/features/offers/types/offer.types';
+import { OfferType } from '@/features/offers/types/offer.types';
 
-// ============================================================================
-// Establishment Types with Icons
-// ============================================================================
-
-interface EstablishmentTypeOption {
-  value: EstablishmentType;
-  label: string;
-  icon: string;
-}
-
-export const ESTABLISHMENT_TYPE_OPTIONS: EstablishmentTypeOption[] = [
-  { value: EstablishmentType.BAKERY, label: 'Bakery', icon: '🍞' },
-  { value: EstablishmentType.RESTAURANT, label: 'Restaurant', icon: '🍽️' },
-  { value: EstablishmentType.CAFE, label: 'Cafe', icon: '☕' },
-  { value: EstablishmentType.HOTEL, label: 'Hotel', icon: '🏨' },
-  { value: EstablishmentType.GROCERY_STORE, label: 'Grocery', icon: '🛒' },
-  { value: EstablishmentType.FAST_FOOD, label: 'Fast Food', icon: '🍔' },
-  { value: EstablishmentType.SUPERMARKET, label: 'Supermarket', icon: '🏪' },
-  { value: EstablishmentType.OTHER, label: 'Other', icon: '📦' },
-];
+/**
+ * `ESTABLISHMENT_TYPE_OPTIONS` used to live here: eight `{ value, label, icon }`
+ * entries with emoji markers and hardcoded English labels.
+ *
+ * It was removed rather than translated, for two reasons:
+ *
+ *  1. **It was incomplete.** It listed 8 of the 17 `EstablishmentType` values,
+ *     so a merchant registered as a pastry shop, buffet, sushi restaurant,
+ *     takeaway, fruit & veg stall, butcher, drinks shop, pet store or florist
+ *     could not be filtered for anywhere in the app.
+ *  2. **It was a second source of truth.** The home rail, this filter sheet and
+ *     the active chips each needed labels and icons for the same concept, and
+ *     nothing kept them in step.
+ *
+ * Both are now answered by `features/offers/constants/establishmentCategories`,
+ * which maps all 17 types onto 8 categories, carries i18n label keys instead of
+ * English strings, and ships one duotone SVG per category in place of the
+ * emoji. Import from there.
+ */
 
 // ============================================================================
 // Cuisine Types with Flag Icons

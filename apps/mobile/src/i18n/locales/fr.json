@@ -50,6 +50,7 @@
     "a11yCloseModalHint": "Ferme cette fenêtre",
     "a11yOpensDetailsHint": "Ouvre plus de détails",
     "a11yAppliesActionHint": "Applique cette action",
+    "a11yRemoveFilter": "Retirer le filtre {{label}}",
     "a11yRemoveFilterHint": "Retire ce filtre",
     "a11yOpenLinkHint": "Ouvre ce lien"
   },
@@ -359,7 +360,6 @@
     "prizeDropSoon": "🎁 Tirage aujourd'hui !",
     "rewardCallout": "⚡ Atteignez {{target}} sacs → Tout le monde gagne {{points}} points bonus !",
     "rewardCalloutNoPrize": "⚡ Sauvons des sacs ensemble avec la communauté !",
-    "prizeDropLabel": "TIRAGE AU SORT",
     "daysRemaining": "jours restants",
     "prizeDropSubtitle": "Grand tirage au sort à la fin de la saison",
     "rewardEarnPoints": "Objectif atteint — chacun gagne {{points}} pts",
@@ -391,6 +391,22 @@
     "a11yOpenFilters": "Ouvre les options de filtre",
     "a11yClearSearch": "Effacer la recherche",
     "a11yClearSearchHint": "Efface le texte de recherche actuel"
+  },
+  "establishmentCategories": {
+    "railLabel": "Parcourir par catégorie",
+    "bakery": "Boulangerie",
+    "restaurant": "Restaurant",
+    "cafe": "Café",
+    "fastFood": "Fast-food",
+    "supermarket": "Supermarché",
+    "wholesaler": "Grossiste",
+    "hotel": "Hôtel",
+    "other": "Autre",
+    "a11ySelect": "Afficher uniquement les offres {{category}}",
+    "a11yClear": "Ne plus filtrer par {{category}}",
+    "a11yHint": "Filtre les offres ci-dessous sans quitter cet écran",
+    "a11yRailHint": "Balayez sur le côté pour voir plus de catégories",
+    "a11yHintSheet": "Ajoute cette catégorie à vos filtres"
   },
   "offers": {
     "reserve": "Réserver",

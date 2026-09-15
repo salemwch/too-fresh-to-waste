@@ -35,13 +35,22 @@ function applyClientSideFilters(offers: OfferListItem[], filters?: OfferFilters)
   if (Array.isArray(categories) && categories.length > 0) {
     result = result.filter(offer => categories.some(cat => (offer.categories ?? []).includes(cat)));
   }
-  if (
-    (Array.isArray(filters.establishmentTypes) && filters.establishmentTypes.length > 0) ||
-    (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0)
-  ) {
-    Logger.warn(
-      'Establishment/cuisine filtering not fully supported for this endpoint - use general search instead',
-    );
+  /*
+   * `establishmentTypes` is deliberately NOT handled here.
+   *
+   * It is applied server-side now — `/offers/urgent`, `/offers/pickup-today`
+   * and `/offers/pickup-tomorrow` all accept it, and the callers below pass it
+   * through. Re-filtering in JS would be wrong twice over: `OfferListItem`
+   * carries no establishment type to match on, and the rows arrive already
+   * cut to `limit`, so filtering after the fact would drop the page to a
+   * handful of rows while matching offers sat unfetched past the limit.
+   *
+   * This used to log a warning and return the list untouched, which read as
+   * "handled" at a glance and silently disabled the whole category filter on
+   * three of the four home carousels.
+   */
+  if (Array.isArray(filters.cuisineTypes) && filters.cuisineTypes.length > 0) {
+    Logger.warn('Cuisine filtering is not supported on this endpoint - use general search');
   }
   return result;
 }
@@ -177,6 +186,7 @@ export function useUrgentOffers(
         limit,
         userLocation,
         signal,
+        filters?.establishmentTypes,
       );
       const validOffers = applyClientSideFilters(offers, filters);
       Logger.info('Urgent offers fetched and filtered', { count: validOffers.length });
@@ -213,7 +223,13 @@ export function usePickupTodayOffers(
     queryKey: [...offerKeys.pickupToday(limit, todayStr), userLocation, filters],
     queryFn: async ({ signal }) => {
       Logger.info('Fetching pickup today offers', { limit, userLocation, filters });
-      const offers = await offersService.getPickupTodayOffers(limit, userLocation, signal);
+      const offers = await offersService.getPickupTodayOffers(
+        limit,
+        userLocation,
+        signal,
+        undefined,
+        filters?.establishmentTypes,
+      );
       const validOffers = applyClientSideFilters(offers, filters);
       Logger.info('Pickup today offers fetched and filtered', { count: validOffers.length });
       return validOffers;
@@ -249,7 +265,13 @@ export function usePickupTomorrowOffers(
     queryKey: [...offerKeys.pickupTomorrow(limit, tomorrowStr), userLocation, filters],
     queryFn: async ({ signal }) => {
       Logger.info('Fetching pickup tomorrow offers', { limit, userLocation, filters });
-      const offers = await offersService.getPickupTomorrowOffers(limit, userLocation, signal);
+      const offers = await offersService.getPickupTomorrowOffers(
+        limit,
+        userLocation,
+        signal,
+        undefined,
+        filters?.establishmentTypes,
+      );
       const validOffers = applyClientSideFilters(offers, filters);
       Logger.info('Pickup tomorrow offers fetched and filtered', { count: validOffers.length });
       return validOffers;

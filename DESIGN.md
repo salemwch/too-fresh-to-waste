@@ -2307,6 +2307,32 @@ Two things that gate found in itself and are worth keeping:
 
 ---
 
+**E34. Establishment category icons carry their own illustrative palette.**
+`ACCEPTED 2026-09-14` The home category rail (`HomeCategoryRail`) renders eight
+full-colour SVG icons whose hues are sampled from the artwork - bread crust
+browns, lettuce green, a blue shopping trolley - not from the brand ramp or from
+`baseColors.categories`. Their tile backgrounds and selected-state accents are
+sampled from the same artwork and live in `establishmentCategoryColors` in
+`design-system/tokens/colors.ts`.
+
+This is a deliberate product decision, taken by the product owner: the rail
+exists to make a sparse home screen feel populated, and monochrome icons tinted
+to the teal ramp were tried first and rejected for reading as flat. Recoloured
+illustrations do not work - a bread loaf in brand teal is not a bread loaf.
+
+**Scope, so this does not spread.** These values are category identity marks
+under §19-E20 and nothing else: never a surface, a CTA, a border outside the
+tile, or text. The icons are never recoloured by the consumer -
+`HomeCategoryRail` passes no `color` prop, and `HomeCategoryRail.test.tsx`
+asserts that in both the idle and selected states, so a later "tint it to match"
+change fails CI rather than silently flattening the artwork.
+
+The tile shape introduces **no new radius**: 56px at radius `lg` (12px) from
+§6.1, which is 21.4% of the side - the iOS app-icon squircle ratio.
+
+Re-open if the icons are ever replaced with a monochrome set, at which point the
+tint/accent pairs should collapse onto the brand ramp and this entry retires.
+
 ## 20. Governance Rule
 
 **When a new design decision is introduced and is likely to be reused, it does

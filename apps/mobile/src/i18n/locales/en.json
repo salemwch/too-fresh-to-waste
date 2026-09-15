@@ -50,6 +50,7 @@
     "a11yCloseModalHint": "Closes this dialog",
     "a11yOpensDetailsHint": "Opens more details",
     "a11yAppliesActionHint": "Applies this action",
+    "a11yRemoveFilter": "Remove {{label}} filter",
     "a11yRemoveFilterHint": "Removes this filter",
     "a11yOpenLinkHint": "Opens this link"
   },
@@ -359,7 +360,6 @@
     "prizeDropSoon": "🎁 Prize drop today!",
     "rewardCallout": "⚡ Reach {{target}} bags → Everyone earns {{points}} bonus points!",
     "rewardCalloutNoPrize": "⚡ Save bags together with the community!",
-    "prizeDropLabel": "PRIZE DROP",
     "daysRemaining": "days remaining",
     "prizeDropSubtitle": "Grand prize draw at the end of the season",
     "rewardEarnPoints": "Reach target — everyone earns {{points}} pts",
@@ -391,6 +391,22 @@
     "a11yOpenFilters": "Opens filter options",
     "a11yClearSearch": "Clear search",
     "a11yClearSearchHint": "Clears the current search text"
+  },
+  "establishmentCategories": {
+    "railLabel": "Browse by category",
+    "bakery": "Bakery",
+    "restaurant": "Restaurant",
+    "cafe": "Cafe",
+    "fastFood": "Fast food",
+    "supermarket": "Supermarket",
+    "wholesaler": "Wholesaler",
+    "hotel": "Hotel",
+    "other": "Other",
+    "a11ySelect": "Show only {{category}} offers",
+    "a11yClear": "Stop filtering by {{category}}",
+    "a11yHint": "Filters the offers below without leaving this screen",
+    "a11yRailHint": "Swipe sideways to see more categories",
+    "a11yHintSheet": "Adds this category to your filters"
   },
   "offers": {
     "reserve": "Reserve",

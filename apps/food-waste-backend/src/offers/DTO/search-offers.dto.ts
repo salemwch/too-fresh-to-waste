@@ -1,4 +1,5 @@
 import { EstablishmentType, OfferSortField } from '@foodwaste/shared';
+import { toEstablishmentTypeArray } from '../utils/establishment-type-filter.util';
 import type { SearchOffersInput } from '@foodwaste/shared';
 import { Type, Transform } from 'class-transformer';
 import { IsOptional, IsEnum, IsString, IsNumber, IsArray, IsInt, Min, Max } from 'class-validator';
@@ -31,6 +32,11 @@ export class SearchOffersDto implements SearchOffersInput {
   tags?: string[] | undefined;
 
   @IsOptional()
+  // Express yields a string for a single `?establishmentTypes=cafe` and an
+  // array for repeated params. Without this the single-value form 400s, which
+  // broke Hottest Deals for every single-type category. Shape only — the enum
+  // check below still rejects anything invalid.
+  @Transform(({ value }) => toEstablishmentTypeArray(value))
   @IsArray()
   @IsEnum(EstablishmentType, { each: true })
   establishmentTypes?: EstablishmentType[] | undefined;

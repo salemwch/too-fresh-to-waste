@@ -246,6 +246,7 @@ class OffersService {
     limit: number = 10,
     userLocation?: GeoCoordinates,
     signal?: AbortSignal,
+    establishmentTypes?: readonly string[],
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/urgent`;
     Logger.info('[OffersService] getUrgentOffers CALLED', {
@@ -259,6 +260,17 @@ class OffersService {
           hoursUntilExpiry,
           limit,
           ...this.buildLocationParams(userLocation),
+          /*
+           * Sent as a repeated query param. The backend normalises (dedupe + sort)
+           * before it builds its cache key, so order here is irrelevant — but it is
+           * NOT optional: omitting it is what made this carousel ignore the filter.
+           */
+          ...(establishmentTypes && establishmentTypes.length > 0
+            ? { establishmentTypes: [...establishmentTypes] }
+            : {}),
+        },
+        paramsSerializer: {
+          indexes: null, // establishmentTypes=a&establishmentTypes=b (no brackets)
         },
         ...(signal && { signal }),
       });
@@ -356,6 +368,7 @@ class OffersService {
     userLocation?: GeoCoordinates,
     signal?: AbortSignal,
     maxDistance: number = 15000,
+    establishmentTypes?: readonly string[],
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/pickup-today`;
     Logger.info('[OffersService] getPickupTodayOffers CALLED', {
@@ -368,6 +381,17 @@ class OffersService {
           limit,
           maxDistance,
           ...this.buildLocationParams(userLocation),
+          /*
+           * Sent as a repeated query param. The backend normalises (dedupe + sort)
+           * before it builds its cache key, so order here is irrelevant — but it is
+           * NOT optional: omitting it is what made this carousel ignore the filter.
+           */
+          ...(establishmentTypes && establishmentTypes.length > 0
+            ? { establishmentTypes: [...establishmentTypes] }
+            : {}),
+        },
+        paramsSerializer: {
+          indexes: null, // establishmentTypes=a&establishmentTypes=b (no brackets)
         },
         ...(signal && { signal }),
       });
@@ -386,6 +410,7 @@ class OffersService {
     userLocation?: GeoCoordinates,
     signal?: AbortSignal,
     maxDistance: number = 15000,
+    establishmentTypes?: readonly string[],
   ): Promise<OfferListItem[]> {
     const url = `${this.basePath}/pickup-tomorrow`;
     Logger.info('[OffersService] getPickupTomorrowOffers CALLED', {
@@ -398,6 +423,17 @@ class OffersService {
           limit,
           maxDistance,
           ...this.buildLocationParams(userLocation),
+          /*
+           * Sent as a repeated query param. The backend normalises (dedupe + sort)
+           * before it builds its cache key, so order here is irrelevant — but it is
+           * NOT optional: omitting it is what made this carousel ignore the filter.
+           */
+          ...(establishmentTypes && establishmentTypes.length > 0
+            ? { establishmentTypes: [...establishmentTypes] }
+            : {}),
+        },
+        paramsSerializer: {
+          indexes: null, // establishmentTypes=a&establishmentTypes=b (no brackets)
         },
         ...(signal && { signal }),
       });

@@ -49,6 +49,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.brand,
     borderRadius: 16,
     padding: 16,
+    // Mirrors MonthlyBagGoalBanner.card minHeight — see SkeletonImpactBanner.
+    minHeight: 96,
     shadowColor: COLORS.brandDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -61,7 +63,7 @@ const styles = StyleSheet.create({
   },
   iconSkeleton: {
     width: 40,
-    height: 40,
+    height: 34,
     borderRadius: 12,
     marginEnd: sp[3],
   },

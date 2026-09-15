@@ -36,6 +36,7 @@ import { ReactivateOfferDto } from './DTO/reactivate-offer.dto';
 import { SearchOffersDto, OfferSortField } from './DTO/search-offers.dto';
 import { UpdateOfferDto } from './DTO/update-offer.dto';
 import { OfferPresenter } from './presenters/offer.presenter';
+import { resolveEstablishmentTypeFilter } from './utils/establishment-type-filter.util';
 import { Offer, OfferDocument, OfferStatus, OfferType, Currency } from './schemas/offer.schema';
 
 // OFFER_LIST_FIELDS no longer needed — aggregation pipelines select fields via $project
@@ -636,6 +637,37 @@ export class OffersService {
     const query: MongoQuery = { isDeleted: { $ne: true } };
     const sort: MongoSort = {};
 
+    /*
+     * Resolved HERE, not just before the default pipeline.
+     *
+     * The establishment-filter branch below builds its own aggregation and
+     * emits `{ $sort: sort }`. While this ran later, that branch always saw
+     * `{}` and MongoDB rejected the stage — "$sort stage must have at least
+     * one sort key" — so every filtered `/offers` request WITHOUT lat/lng
+     * returned HTTP 500. The geo branch was unaffected because `$geoNear`
+     * supplies its own ordering.
+     *
+     * Resolving once also guarantees the two branches order results
+     * identically, which is the behaviour callers actually depend on.
+     */
+    // ✅ SECURITY: Whitelist-based sorting to prevent prototype pollution
+    if (filters.sortBy !== null && filters.sortBy !== undefined) {
+      const allowedSortFields: Record<OfferSortField, string> = {
+        [OfferSortField.CREATED_AT]: 'createdAt',
+        [OfferSortField.PRICE]: 'pricing.discountedPrice',
+        [OfferSortField.DISCOUNT]: 'pricing.discountPercentage',
+        [OfferSortField.EXPIRY]: 'availableUntil',
+      };
+
+      const safeField = allowedSortFields[filters.sortBy];
+      if (safeField) {
+        const order = filters.sortOrder === 'asc' ? 1 : -1;
+        sort[safeField] = order;
+      }
+    } else {
+      sort['createdAt'] = -1;
+    }
+
     // Only apply the public "active offers only" filter when there is no
     // merchant/establishment context (i.e. this is a consumer-facing query).
     if (
@@ -1034,24 +1066,6 @@ export class OffersService {
       // ✅ NEW: Map offers to DTOs with isFavorite
       const data = await this.mapOffersToDto(offers as OfferDocument[], userId);
       return { data, total };
-    }
-
-    // ✅ SECURITY: Whitelist-based sorting to prevent prototype pollution
-    if (filters.sortBy !== null && filters.sortBy !== undefined) {
-      const allowedSortFields: Record<OfferSortField, string> = {
-        [OfferSortField.CREATED_AT]: 'createdAt',
-        [OfferSortField.PRICE]: 'pricing.discountedPrice',
-        [OfferSortField.DISCOUNT]: 'pricing.discountPercentage',
-        [OfferSortField.EXPIRY]: 'availableUntil',
-      };
-
-      const safeField = allowedSortFields[filters.sortBy];
-      if (safeField) {
-        const order = filters.sortOrder === 'asc' ? 1 : -1;
-        sort[safeField] = order;
-      }
-    } else {
-      sort['createdAt'] = -1;
     }
 
     // ✅ PERFORMANCE: Single aggregation pipeline replaces .find().populate().populate()
@@ -1491,9 +1505,18 @@ export class OffersService {
     userId?: string,
     userLocation?: { latitude: number; longitude: number },
     maxDistanceMeters?: number,
+    establishmentTypes?: readonly string[] | string,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
+
+    // Normalised through the same helper the cached urgent endpoint uses, so
+    // the two endpoints cannot disagree about what a filter means.
+    const { types: typeFilter } = resolveEstablishmentTypeFilter(establishmentTypes);
+    const typeMatch: PipelineStage[] =
+      typeFilter && typeFilter.length > 0
+        ? [{ $match: { 'establishmentId.type': { $in: [...typeFilter] } } }]
+        : [];
 
     const now = new Date();
     const todayStart = TimezoneUtil.getStartOfDay(now);
@@ -1507,19 +1530,26 @@ export class OffersService {
     };
 
     // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
-    const pipeline: PipelineStage[] = [
-      { $match: offerQuery },
-      ...this.buildEstablishmentLookup(),
-      ...this.buildMerchantLookup(),
-      { $sort: { availableUntil: 1 as const, createdAt: -1 as const } },
-      { $skip: skip },
-      { $limit: safeLimit },
-    ];
-
-    const [offers, total] = await Promise.all([
-      this.offerModel.aggregate(pipeline).exec(),
-      this.offerModel.countDocuments(offerQuery),
-    ]);
+    /*
+     * The type lives on the looked-up establishment, so the match runs after
+     * the lookup and before $skip/$limit — filtering after the page is cut
+     * would return fewer than `limit` rows and shorten the carousel.
+     *
+     * `aggregatePage` keeps the unfiltered path on the cheap index-backed
+     * `countDocuments` and collapses the filtered path into a single `$facet`
+     * pass rather than repeating the join for the total.
+     */
+    const { offers, total } = await this.aggregatePage<OfferLean>(
+      [{ $match: offerQuery }, ...this.buildEstablishmentLookup(), ...typeMatch],
+      [
+        ...(this.buildMerchantLookup() as PipelineStage.FacetPipelineStage[]),
+        { $sort: { availableUntil: 1 as const, createdAt: -1 as const } },
+        { $skip: skip },
+        { $limit: safeLimit },
+      ],
+      () => this.offerModel.countDocuments(offerQuery),
+      typeMatch.length > 0,
+    );
 
     // Enrich with distance before DTO mapping; filter by maxDistanceMeters if provided
     if (userLocation) {
@@ -1573,9 +1603,18 @@ export class OffersService {
     userId?: string,
     userLocation?: { latitude: number; longitude: number },
     maxDistanceMeters?: number,
+    establishmentTypes?: readonly string[] | string,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
+
+    // Normalised through the same helper the cached urgent endpoint uses, so
+    // the two endpoints cannot disagree about what a filter means.
+    const { types: typeFilter } = resolveEstablishmentTypeFilter(establishmentTypes);
+    const typeMatch: PipelineStage[] =
+      typeFilter && typeFilter.length > 0
+        ? [{ $match: { 'establishmentId.type': { $in: [...typeFilter] } } }]
+        : [];
 
     const now = new Date();
     const todayEnd = TimezoneUtil.getEndOfDay(now);
@@ -1591,19 +1630,26 @@ export class OffersService {
     };
 
     // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
-    const pipeline: PipelineStage[] = [
-      { $match: offerQuery },
-      ...this.buildEstablishmentLookup(),
-      ...this.buildMerchantLookup(),
-      { $sort: { availableUntil: 1 as const, createdAt: -1 as const } },
-      { $skip: skip },
-      { $limit: safeLimit },
-    ];
-
-    const [offers, total] = await Promise.all([
-      this.offerModel.aggregate(pipeline).exec(),
-      this.offerModel.countDocuments(offerQuery),
-    ]);
+    /*
+     * The type lives on the looked-up establishment, so the match runs after
+     * the lookup and before $skip/$limit — filtering after the page is cut
+     * would return fewer than `limit` rows and shorten the carousel.
+     *
+     * `aggregatePage` keeps the unfiltered path on the cheap index-backed
+     * `countDocuments` and collapses the filtered path into a single `$facet`
+     * pass rather than repeating the join for the total.
+     */
+    const { offers, total } = await this.aggregatePage<OfferLean>(
+      [{ $match: offerQuery }, ...this.buildEstablishmentLookup(), ...typeMatch],
+      [
+        ...(this.buildMerchantLookup() as PipelineStage.FacetPipelineStage[]),
+        { $sort: { availableUntil: 1 as const, createdAt: -1 as const } },
+        { $skip: skip },
+        { $limit: safeLimit },
+      ],
+      () => this.offerModel.countDocuments(offerQuery),
+      typeMatch.length > 0,
+    );
 
     // Enrich with distance before DTO mapping; filter by maxDistanceMeters if provided
     if (userLocation) {
@@ -1909,10 +1955,53 @@ export class OffersService {
    * decorated onto the results afterwards, which is why it can move out to
    * `personalizeOfferPage` and let every location share one cache entry.
    */
+
+  /**
+   * Run a paged aggregation and its total in the fewest round trips.
+   *
+   * **Unfiltered** keeps the original two cheap calls: the rows pipeline plus
+   * `countDocuments`, which answers from an index without touching the
+   * `$lookup`. That path is unchanged, so it carries no regression risk.
+   *
+   * **Filtered** cannot use `countDocuments`: the predicate is
+   * `establishmentId.type`, which only exists after the establishment
+   * `$lookup`, so a count would have to repeat the whole join. `$facet` runs
+   * the shared prefix once and branches, turning two passes into one.
+   *
+   * @param prefix  $match + lookups + the type filter — shared by both branches
+   * @param rowsTail  remaining stages that produce the page (sort/skip/limit)
+   * @param countUnfiltered  the cheap index-backed count, used only when the
+   *                         type filter is absent
+   */
+  private async aggregatePage<T>(
+    prefix: PipelineStage[],
+    rowsTail: PipelineStage.FacetPipelineStage[],
+    countUnfiltered: () => Promise<number>,
+    isFiltered: boolean,
+  ): Promise<{ offers: T[]; total: number }> {
+    if (!isFiltered) {
+      const [offers, total] = await Promise.all([
+        this.offerModel.aggregate([...prefix, ...rowsTail]).exec(),
+        countUnfiltered(),
+      ]);
+      return { offers: offers as T[], total };
+    }
+
+    const [faceted] = await this.offerModel
+      .aggregate<{
+        rows: T[];
+        total: { n: number }[];
+      }>([...prefix, { $facet: { rows: rowsTail, total: [{ $count: 'n' }] } }])
+      .exec();
+
+    return { offers: faceted?.rows ?? [], total: faceted?.total[0]?.n ?? 0 };
+  }
+
   private async fetchExpiringOffers(
     hoursUntilExpiry: number,
     page: number,
     limit: number,
+    establishmentTypes?: readonly EstablishmentType[],
   ): Promise<CachedOfferPage> {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
@@ -1925,21 +2014,28 @@ export class OffersService {
       availableUntil: { $lte: expiryTime, $gte: now },
     };
 
-    // ✅ PERFORMANCE: Single aggregation replaces find + 2 populates (3 → 1 round-trip)
-    // Note: buildMerchantLookup(true) includes email for expiring-offer notifications
-    const pipeline: PipelineStage[] = [
-      { $match: query },
-      ...this.buildEstablishmentLookup(),
-      ...this.buildMerchantLookup(true),
-      { $sort: { availableUntil: 1 as const } },
-      { $skip: skip },
-      { $limit: safeLimit },
-    ];
+    /*
+     * The establishment type lives on the looked-up document, so the filter has
+     * to run AFTER buildEstablishmentLookup and BEFORE $skip/$limit —
+     * filtering after the page is cut would return fewer than `limit` rows and
+     * silently shorten the carousel.
+     */
+    const typeMatch: PipelineStage[] =
+      establishmentTypes && establishmentTypes.length > 0
+        ? [{ $match: { 'establishmentId.type': { $in: [...establishmentTypes] } } }]
+        : [];
 
-    const [offers, total] = await Promise.all([
-      this.offerModel.aggregate(pipeline).exec(),
-      this.offerModel.countDocuments(query),
-    ]);
+    const { offers, total } = await this.aggregatePage<OfferDocument>(
+      [{ $match: query }, ...this.buildEstablishmentLookup(), ...typeMatch],
+      [
+        ...(this.buildMerchantLookup(true) as PipelineStage.FacetPipelineStage[]),
+        { $sort: { availableUntil: 1 as const } },
+        { $skip: skip },
+        { $limit: safeLimit },
+      ],
+      () => this.offerModel.countDocuments(query),
+      typeMatch.length > 0,
+    );
 
     const data = await this.mapOffersToDto(offers as OfferDocument[]);
 
@@ -1969,8 +2065,16 @@ export class OffersService {
     limit: number = 10,
     userId?: string,
     userLocation?: { latitude: number; longitude: number },
+    establishmentTypes?: readonly string[] | string,
   ): Promise<{ data: OfferCardDto[]; total: number }> {
     const safeLimit = Math.min(limit, 100);
+
+    /*
+     * Normalised once, used for BOTH the key and the query. Deriving them
+     * separately is how a request for bakeries ends up served from the cafe
+     * page — see `establishment-type-filter.util.ts`.
+     */
+    const { types: typeFilter, cacheSegment } = resolveEstablishmentTypeFilter(establishmentTypes);
 
     /*
      * Every caller now shares this entry, including the location-aware ones.
@@ -1985,9 +2089,14 @@ export class OffersService {
      * Prefix stays `offers:urgent:` for `invalidateDiscoveryCaches`.
      */
     const cached = await this.cacheService.getOrSet<CachedOfferPage>(
-      `offers:urgent:${hoursUntilExpiry}:${page}:${safeLimit}`,
+      `offers:urgent:${hoursUntilExpiry}:${page}:${safeLimit}${cacheSegment}`,
       async () => {
-        const shared = await this.fetchExpiringOffers(hoursUntilExpiry, page, safeLimit);
+        const shared = await this.fetchExpiringOffers(
+          hoursUntilExpiry,
+          page,
+          safeLimit,
+          typeFilter,
+        );
         return shared;
       },
       OffersService.TTL_URGENT,

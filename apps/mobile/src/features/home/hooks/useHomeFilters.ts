@@ -17,6 +17,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import {
+  isCategoryActive,
+  toggleCategoryTypes,
+} from '@/features/offers/constants/establishmentCategories';
+import {
   INITIAL_FILTER_STATE as INITIAL_STATE,
   hasActiveFilters as hasFilters,
   countActiveFilters as countFilters,
@@ -30,7 +34,8 @@ import {
   HOME_ANALYTICS_EVENTS,
 } from '../constants/homeConstants';
 
-import type { OfferSearchParams, EstablishmentType } from '@/features/offers/types/offer.types';
+import type { EstablishmentCategoryId } from '@/features/offers/constants/establishmentCategories';
+import type { OfferSearchParams } from '@/features/offers/types/offer.types';
 import type { FilterState } from '@/features/search/types/filter.types';
 
 // Import filter utilities
@@ -70,8 +75,11 @@ interface UseHomeFiltersResult {
   handleClearAllFilters: () => void;
   /** Remove offer type filter */
   handleRemoveOfferType: () => void;
-  /** Remove specific establishment type */
-  handleRemoveEstablishmentType: (type: EstablishmentType) => void;
+  /**
+   * Toggle an establishment category on or off — the home category rail.
+   * Adds or removes every `EstablishmentType` the category owns, in one write.
+   */
+  handleToggleEstablishmentCategory: (id: EstablishmentCategoryId) => void;
   /** Remove specific cuisine type */
   handleRemoveCuisineType: (cuisine: string) => void;
   /** Remove specific category */
@@ -314,20 +322,34 @@ export function useHomeFilters(): UseHomeFiltersResult {
   }, [filters.offerType]);
 
   /**
-   * Remove specific establishment type
+   * Toggle an establishment category on or off.
+   *
+   * The rail, the filter sheet and the active chips all route through the same
+   * pure `toggleCategoryTypes`, so there is exactly one definition of what a
+   * tap means and the three controls cannot drift apart on it.
+   *
+   * `toggleCategoryTypes` returns the **same array reference** when the write
+   * would be a no-op, so the `prev` short-circuit below keeps React from
+   * re-rendering — and, just as importantly, keeps the AsyncStorage persistence
+   * effect from firing a write per tap that changed nothing.
    */
-  const handleRemoveEstablishmentType = useCallback((type: EstablishmentType) => {
-    // Track analytics
-    analytics.trackFilterRemoved({
-      filterType: 'establishmentType',
-      value: type,
-      source: 'home_screen',
-    });
+  const handleToggleEstablishmentCategory = useCallback((id: EstablishmentCategoryId) => {
+    setFilters(prev => {
+      const nextTypes = toggleCategoryTypes(prev.establishmentTypes, id);
+      if (nextTypes === prev.establishmentTypes) return prev;
 
-    setFilters(prev => ({
-      ...prev,
-      establishmentTypes: prev.establishmentTypes.filter(t => t !== type),
-    }));
+      // Whether this tap turned the category on or off is only knowable from
+      // the state we just computed — reading `prev` alone would report the
+      // action the user took, not the one that landed.
+      const turnedOn = isCategoryActive(nextTypes, id);
+      analytics.track(HOME_ANALYTICS_EVENTS.CATEGORY_PRESSED, {
+        category: id,
+        selected: turnedOn,
+        source: 'home_category_rail',
+      });
+
+      return { ...prev, establishmentTypes: [...nextTypes] };
+    });
   }, []);
 
   /**
@@ -380,7 +402,7 @@ export function useHomeFilters(): UseHomeFiltersResult {
     handleApplyFilters,
     handleClearAllFilters,
     handleRemoveOfferType,
-    handleRemoveEstablishmentType,
+    handleToggleEstablishmentCategory,
     handleRemoveCuisineType,
     handleRemoveCategory,
   };

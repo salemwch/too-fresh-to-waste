@@ -120,7 +120,6 @@ const BACKLOG: Readonly<Record<string, number>> = {
   'features/loyalty/components/StreakCard.tsx': 1,
   'features/loyalty/screens/LoyaltyScreen.tsx': 1,
   'features/offers/components/ReviewSummarySection.tsx': 1,
-  'features/search/components/ActiveFilterChips.tsx': 1,
   'features/search/components/FilterBottomSheet.tsx': 1,
 };
 

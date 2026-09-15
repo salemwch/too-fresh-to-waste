@@ -36,12 +36,16 @@ import heartInHandsImg from '../../../assets/images/heart-in-hands.webp';
 import surpriseBoxImg from '../../../assets/images/surprise-box.webp';
 import {
   HomeSearchBar,
+  HomeCategoryRail,
   HomeOfferSection,
   SkeletonHomeSearchBar,
   MonthlyBagGoalBanner,
   CharityDonationBottomSheet,
 } from '../components';
 import { HOME_OFFER_SECTIONS } from '../constants/homeConstants';
+import { buildHomeSections } from '../constants/homeSections';
+
+import type { HomeSection as Section } from '../constants/homeSections';
 
 import type { HomeOfferSectionId } from '../constants/homeConstants';
 import {
@@ -134,28 +138,6 @@ interface HomeScreenProps {
   navigation: HomeScreenNavigationProp;
 }
 
-/**
- * Section types for FlatList
- * Each section type renders different content
- */
-type SectionType =
-  | 'locationPrompt'
-  | 'searchBar'
-  | 'impactBanner'
-  | 'monthlyBagGoal'
-  | 'urgentOffers'
-  | 'hottestDeals'
-  | 'pickupToday'
-  | 'pickupTomorrow';
-
-/**
- * Section data structure
- */
-interface Section {
-  id: string;
-  type: SectionType;
-}
-
 // ============================================================================
 // Main Component
 // ============================================================================
@@ -231,7 +213,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     handleApplyFilters,
     handleClearAllFilters,
     handleRemoveOfferType,
-    handleRemoveEstablishmentType,
+    handleToggleEstablishmentCategory,
     handleRemoveCuisineType,
     handleRemoveCategory,
   } = useHomeFilters();
@@ -515,28 +497,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const openFilters = useCallback(() => setIsFilterVisible(true), []);
 
   const sections = useMemo<Section[]>(
-    () => [
-      // Location prompt — only when no location is set AND the first-run modal
-      // is not already asking. Both were computed independently, so a new user
-      // got two prompts for the same permission: the modal in front and this
-      // banner behind it. Two entry points to one runtime permission is also
-      // how the duplicate `request()` race became reachable. The modal owns
-      // first run; the banner is the persistent affordance afterwards.
-      ...(shouldShowPrompt && !showLocationSelectionModal
-        ? [{ id: 'locationPrompt' as const, type: 'locationPrompt' as const }]
-        : []),
-      // Search bar (always shown)
-      { id: 'searchBar' as const, type: 'searchBar' as const },
-      // Impact banner (always shown)
-      { id: 'impactBanner' as const, type: 'impactBanner' as const },
-      // Community bag goal (real-time progress toward community target)
-      { id: 'monthlyBagGoal' as const, type: 'monthlyBagGoal' as const },
-      // Offer sections (always shown, component handles loading/error/empty states)
-      { id: 'urgentOffers' as const, type: 'urgentOffers' as const },
-      { id: 'hottestDeals' as const, type: 'hottestDeals' as const },
-      { id: 'pickupToday' as const, type: 'pickupToday' as const },
-      { id: 'pickupTomorrow' as const, type: 'pickupTomorrow' as const },
-    ],
+    () =>
+      buildHomeSections({
+        shouldShowPrompt,
+        isLocationModalVisible: showLocationSelectionModal,
+      }),
     [shouldShowPrompt, showLocationSelectionModal],
   );
 
@@ -575,10 +540,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               filters={filters}
               onFilterPress={openFilters}
               onRemoveOfferType={handleRemoveOfferType}
-              onRemoveEstablishmentType={handleRemoveEstablishmentType}
               onRemoveCuisineType={handleRemoveCuisineType}
               onRemoveCategory={handleRemoveCategory}
               onClearAllFilters={handleClearAllFilters}
+            />
+          );
+        }
+
+        case 'categoryRail': {
+          /*
+           * Deliberately NOT gated on `isInitialLoading`.
+           *
+           * The rail has no data dependency — eight frozen categories and
+           * bundled artwork — so a skeleton here would be a loading state for
+           * something that never loads. It also withheld the control during
+           * exactly the window where using it pays most: a category tapped
+           * before the first fetch narrows that fetch, instead of forcing a
+           * second one afterwards.
+           *
+           * `SkeletonHomeCategoryRail` is kept for a surface that composes this
+           * rail with genuinely remote data (per-category counts).
+           */
+          return (
+            <HomeCategoryRail
+              selectedTypes={filters.establishmentTypes}
+              onToggleCategory={handleToggleEstablishmentCategory}
             />
           );
         }
@@ -637,7 +623,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       setSearchQuery,
       filters,
       handleRemoveOfferType,
-      handleRemoveEstablishmentType,
+      handleToggleEstablishmentCategory,
       handleRemoveCuisineType,
       handleRemoveCategory,
       handleClearAllFilters,

@@ -50,6 +50,7 @@
     "a11yCloseModalHint": "يغلق هذه النافذة",
     "a11yOpensDetailsHint": "يفتح مزيداً من التفاصيل",
     "a11yAppliesActionHint": "يطبّق هذا الإجراء",
+    "a11yRemoveFilter": "إزالة عامل التصفية {{label}}",
     "a11yRemoveFilterHint": "يزيل هذا الفلتر",
     "a11yOpenLinkHint": "يفتح هذا الرابط"
   },
@@ -359,7 +360,6 @@
     "prizeDropSoon": "🎁 السحب اليوم!",
     "rewardCallout": "⚡ اوصلوا لـ {{target}} كيس ← الجميع يحصل على {{points}} نقطة مكافأة!",
     "rewardCalloutNoPrize": "⚡ لنوفّر الأكياس معاً مع المجتمع!",
-    "prizeDropLabel": "السحب الكبير",
     "daysRemaining": "يوم متبقي",
     "prizeDropSubtitle": "سحب الجائزة الكبرى في نهاية الموسم",
     "rewardEarnPoints": "حقّقوا الهدف — الجميع يحصل على {{points}} نقطة",
@@ -391,6 +391,22 @@
     "a11yOpenFilters": "يفتح خيارات التصفية",
     "a11yClearSearch": "مسح البحث",
     "a11yClearSearchHint": "يمسح نص البحث الحالي"
+  },
+  "establishmentCategories": {
+    "railLabel": "تصفح حسب الفئة",
+    "bakery": "مخبزة",
+    "restaurant": "مطعم",
+    "cafe": "مقهى",
+    "fastFood": "وجبات سريعة",
+    "supermarket": "سوق ممتاز",
+    "wholesaler": "تاجر جملة",
+    "hotel": "فندق",
+    "other": "أخرى",
+    "a11ySelect": "عرض عروض {{category}} فقط",
+    "a11yClear": "إيقاف التصفية حسب {{category}}",
+    "a11yHint": "يصفّي العروض أدناه دون مغادرة هذه الشاشة",
+    "a11yRailHint": "اسحب جانبًا لعرض المزيد من الفئات",
+    "a11yHintSheet": "يضيف هذه الفئة إلى عوامل التصفية"
   },
   "offers": {
     "reserve": "حجز",

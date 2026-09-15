@@ -192,6 +192,14 @@ export class OffersController {
     @Query('latitude', new ParseFloatPipe({ optional: true })) latitude?: number,
     @Query('longitude', new ParseFloatPipe({ optional: true })) longitude?: number,
     @Query('maxDistance', new ParseFloatPipe({ optional: true })) maxDistance?: number,
+    /*
+     * Repeated (`?establishmentTypes=a&establishmentTypes=b`) or comma-joined.
+     * Left untyped here on purpose: normalisation, validation and de-duping all
+     * happen in one place in the service, via
+     * `resolveEstablishmentTypeFilter`. Parsing it twice is how the query and
+     * the cache key drift apart.
+     */
+    @Query('establishmentTypes') establishmentTypes?: string | string[],
   ) {
     const userLocation =
       latitude !== undefined && longitude !== undefined ? { latitude, longitude } : undefined;
@@ -202,6 +210,7 @@ export class OffersController {
       user.userId,
       userLocation,
       maxDistance,
+      establishmentTypes,
     );
 
     return {
@@ -252,6 +261,14 @@ export class OffersController {
     @Query('latitude', new ParseFloatPipe({ optional: true })) latitude?: number,
     @Query('longitude', new ParseFloatPipe({ optional: true })) longitude?: number,
     @Query('maxDistance', new ParseFloatPipe({ optional: true })) maxDistance?: number,
+    /*
+     * Repeated (`?establishmentTypes=a&establishmentTypes=b`) or comma-joined.
+     * Left untyped here on purpose: normalisation, validation and de-duping all
+     * happen in one place in the service, via
+     * `resolveEstablishmentTypeFilter`. Parsing it twice is how the query and
+     * the cache key drift apart.
+     */
+    @Query('establishmentTypes') establishmentTypes?: string | string[],
   ) {
     const userLocation =
       latitude !== undefined && longitude !== undefined ? { latitude, longitude } : undefined;
@@ -262,6 +279,7 @@ export class OffersController {
       user.userId,
       userLocation,
       maxDistance,
+      establishmentTypes,
     );
 
     return {
@@ -317,6 +335,14 @@ export class OffersController {
     @GetUser() user: SafeUserResponse,
     @Query('latitude', new ParseFloatPipe({ optional: true })) latitude?: number,
     @Query('longitude', new ParseFloatPipe({ optional: true })) longitude?: number,
+    /*
+     * Repeated (`?establishmentTypes=a&establishmentTypes=b`) or comma-joined.
+     * Left untyped here on purpose: normalisation, validation and de-duping all
+     * happen in one place in the service, via
+     * `resolveEstablishmentTypeFilter`. Parsing it twice is how the query and
+     * the cache key drift apart.
+     */
+    @Query('establishmentTypes') establishmentTypes?: string | string[],
   ) {
     const userLocation =
       latitude !== undefined && longitude !== undefined ? { latitude, longitude } : undefined;
@@ -327,6 +353,7 @@ export class OffersController {
       limit,
       user.userId,
       userLocation,
+      establishmentTypes,
     );
 
     return {

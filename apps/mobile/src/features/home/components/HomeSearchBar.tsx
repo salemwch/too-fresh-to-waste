@@ -23,9 +23,8 @@ import { View, StyleSheet, Pressable, TextInput } from 'react-native';
 import { Text, Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { ActiveFilterChips } from '@/features/search/components';
-import { hasActiveFilters, countActiveFilters } from '@/features/search/types/filter.types';
+import { hasSheetFilters, countSheetFilters } from '@/features/search/types/filter.types';
 
-import type { EstablishmentType } from '@/features/offers/types/offer.types';
 import type { FilterState } from '@/features/search/types/filter.types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
@@ -46,8 +45,6 @@ interface HomeSearchBarProps {
   onFilterPress: () => void;
   /** Callback when offer type filter is removed */
   onRemoveOfferType: () => void;
-  /** Callback when establishment type filter is removed */
-  onRemoveEstablishmentType: (type: EstablishmentType) => void;
   /** Callback when cuisine type filter is removed */
   onRemoveCuisineType: (cuisine: string) => void;
   /** Callback when category filter is removed */
@@ -95,15 +92,20 @@ const HomeSearchBarComponent = ({
   filters,
   onFilterPress,
   onRemoveOfferType,
-  onRemoveEstablishmentType,
   onRemoveCuisineType,
   onRemoveCategory,
   onClearAllFilters,
 }: HomeSearchBarProps) => {
   const { t } = useTranslation();
   // Calculate filter status
-  const hasFilters = hasActiveFilters(filters);
-  const filterCount = countActiveFilters(filters);
+  /*
+   * Sheet-scoped, not total. Establishment type is set from the category rail
+   * and shown by the selected tile, so counting it here would badge a sheet
+   * that has no control for it - the user opens the sheet to clear the "1" and
+   * finds nothing to clear.
+   */
+  const hasFilters = hasSheetFilters(filters);
+  const filterCount = countSheetFilters(filters);
   const hasSearchOrFilters = searchQuery.trim().length > 0 || hasFilters;
 
   return (
@@ -192,7 +194,6 @@ const HomeSearchBarComponent = ({
             <ActiveFilterChips
               filters={filters}
               onRemoveOfferType={onRemoveOfferType}
-              onRemoveEstablishmentType={onRemoveEstablishmentType}
               onRemoveCuisineType={onRemoveCuisineType}
               onRemoveCategory={onRemoveCategory}
               onClearAll={onClearAllFilters}

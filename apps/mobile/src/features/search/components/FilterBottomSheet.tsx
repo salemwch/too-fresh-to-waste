@@ -3,7 +3,6 @@
  *
  * Beautiful, modern filter UI with:
  * - Animated bottom sheet
- * - Icon chips for establishment types
  * - Flag chips for cuisines
  * - Category pills
  * - Price range slider
@@ -24,14 +23,10 @@ import {
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
-import {
-  ESTABLISHMENT_TYPE_OPTIONS,
-  CATEGORY_OPTIONS,
-  OFFER_TYPE_OPTIONS,
-} from '../constants/filterOptions';
+import { CATEGORY_OPTIONS, OFFER_TYPE_OPTIONS } from '../constants/filterOptions';
 
 import type { FilterState } from '../types/filter.types';
-import type { EstablishmentType, OfferType } from '@/features/offers/types/offer.types';
+import type { OfferType } from '@/features/offers/types/offer.types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
 const { base: sp } = spacingTokens;
@@ -91,15 +86,6 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     }));
   }, []);
 
-  const toggleEstablishmentType = useCallback((type: EstablishmentType) => {
-    setLocalFilters(prev => ({
-      ...prev,
-      establishmentTypes: prev.establishmentTypes.includes(type)
-        ? prev.establishmentTypes.filter(existing => existing !== type)
-        : [...prev.establishmentTypes, type],
-    }));
-  }, []);
-
   const toggleCategory = useCallback((category: string) => {
     setLocalFilters(prev => ({
       ...prev,
@@ -109,6 +95,12 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
     }));
   }, []);
 
+  /*
+   * Still clears establishmentTypes, even though this sheet no longer shows
+   * them. "Clear" has to mean all filters: the rail's selection is visible on
+   * the screen behind the sheet, so leaving it set after a Clear would read as
+   * the button not working.
+   */
   const handleClear = useCallback(() => {
     setLocalFilters({
       offerType: null,
@@ -188,43 +180,6 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
                       variant='body'
                       style={[
                         styles.optionLabel,
-                        isSelected ? styles.selectedText : onSurfaceTextStyle,
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Establishment Type Section */}
-          <View style={styles.section}>
-            <Text variant='title' style={[styles.sectionTitle, { color: colors.onSurface }]}>
-              🏪 Establishment Type
-            </Text>
-            <View style={styles.chipGrid}>
-              {ESTABLISHMENT_TYPE_OPTIONS.map(option => {
-                const isSelected = localFilters.establishmentTypes.includes(option.value);
-                return (
-                  <Pressable
-                    accessibilityRole='button'
-                    key={option.value}
-                    style={[
-                      styles.iconChip,
-                      {
-                        backgroundColor: isSelected ? colors.accent : colors.surface,
-                        borderColor: isSelected ? colors.accent : colors.outline,
-                      },
-                    ]}
-                    onPress={() => toggleEstablishmentType(option.value)}
-                  >
-                    <Text style={styles.establishmentIcon}>{option.icon}</Text>
-                    <Text
-                      variant='caption'
-                      style={[
-                        styles.establishmentLabel,
                         isSelected ? styles.selectedText : onSurfaceTextStyle,
                       ]}
                     >
@@ -396,14 +351,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     padding: 8,
-  },
-  establishmentIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  establishmentLabel: {
-    fontSize: 11,
-    textAlign: 'center',
   },
   chipWrap: {
     flexDirection: 'row',

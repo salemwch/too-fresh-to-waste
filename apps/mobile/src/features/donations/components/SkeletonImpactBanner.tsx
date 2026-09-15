@@ -52,6 +52,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
+    // Mirrors ImpactBanner.card minHeight — a skeleton that is a different
+    // height than the thing it stands in for makes the list jump on load.
+    minHeight: 96,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -64,7 +67,7 @@ const styles = StyleSheet.create({
   },
   iconSkeleton: {
     width: 32,
-    height: 32,
+    height: 28,
     borderRadius: 16,
     marginEnd: sp[3],
   },

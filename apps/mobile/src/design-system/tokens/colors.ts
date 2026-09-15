@@ -467,3 +467,54 @@ export function withAlpha(color: string, alpha: number): string {
 
   return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
 }
+
+// ============================================================================
+// Establishment category tiles (home category rail)
+// ============================================================================
+
+/**
+ * Tile background and accent per establishment category.
+ *
+ * These live here, not next to the category definitions, because
+ * `rawColorBudget.test.ts` exempts the palette files and nothing else - raw
+ * hex outside them is counted as design-system debt, and sixteen new literals
+ * in a feature constants file broke the budget.
+ *
+ * **They are sampled from the icon artwork, not derived from the brand ramp.**
+ * That is deliberate and is a §20 deviation recorded in DESIGN.md §19-E34: the
+ * icons are full-colour illustrations, so a tile tinted from the teal/coral
+ * brand palette would sit under an icon it shares no hue with. `tint` is the
+ * resting background; `accent` is the selected border and label.
+ *
+ * Per §19-E20 these are **category identity marks only** - never a surface, a
+ * CTA, a border elsewhere, or body text.
+ */
+export const establishmentCategoryColors = {
+  bakery: { tint: '#FDF1E0', accent: '#C8873E' },
+  restaurant: { tint: '#EEF3F6', accent: '#7C8B98' },
+  cafe: { tint: '#F4ECE4', accent: '#6F4E37' },
+  fastFood: { tint: '#FFF4E0', accent: '#E09A3C' },
+  supermarket: { tint: '#E9F4FB', accent: '#3E7FA8' },
+  hotel: { tint: '#E7F4F4', accent: '#2E8B8B' },
+  wholesaler: { tint: '#F6EFE6', accent: '#B07A3C' },
+  other: { tint: '#FBF1E3', accent: '#C08A47' },
+} as const;
+
+/**
+ * Shared chrome for the home category rail — the blob surface and the label
+ * pill's hairline.
+ *
+ * Here rather than in the component for the same reason as
+ * `establishmentCategoryColors`: `rawColorBudget.test.ts` exempts the palette
+ * files and counts raw hex everywhere else as design-system debt.
+ *
+ * Both are deliberately neutral. The blob is white so the full-colour artwork
+ * on top of it has an unbiased ground (DESIGN.md §19-E34), and the pill border
+ * is a hairline that must not compete with the selected state's accent.
+ */
+export const establishmentCategoryChrome = {
+  /** Blob fill and label-pill surface. */
+  surface: '#FFFFFF',
+  /** Label-pill hairline when the category is not selected. */
+  pillBorder: '#ECECEC',
+} as const;

@@ -40,6 +40,17 @@ module.exports = {
    * a mock of it.
    */
   moduleNameMapper: {
+    /*
+     * MUST stay above the rnBase spread. Jest matches moduleNameMapper keys in
+     * insertion order, and the shared config maps `.svg` through the same
+     * binary-asset pattern as `.png`, to a module that exports `''`.
+     *
+     * That is correct for an image source and wrong for an SVG: with
+     * react-native-svg-transformer an `.svg` import is a React *component*, so
+     * `''` makes every render of one throw "Element type is invalid". Category
+     * icons are SVG components, so they need a component stub.
+     */
+    '\\.svg$': '<rootDir>/jest.svgStub.js',
     ...rnBase.moduleNameMapper,
     '^yaml$': '<rootDir>/../../node_modules/yaml/dist/index.js',
   },

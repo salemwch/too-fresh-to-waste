@@ -29,7 +29,6 @@ const COLORS = {
   white: '#FFFFFF',
   textOnBrand: '#FFFFFF',
   textOnBrandMuted: 'rgba(255,255,255,0.75)',
-  liveBadgeBg: 'rgba(255,255,255,0.12)',
   progressTrack: 'rgba(255,255,255,0.15)',
   chevronBg: '#FFFFFF',
   shadow: '#000',
@@ -122,11 +121,6 @@ const MonthlyBagGoalBannerComponent: React.FC<MonthlyBagGoalBannerProps> = ({ on
         />
 
         <View style={styles.textContent}>
-          <View style={styles.liveBadge}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>{t('home.prizeDropLabel')}</Text>
-          </View>
-
           <Text style={styles.title} numberOfLines={1}>
             {seasonName} {'\u{1F389}'}
           </Text>
@@ -168,7 +162,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.brand,
     borderRadius: 16,
     padding: sp.md,
-    minHeight: 130,
+    // Matches ImpactBanner.card exactly — the two cards stack, so any
+    // difference in height reads as a defect. Change both together.
+    minHeight: 96,
     shadowColor: COLORS.brandDark,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
@@ -177,37 +173,13 @@ const styles = StyleSheet.create({
   },
   illustration: {
     width: 90,
-    height: 90,
+    height: 62,
     marginEnd: sp[3],
     marginStart: -4,
   },
   textContent: {
     flex: 1,
     minWidth: 0,
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 6,
-    backgroundColor: COLORS.liveBadgeBg,
-    borderRadius: 12,
-    paddingVertical: 3,
-    paddingHorizontal: 10,
-    marginBottom: 6,
-  },
-  liveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: COLORS.green,
-  },
-  liveText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    color: COLORS.white,
   },
   title: {
     fontSize: 17,

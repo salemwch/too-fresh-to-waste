@@ -1,6 +1,18 @@
 /**
- * Establishment enums — mirrors backend exactly
- * @see apps/food-waste-backend/src/common/enums/establishment.enum.ts
+ * Establishment enums.
+ *
+ * **This file is the single source of truth**, not a mirror. The backend, web
+ * and mobile all import `EstablishmentType` from `@foodwaste/shared` — the
+ * backend has no enum of its own (an older header here pointed at
+ * `apps/food-waste-backend/src/common/enums/establishment.enum.ts`, which does
+ * not exist). Add a member here and rebuild the package; there is nowhere else
+ * to keep in step.
+ *
+ * **Never remove a member.** These values are persisted on establishment
+ * documents. Dropping one orphans every merchant already registered under it.
+ * To retire a type, stop offering it in the pickers (web merchant signup, the
+ * mobile category rail) and leave the enum member in place so stored documents
+ * still deserialise.
  */
 export enum EstablishmentType {
   RESTAURANT = 'restaurant',
@@ -19,6 +31,8 @@ export enum EstablishmentType {
   PET_STORE = 'pet_store',
   FLOWER_PLANT = 'flower_plant',
   HOTEL = 'hotel',
+  /** Grossiste — bulk supplier selling to businesses and in large quantities. */
+  WHOLESALER = 'wholesaler',
   OTHER = 'other',
 }
 

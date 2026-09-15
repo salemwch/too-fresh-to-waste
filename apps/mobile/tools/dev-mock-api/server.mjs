@@ -228,7 +228,49 @@ const offer = (i, over = {}) => ({
   ...over,
 });
 
-const OFFERS = Array.from({ length: 6 }, (_, i) => offer(i));
+/**
+ * One establishment per fixture offer, each a different `EstablishmentType`.
+ *
+ * All six used to share `ESTABLISHMENT` (a bakery), which made the home
+ * category rail untestable here: every chip either matched everything or
+ * nothing. These span five of the eight rail categories - bakery, restaurant,
+ * cafe, supermarket and grocery - and `pastry_shop` is deliberately included
+ * because it maps onto the *bakery* chip without being `bakery`, which is the
+ * grouping the rail exists to provide.
+ */
+const EST_TYPES = ["bakery", "pastry_shop", "restaurant", "cafe", "supermarket", "grocery_store"];
+const EST_NAMES = [
+  "Boulangerie du Lac",
+  "Patisserie Nour",
+  "Restaurant El Walima",
+  "Cafe Sidi Bou",
+  "Monoprix Lac 2",
+  "Epicerie Ben Ali",
+];
+
+const establishmentFor = i => ({
+  ...ESTABLISHMENT,
+  _id: `dev-est-${String(i + 1).padStart(4, "0")}`,
+  name: EST_NAMES[i % EST_NAMES.length],
+  type: EST_TYPES[i % EST_TYPES.length],
+  establishmentType: EST_TYPES[i % EST_TYPES.length],
+  category: EST_TYPES[i % EST_TYPES.length],
+});
+
+const OFFERS = Array.from({ length: 6 }, (_, i) =>
+  offer(i, { establishmentId: establishmentFor(i) }),
+);
+
+/**
+ * Apply `?establishmentTypes=a&establishmentTypes=b` the way the real API
+ * would. Without this the rail would light up but the list below it would not
+ * change, which looks like the feature working and is not.
+ */
+const filterByEstablishmentType = url => {
+  const wanted = url.searchParams.getAll("establishmentTypes").flatMap(v => v.split(","));
+  if (wanted.length === 0) return OFFERS;
+  return OFFERS.filter(o => wanted.includes(o.establishmentId.type));
+};
 
 /**
  * Shaped from `packages/shared/src/types/order.types.ts`.
@@ -409,15 +451,15 @@ const routes = [
     ok({ minVersion: '1.0.0', latestVersion: '1.0.0', updateUrl: 'https://example.invalid' })],
   ['POST', /^\/notifications\/device-token$/, () => ok({ registered: true })],
 
-  ['GET', /^\/offers\/?$/, () => page(OFFERS)],
-  ['GET', /^\/offers\/search/, () => page(OFFERS)],
-  ['GET', /^\/offers\/nearby/, () => page(OFFERS)],
+  ['GET', /^\/offers\/?$/, (_m, url) => page(filterByEstablishmentType(url))],
+  ['GET', /^\/offers\/search/, (_m, url) => page(filterByEstablishmentType(url))],
+  ['GET', /^\/offers\/nearby/, (_m, url) => page(filterByEstablishmentType(url))],
   /* The Home feed's named collections. These must precede the `/offers/:id`
    * rule below or they match it and return a single object where the screen
    * expects a list - which is silent, not a crash, and shows as an empty
    * carousel. Found by reading the mock's own request log. */
-  ['GET', /^\/offers\/(urgent|featured|recommended|pickup-today|pickup-tomorrow)$/, () =>
-    page(OFFERS)],
+  ['GET', /^\/offers\/(urgent|featured|recommended|pickup-today|pickup-tomorrow)$/, (_m, url) =>
+    page(filterByEstablishmentType(url))],
   ['GET', /^\/offers\/[^/]+$/, (m, url) => {
     const id = url.pathname.split('/').pop();
     return ok(OFFERS.find(o => o.id === id) ?? OFFERS[0]);
@@ -773,7 +815,9 @@ const server = createServer((req, res) => {
 
     if (hit) {
       payload = hit[2](path.match(hit[1]), new URL(url.href.replace('/api/v1', '')));
-      console.log(`  ${method} ${path} -> ok`);
+      // Query string included so a filter that never leaves the client is
+      // visible here rather than inferred from the response shape.
+      console.log(`  ${method} ${path}${url.search} -> ok`);
     } else {
       const key = `${method} ${path}`;
       if (!unmatched.has(key)) {

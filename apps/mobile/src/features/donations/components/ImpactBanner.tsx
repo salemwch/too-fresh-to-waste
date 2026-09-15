@@ -107,7 +107,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 16,
     padding: sp.md,
-    minHeight: 120,
+    // Height reduced 120 -> 96 on 2026-09-14; width is untouched.
+    minHeight: 96,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   },
   illustration: {
     width: 90,
-    height: 80,
+    height: 62,
     borderRadius: 8,
     marginEnd: sp[3],
   },
