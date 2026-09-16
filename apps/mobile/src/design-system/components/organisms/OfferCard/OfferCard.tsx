@@ -468,15 +468,6 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           <Badge variant='warning' size='md' label={t('offers.expired')} />
         </View>
       )}
-
-      {/* Pick-Up Only banner — shop is outside 5 km delivery zone */}
-      {offer.distance !== undefined && offer.distance > 5000 && (
-        <View style={styles.pickupOnlyBanner}>
-          <Text variant='label.small' style={styles.pickupOnlyText}>
-            🚶 Pick-Up Only
-          </Text>
-        </View>
-      )}
     </View>
   );
 
@@ -519,49 +510,58 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
           style={styles.establishmentNameContainer}
         >
           <Text
-            variant='body.medium'
-            weight='semibold'
+            variant='body.small'
+            color={theme.colors.onSurfaceVariant}
             numberOfLines={1}
             style={styles.establishmentName}
           >
             {offer.establishment.name}
           </Text>
         </Pressable>
-
-        {/* Favorite button moved to content section */}
-        {showFavorite && (
-          <Pressable
-            onPress={handleFavoritePress}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole='button'
-            accessibilityLabel={
-              isFavorite ? t('offers.a11yRemoveFavorite') : t('offers.a11yAddFavorite')
-            }
-            accessibilityHint={
-              isFavorite ? t('offers.a11yRemoveFavoriteHint') : t('offers.a11yAddFavoriteHint')
-            }
-            style={styles.favoriteButtonContent}
-          >
-            <HeartIcon filled={isFavorite} size={20} />
-          </Pressable>
-        )}
       </View>
     );
   };
 
+  /**
+   * The offer title leads the card, and the establishment name sits under it.
+   *
+   * It used to be the other way round. The name is the same on every card from
+   * one merchant, so leading with it made a column of near-identical rows and
+   * pushed the one line that actually differs - what is in the bag - into
+   * secondary weight. The title carries the choice, so it carries the emphasis.
+   *
+   * The favourite button moves up here with it: it belongs on the card's
+   * primary row, and leaving it beside the name would have dropped it to the
+   * second line.
+   */
   const renderTitle = () => (
-    <View style={styles.titleContainer}>
-      <View style={styles.typeBadge}>
-        <Text style={styles.typeBadgeText}>{t(`offers.types.${offer.type}`)}</Text>
-      </View>
+    <View style={styles.titleRow}>
       <Text
-        variant='body.small'
+        variant='body.medium'
+        weight='bold'
         color={theme.colors.onSurface}
-        numberOfLines={1}
+        numberOfLines={2}
         style={styles.title}
       >
         {offer.title}
       </Text>
+      {/* Favorite button moved to content section */}
+      {showFavorite && (
+        <Pressable
+          onPress={handleFavoritePress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole='button'
+          accessibilityLabel={
+            isFavorite ? t('offers.a11yRemoveFavorite') : t('offers.a11yAddFavorite')
+          }
+          accessibilityHint={
+            isFavorite ? t('offers.a11yRemoveFavoriteHint') : t('offers.a11yAddFavoriteHint')
+          }
+          style={styles.favoriteButtonContent}
+        >
+          <HeartIcon filled={isFavorite} size={20} />
+        </Pressable>
+      )}
     </View>
   );
 
@@ -672,8 +672,8 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       {renderMascotStrip()}
 
       <View style={[styles.content, contentStyle]}>
-        {renderEstablishment()}
         {renderTitle()}
+        {renderEstablishment()}
         {renderPickupTime()}
         {renderBottomRow()}
       </View>
@@ -822,20 +822,6 @@ const createStyles = (
       alignItems: 'center',
       zIndex: 10,
     },
-    pickupOnlyBanner: {
-      position: 'absolute',
-      bottom: 0,
-      insetInlineStart: 0,
-      insetInlineEnd: 0,
-      backgroundColor: 'rgba(0,0,0,0.65)',
-      paddingVertical: 4,
-      alignItems: 'center',
-      zIndex: 5,
-    },
-    pickupOnlyText: {
-      color: '#FFFFFF',
-      fontWeight: '600',
-    },
     imageContainerWithStrip: {
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 0,
@@ -872,47 +858,33 @@ const createStyles = (
       flex: 1,
     },
     establishmentName: {
-      fontSize: 16,
-      lineHeight: 20,
+      // A supporting line now, not the headline: smaller and unweighted so it
+      // reads as attribution under the title rather than competing with it.
+      fontSize: 13,
+      lineHeight: 17,
     },
     favoriteButtonContent: {
       padding: 4,
       marginTop: -4,
       marginEnd: -4,
     },
-    titleContainer: {
-      // Badge and title share one line. flexDirection 'row' flips automatically
-      // under RTL, so Arabic needs no special case.
+    titleRow: {
+      // Title and favourite share the lead line. flexDirection row flips
+      // automatically under RTL, so Arabic needs no special case.
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
       gap: 4,
-      marginBottom: 4,
-    },
-    typeBadge: {
-      // Must not shrink: without this flexbox compresses the badge before the
-      // title, wrapping "Surprise Bag" onto two lines inside its own pill.
-      flexShrink: 0,
-      backgroundColor: colorTokens.base.primary[50],
-      borderRadius: 4,
-      paddingHorizontal: 5,
-      paddingVertical: 1,
-    },
-    typeBadgeText: {
-      // Sized down now that the badge sits inline with the title: it is a
-      // secondary qualifier, so it should not compete with the offer name for
-      // attention. Tighter letterSpacing matters more than font size here —
-      // uppercase + 0.5 spacing is what made "SPECIFIC ITEMS" read as a wide
-      // block. Kept at 8pt rather than lower because it is all-caps at 700
-      // weight, which stays legible where lowercase body text would not.
-      fontSize: 8,
-      fontWeight: '700',
-      color: colorTokens.base.primary[500],
-      textTransform: 'uppercase',
-      letterSpacing: 0.2,
+      marginBottom: 2,
     },
     // flexShrink lets a long title ellipsize (numberOfLines={1}) instead of
     // pushing the badge past the card edge.
     title: {
+      // Headline of the card. Takes the size the establishment name used to
+      // have, because it is now the line that carries the choice.
+      flex: 1,
+      fontSize: 16,
+      lineHeight: 20,
       flexShrink: 1,
     },
     pickupTimeRow: {

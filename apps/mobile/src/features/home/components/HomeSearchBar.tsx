@@ -55,12 +55,13 @@ interface HomeSearchBarProps {
 
 const COLORS = {
   brand: colorTokens.base.primary[500],
+  /** Pure white, not `surface` (#FAFAFA): the field sits on the cream ground
+   *  and reads cleaner at full white, matching the tab bar silhouette. */
+  field: colorTokens.base.neutral[0],
+  onBrand: colorTokens.base.neutral[0],
   danger: colorTokens.base.error[500],
-  surface: colorTokens.base.neutral[50],
   surfaceAccent: '#D1FAE5',
-  border: colorTokens.base.neutral[200],
   textPrimary: colorTokens.base.neutral[900],
-  textSecondary: colorTokens.base.neutral[700],
   textInverse: '#FFFFFF',
   textPlaceholder: colorTokens.light.onSurfaceVariant,
   shadow: '#000',
@@ -137,9 +138,6 @@ const HomeSearchBarComponent = ({
             testID='home-search-input'
           />
 
-          {/* Vertical Divider */}
-          <View style={styles.verticalDivider} />
-
           {/* Integrated Filter Button */}
           <Pressable
             style={styles.filterButton}
@@ -150,12 +148,7 @@ const HomeSearchBarComponent = ({
             testID='home-filter-button'
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Icon
-              name='options-outline'
-              family='Ionicons'
-              size={22}
-              color={hasFilters ? COLORS.brand : COLORS.textSecondary}
-            />
+            <Icon name='options-outline' family='Ionicons' size={18} color={COLORS.onBrand} />
             {hasFilters && (
               <View style={styles.filterBadge}>
                 <Text style={styles.filterBadgeText}>{filterCount}</Text>
@@ -220,21 +213,30 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
 
-  // Modern integrated search bar
+  // Pill field, no border - the shadow carries the edge against the cream
+  // ground, the same way the tab bar silhouette does.
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.field,
+    /*
+     * Fully rounded. `minHeight` below can grow the field at large font
+     * scales, and a fixed radius would stop matching the ends once it does;
+     * a radius at least half the tallest realistic height stays a pill.
+     */
+    borderRadius: 999,
+    paddingStart: 16,
+    paddingEnd: 8,
+    paddingVertical: 8,
     shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    /*
+     * No `elevation`. Rule 11 in `.claude/rules/mobile.md`: elevation on a
+     * rounded view renders a rectangular shadow outline, which at radius 999
+     * would be a square shadow behind a pill.
+     */
     /*
      * `minHeight`, not `height`. The input inside is 15px and scales with the
      * OS font setting; at 2.0x that is 30px of glyph in a fixed 48px box with
@@ -260,25 +262,23 @@ const styles = StyleSheet.create({
     margin: 0,
   },
 
-  // Vertical divider before filter button
-  verticalDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: COLORS.border,
-    marginHorizontal: sp[3],
-  },
-
-  // Filter button integrated on the right
+  // Filter button: a filled brand circle on the trailing edge. Replaces the
+  // bare icon + hairline divider, which read as two controls rather than one.
   filterButton: {
-    padding: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.brand,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
 
   // Filter count badge
   filterBadge: {
     position: 'absolute',
-    top: 2,
-    insetInlineEnd: 2,
+    top: -3,
+    insetInlineEnd: -3,
     backgroundColor: COLORS.danger,
     borderRadius: 8,
     minWidth: 16,
