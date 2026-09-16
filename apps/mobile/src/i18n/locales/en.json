@@ -66,7 +66,8 @@
     "search": "Search",
     "favorites": "Favorites",
     "orders": "Orders",
-    "profile": "Profile"
+    "profile": "Profile",
+    "a11ySwitchHint": "Switches to the {{tab}} tab"
   },
   "welcome": {
     "saveFood": "Save food",
@@ -572,15 +573,11 @@
     "totalAmount": "Total Amount",
     "confirmOrder": "Confirm Order",
     "cancelOrder": "Cancel Order",
-    "pickupOnlyWarning": "Pick-Up Only — This shop is outside the 5 km delivery zone. You can still order for pick-up!",
-    "deliveryUnavailable": "Delivery unavailable — Pick-Up Only",
     "mapLabel": "Pan the map to set your delivery location",
     "gettingLocation": "Getting your location...",
     "distanceFromMerchant": "{{distance}} km from merchant",
-    "distanceTooFar": "{{distance}} km from merchant — max {{max}} km",
     "offerNotLoaded": "Offer details not loaded. Please try again.",
     "waitForLocation": "Please wait for your location to be detected, or switch to Pickup.",
-    "tooFarError": "Your delivery location is {{distance}} km away. Maximum allowed is {{max}} km from the merchant.",
     "offerExpired": "This offer has expired or doesn't have enough time remaining for pickup. Please choose another offer.",
     "orderFailed": "Could not create order. Please try again.",
     "soon": "Soon",

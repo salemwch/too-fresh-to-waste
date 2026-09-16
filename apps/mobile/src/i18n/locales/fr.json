@@ -66,7 +66,8 @@
     "search": "Recherche",
     "favorites": "Favoris",
     "orders": "Commandes",
-    "profile": "Profil"
+    "profile": "Profil",
+    "a11ySwitchHint": "Bascule vers l'onglet {{tab}}"
   },
   "welcome": {
     "saveFood": "Sauvez la nourriture",
@@ -572,15 +573,11 @@
     "totalAmount": "Montant total",
     "confirmOrder": "Confirmer la commande",
     "cancelOrder": "Annuler la commande",
-    "pickupOnlyWarning": "Retrait uniquement — Ce magasin est en dehors de la zone de livraison de 5 km. Vous pouvez toujours commander pour le retrait !",
-    "deliveryUnavailable": "Livraison non disponible — Retrait uniquement",
     "mapLabel": "Déplacez la carte pour définir votre lieu de livraison",
     "gettingLocation": "Obtention de votre position...",
     "distanceFromMerchant": "{{distance}} km du commerçant",
-    "distanceTooFar": "{{distance}} km du commerçant — max {{max}} km",
     "offerNotLoaded": "Détails de l'offre non chargés. Veuillez réessayer.",
     "waitForLocation": "Veuillez attendre la détection de votre position, ou passez au retrait.",
-    "tooFarError": "Votre lieu de livraison est à {{distance}} km. La distance maximale autorisée est de {{max}} km du commerçant.",
     "offerExpired": "Cette offre a expiré ou n'a pas assez de temps restant pour le retrait. Veuillez choisir une autre offre.",
     "orderFailed": "Impossible de créer la commande. Veuillez réessayer.",
     "soon": "Bientôt",

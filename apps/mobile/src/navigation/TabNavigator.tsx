@@ -8,6 +8,13 @@
  * This ensures consistent native header height and animation
  * across all screens.
  *
+ * The bar itself is `FloatingTabBar`, a custom `tabBar` component. Icons,
+ * labels, colours and height are all decided there rather than through
+ * `screenOptions` - react-navigation's own bar clips its children, and this
+ * design needs the circles to overflow the bar's bounds. The only option this
+ * navigator still feeds the bar is `title`, which it uses as each tab's
+ * accessibility label.
+ *
  * NOTE: Direct imports are used instead of React.lazy() due to Metro bundler
  * incompatibility (facebook/metro#1019). Metro's inlineRequires handles
  * lazy loading at the module level automatically.
@@ -15,23 +22,18 @@
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StackActions } from '@react-navigation/native';
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, PixelRatio, View, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { Icon } from '@/design-system/components/atoms';
-import { useTheme } from '@/design-system/providers';
-import { VotingLiveDot } from '@/features/voting/components/VotingLiveDot';
 
 import { FavoritesStack } from './FavoritesStack';
 import { HomeStack } from './HomeStack';
 import { OrdersStack } from './OrdersStack';
 import { ProfileStack } from './ProfileStack';
 import { SearchStack } from './SearchStack';
-import { getTabBarHeight } from './utils/tabBarHeight';
+import { FloatingTabBar } from './components/FloatingTabBar';
 
 import type { TabParamList } from './types';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -41,95 +43,26 @@ const Tab = createBottomTabNavigator<TabParamList>();
  *
  * PRODUCTION OPTIMIZATIONS:
  * - Lazy loading of tab screens (only render when first accessed)
- * - Memoized icon rendering to prevent re-renders
- * - Optimized tab bar style to reduce layout calculations
+ * - Custom tab bar memoised, so it re-renders only on navigation state change
  */
 const TabNavigatorComponent: React.FC = () => {
-  const theme = useTheme();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const tabBarBackgroundStyle = {
-    flex: 1,
-    backgroundColor: theme.colors.surface,
-  };
 
-  // Grows with the OS font scale so tab labels are never clipped. See
-  // navigation/utils/tabBarHeight.ts for the derivation and why it must be
-  // `height` rather than `minHeight`.
-  const tabBarHeight = getTabBarHeight({
-    fontScale: PixelRatio.getFontScale(),
-    bottomInset: insets.bottom,
-    labelFontSize: theme.typography.fontSize.xs,
-    platform: Platform.OS === 'ios' ? 'ios' : 'android',
-  });
-
-  /**
-   * Get icon name based on tab and focus state
+  /*
+   * Stable identity. An inline arrow here would hand react-navigation a new
+   * component type on every render, which remounts the whole bar - losing the
+   * keyboard listener and re-running its effects on each navigation.
    */
-  const getTabIcon = (routeName: keyof TabParamList, focused: boolean): string => {
-    const iconMap: Record<keyof TabParamList, { focused: string; unfocused: string }> = {
-      Home: { focused: 'home', unfocused: 'home-outline' },
-      Search: { focused: 'search', unfocused: 'search-outline' },
-      Favorites: { focused: 'heart', unfocused: 'heart-outline' },
-      Orders: { focused: 'receipt', unfocused: 'receipt-outline' },
-      Profile: { focused: 'person', unfocused: 'person-outline' },
-    };
-
-    return focused
-      ? (iconMap[routeName]?.focused ?? 'home')
-      : (iconMap[routeName]?.unfocused ?? 'home-outline');
-  };
+  const renderTabBar = useCallback((props: BottomTabBarProps) => <FloatingTabBar {...props} />, []);
 
   return (
     <Tab.Navigator
       initialRouteName='Home'
-      screenOptions={({ route }) => ({
+      tabBar={renderTabBar}
+      screenOptions={{
         headerShown: false,
         lazy: true,
-        tabBarIcon: ({ focused, color, size }) => {
-          const iconName = getTabIcon(route.name, focused);
-          if (route.name === 'Profile') {
-            return (
-              <View style={styles.tabIconWrapper}>
-                <Icon name={iconName} family='Ionicons' size={size} color={color} />
-                <VotingLiveDot />
-              </View>
-            );
-          }
-          return <Icon name={iconName} family='Ionicons' size={size} color={color} />;
-        },
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
-        tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopWidth: 0,
-          borderTopColor: 'transparent',
-          elevation: 0,
-          shadowOpacity: 0,
-          shadowColor: 'transparent',
-          shadowOffset: { width: 0, height: 0 },
-          shadowRadius: 0,
-          // Covers the Android navigation bar inset so the tab bar background
-          // fills the full bottom edge in edge-to-edge mode, and grows with the
-          // OS font scale. See the derivation above.
-          height: tabBarHeight,
-          /*
-           * 6, not 8. react-navigation sizes each tab button as the bar height
-           * minus this padding, so 56 - 8 - 8 left a 40dp touch target against
-           * a 44dp minimum. 56 - 6 - 6 = 44. The bar keeps its 56dp height and
-           * the icons move by 2dp, which is not perceptible.
-           */
-          paddingBottom: Platform.OS === 'ios' ? 24 : 6,
-          paddingTop: 6,
-        },
-        tabBarBackground: () => <View style={tabBarBackgroundStyle} />,
-        tabBarLabelStyle: {
-          fontFamily: theme.typography.fontFamily.secondary,
-          fontSize: theme.typography.fontSize.xs,
-          fontWeight: theme.typography.fontWeight?.medium ?? '500',
-        },
-        tabBarHideOnKeyboard: true,
-      })}
+      }}
     >
       <Tab.Screen name='Home' component={HomeStack} options={{ title: t('tabs.home') }} />
       <Tab.Screen name='Search' component={SearchStack} options={{ title: t('tabs.search') }} />
@@ -184,11 +117,6 @@ const TabNavigatorComponent: React.FC = () => {
     </Tab.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  // Anchor for the absolutely-positioned unread badge on the tab icon.
-  tabIconWrapper: { position: 'relative' },
-});
 
 /**
  * Memoize TabNavigator to prevent unnecessary re-renders.

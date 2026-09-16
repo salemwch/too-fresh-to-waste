@@ -1,4 +1,10 @@
 /**
+ * CURRENTLY UNUSED. The bar moved to a custom `FloatingTabBar`, which is
+ * icon-only and sizes itself from `floatingTabBarLayout.ts`, so nothing reads
+ * this any more. Kept, with its tests, because everything below is still
+ * correct and reverting to a labelled react-navigation bar would need it back
+ * verbatim - the font-scale clipping it fixes was device-found, not obvious.
+ *
  * Bottom tab bar height, derived from the OS font scale.
  *
  * The bar used to be a flat 56dp (+ bottom inset) on Android. The icon block is
