@@ -312,27 +312,40 @@ export const envValidationSchema = Joi.object({
 
   // ── Delivery economics ───────────────────────────────────────────────
   //
-  // Declared so Joi COERCES them to numbers. They are read as
+  // Declared so Joi COERCES it to a number. It is read as
   // `configService.get<number>(...)`, but env vars arrive as strings and the
-  // type argument only asserts — it converts nothing. Undeclared,
-  // `FLAT_DELIVERY_FEE=4.0` yielded the string "4.0"; it survived only because
-  // `fee - earnings` coerces, and the first `+` written against it would have
-  // silently concatenated into a nonsense total.
+  // type argument only asserts - it converts nothing. Undeclared, a share of
+  // `0.67` would arrive as the string "0.67" and multiplying by it would still
+  // work while any `+` against it silently concatenated.
   //
   // Model: customer pays food + FLAT_DELIVERY_FEE on delivery orders (never on
   // pickup, and never because of the payment method). The fee splits
   // driver / platform as DRIVER_DELIVERY_EARNINGS / the remainder, so the
   // driver's share must not exceed the fee.
-  FLAT_DELIVERY_FEE: Joi.number().min(0).default(4.0),
-  DRIVER_DELIVERY_EARNINGS: Joi.number()
-    .min(0)
-    .max(Joi.ref('FLAT_DELIVERY_FEE'))
-    .default(3.0)
-    .messages({
-      'number.max':
-        'DRIVER_DELIVERY_EARNINGS cannot exceed FLAT_DELIVERY_FEE — the platform would pay the driver more than it collects on every delivery.',
-    }),
-  MAX_DELIVERY_KM: Joi.number().positive().default(5),
+  // The customer fee is DISTANCE-BASED - the bands live in
+  // orders/utils/delivery-fee.util.ts. This only configures how the collected
+  // fee is divided between the driver and the platform.
+  //
+  // FLAT_DELIVERY_FEE and DRIVER_DELIVERY_EARNINGS are gone. The flat driver
+  // amount was 3.00 TND, which the 2.00 TND short-distance band makes
+  // impossible: the platform would have paid 1.00 out of its own margin on
+  // every short trip - exactly the failure the pricing model was rewritten to
+  // remove. A share cannot produce that at any fee.
+  //
+  // The platform's 33% is not profit. It funds fuel and vehicle support where
+  // that applies, operations, payment processing, failed deliveries, support
+  // and logistics overhead.
+  //
+  // Tips are 100% the driver's and never pass through this split. Tipping is
+  // not implemented yet.
+  DELIVERY_DRIVER_SHARE: Joi.number().min(0).max(1).default(0.67).messages({
+    'number.max':
+      'DELIVERY_DRIVER_SHARE is a fraction of the delivery fee, so it cannot exceed 1 - the platform would pay the driver more than it collects on every delivery.',
+  }),
+
+  // MAX_DELIVERY_KM is gone with the hard distance gate. Delivery used to be
+  // rejected outright beyond 5 km; it is now available at any distance and the
+  // price carries the cost instead of a cutoff.
 }).options({
   // Allow additional env vars not listed above (system vars, optional config)
   allowUnknown: true,

@@ -18,6 +18,7 @@ export * from './constants/websocket.constants';
 export * from './constants/http.constants';
 
 // Utils — pure domain utilities shared across apps
+export * from './utils/deliveryFee';
 export * from './utils/order.utils';
 export * from './utils/format.utils';
 export * from './utils/date.utils';

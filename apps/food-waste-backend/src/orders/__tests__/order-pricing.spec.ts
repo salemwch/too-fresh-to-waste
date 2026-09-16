@@ -27,8 +27,7 @@
  */
 
 import {
-  DEFAULT_DRIVER_DELIVERY_EARNINGS,
-  DEFAULT_FLAT_DELIVERY_FEE,
+  DEFAULT_DRIVER_SHARE,
   MERCHANT_FOOD_SHARE,
   PLATFORM_FOOD_SHARE,
   calculateDeliveryEconomics,
@@ -38,13 +37,29 @@ import {
 
 const FOOD = 20;
 
+/**
+ * 5 km sits inside the 5.5 km band, so it costs 5 TND. Chosen over a boundary
+ * value on purpose: the edges are exercised exhaustively in
+ * utils/__tests__/delivery-fee.spec.ts, and using one here would couple these
+ * assertions to band geometry they are not about.
+ */
+const TEST_DISTANCE_KM = 5;
+const TEST_FEE = 5;
+
+const economics = () =>
+  calculateDeliveryEconomics({
+    isDelivery: true,
+    deliveryDistanceKm: TEST_DISTANCE_KM,
+    driverShare: DEFAULT_DRIVER_SHARE,
+  });
+
 const price = (isDelivery: boolean) =>
   calculateOrderPricing({
     subtotal: FOOD,
     discountAmount: 0,
     isDelivery,
-    flatDeliveryFee: DEFAULT_FLAT_DELIVERY_FEE,
-    driverDeliveryEarnings: DEFAULT_DRIVER_DELIVERY_EARNINGS,
+    deliveryDistanceKm: TEST_DISTANCE_KM,
+    driverShare: DEFAULT_DRIVER_SHARE,
   });
 
 describe('calculateOrderPricing — the four order shapes', () => {
@@ -56,8 +71,8 @@ describe('calculateOrderPricing — the four order shapes', () => {
   describe.each([
     ['pickup', 'online', false, 0, FOOD],
     ['pickup', 'cash', false, 0, FOOD],
-    ['delivery', 'online', true, 4, FOOD + 4],
-    ['delivery', 'cash', true, 4, FOOD + 4],
+    ['delivery', 'online', true, TEST_FEE, FOOD + TEST_FEE],
+    ['delivery', 'cash', true, TEST_FEE, FOOD + TEST_FEE],
   ] as const)('%s + %s', (_mode, _payment, isDelivery, expectedFee, expectedTotal) => {
     it(`charges a delivery fee of ${expectedFee} TND`, () => {
       expect(price(isDelivery).deliveryFee).toBe(expectedFee);
@@ -70,14 +85,15 @@ describe('calculateOrderPricing — the four order shapes', () => {
 
   it('never charges a delivery fee on pickup', () => {
     // Bug #1. A cash pickup used to cost 4 TND more than a card pickup.
+    // Still true under distance pricing: pickup has no distance and no fee.
     expect(price(false).deliveryFee).toBe(0);
     expect(price(false).total).toBe(FOOD);
   });
 
   it('always charges the delivery fee on delivery', () => {
     // Bug #2. The fee used to be collected only when paying cash.
-    expect(price(true).deliveryFee).toBe(4);
-    expect(price(true).total).toBe(FOOD + 4);
+    expect(price(true).deliveryFee).toBe(TEST_FEE);
+    expect(price(true).total).toBe(FOOD + TEST_FEE);
   });
 
   it('keeps total equal to subtotal + deliveryFee + tax', () => {
@@ -89,17 +105,42 @@ describe('calculateOrderPricing — the four order shapes', () => {
     }
   });
 
-  it('honours a configured fee other than the default', () => {
+  it('prices a longer delivery higher than a shorter one', () => {
+    // Replaces "honours a configured fee": there is no configured flat fee any
+    // more. The fee is a function of distance, so this is the property that
+    // replaced it.
+    const near = calculateOrderPricing({
+      subtotal: 10,
+      discountAmount: 0,
+      isDelivery: true,
+      deliveryDistanceKm: 2,
+      driverShare: DEFAULT_DRIVER_SHARE,
+    });
+    const far = calculateOrderPricing({
+      subtotal: 10,
+      discountAmount: 0,
+      isDelivery: true,
+      deliveryDistanceKm: 12,
+      driverShare: DEFAULT_DRIVER_SHARE,
+    });
+
+    expect(near.deliveryFee).toBe(2);
+    expect(far.deliveryFee).toBe(13);
+    expect(far.total).toBeGreaterThan(near.total);
+  });
+
+  it('charges no fee beyond any distance limit, because there is none', () => {
+    // The 5 km gate used to throw a BadRequestException here.
     const p = calculateOrderPricing({
       subtotal: 10,
       discountAmount: 0,
       isDelivery: true,
-      flatDeliveryFee: 6.5,
-      driverDeliveryEarnings: 4,
+      deliveryDistanceKm: 40,
+      driverShare: DEFAULT_DRIVER_SHARE,
     });
 
-    expect(p.deliveryFee).toBe(6.5);
-    expect(p.total).toBe(16.5);
+    expect(p.deliveryFee).toBeGreaterThan(13);
+    expect(p.total).toBe(10 + p.deliveryFee);
   });
 
   it('passes the discount through for display without double-counting it', () => {
@@ -108,8 +149,8 @@ describe('calculateOrderPricing — the four order shapes', () => {
       subtotal: 18,
       discountAmount: 2,
       isDelivery: false,
-      flatDeliveryFee: DEFAULT_FLAT_DELIVERY_FEE,
-      driverDeliveryEarnings: DEFAULT_DRIVER_DELIVERY_EARNINGS,
+      deliveryDistanceKm: TEST_DISTANCE_KM,
+      driverShare: DEFAULT_DRIVER_SHARE,
     });
 
     expect(p.discountAmount).toBe(2);
@@ -121,8 +162,8 @@ describe('calculateOrderPricing — the four order shapes', () => {
       subtotal: 10.1234,
       discountAmount: 0,
       isDelivery: true,
-      flatDeliveryFee: 4.0005,
-      driverDeliveryEarnings: 3,
+      deliveryDistanceKm: TEST_DISTANCE_KM,
+      driverShare: DEFAULT_DRIVER_SHARE,
     });
 
     expect(p.subtotal).toBe(10.123);
@@ -134,8 +175,8 @@ describe('calculateOrderPricing — the four order shapes', () => {
       subtotal: 0,
       discountAmount: 0,
       isDelivery: false,
-      flatDeliveryFee: DEFAULT_FLAT_DELIVERY_FEE,
-      driverDeliveryEarnings: DEFAULT_DRIVER_DELIVERY_EARNINGS,
+      deliveryDistanceKm: TEST_DISTANCE_KM,
+      driverShare: DEFAULT_DRIVER_SHARE,
     });
 
     expect(p.total).toBe(0);
@@ -143,18 +184,14 @@ describe('calculateOrderPricing — the four order shapes', () => {
 });
 
 describe('calculateDeliveryEconomics', () => {
-  const economics = () =>
-    calculateDeliveryEconomics({
-      isDelivery: true,
-      flatDeliveryFee: DEFAULT_FLAT_DELIVERY_FEE,
-      driverDeliveryEarnings: DEFAULT_DRIVER_DELIVERY_EARNINGS,
-    });
-
-  it('pays the driver 3 TND and keeps 1 TND for the platform', () => {
+  it('pays the driver 67% and keeps 33% for the platform', () => {
+    // Was a flat 3 TND driver / 1 TND platform on a flat 4 TND fee. Now a share
+    // of a distance-based fee, so it scales with the trip instead of being
+    // fixed - and cannot exceed what was collected.
     expect(economics()).toEqual({
-      deliveryFee: 4,
-      driverEarnings: 3,
-      platformDeliveryCommission: 1,
+      deliveryFee: 5,
+      driverEarnings: 3.35,
+      platformDeliveryCommission: 1.65,
     });
   });
 
@@ -172,8 +209,8 @@ describe('calculateDeliveryEconomics', () => {
     expect(
       calculateDeliveryEconomics({
         isDelivery: false,
-        flatDeliveryFee: DEFAULT_FLAT_DELIVERY_FEE,
-        driverDeliveryEarnings: DEFAULT_DRIVER_DELIVERY_EARNINGS,
+        deliveryDistanceKm: TEST_DISTANCE_KM,
+        driverShare: DEFAULT_DRIVER_SHARE,
       }),
     ).toBeNull();
   });
@@ -184,16 +221,48 @@ describe('calculateDeliveryEconomics', () => {
     expect(economics()?.deliveryFee).toBe(price(true).deliveryFee);
   });
 
-  it('yields a negative platform cut if the driver share exceeds the fee', () => {
-    // Not reachable through config — Joi rejects it — but the arithmetic must
-    // stay honest rather than clamp and hide a loss.
+  it('can never yield a negative platform cut', () => {
+    // This test used to assert the OPPOSITE: with a flat driver amount the
+    // platform could be left out of pocket, and the arithmetic was deliberately
+    // left honest rather than clamped. A share makes that unreachable at any
+    // distance, which is the whole reason for moving off a flat amount - the
+    // 2 TND short band could not have covered a 3 TND driver cut.
+    for (const km of [0.5, 2.5, 5.5, 13.5, 40]) {
+      const e = calculateDeliveryEconomics({
+        isDelivery: true,
+        deliveryDistanceKm: km,
+        driverShare: DEFAULT_DRIVER_SHARE,
+      });
+
+      expect(e?.platformDeliveryCommission).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('pays the driver the configured share and the platform the rest', () => {
     const e = calculateDeliveryEconomics({
       isDelivery: true,
-      flatDeliveryFee: 3,
-      driverDeliveryEarnings: 4,
+      deliveryDistanceKm: TEST_DISTANCE_KM,
+      driverShare: DEFAULT_DRIVER_SHARE,
     });
 
-    expect(e?.platformDeliveryCommission).toBe(-1);
+    // 5 TND fee at 67 / 33.
+    expect(e?.deliveryFee).toBe(TEST_FEE);
+    expect(e?.driverEarnings).toBe(3.35);
+    expect(e?.platformDeliveryCommission).toBe(1.65);
+  });
+
+  it('never pays a flat minimum on a short trip', () => {
+    // The instruction that drove this change: no 3 TND floor, because a floor
+    // is what made the 2 TND band impossible.
+    const e = calculateDeliveryEconomics({
+      isDelivery: true,
+      deliveryDistanceKm: 1,
+      driverShare: DEFAULT_DRIVER_SHARE,
+    });
+
+    expect(e?.deliveryFee).toBe(2);
+    expect(e?.driverEarnings).toBe(1.34);
+    expect(e?.driverEarnings).toBeLessThan(3);
   });
 });
 
@@ -209,27 +278,22 @@ describe('calculateFoodRevenueSplit', () => {
     // The critical property. Splitting `total` (which now includes the delivery
     // fee) would hand the merchant 81% of a fee they had no part in earning,
     // leaving the platform to pay a 3 TND driver out of a 0.76 TND share.
-    const p = price(true); // 20 food + 4 delivery = 24
+    const p = price(true); // 20 food + 5 delivery = 25
     const split = calculateFoodRevenueSplit(p.subtotal);
 
-    expect(split.merchantAmount).toBe(16.2); // 81% of 20, not of 24
+    expect(split.merchantAmount).toBe(16.2); // 81% of 20, not of 25
     expect(split.merchantAmount).not.toBeCloseTo(p.total * MERCHANT_FOOD_SHARE, 2);
   });
 
   it('leaves the whole delivery fee outside the merchant split', () => {
     const p = price(true);
     const split = calculateFoodRevenueSplit(p.subtotal);
-    const platformTotal =
-      split.platformFee +
-      (calculateDeliveryEconomics({
-        isDelivery: true,
-        flatDeliveryFee: DEFAULT_FLAT_DELIVERY_FEE,
-        driverDeliveryEarnings: DEFAULT_DRIVER_DELIVERY_EARNINGS,
-      })?.platformDeliveryCommission ?? 0);
+    const platformTotal = split.platformFee + (economics()?.platformDeliveryCommission ?? 0);
 
-    // 20 food + 4 delivery = 24 collected.
-    // merchant 16.20 + platform (3.80 food + 1.00 delivery) + driver 3.00 = 24
-    expect(split.merchantAmount + platformTotal + 3).toBeCloseTo(p.total, 3);
+    // 20 food + 5 delivery = 25 collected.
+    // merchant 16.20 + platform (3.80 food + 1.65 delivery) + driver 3.35 = 25
+    const driverEarnings = economics()?.driverEarnings ?? 0;
+    expect(split.merchantAmount + platformTotal + driverEarnings).toBeCloseTo(p.total, 3);
   });
 
   it('donates 5% of the platform food commission', () => {

@@ -1,3 +1,5 @@
+import { DEFAULT_DRIVER_SHARE, calculateDeliveryFee, splitDeliveryFee } from './delivery-fee.util';
+
 /**
  * Order pricing — the single place money is decided.
  *
@@ -9,12 +11,14 @@
  *   Food split        merchant  81%
  *                     platform  19%
  *
- *   Delivery split    driver    3.00 TND
- *                     platform  1.00 TND
+ *   Delivery fee      distance-based, see delivery-fee.util.ts
+ *   Delivery split    driver    67% of the fee (DELIVERY_DRIVER_SHARE)
+ *                     platform  the remainder
  * ```
  *
  * - **Pickup** — food only. No delivery fee, ever.
- * - **Delivery** — food + 4.00 TND, regardless of how the customer pays.
+ * - **Delivery** — food + a distance-based fee, regardless of how the customer
+ *   pays. Available at any distance; there is no longer a 5 km cutoff.
  * - **Payment method is a payment method.** Cash is not a fee and never adds
  *   one.
  *
@@ -55,9 +59,15 @@ export const PLATFORM_FOOD_SHARE = 0.19;
 /** Share of the platform's food commission donated to charity. */
 export const DONATION_RATE_OF_COMMISSION = 0.05;
 
-/** Fallbacks when the env vars are absent. Mirrored in env.validation.ts. */
-export const DEFAULT_FLAT_DELIVERY_FEE = 4.0;
-export const DEFAULT_DRIVER_DELIVERY_EARNINGS = 3.0;
+/**
+ * Fallback when `DELIVERY_DRIVER_SHARE` is absent. Mirrored in env.validation.ts.
+ *
+ * Re-exported from delivery-fee.util so callers have one import for the whole
+ * delivery money model. The flat `DEFAULT_FLAT_DELIVERY_FEE` and
+ * `DEFAULT_DRIVER_DELIVERY_EARNINGS` are gone: the fee now depends on distance,
+ * and a flat 3.00 TND driver cut is impossible against a 2.00 TND fee.
+ */
+export { DEFAULT_DRIVER_SHARE } from './delivery-fee.util';
 
 /** TND is quoted to three decimals (millimes). */
 const round = (value: number): number => parseFloat(value.toFixed(3));
@@ -69,10 +79,16 @@ export interface OrderPricingInput {
   discountAmount: number;
   /** True when `deliveryMode === 'delivery'`. */
   isDelivery: boolean;
-  /** `FLAT_DELIVERY_FEE`, in TND. */
-  flatDeliveryFee: number;
-  /** `DRIVER_DELIVERY_EARNINGS`, in TND. */
-  driverDeliveryEarnings: number;
+  /**
+   * Straight-line distance from establishment to customer, in km.
+   *
+   * Ignored for pickup. NOTE this is haversine, not road distance - a real
+   * route is typically 20-40% longer, so both the fee and the driver's share
+   * understate the actual trip on longer deliveries.
+   */
+  deliveryDistanceKm: number;
+  /** `DELIVERY_DRIVER_SHARE`, 0..1. */
+  driverShare: number;
 }
 
 export interface OrderPricing {
@@ -106,7 +122,7 @@ export interface FoodRevenueSplit {
  * here. That is the invariant the old `serviceFee` broke.
  */
 export function calculateOrderPricing(input: OrderPricingInput): OrderPricing {
-  const deliveryFee = input.isDelivery ? round(input.flatDeliveryFee) : 0;
+  const deliveryFee = input.isDelivery ? round(calculateDeliveryFee(input.deliveryDistanceKm)) : 0;
   const taxAmount = 0;
 
   return {
@@ -126,20 +142,28 @@ export function calculateOrderPricing(input: OrderPricingInput): OrderPricing {
  */
 export function calculateDeliveryEconomics(input: {
   isDelivery: boolean;
-  flatDeliveryFee: number;
-  driverDeliveryEarnings: number;
+  deliveryDistanceKm: number;
+  driverShare?: number;
 }): DeliveryEconomics | null {
   if (!input.isDelivery) {
     return null;
   }
 
-  const deliveryFee = round(input.flatDeliveryFee);
-  const driverEarnings = round(input.driverDeliveryEarnings);
+  /*
+   * Recomputed from the SAME distance the customer was quoted on, via the same
+   * function, rather than being passed the fee. Two paths to one number is how
+   * the settlement record and the invoice drift apart.
+   */
+  const deliveryFee = calculateDeliveryFee(input.deliveryDistanceKm);
+  const { driverEarnings, platformCommission } = splitDeliveryFee(
+    deliveryFee,
+    input.driverShare ?? DEFAULT_DRIVER_SHARE,
+  );
 
   return {
-    deliveryFee,
-    driverEarnings,
-    platformDeliveryCommission: round(deliveryFee - driverEarnings),
+    deliveryFee: round(deliveryFee),
+    driverEarnings: round(driverEarnings),
+    platformDeliveryCommission: round(platformCommission),
   };
 }
 
