@@ -63,6 +63,7 @@ import { regionFor } from '../utils/mapRegion';
 
 import type { SearchScreenNavigationProp } from '@/navigation/types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { useFloatingTabBarInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 const { base: sp } = spacingTokens;
 
@@ -222,9 +223,16 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
 
   // FlashList types contentContainerStyle as a single object, so this cannot be
   // composed from a StyleSheet entry — memoizing keeps the identity stable.
+  // Content runs under the absolutely-positioned tab bar, so the list has to
+  // pad itself or its last row can never be scrolled clear of the shape.
+  const tabBarInset = useFloatingTabBarInset();
   const listContentStyle = useMemo(
-    () => ({ paddingHorizontal: 16, paddingBottom: 24, paddingTop: insets.top + 120 }),
-    [insets.top],
+    () => ({
+      paddingHorizontal: 16,
+      paddingBottom: 24 + tabBarInset,
+      paddingTop: insets.top + 120,
+    }),
+    [insets.top, tabBarInset],
   );
 
   const groupedEstablishments = useMemo(

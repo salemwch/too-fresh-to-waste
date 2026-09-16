@@ -6,12 +6,16 @@ import { Text, Card, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { showAlert } from '@/utils/alert';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { useFloatingTabBarContentInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 const { base: sp } = spacingTokens;
 
 const SUPPORT_EMAIL = 'support@toofreshtowaste.com';
 
 export const ContactSupportScreen: React.FC = () => {
+  // Content runs under the absolutely-positioned tab bar, so the list has to
+  // pad itself or its last row can never be scrolled clear of the shape.
+  const tabBarInset = useFloatingTabBarContentInset(styles.scrollContent);
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -28,7 +32,7 @@ export const ContactSupportScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={tabBarInset} showsVerticalScrollIndicator={false}>
         {/* Header illustration */}
         <View style={[styles.iconWrapper, { backgroundColor: theme.colors.primaryContainer }]}>
           <Icon name='headset' family='Ionicons' size={40} color={theme.colors.primary} />

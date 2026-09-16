@@ -49,6 +49,7 @@ import { showSuccessToast } from '@/utils/toast';
 import type { EditProfileScreenNavigationProp } from '@/navigation/types';
 import type { InferType } from 'yup';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { useFloatingTabBarContentInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 const { base: sp } = spacingTokens;
 
@@ -129,6 +130,9 @@ const SectionHeader: React.FC<{ title: string; icon: string }> = ({ title, icon 
 };
 
 export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => {
+  // Content runs under the absolutely-positioned tab bar, so the list has to
+  // pad itself or its last row can never be scrolled clear of the shape.
+  const tabBarInset = useFloatingTabBarContentInset(styles.scrollContent);
   const { t } = useTranslation();
   const theme = useTheme();
   const dispatch = useAppDispatch();
@@ -380,7 +384,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={tabBarInset}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps='handled'
       >

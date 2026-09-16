@@ -27,6 +27,7 @@ import type { FavoriteEstablishmentGroupData, FavoriteGroupItem } from '../compo
 import type { Offer, OfferListItem } from '@/features/offers/types';
 import type { FavoritesScreenNavigationProp } from '@/navigation/types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { useFloatingTabBarContentInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 const { base: sp } = spacingTokens;
 
@@ -193,6 +194,9 @@ const toOfferListItem = (offer: Offer | OfferListItem): OfferListItem => {
 };
 
 export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) => {
+  // Content runs under the absolutely-positioned tab bar, so the list has to
+  // pad itself or its last row can never be scrolled clear of the shape.
+  const tabBarInset = useFloatingTabBarContentInset(styles.scrollContent);
   const theme = useTheme();
   const { t } = useTranslation();
   const prefetchOffer = usePrefetchOffer();
@@ -363,7 +367,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={tabBarInset}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

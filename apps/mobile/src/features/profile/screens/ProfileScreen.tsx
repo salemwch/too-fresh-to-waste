@@ -40,6 +40,7 @@ import { Logger } from '@/utils/logger';
 import type { TierName } from '@/features/loyalty/types/loyalty.types';
 import type { ProfileScreenNavigationProp } from '@/navigation/types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { useFloatingTabBarContentInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 const { base: sp } = spacingTokens;
 
@@ -188,6 +189,9 @@ const MenuItem: React.FC<MenuItemProps> = ({
 };
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
+  // Content runs under the absolutely-positioned tab bar, so the list has to
+  // pad itself or its last row can never be scrolled clear of the shape.
+  const tabBarInset = useFloatingTabBarContentInset(styles.scrollContent);
   const theme = useTheme();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -341,7 +345,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={tabBarInset}
         showsVerticalScrollIndicator={false}
         accessibilityLabel={t('profile.a11yProfileContent')}
         accessibilityHint={t('profile.a11yProfileContentHint')}
@@ -350,33 +354,45 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <Card style={styles.profileCard}>
           <View style={styles.profileHeader}>
             <Avatar
-              size='xl'
+              size='lg'
               {...(avatarUri ? { source: { uri: avatarUri } } : {})}
               initials={initials}
               variant='circular'
             />
             <View style={styles.profileInfo}>
-              <Text variant='title' size='lg' weight='semibold'>
+              <Text variant='title' size='lg' weight='semibold' numberOfLines={1}>
                 {user?.firstName} {user?.lastName}
               </Text>
-              <Text variant='body' size='sm' color='secondary'>
+              <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
                 {user?.email}
               </Text>
             </View>
-          </View>
 
-          <Button
-            variant='outline'
-            size='sm'
-            onPress={handleEditProfile}
-            leftIcon='create-outline'
-            leftIconFamily='Ionicons'
-            style={styles.editButton}
-            accessibilityLabel={t('profile.editProfile')}
-            accessibilityHint={t('profile.a11yEditProfileHint')}
-          >
-            {t('profile.editProfile')}
-          </Button>
+            {/*
+             * Icon-only, on the header row rather than a full-width button
+             * beneath it. That button owned an entire row plus its margins for
+             * a secondary action, which is most of why this card was so tall.
+             *
+             * A 44dp box around a 20dp glyph, so the touch target is real
+             * rather than borrowed from hitSlop. Icon-only, so it keeps an
+             * accessibilityLabel for screen readers.
+             */}
+            <Pressable
+              onPress={handleEditProfile}
+              style={styles.editButton}
+              accessibilityRole='button'
+              accessibilityLabel={t('profile.editProfile')}
+              accessibilityHint={t('profile.a11yEditProfileHint')}
+              testID='profile-edit-button'
+            >
+              <Icon
+                name='create-outline'
+                family='Ionicons'
+                size={20}
+                color={theme.colors.primary}
+              />
+            </Pressable>
+          </View>
         </Card>
 
         {/* Loyalty Points Card — navigates to full LoyaltyScreen */}
@@ -635,21 +651,35 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   profileCard: {
-    padding: sp[5],
+    // Was sp[5] all round with a button row beneath it. The action moved onto
+    // the header row, so the card is one row of content and needs far less.
+    paddingHorizontal: sp[3],
+    paddingVertical: sp[3],
     marginBottom: 16,
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: sp[3],
+    // No marginBottom. Nothing follows it inside the card any more, and leaving
+    // it is exactly how a removed element turns into a strip of dead space.
   },
   profileInfo: {
     flex: 1,
-    marginStart: 16,
+    marginStart: sp[3],
+    // Without this a long name refuses to shrink below its own width and pushes
+    // the edit control off the row - a flex default that only shows up with
+    // real user data.
+    minWidth: 0,
   },
   editButton: {
-    marginTop: 4,
-    borderRadius: 9999,
+    // A real 44dp target rather than a 40dp box plus hitSlop. hitSlop extends
+    // the touchable but not the visual, and M13 asks for the box itself where
+    // there is room - there is, so this takes it.
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loyaltyCard: {
     borderRadius: 16,

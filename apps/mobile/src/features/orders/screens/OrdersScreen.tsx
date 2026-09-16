@@ -35,6 +35,7 @@ import { useOrders, usePrefetchOrder } from '../hooks/useOrders';
 import type { Order } from '../types/order.types';
 import type { OrdersScreenNavigationProp } from '@/navigation/types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { useFloatingTabBarContentInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 const { base: sp } = spacingTokens;
 
@@ -215,6 +216,9 @@ const TabPill: React.FC<TabPillProps> = ({ label, count, isActive, onPress }) =>
 // ---------------------------------------------------------------------------
 
 export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
+  // Content runs under the absolutely-positioned tab bar, so the list has to
+  // pad itself or its last row can never be scrolled clear of the shape.
+  const tabBarInset = useFloatingTabBarContentInset(styles.listContent);
   const { t } = useTranslation();
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState<TabKey>('active');
@@ -308,7 +312,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
           renderItem={renderOrderCard}
           keyExtractor={keyExtractor}
           estimatedItemSize={152}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={tabBarInset}
           showsVerticalScrollIndicator={false}
           onEndReached={selectedTab === 'history' ? loadMore : undefined}
           onEndReachedThreshold={0.5}

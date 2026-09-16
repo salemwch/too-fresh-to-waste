@@ -51,7 +51,6 @@ const DISABLED_CONTROL_EXEMPTIONS: ReadonlyArray<readonly [string, number]> = [
   // `DISABLED`, used once as the fill of the disabled Verify button.
   [join('features', 'orders', 'components', 'PhoneVerificationModal.tsx'), 1],
   // `TEXT_DISABLED`, used once for `paymentCardLabelDisabled`.
-  [join('features', 'orders', 'screens', 'CheckoutScreen.styles.ts'), 1],
 ];
 
 const isSource = (name: string): boolean => /\.(?:ts|tsx)$/u.test(name);

@@ -24,7 +24,6 @@ import { useSelector } from 'react-redux';
 import { LocationPromptBanner } from '@/design-system/components/molecules';
 import { ManualLocationModal, LocationSelectionModal } from '@/design-system/components/organisms';
 import { useTheme } from '@/design-system/providers';
-import { ImpactBanner } from '@/features/donations';
 import { FilterBottomSheet } from '@/features/search/components';
 import { useAppDispatch } from '@/hooks/redux';
 import { useLocation } from '@/hooks/useLocation';
@@ -38,8 +37,8 @@ import {
   HomeSearchBar,
   HomeCategoryRail,
   HomeOfferSection,
+  HomeHeroCarousel,
   SkeletonHomeSearchBar,
-  MonthlyBagGoalBanner,
   CharityDonationBottomSheet,
 } from '../components';
 import { HOME_OFFER_SECTIONS } from '../constants/homeConstants';
@@ -62,6 +61,7 @@ import { FloatingVoteTab } from '@/features/voting/components/FloatingVoteTab';
 import type { HomeScreenNavigationProp } from '@/navigation/types';
 import type { RootState } from '@/types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { useFloatingTabBarContentInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 const { base: sp } = spacingTokens;
 
@@ -159,6 +159,9 @@ const OFFER_SECTION_BY_ID = Object.fromEntries(
 ) as Record<HomeOfferSectionId, (typeof HOME_OFFER_SECTIONS)[number]>;
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  // Content runs under the absolutely-positioned tab bar, so the list has to
+  // pad itself or its last row can never be scrolled clear of the shape.
+  const tabBarInset = useFloatingTabBarContentInset(styles.scrollContent);
   const theme = useTheme();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -569,18 +572,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           );
         }
 
-        case 'impactBanner':
+        case 'heroCarousel':
           return (
-            <View style={styles.bannerWrapper}>
-              <ImpactBanner onExpand={handleCharityPress} />
-            </View>
-          );
-
-        case 'monthlyBagGoal':
-          return (
-            <View style={styles.bannerWrapper}>
-              <MonthlyBagGoalBanner onPress={handleLeaderboardPress} />
-            </View>
+            <HomeHeroCarousel
+              onImpactPress={handleCharityPress}
+              onPrizePress={handleLeaderboardPress}
+            />
           );
 
         // All four carousels take the same shape; only their copy and data
@@ -663,7 +660,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         // `renderSection` is the single source of truth for those dependencies
         // (see its useCallback deps), so using it directly keeps the two in sync.
         extraData={renderSection}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={tabBarInset}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

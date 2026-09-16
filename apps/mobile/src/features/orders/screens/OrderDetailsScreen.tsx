@@ -54,6 +54,7 @@ import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { useFloatingTabBarContentInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 const { base: sp } = spacingTokens;
 
@@ -78,6 +79,9 @@ interface OrderDetailsScreenProps {
 const SUCCESS_COLOR = colorTokens.base.success[500];
 
 export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigation, route }) => {
+  // Content runs under the absolutely-positioned tab bar, so the list has to
+  // pad itself or its last row can never be scrolled clear of the shape.
+  const tabBarInset = useFloatingTabBarContentInset(styles.scrollContent);
   const theme = useTheme();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -253,7 +257,7 @@ export const OrderDetailsScreen: React.FC<OrderDetailsScreenProps> = ({ navigati
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={tabBarInset} showsVerticalScrollIndicator={false}>
         <OrderHeader order={order} />
         <OrderItemsCard order={order} />
         <OrderPricingCard order={order} />
