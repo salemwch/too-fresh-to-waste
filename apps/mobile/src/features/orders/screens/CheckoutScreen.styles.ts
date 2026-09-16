@@ -38,7 +38,6 @@ const { base: sp } = spacingTokens;
 const SUCCESS_SURFACE = '#F0FDF4';
 const SUCCESS_TINT = '#D1FAE5';
 export const SUCCESS_TEXT = colorTokens.base.success[600];
-const WARNING_SURFACE = '#FEF3C7';
 export const WARNING_TEXT = '#92400E';
 const ERROR_SURFACE = '#FEF2F2';
 export const ERROR_TEXT = '#991B1B';
@@ -65,7 +64,6 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
   const TEXT_PRIMARY = c.onBackground;
   const TEXT_SECONDARY = c.onSurfaceVariant;
   const TEXT_TERTIARY = c.onSurfaceVariant;
-  const TEXT_DISABLED = colorTokens.base.neutral[500]; // no role at this step; M16-a
   const BORDER_SUBTLE = c.outlineVariant;
   /*
    * Control boundaries take `outline`, not `outlineVariant`. The delivery-mode
@@ -172,11 +170,6 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
       borderWidth: 2,
       backgroundColor: SUCCESS_SURFACE,
     },
-    paymentMethodCardDisabled: {
-      borderColor: BORDER_SUBTLE,
-      backgroundColor: SCREEN_BACKGROUND,
-      opacity: 0.6,
-    },
     paymentCardLabel: {
       fontSize: 11,
       fontWeight: '600',
@@ -187,43 +180,10 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
     paymentCardLabelActive: {
       color: BRAND_PRIMARY,
     },
-    paymentCardLabelDisabled: {
-      color: TEXT_DISABLED,
-    },
     paymentCardCheck: {
       position: 'absolute',
       top: 6,
       insetInlineEnd: 6,
-    },
-    comingSoonBadge: {
-      backgroundColor: WARNING_SURFACE,
-      borderRadius: 8,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-    },
-    comingSoonText: {
-      fontSize: 10,
-      fontWeight: '700',
-      color: WARNING_TEXT,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-    },
-    pickupOnlyWarning: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 8,
-      backgroundColor: WARNING_SURFACE,
-      borderRadius: 12,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      marginHorizontal: sp[5],
-      marginTop: 8,
-    },
-    pickupOnlyWarningText: {
-      flex: 1,
-      fontSize: 13,
-      color: WARNING_TEXT,
-      lineHeight: 18,
     },
 
     // Price Breakdown
@@ -405,9 +365,6 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
       fontSize: 13,
       fontWeight: '600',
       color: SUCCESS_TEXT,
-    },
-    distanceTextError: {
-      color: ERROR_TEXT,
     },
   });
 });

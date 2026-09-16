@@ -27,8 +27,7 @@ import { haversineKm } from '../common/utils/geo.util';
 import { perfLog, perfStart } from '../common/utils/perf-log.util';
 
 import {
-  DEFAULT_DRIVER_DELIVERY_EARNINGS,
-  DEFAULT_FLAT_DELIVERY_FEE,
+  DEFAULT_DRIVER_SHARE,
   MERCHANT_EARNINGS_EXPR,
   calculateDeliveryEconomics,
   calculateFoodRevenueSplit,
@@ -363,18 +362,33 @@ export class OrdersService {
         // Customer pays food + deliveryFee. The fee depends ONLY on
         // deliveryMode; payment method is a payment method, not a surcharge.
         const isDelivery = createOrderDto.deliveryMode === 'delivery';
-        const flatDeliveryFee =
-          this.configService.get<number>('FLAT_DELIVERY_FEE') ?? DEFAULT_FLAT_DELIVERY_FEE;
-        const driverDeliveryEarnings =
-          this.configService.get<number>('DRIVER_DELIVERY_EARNINGS') ??
-          DEFAULT_DRIVER_DELIVERY_EARNINGS;
+        const driverShare =
+          this.configService.get<number>('DELIVERY_DRIVER_SHARE') ?? DEFAULT_DRIVER_SHARE;
+
+        /*
+         * Distance is resolved HERE, before pricing, not in the delivery-fields
+         * block below where it used to live. The fee now depends on it, and the
+         * old order computed the price ~40 lines before the distance existed.
+         * Leaving it there and reading it early would have priced every delivery
+         * off `undefined` - which the band function floors to the cheapest band,
+         * so every delivery would silently have cost 2 TND.
+         */
+        const deliveryDistanceKm = isDelivery
+          ? haversineKm(
+              {
+                lat: establishment.address.coordinates.coordinates[1] ?? 0,
+                lng: establishment.address.coordinates.coordinates[0] ?? 0,
+              },
+              createOrderDto.deliveryAddress!.coordinates,
+            )
+          : 0;
 
         const pricing = calculateOrderPricing({
           subtotal,
           discountAmount: totalDiscountAmount,
           isDelivery,
-          flatDeliveryFee,
-          driverDeliveryEarnings,
+          deliveryDistanceKm,
+          driverShare,
         });
 
         // 5.1. Charity donation: 5% of the platform's 19% commission on FOOD.
@@ -385,8 +399,8 @@ export class OrdersService {
         // --- Delivery fields (computed once, never recalculated) ---
         const deliveryEconomics = calculateDeliveryEconomics({
           isDelivery,
-          flatDeliveryFee,
-          driverDeliveryEarnings,
+          deliveryDistanceKm,
+          driverShare,
         });
 
         let deliveryFields: {
@@ -406,23 +420,17 @@ export class OrdersService {
           const collectionStartTime = new Date();
           const collectionEndTime = earliestOfferExpiry;
 
-          // Establishment coordinates — GeoJSON stores [lng, lat]; haversineKm expects { lat, lng }
-          const geoCoords = establishment.address.coordinates.coordinates;
-          const estCoords = { lat: geoCoords[1] ?? 0, lng: geoCoords[0] ?? 0 };
-          const custCoords = createOrderDto.deliveryAddress!.coordinates;
-          const distKm = haversineKm(estCoords, custCoords);
-
-          const maxDeliveryKm = this.configService.get<number>('MAX_DELIVERY_KM') ?? 5;
-          if (distKm > maxDeliveryKm) {
-            throw new BadRequestException(
-              `Delivery is only available within ${maxDeliveryKm} km. This establishment is ${distKm.toFixed(1)} km away.`,
-            );
-          }
-
+          /*
+           * No distance gate. Delivery used to be rejected beyond 5 km with a
+           * BadRequestException; it is now available at any distance and the
+           * band pricing carries the cost instead of a cutoff.
+           *
+           * Distance itself is computed above, before pricing needs it.
+           */
           deliveryFields = {
             collectionStartTime,
             collectionEndTime,
-            estimatedDistanceKm: distKm,
+            estimatedDistanceKm: deliveryDistanceKm,
             // Same numbers the customer was quoted in `pricing.deliveryFee`.
             // Both come from calculateDeliveryEconomics/calculateOrderPricing,
             // so the settlement record and the invoice cannot disagree.

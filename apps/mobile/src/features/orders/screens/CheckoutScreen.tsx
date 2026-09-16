@@ -1,6 +1,6 @@
 import { CommonActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,7 +15,6 @@ import { offersService } from '@/features/offers/services/offersService';
 import { nearbyOffersService } from '@/features/offers/services/nearbyOffersService';
 import { useAppSelector } from '@/hooks';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
-import { useLocation } from '@/hooks/useLocation';
 import { usePressGuard } from '@/hooks/usePressGuard';
 import { analytics } from '@/utils/analytics';
 import { haversineKm } from '@/utils/geo';
@@ -27,17 +26,13 @@ import { PhoneVerificationModal } from '../components/PhoneVerificationModal';
 import { SkeletonCheckoutScreen } from '../components/SkeletonCheckoutScreen';
 import { useCreateOrder } from '../hooks/useCreateOrder';
 
-import {
-  createCheckoutStyles,
-  SUCCESS_TEXT,
-  WARNING_TEXT,
-  ERROR_TEXT,
-} from './CheckoutScreen.styles';
+import { createCheckoutStyles, SUCCESS_TEXT } from './CheckoutScreen.styles';
 
 import type { CreateOrderDto, Order } from '../types/order.types';
 import type { MainStackParamList } from '@/navigation/types';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { calculateDeliveryFee } from '@foodwaste/shared';
 
 type CheckoutScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Checkout'>;
 type CheckoutScreenRouteProp = RouteProp<MainStackParamList, 'Checkout'>;
@@ -46,11 +41,6 @@ interface CheckoutScreenProps {
   navigation: CheckoutScreenNavigationProp;
   route: CheckoutScreenRouteProp;
 }
-
-const MAX_DELIVERY_KM = 5;
-
-/** Mirrors FLAT_DELIVERY_FEE in the backend order.service.ts. */
-const DELIVERY_FEE_TND = 4;
 
 export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -65,7 +55,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   // not when unrelated user fields (name, avatar, email…) change.
   const isPhoneVerified = useAppSelector(selectIsPhoneVerified);
   const authUser = useAppSelector(selectAuthUser);
-  const { coordinates: userCoords } = useLocation();
+  // `coordinates` was only ever aliased to userCoords for the delivery-zone
+  // check, which no longer exists.
 
   // ✅ State for order configuration
   const [quantity] = useState(initialQuantity);
@@ -118,20 +109,25 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     return null;
   })();
 
+  /*
+   * Distance is still shown - it is useful, and it is what the fee is priced
+   * from - but it no longer gates anything. `tooFar` and its submission block
+   * are gone with the 5 km zone.
+   */
   const distanceKm = deliveryPin && estCoords ? haversineKm(estCoords, deliveryPin) : null;
-  const tooFar = distanceKm !== null && distanceKm > MAX_DELIVERY_KM;
 
-  // True when the establishment is outside the delivery zone based on the user's
-  // stored location (not the delivery pin) — used to disable the delivery option proactively.
-  const isOutsideDeliveryZone = useMemo(() => {
-    if (!estCoords || !userCoords) return false;
-    return (
-      haversineKm(estCoords, {
-        lat: userCoords.latitude,
-        lng: userCoords.longitude,
-      }) > MAX_DELIVERY_KM
-    );
-  }, [estCoords, userCoords]);
+  /*
+   * There is no delivery zone any more.
+   *
+   * This used to disable the delivery option entirely when the establishment
+   * was more than MAX_DELIVERY_KM from the user, mirroring a backend gate that
+   * rejected such orders outright. Both are gone: delivery is available at any
+   * distance and the distance-based fee carries the cost instead.
+   *
+   * Removing only the backend gate would have left this in place, so the
+   * customer would still have seen delivery greyed out with a "5km+" badge
+   * while the API happily accepted the order.
+   */
 
   // ── Analytics: checkout_started (fires once when offer data is ready) ──────
   const offerId_stable = offerId; // avoid stale closure warning
@@ -281,13 +277,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
       return;
     }
 
-    if (deliveryMode === 'delivery' && tooFar) {
-      setValidationError(
-        t('checkout.tooFarError', { distance: distanceKm!.toFixed(1), max: MAX_DELIVERY_KM }),
-      );
-      return;
-    }
-
     const establishmentId: string = (() => {
       const eid = offer.establishmentId;
       if (!eid) return '';
@@ -367,8 +356,6 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
     deliveryMode,
     deliveryPin,
     deliveryAddressText,
-    distanceKm,
-    tooFar,
     queryClient,
     createOrder,
     t,
@@ -443,12 +430,18 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
   /**
    * Calculate pricing.
    *
-   * The fee is shown here and charged by the backend, so the two must agree —
-   * a customer who sees one total and is charged another has been misled. This
-   * mirrors FLAT_DELIVERY_FEE in order.service.ts; change both together.
+   * The fee shown here and the fee charged by the backend come from the SAME
+   * function in `@foodwaste/shared`, so they cannot disagree. This used to be a
+   * local `DELIVERY_FEE_TND = 4` with a comment saying "change both together" -
+   * and when the backend moved to distance bands, this screen kept quoting a
+   * flat 4 TND. The customer would have seen one total and been charged another.
+   *
+   * `distanceKm` is null until a delivery pin is dropped; the fee function
+   * floors a missing distance to the cheapest band rather than to free.
    */
   const subtotal = offer ? (offer.pricing?.discountedPrice ?? 0) * quantity : 0;
-  const deliveryFee = selectedFulfillment === 'delivery' ? DELIVERY_FEE_TND : 0;
+  const deliveryFee =
+    selectedFulfillment === 'delivery' ? calculateDeliveryFee(distanceKm ?? 0) : 0;
   const total = subtotal + deliveryFee;
   const currency = offer?.pricing?.currency ?? 'TND';
   const originalPrice = offer ? (offer.pricing?.originalPrice ?? 0) * quantity : 0;
@@ -584,21 +577,13 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 style={[
                   styles.paymentMethodCard,
                   selectedFulfillment === 'delivery' && styles.paymentMethodCardActive,
-                  isOutsideDeliveryZone && styles.paymentMethodCardDisabled,
                 ]}
-                onPress={() => !isOutsideDeliveryZone && setSelectedFulfillment('delivery')}
-                accessibilityLabel={
-                  isOutsideDeliveryZone ? t('checkout.deliveryUnavailable') : t('checkout.delivery')
-                }
-                accessibilityHint={
-                  isOutsideDeliveryZone
-                    ? t('checkout.pickupOnlyWarning')
-                    : t('checkout.deliveryHint')
-                }
+                onPress={() => setSelectedFulfillment('delivery')}
+                accessibilityLabel={t('checkout.delivery')}
+                accessibilityHint={t('checkout.deliveryHint')}
                 accessibilityRole='button'
-                accessibilityState={{ disabled: isOutsideDeliveryZone }}
               >
-                {selectedFulfillment === 'delivery' && !isOutsideDeliveryZone && (
+                {selectedFulfillment === 'delivery' && (
                   <View style={styles.paymentCardCheck}>
                     <Icon
                       name='checkmark-circle'
@@ -613,40 +598,20 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                   family='Ionicons'
                   size={28}
                   color={
-                    isOutsideDeliveryZone
-                      ? colorTokens.base.neutral[300]
-                      : selectedFulfillment === 'delivery'
-                        ? BRAND_PRIMARY
-                        : colors.onSurfaceVariant
+                    selectedFulfillment === 'delivery' ? BRAND_PRIMARY : colors.onSurfaceVariant
                   }
                 />
                 <Text
                   style={[
                     styles.paymentCardLabel,
-                    selectedFulfillment === 'delivery' &&
-                      !isOutsideDeliveryZone &&
-                      styles.paymentCardLabelActive,
-                    isOutsideDeliveryZone && styles.paymentCardLabelDisabled,
+                    selectedFulfillment === 'delivery' && styles.paymentCardLabelActive,
                   ]}
                 >
                   {t('checkout.delivery')}
                 </Text>
-                {isOutsideDeliveryZone && (
-                  <View style={styles.comingSoonBadge}>
-                    <Text style={styles.comingSoonText}>5km+</Text>
-                  </View>
-                )}
               </Pressable>
             </View>
           </View>
-
-          {/* Pick-Up Only warning — shown when establishment is outside 5 km zone */}
-          {isOutsideDeliveryZone && (
-            <View style={styles.pickupOnlyWarning}>
-              <Icon name='location-outline' family='Ionicons' size={16} color={WARNING_TEXT} />
-              <Text style={styles.pickupOnlyWarningText}>{t('checkout.pickupOnlyWarning')}</Text>
-            </View>
-          )}
 
           {/* Payment Method Section */}
           <View style={styles.section}>
@@ -826,20 +791,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               )}
               {/* Distance feedback — shown once pin is set and establishment coords known */}
               {distanceKm !== null && (
-                <View style={[styles.distanceRow, tooFar && styles.distanceRowError]}>
-                  <Icon
-                    name={tooFar ? 'warning' : 'navigate'}
-                    family='Ionicons'
-                    size={14}
-                    color={tooFar ? ERROR_TEXT : SUCCESS_TEXT}
-                  />
-                  <Text style={[styles.distanceText, tooFar && styles.distanceTextError]}>
-                    {tooFar
-                      ? t('checkout.distanceTooFar', {
-                          distance: distanceKm.toFixed(1),
-                          max: MAX_DELIVERY_KM,
-                        })
-                      : t('checkout.distanceFromMerchant', { distance: distanceKm.toFixed(1) })}
+                <View style={styles.distanceRow}>
+                  <Icon name='navigate' family='Ionicons' size={14} color={SUCCESS_TEXT} />
+                  <Text style={styles.distanceText}>
+                    {t('checkout.distanceFromMerchant', { distance: distanceKm.toFixed(1) })}
                   </Text>
                 </View>
               )}
@@ -865,9 +820,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             onPress={() => {
               void guardedConfirmOrder();
             }}
-            disabled={
-              isCreatingOrder || (deliveryMode === 'delivery' && (deliveryPin === null || tooFar))
-            }
+            disabled={isCreatingOrder || (deliveryMode === 'delivery' && deliveryPin === null)}
             style={styles.confirmButtonWrapper}
           >
             <LinearGradient
@@ -876,8 +829,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
               end={{ x: 1, y: 0 }}
               style={[
                 styles.confirmButton,
-                (isCreatingOrder ||
-                  (deliveryMode === 'delivery' && (deliveryPin === null || tooFar))) &&
+                (isCreatingOrder || (deliveryMode === 'delivery' && deliveryPin === null)) &&
                   styles.confirmButtonDisabled,
               ]}
             >

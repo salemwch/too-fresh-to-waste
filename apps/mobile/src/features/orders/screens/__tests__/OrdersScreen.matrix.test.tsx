@@ -17,6 +17,17 @@ import { matrixSnapshot, type MatrixCase } from '@/test-utils/visualMatrix';
 
 import { OrdersScreen } from '../OrdersScreen';
 
+/*
+ * OrdersScreen now reads the floating tab bar height so its list can clear the
+ * bar, and useSafeAreaInsets throws outside a provider by design. Mocked rather
+ * than wrapped, matching LoginScreen.matrix.test.tsx.
+ */
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 24, bottom: 0, left: 0, right: 0 }),
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 const mockRefetch = jest.fn();
 
 const mockOrders = {

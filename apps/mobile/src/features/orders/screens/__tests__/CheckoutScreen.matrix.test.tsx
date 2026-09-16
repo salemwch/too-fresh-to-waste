@@ -206,13 +206,6 @@ describe('CheckoutScreen', () => {
     matrixSnapshotAsync('phone-unverified', screen, FULL_CASES);
   });
 
-  describe('establishment outside the delivery zone', () => {
-    // MAX_DELIVERY_KM is a hard backend gate; the screen must disable delivery
-    // proactively rather than let the request fail. Sousse is ~120 km away.
-    beforeAll(() => setState({ coordinates: { latitude: 35.8256, longitude: 10.6084 } }));
-    matrixSnapshotAsync('outside-delivery-zone', screen, FULL_CASES);
-  });
-
   describe('no stored user location', () => {
     // First run, before the location chooser has been answered.
     beforeAll(() => setState({ coordinates: null }));
@@ -267,9 +260,9 @@ describe('state gates', () => {
   });
 
   it('a user with no stored location still sees delivery offered', async () => {
-    // `isOutsideDeliveryZone` returns false when userCoords is null, so the
-    // delivery option is not disabled proactively. Recorded as behaviour: it is
-    // why `no-user-location` matches `default-pickup-cash`.
+    // Delivery is never disabled by location now, so a missing one changes
+    // nothing. Recorded as behaviour: it is why `no-user-location` matches
+    // `default-pickup-cash`.
     setState({});
     const located = await renderCaseAsync(screen(), CASE);
     setState({ coordinates: null });
@@ -277,11 +270,18 @@ describe('state gates', () => {
     expect(unlocated.styles).toEqual(located.styles);
   });
 
-  it('an establishment outside the delivery zone does change the screen', async () => {
+  it('a distant establishment renders identically to a near one', async () => {
+    // INVERTED deliberately. This used to assert that distance CHANGED the
+    // screen, because the screen disabled delivery beyond MAX_DELIVERY_KM to
+    // mirror a backend gate. Both are gone - delivery is available at any
+    // distance and the distance-based fee carries the cost - so the assertion
+    // now guards the opposite: no distance may disable the delivery option.
+    //
+    // Sousse is ~120 km from the fixture establishment.
     setState({});
-    const inside = await renderCaseAsync(screen(), CASE);
+    const near = await renderCaseAsync(screen(), CASE);
     setState({ coordinates: { latitude: 35.8256, longitude: 10.6084 } });
-    const outside = await renderCaseAsync(screen(), CASE);
-    expect(outside.styles).not.toEqual(inside.styles);
+    const far = await renderCaseAsync(screen(), CASE);
+    expect(far.styles).toEqual(near.styles);
   });
 });
