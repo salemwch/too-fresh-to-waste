@@ -30,8 +30,7 @@ const ids = (input: { shouldShowPrompt: boolean; isLocationModalVisible: boolean
 const WITHOUT_PROMPT: HomeSectionType[] = [
   'searchBar',
   'categoryRail',
-  'impactBanner',
-  'monthlyBagGoal',
+  'heroCarousel',
   'urgentOffers',
   'hottestDeals',
   'pickupToday',
@@ -90,8 +89,7 @@ describe('buildHomeSections', () => {
 
     it('sits above the impact banner and the bag goal', () => {
       const list = ids({ shouldShowPrompt: false, isLocationModalVisible: false });
-      expect(list.indexOf('categoryRail')).toBeLessThan(list.indexOf('impactBanner'));
-      expect(list.indexOf('categoryRail')).toBeLessThan(list.indexOf('monthlyBagGoal'));
+      expect(list.indexOf('categoryRail')).toBeLessThan(list.indexOf('heroCarousel'));
     });
 
     it('sits above every offer carousel, so it is reachable without scrolling', () => {

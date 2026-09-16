@@ -13,9 +13,9 @@
  * Eliminates 600+ lines of duplicated code
  */
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet, FlatList, useWindowDimensions } from 'react-native';
 
 import { Text, Button, Card } from '@/design-system/components/atoms';
 import { SkeletonOfferCard } from '@/design-system/components/molecules';
@@ -26,6 +26,7 @@ import { HOME_UI_CONFIG } from '../constants/homeConstants';
 import type { MascotVariant } from '@/design-system/components/organisms/OfferCard/OfferCard.types';
 import type { OfferListItem } from '@/features/offers/types/offer.types';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { DEAL_CARD_RATIO, getCarouselWidth } from '../utils/carouselWidth';
 
 const { base: sp } = spacingTokens;
 
@@ -119,6 +120,29 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
   mascotVariant,
   mascotCopy,
 }) => {
+  /*
+   * Derived from the live screen width, not a constant. A hardcoded 320px was
+   * 82% of the 390dp phone it was tuned on, 89% of a 360dp one (the common
+   * Android case here, where the peek all but vanished) and WIDER than a 320dp
+   * screen. See utils/carouselWidth.ts.
+   */
+  const { width: screenWidth } = useWindowDimensions();
+  const { cardWidth, snapInterval } = getCarouselWidth({
+    screenWidth,
+    ratio: DEAL_CARD_RATIO,
+    gap: sp[3],
+  });
+
+  /*
+   * Memoised: contentContainerStyle and item styles are compared by identity,
+   * so a fresh object each render re-lays-out every card in the row.
+   */
+  const cardStyle = useMemo(
+    // One merged object, not an array: OfferCard types `style` as a plain
+    // ViewStyle rather than StyleProp<ViewStyle>, so an array is not assignable.
+    () => ({ width: cardWidth, maxWidth: cardWidth, marginEnd: sp[3], marginVertical: 3 }),
+    [cardWidth],
+  );
   const { t } = useTranslation();
   // ============================================================================
   // Memoized renderItem callbacks — stable references for FlatList
@@ -128,11 +152,14 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
     ({ index }: { item: number; index: number }) => (
       <SkeletonOfferCard
         imageAspectRatio={1.8}
-        style={styles.offerCardItem}
+        style={cardStyle}
         testID={`${testIDPrefix}-skeleton-${index}`}
       />
     ),
-    [testIDPrefix],
+    // cardStyle: the card width follows the screen, so a rotation has to
+    // re-render these or the row keeps the old width until something else
+    // happens to invalidate it.
+    [testIDPrefix, cardStyle],
   );
 
   // Hoisted out of renderOfferItem: an inline `offer => onOfferPress(offer.id)`
@@ -152,12 +179,12 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
         imageAspectRatio={1.8}
         onPress={handleOfferPress}
         testID={`${testIDPrefix}-offer-${item.id}`}
-        style={styles.offerCardItem}
+        style={cardStyle}
         {...(mascotVariant != null ? { mascotVariant } : {})}
         {...(mascotCopy != null ? { mascotCopy } : {})}
       />
     ),
-    [variant, handleOfferPress, testIDPrefix, mascotVariant, mascotCopy],
+    [variant, handleOfferPress, testIDPrefix, mascotVariant, mascotCopy, cardStyle],
   );
 
   // ============================================================================
@@ -198,8 +225,8 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
           contentContainerStyle={styles.carouselContainer}
           scrollEnabled={false}
           getItemLayout={(_data, index) => ({
-            length: HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH,
-            offset: HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH * index,
+            length: snapInterval,
+            offset: snapInterval * index,
             index,
           })}
         />
@@ -327,13 +354,13 @@ const HomeOfferSectionComponent: React.FC<HomeOfferSectionProps> = ({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.carouselContainer}
-        snapToInterval={HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH}
+        snapToInterval={snapInterval}
         decelerationRate='fast'
         accessibilityLabel={`${title} carousel`}
         accessibilityHint={t('home.a11yBrowseOffers')}
         getItemLayout={(_data, index) => ({
-          length: HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH,
-          offset: HOME_UI_CONFIG.CAROUSEL_CARD_WIDTH * index,
+          length: snapInterval,
+          offset: snapInterval * index,
           index,
         })}
         // Performance optimizations
@@ -371,8 +398,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   offerCardItem: {
-    width: HOME_UI_CONFIG.CAROUSEL_CARD_VISIBLE_WIDTH,
-    maxWidth: HOME_UI_CONFIG.CAROUSEL_CARD_VISIBLE_WIDTH,
     marginEnd: sp[3],
     marginVertical: 3,
   },

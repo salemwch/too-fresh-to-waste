@@ -42,10 +42,6 @@ export const HOME_UI_CONFIG = {
   SEARCH_DEBOUNCE_MS: 300,
   /** Delay before lazy loading secondary data (milliseconds) */
   LAZY_LOAD_DELAY_MS: 500,
-  /** Width of carousel cards for snap-to-interval (pixels) */
-  CAROUSEL_CARD_WIDTH: 332,
-  /** Visible card width (snap interval minus card margin) */
-  CAROUSEL_CARD_VISIBLE_WIDTH: 320,
   /** Number of skeleton cards to show during loading */
   SKELETON_CARD_COUNT: 3,
   /** Refresh control tint color intensity (0-1) */

@@ -5,6 +5,7 @@
 
 export { HomeSearchBar } from './HomeSearchBar';
 export { HomeCategoryRail } from './HomeCategoryRail';
+export { HomeHeroCarousel } from './HomeHeroCarousel';
 export { HomeOfferSection } from './HomeOfferSection';
 export { SkeletonHomeSearchBar } from './SkeletonHomeSearchBar';
 export { SkeletonHomeCategoryRail } from './SkeletonHomeCategoryRail';

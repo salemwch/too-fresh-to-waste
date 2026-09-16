@@ -24,8 +24,7 @@ export type HomeSectionType =
   | 'locationPrompt'
   | 'searchBar'
   | 'categoryRail'
-  | 'impactBanner'
-  | 'monthlyBagGoal'
+  | 'heroCarousel'
   | 'urgentOffers'
   | 'hottestDeals'
   | 'pickupToday'
@@ -55,8 +54,10 @@ const ALWAYS_PRESENT: readonly HomeSectionType[] = Object.freeze([
   // two ways to narrow the same list, so they belong in one visual group; and
   // at ~56px it keeps the first offer carousel above the fold on a 6.1" screen.
   'categoryRail',
-  'impactBanner',
-  'monthlyBagGoal',
+  // Impact and prize, side by side in one swipeable row. They were two
+  // stacked full-width banners costing ~200dp before the first deal was
+  // visible; on a 360dp phone that pushed Urgent Deals below the fold.
+  'heroCarousel',
   'urgentOffers',
   'hottestDeals',
   'pickupToday',
