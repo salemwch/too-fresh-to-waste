@@ -767,7 +767,13 @@
     "a11ySelectPlace": "Select {{location}} to search nearby offers",
     "mapUnavailable": "Map Unavailable",
     "mapUnavailableDescription": "Unable to load the map. Please check your internet connection and try again.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "offersAvailable_one": "{{count}} offer available",
+    "offersAvailable_other": "{{count}} offers available",
+    "loadingOffers": "Loading offers...",
+    "noOffersAtLocation": "No offers available at this location",
+    "sheetEmptyTitle": "Nothing available right now.",
+    "sheetEmptySubtitle": "Check back later!"
   },
   "loyalty": {
     "myPoints": "My Points",

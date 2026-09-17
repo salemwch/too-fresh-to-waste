@@ -767,7 +767,13 @@
     "a11ySelectPlace": "Sélectionner {{location}} pour chercher des offres à proximité",
     "mapUnavailable": "Carte indisponible",
     "mapUnavailableDescription": "Impossible de charger la carte. Vérifiez votre connexion Internet et réessayez.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "offersAvailable_one": "{{count}} offre disponible",
+    "offersAvailable_other": "{{count}} offres disponibles",
+    "loadingOffers": "Chargement des offres...",
+    "noOffersAtLocation": "Aucune offre disponible à cet endroit",
+    "sheetEmptyTitle": "Rien de disponible pour le moment.",
+    "sheetEmptySubtitle": "Revenez plus tard !"
   },
   "loyalty": {
     "myPoints": "Mes points",

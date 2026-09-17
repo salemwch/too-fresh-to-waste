@@ -771,7 +771,17 @@
     "a11ySelectPlace": "اختر {{location}} للبحث عن عروض قريبة",
     "mapUnavailable": "الخريطة غير متاحة",
     "mapUnavailableDescription": "تعذّر تحميل الخريطة. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
-    "retry": "إعادة المحاولة"
+    "retry": "إعادة المحاولة",
+    "offersAvailable_zero": "لا توجد عروض متاحة",
+    "offersAvailable_one": "عرض واحد متاح",
+    "offersAvailable_two": "عرضان متاحان",
+    "offersAvailable_few": "{{count}} عروض متاحة",
+    "offersAvailable_many": "{{count}} عرضًا متاحًا",
+    "offersAvailable_other": "{{count}} عرض متاح",
+    "loadingOffers": "جارٍ تحميل العروض...",
+    "noOffersAtLocation": "لا توجد عروض متاحة في هذا الموقع",
+    "sheetEmptyTitle": "لا يوجد شيء متاح حاليًا.",
+    "sheetEmptySubtitle": "عد إلينا لاحقًا!"
   },
   "loyalty": {
     "myPoints": "نقاطي",

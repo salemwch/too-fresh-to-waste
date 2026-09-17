@@ -526,7 +526,6 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
                   establishment={selectedEstablishment}
                   onClose={clearSelectedEstablishment}
                   onOfferPress={openOffer}
-                  bottomInset={0}
                 />
               )}
 

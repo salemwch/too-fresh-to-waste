@@ -8,17 +8,19 @@
  * Animation pattern reused from PlaceOffersBottomSheet (spring + timing parallel).
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, Animated, Pressable, Dimensions } from 'react-native';
+import { View, StyleSheet, Animated, Pressable, useWindowDimensions } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import FastImage from 'react-native-fast-image';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { FavoriteOfferCard } from '@/features/favorites';
+import { useFloatingTabBarInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 import { distanceToMeters, mapOfferSummaryToListItem } from '../../utils/offerMappers';
+import { getMapSheetGeometry } from '../../utils/mapSheetGeometry';
 
 import type {
   ProximitySearchResult,
@@ -29,8 +31,6 @@ import { spacingTokens } from '@/design-system/tokens/spacing';
 
 const { base: sp } = spacingTokens;
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
 const SHEET_SHADOW = '#000';
 
 // ============================================================================
@@ -46,8 +46,6 @@ interface EstablishmentBottomSheetProps {
   onClose: () => void;
   /** Called when an offer is tapped */
   onOfferPress: (offerId: string) => void;
-  /** Extra bottom inset to keep sheet above tab bar */
-  bottomInset?: number;
 }
 
 // ============================================================================
@@ -59,12 +57,34 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
   establishment,
   onClose,
   onOfferPress,
-  bottomInset = 0,
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [slideAnim] = useState(() => new Animated.Value(SHEET_HEIGHT));
+
+  /*
+   * The sheet is sized around the floating tab bar rather than ignoring it -
+   * see `utils/mapSheetGeometry.ts` for why it grows instead of lifting.
+   */
+  const { height: screenHeight } = useWindowDimensions();
+  const tabBarInset = useFloatingTabBarInset();
+  const { sheetHeight, listPaddingBottom } = useMemo(
+    () => getMapSheetGeometry({ screenHeight, tabBarInset }),
+    [screenHeight, tabBarInset],
+  );
+
+  // Initialised from the first computed height; the effect below keeps the
+  // hidden position in step if the height changes (rotation, inset arriving
+  // late), or the sheet would rest part-way off screen.
+  const [slideAnim] = useState(() => new Animated.Value(sheetHeight));
   const [opacityAnim] = useState(() => new Animated.Value(0));
+
+  const sheetStyle = useMemo(() => ({ height: sheetHeight }), [sheetHeight]);
+  // FlashList compares contentContainerStyle by identity, so this has to be
+  // memoised - see `.claude/rules/performance.md`.
+  const listContentStyle = useMemo(
+    () => ({ paddingHorizontal: 16, paddingBottom: 16 + listPaddingBottom }),
+    [listPaddingBottom],
+  );
 
   useEffect(() => {
     if (visible) {
@@ -84,7 +104,7 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, {
-          toValue: SHEET_HEIGHT,
+          toValue: sheetHeight,
           duration: 200,
           useNativeDriver: true,
         }),
@@ -95,7 +115,7 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
         }),
       ]).start();
     }
-  }, [visible, slideAnim, opacityAnim]);
+  }, [visible, slideAnim, opacityAnim, sheetHeight]);
 
   const item = establishment?.item;
   const distanceMeters = establishment ? distanceToMeters(establishment.distance) : 0;
@@ -143,23 +163,24 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
           lineHeight={24}
           style={styles.emptyTitle}
         >
-          Nothing available right now.
+          {t('search.sheetEmptyTitle')}
         </Text>
         <Text variant='body' size='sm' color='secondary' align='center' lineHeight={20}>
-          Check back later!
+          {t('search.sheetEmptySubtitle')}
         </Text>
-        <Pressable
-          accessibilityRole='button'
-          style={[styles.notifyButton, { borderColor: theme.colors.outline }]}
-          disabled
-        >
-          <Text variant='label' size='sm' color='secondary' lineHeight={20}>
-            Notify Me
-          </Text>
-        </Pressable>
+        {/*
+          A "Notify Me" button used to sit here. It was hardcoded `disabled`
+          with `opacity: 0.5` and had no `onPress` at all, and nothing behind it
+          existed either: no subscribe endpoint, and `notifyEstablishmentFollowers`
+          in `websocket/gateways/offer.gateway.ts` is defined but never called by
+          anything. So it was a control that could never be pressed and would
+          have done nothing if it could. Removed rather than left as a promise
+          the app cannot keep - DESIGN.md's empty state needs icon + heading +
+          subtext, and the CTA is optional.
+        */}
       </View>
     ),
-    [theme.colors],
+    [theme.colors, t],
   );
 
   const initial = item?.name?.charAt(0).toUpperCase() ?? '?';
@@ -170,8 +191,8 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
     <Animated.View
       style={[
         styles.container,
+        sheetStyle,
         {
-          bottom: bottomInset,
           opacity: opacityAnim,
           transform: [{ translateY: slideAnim }],
         },
@@ -262,7 +283,7 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
         {(item?.activeOfferCount ?? 0) > 0 && (
           <View style={styles.countRow}>
             <Text variant='label' size='sm' weight='semibold' color='primary' lineHeight={20}>
-              {item!.activeOfferCount} {item!.activeOfferCount === 1 ? 'offer' : 'offers'} available
+              {t('search.offersAvailable', { count: item!.activeOfferCount })}
             </Text>
           </View>
         )}
@@ -273,7 +294,7 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
           keyExtractor={o => o._id}
           renderItem={renderItem}
           ListEmptyComponent={renderEmpty}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={listContentStyle}
           showsVerticalScrollIndicator={false}
           estimatedItemSize={120}
         />
@@ -288,10 +309,12 @@ export const EstablishmentBottomSheet: React.FC<EstablishmentBottomSheetProps> =
 
 const styles = StyleSheet.create({
   container: {
+    // Anchored at 0 and given its height inline: the height depends on the
+    // safe-area inset, which is not known at module scope.
     position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
-    height: SHEET_HEIGHT,
     zIndex: 200,
   },
   sheet: {
@@ -362,10 +385,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
   offerCard: {
     marginVertical: 4,
   },
@@ -386,13 +405,5 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     marginBottom: 4,
-  },
-  notifyButton: {
-    marginTop: 16,
-    paddingHorizontal: sp[5],
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    opacity: 0.5,
   },
 });

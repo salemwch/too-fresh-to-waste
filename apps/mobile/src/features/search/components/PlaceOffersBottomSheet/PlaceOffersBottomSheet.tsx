@@ -9,24 +9,31 @@
  * @module PlaceOffersBottomSheet
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, Animated, Pressable, ActivityIndicator, Dimensions } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Animated,
+  Pressable,
+  ActivityIndicator,
+  useWindowDimensions,
+} from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { FavoriteOfferCard } from '@/features/favorites';
+import { useFloatingTabBarInset } from '@/navigation/hooks/useFloatingTabBarInset';
 
 import { nearbyOfferToListItem } from '../../utils/offerMappers';
+import { getMapSheetGeometry } from '../../utils/mapSheetGeometry';
 
 import type { ProximitySearchResult, NearbyOffer } from '@/features/offers/hooks';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
 const { base: sp } = spacingTokens;
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
 const SHEET_SHADOW = '#000';
 
 // ============================================================================
@@ -65,8 +72,31 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [slideAnim] = useState(() => new Animated.Value(SHEET_HEIGHT));
+
+  /*
+   * The sheet is sized around the floating tab bar rather than ignoring it -
+   * see `utils/mapSheetGeometry.ts` for why it grows instead of lifting.
+   */
+  const { height: screenHeight } = useWindowDimensions();
+  const tabBarInset = useFloatingTabBarInset();
+  const { sheetHeight, listPaddingBottom } = useMemo(
+    () => getMapSheetGeometry({ screenHeight, tabBarInset }),
+    [screenHeight, tabBarInset],
+  );
+
+  // Initialised from the first computed height; the effect below keeps the
+  // hidden position in step if the height changes (rotation, inset arriving
+  // late), or the sheet would rest part-way off screen.
+  const [slideAnim] = useState(() => new Animated.Value(sheetHeight));
   const [opacityAnim] = useState(() => new Animated.Value(0));
+
+  const sheetStyle = useMemo(() => ({ height: sheetHeight }), [sheetHeight]);
+  // FlashList compares contentContainerStyle by identity, so this has to be
+  // memoised - see `.claude/rules/performance.md`.
+  const listContentStyle = useMemo(
+    () => ({ paddingHorizontal: 16, paddingBottom: 16 + listPaddingBottom }),
+    [listPaddingBottom],
+  );
 
   useEffect(() => {
     if (visible) {
@@ -86,7 +116,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, {
-          toValue: SHEET_HEIGHT,
+          toValue: sheetHeight,
           duration: 200,
           useNativeDriver: true,
         }),
@@ -97,7 +127,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
         }),
       ]).start();
     }
-  }, [visible, slideAnim, opacityAnim]);
+  }, [visible, slideAnim, opacityAnim, sheetHeight]);
 
   const renderItem = useCallback(
     ({ item }: { item: ProximitySearchResult<NearbyOffer> }) => {
@@ -122,7 +152,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
         <View style={styles.centerContent}>
           <ActivityIndicator size='large' color={theme.colors.primary} />
           <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
-            Loading offers...
+            {t('search.loadingOffers')}
           </Text>
         </View>
       );
@@ -137,16 +167,17 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
           color={theme.colors.onSurfaceVariant}
         />
         <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-          No offers available at this location
+          {t('search.noOffersAtLocation')}
         </Text>
       </View>
     );
-  }, [isLoading, theme.colors]);
+  }, [isLoading, theme.colors, t]);
 
   return (
     <Animated.View
       style={[
         styles.container,
+        sheetStyle,
         {
           opacity: opacityAnim,
           transform: [{ translateY: slideAnim }],
@@ -186,7 +217,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
         {!isLoading && offers.length > 0 && (
           <View style={styles.countRow}>
             <Text variant='label' size='sm' weight='semibold' color='primary'>
-              {offers.length} {offers.length === 1 ? 'offer' : 'offers'} available
+              {t('search.offersAvailable', { count: offers.length })}
             </Text>
           </View>
         )}
@@ -197,7 +228,7 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
           keyExtractor={item => item.item._id}
           renderItem={renderItem}
           ListEmptyComponent={renderEmpty}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={listContentStyle}
           showsVerticalScrollIndicator={false}
           estimatedItemSize={120}
         />
@@ -212,11 +243,12 @@ export const PlaceOffersBottomSheet: React.FC<PlaceOffersBottomSheetProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    // Anchored at 0 and given its height inline: the height depends on the
+    // safe-area inset, which is not known at module scope.
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: SHEET_HEIGHT,
     zIndex: 200,
   },
   sheet: {
@@ -259,10 +291,6 @@ const styles = StyleSheet.create({
   countRow: {
     paddingHorizontal: 16,
     paddingBottom: 8,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
   },
   offerCard: {
     marginVertical: 6,
