@@ -164,10 +164,7 @@ export interface ConfirmPickupDto {
  * Error codes returned by the confirm-pickup endpoint
  */
 export type PickupErrorCode =
-  | 'CODE_EXPIRED'
-  | 'PICKUP_ALREADY_DONE'
-  | 'PICKUP_LOCKED'
-  | 'ORDER_NOT_READY';
+  'CODE_EXPIRED' | 'PICKUP_ALREADY_DONE' | 'PICKUP_LOCKED' | 'ORDER_NOT_READY';
 
 /**
  * Paginated response from GET /orders/my-orders

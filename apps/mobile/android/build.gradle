@@ -125,11 +125,11 @@ allprojects {
             // react-native-geolocation-service 5.3.1 compatible with GMS 21.3.0
             // react-native-maps 1.15.6 (stable with RN 0.81.0) uses GMS Maps 18.0.x
             // Source: https://firebase.google.com/support/release-notes/android
-            force("com.google.android.gms:play-services-base:18.5.0")
+            force("com.google.android.gms:play-services-base:18.10.1")
             force("com.google.android.gms:play-services-location:21.3.0")
             force("com.google.android.gms:play-services-maps:19.0.0")
             force("com.google.android.gms:play-services-basement:18.4.0")
-            force("com.google.android.gms:play-services-tasks:18.2.0")
+            force("com.google.android.gms:play-services-tasks:18.4.1")
 
             // Substitute old react-native artifact with react-android for React Native 0.81+
             // Libraries like jail-monkey use com.facebook.react:react-native:+ which no longer exists
@@ -145,16 +145,16 @@ allprojects {
             // Fixes Snyk-flagged io.netty, protobuf, and junit vulnerabilities
             // from AGP test infrastructure and Firebase/gRPC transitive deps.
             // ================================================================
-            force("io.netty:netty-codec-http2:4.1.137.Final")
-            force("io.netty:netty-codec-http:4.1.137.Final")
-            force("io.netty:netty-codec:4.1.137.Final")
-            force("io.netty:netty-handler:4.1.137.Final")
-            force("io.netty:netty-handler-proxy:4.1.137.Final")
-            force("io.netty:netty-common:4.1.137.Final")
-            force("io.netty:netty-transport:4.1.137.Final")
-            force("io.netty:netty-transport-native-unix-common:4.1.137.Final")
-            force("io.netty:netty-buffer:4.1.137.Final")
-            force("io.netty:netty-resolver:4.1.137.Final")
+            force("io.netty:netty-codec-http2:4.2.18.Final")
+            force("io.netty:netty-codec-http:4.2.18.Final")
+            force("io.netty:netty-codec:4.2.18.Final")
+            force("io.netty:netty-handler:4.2.18.Final")
+            force("io.netty:netty-handler-proxy:4.2.18.Final")
+            force("io.netty:netty-common:4.2.18.Final")
+            force("io.netty:netty-transport:4.2.18.Final")
+            force("io.netty:netty-transport-native-unix-common:4.2.18.Final")
+            force("io.netty:netty-buffer:4.2.18.Final")
+            force("io.netty:netty-resolver:4.2.18.Final")
             force("com.google.protobuf:protobuf-java:3.25.5")
             force("junit:junit:4.13.2")
             force("org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
