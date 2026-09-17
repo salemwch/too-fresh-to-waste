@@ -8,8 +8,6 @@
  * drift apart.
  */
 
-import { I18nManager } from 'react-native';
-
 import {
   BAND_RATIO,
   TAB_BAND_HEIGHT,
@@ -19,7 +17,6 @@ import {
   TAB_CIRCLE_SIZE,
   TAB_OVERLAP,
   getFloatingTabBarLayout,
-  visualTabIndex,
 } from '../floatingTabBarLayout';
 
 const layout = (tabCount = 5, bottomInset = 0) =>
@@ -151,57 +148,10 @@ describe('degenerate input cannot produce an invisible bar', () => {
   });
 });
 
-describe('RTL mapping', () => {
-  const withRTL = (isRTL: boolean, run: () => void) => {
-    const previous = I18nManager.isRTL;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (I18nManager as any).isRTL = isRTL;
-    try {
-      run();
-    } finally {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (I18nManager as any).isRTL = previous;
-    }
-  };
-
-  it('is identity in LTR', () => {
-    withRTL(false, () => {
-      expect([0, 1, 2, 3, 4].map(i => visualTabIndex(i, 5))).toEqual([0, 1, 2, 3, 4]);
-    });
-  });
-
-  it('reverses in RTL', () => {
-    withRTL(true, () => {
-      expect([0, 1, 2, 3, 4].map(i => visualTabIndex(i, 5))).toEqual([4, 3, 2, 1, 0]);
-    });
-  });
-
-  it('is its own inverse in RTL', () => {
-    // Guards against a mapping that flips the painted circle but not the hit
-    // area, which is how a tab activates its neighbour.
-    withRTL(true, () => {
-      for (let i = 0; i < 5; i++) {
-        expect(visualTabIndex(visualTabIndex(i, 5), 5)).toBe(i);
-      }
-    });
-  });
-
-  it('never maps outside the circle array in either direction', () => {
-    for (const rtl of [false, true]) {
-      withRTL(rtl, () => {
-        const { circleCentres } = layout(5);
-        for (const i of [-4, 0, 2, 4, 99]) {
-          const mapped = visualTabIndex(i, 5);
-          expect(circleCentres[mapped]).toBeDefined();
-        }
-      });
-    }
-  });
-
-  it('clamps an out-of-range index to an end tab', () => {
-    withRTL(false, () => {
-      expect(visualTabIndex(-1, 5)).toBe(0);
-      expect(visualTabIndex(99, 5)).toBe(4);
-    });
-  });
-});
+/*
+ * The 'RTL mapping' suite that stood here covered `visualTabIndex`, which no
+ * longer exists - see the note where it used to live in the util. Its job is
+ * now done by `components/__tests__/FloatingTabBar.rtl.test.tsx`, which asserts
+ * the thing that actually matters: the active disc renders inside the focused
+ * tab, in both directions.
+ */

@@ -22,8 +22,6 @@
  * re-typed at each call site.
  */
 
-import { I18nManager } from 'react-native';
-
 /** Circle diameter. The only free variable; everything else derives from it. */
 export const TAB_CIRCLE_SIZE = 70;
 
@@ -135,18 +133,18 @@ export const getFloatingTabBarLayout = ({
   };
 };
 
-/**
- * Map a route index to the circle it should light up.
+/*
+ * `visualTabIndex` used to live here: it mapped a route index to the circle it
+ * should light up, reversing under `I18nManager.isRTL`.
  *
- * SVG coordinates do not mirror under RTL - `I18nManager` flips flexbox and the
- * `start`/`end` style props, but an `x` attribute is still an `x` attribute. So
- * the silhouette is laid out left-to-right in both directions (it is symmetric,
- * so it looks identical either way) and only the *mapping* flips. Touch targets
- * are positioned with `left` from these same values, which likewise does not
- * mirror, so the icon and its hit area cannot drift apart.
+ * Deleted on 2026-09-16, and deliberately not replaced. It existed to mirror an
+ * index by hand so that a manually-positioned disc would agree with manually-
+ * positioned icons, and the two disagreed anyway - the platform mirrors some of
+ * those coordinate systems and not others, and which ones turned out to depend
+ * on how the app had been restarted. `FloatingTabBar` now lays the tabs out as
+ * a flex row with the disc inside the focused tab, so there is no index to
+ * mirror and nothing that can drift out of step.
+ *
+ * If you are about to add it back, read the comment on the row in
+ * `FloatingTabBar.tsx` first: the bug it caused is described there in full.
  */
-export const visualTabIndex = (routeIndex: number, tabCount: number): number => {
-  const count = safeCount(tabCount);
-  const clamped = Math.min(Math.max(routeIndex, 0), count - 1);
-  return I18nManager.isRTL ? count - 1 - clamped : clamped;
-};

@@ -50,8 +50,8 @@ import {
   TAB_BAR_TOP_PAD,
   TAB_CANVAS_PAD,
   TAB_CIRCLE_SIZE,
+  TAB_OVERLAP,
   getFloatingTabBarLayout,
-  visualTabIndex,
 } from '../utils/floatingTabBarLayout';
 
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -334,8 +334,6 @@ const FloatingTabBarComponent = ({
   const radius = TAB_CIRCLE_SIZE / 2;
   const bandY = (TAB_CIRCLE_SIZE - bandHeight) / 2;
 
-  const activeCentre = circleCentres[visualTabIndex(state.index, tabCount)];
-
   /** Band + every circle. Same fill, so the union has no internal seams. */
   const silhouette = (
     <>
@@ -385,55 +383,82 @@ const FloatingTabBarComponent = ({
           {/* Translated by the blur bleed so the soft edge is not clipped. */}
           <G x={TAB_CANVAS_PAD} y={TAB_CANVAS_PAD}>
             <G filter={`url(#${SHADOW.id})`}>{silhouette}</G>
-            {activeCentre !== undefined && (
-              <Circle cx={activeCentre} cy={radius} r={radius} fill={COLORS.active} />
-            )}
           </G>
         </Svg>
 
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
-          const centre = circleCentres[visualTabIndex(index, tabCount)];
-          if (centre === undefined) {
-            return null;
-          }
+        {/*
+         * ONE ROW, AND THE DISC LIVES INSIDE THE TAB IT MARKS.
+         *
+         * This was five absolutely-positioned targets at
+         * `left: circleCentres[visualTabIndex(index)]`, with the coral disc
+         * drawn separately - first as an SVG <Circle>, then as another absolute
+         * View. Both versions put the disc and the icons in SEPARATE coordinate
+         * systems, and under RTL those systems did not agree. Measured on one
+         * device, one build, one locale, differing only in how it was restarted:
+         *
+         *   restarted from inside the app   JS isRTL false, native layout RTL
+         *   restarted cold from the launcher JS isRTL true, native layout RTL
+         *
+         * so `visualTabIndex` and the platform's own mirroring each applied, or
+         * did not, independently of each other. The disc landed on the wrong
+         * tab, and the focused icon - painted WHITE so it reads on coral - ended
+         * up on a plain white circle and disappeared. A different icon vanished
+         * on every tab change, which is exactly how it was reported.
+         *
+         * A flex row removes the disagreement instead of compensating for it.
+         * `flexDirection: 'row'` and `marginStart` are mirrored by the layout
+         * engine itself, and the disc is a CHILD of the focused tab, so nothing
+         * computes where it goes. There is no longer anything that can drift:
+         * the result is identical whichever value `isRTL` holds, which is what
+         * makes it safe across both restart paths above.
+         *
+         * `justifyContent: 'center'` is what keeps the row on the painted
+         * silhouette: the row's content is exactly `shapeWidth` wide, the canvas
+         * is that plus the blur bleed either side, and the silhouette is
+         * symmetric - so slot k lands on a drawn circle in either direction.
+         */}
+        <View style={styles.row} pointerEvents='box-none'>
+          {state.routes.map((route, index) => {
+            const isFocused = state.index === index;
 
-          /*
-           * Optional-chained rather than defaulted to `{ options: {} }`: that
-           * fallback widens the type to `{}` and loses `title` entirely.
-           */
-          const label = descriptors[route.key]?.options.title ?? route.name;
+            /*
+             * Optional-chained rather than defaulted to `{ options: {} }`: that
+             * fallback widens the type to `{}` and loses `title` entirely.
+             */
+            const label = descriptors[route.key]?.options.title ?? route.name;
 
-          return (
-            <Pressable
-              key={route.key}
-              onPress={() => handlePress(route.key, route.name, isFocused)}
-              onLongPress={() => handleLongPress(route.key)}
-              /*
-               * `left`, not `start`. SVG x-coordinates do not mirror under RTL,
-               * so the touch target must not either - `visualTabIndex` above is
-               * what flips the mapping. Using `start` here would mirror the hit
-               * areas while the painted circles stayed put.
-               */
-              style={[styles.target, { left: TAB_CANVAS_PAD + centre - radius }]}
-              accessibilityRole='tab'
-              accessibilityState={{ selected: isFocused }}
-              accessibilityLabel={label}
-              accessibilityHint={t('tabs.a11ySwitchHint', { tab: label })}
-              testID={`tab-${route.name}`}
-            >
-              <View style={styles.iconWrapper}>
-                <Icon
-                  name={iconName(route.name, isFocused)}
-                  family='Ionicons'
-                  size={ICON_SIZE}
-                  color={isFocused ? COLORS.iconActive : COLORS.iconRest}
-                />
-                {route.name === 'Profile' && <VotingLiveDot />}
-              </View>
-            </Pressable>
-          );
-        })}
+            return (
+              <Pressable
+                key={route.key}
+                onPress={() => handlePress(route.key, route.name, isFocused)}
+                onLongPress={() => handleLongPress(route.key)}
+                style={[styles.slot, index > 0 && styles.slotOverlap]}
+                accessibilityRole='tab'
+                accessibilityState={{ selected: isFocused }}
+                accessibilityLabel={label}
+                accessibilityHint={t('tabs.a11ySwitchHint', { tab: label })}
+                testID={`tab-${route.name}`}
+              >
+                {isFocused && (
+                  <View
+                    style={styles.activeCircle}
+                    pointerEvents='none'
+                    testID='floating-tab-bar-active-circle'
+                  />
+                )}
+                <View style={styles.iconWrapper}>
+                  <Icon
+                    name={iconName(route.name, isFocused)}
+                    family='Ionicons'
+                    size={ICON_SIZE}
+                    color={isFocused ? COLORS.iconActive : COLORS.iconRest}
+                  />
+                  {route.name === 'Profile' && <VotingLiveDot />}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -481,20 +506,51 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  target: {
-    position: 'absolute',
-    /*
-     * TAB_CANVAS_PAD, not 0. The silhouette is drawn inside a <G> translated by
-     * the blur bleed, so every circle centre sits that far down the canvas. A
-     * target at top 0 puts the icon a full 16px above its circle - which is
-     * exactly what shipped, and it is only visible once you look for it.
-     */
-    top: TAB_CANVAS_PAD,
+  /**
+   * Covers the whole canvas and centres its content, so the five slots land on
+   * the five painted circles with no hardcoded offset anywhere. Mirrored by the
+   * layout engine under RTL, which is the entire point - see the note on the
+   * row above.
+   *
+   * `box-none` on the element: the row must not swallow a tap meant for
+   * content showing through the gap above the shape.
+   */
+  row: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: TAB_CANVAS_PAD,
+  },
+  /** One tab: touch target, disc box and icon box in a single element. */
+  slot: {
     width: TAB_CIRCLE_SIZE,
     height: TAB_CIRCLE_SIZE,
     borderRadius: TAB_CIRCLE_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  /**
+   * `marginStart`, not `marginLeft`: the overlap has to follow the reading
+   * direction, and the logical prop is the one the layout engine mirrors. This
+   * is what fuses the discs into one silhouette rather than a row of separate
+   * buttons - see TAB_OVERLAP.
+   */
+  slotOverlap: {
+    marginStart: -TAB_OVERLAP,
+  },
+  /**
+   * The coral disc under the focused tab. Absolutely fills its OWN slot, so it
+   * cannot be anywhere except exactly under that tab's icon.
+   *
+   * No `elevation` and no `overflow: 'hidden'` - rule 11 in
+   * `.claude/rules/mobile.md`. It needs neither: the shadow belongs to the
+   * silhouette underneath, and this disc only has to be filled.
+   */
+  activeCircle: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: TAB_CIRCLE_SIZE / 2,
+    backgroundColor: COLORS.active,
   },
   /** Anchor for VotingLiveDot, which positions itself absolutely. */
   iconWrapper: {
