@@ -129,7 +129,7 @@ allprojects {
             force("com.google.android.gms:play-services-location:21.3.0")
             force("com.google.android.gms:play-services-maps:19.0.0")
             force("com.google.android.gms:play-services-basement:18.4.0")
-            force("com.google.android.gms:play-services-tasks:18.2.0")
+            force("com.google.android.gms:play-services-tasks:18.4.1")
 
             // Substitute old react-native artifact with react-android for React Native 0.81+
             // Libraries like jail-monkey use com.facebook.react:react-native:+ which no longer exists
