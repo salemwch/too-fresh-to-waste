@@ -148,7 +148,7 @@
     "winston": "^3.18.3",
     "winston-daily-rotate-file": "^5.0.0",
     "xml2js": "^0.6.2",
-    "@zxcvbn-ts/core": "4.1.2",
+    "@zxcvbn-ts/core": "4.2.0",
     "@zxcvbn-ts/language-common": "4.1.1",
     "@zxcvbn-ts/language-en": "4.1.1"
   },
