@@ -1,22 +1,20 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Animated,
-  Easing,
-  Image,
-  I18nManager,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated, Easing, Image } from 'react-native';
 
 import { useMonthlyBagGoal } from '../hooks/useMonthlyBagGoal';
 import { Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
-import { mirrorIconName } from '@/design-system/components/atoms/Icon/rtlMirror';
 import { SkeletonMonthlyBagGoal } from './SkeletonMonthlyBagGoal';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import {
+  HERO_CARD_HEIGHT,
+  HERO_CARD_ILLUSTRATION_HEIGHT,
+  HERO_CARD_ILLUSTRATION_WIDTH,
+  HERO_CARD_OUTER_PADDING_Y,
+  HERO_CARD_PADDING,
+  HERO_CARD_RADIUS,
+} from '../utils/heroCard';
 
 import boxCardImg from '../../../assets/images/box-card.webp';
 
@@ -103,13 +101,26 @@ const MonthlyBagGoalBannerComponent: React.FC<MonthlyBagGoalBannerProps> = ({ on
   const { currentCount, targetCount, progressPercentage } = stats;
   const seasonName = stats.seasonName ?? t('home.challengeDefault');
 
+  /*
+   * Fourth line, added so this card fills the same HERO_CARD_HEIGHT as the
+   * impact card beside it. It is real data rather than filler: `remaining` is
+   * the only number here that tells the user what THEY can still do.
+   *
+   * `remaining` can arrive negative once a goal is overshot (the backend keeps
+   * counting bags past the target), so the completed copy is gated on <= 0,
+   * not === 0. Both branches are one line, so the height holds either way.
+   */
+  const remainingBags = Math.max(0, stats.remaining ?? 0);
+  const remainingLabel =
+    remainingBags > 0 ? t('home.bagsToGo', { count: remainingBags }) : t('home.goalReached');
+
   return (
     <View style={styles.container}>
       <Pressable
         style={styles.card}
         onPress={handlePress}
         accessibilityRole='button'
-        accessibilityLabel={`${seasonName}: ${currentCount} / ${targetCount}`}
+        accessibilityLabel={`${seasonName}: ${currentCount} / ${targetCount} - ${remainingLabel}`}
         accessibilityHint={t('common.a11yOpensDetailsHint')}
         testID='community-bag-goal-banner'
       >
@@ -125,7 +136,7 @@ const MonthlyBagGoalBannerComponent: React.FC<MonthlyBagGoalBannerProps> = ({ on
             {seasonName} {'\u{1F389}'}
           </Text>
 
-          <Text style={styles.progressText}>
+          <Text style={styles.progressText} numberOfLines={1}>
             <Text style={styles.progressCount}>{currentCount.toLocaleString()}</Text>
             <Text style={styles.progressTotal}>
               {' '}
@@ -138,14 +149,15 @@ const MonthlyBagGoalBannerComponent: React.FC<MonthlyBagGoalBannerProps> = ({ on
             color={COLORS.green}
             trackColor={COLORS.progressTrack}
           />
+
+          <Text style={styles.remainingText} numberOfLines={1}>
+            {remainingLabel}
+          </Text>
         </View>
 
         <View style={styles.chevronBtn}>
-          <Icon
-            name={mirrorIconName('chevron-forward', I18nManager.isRTL) as 'chevron-forward'}
-            size={18}
-            color={COLORS.brand}
-          />
+          {/* <Icon> mirrors directional glyphs itself - see Icon/rtlMirror.ts. */}
+          <Icon name='chevron-forward' size={18} color={COLORS.brand} />
         </View>
       </Pressable>
     </View>
@@ -154,17 +166,17 @@ const MonthlyBagGoalBannerComponent: React.FC<MonthlyBagGoalBannerProps> = ({ on
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 4,
+    paddingVertical: HERO_CARD_OUTER_PADDING_Y,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.brand,
-    borderRadius: 16,
-    padding: sp.md,
-    // Matches ImpactBanner.card exactly — the two cards stack, so any
-    // difference in height reads as a defect. Change both together.
-    minHeight: 96,
+    borderRadius: HERO_CARD_RADIUS,
+    padding: HERO_CARD_PADDING,
+    // Fixed, and taken from the same constant as ImpactBanner. The two cards
+    // are swiped between in one row, so any difference reads as a defect.
+    height: HERO_CARD_HEIGHT,
     shadowColor: COLORS.brandDark,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
@@ -172,8 +184,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   illustration: {
-    width: 90,
-    height: 62,
+    // Same box as ImpactBanner's, so both text columns get the same width.
+    width: HERO_CARD_ILLUSTRATION_WIDTH,
+    height: HERO_CARD_ILLUSTRATION_HEIGHT,
     marginEnd: sp[3],
     marginStart: -4,
   },
@@ -190,7 +203,10 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 13,
-    marginBottom: 8,
+    lineHeight: 18,
+    // 6, not 8: the fourth line below the bar has to fit the same fixed height
+    // the impact card uses. See `utils/heroCard.ts` for the line budget.
+    marginBottom: 6,
   },
   progressCount: {
     fontWeight: '700',
@@ -208,6 +224,12 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 3,
+  },
+  remainingText: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 6,
+    color: COLORS.textOnBrandMuted,
   },
   chevronBtn: {
     width: 36,

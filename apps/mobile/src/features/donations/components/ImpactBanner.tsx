@@ -1,13 +1,21 @@
 import React, { memo, useCallback } from 'react';
+import { readingGradient } from '@/utils/rtl';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, Pressable, Image, I18nManager } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { useDonationStats } from '../hooks/useDonations';
 import { Icon } from '@/design-system/components/atoms';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { spacingTokens } from '@/design-system/tokens/spacing';
-import { mirrorIconName } from '@/design-system/components/atoms/Icon/rtlMirror';
+import {
+  HERO_CARD_HEIGHT,
+  HERO_CARD_ILLUSTRATION_HEIGHT,
+  HERO_CARD_ILLUSTRATION_WIDTH,
+  HERO_CARD_OUTER_PADDING_Y,
+  HERO_CARD_PADDING,
+  HERO_CARD_RADIUS,
+} from '@/features/home/utils/heroCard';
 import { SkeletonImpactBanner } from './SkeletonImpactBanner';
 
 import saveLivesImg from '../../../assets/images/save-lives.webp';
@@ -58,9 +66,10 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
       >
         <LinearGradient
           colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
+          start={readingGradient(0.5, 0.5).start}
+          end={readingGradient(0.5, 0.5).end}
           style={styles.card}
+          testID='impact-banner-card'
         >
           <Image
             source={saveLivesImg}
@@ -69,28 +78,34 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
             resizeMode='cover'
           />
 
+          {/*
+            Every line is capped: the card is a fixed HERO_CARD_HEIGHT so it
+            matches the prize card beside it, and uncapped copy would overflow
+            that box rather than grow it. See `utils/heroCard.ts`.
+
+            The 💚 that used to close the title is gone with the cap - the title
+            is the one run that legitimately needs two lines, and the emoji
+            pushed French onto a third. The hearts illustration beside it
+            already carries that note.
+          */}
           <View style={styles.textContent}>
-            <Text style={styles.title}>
-              {t('home.impactTitle')} {'\u{1F49A}'}
+            <Text style={styles.title} numberOfLines={2}>
+              {t('home.impactTitle')}
             </Text>
-            <Text style={styles.amountLine}>
+            <Text style={styles.amountLine} numberOfLines={1}>
               <Text style={styles.amount}>
                 {totalDonations.toFixed(2)} {currency}
               </Text>
               <Text style={styles.amountSuffix}> {t('home.raisedSoFar')}</Text>
             </Text>
-            <Text style={styles.contributorLine}>
-              {t('home.contributorCount', { count: contributorCount })} {'·'}{' '}
-              <Text style={styles.cta}>{t('home.beTheNext')}</Text>
+            <Text style={styles.contributorLine} numberOfLines={1}>
+              {t('home.contributorCount', { count: contributorCount })}
             </Text>
           </View>
 
           <View style={styles.chevronBtn}>
-            <Icon
-              name={mirrorIconName('chevron-forward', I18nManager.isRTL) as 'chevron-forward'}
-              size={18}
-              color={COLORS.textPrimary}
-            />
+            {/* <Icon> mirrors directional glyphs itself - see Icon/rtlMirror.ts. */}
+            <Icon name='chevron-forward' size={18} color={COLORS.textPrimary} />
           </View>
         </LinearGradient>
       </Pressable>
@@ -100,15 +115,17 @@ const ImpactBannerComponent: React.FC<ImpactBannerProps> = ({ onExpand }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 4,
+    paddingVertical: HERO_CARD_OUTER_PADDING_Y,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
-    padding: sp.md,
-    // Height reduced 120 -> 96 on 2026-09-14; width is untouched.
-    minHeight: 96,
+    borderRadius: HERO_CARD_RADIUS,
+    padding: HERO_CARD_PADDING,
+    // Fixed, not minHeight: this card and MonthlyBagGoalBanner are swiped
+    // between in one row, so any difference reads as a defect. Both take the
+    // height from the same constant - change it there, never here.
+    height: HERO_CARD_HEIGHT,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -116,8 +133,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   illustration: {
-    width: 90,
-    height: 62,
+    // Narrowed 90 -> 72: the text column was 120dp wide, which wrapped the
+    // amount onto a second line. The illustration is decorative; the amount is
+    // the one number this card exists to show.
+    width: HERO_CARD_ILLUSTRATION_WIDTH,
+    height: HERO_CARD_ILLUSTRATION_HEIGHT,
     borderRadius: 8,
     marginEnd: sp[3],
   },
@@ -149,11 +169,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
     lineHeight: 17,
-  },
-  cta: {
-    color: COLORS.success,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
   },
   chevronBtn: {
     width: 36,

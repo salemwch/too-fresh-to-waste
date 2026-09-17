@@ -4,6 +4,12 @@ import { View, StyleSheet } from 'react-native';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import {
+  HERO_CARD_HEIGHT,
+  HERO_CARD_OUTER_PADDING_Y,
+  HERO_CARD_PADDING,
+  HERO_CARD_RADIUS,
+} from '../utils/heroCard';
 
 const { base: sp } = spacingTokens;
 
@@ -43,14 +49,17 @@ export const SkeletonMonthlyBagGoal = memo(SkeletonMonthlyBagGoalComponent);
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 8,
+    // 8 -> HERO_CARD_OUTER_PADDING_Y (4): the skeleton used to be 8dp taller
+    // than the card it stands in for, so the row nudged down on load.
+    paddingVertical: HERO_CARD_OUTER_PADDING_Y,
   },
   card: {
     backgroundColor: COLORS.brand,
-    borderRadius: 16,
-    padding: 16,
-    // Mirrors MonthlyBagGoalBanner.card minHeight — see SkeletonImpactBanner.
-    minHeight: 96,
+    borderRadius: HERO_CARD_RADIUS,
+    padding: HERO_CARD_PADDING,
+    // Same constant as MonthlyBagGoalBanner.card - see `utils/heroCard.ts`.
+    height: HERO_CARD_HEIGHT,
+    justifyContent: 'center',
     shadowColor: COLORS.brandDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

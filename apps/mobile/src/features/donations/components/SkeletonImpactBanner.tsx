@@ -8,6 +8,12 @@ import { View, StyleSheet } from 'react-native';
 
 import { ShimmerBlock, useShimmerAnimation } from '@/design-system/components/atoms/ShimmerBlock';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import {
+  HERO_CARD_HEIGHT,
+  HERO_CARD_OUTER_PADDING_Y,
+  HERO_CARD_PADDING,
+  HERO_CARD_RADIUS,
+} from '@/features/home/utils/heroCard';
 
 const { base: sp } = spacingTokens;
 
@@ -46,15 +52,17 @@ export const SkeletonImpactBanner = memo(SkeletonImpactBannerComponent);
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 8,
+    // 8 -> HERO_CARD_OUTER_PADDING_Y (4), so the skeleton and the card it
+    // stands in for occupy exactly the same box and the row cannot jump.
+    paddingVertical: HERO_CARD_OUTER_PADDING_Y,
   },
   banner: {
     backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 16,
-    // Mirrors ImpactBanner.card minHeight — a skeleton that is a different
-    // height than the thing it stands in for makes the list jump on load.
-    minHeight: 96,
+    borderRadius: HERO_CARD_RADIUS,
+    padding: HERO_CARD_PADDING,
+    // Same constant as ImpactBanner.card - see `features/home/utils/heroCard`.
+    height: HERO_CARD_HEIGHT,
+    justifyContent: 'center',
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
