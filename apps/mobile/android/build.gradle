@@ -46,6 +46,30 @@ buildscript {
         // AGP default (27.0.12077973) differs from RN 0.81 requirement (27.1.12297006)
         ndkVersion = findProperty('ndkVersion') ?: "27.1.12297006"
 
+        /*
+         * Glide, read by react-native-fast-image via safeExtGet('glideVersion').
+         *
+         * Its own default is 4.12.0 - a 2021 release - and fast-image 8.6.3 is
+         * unmaintained, so nothing was ever going to move it. Glide decodes every
+         * offer image in the app, so four years of decoder and memory fixes are
+         * worth having on their own merits.
+         *
+         * Play Console's "bitmap image optimisation" advice on release 86 points
+         * at `glide...HttpUrlFetcher` and `glide...ImageDecoderResourceDecoder`
+         * (deobfuscated from `au0.d` and `yu0.r`/`yu0.w`), which are Glide's own
+         * internals - not app code. Nothing in src/ downloads or decodes an image
+         * by hand; every one of the 11 image call sites uses fast-image. So this
+         * bump is the only lever that exists on that item short of replacing the
+         * library.
+         *
+         * 4.16.0, NOT 5.x. Glide's latest is 5.0.9, but 4 -> 5 is a cross-major
+         * move inside an unmaintained wrapper whose Java calls Glide's API
+         * directly - exactly the shape `.claude/rules/dependencies.md` warns
+         * about. 4.16.0 is the last release on the major fast-image was built
+         * against.
+         */
+        glideVersion = findProperty('glideVersion') ?: "4.16.0"
+
         // ====================================================================
         // REACT NATIVE CONFIGURATION
         // ====================================================================
@@ -125,10 +149,27 @@ allprojects {
             // react-native-geolocation-service 5.3.1 compatible with GMS 21.3.0
             // react-native-maps 1.15.6 (stable with RN 0.81.0) uses GMS Maps 18.0.x
             // Source: https://firebase.google.com/support/release-notes/android
+            //
+            // basement MUST move with base. Dependabot bumped `base` to 18.10.1
+            // and `tasks` to 18.4.1 (PRs #32 and #31) but nothing touched this
+            // `basement` pin, which sat at 18.4.0 and forced basement BACKWARDS
+            // while base went forwards. base 18.10.1 references classes that only
+            // exist in basement 18.10+, so R8 failed the release build with five
+            // missing classes - ConnectionThrottlingConfig, GmsClientFlags,
+            // InternalClientFlagRegistry, InternalClientFlags and
+            // AttributionSourceWrapper.
+            //
+            // Nothing else caught it: type-check, lint, 4950 tests and the web
+            // build all passed. Only `assembleProductionRelease` fails, and that
+            // is not part of `pnpm test`. If you bump any play-services artifact,
+            // re-run the release build.
+            //
+            // 18.11.0 is the highest version anything in the graph asks for, so
+            // it satisfies every consumer rather than just the one that broke.
             force("com.google.android.gms:play-services-base:18.10.1")
             force("com.google.android.gms:play-services-location:21.3.0")
             force("com.google.android.gms:play-services-maps:19.0.0")
-            force("com.google.android.gms:play-services-basement:18.4.0")
+            force("com.google.android.gms:play-services-basement:18.11.0")
             force("com.google.android.gms:play-services-tasks:18.4.1")
 
             // Substitute old react-native artifact with react-android for React Native 0.81+
