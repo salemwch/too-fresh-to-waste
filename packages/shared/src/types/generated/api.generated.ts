@@ -11514,12 +11514,7 @@ export interface operations {
         type?: 'push' | 'email' | 'sms' | 'in_app';
         /** @description Filter by notification channel */
         channel?:
-          | 'order_updates'
-          | 'marketing'
-          | 'pickup_reminders'
-          | 'security'
-          | 'offers'
-          | 'admin';
+          'order_updates' | 'marketing' | 'pickup_reminders' | 'security' | 'offers' | 'admin';
         /** @description Filter by notification status */
         status?: 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
         /** @description Filter by notification priority */
@@ -11710,12 +11705,7 @@ export interface operations {
         type?: 'push' | 'email' | 'sms' | 'in_app';
         /** @description Filter stats by notification channel */
         channel?:
-          | 'order_updates'
-          | 'marketing'
-          | 'pickup_reminders'
-          | 'security'
-          | 'offers'
-          | 'admin';
+          'order_updates' | 'marketing' | 'pickup_reminders' | 'security' | 'offers' | 'admin';
       };
       header?: never;
       path?: never;
