@@ -8,6 +8,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { readingGradient } from '@/utils/rtl';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import {
@@ -364,8 +365,8 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   >
                     <LinearGradient
                       colors={[PRIMARY, colorTokens.base.primary[400]]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
+                      start={readingGradient(0, 0).start}
+                      end={readingGradient(0, 0).end}
                       style={styles.ctaButton}
                     >
                       <Text style={styles.ctaButtonText}>

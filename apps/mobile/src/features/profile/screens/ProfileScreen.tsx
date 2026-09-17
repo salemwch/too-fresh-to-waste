@@ -4,6 +4,7 @@
  */
 
 import React, { useCallback, useState, useEffect } from 'react';
+import { readingGradient } from '@/utils/rtl';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -409,8 +410,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             return (
               <LinearGradient
                 colors={['#005251', '#2DB89B']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+                start={readingGradient(0, 1).start}
+                end={readingGradient(0, 1).end}
                 style={styles.loyaltyCard}
               >
                 <View style={styles.loyaltyCardLeft}>
@@ -455,8 +456,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         >
           <LinearGradient
             colors={['#8a75f8', '#5a42e0']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            start={readingGradient(0, 1).start}
+            end={readingGradient(0, 1).end}
             style={styles.leaderboardCard}
           >
             <View style={styles.leaderboardCardLeft}>

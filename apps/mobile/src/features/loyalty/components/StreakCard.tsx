@@ -12,6 +12,7 @@
  */
 
 import React, { memo, useEffect, useState } from 'react';
+import { readingGradient } from '@/utils/rtl';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Animated, Easing, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -103,8 +104,8 @@ const StreakRow: React.FC<StreakRowProps> = ({
         <Animated.View style={[styles.progressFillWrap, { width: progressWidth }]}>
           <LinearGradient
             colors={gradientColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            start={readingGradient(0, 0).start}
+            end={readingGradient(0, 0).end}
             style={styles.progressGradient}
           />
         </Animated.View>

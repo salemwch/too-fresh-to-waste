@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { readingGradient } from '@/utils/rtl';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -32,8 +33,8 @@ const DonationImpactCardComponent: React.FC<DonationImpactCardProps> = ({ onPres
     >
       <LinearGradient
         colors={['#E8756A', '#D4547A', '#B8488E']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={readingGradient(0, 1).start}
+        end={readingGradient(0, 1).end}
         style={styles.card}
       >
         <View style={styles.cardLeft}>

@@ -1,4 +1,5 @@
 import { CommonActions } from '@react-navigation/native';
+import { readingGradient } from '@/utils/rtl';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -825,8 +826,8 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
           >
             <LinearGradient
               colors={[BRAND_PRIMARY, colorTokens.base.primary[400]]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+              start={readingGradient(0, 0).start}
+              end={readingGradient(0, 0).end}
               style={[
                 styles.confirmButton,
                 (isCreatingOrder || (deliveryMode === 'delivery' && deliveryPin === null)) &&

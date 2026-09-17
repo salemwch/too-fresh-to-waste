@@ -4,6 +4,7 @@
  */
 
 import { useFocusEffect } from '@react-navigation/native';
+import { readingGradient } from '@/utils/rtl';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
@@ -414,8 +415,8 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
           <View style={styles.emptyState}>
             <LinearGradient
               colors={[COLORS.brandSoftStart, COLORS.brandSoftEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              start={readingGradient(0, 1).start}
+              end={readingGradient(0, 1).end}
               style={styles.emptyIconContainer}
             >
               <Icon name='heart-outline' family='Ionicons' size={64} color={COLORS.success} />
