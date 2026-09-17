@@ -12,7 +12,6 @@ import {
   Alert,
   Easing,
   InteractionManager,
-  I18nManager,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
@@ -20,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text, Button } from '@/design-system/components/atoms';
 import { mirrorIconName } from '@/design-system/components/atoms/Icon/rtlMirror';
+import { isAppRTL } from '@/i18n/direction';
 import { useTheme } from '@/design-system/providers';
 
 import { useFavoriteToggle } from '@/features/favorites/hooks';
@@ -457,8 +457,12 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               style={styles.iconButton}
               onPress={() => navigation.goBack()}
             >
+              {/*
+                Mirrored explicitly: this is the raw Ionicons component, not the
+                design system's <Icon>, so nothing mirrors it for us.
+              */}
               <IoniconsIcon
-                name={mirrorIconName('chevron-back', I18nManager.isRTL) as 'chevron-back'}
+                name={mirrorIconName('chevron-back', isAppRTL()) as 'chevron-back'}
                 color={colorTokens.base.neutral[900]}
                 size={24}
               />
@@ -600,8 +604,9 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
                   </Text>
                 </View>
               </View>
+              {/* Raw Ionicons again - mirrored by hand, as above. */}
               <IoniconsIcon
-                name={mirrorIconName('chevron-forward', I18nManager.isRTL) as 'chevron-forward'}
+                name={mirrorIconName('chevron-forward', isAppRTL()) as 'chevron-forward'}
                 color={colorTokens.light.onSurfaceVariant}
                 size={20}
               />

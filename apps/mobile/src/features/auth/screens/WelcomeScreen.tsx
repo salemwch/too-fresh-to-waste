@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { isAppRTL } from '@/i18n/direction';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, I18nManager, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import LeafLogo from '@/assets/images/leaf-logo.svg';
 import ShapesIcon from '@/assets/images/shapes.svg';
@@ -100,7 +101,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
         <ShapesIcon
           width={sw(100)}
           height={sw(67)}
-          style={[styles.shapesDecor, I18nManager.isRTL && styles.shapesRTL]}
+          style={[styles.shapesDecor, isAppRTL() && styles.shapesRTL]}
         />
       </View>
 

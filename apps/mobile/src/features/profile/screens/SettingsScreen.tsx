@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import RNRestart from 'react-native-restart';
 
+import { setAppDirection } from '@/i18n/direction';
 import { Text, Card } from '@/design-system/components/atoms';
 import { SUPPORTED_LANGUAGES, setStoredLanguage, getCurrentLanguage } from '@/i18n';
 import type { AppLanguage } from '@/i18n';
@@ -108,7 +109,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
             {
               text: t('settings.restartNow'),
               style: 'destructive',
-              onPress: () => RNRestart.restart(),
+              onPress: () => {
+                /*
+                 * PUBLISH THE DIRECTION BEFORE RESTARTING, OR JS AND THE LAYOUT
+                 * DISAGREE FOR THE WHOLE SESSION.
+                 *
+                 * `RNRestart.restart()` tries `recreateReactContextInBackground()`
+                 * and falls back to `Activity.recreate()` - which is the path
+                 * taken here, since the instance-manager API it wants belongs to
+                 * the old architecture. `recreate()` rebuilds the native side, so
+                 * the layout picks the new direction up, but the JS context is
+                 * NOT re-created: `@/i18n` does not run again, so the direction
+                 * it published at startup would stand for the rest of the
+                 * session.
+                 *
+                 * Measured before this line existed: after switching to Arabic
+                 * this way, the layout was mirrored while every chevron, every
+                 * gradient and every `textAlignStart` still answered LTR.
+                 *
+                 * Set here rather than next to `forceRTL` above on purpose. The
+                 * "Later" button leaves the native layout alone, and JS must
+                 * stay with it - a direction published now would mirror the
+                 * icons over an unmirrored layout until the user restarted.
+                 */
+                setAppDirection(willBeRTL ? 'rtl' : 'ltr');
+                RNRestart.restart();
+              },
             },
           ]);
         }, 300);

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { isAppRTL } from '@/i18n/direction';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, I18nManager, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -80,7 +81,7 @@ export const OnboardingScreen3: React.FC<Props> = ({ navigation }) => {
       <ShapesIcon
         width={sw(90)}
         height={sw(60)}
-        style={[styles.shapesDecor, I18nManager.isRTL && styles.shapesRTL]}
+        style={[styles.shapesDecor, isAppRTL() && styles.shapesRTL]}
       />
 
       {/* Bottom: back arrow + create account + dots */}

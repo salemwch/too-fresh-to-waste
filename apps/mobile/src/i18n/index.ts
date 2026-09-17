@@ -5,6 +5,7 @@ import { getLocales } from 'react-native-localize';
 import 'intl-pluralrules';
 
 import { mmkvStorage } from '@/storage/mmkv';
+import { setAppDirection } from './direction';
 import en from './locales/en.json';
 import fr from './locales/fr.json';
 import ar from './locales/ar.json';
@@ -53,6 +54,16 @@ export function getCurrentLanguage(): AppLanguage {
 const initialLanguage = getStoredLanguage() ?? detectDeviceLanguage();
 
 const shouldBeRTL = initialLanguage === 'ar';
+
+/*
+ * Published BEFORE the platform call below, and it is what the rest of the app
+ * branches on. `I18nManager.isRTL` is not usable for that: it keeps the value
+ * the PROCESS started with, so after an in-app language change it disagrees
+ * with the layout the user is looking at for the rest of the session. See
+ * `./direction.ts` for the measurements.
+ */
+setAppDirection(shouldBeRTL ? 'rtl' : 'ltr');
+
 if (I18nManager.isRTL !== shouldBeRTL) {
   I18nManager.forceRTL(shouldBeRTL);
   I18nManager.allowRTL(shouldBeRTL);

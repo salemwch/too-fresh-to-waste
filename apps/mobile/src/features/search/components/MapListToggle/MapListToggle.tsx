@@ -11,8 +11,9 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { isAppRTL } from '@/i18n/direction';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, Pressable, Animated, I18nManager } from 'react-native';
+import { View, StyleSheet, Pressable, Animated } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -47,7 +48,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
         // `insetInlineStart`, which resolves to the RIGHT edge under RTL — but
         // `translateX` is never mirrored by RN, so the offsets must be negated
         // manually or the pill slides off-screen in Arabic.
-        outputRange: I18nManager.isRTL ? [-2, -82] : [2, 82],
+        outputRange: isAppRTL() ? [-2, -82] : [2, 82],
       }),
     [slideAnim],
   );

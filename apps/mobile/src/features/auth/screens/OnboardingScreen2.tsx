@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { isAppRTL } from '@/i18n/direction';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, I18nManager, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
@@ -83,7 +84,7 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
             <ShapesIcon
               width={sw(80)}
               height={sw(53)}
-              style={[styles.shapesDecor, I18nManager.isRTL && styles.shapesRTL]}
+              style={[styles.shapesDecor, isAppRTL() && styles.shapesRTL]}
             />
           </View>
           <View style={styles.featureText}>

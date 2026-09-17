@@ -5,7 +5,9 @@
 
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { forwardRef } from 'react';
-import { I18nManager, View } from 'react-native';
+import { View } from 'react-native';
+
+import { isAppRTL } from '@/i18n/direction';
 
 import { useTheme } from '../../../providers';
 
@@ -60,7 +62,7 @@ export const Icon = forwardRef<View, IconProps>(
 
     // RTL mirrors the layout but not the glyph, so a back chevron ends up on
     // the correct side still pointing the wrong way. See ./rtlMirror.ts.
-    const resolvedName = mirrorInRTL ? mirrorIconName(name, I18nManager.isRTL) : name;
+    const resolvedName = mirrorInRTL ? mirrorIconName(name, isAppRTL()) : name;
 
     return (
       <View
