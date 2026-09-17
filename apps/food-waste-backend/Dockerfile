@@ -31,7 +31,7 @@
 # ============================================
 # STAGE 1: Dependencies
 # ============================================
-FROM node:24.11.1-alpine AS deps
+FROM node:26.8-alpine AS deps
 
 LABEL maintainer="FoodWaste Team <dev@foodwaste.com>"
 LABEL description="Food Waste Backend API"
@@ -67,7 +67,7 @@ RUN pnpm install --frozen-lockfile --prefer-offline --ignore-scripts
 # ============================================
 # STAGE 2: Builder
 # ============================================
-FROM node:24.11.1-alpine AS builder
+FROM node:26.8-alpine AS builder
 
 WORKDIR /app
 
@@ -137,7 +137,7 @@ RUN apk add --no-cache --virtual .build-deps python3 make g++ \
 # ============================================
 # STAGE 3: Production Runtime
 # ============================================
-FROM node:24.11.1-alpine AS runner
+FROM node:26.8-alpine AS runner
 
 WORKDIR /app
 
