@@ -11,6 +11,8 @@ import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.sc
 import { Review, ReviewDocument, ReviewStatus } from '../../reviews/schemas/review.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import { CacheService } from '../../common/services/cache.service';
+import { PLATFORM_FOOD_SHARE } from '../../orders/utils/order-pricing.util';
+
 import { GetAnalyticsQueryDto, AnalyticsPeriodType } from '../dto/admin-analytics.dto';
 import {
   PlatformAnalytics,
@@ -146,6 +148,23 @@ interface CategoryStatsAggregationResult {
 
 type RevenueByEstablishmentAggregationResult = EstablishmentRevenue;
 
+/**
+ * Statuses that mean an order actually produced revenue.
+ *
+ * Filtering on `COMPLETED` alone - which this service used to do - matches
+ * almost nothing: a pickup order ends at `PICKED_UP` and a delivery order at
+ * `DELIVERED`, so the entire delivery chain and most of the pickup chain were
+ * excluded from every revenue figure on the admin dashboard.
+ *
+ * Mirrors `completedStatuses` in `analytics/services/analytics.service.ts`,
+ * which is the merchant-facing equivalent and was already correct.
+ */
+const REVENUE_STATUSES = [
+  OrderStatus.PICKED_UP,
+  OrderStatus.COMPLETED,
+  OrderStatus.DELIVERED,
+] as const;
+
 @Injectable()
 export class AdminAnalyticsService {
   private readonly logger = new Logger(AdminAnalyticsService.name);
@@ -240,13 +259,32 @@ export class AdminAnalyticsService {
     const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Base aggregation pipeline for user analytics
+    /*
+     * The selected period, applied to the cohort.
+     *
+     * This used to be absent: every count here was lifetime, so the dashboard's
+     * period selector changed nothing for users. Picking "Today" still reported
+     * every user ever registered, which is what made the figures untrustworthy.
+     *
+     * The three explicitly-named windows below (today / this week / this month)
+     * stay fixed on purpose - their names promise a specific span, so scoping
+     * them to the selected period would make them lie instead.
+     */
+    const periodMatch: PipelineStage.Match = {
+      $match: { createdAt: { $gte: period.startDate, $lte: period.endDate } },
+    };
+
     const pipeline: PipelineStage[] = [
       {
         $facet: {
-          totalUsers: [{ $count: 'count' }],
+          totalUsers: [periodMatch, { $count: 'count' }],
 
-          activeUsers: [{ $match: { lastLoginAt: { $gte: monthStart } } }, { $count: 'count' }],
+          // Active = logged in during the period, not "in the last month
+          // regardless of what you selected".
+          activeUsers: [
+            { $match: { lastLoginAt: { $gte: period.startDate, $lte: period.endDate } } },
+            { $count: 'count' },
+          ],
 
           newUsersToday: [{ $match: { createdAt: { $gte: todayStart } } }, { $count: 'count' }],
 
@@ -254,9 +292,9 @@ export class AdminAnalyticsService {
 
           newUsersThisMonth: [{ $match: { createdAt: { $gte: monthStart } } }, { $count: 'count' }],
 
-          usersByRole: [{ $group: { _id: '$role', count: { $sum: 1 } } }],
+          usersByRole: [periodMatch, { $group: { _id: '$role', count: { $sum: 1 } } }],
 
-          usersByStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
+          usersByStatus: [periodMatch, { $group: { _id: '$status', count: { $sum: 1 } } }],
         },
       },
     ];
@@ -291,10 +329,18 @@ export class AdminAnalyticsService {
   }
 
   private async getEstablishmentAnalytics(
-    _period: AnalyticsPeriod,
+    period: AnalyticsPeriod,
     includeDetails: boolean = false,
   ): Promise<EstablishmentAnalytics> {
+    /*
+     * Same fix as the user analytics: the parameter was named `_period` and
+     * genuinely unused, so every establishment figure was a lifetime count and
+     * the dashboard's period selector did nothing to this card.
+     */
+    const inPeriod = { createdAt: { $gte: period.startDate, $lte: period.endDate } };
+
     const pipeline = [
+      { $match: inPeriod },
       {
         $facet: {
           totalEstablishments: [{ $count: 'count' }],
@@ -357,7 +403,7 @@ export class AdminAnalyticsService {
 
           ordersByStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
 
-          averageOrderValue: [{ $group: { _id: null, avgValue: { $avg: '$totalAmount' } } }],
+          averageOrderValue: [{ $group: { _id: null, avgValue: { $avg: '$pricing.total' } } }],
 
           completionRate: [
             {
@@ -676,7 +722,7 @@ export class AdminAnalyticsService {
         $gte: period.startDate,
         $lte: period.endDate,
       },
-      status: 'completed',
+      status: { $in: REVENUE_STATUSES },
     };
 
     const pipeline = [
@@ -684,9 +730,9 @@ export class AdminAnalyticsService {
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: '$totalAmount' },
+          totalRevenue: { $sum: '$pricing.total' },
           totalOrders: { $sum: 1 },
-          platformCommission: { $sum: { $multiply: ['$totalAmount', 0.15] } },
+          platformCommission: { $sum: { $multiply: ['$pricing.subtotal', PLATFORM_FOOD_SHARE] } },
         },
       },
     ];
@@ -990,7 +1036,7 @@ export class AdminAnalyticsService {
           type: 1,
           averageRating: 1,
           totalOrders: { $size: '$orders' },
-          totalRevenue: { $sum: '$orders.totalAmount' },
+          totalRevenue: { $sum: '$orders.pricing.total' },
           completedOrders: {
             $size: {
               $filter: {
@@ -1048,7 +1094,7 @@ export class AdminAnalyticsService {
             $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
           },
           orders: { $sum: 1 },
-          revenue: { $sum: '$totalAmount' },
+          revenue: { $sum: '$pricing.total' },
         },
       },
       { $sort: { _id: 1 } },
@@ -1105,7 +1151,7 @@ export class AdminAnalyticsService {
                 $reduce: {
                   input: '$orders',
                   initialValue: 0,
-                  in: { $add: ['$$value', '$$this.totalAmount'] },
+                  in: { $add: ['$$value', '$$this.pricing.total'] },
                 },
               },
             },
@@ -1251,13 +1297,13 @@ export class AdminAnalyticsService {
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate },
-          status: 'completed',
+          status: { $in: REVENUE_STATUSES },
         },
       },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: '$totalAmount' },
+          totalRevenue: { $sum: '$pricing.total' },
         },
       },
     ]);
@@ -1275,15 +1321,15 @@ export class AdminAnalyticsService {
             $gte: period.startDate,
             $lte: period.endDate,
           },
-          status: 'completed',
+          status: { $in: REVENUE_STATUSES },
         },
       },
       {
         $group: {
           _id: '$establishmentId',
-          revenue: { $sum: '$totalAmount' },
+          revenue: { $sum: '$pricing.total' },
           orders: { $sum: 1 },
-          commission: { $sum: { $multiply: ['$totalAmount', 0.15] } },
+          commission: { $sum: { $multiply: ['$pricing.subtotal', PLATFORM_FOOD_SHARE] } },
         },
       },
       {
