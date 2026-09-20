@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '@/services/admin.service';
 import { dashboardService } from '@/services/dashboard.service';
 import type { DonationStats, MonthlyBagGoalStats } from '@/types/dashboard';
@@ -43,6 +43,7 @@ import type {
   DriverOrdersQuery,
   CommissionQuery,
   ExpiringOfferItem,
+  ModerateReviewPayload,
 } from '@/types/admin';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
@@ -466,6 +467,17 @@ export function useLiveness() {
 
 // ─── Real-time hooks ──────────────────────────────────────────────────────────
 
+/**
+ * Live platform metrics, polled every 60s.
+ *
+ * The dashboard reads only `activeUsers` from this. Orders and revenue come
+ * from the period-scoped analytics instead, which the selector controls -
+ * duplicating them here would put two different numbers for the same thing on
+ * one screen.
+ *
+ * `activeUsers` is the part no period can produce: it is who is on the platform
+ * right now.
+ */
 export function useRealTimeMetrics() {
   return useQuery({
     queryKey: adminKeys.realTime(),
@@ -1288,5 +1300,60 @@ export function useAnomalies() {
     queryFn: () => adminService.getAnomalies().then(r => r.data.data),
     staleTime: 5 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
+  });
+}
+
+// ─── Review moderation ────────────────────────────────────────────────────────
+
+/**
+ * The review moderation queue.
+ *
+ * `pending` and `flagged` are two different jobs, not one list with a filter:
+ * pending is a backlog worked oldest-first, flagged is an incident list worked
+ * newest-first. The backend already sorts each accordingly.
+ */
+export function useModerationReviews(tab: 'pending' | 'flagged', page = 1) {
+  return useQuery({
+    queryKey: [...adminKeys.all, 'reviews', tab, page] as const,
+    queryFn: async () => {
+      const res =
+        tab === 'pending'
+          ? await adminService.getPendingReviews(page)
+          : await adminService.getFlaggedReviews(page);
+
+      return {
+        rows: res.data.data ?? [],
+        total: res.data.meta?.total ?? 0,
+        totalPages: res.data.meta?.totalPages ?? 1,
+      };
+    },
+    staleTime: 60 * 1000,
+    // Keeps the current page on screen while the next loads, rather than
+    // collapsing a worked queue back to skeletons on every page turn.
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useModerateReview() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      reviewId,
+      payload,
+    }: {
+      reviewId: string;
+      payload: ModerateReviewPayload;
+    }) => {
+      const res = await adminService.moderateReview(reviewId, payload);
+      return res.data.data;
+    },
+    onSuccess: () => {
+      // Both tabs, because moderating a flagged review can move it into or out
+      // of either list.
+      void qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reviews'] });
+      // The dashboard counts the moderation backlog.
+      void qc.invalidateQueries({ queryKey: adminKeys.moderationStats() });
+    },
   });
 }

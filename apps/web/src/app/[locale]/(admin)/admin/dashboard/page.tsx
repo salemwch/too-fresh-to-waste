@@ -29,6 +29,7 @@ import {
   useModerationStats,
   usePendingApprovals,
   usePlatformAnalytics,
+  useRealTimeMetrics,
   useRecentActivity,
   useTicketStats,
 } from '@/hooks/use-admin';
@@ -83,6 +84,7 @@ export default function AdminDashboardPage() {
   const approvals = usePendingApprovals(6);
   const tickets = useTicketStats();
   const activity = useRecentActivity(24 * 7, 10);
+  const liveUsers = useRealTimeMetrics().data?.activeUsers;
 
   const retryMetrics = useCallback(() => {
     void analytics.refetch();
@@ -282,6 +284,22 @@ export default function AdminDashboardPage() {
         <div className='min-w-0'>
           <h1 className='font-heading text-2xl leading-tight'>{t('title')}</h1>
           <p className='text-muted-foreground mt-xxs text-sm'>{t('subtitle')}</p>
+
+          {/*
+            The one genuinely live figure on the page. Orders and revenue are
+            period-scoped above, so showing a "right now" copy of them here
+            would put two different numbers for the same thing on one screen.
+            Who is on the platform this minute is not derivable from any period.
+          */}
+          {liveUsers !== undefined && (
+            <p className='text-muted-foreground mt-sm flex items-center gap-xs text-xs'>
+              <span
+                aria-hidden='true'
+                className='bg-success inline-block size-1.5 shrink-0 rounded-full'
+              />
+              {t('liveUsers', { count: liveUsers })}
+            </p>
+          )}
         </div>
 
         <Select value={period} onValueChange={value => setPeriod(value as AnalyticsPeriod)}>

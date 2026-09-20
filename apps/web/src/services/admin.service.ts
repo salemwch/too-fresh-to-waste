@@ -5,6 +5,8 @@ import type {
   CommissionMerchantRow,
   CommissionQuery,
   CommissionSummary,
+  AdminReviewRow,
+  ModerateReviewPayload,
   PlatformAnalytics,
   AuditLogResponse,
   RecentActivityResponse,
@@ -931,6 +933,33 @@ export const adminService = {
   },
 
   // ── Commission ─────────────────────────────────────────────────────────────
+
+  // ── Review moderation ──────────────────────────────────────────────────────
+
+  /**
+   * GET /reviews/moderation/pending — oldest first, which is the order a queue
+   * should be worked. The backend sorts it that way deliberately.
+   */
+  getPendingReviews(page = 1, limit = 20) {
+    return apiClient.get<BackendEnvelope<AdminReviewRow[]>>('/reviews/moderation/pending', {
+      params: { page, limit },
+    });
+  },
+
+  /** GET /reviews/moderation/flagged — newest first; a fresh flag is the urgent one. */
+  getFlaggedReviews(page = 1, limit = 20) {
+    return apiClient.get<BackendEnvelope<AdminReviewRow[]>>('/reviews/moderation/flagged', {
+      params: { page, limit },
+    });
+  },
+
+  /** PATCH /reviews/:id/moderate */
+  moderateReview(reviewId: string, payload: ModerateReviewPayload) {
+    return apiClient.patch<BackendEnvelope<AdminReviewRow>>(
+      `/reviews/${reviewId}/moderate`,
+      payload,
+    );
+  },
 
   /** GET /admin/commission/summary — platform totals + reconciliation identity. */
   getCommissionSummary() {

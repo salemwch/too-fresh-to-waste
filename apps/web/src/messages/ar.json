@@ -1045,7 +1045,8 @@
       "securityDashboard": "الأمان",
       "organizations": "المنظمات",
       "gifts": "الهدايا",
-      "commission": "العمولة"
+      "commission": "العمولة",
+      "adminReviews": "التقييمات"
     },
     "stats": {
       "activeOffers": "العروض النشطة",
@@ -5735,6 +5736,50 @@
       "subtitle": "آخر الإجراءات على المنصّة",
       "emptyTitle": "لا يوجد نشاط حديث",
       "emptyBody": "ستظهر إجراءات المشرفين هنا فور حدوثها."
+    },
+    "liveUsers": "{count, plural, zero {لا أحد متصل الآن} one {شخص واحد متصل الآن} two {شخصان متصلان الآن} few {# أشخاص متصلون الآن} many {# شخصًا متصلًا الآن} other {# شخص متصل الآن}}"
+  },
+  "adminReviews": {
+    "title": "التقييمات",
+    "subtitle": "اعتمد أو احذف ما كتبه الزبائن",
+    "searchPlaceholder": "ابحث في التقييمات",
+    "stars": "{count} من 5",
+    "approve": "اعتماد",
+    "reject": "رفض",
+    "cancel": "إلغاء",
+    "unknownAuthor": "زبون غير معروف",
+    "unknownEstablishment": "محل غير معروف",
+    "tabs": {
+      "pending": "في انتظار المراجعة",
+      "flagged": "مُبلَّغ عنها"
+    },
+    "col": {
+      "review": "التقييم",
+      "author": "الزبون",
+      "establishment": "المحل",
+      "date": "تاريخ الكتابة",
+      "actions": "إجراءات"
+    },
+    "empty": {
+      "pendingTitle": "لا شيء في انتظار المراجعة",
+      "pendingBody": "ستظهر تقييمات الزبائن الجديدة هنا للاعتماد.",
+      "flaggedTitle": "لا توجد بلاغات",
+      "flaggedBody": "ستظهر هنا التقييمات المُبلَّغ عنها من الزبائن أو التجّار."
+    },
+    "confirm": {
+      "approveTitle": "نشر هذا التقييم؟",
+      "approveBody": "سيصبح ظاهرًا في صفحة المحل.",
+      "rejectTitle": "حذف هذا التقييم؟",
+      "rejectBody": "لن يظهر بعد الآن في صفحة المحل. وضّح السبب حتى يمكن تبرير القرار لاحقًا.",
+      "noteLabel": "ملاحظة (اختياري)",
+      "notePlaceholder": "أي شيء يستحق التسجيل",
+      "reasonLabel": "السبب",
+      "reasonPlaceholder": "لماذا يُحذف هذا التقييم"
+    },
+    "error": {
+      "title": "تعذّر تحميل التقييمات",
+      "body": "حدث خطأ أثناء جلب القائمة. حاول مرة أخرى.",
+      "retry": "حاول مرة أخرى"
     }
   }
 }

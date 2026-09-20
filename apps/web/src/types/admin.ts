@@ -1557,3 +1557,32 @@ export interface CommissionQuery {
   sortBy?: CommissionSortKey;
   sortOrder?: 'asc' | 'desc';
 }
+
+// ─── Review moderation ───────────────────────────────────────────────────────
+
+export type AdminReviewStatus = 'pending' | 'approved' | 'rejected' | 'flagged' | 'spam' | 'hidden';
+
+/**
+ * A review as the moderation queue needs it.
+ *
+ * `userId` and `establishmentId` are populated by the backend when it can and
+ * left as raw ids when it cannot, which is the same shape the orders code
+ * handles with `getEstablishmentName()`. Both forms are modelled rather than
+ * assuming the populated one.
+ */
+export interface AdminReviewRow {
+  _id: string;
+  rating: number;
+  title?: string;
+  comment?: string;
+  status: AdminReviewStatus;
+  createdAt: string;
+  moderationReason?: string;
+  userId?: string | { _id: string; firstName?: string; lastName?: string; email?: string };
+  establishmentId?: string | { _id: string; name?: string };
+}
+
+export interface ModerateReviewPayload {
+  status: AdminReviewStatus;
+  moderationReason?: string;
+}

@@ -20,7 +20,11 @@ import {
   RecentActivityResponseDto,
   AuditLogExportResponseDto,
 } from '../dto/admin-analytics-response.dto';
-import { GetAnalyticsQueryDto, GetAuditLogsQueryDto } from '../dto/admin-analytics.dto';
+import {
+  AnalyticsPeriodType,
+  GetAnalyticsQueryDto,
+  GetAuditLogsQueryDto,
+} from '../dto/admin-analytics.dto';
 import { AdminOnlyGuard } from '../guards/admin-only.guard';
 import {
   PlatformAnalytics,
@@ -65,11 +69,10 @@ export class AdminAnalyticsController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error occurred while generating analytics',
   })
-  @ApiQuery({
-    name: 'period',
-    required: false,
-    enum: ['day', 'week', 'month', 'quarter', 'year', 'custom'],
-  })
+  // Third copy of the same list, also missing `all`. Derived now, like the
+  // validator - a documented set that disagrees with the accepted set sends
+  // integrators down a dead end.
+  @ApiQuery({ name: 'period', required: false, enum: AnalyticsPeriodType })
   @ApiQuery({ name: 'startDate', required: false, type: String })
   @ApiQuery({ name: 'endDate', required: false, type: String })
   @ApiQuery({ name: 'includeDetails', required: false, type: Boolean })
@@ -400,9 +403,7 @@ export class AdminAnalyticsController {
     return {
       logs: auditLogs.logs.map(log => {
         const populatedAdmin = log.adminId as unknown as
-          | { _id: Types.ObjectId; firstName?: string }
-          | Types.ObjectId
-          | null;
+          { _id: Types.ObjectId; firstName?: string } | Types.ObjectId | null;
         const adminFirstName =
           populatedAdmin !== null &&
           typeof populatedAdmin === 'object' &&
@@ -420,12 +421,7 @@ export class AdminAnalyticsController {
           adminFirstName,
           action: log.action,
           targetType: log.targetType as
-            | 'user'
-            | 'establishment'
-            | 'order'
-            | 'review'
-            | 'offer'
-            | 'system',
+            'user' | 'establishment' | 'order' | 'review' | 'offer' | 'system',
           ...(log.targetId !== undefined && { targetId: log.targetId }),
           ...(log.previousValue !== undefined && { previousValue: log.previousValue }),
           ...(log.newValue !== undefined && { newValue: log.newValue }),
@@ -477,9 +473,7 @@ export class AdminAnalyticsController {
       activities: (activities as Record<string, unknown>[]).map(
         (activity: Record<string, unknown>) => {
           const populatedAdmin = activity['adminId'] as
-            | { _id: Types.ObjectId; firstName?: string }
-            | Types.ObjectId
-            | null;
+            { _id: Types.ObjectId; firstName?: string } | Types.ObjectId | null;
           const adminFirstName =
             populatedAdmin !== null &&
             typeof populatedAdmin === 'object' &&
@@ -497,12 +491,7 @@ export class AdminAnalyticsController {
             adminFirstName,
             action: activity['action'] as AdminAction,
             targetType: activity['targetType'] as
-              | 'user'
-              | 'establishment'
-              | 'order'
-              | 'review'
-              | 'offer'
-              | 'system',
+              'user' | 'establishment' | 'order' | 'review' | 'offer' | 'system',
             ...(activity['targetId'] !== undefined && { targetId: activity['targetId'] as string }),
             ...(activity['previousValue'] !== undefined && {
               previousValue: activity['previousValue'] as Record<string, AuditLogValue>,
@@ -543,12 +532,7 @@ export class AdminAnalyticsController {
           adminEmail: log['adminEmail'] as string,
           action: log['action'] as AdminAction,
           targetType: log['targetType'] as
-            | 'user'
-            | 'establishment'
-            | 'order'
-            | 'review'
-            | 'offer'
-            | 'system',
+            'user' | 'establishment' | 'order' | 'review' | 'offer' | 'system',
           targetId: log['targetId'] as string,
           previousValue: log['previousValue'] as Record<string, AuditLogValue>,
           newValue: log['newValue'] as Record<string, AuditLogValue>,
@@ -606,14 +590,23 @@ export class AdminAnalyticsController {
       }
     }
 
-    if (
-      query.period !== null &&
-      query.period !== undefined &&
-      !['day', 'week', 'month', 'quarter', 'year', 'custom'].includes(query.period)
-    ) {
-      throw new BadRequestException(
-        'Invalid period. Must be one of: day, week, month, quarter, year, custom',
-      );
+    /*
+     * Derived from the enum, never restated.
+     *
+     * This was a hand-written array that omitted `all`, so every "All time"
+     * request 400'd before it reached the service - `AnalyticsPeriodType`
+     * already had ALL_TIME, `calculateAnalyticsPeriod` already handled it, and
+     * the DTO's own `@IsEnum` already accepted it. Only this list disagreed,
+     * and the error message it produced named the same stale set, so the
+     * response looked authoritative.
+     *
+     * A second list of the same values is a second thing to keep in sync, and
+     * this one had already drifted. `Object.values` cannot.
+     */
+    const allowed = Object.values(AnalyticsPeriodType) as string[];
+
+    if (query.period !== null && query.period !== undefined && !allowed.includes(query.period)) {
+      throw new BadRequestException(`Invalid period. Must be one of: ${allowed.join(', ')}`);
     }
   }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -13,11 +14,21 @@ interface AdminMobileNavProps {
   groups: NavGroup[];
 }
 
+/** Lifted out of its group and pinned, the same way the desktop sidebar does. */
+const SETTINGS_KEY = 'settings';
+
 export function AdminMobileNav({ groups }: AdminMobileNavProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const tNav = useTranslations('dashboard.nav');
   const tGroups = useTranslations('dashboard.nav.groups');
+
+  // Resolved from the role-filtered groups, so a role without Settings still
+  // does not get a link to it.
+  const settingsItem = useMemo(
+    () => groups.flatMap(g => g.items).find(i => i.titleKey === SETTINGS_KEY),
+    [groups],
+  );
 
   return (
     <Sheet>
@@ -50,8 +61,15 @@ export function AdminMobileNav({ groups }: AdminMobileNavProps) {
                 {tGroups(group.groupKey)}
               </div>
               <div className='space-y-xxs'>
+                {/*
+                  Settings is lifted out of its group and pinned below, the way
+                  the desktop sidebar does it. The filter used to be here
+                  WITHOUT the pinned entry, so on a phone Settings was simply
+                  unreachable - there was no route to platform configuration at
+                  all below the `xl` breakpoint.
+                */}
                 {group.items
-                  .filter(item => item.titleKey !== 'settings')
+                  .filter(item => item.titleKey !== SETTINGS_KEY)
                   .map(item => {
                     const isActive = pathname.startsWith(`/${locale}${item.href}`);
                     const Icon = item.icon;
@@ -74,6 +92,24 @@ export function AdminMobileNav({ groups }: AdminMobileNavProps) {
               </div>
             </div>
           ))}
+
+          {/* Pinned last, matching the desktop sidebar's footer placement. */}
+          {settingsItem && (
+            <div className='border-border mt-sm border-t pt-sm'>
+              <Link
+                href={settingsItem.href}
+                className={cn(
+                  'flex items-center gap-2.5 px-md py-sm rounded-lg text-sm font-medium transition-colors',
+                  pathname.startsWith(`/${locale}${settingsItem.href}`)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                )}
+              >
+                <settingsItem.icon className='size-4 shrink-0' />
+                <span>{tNav(settingsItem.titleKey)}</span>
+              </Link>
+            </div>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

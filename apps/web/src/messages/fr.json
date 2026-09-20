@@ -1045,7 +1045,8 @@
       "securityDashboard": "Sécurité",
       "organizations": "Organisations",
       "gifts": "Cadeaux",
-      "commission": "Commission"
+      "commission": "Commission",
+      "adminReviews": "Avis"
     },
     "stats": {
       "activeOffers": "Offres actives",
@@ -5756,6 +5757,50 @@
       "subtitle": "Les dernières actions menées sur la plateforme",
       "emptyTitle": "Aucune activité récente",
       "emptyBody": "Les actions des administrateurs apparaîtront ici."
+    },
+    "liveUsers": "{count, plural, one {# personne connectée} other {# personnes connectées}}"
+  },
+  "adminReviews": {
+    "title": "Avis",
+    "subtitle": "Approuvez ou retirez ce que les clients ont écrit",
+    "searchPlaceholder": "Rechercher un avis",
+    "stars": "{count} sur 5",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "cancel": "Annuler",
+    "unknownAuthor": "Client inconnu",
+    "unknownEstablishment": "Commerce inconnu",
+    "tabs": {
+      "pending": "En attente",
+      "flagged": "Signalés"
+    },
+    "col": {
+      "review": "Avis",
+      "author": "Client",
+      "establishment": "Commerce",
+      "date": "Écrit le",
+      "actions": "Actions"
+    },
+    "empty": {
+      "pendingTitle": "Rien en attente",
+      "pendingBody": "Les nouveaux avis clients apparaîtront ici pour approbation.",
+      "flaggedTitle": "Aucun signalement",
+      "flaggedBody": "Les avis signalés par des clients ou des commerçants apparaîtront ici."
+    },
+    "confirm": {
+      "approveTitle": "Publier cet avis ?",
+      "approveBody": "Il deviendra visible sur la page du commerce.",
+      "rejectTitle": "Retirer cet avis ?",
+      "rejectBody": "Il n’apparaîtra plus sur la page du commerce. Indiquez pourquoi, afin de pouvoir justifier la décision.",
+      "noteLabel": "Note (facultatif)",
+      "notePlaceholder": "Ce qui mérite d’être consigné",
+      "reasonLabel": "Motif",
+      "reasonPlaceholder": "Pourquoi cet avis est retiré"
+    },
+    "error": {
+      "title": "Impossible de charger les avis",
+      "body": "Une erreur est survenue lors du chargement. Réessayez.",
+      "retry": "Réessayer"
     }
   }
 }

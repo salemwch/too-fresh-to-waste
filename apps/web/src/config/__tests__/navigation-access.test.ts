@@ -135,10 +135,23 @@ describe('isNavPathAllowedForRole', () => {
 });
 
 describe('the real admin navigation', () => {
-  it('never offers a moderator more than the six sections they are granted', () => {
+  /*
+   * A ceiling on moderator reach, not a count that tracks the menu.
+   *
+   * The named list is the point: widening moderator access has to be a
+   * deliberate edit here, with a reason, rather than a side effect of adding a
+   * nav entry. It caught `adminReviews` being added, which is exactly its job.
+   *
+   * `adminReviews` is granted on purpose - moderating customer reviews is a
+   * moderator's core work, the same class of task as the report queue they
+   * already hold. It reaches only /reviews/moderation/*, which is ADMIN-guarded
+   * server-side too, so the nav entry is a convenience rather than the control.
+   */
+  it('grants a moderator exactly the sections they are meant to have', () => {
     const visible = filterNavGroupsByRole(adminNavGroups, UserRole.MODERATOR).flatMap(g => g.items);
-    expect(visible).toHaveLength(6);
+
     expect(visible.map(i => i.titleKey).sort()).toEqual([
+      'adminReviews',
       'announcements',
       'dashboard',
       'establishments',
@@ -146,6 +159,28 @@ describe('the real admin navigation', () => {
       'supportTickets',
       'users',
     ]);
+  });
+
+  it('keeps every finance and system section away from moderators', () => {
+    // The half of the menu that must never widen by accident, asserted
+    // separately so the list above can grow without weakening this.
+    const visible = filterNavGroupsByRole(adminNavGroups, UserRole.MODERATOR).flatMap(g =>
+      g.items.map(i => i.titleKey),
+    );
+
+    for (const restricted of [
+      'commission',
+      'paymentsPayouts',
+      'settings',
+      'team',
+      'securityDashboard',
+      'auditLog',
+      'health',
+      'organizations',
+      'drivers',
+    ]) {
+      expect(visible).not.toContain(restricted);
+    }
   });
 
   it('keeps every destination for an admin', () => {

@@ -1045,7 +1045,8 @@
         "system": "System"
       },
       "gifts": "Gifts",
-      "commission": "Commission"
+      "commission": "Commission",
+      "adminReviews": "Reviews"
     },
     "stats": {
       "activeOffers": "Active Offers",
@@ -5742,6 +5743,50 @@
       "subtitle": "The last actions taken on the platform",
       "emptyTitle": "No recent activity",
       "emptyBody": "Admin actions will appear here as they happen."
+    },
+    "liveUsers": "{count, plural, one {# person browsing now} other {# people browsing now}}"
+  },
+  "adminReviews": {
+    "title": "Reviews",
+    "subtitle": "Approve or remove what customers wrote",
+    "searchPlaceholder": "Search reviews",
+    "stars": "{count} out of 5",
+    "approve": "Approve",
+    "reject": "Reject",
+    "cancel": "Cancel",
+    "unknownAuthor": "Unknown customer",
+    "unknownEstablishment": "Unknown shop",
+    "tabs": {
+      "pending": "Awaiting review",
+      "flagged": "Flagged"
+    },
+    "col": {
+      "review": "Review",
+      "author": "Customer",
+      "establishment": "Shop",
+      "date": "Written",
+      "actions": "Actions"
+    },
+    "empty": {
+      "pendingTitle": "Nothing awaiting review",
+      "pendingBody": "New customer reviews will appear here for approval.",
+      "flaggedTitle": "Nothing flagged",
+      "flaggedBody": "Reviews reported by customers or merchants will appear here."
+    },
+    "confirm": {
+      "approveTitle": "Publish this review?",
+      "approveBody": "It becomes visible on the shop page.",
+      "rejectTitle": "Remove this review?",
+      "rejectBody": "It will no longer appear on the shop page. Say why, so the decision can be explained later.",
+      "noteLabel": "Note (optional)",
+      "notePlaceholder": "Anything worth recording",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "Why this review is being removed"
+    },
+    "error": {
+      "title": "Could not load reviews",
+      "body": "Something went wrong fetching the queue. Try again.",
+      "retry": "Try again"
     }
   }
 }

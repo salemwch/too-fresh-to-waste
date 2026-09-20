@@ -27,6 +27,7 @@ import {
   UserCog,
   Network,
   Percent,
+  MessageSquare,
   Gift,
   type LucideIcon,
 } from 'lucide-react';
@@ -258,6 +259,12 @@ export const adminNavGroups: NavGroup[] = [
         href: '/admin/orders',
         icon: ShoppingBag,
         roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'adminReviews',
+        href: '/admin/reviews',
+        icon: MessageSquare,
+        roles: [UserRole.ADMIN, UserRole.MODERATOR],
       },
       {
         titleKey: 'moderation',

@@ -228,10 +228,15 @@
       "gap:40": 1,
       "gap:8": 1,
       "mt:2": 2,
+      "mt:8": 1,
+      "gap:4": 1,
       "gap:16": 1,
       "gap:24": 2,
       "p:24": 1,
       "mb:16": 1
+    },
+    "B": {
+      "size:6": 1
     },
     "C": {
       "min-w:0": 1,
@@ -846,6 +851,21 @@
       "h:64": 1,
       "h:96": 1,
       "h:384": 1
+    }
+  },
+  "apps/web/src/app/[locale]/(admin)/admin/reviews/page.tsx": {
+    "A": {
+      "gap:4": 3,
+      "mt:2": 1,
+      "gap:24": 1,
+      "ms:4": 1
+    },
+    "B": {
+      "size:14": 1,
+      "size:16": 2
+    },
+    "C": {
+      "min-w:0": 1
     }
   },
   "apps/web/src/app/[locale]/(admin)/admin/security/page.tsx": {
@@ -3231,17 +3251,19 @@
       "px:24": 1,
       "gap:8": 1,
       "py:16": 1,
-      "px:16": 3,
+      "px:16": 4,
       "space-y:4": 1,
       "py:6": 1,
       "space-y:2": 1,
-      "gap:10": 1,
-      "py:8": 1
+      "gap:10": 2,
+      "py:8": 2,
+      "mt:8": 1,
+      "pt:8": 1
     },
     "B": {
       "square:36": 1,
       "square:16": 1,
-      "size:16": 1
+      "size:16": 2
     },
     "C": {
       "h:36": 1,
@@ -3317,27 +3339,19 @@
   },
   "apps/web/src/components/dashboard/admin/admin-stat-card.tsx": {
     "A": {
-      "p:24": 2,
-      "gap:16": 2,
-      "space-y:8": 1,
-      "mt:4": 1,
-      "mt:6": 1,
-      "gap:4": 1,
-      "p:8": 1
+      "gap:8": 4,
+      "p:16": 2,
+      "gap:4": 1
     },
     "B": {
-      "size:36": 1,
-      "size:12": 2,
-      "size:20": 1
+      "size:16": 2,
+      "size:12": 2
     },
     "C": {
-      "h:14": 1,
+      "h:16": 1,
       "w:96": 1,
-      "h:28": 1,
-      "w:64": 1,
-      "h:12": 1,
-      "w:80": 1,
-      "min-w:0": 1
+      "h:32": 1,
+      "w:80": 1
     }
   },
   "apps/web/src/components/dashboard/admin/admin-tab-nav.tsx": {
