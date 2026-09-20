@@ -1,0 +1,323 @@
+/**
+ * CommissionService - moving a merchant's outstanding commission balance.
+ *
+ * The pure arithmetic is covered by `orders/__tests__/commission-settlement.spec.ts`.
+ * This suite covers what that one cannot: persistence, idempotency, the refund
+ * reversal, and the defensive branches around missing or legacy data.
+ *
+ * ## What these pin down
+ *
+ * - **Idempotency.** PM2 runs one worker per core and the pickup path retries,
+ *   so the same order can arrive twice. The second arrival must be a no-op, not
+ *   a second accrual.
+ * - **Both ledger rows.** A settling order writes an ACCRUAL *and* a
+ *   SETTLEMENT row. Collapsing them into one net row is what turns a 19% take
+ *   rate into 16%, and it is the exact thing a merchant disputes.
+ * - **Reversal moves both directions.** Undoing only the accrual leaves the
+ *   merchant permanently short; undoing only the settlement gifts him
+ *   commission.
+ * - **Legacy documents.** An establishment stored before `commissionDue`
+ *   existed hydrates it as `undefined`, and `undefined + n` is `NaN` - which
+ *   would poison the balance permanently rather than loudly.
+ */
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { getModelToken } from '@nestjs/mongoose';
+import { ClientSession, Types } from 'mongoose';
+
+import { CommissionLedger, CommissionLedgerType } from '../schemas/commission-ledger.schema';
+import { Establishment } from '../../establishments/schemas/establishment.schema';
+import { CommissionService } from './commission.service';
+
+const ESTABLISHMENT_ID = new Types.ObjectId();
+const MERCHANT_ID = new Types.ObjectId();
+const ORDER_ID = new Types.ObjectId();
+
+const input = (subtotal: number) => ({
+  establishmentId: ESTABLISHMENT_ID,
+  merchantId: MERCHANT_ID,
+  orderId: ORDER_ID,
+  subtotal,
+});
+
+/** `findById().select().session()` returns the stubbed document. */
+const establishmentFinder = (doc: { commissionDue?: number } | null) => ({
+  select: jest.fn().mockReturnValue({ session: jest.fn().mockResolvedValue(doc) }),
+});
+
+describe('CommissionService', () => {
+  let service: CommissionService;
+  let establishmentModel: {
+    findById: jest.Mock;
+    updateOne: jest.Mock;
+  };
+  let ledgerModel: {
+    create: jest.Mock;
+    exists: jest.Mock;
+    find: jest.Mock;
+  };
+  const session = {} as ClientSession;
+
+  /** Controls what the idempotency probe sees. */
+  const setAlreadyApplied = (applied: boolean) => {
+    ledgerModel.exists.mockReturnValue({
+      session: jest.fn().mockResolvedValue(applied ? { _id: new Types.ObjectId() } : null),
+    });
+  };
+
+  /** Controls what `reverseForOrder` reads back from the ledger. */
+  const setExistingRows = (rows: { type: CommissionLedgerType; amount: number }[]) => {
+    ledgerModel.find.mockReturnValue({ session: jest.fn().mockResolvedValue(rows) });
+  };
+
+  beforeEach(async () => {
+    establishmentModel = {
+      findById: jest.fn().mockReturnValue(establishmentFinder({ commissionDue: 0 })),
+      updateOne: jest.fn().mockResolvedValue({ acknowledged: true }),
+    };
+    ledgerModel = {
+      create: jest.fn().mockResolvedValue([]),
+      exists: jest.fn(),
+      find: jest.fn(),
+    };
+    setAlreadyApplied(false);
+    setExistingRows([]);
+
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      providers: [
+        CommissionService,
+        { provide: getModelToken(Establishment.name), useValue: establishmentModel },
+        { provide: getModelToken(CommissionLedger.name), useValue: ledgerModel },
+      ],
+    }).compile();
+
+    service = moduleRef.get(CommissionService);
+  });
+
+  describe('applyForOrder - the common case', () => {
+    it('credits the merchant the full price and accrues the commission', async () => {
+      const result = await service.applyForOrder(input(5), session);
+
+      expect(result).toEqual({
+        accrued: 0.95,
+        settled: 0,
+        merchantAmount: 5,
+        commissionDueAfter: 0.95,
+      });
+      expect(establishmentModel.updateOne).toHaveBeenCalledWith(
+        { _id: ESTABLISHMENT_ID },
+        { $set: { commissionDue: 0.95 } },
+        { session },
+      );
+    });
+
+    it('writes exactly one ACCRUAL row when nothing settles', async () => {
+      await service.applyForOrder(input(5), session);
+
+      const [rows] = ledgerModel.create.mock.calls[0] as [Record<string, unknown>[]];
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        type: CommissionLedgerType.ACCRUAL,
+        amount: 0.95,
+        balanceAfter: 0.95,
+        merchantAmount: 5,
+        orderSubtotal: 5,
+      });
+    });
+  });
+
+  describe('applyForOrder - a settling order', () => {
+    beforeEach(() => {
+      // 4.750 + 0.950 = 5.700, over the 5.000 threshold; cap takes 2.500.
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 4.75 }));
+    });
+
+    it('still credits the merchant half the order, never zero', async () => {
+      const result = await service.applyForOrder(input(5), session);
+
+      expect(result).toMatchObject({ settled: 2.5, merchantAmount: 2.5, commissionDueAfter: 3.2 });
+    });
+
+    it('writes BOTH an accrual and a settlement row', async () => {
+      await service.applyForOrder(input(5), session);
+
+      const [rows] = ledgerModel.create.mock.calls[0] as [Record<string, unknown>[]];
+      expect(rows).toHaveLength(2);
+      expect(rows[0]).toMatchObject({
+        type: CommissionLedgerType.ACCRUAL,
+        amount: 0.95,
+        balanceAfter: 5.7,
+      });
+      expect(rows[1]).toMatchObject({
+        type: CommissionLedgerType.SETTLEMENT,
+        amount: 2.5,
+        balanceAfter: 3.2,
+      });
+    });
+
+    it('records the accrual balance before the settlement is taken', async () => {
+      await service.applyForOrder(input(5), session);
+
+      const [rows] = ledgerModel.create.mock.calls[0] as [Record<string, unknown>[]];
+      const accrual = rows[0] as { balanceAfter: number };
+      const settlement = rows[1] as { balanceAfter: number; amount: number };
+
+      // The snapshot chain must be continuous or the audit trail cannot be
+      // replayed against the running balance.
+      expect(accrual.balanceAfter - settlement.amount).toBeCloseTo(settlement.balanceAfter, 3);
+    });
+  });
+
+  describe('idempotency', () => {
+    it('returns null and touches nothing when the order was already applied', async () => {
+      setAlreadyApplied(true);
+
+      const result = await service.applyForOrder(input(5), session);
+
+      expect(result).toBeNull();
+      expect(establishmentModel.updateOne).not.toHaveBeenCalled();
+      expect(ledgerModel.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('defensive branches', () => {
+    it('treats a legacy establishment with no commissionDue as zero, not NaN', async () => {
+      establishmentModel.findById.mockReturnValue(establishmentFinder({}));
+
+      const result = await service.applyForOrder(input(5), session);
+
+      expect(result?.commissionDueAfter).toBe(0.95);
+      expect(Number.isNaN(result?.commissionDueAfter)).toBe(false);
+    });
+
+    it('skips rather than aborting the pickup when the establishment is missing', async () => {
+      // An order cannot reference a missing establishment, so this is an
+      // integrity failure, not a user-reachable branch. Throwing here would
+      // roll back the customer's pickup over a bookkeeping row.
+      establishmentModel.findById.mockReturnValue(establishmentFinder(null));
+
+      const result = await service.applyForOrder(input(5), session);
+
+      expect(result).toBeNull();
+      expect(establishmentModel.updateOne).not.toHaveBeenCalled();
+    });
+
+    it('accrues nothing on a zero subtotal and leaves the balance untouched', async () => {
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 20 }));
+
+      const result = await service.applyForOrder(input(0), session);
+
+      expect(result).toMatchObject({ accrued: 0, settled: 0, commissionDueAfter: 20 });
+    });
+  });
+
+  describe('reverseForOrder', () => {
+    it('is a no-op for an order that never reached pickup', async () => {
+      setExistingRows([]);
+
+      await service.reverseForOrder(input(5), 1, session);
+
+      expect(establishmentModel.updateOne).not.toHaveBeenCalled();
+      expect(ledgerModel.create).not.toHaveBeenCalled();
+    });
+
+    it('removes the accrual when the refunded order never settled', async () => {
+      setExistingRows([{ type: CommissionLedgerType.ACCRUAL, amount: 0.95 }]);
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 3 }));
+
+      await service.reverseForOrder(input(5), 1, session);
+
+      expect(establishmentModel.updateOne).toHaveBeenCalledWith(
+        { _id: ESTABLISHMENT_ID },
+        { $set: { commissionDue: 2.05 } },
+        { session },
+      );
+    });
+
+    it('restores a settlement AND removes the accrual on a settled order', async () => {
+      setExistingRows([
+        { type: CommissionLedgerType.ACCRUAL, amount: 0.95 },
+        { type: CommissionLedgerType.SETTLEMENT, amount: 2.5 },
+      ]);
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 3.2 }));
+
+      await service.reverseForOrder(input(5), 1, session);
+
+      // 3.200 + 2.500 settled back - 0.950 accrual removed = 4.750, which is
+      // exactly the balance before the refunded order was applied.
+      expect(establishmentModel.updateOne).toHaveBeenCalledWith(
+        { _id: ESTABLISHMENT_ID },
+        { $set: { commissionDue: 4.75 } },
+        { session },
+      );
+    });
+
+    it('scales both directions on a partial refund', async () => {
+      setExistingRows([
+        { type: CommissionLedgerType.ACCRUAL, amount: 0.95 },
+        { type: CommissionLedgerType.SETTLEMENT, amount: 2.5 },
+      ]);
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 3.2 }));
+
+      await service.reverseForOrder(input(5), 0.5, session);
+
+      // (2.500 - 0.950) * 0.5 = 0.775
+      expect(establishmentModel.updateOne).toHaveBeenCalledWith(
+        { _id: ESTABLISHMENT_ID },
+        { $set: { commissionDue: 3.975 } },
+        { session },
+      );
+    });
+
+    it('never drives the balance negative', async () => {
+      // The balance was settled down after this order was applied, so removing
+      // its accrual would otherwise underflow.
+      setExistingRows([{ type: CommissionLedgerType.ACCRUAL, amount: 5 }]);
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 1 }));
+
+      await service.reverseForOrder(input(26.3), 1, session);
+
+      expect(establishmentModel.updateOne).toHaveBeenCalledWith(
+        { _id: ESTABLISHMENT_ID },
+        { $set: { commissionDue: 0 } },
+        { session },
+      );
+    });
+
+    it('writes a REVERSAL row carrying the reason', async () => {
+      setExistingRows([{ type: CommissionLedgerType.ACCRUAL, amount: 0.95 }]);
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 3 }));
+
+      await service.reverseForOrder(input(5), 1, session);
+
+      const [rows] = ledgerModel.create.mock.calls[0] as [Record<string, unknown>[]];
+      expect(rows[0]).toMatchObject({
+        type: CommissionLedgerType.REVERSAL,
+        amount: 0.95,
+        balanceAfter: 2.05,
+        reason: 'Order refunded',
+      });
+    });
+
+    it.each([0, -1])('ignores a refund ratio of %p', async ratio => {
+      setExistingRows([{ type: CommissionLedgerType.ACCRUAL, amount: 0.95 }]);
+
+      await service.reverseForOrder(input(5), ratio, session);
+
+      expect(establishmentModel.updateOne).not.toHaveBeenCalled();
+    });
+
+    it('clamps a ratio above 1 to a full reversal', async () => {
+      setExistingRows([{ type: CommissionLedgerType.ACCRUAL, amount: 0.95 }]);
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 3 }));
+
+      await service.reverseForOrder(input(5), 4, session);
+
+      expect(establishmentModel.updateOne).toHaveBeenCalledWith(
+        { _id: ESTABLISHMENT_ID },
+        { $set: { commissionDue: 2.05 } },
+        { session },
+      );
+    });
+  });
+});

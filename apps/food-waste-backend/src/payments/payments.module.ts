@@ -24,9 +24,11 @@ import {
   PlatformTransactionSchema,
 } from './schemas/platform-transaction.schema';
 import { RefundRequest, RefundRequestSchema } from './schemas/refund-request.schema';
+import { CommissionLedger, CommissionLedgerSchema } from './schemas/commission-ledger.schema';
 import { WalletTransaction, WalletTransactionSchema } from './schemas/wallet-transaction.schema';
 import { PaymentWebhook, PaymentWebhookSchema } from './schemas/webhook.schema';
 import { KonnectOrderService } from './services/konnect-order.service';
+import { CommissionService } from './services/commission.service';
 import { PayoutService } from './services/payout.service';
 import { RefundService } from './services/refund.service';
 import { WalletPayoutService } from './services/wallet-payout.service';
@@ -47,6 +49,7 @@ import { PayoutTask } from './tasks/payout.task';
       { name: PaymentAttempt.name, schema: PaymentAttemptSchema },
       { name: MerchantWallet.name, schema: MerchantWalletSchema },
       { name: WalletTransaction.name, schema: WalletTransactionSchema },
+      { name: CommissionLedger.name, schema: CommissionLedgerSchema },
       { name: PlatformTransaction.name, schema: PlatformTransactionSchema },
       { name: RefundRequest.name, schema: RefundRequestSchema },
       { name: Order.name, schema: OrderSchema },
@@ -59,6 +62,7 @@ import { PayoutTask } from './tasks/payout.task';
   providers: [
     PaymentService,
     PayoutService,
+    CommissionService,
     RefundService,
     KonnectOrderService,
     WalletPayoutService,
@@ -66,6 +70,6 @@ import { PayoutTask } from './tasks/payout.task';
     PaymentExpiryTask,
     PaymentReconciliationTask,
   ],
-  exports: [PaymentService, PayoutService, RefundService, KonnectOrderService],
+  exports: [PaymentService, PayoutService, CommissionService, RefundService, KonnectOrderService],
 })
 export class PaymentModule {}

@@ -47,6 +47,7 @@ import { NotificationService } from '../notifications/services/notification.serv
 import { Offer, OfferDocument, OfferStatus } from '../offers/schemas/offer.schema';
 import { Payment, PaymentDocument, PaymentStatus } from '../payments/schemas/payment.schema';
 import { KonnectOrderService } from '../payments/services/konnect-order.service';
+import { CommissionService } from '../payments/services/commission.service';
 import { PayoutService } from '../payments/services/payout.service';
 import { RefundService } from '../payments/services/refund.service';
 import { PaymentAttempt } from '../payments/schemas/payment-attempt.schema';
@@ -210,6 +211,7 @@ export class OrdersService {
     private readonly appLogger: AppLoggerService,
     private readonly regexSecurityUtil: RegexSecurityUtil,
     private readonly payoutService: PayoutService,
+    private readonly commissionService: CommissionService,
     private readonly refundService: RefundService,
     private readonly eventBus: EventBusService,
     private readonly eventEmitter: EventEmitter2,
@@ -1315,6 +1317,30 @@ export class OrdersService {
           // Check if ledger entry already exists (idempotency)
           const existingLedger = await this.payoutService.findByOrderId(orderId);
           if (!existingLedger) {
+            /*
+             * Commission first: it decides what this order actually pays the
+             * merchant. Under the commission-wallet model the merchant is
+             * credited the FULL subtotal on most orders, and the platform's 19%
+             * accrues to `Establishment.commissionDue` to be collected from a
+             * later order instead.
+             *
+             * Runs inside this transaction on purpose — the settlement reads
+             * the current balance before writing it, so only snapshot isolation
+             * makes two concurrent pickup confirmations safe.
+             *
+             * `null` means another worker already applied it; fall back to the
+             * flat split rather than crediting the merchant twice.
+             */
+            const settlement = await this.commissionService.applyForOrder(
+              {
+                establishmentId: order.establishmentId._id,
+                merchantId: order.merchantId._id,
+                orderId: order._id,
+                subtotal: order.pricing.subtotal,
+              },
+              session,
+            );
+
             await this.payoutService.createLedgerEntry(
               {
                 merchantId: order.merchantId._id,
@@ -1323,9 +1349,36 @@ export class OrdersService {
                 establishmentId: order.establishmentId._id,
                 orderTotal: order.pricing.total,
                 subtotal: order.pricing.subtotal,
+                ...(settlement
+                  ? {
+                      commissionSettlement: {
+                        merchantAmount: settlement.merchantAmount,
+                        settled: settlement.settled,
+                      },
+                    }
+                  : {}),
               },
               session,
             );
+
+            /*
+             * Denormalise onto the order so MERCHANT_EARNINGS_EXPR can read it.
+             * Every merchant-earnings aggregation goes through that expression,
+             * and none of them can afford to join the commission ledger. Same
+             * transaction, so the order and the ledger cannot disagree.
+             */
+            if (settlement) {
+              await this.orderModel.updateOne(
+                { _id: order._id },
+                {
+                  $set: {
+                    'pricing.merchantAmount': settlement.merchantAmount,
+                    'pricing.commissionSettled': settlement.settled,
+                  },
+                },
+                { session },
+              );
+            }
           }
 
           this.appLogger.log(

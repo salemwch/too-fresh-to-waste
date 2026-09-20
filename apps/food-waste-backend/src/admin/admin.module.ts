@@ -73,7 +73,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     NotificationsModule, // Provides NotificationService
     UsersModule, // Provides UsersService (for delegated soft-delete in UserManagementService)
     DriversModule, // Provides DriversService (earnings roll-up reused by the fleet dashboard)
-    PaymentModule, // Provides KonnectOrderService, RefundService
+    PaymentModule, // Provides KonnectOrderService, RefundService, CommissionService
 
     MongooseModule.forFeature([
       // Admin-specific schemas

@@ -75,8 +75,22 @@ export class PayoutService {
       throw new Error(`Merchant not found: ${data.merchantId}`);
     }
 
-    // Calculate revenue split — food subtotal only, never the gross total.
-    const { merchantAmount, platformFee } = calculateFoodRevenueSplit(data.subtotal);
+    /*
+     * Revenue split — food subtotal only, never the gross total.
+     *
+     * Under the commission-wallet model the caller has already decided both
+     * numbers: the merchant is credited the full subtotal on most orders, and
+     * the platform's cut on *this* order is whatever was collected against the
+     * outstanding balance (usually 0), not a flat 19%. Recomputing the flat
+     * split here would double-count the commission — once in the balance and
+     * again in the payout — so the caller's figures win when supplied.
+     */
+    const { merchantAmount, platformFee } = data.commissionSettlement
+      ? {
+          merchantAmount: data.commissionSettlement.merchantAmount,
+          platformFee: data.commissionSettlement.settled,
+        }
+      : calculateFoodRevenueSplit(data.subtotal);
 
     const ledgerEntry = new this.ledgerModel({
       merchantId: data.merchantId,

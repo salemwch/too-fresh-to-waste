@@ -5,6 +5,7 @@ import { OrderStatus, PaymentStatus as OrderPaymentStatus } from '@foodwaste/sha
 
 import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
+import { CommissionService } from '../../payments/services/commission.service';
 import { KonnectOrderService } from '../../payments/services/konnect-order.service';
 import { RefundRequest, RefundRequestDocument } from '../../payments/schemas/refund-request.schema';
 import {
@@ -70,6 +71,7 @@ export class OrderManagementService {
     @InjectModel(RefundRequest.name)
     private readonly refundRequestModel: Model<RefundRequestDocument>,
     private readonly konnectOrderService: KonnectOrderService,
+    private readonly commissionService: CommissionService,
     private readonly auditService: AdminAuditService,
     private readonly regexSecurityUtil: RegexSecurityUtil,
   ) {}
@@ -498,6 +500,29 @@ export class OrderManagementService {
           order,
           new Types.ObjectId(audit.adminId),
           'merchant_cancel',
+          session,
+        );
+
+        /*
+         * Unwind the commission. This path accepts `paymentStatus: PAID`, which
+         * is exactly what an order carries *after* pickup confirmation — so by
+         * the time an admin refunds, the order has usually already accrued its
+         * 19% and may have settled part of the merchant's balance.
+         *
+         * Both directions have to move. Dropping only the accrual would leave
+         * the merchant permanently short by whatever was settled from a sale
+         * that no longer exists; dropping only the settlement would hand him
+         * free commission. `reverseForOrder` is a no-op when the order never
+         * reached pickup, so cancel-before-pickup stays correct.
+         */
+        await this.commissionService.reverseForOrder(
+          {
+            establishmentId: order.establishmentId as Types.ObjectId,
+            merchantId: order.merchantId as Types.ObjectId,
+            orderId: order._id,
+            subtotal: order.pricing.subtotal,
+          },
+          1,
           session,
         );
 

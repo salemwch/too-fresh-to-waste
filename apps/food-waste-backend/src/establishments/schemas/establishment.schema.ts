@@ -292,6 +292,32 @@ export class Establishment {
   @Prop({ default: 0, min: 0 })
   completedOrders!: number;
 
+  /**
+   * Outstanding platform commission, in TND. **The establishment owes this.**
+   *
+   * Not a balance the merchant holds - the opposite. Every completed order
+   * accrues 19% of its food subtotal here, and occasional later orders settle
+   * it. Between settlements the merchant is credited the **full** order price,
+   * which is the entire point of the model.
+   *
+   * `default: 0` rather than `required` on purpose: `required` is a write
+   * validator only and does nothing for the establishments already stored, so
+   * without a default every pre-existing document would hydrate this as
+   * `undefined` and the first `$inc` would produce `NaN`.
+   *
+   * The 50% cap means this cannot be a bare `$inc` - the new value depends on
+   * the old one. It is therefore read and written **inside the existing
+   * `session.withTransaction()`** in the pickup-confirmation path, where
+   * MongoDB's snapshot isolation turns a concurrent update into a write
+   * conflict that the transaction retries. Mutating it outside a transaction
+   * would silently lose an accrual under PM2 cluster mode.
+   *
+   * See `calculateCommissionSettlement` in `order-pricing.util.ts` and
+   * `CommissionService.applyForOrder`.
+   */
+  @Prop({ default: 0, min: 0 })
+  commissionDue!: number;
+
   @Prop({ default: true })
   isActive!: boolean;
 

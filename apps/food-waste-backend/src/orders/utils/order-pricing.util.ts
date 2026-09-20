@@ -60,6 +60,28 @@ export const PLATFORM_FOOD_SHARE = 0.19;
 export const DONATION_RATE_OF_COMMISSION = 0.05;
 
 /**
+ * Balance at which commission settlement begins, in TND.
+ *
+ * Below this, the merchant is credited the **full** subtotal and the commission
+ * simply accrues. See {@link calculateCommissionSettlement}.
+ */
+export const SETTLEMENT_THRESHOLD = 5.0;
+
+/**
+ * Hard ceiling on how much of a single order may be taken to settle commission.
+ *
+ * Without it a settlement order credits the merchant **zero**, which is the
+ * worst moment this model can produce - a driver collecting a bag while the
+ * merchant is paid nothing, with a customer watching. The cap guarantees the
+ * merchant always keeps at least half of every order.
+ *
+ * It costs the platform nothing: unsettled balance carries to the next order
+ * rather than being discarded, so collection is slower but the total is
+ * identical.
+ */
+export const MAX_SETTLEMENT_SHARE_OF_ORDER = 0.5;
+
+/**
  * Fallback when `DELIVERY_DRIVER_SHARE` is absent. Mirrored in env.validation.ts.
  *
  * Re-exported from delivery-fee.util so callers have one import for the whole
@@ -186,19 +208,127 @@ export function calculateFoodRevenueSplit(subtotal: number): FoodRevenueSplit {
   };
 }
 
+export interface CommissionSettlement {
+  /**
+   * `subtotal * PLATFORM_FOOD_SHARE`. Added to the balance on **every** order,
+   * with no exception - including an order that settles.
+   */
+  accrued: number;
+  /** Balance collected from this order. `0` on the large majority of orders. */
+  settled: number;
+  /** What the merchant is credited: `subtotal - settled`. */
+  merchantAmount: number;
+  /** Balance carried forward. Never negative. */
+  commissionDueAfter: number;
+}
+
+/**
+ * Decides, for one order, how much commission accrues and how much of the
+ * merchant's outstanding balance is collected from it.
+ *
+ * ## The model
+ *
+ * The merchant is credited the **full** subtotal on almost every order. The 19%
+ * is not deducted; it accrues into a per-establishment balance
+ * (`Establishment.commissionDue`) and is collected in occasional lumps from
+ * later orders. The take rate is unchanged - only the shape of collection is.
+ *
+ * ## Why accrual is unconditional
+ *
+ * It is tempting to skip the accrual on an order that settles: that order's
+ * money goes entirely to the platform, so charging commission on it "as well"
+ * reads like double-dipping. It is not, and skipping it is a silent 3-point
+ * revenue leak.
+ *
+ * The balance is a **debt counter**, not revenue. A settling order is still a
+ * sale - a customer paid for a bag - so it owes 19% like every other sale. The
+ * settlement pays off *prior* debt; it does not exempt *this* sale.
+ *
+ * The arithmetic, at a 5 TND bag and a 5 TND threshold:
+ *
+ * ```
+ *   skip accrual on settling orders → one settlement per 6.26 orders → 15.97%
+ *   accrue on every order           → one settlement per 5.26 orders → 19.00%
+ * ```
+ *
+ * Both rules are self-consistent; they are simply different prices. Only the
+ * second one is the 19% this platform charges. Guarded by the convergence test
+ * in `order-pricing.util.spec.ts`.
+ *
+ * ## Invariants
+ *
+ * - `accrued - settled` summed over all orders equals the outstanding balance,
+ *   so nothing is ever discarded. This is why the balance is **decremented**
+ *   rather than reset to zero: a reset would throw away the remainder and
+ *   reward listing one cheap item while the balance is high.
+ * - `merchantAmount >= subtotal * (1 - MAX_SETTLEMENT_SHARE_OF_ORDER)`.
+ * - `commissionDueAfter >= 0`, because `settled <= balance` by construction.
+ *
+ * @param subtotal      Food total for this order. Never `pricing.total`.
+ * @param commissionDue The establishment's balance *before* this order.
+ */
+export function calculateCommissionSettlement(
+  subtotal: number,
+  commissionDue: number,
+): CommissionSettlement {
+  const accrued = round(subtotal * PLATFORM_FOOD_SHARE);
+  const balance = round(commissionDue + accrued);
+
+  /*
+   * Threshold is tested against the balance *after* accrual, so a single large
+   * order can both accrue past the threshold and settle in one step. Testing
+   * before accrual would delay every settlement by one order for no benefit.
+   */
+  let settled = 0;
+  if (balance >= SETTLEMENT_THRESHOLD) {
+    settled = round(Math.min(balance, round(subtotal * MAX_SETTLEMENT_SHARE_OF_ORDER)));
+  }
+
+  return {
+    accrued,
+    settled,
+    merchantAmount: round(subtotal - settled),
+    commissionDueAfter: round(balance - settled),
+  };
+}
+
 /**
  * Mongo aggregation expression for a single order's merchant earnings.
- * Mirrors {@link calculateFoodRevenueSplit}'s `merchantAmount` — splits
- * `pricing.subtotal`, never `pricing.total`. Shared by every aggregation
- * that reports what a merchant actually earned, as opposed to what the
- * customer paid.
+ * Shared by every aggregation that reports what a merchant actually earned, as
+ * opposed to what the customer paid. Splits `pricing.subtotal`, never
+ * `pricing.total`.
+ *
+ * ## Two eras, one expression
+ *
+ * Under the commission-wallet model the merchant is credited the **full**
+ * subtotal on most orders, and the platform's 19% accrues to
+ * `Establishment.commissionDue` instead of being deducted per order. So a flat
+ * `subtotal * 0.81` is no longer what the merchant earned — it under-reports
+ * every order by 19%, silently, in three separate dashboards.
+ *
+ * `pricing.merchantAmount` is written at pickup confirmation and is the
+ * authority when present. `$ifNull` falls back to the flat split for orders
+ * confirmed **before** the model existed, which is why that field has no
+ * schema default: a default of 0 would make `$ifNull` match and report every
+ * historical order as zero earnings.
+ *
+ * ## Rounding
  *
  * Rounded to 3 decimals (millimes — see {@link round} above) for the same
  * reason `calculateFoodRevenueSplit` rounds in JS: `subtotal * 0.81` is not
  * exactly representable in IEEE-754 (e.g. `20 * 0.81 === 16.200000000000003`),
  * and an unrounded `$multiply` would leak that drift into every consumer that
- * sums this expression across orders.
+ * sums this expression across orders. `pricing.merchantAmount` is already
+ * rounded at write time, so `$round` is a no-op on that branch.
  */
 export const MERCHANT_EARNINGS_EXPR = Object.freeze({
-  $round: [{ $multiply: ['$pricing.subtotal', MERCHANT_FOOD_SHARE] }, 3],
+  $round: [
+    {
+      $ifNull: [
+        '$pricing.merchantAmount',
+        { $multiply: ['$pricing.subtotal', MERCHANT_FOOD_SHARE] },
+      ],
+    },
+    3,
+  ],
 });

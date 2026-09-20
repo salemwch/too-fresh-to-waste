@@ -166,6 +166,13 @@ export class Order {
       deliveryFee: { type: Number, default: 0, min: 0 },
       total: { type: Number, required: true, min: 0 },
       currency: { type: String, required: true, default: DEFAULT_CURRENCY },
+      // Written at pickup confirmation by CommissionService. Deliberately NOT
+      // defaulted: `undefined` is meaningful here and marks an order that
+      // predates the commission-wallet model, which MERCHANT_EARNINGS_EXPR
+      // falls back to the flat 81% for. A default of 0 would silently report
+      // every historical order as having earned the merchant nothing.
+      merchantAmount: { type: Number, min: 0 },
+      commissionSettled: { type: Number, min: 0 },
     },
   })
   pricing!: {
@@ -176,6 +183,26 @@ export class Order {
     deliveryFee: number;
     total: number;
     currency: string;
+    /**
+     * What this order actually paid the merchant: `subtotal - commissionSettled`.
+     *
+     * Under the commission-wallet model the merchant is credited the **full**
+     * subtotal on most orders, so this is usually equal to `subtotal` and only
+     * occasionally less. Denormalised onto the order because every earnings
+     * aggregation needs it and none of them can afford to join the commission
+     * ledger.
+     *
+     * `undefined` on orders confirmed before the model existed.
+     */
+    merchantAmount?: number;
+    /**
+     * Outstanding commission collected from this order. `0` on most orders,
+     * never more than half the subtotal.
+     *
+     * Not the commission *accrued* by this order - that is always 19% and lives
+     * in the commission ledger. This is what was taken against the balance.
+     */
+    commissionSettled?: number;
   };
 
   @Prop({
