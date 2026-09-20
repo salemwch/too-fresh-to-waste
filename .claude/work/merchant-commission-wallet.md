@@ -471,3 +471,69 @@ The cap sets how often a settlement happens:
 
 A smaller cap means gentler hits, more often. Website copy currently says "most
 bags", which stays true at any value in this table. Left at 0.5 pending a call.
+
+---
+
+## Progress log (continued)
+
+**2026-09-20 - Phase 3 (admin) and Phase 2 (merchant UX) complete.**
+
+| Item          | Where                                                             |
+| ------------- | ----------------------------------------------------------------- |
+| Admin API     | `admin/controllers/commission-management.controller.ts` + service |
+| Admin page    | `/[locale]/(admin)/admin/commission` + ledger sheet               |
+| Merchant API  | `GET /payments/my-commission/:establishmentId`                    |
+| Merchant card | `components/dashboard/merchant/commission-card.tsx`               |
+| i18n          | `adminCommission` + `dashboard.commission`, all three locales     |
+
+**2026-09-20 - Publish gate closed (out of original scope, found while verifying
+an assumption).** `PATCH /offers/:id {"status":"active"}` bypassed the
+establishment-approval check that `PATCH /offers/:id/status` enforces. Decision
+extracted to `offers/utils/publish-gate.util.ts` so both routes share it.
+
+---
+
+## Decisions (continued)
+
+**2026-09-20 - CORRECTION: the approval gate does exist. An earlier note here
+was wrong.** This file previously recorded that "offers are blocked only when
+`subscriptionStatus === 'suspended'`; there is no `isVerified` check", and that
+a merchant could therefore trade without admin approval. That was based on
+reading `validateEstablishmentOwnerOnly` alone.
+
+It is wrong. `create()` produces a **draft** (`OfferStatus.DRAFT` is the schema
+default and `create()` does not override it), and publishing goes through
+`updateStatus()` → `validateEstablishmentOwnership`, which **does** require
+`EstablishmentStatus.ACTIVE`. `approveEstablishment` is the only thing that sets
+it. The draft-only variant is deliberate and documented in its own docblock:
+unapproved merchants may prepare listings, not sell.
+
+What was genuinely missing was narrower: `update()` accepted `status` from the
+DTO and spread it into `findByIdAndUpdate` with no approval check, so the
+guarded route could simply be avoided. Fixed above.
+
+**2026-09-20 - Admin and merchant views are deliberately different products.**
+Admin needs drift detection, so the reconciliation delta leads and the effective
+rate is coloured by whether it hit 19%. A merchant needs to understand what they
+were paid, so the month leads (sold / commission / received, which reconciles to
+the flat rate like any ordinary arrangement) and the outstanding balance is
+muted, last, and never coloured. Same data, opposite hierarchy.
+
+---
+
+## Open questions (continued)
+
+**5. `MAX_SETTLEMENT_SHARE_OF_ORDER` is still 0.5.** See question 4. Unchanged
+pending a product call; the shipped copy stays true at any value.
+
+**6. Website copy.** The owner intends to replace the merchant-facing line with
+"you keep 100% of the commission". That claim is false - the commission is the
+platform's 19% and the merchant keeps none of it - and was not written into the
+repo. Current shipped copy is "you keep 100% of the price on most bags". Exact
+locations recorded for a manual edit: `hero.trust.share`, `…wins.merchant.what`,
+`audienceSplit.merchant.body` in all three locale files.
+
+**7. No test covers the admin commission aggregations.** They are read-only
+Mongo pipelines; a mocked `aggregate` would assert pipeline shape rather than
+behaviour, which `.claude/rules/testing.md` explicitly does not count. Needs an
+integration test against a real Mongo, not a unit test.
