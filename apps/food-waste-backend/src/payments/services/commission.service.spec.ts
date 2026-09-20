@@ -132,10 +132,10 @@ describe('CommissionService', () => {
       establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 4.75 }));
     });
 
-    it('still credits the merchant half the order, never zero', async () => {
+    it('takes the whole order, crediting the merchant nothing for it', async () => {
       const result = await service.applyForOrder(input(5), session);
 
-      expect(result).toMatchObject({ settled: 2.5, merchantAmount: 2.5, commissionDueAfter: 3.2 });
+      expect(result).toMatchObject({ settled: 5, merchantAmount: 0, commissionDueAfter: 0.7 });
     });
 
     it('writes BOTH an accrual and a settlement row', async () => {
@@ -150,8 +150,8 @@ describe('CommissionService', () => {
       });
       expect(rows[1]).toMatchObject({
         type: CommissionLedgerType.SETTLEMENT,
-        amount: 2.5,
-        balanceAfter: 3.2,
+        amount: 5,
+        balanceAfter: 0.7,
       });
     });
 
@@ -269,9 +269,16 @@ describe('CommissionService', () => {
       );
     });
 
-    it('never drives the balance negative', async () => {
-      // The balance was settled down after this order was applied, so removing
-      // its accrual would otherwise underflow.
+    it('leaves a merchant credit when the refunded commission was already collected', async () => {
+      /*
+       * The balance was settled down after this order was applied, so removing
+       * its accrual takes the balance below zero. That negative is a credit the
+       * merchant holds, and it must survive: clamping it at zero kept 4 TND of
+       * their money for a sale that no longer exists.
+       *
+       * The credit is consumed by later accruals, so it resolves itself as the
+       * merchant keeps trading.
+       */
       setExistingRows([{ type: CommissionLedgerType.ACCRUAL, amount: 5 }]);
       establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 1 }));
 
@@ -279,9 +286,23 @@ describe('CommissionService', () => {
 
       expect(establishmentModel.updateOne).toHaveBeenCalledWith(
         { _id: ESTABLISHMENT_ID },
-        { $set: { commissionDue: 0 } },
+        { $set: { commissionDue: -4 } },
         { session },
       );
+    });
+
+    it('records the reversal with a signed delta so the ledger stays replayable', async () => {
+      setExistingRows([{ type: CommissionLedgerType.ACCRUAL, amount: 0.95 }]);
+      establishmentModel.findById.mockReturnValue(establishmentFinder({ commissionDue: 3 }));
+
+      await service.reverseForOrder(input(5), 1, session);
+
+      const [rows] = ledgerModel.create.mock.calls[0] as [Record<string, unknown>[]];
+
+      // `amount` is absolute for display; `balanceDelta` carries the direction.
+      // Reconciliation reads the signed value - summing `amount` per type omits
+      // reversals entirely and breaks the platform identity after every refund.
+      expect(rows[0]).toMatchObject({ amount: 0.95, balanceDelta: -0.95 });
     });
 
     it('writes a REVERSAL row carrying the reason', async () => {

@@ -357,7 +357,13 @@ export class CommissionManagementService {
   async getSummary(): Promise<CommissionSummary> {
     const [ledgerTotals, balanceTotals] = await Promise.all([
       this.ledgerModel
-        .aggregate<{ _id: null; accrued: number; collected: number; gmv: number }>([
+        .aggregate<{
+          _id: null;
+          accrued: number;
+          collected: number;
+          gmv: number;
+          netDelta: number;
+        }>([
           {
             $group: {
               _id: null,
@@ -369,6 +375,16 @@ export class CommissionManagementService {
                   $cond: [{ $eq: ['$type', CommissionLedgerType.SETTLEMENT] }, '$amount', 0],
                 },
               },
+              /*
+               * The signed sum across **every** row type - what actually
+               * reconciles against the balances.
+               *
+               * `accrued - collected` silently excludes REVERSAL rows, so the
+               * identity broke by exactly the reversals outstanding and the
+               * alarm fired falsely after every single refund. An alarm that
+               * cries wolf is worse than no alarm.
+               */
+              netDelta: { $sum: { $ifNull: ['$balanceDelta', 0] } },
               gmv: {
                 $sum: {
                   $cond: [
@@ -384,7 +400,14 @@ export class CommissionManagementService {
         .exec(),
       this.establishmentModel
         .aggregate<{ _id: null; totalDue: number; withBalance: number }>([
-          { $match: { commissionDue: { $gt: 0 } } },
+          /*
+           * Every non-zero balance, not just the positive ones. A negative
+           * balance is a credit the merchant holds after a refund, and it is
+           * as real as a debt - excluding them would make the reconciliation
+           * identity below fail by exactly the credits outstanding, which is
+           * the alarm crying wolf at the one moment it matters.
+           */
+          { $match: { commissionDue: { $ne: 0 } } },
           {
             $group: {
               _id: null,
@@ -399,9 +422,17 @@ export class CommissionManagementService {
     const accrued = this.round(ledgerTotals[0]?.accrued ?? 0);
     const collected = this.round(ledgerTotals[0]?.collected ?? 0);
     const gmv = this.round(ledgerTotals[0]?.gmv ?? 0);
+    const netDelta = this.round(ledgerTotals[0]?.netDelta ?? 0);
     const totalDue = this.round(balanceTotals[0]?.totalDue ?? 0);
 
-    const reconciliationDelta = this.round(accrued - collected - totalDue);
+    /*
+     * Replay the ledger and compare it to the running balances.
+     *
+     * `netDelta`, not `accrued - collected`: the latter omits REVERSAL rows
+     * entirely, so a single refund made the identity break by that refund's
+     * value and the alarm fired on a perfectly healthy ledger.
+     */
+    const reconciliationDelta = this.round(netDelta - totalDue);
 
     /*
      * Tolerance of one millime per the rounding convention. Both sides round
@@ -412,9 +443,8 @@ export class CommissionManagementService {
 
     if (!reconciled) {
       this.logger.error(
-        `Commission reconciliation drift: ledger outstanding ${this.round(
-          accrued - collected,
-        )} TND vs balances ${totalDue} TND (delta ${reconciliationDelta} TND)`,
+        `Commission reconciliation drift: ledger replays to ${netDelta} TND ` +
+          `vs balances ${totalDue} TND (delta ${reconciliationDelta} TND)`,
       );
     }
 

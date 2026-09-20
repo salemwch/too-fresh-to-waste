@@ -73,6 +73,11 @@ describe('CommissionManagementService — against a real MongoDB', () => {
     orderId: new Types.ObjectId(),
     type,
     amount,
+    /*
+     * Signed change to the balance, which is what reconciliation replays.
+     * Accruals and positive adjustments add to it; settlements collect from it.
+     */
+    balanceDelta: type === CommissionLedgerType.SETTLEMENT ? -amount : amount,
     balanceAfter,
     ...(orderSubtotal === undefined ? {} : { orderSubtotal }),
     currency: 'TND',
@@ -266,14 +271,98 @@ describe('CommissionManagementService — against a real MongoDB', () => {
       expect(summary.merchantsWithBalance).toBe(2);
     });
 
-    it('reports a drift when the ledger and the balances disagree', async () => {
+    it('reconciles a ledger that includes an adjustment, not only accruals', async () => {
+      /*
+       * Quiet Bakery's 12 TND arrived as an ADJUSTMENT. Reconciling from
+       * `accrued - collected` classified that as a 12 TND drift and raised the
+       * alarm on a ledger that was entirely correct - the same defect that made
+       * every refund look like a discrepancy.
+       */
       const summary = await service.getSummary();
 
-      // Deliberately unbalanced above: Quiet Bakery carries 12 TND from an
-      // ADJUSTMENT, which is not an accrual, so the identity does not close.
-      // 5.700 - 5.000 - 12.700 = -12.000.
-      expect(summary.reconciliationDelta).toBe(-12);
+      expect(summary.reconciliationDelta).toBe(0);
+      expect(summary.reconciled).toBe(true);
+    });
+
+    it('raises the alarm when a balance moves without a ledger row', async () => {
+      /*
+       * The failure this alarm actually exists for: a write that changed the
+       * running balance but left no trace in the ledger. Nothing else in the
+       * product would notice, and the money is simply gone.
+       */
+      await establishmentModel.collection.updateOne(
+        { _id: establishmentId },
+        { $inc: { commissionDue: 7.5 } },
+      );
+
+      const summary = await service.getSummary();
+
       expect(summary.reconciled).toBe(false);
+      expect(summary.reconciliationDelta).toBe(-7.5);
+
+      await establishmentModel.collection.updateOne(
+        { _id: establishmentId },
+        { $inc: { commissionDue: -7.5 } },
+      );
+    });
+
+    it('still reconciles after a refund', async () => {
+      /*
+       * The identity used to be `accrued - collected - totalDue`, which omits
+       * REVERSAL rows - so a single refund broke it by that refund's value and
+       * the alarm fired on a perfectly healthy ledger. An alarm that cries wolf
+       * after every refund is worse than no alarm.
+       *
+       * Reconciliation now replays `balanceDelta`, which every row carries.
+       */
+      const refunded = new Types.ObjectId();
+      await ledgerModel.insertMany([
+        {
+          establishmentId,
+          merchantId: ownerId,
+          orderId: refunded,
+          type: CommissionLedgerType.REVERSAL,
+          amount: 0.95,
+          balanceDelta: -0.95,
+          balanceAfter: -0.25,
+          currency: 'TND',
+        },
+      ] as never[]);
+      await establishmentModel.collection.updateOne(
+        { _id: establishmentId },
+        { $inc: { commissionDue: -0.95 } },
+      );
+
+      const summary = await service.getSummary();
+
+      expect(summary.reconciled).toBe(true);
+      expect(summary.reconciliationDelta).toBe(0);
+
+      // Clean up so the later assertions start from a known state.
+      await ledgerModel.deleteOne({ orderId: refunded });
+      await establishmentModel.collection.updateOne(
+        { _id: establishmentId },
+        { $inc: { commissionDue: 0.95 } },
+      );
+    });
+
+    it('counts a negative balance as real, not as nothing', async () => {
+      // A credit is as real as a debt. Matching only `> 0` would drop them and
+      // make the identity fail by exactly the credits outstanding.
+      await establishmentModel.collection.updateOne(
+        { _id: quietEstablishmentId },
+        { $set: { commissionDue: -3 } },
+      );
+
+      const summary = await service.getSummary();
+
+      expect(summary.merchantsWithBalance).toBe(2);
+      expect(summary.totalDue).toBeCloseTo(0.7 - 3, 3);
+
+      await establishmentModel.collection.updateOne(
+        { _id: quietEstablishmentId },
+        { $set: { commissionDue: 12 } },
+      );
     });
 
     it('reconciles exactly when every movement is an accrual or settlement', async () => {

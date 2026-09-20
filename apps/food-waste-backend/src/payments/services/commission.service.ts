@@ -172,9 +172,23 @@ export class CommissionService {
       return;
     }
 
-    // Clamped: a reversal must never drive the balance below zero, which could
-    // otherwise happen if the balance was settled down after this order.
-    const balanceAfter = Math.max(0, this.round((establishment.commissionDue ?? 0) + delta));
+    /*
+     * Deliberately NOT clamped at zero.
+     *
+     * A negative balance is a credit the merchant holds, and it is the only
+     * correct outcome when a refunded order's commission was already collected
+     * by an earlier settlement. Clamping discarded that credit and left the
+     * merchant permanently overcharged for a sale that no longer exists -
+     * silently, because the running balance still looked plausible at 0.
+     *
+     * The credit is consumed by the next accruals: `calculateCommissionSettlement`
+     * adds to a negative balance, which stays under SETTLEMENT_THRESHOLD, so the
+     * merchant is simply paid in full until the credit is used up.
+     *
+     * Found by the seeded chaos scenarios in `commission-scenarios.spec.ts`,
+     * which assert `accrued - settled === balance` after every single event.
+     */
+    const balanceAfter = this.round((establishment.commissionDue ?? 0) + delta);
 
     await this.establishmentModel.updateOne(
       { _id: input.establishmentId },
@@ -190,6 +204,8 @@ export class CommissionService {
           orderId: input.orderId,
           type: CommissionLedgerType.REVERSAL,
           amount: Math.abs(delta),
+          // Signed, unlike : a reversal moves the balance either way.
+          balanceDelta: delta,
           balanceAfter,
           orderSubtotal: input.subtotal,
           reason: ratio === 1 ? 'Order refunded' : `Order partially refunded (${ratio})`,
@@ -232,6 +248,7 @@ export class CommissionService {
         ...base,
         type: CommissionLedgerType.ACCRUAL,
         amount: settlement.accrued,
+        balanceDelta: settlement.accrued,
         balanceAfter: this.round(settlement.commissionDueAfter + settlement.settled),
       },
     ];
@@ -241,6 +258,7 @@ export class CommissionService {
         ...base,
         type: CommissionLedgerType.SETTLEMENT,
         amount: settlement.settled,
+        balanceDelta: -settlement.settled,
         balanceAfter: settlement.commissionDueAfter,
       });
     }

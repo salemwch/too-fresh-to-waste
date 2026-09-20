@@ -312,10 +312,18 @@ export class Establishment {
    * conflict that the transaction retries. Mutating it outside a transaction
    * would silently lose an accrual under PM2 cluster mode.
    *
+   * **May be negative**, and there is deliberately no `min: 0`. A negative
+   * balance is a credit the merchant holds, which happens when a refunded
+   * order's commission had already been collected by an earlier settlement.
+   * Clamping it at zero discarded that credit and left the merchant
+   * permanently overcharged for a sale that no longer existed. The credit is
+   * consumed by subsequent accruals, so it resolves itself as they keep
+   * trading.
+   *
    * See `calculateCommissionSettlement` in `order-pricing.util.ts` and
    * `CommissionService.applyForOrder`.
    */
-  @Prop({ default: 0, min: 0 })
+  @Prop({ default: 0 })
   commissionDue!: number;
 
   @Prop({ default: true })

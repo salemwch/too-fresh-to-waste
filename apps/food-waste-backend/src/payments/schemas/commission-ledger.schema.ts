@@ -58,14 +58,42 @@ export class CommissionLedger {
   type!: CommissionLedgerType;
 
   /**
-   * Always positive. The direction is carried by {@link type}, not by the sign,
-   * so an aggregation can `$sum` per type without a `$cond`.
+   * Always positive, for display. The direction is carried by {@link type}, so
+   * an aggregation can `$sum` per type without a `$cond`.
+   *
+   * Not sufficient on its own: a `REVERSAL` moves the balance either way
+   * depending on whether the refunded order had settled, and an absolute value
+   * cannot say which. Reconcile with {@link balanceDelta}, never with this.
    */
   @Prop({ type: Number, required: true, min: 0 })
   amount!: number;
 
-  /** `Establishment.commissionDue` immediately after this row was applied. */
-  @Prop({ type: Number, required: true, min: 0 })
+  /**
+   * The **signed** change this row made to `Establishment.commissionDue`.
+   * Positive accrues, negative collects or credits.
+   *
+   * This is what makes the ledger replayable: `sum(balanceDelta)` across a
+   * merchant's rows must equal their balance, whatever mix of accruals,
+   * settlements and reversals produced it.
+   *
+   * Reconciling from `amount` per type instead was wrong twice over. Reversals
+   * were invisible to the summary because it only summed ACCRUAL and
+   * SETTLEMENT, so the platform-wide identity broke by exactly the reversals
+   * outstanding - meaning the one alarm on the admin page fired falsely after
+   * every refund. And `Math.abs` had already discarded the direction needed to
+   * fix that by counting them.
+   */
+  @Prop({ type: Number, required: true })
+  balanceDelta!: number;
+
+  /**
+   * `Establishment.commissionDue` immediately after this row was applied.
+   *
+   * No `min: 0` - a REVERSAL can legitimately leave a negative balance, which
+   * is a credit the merchant holds against future commission. See the field's
+   * note on the Establishment schema.
+   */
+  @Prop({ type: Number, required: true })
   balanceAfter!: number;
 
   /** Food subtotal of the originating order. Absent on `ADJUSTMENT`. */

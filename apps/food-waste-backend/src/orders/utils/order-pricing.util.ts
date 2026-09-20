@@ -68,18 +68,41 @@ export const DONATION_RATE_OF_COMMISSION = 0.05;
 export const SETTLEMENT_THRESHOLD = 5.0;
 
 /**
- * Hard ceiling on how much of a single order may be taken to settle commission.
+ * Ceiling on how much of a single order may be taken to settle commission.
  *
- * Without it a settlement order credits the merchant **zero**, which is the
- * worst moment this model can produce - a driver collecting a bag while the
- * merchant is paid nothing, with a customer watching. The cap guarantees the
- * merchant always keeps at least half of every order.
+ * At `1.0` a settling order goes entirely to the platform: the merchant is
+ * credited nothing for it and the balance drops by the full order price. One
+ * order settles, the rest are paid in full.
  *
- * It costs the platform nothing: unsettled balance carries to the next order
- * rather than being discarded, so collection is slower but the total is
- * identical.
+ * ## Why the whole order and not a slice
+ *
+ * The value decides how *often* a merchant feels a settlement, never how much
+ * is collected - the total is identical at any setting, because unsettled
+ * balance carries forward rather than being discarded:
+ *
+ * ```
+ *   settlements / orders  =  PLATFORM_FOOD_SHARE / MAX_SETTLEMENT_SHARE_OF_ORDER
+ * ```
+ *
+ * So a smaller cap means gentler deductions **more often**. Over 20 orders of
+ * 5 TND: `1.0` touches 3 orders, `0.5` touches 6.
+ *
+ * Fewer is better here. People experience one bundled loss more easily than
+ * several small ones, which is the same reason this model lumps the commission
+ * instead of shaving 19% off every order - a low cap walks back toward the
+ * shaving it exists to avoid.
+ *
+ * This was briefly `0.5`, on the argument that crediting zero is the worst
+ * moment the model can produce: a driver taking a bag while the merchant is
+ * paid nothing, with a customer watching. That reasoning does not apply to what
+ * is built. Merchants are paid by monthly bank payout through
+ * `MerchantPayoutLedger`, not in cash at handover, so there is no such moment.
+ *
+ * **A settling order must be labelled as settled wherever it is shown.** A bare
+ * `0.000` in an order list reads as unpaid, and three unexplained zeroes are
+ * worse than six explained part-payments.
  */
-export const MAX_SETTLEMENT_SHARE_OF_ORDER = 0.5;
+export const MAX_SETTLEMENT_SHARE_OF_ORDER = 1.0;
 
 /**
  * Fallback when `DELIVERY_DRIVER_SHARE` is absent. Mirrored in env.validation.ts.

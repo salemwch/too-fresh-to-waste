@@ -10,7 +10,7 @@
  *    pickup path retries. Two workers applying the same order must produce one
  *    accrual, not two. That guarantee lives in the unique
  *    `(orderId, type)` index - a mocked model cannot enforce an index.
- * 2. **Read-modify-write safety.** The 50% cap means the new balance depends on
+ * 2. **Read-modify-write safety.** The cap means the new balance depends on
  *    the old one, so it cannot be a bare `$inc`. It is only safe because it
  *    runs inside `session.withTransaction()`, where MongoDB turns a concurrent
  *    write into a conflict the transaction retries. Mocks have no isolation and
@@ -162,7 +162,7 @@ describe('CommissionService — against a real MongoDB replica set', () => {
         CommissionLedgerType.ACCRUAL,
         CommissionLedgerType.SETTLEMENT,
       ]);
-      expect(await balanceOf(est)).toBe(3.2);
+      expect(await balanceOf(est)).toBe(0.7);
     });
   });
 
@@ -296,7 +296,7 @@ describe('CommissionService — against a real MongoDB replica set', () => {
       const orderId = new Types.ObjectId();
 
       await applyOrder(est, orderId);
-      expect(await balanceOf(est)).toBe(3.2);
+      expect(await balanceOf(est)).toBe(0.7);
 
       const session = await connection.startSession();
       try {

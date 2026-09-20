@@ -76,9 +76,9 @@ describe('calculateCommissionSettlement', () => {
       const result = calculateCommissionSettlement(5, 4.75);
 
       expect(result.accrued).toBe(0.95);
-      expect(result.settled).toBe(2.5);
-      // 4.750 + 0.950 - 2.500
-      expect(result.commissionDueAfter).toBe(3.2);
+      expect(result.settled).toBe(5);
+      // 4.750 + 0.950 - 5.000
+      expect(result.commissionDueAfter).toBe(0.7);
     });
 
     it('never returns a zero accrual for a non-zero subtotal', () => {
@@ -92,36 +92,46 @@ describe('calculateCommissionSettlement', () => {
     });
   });
 
-  describe('the 50% cap - the merchant is never credited zero', () => {
-    it('caps settlement at half the order even when the balance dwarfs it', () => {
+  describe('the cap - settlement never exceeds the order it is taken from', () => {
+    it('takes the whole order and no more, however large the balance', () => {
       const result = calculateCommissionSettlement(10, 500);
 
-      expect(result.settled).toBe(5);
-      expect(result.merchantAmount).toBe(5);
-      // 500 + 1.900 - 5
-      expect(result.commissionDueAfter).toBe(496.9);
+      // The balance is 50x the order; the order still bounds the collection.
+      expect(result.settled).toBe(10);
+      expect(result.merchantAmount).toBe(0);
+      // 500 + 1.900 - 10
+      expect(result.commissionDueAfter).toBe(491.9);
     });
 
     it.each([0.5, 1, 5, 7.25, 10, 99.99])(
-      'credits at least half of a %p TND order against any balance',
+      'never takes more than the %p TND order is worth',
       subtotal => {
         for (const due of [0, 5, 20, 1000]) {
-          const { merchantAmount } = calculateCommissionSettlement(subtotal, due);
+          const { settled, merchantAmount } = calculateCommissionSettlement(subtotal, due);
 
-          expect(merchantAmount).toBeGreaterThanOrEqual(
-            round(subtotal * (1 - MAX_SETTLEMENT_SHARE_OF_ORDER)) - 0.001,
-          );
+          expect(settled).toBeLessThanOrEqual(round(subtotal * MAX_SETTLEMENT_SHARE_OF_ORDER));
+          // Which is the same as saying the merchant is never credited a
+          // negative amount - a settlement cannot bill them.
+          expect(merchantAmount).toBeGreaterThanOrEqual(0);
         }
       },
     );
 
-    it('settles only what is owed when the balance is under the cap', () => {
-      // Balance 5.200 after accrual; cap on a 20 TND order is 10.
+    it('settles only what is owed when the balance is under the order price', () => {
+      // Balance 5.200 after accrual, on a 20 TND order - the cap never binds.
       const result = calculateCommissionSettlement(20, 1.4);
 
       expect(result.settled).toBe(5.2);
       expect(result.commissionDueAfter).toBe(0);
       expect(result.merchantAmount).toBe(14.8);
+    });
+
+    it('credits zero on a settling order whose price the balance covers', () => {
+      // The defining behaviour at a cap of 1.0, and the reason a settling order
+      // must be labelled as settled rather than shown as a bare zero.
+      const result = calculateCommissionSettlement(5, 4.75);
+
+      expect(result.merchantAmount).toBe(0);
     });
   });
 
@@ -129,17 +139,18 @@ describe('calculateCommissionSettlement', () => {
     it('carries the remainder forward instead of discarding it', () => {
       const result = calculateCommissionSettlement(5, 10);
 
-      // 10 + 0.950 = 10.950, cap takes 2.500, 8.450 carries.
-      expect(result.settled).toBe(2.5);
-      expect(result.commissionDueAfter).toBe(8.45);
+      // 10 + 0.950 = 10.950, the order takes 5.000, 5.950 carries.
+      expect(result.settled).toBe(5);
+      expect(result.commissionDueAfter).toBe(5.95);
     });
 
     it('does not let a cheap order wipe a large balance', () => {
-      // The gaming vector a reset-to-zero rule would open.
+      // The gaming vector a reset-to-zero rule would open: list one 1 TND item
+      // while carrying 40 TND and clear the lot.
       const result = calculateCommissionSettlement(1, 40);
 
-      expect(result.settled).toBe(0.5);
-      expect(result.commissionDueAfter).toBe(39.69);
+      expect(result.settled).toBe(1);
+      expect(result.commissionDueAfter).toBe(39.19);
     });
   });
 
@@ -148,7 +159,8 @@ describe('calculateCommissionSettlement', () => {
       const result = calculateCommissionSettlement(5, SETTLEMENT_THRESHOLD - 0.95);
 
       expect(result.commissionDueAfter + result.settled).toBe(SETTLEMENT_THRESHOLD);
-      expect(result.settled).toBe(2.5);
+      expect(result.settled).toBe(5);
+      expect(result.commissionDueAfter).toBe(0);
     });
 
     it('handles a zero subtotal without settling or going negative', () => {
@@ -178,15 +190,17 @@ describe('calculateCommissionSettlement', () => {
    */
   describe('worked example - eight 5 TND orders', () => {
     it('matches the spec table and conserves every millime', () => {
+      // Five full-price orders, one that settles entirely, then full price
+      // again. One touched order in eight.
       const expected = [
         { settled: 0, merchant: 5, after: 0.95 },
         { settled: 0, merchant: 5, after: 1.9 },
         { settled: 0, merchant: 5, after: 2.85 },
         { settled: 0, merchant: 5, after: 3.8 },
         { settled: 0, merchant: 5, after: 4.75 },
-        { settled: 2.5, merchant: 2.5, after: 3.2 },
-        { settled: 0, merchant: 5, after: 4.15 },
-        { settled: 2.5, merchant: 2.5, after: 2.6 },
+        { settled: 5, merchant: 0, after: 0.7 },
+        { settled: 0, merchant: 5, after: 1.65 },
+        { settled: 0, merchant: 5, after: 2.6 },
       ];
 
       let due = 0;
@@ -227,7 +241,9 @@ describe('calculateCommissionSettlement', () => {
       let gmv = 0;
       let accrued = 0;
       let collected = 0;
-      let minMerchantShare = 1;
+      let settlementCount = 0;
+      /** Smallest share credited on an order that did **not** settle. */
+      let minUntouchedShare = 1;
 
       for (let i = 0; i < orderCount; i += 1) {
         const subtotal = PRICES[i % PRICES.length]!;
@@ -236,11 +252,17 @@ describe('calculateCommissionSettlement', () => {
         gmv = round(gmv + subtotal);
         accrued = round(accrued + result.accrued);
         collected = round(collected + result.settled);
-        minMerchantShare = Math.min(minMerchantShare, result.merchantAmount / subtotal);
+
+        if (result.settled > 0) {
+          settlementCount += 1;
+        } else {
+          minUntouchedShare = Math.min(minUntouchedShare, result.merchantAmount / subtotal);
+        }
+
         due = result.commissionDueAfter;
       }
 
-      return { due, gmv, accrued, collected, minMerchantShare };
+      return { due, gmv, accrued, collected, settlementCount, orderCount, minUntouchedShare };
     };
 
     it('conserves exactly: accrued minus collected is the outstanding balance', () => {
@@ -281,10 +303,32 @@ describe('calculateCommissionSettlement', () => {
       expect(Math.abs(accrued / gmv - PLATFORM_FOOD_SHARE)).toBeLessThan(0.0001);
     });
 
-    it('never credits a merchant less than half of any order', () => {
-      expect(simulate(2000).minMerchantShare).toBeGreaterThanOrEqual(
-        1 - MAX_SETTLEMENT_SHARE_OF_ORDER,
-      );
+    /**
+     * The cap decides how *often* a merchant is touched, never how much is
+     * collected. That frequency is the whole reason to pick a value, so it is
+     * asserted rather than left implicit:
+     *
+     *     settlements / orders  =  PLATFORM_FOOD_SHARE / MAX_SETTLEMENT_SHARE_OF_ORDER
+     *
+     * At 1.0 that is 19% - roughly one order in five. Halving the cap would
+     * double it to two in five, which is the drift this pins.
+     */
+    it('touches only the expected share of orders', () => {
+      const { settlementCount, orderCount } = simulate(2000);
+      const touched = settlementCount / orderCount;
+      const expected = PLATFORM_FOOD_SHARE / MAX_SETTLEMENT_SHARE_OF_ORDER;
+
+      expect(touched).toBeGreaterThan(expected - 0.02);
+      expect(touched).toBeLessThan(expected + 0.02);
+    });
+
+    it('leaves the merchant whole on every order it does not settle', () => {
+      const { minUntouchedShare } = simulate(2000);
+
+      // Not "at least half" - at this cap an order is either paid in full or
+      // settled entirely. A partial credit would mean the cap bound somewhere
+      // it should not have.
+      expect(minUntouchedShare).toBe(1);
     });
 
     /**
