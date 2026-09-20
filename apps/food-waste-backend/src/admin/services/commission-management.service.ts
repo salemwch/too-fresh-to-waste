@@ -449,7 +449,8 @@ export class CommissionManagementService {
       merchantAmount: number | null;
       orderId: string | null;
       reason: string | null;
-      createdAt: string;
+      /** `null` only for rows written outside Mongoose, which have no timestamp. */
+      createdAt: string | null;
     }[];
     total: number;
     page: number;
@@ -494,7 +495,14 @@ export class CommissionManagementService {
         merchantAmount: row.merchantAmount ?? null,
         orderId: row.orderId?.toString() ?? null,
         reason: row.reason ?? null,
-        createdAt: (row as unknown as { createdAt: Date }).createdAt.toISOString(),
+        /*
+         * `timestamps: true` fills this on every write through Mongoose, but a
+         * row inserted by a migration or the raw driver has no `createdAt`, and
+         * calling `.toISOString()` on it took down the whole endpoint rather
+         * than one row. An audit trail that cannot be read is worse than one
+         * with a gap in it.
+         */
+        createdAt: (row as unknown as { createdAt?: Date }).createdAt?.toISOString() ?? null,
       })),
       total,
       page: safePage,
