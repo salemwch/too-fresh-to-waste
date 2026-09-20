@@ -151,7 +151,9 @@ const GROUPS = {
 
 const ALL_PREFIXES = [...GROUPS.A, ...GROUPS.C, ...GROUPS.D].sort((a, b) => b.length - a.length);
 const PRE = ALL_PREFIXES.map(p => p.replace(/-/g, '\\-')).join('|');
-const KEY = '0\\.5|[0-9]+(?:\\.5)?|xxs|xs|sm|md|lg|xl|2xl|3xl|4xl|5xl|6xl';
+// Capture scale-key syntax rather than embedding the complete list of named
+// keys in a scanner pattern. Unknown keys are ignored when resolved below.
+const KEY = '[A-Za-z0-9]+(?:\\.[0-9]+)?';
 
 const TOKEN = new RegExp(`(?<![\\w-])-?(${PRE})-(${KEY})(?![\\w.-])`, 'g');
 const SQUARE = new RegExp(`(?<![\\w-])(?:h-(${KEY})\\s+w-\\1|w-(${KEY})\\s+h-\\2)(?![\\w.-])`, 'g');
