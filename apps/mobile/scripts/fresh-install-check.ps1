@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Verify the app survives a genuine first run.
 
@@ -95,7 +95,9 @@ if ($devices.Count -gt 1) {
     Write-Bad "More than one device attached; disconnect all but one:`n$($devices -join "`n")"
     exit 1
 }
-Write-Ok "device: $(($devices[0] -split '\s+')[0])"
+# @() first: with a single device `$devices` is a bare string, and indexing a
+# string returns its first CHARACTER — this printed "device: e".
+Write-Ok "device: $((@($devices)[0] -split '\s+')[0])"
 
 $installed = adb shell pm list packages $Package
 if (-not $installed) {
@@ -117,7 +119,17 @@ Write-Ok 'app data cleared (MMKV, AsyncStorage, Keychain)'
 foreach ($permission in $RuntimePermissions) {
     # Not every permission is held on every API level; a revoke that fails
     # because it was not granted is not an error.
-    adb shell pm revoke $Package $permission 2>$null | Out-Null
+    #
+    # `2>$null` is not enough on its own: while $ErrorActionPreference is
+    # 'Stop', Windows PowerShell raises a terminating NativeCommandError for
+    # ANY native command that writes to stderr, redirected or not. That aborted
+    # the whole gate on Android 9, where `pm revoke` complains about a
+    # permission the package never held. The preference is relaxed for the call
+    # only, so a genuine failure later still stops the script.
+    & {
+        $ErrorActionPreference = 'Continue'
+        adb shell pm revoke $Package $permission 2>&1 | Out-Null
+    }
 }
 Write-Ok "permissions revoked: $($RuntimePermissions.Count)"
 
