@@ -26,6 +26,7 @@ import {
   Ticket,
   UserCog,
   Network,
+  Percent,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -266,6 +267,12 @@ export const adminNavGroups: NavGroup[] = [
         titleKey: 'paymentsPayouts',
         href: '/admin/payments',
         icon: Wallet,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'commission',
+        href: '/admin/commission',
+        icon: Percent,
         roles: [UserRole.ADMIN],
       },
     ],

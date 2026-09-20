@@ -41,6 +41,7 @@ import type {
   OrganizationStatus,
   AddLoyaltyPointsPayload,
   DriverOrdersQuery,
+  CommissionQuery,
 } from '@/types/admin';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
@@ -148,6 +149,14 @@ export const adminKeys = {
   driverDetail: (id: string) => [...adminKeys.all, 'driver', id] as const,
   driverOrders: (id: string, params: DriverOrdersQuery) =>
     [...adminKeys.all, 'driver-orders', id, params] as const,
+
+  // Commission
+  commissionSummary: () => [...adminKeys.all, 'commission-summary'] as const,
+  commissionMerchants: (params: CommissionQuery) =>
+    [...adminKeys.all, 'commission-merchants', params] as const,
+  commissionCities: () => [...adminKeys.all, 'commission-cities'] as const,
+  commissionLedger: (id: string, page: number) =>
+    [...adminKeys.all, 'commission-ledger', id, page] as const,
 };
 
 // ─── Analytics hooks ──────────────────────────────────────────────────────────

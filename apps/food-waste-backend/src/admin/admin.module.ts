@@ -8,6 +8,10 @@ import { DriversModule } from '../drivers/drivers.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
+import {
+  CommissionLedger,
+  CommissionLedgerSchema,
+} from '../payments/schemas/commission-ledger.schema';
 import { PaymentModule } from '../payments/payments.module';
 import { RefundRequest, RefundRequestSchema } from '../payments/schemas/refund-request.schema';
 import { Review, ReviewSchema } from '../reviews/schemas/review.schema';
@@ -35,6 +39,7 @@ import {
   SupportTicketController,
   AnnouncementController,
   GeozoneController,
+  CommissionManagementController,
 } from './controllers';
 import { AdminOnlyGuard } from './guards/admin-only.guard';
 import { AdminAuditLog, AdminAuditLogSchema } from './schemas/admin-audit-log.schema';
@@ -59,6 +64,7 @@ import {
   SupportTicketService,
   AnnouncementService,
   GeozoneService,
+  CommissionManagementService,
 } from './services';
 import { TrialExpiryTask } from './tasks/trial-expiry.task';
 
@@ -95,6 +101,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
       { name: MerchantWallet.name, schema: MerchantWalletSchema },
       { name: Notification.name, schema: NotificationSchema },
       { name: LoyaltyAccount.name, schema: LoyaltyAccountSchema },
+      { name: CommissionLedger.name, schema: CommissionLedgerSchema },
     ]),
   ],
 
@@ -106,6 +113,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     SystemConfigController,
     OfferManagementController,
     OrderManagementController,
+    CommissionManagementController,
     PaymentManagementController,
     NotificationManagementController,
     LeaderboardManagementController,
@@ -125,6 +133,7 @@ import { TrialExpiryTask } from './tasks/trial-expiry.task';
     SystemConfigService,
     OfferManagementService,
     OrderManagementService,
+    CommissionManagementService,
     PaymentManagementService,
     NotificationManagementService,
     LeaderboardManagementService,

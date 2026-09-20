@@ -12,3 +12,4 @@ export * from './team-management.controller';
 export * from './support-ticket.controller';
 export * from './announcement.controller';
 export * from './geozone.controller';
+export * from './commission-management.controller';

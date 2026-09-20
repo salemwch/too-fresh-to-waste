@@ -5590,5 +5590,67 @@
         }
       ]
     }
+  },
+  "adminCommission": {
+    "title": "Commission",
+    "subtitle": "Ce que chaque commerçant doit, et si le registre reste équilibré.",
+    "searchPlaceholder": "Rechercher un établissement ou un commerçant",
+    "never": "Jamais",
+    "kpi": {
+      "outstanding": "Commission en attente",
+      "collected": "Encaissé depuis le début",
+      "effectiveRate": "Taux effectif",
+      "merchantsWithBalance": "Commerçants avec un solde"
+    },
+    "col": {
+      "merchant": "Commerçant",
+      "due": "Dû",
+      "gmv": "Ventes",
+      "collected": "Encaissé",
+      "rate": "Taux",
+      "lastSettlement": "Dernier règlement"
+    },
+    "preset": {
+      "all": "Tous",
+      "highBalance": "Solde élevé",
+      "neverSettled": "Jamais réglé",
+      "rateDrift": "Écart de taux"
+    },
+    "filter": {
+      "city": "Ville",
+      "allCities": "Toutes les villes",
+      "minDue": "Dû min.",
+      "sortBy": "Trier par"
+    },
+    "reconcile": {
+      "ok": "Le registre et les soldes concordent.",
+      "brokenTitle": "Le registre et les soldes divergent",
+      "brokenBody": "Le registre des commissions et les soldes des commerçants diffèrent de {delta}. L'un des deux a perdu de l'argent - n'agissez pas sur ces chiffres avant résolution."
+    },
+    "empty": {
+      "title": "Aucune activité de commission",
+      "body": "Les soldes apparaissent ici dès que les commerçants finalisent des commandes."
+    },
+    "error": {
+      "title": "Impossible de charger les commissions",
+      "body": "Une erreur est survenue lors du chargement des soldes. Réessayez.",
+      "retry": "Réessayer"
+    },
+    "ledger": {
+      "subtitle": "Tous les mouvements, du plus récent au plus ancien",
+      "currentDue": "Dû actuellement",
+      "movement": "Mouvement",
+      "balanceAfter": "Solde",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "emptyTitle": "Aucun mouvement",
+      "emptyBody": "Ce commerçant n'a pas encore d'historique de commission.",
+      "type": {
+        "accrual": "Cumulé",
+        "settlement": "Réglé",
+        "reversal": "Annulé",
+        "adjustment": "Ajusté"
+      }
+    }
   }
 }

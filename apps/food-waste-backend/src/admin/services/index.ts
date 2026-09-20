@@ -13,3 +13,4 @@ export * from './team-management.service';
 export * from './support-ticket.service';
 export * from './announcement.service';
 export * from './geozone.service';
+export * from './commission-management.service';

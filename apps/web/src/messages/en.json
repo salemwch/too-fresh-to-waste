@@ -163,7 +163,7 @@
       "title": "Every side of this has to win, or none of it lasts.",
       "merchant": {
         "who": "The business",
-        "what": "Surplus becomes revenue instead of a disposal cost. You set the price, you set the quantity, and you keep 100% of the price on most bags. Our commission settles itself, so you never pay us directly."
+        "what": "Surplus becomes revenue instead of a disposal cost. You set the price, you set the quantity, and you keep 100% of the price bags."
       },
       "customer": {
         "who": "The customer",
@@ -276,7 +276,7 @@
     "headline": "Probably the last time you throw away today's profit.",
     "subheadline": "List what did not sell before you close. Customers nearby reserve it and collect it the same day, so food that was heading for the bin becomes revenue instead.",
     "trust": {
-      "share": "You keep 100% of the price on most bags",
+      "share": "You keep 100% of the price bags",
       "control": "You set the price and the quantity"
     }
   },
@@ -3386,7 +3386,7 @@
     "description": "Both take about two minutes.",
     "merchant": {
       "label": "I have surplus food",
-      "body": "List what did not sell and turn it into revenue instead of waste. You keep 100% of the price on most bags, and you never pay us directly.",
+      "body": "List what did not sell and turn it into revenue instead of waste. You keep 100% of the price  bags, and you never pay us directly.",
       "cta": "Sell my surplus"
     },
     "consumer": {
@@ -5576,6 +5576,68 @@
           ]
         }
       ]
+    }
+  },
+  "adminCommission": {
+    "title": "Commission",
+    "subtitle": "What each merchant owes, and whether the ledger still balances.",
+    "searchPlaceholder": "Search establishment or merchant",
+    "never": "Never",
+    "kpi": {
+      "outstanding": "Outstanding commission",
+      "collected": "Collected all time",
+      "effectiveRate": "Effective rate",
+      "merchantsWithBalance": "Merchants carrying a balance"
+    },
+    "col": {
+      "merchant": "Merchant",
+      "due": "Owed",
+      "gmv": "Sales",
+      "collected": "Collected",
+      "rate": "Rate",
+      "lastSettlement": "Last settlement"
+    },
+    "preset": {
+      "all": "All",
+      "highBalance": "High balance",
+      "neverSettled": "Never settled",
+      "rateDrift": "Rate drift"
+    },
+    "filter": {
+      "city": "City",
+      "allCities": "All cities",
+      "minDue": "Min owed",
+      "sortBy": "Sort by"
+    },
+    "reconcile": {
+      "ok": "Ledger and balances agree.",
+      "brokenTitle": "Ledger and balances disagree",
+      "brokenBody": "The commission ledger and the merchant balances differ by {delta}. One of them has lost money - do not act on these figures until it is resolved."
+    },
+    "empty": {
+      "title": "No commission activity yet",
+      "body": "Balances appear here once merchants start completing orders."
+    },
+    "error": {
+      "title": "Could not load commission data",
+      "body": "Something went wrong fetching the balances. Try again.",
+      "retry": "Try again"
+    },
+    "ledger": {
+      "subtitle": "Every movement, newest first",
+      "currentDue": "Currently owed",
+      "movement": "Movement",
+      "balanceAfter": "Balance",
+      "prev": "Previous",
+      "next": "Next",
+      "emptyTitle": "No movements",
+      "emptyBody": "This merchant has no commission history yet.",
+      "type": {
+        "accrual": "Accrued",
+        "settlement": "Settled",
+        "reversal": "Reversed",
+        "adjustment": "Adjusted"
+      }
     }
   }
 }

@@ -1,6 +1,10 @@
 import { apiClient } from '@/lib/api-client';
 import type { BackendEnvelope } from '@/types/dashboard';
 import type {
+  CommissionLedgerRow,
+  CommissionMerchantRow,
+  CommissionQuery,
+  CommissionSummary,
   PlatformAnalytics,
   AuditLogResponse,
   RecentActivityResponse,
@@ -924,5 +928,36 @@ export const adminService = {
 
   getAnomalies() {
     return apiClient.get<BackendEnvelope<AnomalyAlert[]>>(`${ADMIN}/analytics/anomalies`);
+  },
+
+  // ── Commission ─────────────────────────────────────────────────────────────
+
+  /** GET /admin/commission/summary — platform totals + reconciliation identity. */
+  getCommissionSummary() {
+    return apiClient.get<BackendEnvelope<CommissionSummary>>(`${ADMIN}/commission/summary`);
+  },
+
+  /** GET /admin/commission/merchants — per-merchant balances, filterable. */
+  getCommissionMerchants(params: CommissionQuery) {
+    return apiClient.get<BackendEnvelope<CommissionMerchantRow[]>>(
+      `${ADMIN}/commission/merchants`,
+      { params },
+    );
+  },
+
+  /** GET /admin/commission/cities — distinct cities for the filter control. */
+  getCommissionCities() {
+    return apiClient.get<BackendEnvelope<string[]>>(`${ADMIN}/commission/cities`);
+  },
+
+  /** GET /admin/commission/merchants/:id/ledger — full movement history. */
+  getCommissionLedger(establishmentId: string, page = 1, limit = 50) {
+    return apiClient.get<
+      BackendEnvelope<{
+        rows: CommissionLedgerRow[];
+        establishmentName: string;
+        commissionDue: number;
+      }>
+    >(`${ADMIN}/commission/merchants/${establishmentId}/ledger`, { params: { page, limit } });
   },
 };

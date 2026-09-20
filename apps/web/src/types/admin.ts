@@ -688,13 +688,7 @@ export type AdminOrderStatus =
   | 'refunded';
 
 export type AdminPaymentStatus =
-  | 'pending'
-  | 'held'
-  | 'paid'
-  | 'failed'
-  | 'refund_pending'
-  | 'refunded'
-  | 'partially_refunded';
+  'pending' | 'held' | 'paid' | 'failed' | 'refund_pending' | 'refunded' | 'partially_refunded';
 
 export interface AdminOrderItem {
   _id: string;
@@ -1485,4 +1479,75 @@ export interface DriverOrdersQuery {
   page?: number;
   limit?: number;
   status?: AdminOrderStatus;
+}
+
+// ─── Commission ──────────────────────────────────────────────────────────────
+
+/**
+ * One merchant's commission position.
+ *
+ * `commissionDue` is what the merchant **owes** the platform, not a balance
+ * they hold. Under the commission-wallet model the merchant is credited the
+ * full order price on most orders and the 19% accrues here instead.
+ */
+export interface CommissionMerchantRow {
+  /** Same value as `establishmentId`. AdminDataTable keys its rows on `id`. */
+  id: string;
+  establishmentId: string;
+  establishmentName: string;
+  merchantName: string;
+  city: string | null;
+  commissionDue: number;
+  gmv: number;
+  accrued: number;
+  collected: number;
+  /** `collected / gmv`. `null` when the merchant had no sales in the period. */
+  effectiveRate: number | null;
+  ordersSinceSettlement: number;
+  lastSettlementAt: string | null;
+}
+
+export interface CommissionSummary {
+  totalDue: number;
+  totalAccrued: number;
+  totalCollected: number;
+  gmv: number;
+  effectiveRate: number | null;
+  merchantsWithBalance: number;
+  /**
+   * `accrued - collected - sum(commissionDue)`. Must be 0.
+   * Anything else means the ledger and the running balances disagree.
+   */
+  reconciliationDelta: number;
+  reconciled: boolean;
+}
+
+export type CommissionLedgerType = 'accrual' | 'settlement' | 'reversal' | 'adjustment';
+
+export interface CommissionLedgerRow {
+  id: string;
+  type: CommissionLedgerType;
+  amount: number;
+  balanceAfter: number;
+  orderSubtotal: number | null;
+  merchantAmount: number | null;
+  orderId: string | null;
+  reason: string | null;
+  createdAt: string;
+}
+
+export type CommissionSortKey =
+  'commissionDue' | 'gmv' | 'accrued' | 'collected' | 'effectiveRate' | 'lastSettlementAt';
+
+export interface CommissionQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  city?: string;
+  minDue?: number;
+  maxDue?: number;
+  rateDriftAbove?: number;
+  neverSettled?: boolean;
+  sortBy?: CommissionSortKey;
+  sortOrder?: 'asc' | 'desc';
 }

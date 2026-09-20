@@ -26,6 +26,7 @@ const ADMIN_NAMESPACES = [
   'adminSecurity',
   'adminOrganizations',
   'adminDrivers',
+  'adminCommission',
 ] as const;
 
 const SIDEBAR_COOKIE = 'admin_sidebar_collapsed';
