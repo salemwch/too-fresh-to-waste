@@ -276,8 +276,11 @@
     "headline": "Probably the last time you throw away today's profit.",
     "subheadline": "List what did not sell before you close. Customers nearby reserve it and collect it the same day, so food that was heading for the bin becomes revenue instead.",
     "trust": {
-      "share": "You keep 100% of the price of every bag",
-      "control": "You set the price and the quantity"
+      "shareValue": "100%",
+      "shareLabel": "of the price goes to you",
+      "shareNote": "On most bags. You never pay us directly.",
+      "marketing": "Free marketing",
+      "supplies": "Lower supply costs"
     }
   },
   "features": {

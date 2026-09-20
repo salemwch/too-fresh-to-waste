@@ -179,26 +179,59 @@ function HeroSection({ locale }: { locale: Locale }) {
             {t('subheadline')}
           </p>
 
-          {/* Objection handling, in claims that are verifiable in product: the
-              merchant is credited the full price on most orders, and chooses
-              price and quantity in the create-offer panel.
+          {/*
+            Objection handling, ranked rather than listed.
 
-              "Free to join" was removed - subscriptionStatus is
-              'trial' | 'paid' | 'suspended', so joining is free but staying is
-              not, and the claim read as more than it was.
+            This was three bullets at the same 12px and the same 75% white, so
+            nothing won and nothing was read - DESIGN.md §14.1: if two things
+            look equally important, neither is. The merchant's single strongest
+            reason to keep reading is the number, so the number becomes a
+            figure and everything else becomes support.
 
-              The 81/19 claim was removed with it: under the commission wallet
-              the merchant keeps 100% of the price on most bags and the 19%
-              accrues separately, so a flat "you keep 81% of every bag" is no
-              longer what any single order looks like. */}
-          <ul className='mt-2xl flex flex-wrap justify-center gap-x-xl gap-y-sm lg:justify-start'>
-            {(['share', 'control'] as const).map(key => (
-              <li key={key} className='flex items-center gap-sm text-white/75 text-xs md:text-sm'>
-                <span aria-hidden='true' className='bg-secondary size-1.5 shrink-0 rounded-full' />
-                {t(`trust.${key}`)}
-              </li>
-            ))}
-          </ul>
+            Size and weight carry the rank, per §14.1, with gold only
+            reinforcing it - gold is the accent for the dark ground (§2.4) and
+            the one colour that holds on this teal.
+
+            The stat stays deliberately below the h1's clamp ceiling. Out-sizing
+            the headline would give the section two primaries.
+
+            Claims removed: "you set the price and the quantity" (true but
+            inert - nobody chooses a marketplace for it) and the earlier 81/19
+            split, which no single order looks like any more.
+          */}
+          <div className='mt-2xl flex flex-col items-center gap-md lg:items-start'>
+            <p className='flex flex-wrap items-baseline justify-center gap-x-sm gap-y-xxs lg:justify-start'>
+              <span
+                className='font-heading text-secondary leading-none tabular-nums'
+                style={{ fontSize: 'clamp(1.75rem, 3.6vw, 2.5rem)', letterSpacing: '-0.02em' }}
+              >
+                {t('trust.shareValue')}
+              </span>
+              <span className='text-sm text-white md:text-base'>{t('trust.shareLabel')}</span>
+            </p>
+
+            {/*
+              The qualifier sits directly under the claim rather than in a
+              footnote. Settlement takes a share of some orders, so "every bag"
+              would be false - and a merchant discovers that on their first
+              settled order, which is the worst possible moment to find out.
+            */}
+            <p className='max-w-sm text-center text-xs text-white/60 lg:text-start'>
+              {t('trust.shareNote')}
+            </p>
+
+            <ul className='flex flex-wrap justify-center gap-x-xl gap-y-sm lg:justify-start'>
+              {(['marketing', 'supplies'] as const).map(key => (
+                <li key={key} className='flex items-center gap-sm text-white/75 text-xs md:text-sm'>
+                  <span
+                    aria-hidden='true'
+                    className='bg-secondary size-1.5 shrink-0 rounded-full'
+                  />
+                  {t(`trust.${key}`)}
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <div className='mt-4xl flex w-full flex-col items-stretch gap-md sm:flex-row sm:justify-center lg:justify-start'>
             <Link

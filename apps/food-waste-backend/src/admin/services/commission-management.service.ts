@@ -30,7 +30,8 @@ export interface CommissionMerchantRow {
   collected: number;
   /** `collected / gmv`. Drifts from 0.19 when something is wrong. */
   effectiveRate: number | null;
-  ordersSinceSettlement: number;
+  /** Orders that accrued commission in the period. */
+  accrualCount: number;
   lastSettlementAt: string | null;
 }
 
@@ -178,11 +179,6 @@ export class CommissionManagementService {
           lastSettlementAt: {
             $max: {
               $cond: [{ $eq: ['$type', CommissionLedgerType.SETTLEMENT] }, '$createdAt', null],
-            },
-          },
-          lastAccrualAt: {
-            $max: {
-              $cond: [{ $eq: ['$type', CommissionLedgerType.ACCRUAL] }, '$createdAt', null],
             },
           },
           accrualCount: {
@@ -339,7 +335,7 @@ export class CommissionManagementService {
         accrued: this.round(row.accrued),
         collected: this.round(row.collected),
         effectiveRate: row.effectiveRate,
-        ordersSinceSettlement: row.accrualCount,
+        accrualCount: row.accrualCount,
         lastSettlementAt: row.lastSettlementAt?.toISOString() ?? null,
       })),
       total,

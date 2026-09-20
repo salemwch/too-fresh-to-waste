@@ -34,11 +34,20 @@ import { formatMoney } from '@/lib/format';
 export function CommissionCard() {
   const t = useTranslations('dashboard.commission');
   const locale = useLocale();
-  const { data, isLoading, isError } = useCommissionStatement();
+  const { data, isLoading, isError, isPending, fetchStatus } = useCommissionStatement();
 
   const ratePercent = useMemo(() => (data ? Math.round(data.rate * 100) : null), [data]);
 
-  if (isLoading) {
+  /*
+   * The query is disabled until an establishment is selected. A disabled query
+   * in TanStack v5 reports `isPending` with `fetchStatus: 'idle'` and no data -
+   * so `isLoading` is false and `!data` is true, which sent a merchant who had
+   * simply not picked a shop yet straight into the error branch. Waiting is not
+   * failing; keep showing the skeleton.
+   */
+  const isWaitingForEstablishment = isPending && fetchStatus === 'idle';
+
+  if (isLoading || isWaitingForEstablishment) {
     return (
       <div
         data-testid='commission-card-skeleton'

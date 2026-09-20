@@ -39,6 +39,22 @@ const NO_ROWS: readonly CommissionMerchantRow[] = Object.freeze(
 /** Quick filters, in the order an admin would reach for them. */
 type PresetKey = 'all' | 'highBalance' | 'neverSettled' | 'rateDrift';
 
+/**
+ * Sortable columns and the i18n key each one's label lives under.
+ *
+ * Paired explicitly because the two vocabularies do not line up: the sort key
+ * is the API field (`commissionDue`) while the label is the column heading
+ * (`col.due`). Deriving one from the other needs a chain of ternaries that
+ * silently produces a missing-key string the moment a column is renamed.
+ */
+const SORT_OPTIONS: { key: CommissionSortKey; labelKey: string }[] = [
+  { key: 'commissionDue', labelKey: 'col.due' },
+  { key: 'gmv', labelKey: 'col.gmv' },
+  { key: 'collected', labelKey: 'col.collected' },
+  { key: 'effectiveRate', labelKey: 'col.rate' },
+  { key: 'lastSettlementAt', labelKey: 'col.lastSettlement' },
+];
+
 const PRESETS: { key: PresetKey; patch: Partial<CommissionQuery> }[] = [
   { key: 'all', patch: {} },
   { key: 'highBalance', patch: { minDue: 20, sortBy: 'commissionDue', sortOrder: 'desc' } },
@@ -292,13 +308,9 @@ export default function AdminCommissionPage() {
           onChange={e => applyFilter(() => setSortBy(e.target.value as CommissionSortKey))}
           className='border-input bg-background h-9 rounded-md border px-sm text-sm'
         >
-          {(
-            ['commissionDue', 'gmv', 'collected', 'effectiveRate', 'lastSettlementAt'] as const
-          ).map(key => (
+          {SORT_OPTIONS.map(({ key, labelKey }) => (
             <option key={key} value={key}>
-              {t(
-                `col.${key === 'lastSettlementAt' ? 'lastSettlement' : key === 'effectiveRate' ? 'rate' : key === 'commissionDue' ? 'due' : key}`,
-              )}
+              {t(labelKey)}
             </option>
           ))}
         </select>

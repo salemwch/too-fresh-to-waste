@@ -276,8 +276,11 @@
     "headline": "Probablement la dernière fois que vous jetez le bénéfice du jour.",
     "subheadline": "Mettez en ligne ce qui n'a pas été vendu avant de fermer. Des clients tout près réservent et récupèrent le jour même : ce qui partait à la poubelle devient du chiffre d'affaires.",
     "trust": {
-      "share": "Vous gardez 100% du prix des paniers",
-      "control": "Vous fixez le prix et la quantité"
+      "shareValue": "100%",
+      "shareLabel": "du prix vous revient",
+      "shareNote": "Sur la plupart des paniers. Vous ne nous payez jamais directement.",
+      "marketing": "Marketing gratuit",
+      "supplies": "Achats moins chers"
     }
   },
   "features": {

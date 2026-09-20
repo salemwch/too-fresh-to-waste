@@ -1503,7 +1503,8 @@ export interface CommissionMerchantRow {
   collected: number;
   /** `collected / gmv`. `null` when the merchant had no sales in the period. */
   effectiveRate: number | null;
-  ordersSinceSettlement: number;
+  /** Orders that accrued commission in the period. */
+  accrualCount: number;
   lastSettlementAt: string | null;
 }
 
@@ -1533,7 +1534,12 @@ export interface CommissionLedgerRow {
   merchantAmount: number | null;
   orderId: string | null;
   reason: string | null;
-  createdAt: string;
+  /**
+   * `null` for rows written outside Mongoose (a migration, the raw driver),
+   * which carry no `timestamps` value. The backend returns null rather than
+   * throwing so one undated row cannot take down the whole audit trail.
+   */
+  createdAt: string | null;
 }
 
 export type CommissionSortKey =
