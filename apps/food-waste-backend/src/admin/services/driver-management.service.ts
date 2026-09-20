@@ -19,6 +19,23 @@ const DRIVER_ACTIVE_STATUSES: readonly OrderStatus[] = [
   OrderStatus.OUT_FOR_DELIVERY,
 ];
 
+/**
+ * Account states that belong on the dispatch map.
+ *
+ * Only `ACTIVE`. A suspended or blocked driver cannot be given work, so
+ * drawing them is worse than omitting them: their `isOnline` flag is whatever
+ * it was when they were suspended, so they render as "Available" and get
+ * counted as capacity that does not exist.
+ *
+ * Deliberately an allowlist rather than `$nin: [SUSPENDED, BLOCKED]`. A status
+ * added to `UserStatus` later is then excluded until someone decides it should
+ * dispatch, instead of silently appearing on the map.
+ *
+ * This is the map only. `getDrivers` still lists every driver with their
+ * status, which is where an admin goes to see a suspended account.
+ */
+const DISPATCHABLE_STATUSES: readonly UserStatus[] = [UserStatus.ACTIVE];
+
 // ── Public shapes ─────────────────────────────────────────────────────────────
 
 /** Last reported position, converted from GeoJSON [lng, lat] at the boundary. */
@@ -393,16 +410,17 @@ export class DriverManagementService {
    * on every tick would be wasteful; this reads only what a marker and its
    * popover render. `.claude/rules/performance.md` rule 6.
    *
-   * ## Two queries, never N+1
+   * ## Fixed query count, never N+1
    *
-   * One pass for driver users, one for profiles, one for the active orders of
-   * all of them at once via `$in`, then joined in memory through a `Map`. The
-   * obvious shape - loop drivers, fetch each one's order - is a request per
-   * driver on a polling endpoint.
+   * Three round trips plus the establishment populate, whether the fleet is
+   * two drivers or two hundred: one pass for driver users, then profiles and
+   * active orders for all of them at once via `$in`, joined in memory through
+   * a `Map`. The obvious shape - loop the drivers, fetch each one's order - is
+   * a request per driver on an endpoint that polls every thirty seconds.
    */
   async getLiveFleet(): Promise<LiveDriver[]> {
     const drivers = await this.userModel
-      .find({ role: UserRole.DRIVER, deletedAt: null })
+      .find({ role: UserRole.DRIVER, deletedAt: null, status: { $in: DISPATCHABLE_STATUSES } })
       .select('firstName lastName phoneNumber')
       .lean<
         Array<{
@@ -489,9 +507,12 @@ export class DriverManagementService {
 
     for (const order of orders) {
       const driverId = order.driverId.toString();
+      // Sorted by driverAssignedAt descending, so the first row for a driver
+      // is their newest assignment. Without this guard a later row overwrites
+      // it and the map draws the stale one.
       if (map.has(driverId)) {
         continue;
-      } // Sorted newest first, so keep the first.
+      }
 
       // The establishment may be populated or a bare ObjectId - the same
       // duality CLAUDE.md flags for `order.establishmentId`.

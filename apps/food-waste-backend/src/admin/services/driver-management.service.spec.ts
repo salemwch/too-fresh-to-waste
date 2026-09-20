@@ -32,9 +32,28 @@ const chain = (result: unknown) => ({
     skip: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
     lean: jest.fn().mockReturnThis(),
+    // `getLiveFleet` populates the establishment name onto the active order.
+    populate: jest.fn().mockReturnThis(),
     exec: jest.fn().mockResolvedValue(result),
   }),
 });
+
+/**
+ * Queues successive `find()` results in call order.
+ *
+ * `chain` returns the same result for every call, which is fine for the specs
+ * that only exercise one collection. `getLiveFleet` reads users, then profiles,
+ * then orders, and each needs a different shape.
+ */
+const chainOnce = (model: { find: jest.Mock }, result: unknown) => {
+  model.find.mockReturnValueOnce({
+    select: jest.fn().mockReturnThis(),
+    sort: jest.fn().mockReturnThis(),
+    lean: jest.fn().mockReturnThis(),
+    populate: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue(result),
+  });
+};
 
 describe('DriverManagementService', () => {
   let service: DriverManagementService;
@@ -272,6 +291,193 @@ describe('DriverManagementService', () => {
         const profile = await withProfile({ type: 'Point', coordinates: [10.18] });
         expect(profile?.lastKnownLocation).toBeNull();
       });
+    });
+  });
+
+  // ── getLiveFleet ────────────────────────────────────────────────────────────
+
+  describe('getLiveFleet', () => {
+    const FRESH = new Date();
+
+    const liveUser = (id: Types.ObjectId, over: Record<string, unknown> = {}) => ({
+      _id: id,
+      firstName: 'Ali',
+      lastName: 'Ben Salem',
+      phoneNumber: '+21620123456',
+      ...over,
+    });
+
+    const profileRow = (id: Types.ObjectId, over: Record<string, unknown> = {}) => ({
+      userId: id,
+      idCardNumber: '01234567',
+      address: 'Tunis',
+      isOnline: true,
+      lastKnownLocation: { type: 'Point', coordinates: [10.1815, 36.8065] },
+      lastLocationAt: FRESH,
+      ...over,
+    });
+
+    it('returns an empty list without reading profiles or orders', async () => {
+      const result = await service.getLiveFleet();
+
+      expect(result).toEqual([]);
+      // One call - the users lookup. Fanning out to profiles and orders with an
+      // empty `$in` is a collection scan for a fleet that does not exist.
+      expect(profileModel.find).not.toHaveBeenCalled();
+      expect(orderModel.find).not.toHaveBeenCalled();
+    });
+
+    it('asks the database only for drivers who can be dispatched', async () => {
+      await service.getLiveFleet();
+
+      // A query-shape assertion, not proof the database excludes them: it pins
+      // the filter so removing it fails here. The reason it matters is that a
+      // suspended driver keeps whatever `isOnline` they had when they were
+      // suspended, so on the map they read as "Available" and get counted as
+      // capacity that cannot be given work.
+      expect(userModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({ status: { $in: [UserStatus.ACTIVE] } }),
+      );
+    });
+
+    it('flips GeoJSON [lng, lat] into {lat, lng}', async () => {
+      chainOnce(userModel, [liveUser(DRIVER_A)]);
+      chainOnce(profileModel, [profileRow(DRIVER_A)]);
+      chainOnce(orderModel, []);
+
+      const [driver] = await service.getLiveFleet();
+
+      // Stored as [10.1815, 36.8065]. Tunis is 36.8 N, 10.2 E - read back in
+      // the wrong order it lands in the Indian Ocean, which is the kind of bug
+      // that looks like "the map is broken" rather than "the axes are swapped".
+      expect(driver?.position).toEqual({ lat: 36.8065, lng: 10.1815, at: FRESH });
+    });
+
+    it('reports a driver with a fresh fix and no order as idle', async () => {
+      chainOnce(userModel, [liveUser(DRIVER_A)]);
+      chainOnce(profileModel, [profileRow(DRIVER_A)]);
+      chainOnce(orderModel, []);
+
+      const [driver] = await service.getLiveFleet();
+
+      expect(driver?.activity).toBe('idle');
+      expect(driver?.assignment).toBeNull();
+    });
+
+    it('attaches the active order, its pickup and its destination', async () => {
+      chainOnce(userModel, [liveUser(DRIVER_A)]);
+      chainOnce(profileModel, [profileRow(DRIVER_A)]);
+      chainOnce(orderModel, [
+        {
+          _id: new Types.ObjectId('66a1b2c3d4e5f67890120001'),
+          driverId: DRIVER_A,
+          orderNumber: 'ORD-4821',
+          status: OrderStatus.OUT_FOR_DELIVERY,
+          establishmentId: { name: 'Boulangerie du Lac' },
+          establishmentAddress: { coordinates: { type: 'Point', coordinates: [10.2, 36.84] } },
+          deliveryAddress: { city: 'La Marsa', coordinates: { lat: 36.88, lng: 10.32 } },
+        },
+      ]);
+
+      const [driver] = await service.getLiveFleet();
+
+      expect(driver?.activity).toBe('en_route');
+      expect(driver?.assignment).toEqual({
+        orderId: '66a1b2c3d4e5f67890120001',
+        orderNumber: 'ORD-4821',
+        status: OrderStatus.OUT_FOR_DELIVERY,
+        // Establishment address is GeoJSON, delivery address is {lat, lng}.
+        // Both arrive normalised so the map never has to know which was which.
+        pickup: { name: 'Boulangerie du Lac', lat: 36.84, lng: 10.2 },
+        destination: { city: 'La Marsa', lat: 36.88, lng: 10.32 },
+      });
+    });
+
+    it('survives an order with no addresses stored', async () => {
+      chainOnce(userModel, [liveUser(DRIVER_A)]);
+      chainOnce(profileModel, [profileRow(DRIVER_A)]);
+      chainOnce(orderModel, [
+        {
+          _id: new Types.ObjectId('66a1b2c3d4e5f67890120002'),
+          driverId: DRIVER_A,
+          orderNumber: 'ORD-0001',
+          status: OrderStatus.DRIVER_ASSIGNED,
+          establishmentId: DRIVER_B, // Not populated - a bare ObjectId.
+        },
+      ]);
+
+      const [driver] = await service.getLiveFleet();
+
+      // Older orders predate the address fields. The driver must still appear
+      // with their order rather than the whole endpoint throwing.
+      expect(driver?.assignment?.pickup).toBeNull();
+      expect(driver?.assignment?.destination).toBeNull();
+      expect(driver?.assignment?.orderNumber).toBe('ORD-0001');
+    });
+
+    it('keeps the most recent assignment when a driver somehow holds two', async () => {
+      chainOnce(userModel, [liveUser(DRIVER_A)]);
+      chainOnce(profileModel, [profileRow(DRIVER_A)]);
+      // The service sorts by driverAssignedAt descending, so the first row is
+      // the newest. Nothing in the schema enforces one order per driver, so
+      // this decides which one the map draws rather than leaving it arbitrary.
+      chainOnce(orderModel, [
+        {
+          _id: new Types.ObjectId('66a1b2c3d4e5f67890120003'),
+          driverId: DRIVER_A,
+          orderNumber: 'ORD-NEW',
+          status: OrderStatus.DRIVER_ASSIGNED,
+        },
+        {
+          _id: new Types.ObjectId('66a1b2c3d4e5f67890120004'),
+          driverId: DRIVER_A,
+          orderNumber: 'ORD-OLD',
+          status: OrderStatus.DRIVER_ASSIGNED,
+        },
+      ]);
+
+      const [driver] = await service.getLiveFleet();
+
+      expect(driver?.assignment?.orderNumber).toBe('ORD-NEW');
+    });
+
+    it('reports a driver with no profile as offline with no position', async () => {
+      chainOnce(userModel, [liveUser(DRIVER_A)]);
+      chainOnce(profileModel, []);
+      chainOnce(orderModel, []);
+
+      const [driver] = await service.getLiveFleet();
+
+      // A driver account created but never signed into has no profile row.
+      expect(driver?.position).toBeNull();
+      expect(driver?.activity).toBe('offline');
+    });
+
+    it('normalises a missing phone number to null rather than omitting it', async () => {
+      chainOnce(userModel, [liveUser(DRIVER_A, { phoneNumber: undefined })]);
+      chainOnce(profileModel, [profileRow(DRIVER_A)]);
+      chainOnce(orderModel, []);
+
+      const [driver] = await service.getLiveFleet();
+
+      // The panel branches on `phoneNumber ? link : "no number"`, so an absent
+      // key and an explicit null must not behave differently across the wire.
+      expect(driver?.phoneNumber).toBeNull();
+    });
+
+    it('marks an online driver whose fix has gone cold as stale', async () => {
+      chainOnce(userModel, [liveUser(DRIVER_A)]);
+      chainOnce(profileModel, [
+        profileRow(DRIVER_A, { lastLocationAt: new Date(Date.now() - 60 * 60 * 1000) }),
+      ]);
+      chainOnce(orderModel, []);
+
+      const [driver] = await service.getLiveFleet();
+
+      expect(driver?.activity).toBe('stale');
+      // The position is still returned - where they were an hour ago is
+      // useful - it is just labelled as not current.
+      expect(driver?.position).not.toBeNull();
     });
   });
 
