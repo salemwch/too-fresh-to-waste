@@ -13,7 +13,11 @@ jest.mock('@/hooks/use-merchant-dashboard', () => ({
 const baseStats: OrderStatsResponse = {
   totalOrders: 10,
   totalRevenue: 240, // gross — customer paid this
-  totalEarnings: 162, // net — 81% of a 200 TND subtotal
+  // Net merchant earnings. Historically this was a flat 81% of a 200 TND
+  // subtotal; under the commission wallet it is `subtotal - commissionSettled`,
+  // which is the FULL subtotal on most orders. 162 is kept as an arbitrary
+  // fixture value - this suite asserts rendering, not the split.
+  totalEarnings: 162,
   totalOriginalValue: 300,
   pendingOrders: 0,
   confirmedOrders: 0,

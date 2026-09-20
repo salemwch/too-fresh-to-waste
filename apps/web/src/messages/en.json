@@ -163,7 +163,7 @@
       "title": "Every side of this has to win, or none of it lasts.",
       "merchant": {
         "who": "The business",
-        "what": "Surplus becomes revenue instead of a disposal cost. You set the price, you set the quantity, and you keep 81% of every bag."
+        "what": "Surplus becomes revenue instead of a disposal cost. You set the price, you set the quantity, and you keep 100% of the price on most bags. Our commission settles itself, so you never pay us directly."
       },
       "customer": {
         "who": "The customer",
@@ -276,8 +276,7 @@
     "headline": "Probably the last time you throw away today's profit.",
     "subheadline": "List what did not sell before you close. Customers nearby reserve it and collect it the same day, so food that was heading for the bin becomes revenue instead.",
     "trust": {
-      "join": "Free to join",
-      "share": "You keep 81% of every bag",
+      "share": "You keep 100% of the price on most bags",
       "control": "You set the price and the quantity"
     }
   },
@@ -3387,7 +3386,7 @@
     "description": "Both take about two minutes.",
     "merchant": {
       "label": "I have surplus food",
-      "body": "List what did not sell and turn it into revenue instead of waste. Free to join, and you keep 81% of every bag.",
+      "body": "List what did not sell and turn it into revenue instead of waste. You keep 100% of the price on most bags, and you never pay us directly.",
       "cta": "Sell my surplus"
     },
     "consumer": {
@@ -3843,7 +3842,7 @@
       "badgeValue": "67%",
       "floating": "🔥 Selling now in Tunis"
     },
-    "ticker": ["Extra Revenue", "Free Marketing", "More Customers", "Join For Free"],
+    "ticker": ["Extra Revenue", "Free Marketing", "More Customers", "Full Price On Most Bags"],
     "what": {
       "titleStart": "Your unsold food,",
       "titleEm": "someone else’s treasure.",
@@ -4139,7 +4138,7 @@
       "lede": "Every evening, unsold food sits on your shelves. Every morning, it is gone. We can change that - starting this week.",
       "ctaKit": "Download Partner Kit",
       "ctaContact": "Talk to our team",
-      "footnote": "Onboarding is free. You go live in under 48 hours."
+      "footnote": "You go live in under 48 hours."
     }
   },
   "missionDriven": {

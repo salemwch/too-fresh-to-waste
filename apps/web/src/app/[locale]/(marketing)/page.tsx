@@ -179,11 +179,20 @@ function HeroSection({ locale }: { locale: Locale }) {
             {t('subheadline')}
           </p>
 
-          {/* Objection handling, in three claims that are all verifiable in
-              product: signup is free, the split is 81/19, and the merchant
-              chooses price and quantity in the create-offer panel. */}
+          {/* Objection handling, in claims that are verifiable in product: the
+              merchant is credited the full price on most orders, and chooses
+              price and quantity in the create-offer panel.
+
+              "Free to join" was removed - subscriptionStatus is
+              'trial' | 'paid' | 'suspended', so joining is free but staying is
+              not, and the claim read as more than it was.
+
+              The 81/19 claim was removed with it: under the commission wallet
+              the merchant keeps 100% of the price on most bags and the 19%
+              accrues separately, so a flat "you keep 81% of every bag" is no
+              longer what any single order looks like. */}
           <ul className='mt-2xl flex flex-wrap justify-center gap-x-xl gap-y-sm lg:justify-start'>
-            {(['join', 'share', 'control'] as const).map(key => (
+            {(['share', 'control'] as const).map(key => (
               <li key={key} className='flex items-center gap-sm text-white/75 text-xs md:text-sm'>
                 <span aria-hidden='true' className='bg-secondary size-1.5 shrink-0 rounded-full' />
                 {t(`trust.${key}`)}
