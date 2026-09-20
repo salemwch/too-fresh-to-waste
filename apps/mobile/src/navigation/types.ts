@@ -26,9 +26,8 @@ export interface RootNavigatorParamList extends Record<string, object | undefine
  * Unauthenticated screens
  */
 export interface AuthStackParamList extends Record<string, object | undefined> {
+  /** The whole onboarding flow: one route, three pages in a horizontal pager. */
   Welcome: undefined;
-  Onboarding2: undefined;
-  Onboarding3: undefined;
   Login: undefined;
   Register: { referralCode?: string } | undefined;
   ForgotPassword: undefined;
@@ -158,14 +157,6 @@ export interface FavoritesStackParamList extends Record<string, object | undefin
  * Navigation Props for Auth Stack Screens
  */
 export type WelcomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Welcome'>;
-export type Onboarding2ScreenNavigationProp = NativeStackNavigationProp<
-  AuthStackParamList,
-  'Onboarding2'
->;
-export type Onboarding3ScreenNavigationProp = NativeStackNavigationProp<
-  AuthStackParamList,
-  'Onboarding3'
->;
 
 export type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 

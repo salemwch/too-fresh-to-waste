@@ -1,13 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { isAppRTL } from '@/i18n/direction';
 import { useTranslation } from 'react-i18next';
 import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
 import { colorTokens } from '@/design-system/tokens/colors';
-import { onboardingStorage } from '@/storage/onboardingStorage';
-
-import type { Onboarding3ScreenNavigationProp } from '@/navigation/types';
 
 const { width: RAW_W, height: RAW_H } = Dimensions.get('window');
 
@@ -23,31 +20,21 @@ const WHITE = '#FFFFFF';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const SCENE_IMG = require('@/assets/images/bag-wall.webp');
 
-interface Props {
-  navigation: Onboarding3ScreenNavigationProp;
+interface OnboardingPageThreeProps {
+  /** Return to page 2. */
+  onPrevious: () => void;
+  /** Leave onboarding for the registration form. */
+  onCreateAccount: () => void;
+  /** True once a terminal action has fired, so it cannot fire twice. */
+  isLeaving: boolean;
 }
 
-export const OnboardingScreen3: React.FC<Props> = ({ navigation }) => {
+export const OnboardingPageThree: React.FC<OnboardingPageThreeProps> = ({
+  onPrevious,
+  onCreateAccount,
+  isLeaving,
+}) => {
   const { t } = useTranslation();
-  const [isNavigating, setIsNavigating] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      setIsNavigating(false);
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  const handleCreateAccount = useCallback(() => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    onboardingStorage.markWelcomeSeen();
-    navigation.reset({ index: 1, routes: [{ name: 'Login' }, { name: 'Register' }] });
-  }, [navigation, isNavigating]);
-
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -91,8 +78,8 @@ export const OnboardingScreen3: React.FC<Props> = ({ navigation }) => {
             styles.btnCreate,
             pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] },
           ]}
-          onPress={handleCreateAccount}
-          disabled={isNavigating}
+          onPress={onCreateAccount}
+          disabled={isLeaving}
           accessibilityRole='button'
           testID='onboarding3-create-account'
         >
@@ -102,12 +89,18 @@ export const OnboardingScreen3: React.FC<Props> = ({ navigation }) => {
         <View style={styles.navRow}>
           <Pressable
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-            onPress={handleBack}
+            onPress={onPrevious}
             accessibilityRole='button'
             accessibilityLabel={t('common.back')}
             accessibilityHint={t('auth.a11yPreviousOnboarding')}
           >
-            <Icon name='arrow-back' size={sw(22)} color={WHITE} />
+            {/*
+              A vector icon is content, not layout, so RN does not flip it the
+              way it flips the row around it. In Arabic this button sits on the
+              right and "back" points right. The ‹ › glyphs on page 2 need no
+              such handling — they are text, and the bidi renderer mirrors them.
+            */}
+            <Icon name={isAppRTL() ? 'arrow-forward' : 'arrow-back'} size={sw(22)} color={WHITE} />
           </Pressable>
 
           <View style={styles.dots}>

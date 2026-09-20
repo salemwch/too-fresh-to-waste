@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { isAppRTL } from '@/i18n/direction';
 import { useTranslation } from 'react-i18next';
 import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -6,9 +6,6 @@ import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
 import { colorTokens } from '@/design-system/tokens/colors';
-import { onboardingStorage } from '@/storage/onboardingStorage';
-
-import type { Onboarding2ScreenNavigationProp } from '@/navigation/types';
 
 const { width: RAW_W, height: RAW_H } = Dimensions.get('window');
 
@@ -26,37 +23,24 @@ const WHITE = '#FFFFFF';
 const CIRCLE_SIZE = sw(90);
 const NAV_BTN_SIZE = sw(52);
 
-interface Props {
-  navigation: Onboarding2ScreenNavigationProp;
+interface OnboardingPageTwoProps {
+  /** Advance to page 3. */
+  onNext: () => void;
+  /** Return to page 1. */
+  onPrevious: () => void;
+  /** Leave onboarding for the login screen. */
+  onSkip: () => void;
+  /** True once a terminal action has fired, so it cannot fire twice. */
+  isLeaving: boolean;
 }
 
-export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
+export const OnboardingPageTwo: React.FC<OnboardingPageTwoProps> = ({
+  onNext,
+  onPrevious,
+  onSkip,
+  isLeaving,
+}) => {
   const { t } = useTranslation();
-  const [isNavigating, setIsNavigating] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      setIsNavigating(false);
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleSkip = useCallback(() => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    onboardingStorage.markWelcomeSeen();
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-  }, [navigation, isNavigating]);
-
-  const handleNext = useCallback(() => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    navigation.navigate('Onboarding3');
-  }, [navigation, isNavigating]);
 
   return (
     <View style={styles.container}>
@@ -64,8 +48,8 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
       <View style={styles.topBar}>
         <View />
         <Pressable
-          onPress={handleSkip}
-          disabled={isNavigating}
+          onPress={onSkip}
+          disabled={isLeaving}
           accessibilityRole='button'
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
@@ -138,7 +122,7 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
         <View style={styles.navRow}>
           <Pressable
             style={({ pressed }) => [styles.navBtn, pressed && { opacity: 0.8 }]}
-            onPress={handleBack}
+            onPress={onPrevious}
             accessibilityRole='button'
             accessibilityLabel={t('common.back')}
             accessibilityHint={t('auth.a11yPreviousOnboarding')}
@@ -154,8 +138,8 @@ export const OnboardingScreen2: React.FC<Props> = ({ navigation }) => {
 
           <Pressable
             style={({ pressed }) => [styles.navBtn, pressed && { opacity: 0.8 }]}
-            onPress={handleNext}
-            disabled={isNavigating}
+            onPress={onNext}
+            disabled={isLeaving}
             accessibilityRole='button'
             accessibilityLabel={t('common.next')}
             accessibilityHint={t('auth.a11yGoToLogin')}

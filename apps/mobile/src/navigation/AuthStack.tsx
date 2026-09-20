@@ -25,9 +25,7 @@ import { RegisterScreen } from '@/features/auth/screens/RegisterScreen';
 import { ResetPasswordScreen } from '@/features/auth/screens/ResetPasswordScreen';
 import { VerifyEmailScreen } from '@/features/auth/screens/VerifyEmailScreen';
 import { VerifyPhoneScreen } from '@/features/auth/screens/VerifyPhoneScreen';
-import { OnboardingScreen2 } from '@/features/auth/screens/OnboardingScreen2';
-import { OnboardingScreen3 } from '@/features/auth/screens/OnboardingScreen3';
-import { WelcomeScreen } from '@/features/auth/screens/WelcomeScreen';
+import { OnboardingScreen } from '@/features/auth/screens/OnboardingScreen';
 import { useAppSelector } from '@/hooks/redux';
 import { onboardingStorage } from '@/storage/onboardingStorage';
 
@@ -130,7 +128,6 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
   // Device-level flag that persists across login/logout
   const hasSeenWelcome = onboardingStorage.hasSeenWelcome();
 
-
   // Access Redux state for fallback data (deep linking, session restoration)
   // This is NOT used for navigation logic, only for initial params
   const pendingVerificationEmail = useAppSelector(state => state.auth?.pendingVerificationEmail);
@@ -140,42 +137,20 @@ export const AuthStack: React.FC<AuthStackProps> = ({ initialRouteName }) => {
       initialRouteName={initialRouteName ?? (hasSeenWelcome ? 'Login' : 'Welcome')}
       screenOptions={getAuthScreenOptions(theme)}
     >
-      {/* Welcome Screen - ONLY for first-time users (device-level onboarding) */}
+      {/*
+        Onboarding - ONLY for first-time users (device-level flag).
+
+        One route, three pages. It used to be three routes; the pager needs
+        them in a single scroll container to follow the finger. See
+        features/auth/screens/OnboardingScreen.tsx.
+      */}
       {!hasSeenWelcome && (
         <Stack.Screen
           name='Welcome'
-          component={WelcomeScreen}
+          component={OnboardingScreen}
           options={{
             headerShown: false,
             title: 'Welcome',
-            statusBarStyle: 'light',
-            gestureEnabled: false,
-          }}
-        />
-      )}
-
-      {/* Onboarding Step 2 — only shown during first-run onboarding */}
-      {!hasSeenWelcome && (
-        <Stack.Screen
-          name='Onboarding2'
-          component={OnboardingScreen2}
-          options={{
-            headerShown: false,
-            title: 'Get Started',
-            statusBarStyle: 'light',
-            gestureEnabled: false,
-          }}
-        />
-      )}
-
-      {/* Onboarding Step 3 — bag + CTA, only shown during first-run */}
-      {!hasSeenWelcome && (
-        <Stack.Screen
-          name='Onboarding3'
-          component={OnboardingScreen3}
-          options={{
-            headerShown: false,
-            title: 'Get Started',
             statusBarStyle: 'light',
             gestureEnabled: false,
           }}
