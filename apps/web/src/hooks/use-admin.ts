@@ -42,6 +42,7 @@ import type {
   AddLoyaltyPointsPayload,
   DriverOrdersQuery,
   CommissionQuery,
+  ExpiringOfferItem,
 } from '@/types/admin';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
@@ -1179,10 +1180,23 @@ export function useUpdateOrganizationStatus() {
 
 // ─── Offer operation hooks ──────────────────────────────────────────────────
 
+/**
+ * Offers expiring inside `hours`.
+ *
+ * `/offers/expiring` is double-nested: `OffersService.getExpiringOffers`
+ * returns `{ data, total }` and the controller wraps that as `data: offers`,
+ * so the envelope is `{ data: { data: [...], total } }`. Unwrapped here rather
+ * than at each call site - a consumer that reached for `r.data.data` got the
+ * wrapper object, and casting it to an array only moved the failure to
+ * `.map is not a function` at runtime.
+ */
 export function useExpiringOffers(hours = 24) {
   return useQuery({
     queryKey: adminKeys.expiringOffers(hours),
-    queryFn: () => adminService.getExpiringOffers(hours).then(r => r.data.data),
+    queryFn: async (): Promise<ExpiringOfferItem[]> => {
+      const res = await adminService.getExpiringOffers(hours);
+      return res.data.data?.data ?? [];
+    },
     staleTime: 2 * 60 * 1000,
   });
 }

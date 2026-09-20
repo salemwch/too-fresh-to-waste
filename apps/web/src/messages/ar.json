@@ -812,21 +812,22 @@
         "lowStock": "مخزون منخفض",
         "outOfStock": "نفد المخزون",
         "expired": "منتهي الصلاحية",
-        "searchPlaceholder": "البحث عن مواد..."
+        "searchPlaceholder": "البحث عن مواد...",
+        "available": "متوفّر",
+        "expiringSoon": "ينتهي قريبًا"
       },
       "item": {
         "quantity": "الكمية",
-        "unit": "الوحدة",
         "category": "الفئة",
         "expiresAt": "ينتهي في",
-        "lastUpdated": "آخر تحديث",
         "updateStock": "تحديث المخزون",
-        "status": {
-          "in_stock": "متوفر",
-          "low_stock": "منخفض",
-          "out_of_stock": "نفد",
-          "expired": "منتهي"
-        }
+        "stock": "المخزون",
+        "reserved": "محجوز",
+        "available": "متوفّر",
+        "threshold": "حدّ المخزون المنخفض",
+        "expires": "ينتهي في {date}",
+        "batch": "الدفعة: {number}",
+        "viewHistory": "عرض السجل"
       },
       "stockUpdate": {
         "title": "تحديث المخزون",
@@ -838,7 +839,10 @@
           "spoiled": "تالف",
           "adjustment": "تعديل",
           "returned": "مرتجع",
-          "donated": "تبرع"
+          "restock": "إعادة تخزين",
+          "waste": "هدر",
+          "return": "إرجاع",
+          "correction": "تصحيح"
         },
         "notes": "ملاحظات (اختياري)",
         "submit": "تحديث",
@@ -846,45 +850,52 @@
         "success": "تم تحديث المخزون بنجاح",
         "error": "فشل تحديث المخزون"
       },
-      "bulkUpdate": {
-        "title": "تحديث جماعي",
-        "selected": "{count} محدد",
-        "submit": "تطبيق",
-        "success": "تم تحديث المخزون لـ {count} مادة"
-      },
       "alerts": {
         "title": "تنبيهات المخزون",
         "lowStock": "مخزون منخفض",
         "expiringSoon": "ينتهي قريبًا",
         "outOfStock": "نفد المخزون",
         "noAlerts": "لا توجد تنبيهات نشطة",
-        "resolveAll": "حل الكل"
+        "expiring": "ينتهي قريبًا",
+        "expired": "منتهي الصلاحية"
       },
       "analytics": {
         "title": "تحليلات المخزون",
         "totalItems": "إجمالي المواد",
         "totalValue": "القيمة الإجمالية",
         "expiringThisWeek": "ينتهي هذا الأسبوع",
-        "turnoverRate": "معدل الدوران",
         "wasteRate": "معدل الهدر",
-        "stockHistory": "سجل المخزون"
+        "stockHistory": "سجل المخزون",
+        "activeItems": "أصناف نشطة",
+        "lowStockItems": "مخزون منخفض",
+        "expiringItems": "ينتهي قريبًا",
+        "outOfStock": "نفد المخزون"
       },
       "empty": {
         "title": "لا توجد مواد",
         "description": "أضف مواد إلى مخزونك لبدء التتبع."
       },
-      "error": "فشل تحميل المخزون. يرجى المحاولة مرة أخرى."
+      "error": "فشل تحميل المخزون. يرجى المحاولة مرة أخرى.",
+      "pagination": {
+        "previous": "السابق",
+        "next": "التالي",
+        "page": "صفحة {current} من {total}"
+      }
     },
     "payments": {
       "title": "سجل المدفوعات",
       "subtitle": "تتبّع ومطابقة المدفوعات النقدية",
       "stats": {
         "todayRevenue": "إيرادات اليوم",
-        "weekRevenue": "إيرادات الأسبوع",
-        "monthRevenue": "إيرادات الشهر",
         "totalCollected": "إجمالي المحصّل",
         "pendingCollection": "قيد التحصيل",
-        "completedOrders": "الطلبات المكتملة"
+        "completedOrders": "الطلبات المكتملة",
+        "totalRevenue": "إجمالي الإيرادات",
+        "totalTransactions": "المعاملات",
+        "avgOrderValue": "متوسط قيمة الطلب",
+        "completed": "مكتملة",
+        "pending": "قيد الانتظار",
+        "failed": "فاشلة"
       },
       "filters": {
         "allStatuses": "جميع الحالات",
@@ -896,23 +907,26 @@
         "today": "اليوم",
         "thisWeek": "هذا الأسبوع",
         "thisMonth": "هذا الشهر",
-        "custom": "مخصص"
+        "completed": "مكتملة",
+        "fromDate": "من",
+        "toDate": "إلى"
       },
       "table": {
-        "orderId": "رقم الطلب",
         "customer": "العميل",
         "amount": "المبلغ",
         "method": "الطريقة",
         "status": "الحالة",
         "date": "التاريخ",
-        "actions": "الإجراءات"
+        "order": "الطلب"
       },
       "methods": {
         "cash": "نقدي",
-        "cash_on_pickup": "نقدي عند الاستلام"
+        "cash_on_pickup": "نقدي عند الاستلام",
+        "card": "بطاقة",
+        "smt_gateway": "عبر الإنترنت",
+        "wallet": "محفظة"
       },
       "status": {
-        "collected": "محصّل",
         "completed": "مكتمل",
         "pending": "قيد الانتظار",
         "processing": "قيد المعالجة",
@@ -925,8 +939,8 @@
         "description": "ستظهر مدفوعات طلباتك هنا."
       },
       "error": "فشل تحميل المدفوعات. يرجى المحاولة مرة أخرى.",
-      "export": "تصدير",
-      "tndCurrency": "د.ت"
+      "tndCurrency": "د.ت",
+      "loadMore": "تحميل المزيد"
     },
     "loyalty": {
       "title": "برنامج الولاء",
@@ -936,59 +950,46 @@
         "currentTier": "المستوى الحالي",
         "bagsSaved": "الأكياس المنقذة",
         "ordersCount": "عدد الطلبات",
-        "pointsThisMonth": "نقاط هذا الشهر",
-        "nextTier": "المستوى التالي"
-      },
-      "tiers": {
-        "bronze": "برونزي",
-        "silver": "فضي",
-        "gold": "ذهبي",
-        "platinum": "بلاتيني",
-        "progress": "{current}/{target} نقطة للوصول إلى {tier}",
-        "reached": "تم بلوغ المستوى!"
+        "availablePoints": "المتاحة",
+        "referrals": "الإحالات"
       },
       "badges": {
         "title": "الشارات",
         "subtitle": "مكافآتك",
         "earned": "حصلت عليها",
-        "locked": "مقفلة",
-        "progress": "{current}/{target}"
+        "noBadges": "أنجز مهامّ لتكسب الشارات"
       },
       "referral": {
         "title": "برنامج الإحالة",
         "subtitle": "ادعُ أصدقاءك واكسب نقاطًا",
         "code": "رمز الإحالة",
-        "link": "رابط الإحالة",
         "copy": "نسخ",
-        "copied": "تم النسخ!",
-        "share": "مشاركة"
+        "copied": "تم النسخ!"
       },
       "gamification": {
         "title": "التقدم",
-        "subtitle": "أهدافك الحالية",
-        "streak": "سلسلة تسجيل الدخول",
-        "streakDays": "{count} يوم",
-        "weeklyGoal": "الهدف الأسبوعي",
-        "monthlyGoal": "الهدف الشهري"
+        "loginStreak": "سلسلة تسجيل الدخول",
+        "purchaseStreak": "سلسلة الشراء",
+        "reviewsWritten": "التقييمات المكتوبة",
+        "days": "يوم"
       },
       "donations": {
         "title": "سجل التبرعات",
         "subtitle": "نقاطك المتبرع بها",
-        "donate": "التبرع بنقاط",
-        "amount": "عدد النقاط",
-        "anonymous": "تبرع مجهول",
-        "message": "رسالة (اختياري)",
-        "submit": "تبرع",
-        "submitting": "جارٍ التبرع...",
-        "success": "تم التبرع بنجاح!",
-        "error": "فشل التبرع. يرجى المحاولة مرة أخرى.",
-        "empty": "لم يتم إجراء أي تبرعات."
+        "noDonations": "لا توجد تبرعات بعد",
+        "meals": "{count} وجبة مموّلة"
       },
       "empty": {
         "title": "برنامج الولاء",
         "description": "ابدأ بكسب النقاط من خلال إنقاذ الطعام!"
       },
-      "error": "فشل تحميل بيانات الولاء. يرجى المحاولة مرة أخرى."
+      "error": "فشل تحميل بيانات الولاء. يرجى المحاولة مرة أخرى.",
+      "tier": {
+        "title": "تقدّم المستوى",
+        "nextTier": "المستوى التالي: {tier} عند {points} نقطة",
+        "maxTier": "لقد بلغت أعلى مستوى!",
+        "multiplier": "مضاعف النقاط {multiplier}x"
+      }
     },
     "quickActions": "إجراءات سريعة",
     "quickActionsDescription": "الإجراءات المستخدمة بشكل متكرر لعملك",
@@ -1043,7 +1044,8 @@
       },
       "securityDashboard": "الأمان",
       "organizations": "المنظمات",
-      "gifts": "الهدايا"
+      "gifts": "الهدايا",
+      "commission": "العمولة"
     },
     "stats": {
       "activeOffers": "العروض النشطة",

@@ -81,6 +81,11 @@ import type {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/** Frozen so an empty result never hands children a fresh array identity. */
+const EMPTY_EXPIRING: readonly ExpiringOfferItem[] = Object.freeze(
+  [],
+) as readonly ExpiringOfferItem[];
+
 function fmtPct(v: number) {
   return `${Math.round(v * 100)}%`;
 }
@@ -909,7 +914,10 @@ function ExpiringTab({ t }: { t: ReturnType<typeof useTranslations> }) {
   // so it re-computes on the hour instead of drifting per render.
   const currentHour = useCurrentHour();
   const { data, isLoading } = useExpiringOffers(24);
-  const items = (data ?? []) as ExpiringOfferItem[];
+  // No `as` cast: the hook returns the array already. The cast that used to be
+  // here claimed the envelope wrapper was an array, so the compiler stayed
+  // quiet and the failure surfaced as `.map is not a function` in the browser.
+  const items = data ?? EMPTY_EXPIRING;
 
   return (
     <div className='space-y-md'>

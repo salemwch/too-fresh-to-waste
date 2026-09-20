@@ -1044,7 +1044,8 @@
         "engagement": "Engagement",
         "system": "System"
       },
-      "gifts": "Gifts"
+      "gifts": "Gifts",
+      "commission": "Commission"
     },
     "stats": {
       "activeOffers": "Active Offers",

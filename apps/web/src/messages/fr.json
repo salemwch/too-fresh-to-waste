@@ -812,21 +812,22 @@
         "lowStock": "Stock faible",
         "outOfStock": "Rupture de stock",
         "expired": "Expiré",
-        "searchPlaceholder": "Rechercher des articles..."
+        "searchPlaceholder": "Rechercher des articles...",
+        "available": "Disponible",
+        "expiringSoon": "Bientôt périmé"
       },
       "item": {
         "quantity": "Quantité",
-        "unit": "Unité",
         "category": "Catégorie",
         "expiresAt": "Expire le",
-        "lastUpdated": "Dernière mise à jour",
         "updateStock": "Mettre à jour le stock",
-        "status": {
-          "in_stock": "En stock",
-          "low_stock": "Stock faible",
-          "out_of_stock": "Rupture",
-          "expired": "Expiré"
-        }
+        "stock": "Stock",
+        "reserved": "Réservé",
+        "available": "Disponible",
+        "threshold": "Seuil de stock bas",
+        "expires": "Périme le {date}",
+        "batch": "Lot : {number}",
+        "viewHistory": "Voir l'historique"
       },
       "stockUpdate": {
         "title": "Mettre à jour le stock",
@@ -838,7 +839,10 @@
           "spoiled": "Détérioré",
           "adjustment": "Ajustement",
           "returned": "Retour",
-          "donated": "Don"
+          "restock": "Réapprovisionnement",
+          "waste": "Perte",
+          "return": "Retour",
+          "correction": "Correction"
         },
         "notes": "Notes (optionnel)",
         "submit": "Mettre à jour",
@@ -846,45 +850,52 @@
         "success": "Stock mis à jour avec succès",
         "error": "Échec de la mise à jour du stock"
       },
-      "bulkUpdate": {
-        "title": "Mise à jour en masse",
-        "selected": "{count} sélectionné(s)",
-        "submit": "Appliquer",
-        "success": "Stock mis à jour pour {count} articles"
-      },
       "alerts": {
         "title": "Alertes d'inventaire",
         "lowStock": "Stock faible",
         "expiringSoon": "Expire bientôt",
         "outOfStock": "Rupture de stock",
         "noAlerts": "Aucune alerte active",
-        "resolveAll": "Tout résoudre"
+        "expiring": "Bientôt périmé",
+        "expired": "Périmé"
       },
       "analytics": {
         "title": "Analytique d'inventaire",
         "totalItems": "Total des articles",
         "totalValue": "Valeur totale",
         "expiringThisWeek": "Expire cette semaine",
-        "turnoverRate": "Taux de rotation",
         "wasteRate": "Taux de gaspillage",
-        "stockHistory": "Historique du stock"
+        "stockHistory": "Historique du stock",
+        "activeItems": "Articles actifs",
+        "lowStockItems": "Stock bas",
+        "expiringItems": "Bientôt périmé",
+        "outOfStock": "Rupture de stock"
       },
       "empty": {
         "title": "Aucun article",
         "description": "Ajoutez des articles à votre inventaire pour commencer le suivi."
       },
-      "error": "Échec du chargement de l'inventaire. Veuillez réessayer."
+      "error": "Échec du chargement de l'inventaire. Veuillez réessayer.",
+      "pagination": {
+        "previous": "Précédent",
+        "next": "Suivant",
+        "page": "Page {current} sur {total}"
+      }
     },
     "payments": {
       "title": "Historique des paiements",
       "subtitle": "Suivez et conciliez les paiements en espèces",
       "stats": {
         "todayRevenue": "Revenu du jour",
-        "weekRevenue": "Revenu de la semaine",
-        "monthRevenue": "Revenu du mois",
         "totalCollected": "Total encaissé",
         "pendingCollection": "En attente d'encaissement",
-        "completedOrders": "Commandes complétées"
+        "completedOrders": "Commandes complétées",
+        "totalRevenue": "Chiffre d'affaires total",
+        "totalTransactions": "Transactions",
+        "avgOrderValue": "Panier moyen",
+        "completed": "Terminés",
+        "pending": "En attente",
+        "failed": "Échoués"
       },
       "filters": {
         "allStatuses": "Tous les statuts",
@@ -896,23 +907,26 @@
         "today": "Aujourd'hui",
         "thisWeek": "Cette semaine",
         "thisMonth": "Ce mois",
-        "custom": "Personnalisé"
+        "completed": "Terminés",
+        "fromDate": "Du",
+        "toDate": "Au"
       },
       "table": {
-        "orderId": "N° commande",
         "customer": "Client",
         "amount": "Montant",
         "method": "Méthode",
         "status": "Statut",
         "date": "Date",
-        "actions": "Actions"
+        "order": "Commande"
       },
       "methods": {
         "cash": "Espèces",
-        "cash_on_pickup": "Espèces au retrait"
+        "cash_on_pickup": "Espèces au retrait",
+        "card": "Carte",
+        "smt_gateway": "En ligne",
+        "wallet": "Portefeuille"
       },
       "status": {
-        "collected": "Encaissé",
         "completed": "Complété",
         "pending": "En attente",
         "processing": "En cours",
@@ -925,8 +939,8 @@
         "description": "Les paiements de vos commandes apparaîtront ici."
       },
       "error": "Échec du chargement des paiements. Veuillez réessayer.",
-      "export": "Exporter",
-      "tndCurrency": "TND"
+      "tndCurrency": "TND",
+      "loadMore": "Charger plus"
     },
     "loyalty": {
       "title": "Programme de fidélité",
@@ -936,59 +950,46 @@
         "currentTier": "Niveau actuel",
         "bagsSaved": "Sacs sauvés",
         "ordersCount": "Nombre de commandes",
-        "pointsThisMonth": "Points ce mois",
-        "nextTier": "Prochain niveau"
-      },
-      "tiers": {
-        "bronze": "Bronze",
-        "silver": "Argent",
-        "gold": "Or",
-        "platinum": "Platine",
-        "progress": "{current}/{target} points pour {tier}",
-        "reached": "Niveau atteint !"
+        "availablePoints": "Disponibles",
+        "referrals": "Parrainages"
       },
       "badges": {
         "title": "Badges",
         "subtitle": "Vos récompenses",
         "earned": "Obtenu",
-        "locked": "Verrouillé",
-        "progress": "{current}/{target}"
+        "noBadges": "Réalisez des actions pour gagner des badges"
       },
       "referral": {
         "title": "Programme de parrainage",
         "subtitle": "Invitez des amis et gagnez des points",
         "code": "Code de parrainage",
-        "link": "Lien de parrainage",
         "copy": "Copier",
-        "copied": "Copié !",
-        "share": "Partager"
+        "copied": "Copié !"
       },
       "gamification": {
         "title": "Progression",
-        "subtitle": "Vos objectifs en cours",
-        "streak": "Série de connexions",
-        "streakDays": "{count} jours",
-        "weeklyGoal": "Objectif hebdomadaire",
-        "monthlyGoal": "Objectif mensuel"
+        "loginStreak": "Série de connexions",
+        "purchaseStreak": "Série d'achats",
+        "reviewsWritten": "Avis rédigés",
+        "days": "jours"
       },
       "donations": {
         "title": "Historique des dons",
         "subtitle": "Vos points donnés",
-        "donate": "Donner des points",
-        "amount": "Nombre de points",
-        "anonymous": "Don anonyme",
-        "message": "Message (optionnel)",
-        "submit": "Donner",
-        "submitting": "En cours...",
-        "success": "Don effectué avec succès !",
-        "error": "Échec du don. Veuillez réessayer.",
-        "empty": "Aucun don effectué."
+        "noDonations": "Aucun don pour le moment",
+        "meals": "{count} repas financés"
       },
       "empty": {
         "title": "Programme de fidélité",
         "description": "Commencez à gagner des points en sauvant de la nourriture !"
       },
-      "error": "Échec du chargement de la fidélité. Veuillez réessayer."
+      "error": "Échec du chargement de la fidélité. Veuillez réessayer.",
+      "tier": {
+        "title": "Progression du niveau",
+        "nextTier": "Niveau suivant : {tier} à {points} pts",
+        "maxTier": "Vous avez atteint le niveau le plus élevé !",
+        "multiplier": "Multiplicateur de {multiplier}x"
+      }
     },
     "quickActions": "Actions rapides",
     "quickActionsDescription": "Actions fréquemment utilisées pour votre entreprise",
@@ -1043,7 +1044,8 @@
       },
       "securityDashboard": "Sécurité",
       "organizations": "Organisations",
-      "gifts": "Cadeaux"
+      "gifts": "Cadeaux",
+      "commission": "Commission"
     },
     "stats": {
       "activeOffers": "Offres actives",

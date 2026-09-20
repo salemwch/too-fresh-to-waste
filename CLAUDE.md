@@ -438,7 +438,12 @@ see `.claude/rules/work-state.md`.
 ## Completeness Protocol
 
 1. **Trace every dependency chain** — grep the entire repo for all references
-   when adding/renaming/removing anything.
+   when adding/renaming/removing anything. Almost nothing here is one edit: a
+   thing is declared in one file and resolved in another, and adding only the
+   first half compiles, builds and passes.
+   `.claude/rules/registration-chains.md` lists every known chain, the command
+   that proves it, and the two that have no automated proof. **Find a chain
+   nothing checks? Write the check, not a reminder.**
 2. **Follow existing patterns** — read 2-3 examples before writing new code.
 3. **Cover all user-facing paths** — grep for the action and gate every call
    site.
