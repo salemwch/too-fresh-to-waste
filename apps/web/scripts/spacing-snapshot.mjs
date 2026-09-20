@@ -151,12 +151,45 @@ const GROUPS = {
 
 const ALL_PREFIXES = [...GROUPS.A, ...GROUPS.C, ...GROUPS.D].sort((a, b) => b.length - a.length);
 const PRE = ALL_PREFIXES.map(p => p.replace(/-/g, '\\-')).join('|');
-// Capture scale-key syntax rather than embedding the complete list of named
-// keys in a scanner pattern. Unknown keys are ignored when resolved below.
-const KEY = '[A-Za-z0-9]+(?:\\.[0-9]+)?';
 
-const TOKEN = new RegExp(`(?<![\\w-])-?(${PRE})-(${KEY})(?![\\w.-])`, 'g');
-const SQUARE = new RegExp(`(?<![\\w-])(?:h-(${KEY})\\s+w-\\1|w-(${KEY})\\s+h-\\2)(?![\\w.-])`, 'g');
+/**
+ * Keys these prefixes legitimately accept that are **not** on the spacing
+ * scale: `w-full` is `width:100%`, `h-auto` is `height:auto`. They resolve to a
+ * fixed rendering but not to a pixel from `theme.spacing`, so they are matched
+ * and then skipped rather than reported as unresolved.
+ *
+ * Listing them is what keeps `unresolved` meaningful - it should contain
+ * arbitrary values and typos, nothing else.
+ */
+const NON_SPACING_KEYS = new Set(['full', 'auto', 'screen', 'fit', 'min', 'max', 'none', 'px']);
+
+/**
+ * The key pattern is derived from the live spacing scale rather than hardcoded.
+ *
+ * An earlier attempt widened this to `[A-Za-z0-9]+` to avoid restating the
+ * named tokens. That matches far more than CSS: `my` is a margin prefix, so the
+ * API path `my-establishment` matched; so did the toast position `top-right`
+ * and the English phrase `top-level` in a comment. 587 strings from prose and
+ * route literals entered the scan.
+ *
+ * Deriving from `readSpacingScale()` gets the same benefit - a token added to
+ * `tailwind.config.ts` is picked up with no edit here - while matching only
+ * keys that actually exist.
+ */
+function buildPatterns(scale) {
+  const keys = [...Object.keys(scale), ...NON_SPACING_KEYS]
+    // Longest first so `2xl` cannot be shadowed by `2`, and regex-escaped
+    // because numeric keys contain dots (`0.5`, `2.5`).
+    .sort((a, b) => b.length - a.length)
+    .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+  const KEY = `(?:${keys.join('|')})`;
+
+  return {
+    TOKEN: new RegExp(`(?<![\\w-])-?(${PRE})-(${KEY})(?![\\w.-])`, 'g'),
+    SQUARE: new RegExp(`(?<![\\w-])(?:h-(${KEY})\\s+w-\\1|w-(${KEY})\\s+h-\\2)(?![\\w.-])`, 'g'),
+  };
+}
 
 const groupOf = prefix => {
   if (GROUPS.A.includes(prefix)) return 'A';
@@ -187,6 +220,7 @@ function walk(dir, out = []) {
 /** Per-file, per-category multiset of `<prefix>:<px>` -> count. */
 export function buildSnapshot() {
   const scale = readSpacingScale();
+  const { TOKEN, SQUARE } = buildPatterns(scale);
   const files = SCAN.flatMap(d => walk(d));
   const snapshot = {};
   const unresolved = [];
@@ -213,6 +247,11 @@ export function buildSnapshot() {
     TOKEN.lastIndex = 0;
     while ((m = TOKEN.exec(src)) !== null) {
       const [, prefix, key] = m;
+
+      // A real utility, just not a spacing-scale one - `w-full`, `h-auto`.
+      // Nothing to measure, and nothing wrong.
+      if (NON_SPACING_KEYS.has(key)) continue;
+
       const px = toPx(scale[key]);
       if (px === null) {
         unresolved.push(`${rel}  ${prefix}-${key}`);

@@ -144,6 +144,54 @@
       "h:384": 1
     }
   },
+  "apps/web/src/app/[locale]/(admin)/admin/commission/commission-ledger-sheet.tsx": {
+    "A": {
+      "gap:8": 5,
+      "py:8": 3,
+      "mt:2": 4,
+      "gap:0": 1,
+      "p:0": 1,
+      "p:24": 2,
+      "mt:16": 1,
+      "px:24": 1,
+      "space-y:4": 1,
+      "py:64": 1
+    },
+    "B": {
+      "size:16": 4,
+      "size:48": 1
+    },
+    "C": {
+      "min-w:0": 1,
+      "min-h:0": 1,
+      "h:16": 1,
+      "w:8": 1,
+      "h:12": 1,
+      "w:4": 1
+    }
+  },
+  "apps/web/src/app/[locale]/(admin)/admin/commission/page.tsx": {
+    "A": {
+      "gap:8": 3,
+      "gap:4": 2,
+      "gap:2": 3,
+      "px:8": 2,
+      "gap:24": 1,
+      "p:16": 1,
+      "mt:2": 2,
+      "py:64": 1
+    },
+    "B": {
+      "size:20": 1,
+      "size:16": 1,
+      "size:48": 1
+    },
+    "C": {
+      "min-w:0": 2,
+      "h:36": 3,
+      "w:112": 1
+    }
+  },
   "apps/web/src/app/[locale]/(admin)/admin/community-goal/page.tsx": {
     "A": {
       "px:10": 2,
@@ -3538,6 +3586,27 @@
       "translate-y:2": 1,
       "bottom:96": 1,
       "right:96": 1
+    }
+  },
+  "apps/web/src/components/dashboard/merchant/commission-card.tsx": {
+    "A": {
+      "p:24": 2,
+      "gap:8": 4,
+      "mb:16": 1,
+      "mt:2": 1,
+      "space-y:8": 1,
+      "pt:8": 1,
+      "mt:16": 1,
+      "gap:4": 1,
+      "mt:4": 1
+    },
+    "B": {
+      "square:40": 1
+    },
+    "C": {
+      "h:40": 1,
+      "w:40": 1,
+      "min-w:0": 1
     }
   },
   "apps/web/src/components/dashboard/merchant/dashboard-welcome-header.tsx": {
