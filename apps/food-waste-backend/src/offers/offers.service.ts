@@ -18,7 +18,6 @@ import { EstablishmentsService } from '../establishments/establishments.service'
 import { StreakService } from '../sustainability/services/streak.service';
 import {
   EstablishmentDocument,
-  EstablishmentStatus,
   EstablishmentType,
 } from '../establishments/schemas/establishment.schema';
 
@@ -31,6 +30,7 @@ import {
   URGENCY_THRESHOLD_HOURS,
 } from './config/featuring.config';
 import { CreateOfferDto } from './DTO/create-offer.dto';
+import { assertCanPublish } from './utils/publish-gate.util';
 import { OfferCardDto } from './DTO/offer-list.dto';
 import { ReactivateOfferDto } from './DTO/reactivate-offer.dto';
 import { SearchOffersDto, OfferSortField } from './DTO/search-offers.dto';
@@ -1200,6 +1200,34 @@ export class OffersService {
     if (offer.reservedQuantity > 0 && userRole !== 'admin') {
       throw new BadRequestException('Cannot update offer with active reservations');
     }
+
+    /*
+     * Publishing via the generic update route.
+     *
+     * `UpdateOfferDto` carries an optional `status`, and the update below spreads
+     * the whole DTO into `findByIdAndUpdate`. Without this check a merchant whose
+     * establishment is still PENDING could activate an offer with
+     * `PATCH /offers/:id  {"status":"active"}`, bypassing the approval gate that
+     * `updateStatus()` enforces on `PATCH /offers/:id/status`.
+     *
+     * Same rule as the subscription gate: every code path that can perform the
+     * action has to check, not just the obvious one.
+     */
+    if (updateOfferDto.status === OfferStatus.ACTIVE && userRole !== 'admin') {
+      const estId: unknown = offer.establishmentId;
+      const offerEstId =
+        typeof estId === 'object' && estId !== null && '_id' in estId
+          ? (estId as { _id: Types.ObjectId })._id.toString()
+          : String(estId ?? '');
+
+      await this.validateEstablishmentOwnership(
+        offerEstId,
+        userId,
+        userRole,
+        assignedEstablishmentId,
+      );
+    }
+
     if (updateOfferDto.pricing) {
       // ✅ SECURITY: Calculate discount percentage and enforce TND currency
       updateOfferDto.pricing = this.calculateAndValidatePricing(updateOfferDto.pricing);
@@ -2424,20 +2452,9 @@ export class OffersService {
       throw new ForbiddenException('You can only create offers for your own establishment');
     }
 
-    if (establishment.status !== EstablishmentStatus.ACTIVE) {
-      throw new ForbiddenException(
-        'Your establishment must be approved before you can activate offers. ' +
-          `Current status: ${establishment.status}`,
-      );
-    }
-
-    if (establishment.subscriptionStatus === 'suspended') {
-      throw new ForbiddenException({
-        code: 'TRIAL_EXPIRED',
-        message:
-          'Your subscription has expired. Please renew your subscription before publishing offers.',
-      });
-    }
+    // Shared with `update()`'s publish branch - see publish-gate.util.ts for
+    // why the decision lives outside this method.
+    assertCanPublish(establishment);
 
     return establishment;
   }
