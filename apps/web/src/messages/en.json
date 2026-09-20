@@ -5671,5 +5671,77 @@
         "subtitle": "Get your bags and boxes at a better price than buying them on your own."
       }
     }
+  },
+  "adminDashboard": {
+    "title": "Dashboard",
+    "subtitle": "What needs you, and how the platform is doing",
+    "alerts": {
+      "reconcileTitle": "Commission ledger does not balance",
+      "reconcileDetail": "The ledger and the merchant balances differ by {delta}. Do not act on commission figures until this is resolved.",
+      "reconcileAction": "Open commission",
+      "healthTitle": "A system check is failing",
+      "healthDetail": "{services} is not responding. Customer-facing features may be affected.",
+      "healthAction": "Open health",
+      "healthUnknownTitle": "System health is unknown",
+      "healthUnknownDetail": "The health check could not be reached, so nothing here can be trusted.",
+      "anomalyTitle": "{count, plural, one {# critical anomaly detected} other {# critical anomalies detected}}",
+      "anomalyDetail": "{first}",
+      "anomalyAction": "Review",
+      "disputesTitle": "Dispute rate is elevated",
+      "disputesDetail": "{rate}% of orders are disputed. The usual range is under 2%.",
+      "disputesAction": "Open orders"
+    },
+    "queue": {
+      "title": "Needs your attention",
+      "approvals": "Merchant approvals",
+      "approvalsHint": "Review and approve",
+      "reports": "Open reports",
+      "reportsHint": "Moderate",
+      "disputes": "Disputed orders",
+      "disputesHint": "Resolve",
+      "tickets": "Open tickets",
+      "ticketsHint": "Respond",
+      "nothing": "Nothing waiting"
+    },
+    "metrics": {
+      "gmv": "Sales",
+      "orders": "Orders",
+      "commission": "Commission",
+      "merchants": "Active merchants"
+    },
+    "charts": {
+      "revenue": "Sales over time",
+      "orders": "Orders over time",
+      "empty": "No activity in this period yet."
+    },
+    "errors": {
+      "metricsTitle": "Could not load platform figures",
+      "metricsBody": "Something went wrong fetching the numbers. Try again.",
+      "queueTitle": "Could not load your queues",
+      "queueBody": "Something went wrong fetching what is waiting. Try again.",
+      "retry": "Try again"
+    },
+    "period": {
+      "day": "Today",
+      "week": "This week",
+      "month": "This month",
+      "quarter": "This quarter",
+      "year": "This year",
+      "all": "All time"
+    },
+    "impact": {
+      "title": "Environmental impact",
+      "subtitle": "Food saved from waste since launch",
+      "kg": "kg food saved",
+      "meals": "meals rescued",
+      "co2": "kg CO2 avoided",
+      "water": "litres water saved"
+    },
+    "activity": {
+      "title": "Recent admin activity",
+      "subtitle": "The last actions taken on the platform",
+      "emptyTitle": "No recent activity",
+      "emptyBody": "Admin actions will appear here as they happen."
+    }
   }
 }

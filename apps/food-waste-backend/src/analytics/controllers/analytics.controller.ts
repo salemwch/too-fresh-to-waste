@@ -247,12 +247,27 @@ export class AnalyticsController {
 
   // ==================== Real-time Metrics ====================
 
+  /*
+   * ADMIN only. `getRealTimeMetrics()` takes no arguments and is entirely
+   * platform-wide - today's revenue, order volume, active users and system
+   * health across every merchant. The `userId` below is logged and otherwise
+   * discarded; nothing here is scoped to the caller.
+   *
+   * The class guards are `JwtAuthGuard, ProSubscriptionGuard`, so without a
+   * roles check any merchant on a Pro plan could read the platform's daily
+   * revenue. The sibling route above carries `@Roles(MERCHANT, ...)`; this one
+   * had none.
+   */
   @Get('real-time')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({
-    summary: 'Get real-time system metrics',
+    summary: 'Get real-time system metrics (admin only)',
     description:
-      "Retrieve current system status including active users, today's orders, revenue, and system health",
+      "Platform-wide status: active users, today's orders, revenue, and system health. " +
+      'Not scoped to the caller, so restricted to administrators.',
   })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
   @ApiResponse({
     status: 200,
     description: 'Real-time metrics retrieved successfully',

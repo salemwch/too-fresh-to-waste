@@ -5685,5 +5685,77 @@
         "subtitle": "Obtenez vos sacs et vos boîtes à un meilleur prix que si vous les achetiez seul."
       }
     }
+  },
+  "adminDashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Ce qui vous attend, et comment se porte la plateforme",
+    "alerts": {
+      "reconcileTitle": "Le registre des commissions ne s’équilibre pas",
+      "reconcileDetail": "Le registre et les soldes des commerçants diffèrent de {delta}. N’agissez pas sur les chiffres de commission avant résolution.",
+      "reconcileAction": "Ouvrir les commissions",
+      "healthTitle": "Un contrôle système échoue",
+      "healthDetail": "{services} ne répond pas. Des fonctionnalités clients peuvent être affectées.",
+      "healthAction": "Ouvrir l’état du système",
+      "healthUnknownTitle": "État du système inconnu",
+      "healthUnknownDetail": "Le contrôle de santé est injoignable : rien ici ne peut être considéré comme fiable.",
+      "anomalyTitle": "{count, plural, one {# anomalie critique détectée} other {# anomalies critiques détectées}}",
+      "anomalyDetail": "{first}",
+      "anomalyAction": "Examiner",
+      "disputesTitle": "Taux de litiges élevé",
+      "disputesDetail": "{rate}% des commandes sont contestées. La normale est inférieure à 2%.",
+      "disputesAction": "Ouvrir les commandes"
+    },
+    "queue": {
+      "title": "Requiert votre attention",
+      "approvals": "Validations de commerçants",
+      "approvalsHint": "Examiner et valider",
+      "reports": "Signalements ouverts",
+      "reportsHint": "Modérer",
+      "disputes": "Commandes contestées",
+      "disputesHint": "Résoudre",
+      "tickets": "Tickets ouverts",
+      "ticketsHint": "Répondre",
+      "nothing": "Rien en attente"
+    },
+    "metrics": {
+      "gmv": "Ventes",
+      "orders": "Commandes",
+      "commission": "Commission",
+      "merchants": "Commerçants actifs"
+    },
+    "charts": {
+      "revenue": "Ventes dans le temps",
+      "orders": "Commandes dans le temps",
+      "empty": "Aucune activité sur cette période."
+    },
+    "errors": {
+      "metricsTitle": "Impossible de charger les chiffres",
+      "metricsBody": "Une erreur est survenue lors du chargement. Réessayez.",
+      "queueTitle": "Impossible de charger vos files",
+      "queueBody": "Une erreur est survenue lors du chargement. Réessayez.",
+      "retry": "Réessayer"
+    },
+    "period": {
+      "day": "Aujourd'hui",
+      "week": "Cette semaine",
+      "month": "Ce mois-ci",
+      "quarter": "Ce trimestre",
+      "year": "Cette année",
+      "all": "Tout"
+    },
+    "impact": {
+      "title": "Impact environnemental",
+      "subtitle": "Nourriture sauvée du gaspillage depuis le lancement",
+      "kg": "kg sauvés",
+      "meals": "repas sauvés",
+      "co2": "kg CO2 évités",
+      "water": "litres d'eau économisés"
+    },
+    "activity": {
+      "title": "Activité récente",
+      "subtitle": "Les dernières actions menées sur la plateforme",
+      "emptyTitle": "Aucune activité récente",
+      "emptyBody": "Les actions des administrateurs apparaîtront ici."
+    }
   }
 }

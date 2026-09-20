@@ -225,52 +225,17 @@
   },
   "apps/web/src/app/[locale]/(admin)/admin/dashboard/page.tsx": {
     "A": {
+      "gap:40": 1,
+      "gap:8": 1,
+      "mt:2": 2,
+      "gap:16": 1,
+      "gap:24": 2,
       "p:24": 1,
-      "gap:16": 5,
-      "gap:8": 14,
-      "gap:6": 7,
-      "mt:16": 2,
-      "pb:8": 3,
-      "p:4": 1,
-      "pb:24": 3,
-      "px:16": 3,
-      "py:10": 3,
-      "mt:2": 5,
-      "gap:4": 1,
-      "px:6": 2,
-      "py:2": 2,
-      "space-y:8": 5,
-      "space-y:16": 2,
-      "space-y:6": 2,
-      "mb:2": 2,
-      "space-y:4": 1,
-      "ms:8": 1,
-      "space-y:32": 1,
-      "gap:24": 3,
-      "pb:16": 4,
-      "p:2": 1,
-      "px:10": 1,
-      "py:4": 3,
-      "py:24": 1,
-      "px:8": 2,
-      "py:40": 1
-    },
-    "B": {
-      "size:8": 2,
-      "size:16": 6,
-      "size:12": 5,
-      "size:32": 1
+      "mb:16": 1
     },
     "C": {
-      "h:20": 1,
-      "w:80": 1,
-      "h:48": 1,
-      "h:24": 1,
-      "h:6": 2,
-      "h:32": 2,
-      "w:112": 1,
-      "min-w:0": 2,
-      "h:56": 1
+      "min-w:0": 1,
+      "w:160": 1
     }
   },
   "apps/web/src/app/[locale]/(admin)/admin/donations/history/page.tsx": {
@@ -3199,6 +3164,21 @@
       "start:8": 1
     }
   },
+  "apps/web/src/components/dashboard/admin/admin-alert-band.tsx": {
+    "A": {
+      "gap:8": 3,
+      "p:16": 1,
+      "mt:2": 2,
+      "px:16": 1,
+      "py:8": 1
+    },
+    "B": {
+      "size:20": 1
+    },
+    "C": {
+      "min-w:0": 1
+    }
+  },
   "apps/web/src/components/dashboard/admin/admin-data-table.tsx": {
     "A": {
       "gap:24": 1,
@@ -3227,6 +3207,17 @@
       "start:10": 1,
       "top:4": 1,
       "translate-y:4": 1
+    }
+  },
+  "apps/web/src/components/dashboard/admin/admin-error-state.tsx": {
+    "A": {
+      "gap:8": 2,
+      "p:64": 1,
+      "p:24": 1,
+      "mt:4": 1
+    },
+    "B": {
+      "size:32": 1
     }
   },
   "apps/web/src/components/dashboard/admin/admin-kpi-row.tsx": {
@@ -3360,6 +3351,41 @@
     "D": {
       "bottom:0": 1,
       "inset-x:0": 1
+    }
+  },
+  "apps/web/src/components/dashboard/admin/admin-trend-chart.tsx": {
+    "A": {
+      "p:24": 2,
+      "mt:24": 2,
+      "gap:8": 1,
+      "gap:4": 1,
+      "py:64": 1
+    },
+    "B": {
+      "size:16": 2
+    },
+    "C": {
+      "h:20": 1,
+      "w:160": 1
+    }
+  },
+  "apps/web/src/components/dashboard/admin/admin-work-queue.tsx": {
+    "A": {
+      "gap:16": 1,
+      "gap:8": 2,
+      "p:16": 1,
+      "gap:4": 1
+    },
+    "B": {
+      "size:16": 1,
+      "size:12": 1
+    },
+    "C": {
+      "h:32": 1,
+      "w:64": 1
+    },
+    "D": {
+      "translate-x:2": 2
     }
   },
   "apps/web/src/components/dashboard/admin/confirm-action-dialog.tsx": {
