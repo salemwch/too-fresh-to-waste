@@ -15,6 +15,7 @@ const MERCHANT_NAMESPACES = [
   'accessibility',
   'subscription',
   'merchantSignup',
+  'merchantGifts',
 ] as const;
 
 interface MerchantLayoutProps {

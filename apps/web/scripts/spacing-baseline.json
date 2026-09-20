@@ -2620,6 +2620,26 @@
       "translate-x:0": 1
     }
   },
+  "apps/web/src/app/[locale]/(merchant)/merchant/gifts/page.tsx": {
+    "A": {
+      "gap:24": 4,
+      "gap:8": 6,
+      "p:64": 1,
+      "mt:8": 3,
+      "p:24": 2,
+      "mt:2": 5,
+      "mt:24": 4,
+      "p:8": 1
+    },
+    "B": {
+      "size:48": 1,
+      "size:40": 2
+    },
+    "C": {
+      "min-w:0": 3,
+      "h:6": 1
+    }
+  },
   "apps/web/src/app/[locale]/(merchant)/merchant/leaderboard/page.tsx": {
     "A": {
       "gap:16": 1,

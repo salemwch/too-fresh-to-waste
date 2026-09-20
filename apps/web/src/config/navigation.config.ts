@@ -27,6 +27,7 @@ import {
   UserCog,
   Network,
   Percent,
+  Gift,
   type LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
@@ -160,6 +161,12 @@ export const merchantNavItems: NavItem[] = [
     titleKey: 'leaderboard',
     href: '/merchant/leaderboard',
     icon: Trophy,
+    roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
+  },
+  {
+    titleKey: 'gifts',
+    href: '/merchant/gifts',
+    icon: Gift,
     roles: [UserRole.MERCHANT, UserRole.LOCATION_MANAGER],
   },
   {

@@ -1042,7 +1042,8 @@
         "system": "Système"
       },
       "securityDashboard": "Sécurité",
-      "organizations": "Organisations"
+      "organizations": "Organisations",
+      "gifts": "Cadeaux"
     },
     "stats": {
       "activeOffers": "Offres actives",
@@ -5664,6 +5665,44 @@
         "settlement": "Réglé",
         "reversal": "Annulé",
         "adjustment": "Ajusté"
+      }
+    }
+  },
+  "merchantGifts": {
+    "title": "Cadeaux et avantages",
+    "subtitle": "Ce que votre commerce gagne en vendant sur Too Fresh To Waste",
+    "bagsSold": "paniers vendus",
+    "empty": "Vendez vos premiers paniers et vos avantages se débloquent ici.",
+    "bagsToNext": "{count} paniers de plus pour le niveau suivant",
+    "allUnlocked": "Tous les niveaux débloqués. Parlons de la suite.",
+    "atBags": "à {count} paniers",
+    "unlocked": "Débloqué",
+    "locked": "Verrouillé",
+    "eligible": "Vous y avez droit. Contactez-nous pour l’activer.",
+    "howToClaim": "Niveau atteint ? Écrivez à votre responsable de compte et nous le mettons en place.",
+    "error": {
+      "title": "Impossible de charger vos avantages",
+      "body": "Une erreur est survenue lors du chargement de vos paniers. Réessayez.",
+      "retry": "Réessayer"
+    },
+    "perks": {
+      "internet": {
+        "title": "Internet offert",
+        "subtitle": "Nous prenons en charge la connexion de votre commerce",
+        "tiers": {
+          "tier1": "Forfait data mobile, par mois",
+          "tier2": "Forfait plus large, par mois",
+          "tier3": "Connexion du commerce entièrement prise en charge"
+        }
+      },
+      "packaging": {
+        "title": "Emballages moins chers",
+        "subtitle": "Achetez vos sacs et boîtes à prix réduit",
+        "tiers": {
+          "tier1": "Remise sur vos commandes d’emballage",
+          "tier2": "Remise plus forte, stock prioritaire",
+          "tier3": "Meilleur prix, livré chez vous"
+        }
       }
     }
   }
