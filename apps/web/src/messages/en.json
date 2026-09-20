@@ -5656,40 +5656,18 @@
     }
   },
   "merchantGifts": {
-    "title": "Gifts and perks",
-    "subtitle": "What your shop earns by selling on Too Fresh To Waste",
-    "bagsSold": "bags sold",
-    "empty": "Sell your first bags and your perks start unlocking here.",
-    "bagsToNext": "{count} more bags to the next level",
-    "allUnlocked": "Every level unlocked. Talk to us about what is next.",
-    "atBags": "at {count} bags",
-    "unlocked": "Unlocked",
-    "locked": "Locked",
-    "eligible": "You qualify. Contact us to activate it.",
-    "howToClaim": "Reached a level? Message your account manager and we will set it up.",
-    "error": {
-      "title": "Could not load your perks",
-      "body": "Something went wrong fetching your bag count. Try again.",
-      "retry": "Try again"
-    },
+    "title": "More gifts are on the way",
+    "subtitle": "We are putting together a set of perks for shops that sell with us. They will appear here as soon as they are ready.",
+    "soon": "Soon",
+    "notify": "We will let you know the moment these go live.",
     "perks": {
       "internet": {
         "title": "Free internet",
-        "subtitle": "We cover your shop connection",
-        "tiers": {
-          "tier1": "Mobile data bundle, monthly",
-          "tier2": "Larger bundle, monthly",
-          "tier3": "Full shop connection covered"
-        }
+        "subtitle": "We help cover your shop connection so you can stay online without another bill."
       },
       "packaging": {
         "title": "Cheaper packaging",
-        "subtitle": "Buy your bags and boxes for less",
-        "tiers": {
-          "tier1": "Discount on packaging orders",
-          "tier2": "Bigger discount, priority stock",
-          "tier3": "Best price, delivered to you"
-        }
+        "subtitle": "Get your bags and boxes at a better price than buying them on your own."
       }
     }
   }
