@@ -163,7 +163,7 @@
       "title": "Every side of this has to win, or none of it lasts.",
       "merchant": {
         "who": "The business",
-        "what": "Surplus becomes revenue instead of a disposal cost. You set the price, you set the quantity, and you keep 100% of the price bags."
+        "what": "Surplus becomes revenue instead of a disposal cost. You set the price, you set the quantity, And you keep 100% of the price of every bag."
       },
       "customer": {
         "who": "The customer",
@@ -276,7 +276,7 @@
     "headline": "Probably the last time you throw away today's profit.",
     "subheadline": "List what did not sell before you close. Customers nearby reserve it and collect it the same day, so food that was heading for the bin becomes revenue instead.",
     "trust": {
-      "share": "You keep 100% of the price bags",
+      "share": "You keep 100% of the price of every bag",
       "control": "You set the price and the quantity"
     }
   },
@@ -2180,6 +2180,18 @@
         "CHILDREN_STUDIES": "school kits",
         "MEDICINE": "medicine packs"
       }
+    },
+    "commission": {
+      "title": "Commission this month",
+      "subtitle": "Sold, commission, and what you received",
+      "sold": "Sold",
+      "commission": "Commission",
+      "commissionWithRate": "Commission ({rate}%)",
+      "received": "You received",
+      "fullPriceOrders": "{count, plural, one {# order paid you the full price} other {# orders paid you the full price}}",
+      "toSettle": "{amount} still to settle from upcoming orders. You never pay us directly.",
+      "noActivity": "No sales yet this month. Your commission summary appears here once orders start coming in.",
+      "error": "Could not load your commission summary."
     }
   },
   "merchantSignup": {
@@ -3386,7 +3398,7 @@
     "description": "Both take about two minutes.",
     "merchant": {
       "label": "I have surplus food",
-      "body": "List what did not sell and turn it into revenue instead of waste. You keep 100% of the price  bags, and you never pay us directly.",
+      "body": "List what did not sell and turn it into revenue instead of waste. you keep 100% of the price of every bag, and you never pay us directly.",
       "cta": "Sell my surplus"
     },
     "consumer": {

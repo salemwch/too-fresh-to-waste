@@ -10,5 +10,6 @@ export { CampaignSidePanel } from './campaign-side-panel';
 export { ReportingBar } from './reporting-bar';
 export { StreakWidget } from './streak-widget';
 export { FundLedgerCard } from './fund-ledger-card';
+export { CommissionCard } from './commission-card';
 export { SmartPricingPanel } from './smart-pricing-panel';
 export { WalletBalanceCard } from './wallet-balance-card';

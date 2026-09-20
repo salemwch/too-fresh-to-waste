@@ -163,7 +163,7 @@
       "title": "Chaque partie doit y gagner, sinon rien ne tient.",
       "merchant": {
         "who": "Le commerce",
-        "what": "Les invendus deviennent du chiffre d’affaires au lieu d’un coût de mise au rebut. Vous fixez le prix, vous fixez la quantité, et vous gardez 100% du prix sur la plupart des paniers. Notre commission se règle toute seule : vous ne nous payez jamais directement."
+        "what": "Les invendus deviennent du chiffre d’affaires au lieu d’un coût de mise au rebut. Vous fixez le prix, vous fixez la quantité, et vous gardez 100% du prix des paniers. Notre commission se règle toute seule : vous ne nous payez jamais directement."
       },
       "customer": {
         "who": "Le client",
@@ -276,7 +276,7 @@
     "headline": "Probablement la dernière fois que vous jetez le bénéfice du jour.",
     "subheadline": "Mettez en ligne ce qui n'a pas été vendu avant de fermer. Des clients tout près réservent et récupèrent le jour même : ce qui partait à la poubelle devient du chiffre d'affaires.",
     "trust": {
-      "share": "Vous gardez 100% du prix sur la plupart des paniers",
+      "share": "Vous gardez 100% du prix des paniers",
       "control": "Vous fixez le prix et la quantité"
     }
   },
@@ -2179,6 +2179,18 @@
         "CHILDREN_STUDIES": "kits scolaires",
         "MEDICINE": "kits de médicaments"
       }
+    },
+    "commission": {
+      "title": "Commission ce mois-ci",
+      "subtitle": "Vendu, commission, et ce que vous avez touché",
+      "sold": "Vendu",
+      "commission": "Commission",
+      "commissionWithRate": "Commission ({rate}%)",
+      "received": "Vous avez touché",
+      "fullPriceOrders": "{count, plural, one {# commande vous a payé le prix complet} other {# commandes vous ont payé le prix complet}}",
+      "toSettle": "{amount} restent à régler sur les prochaines commandes. Vous ne nous payez jamais directement.",
+      "noActivity": "Aucune vente ce mois-ci. Votre récapitulatif de commission apparaîtra ici dès les premières commandes.",
+      "error": "Impossible de charger votre récapitulatif de commission."
     }
   },
   "merchantSignup": {
@@ -3390,7 +3402,7 @@
     "description": "Les deux prennent environ deux minutes.",
     "merchant": {
       "label": "J’ai des invendus",
-      "body": "Mettez en ligne ce qui n’a pas été vendu et transformez-le en chiffre d’affaires plutôt qu’en déchet. Vous gardez 100% du prix sur la plupart des paniers, et vous ne nous payez jamais directement.",
+      "body": "Mettez en ligne ce qui n’a pas été vendu et transformez-le en chiffre d’affaires plutôt qu’en déchet. Vous gardez 100% du prix des paniers, et vous ne nous payez jamais directement.",
       "cta": "Vendre mes invendus"
     },
     "consumer": {

@@ -442,11 +442,7 @@ export interface UpdateOfferPayload {
 // ─── Donation Pool ──────────────────────────────────────────────────────────
 
 export type DonationPoolStatus =
-  | 'active'
-  | 'funded'
-  | 'distributed'
-  | 'archived'
-  | 'season_complete';
+  'active' | 'funded' | 'distributed' | 'archived' | 'season_complete';
 
 export type DonationGoalCategory = 'TSHIRTS' | 'PANTS' | 'SHOES' | 'CHILDREN_STUDIES' | 'MEDICINE';
 
@@ -695,4 +691,34 @@ export interface PricingSuggestions {
     merchantSoldOutOffers: number;
     peerMerchants: number;
   };
+}
+
+// ─── Merchant commission ─────────────────────────────────────────────────────
+
+/**
+ * The merchant's own commission statement.
+ *
+ * `sales - commission = received` for the period, which is identical to any
+ * ordinary commission arrangement. The per-order lumpiness (full price on most
+ * orders, a partial settlement on some) is a payout detail; the month is what
+ * reconciles.
+ */
+export interface MerchantCommissionStatement {
+  /** Still to settle. The merchant owes this - it is not money they hold. */
+  commissionDue: number;
+  sales: number;
+  commission: number;
+  received: number;
+  /** The flat rate, so the merchant can check the arithmetic themselves. */
+  rate: number;
+  fullPriceOrders: number;
+  settledOrders: number;
+  currency: string;
+  recentSettlements: {
+    orderId: string | null;
+    amount: number;
+    merchantAmount: number | null;
+    orderSubtotal: number | null;
+    createdAt: string;
+  }[];
 }

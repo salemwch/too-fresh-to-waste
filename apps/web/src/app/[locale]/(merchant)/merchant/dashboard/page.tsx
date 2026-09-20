@@ -15,6 +15,7 @@ import {
   SmartPricingPanel,
   WalletBalanceCard,
   FundLedgerCard,
+  CommissionCard,
 } from '@/components/dashboard/merchant';
 import { useOrderStats, useRevenueChart, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { type DatePreset, PRESET_CONFIG } from '@/types/dashboard';
@@ -57,8 +58,11 @@ export default function MerchantDashboardPage() {
       {/* ── Daily listing streak ── */}
       <StreakWidget onListOffer={() => setPanelOpen(true)} disabled={isTrialSuspended} />
 
-      {/* ── Payout balance ── */}
-      <WalletBalanceCard />
+      {/* ── Payout balance + commission statement ── */}
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-[24px]'>
+        <WalletBalanceCard />
+        <CommissionCard />
+      </div>
 
       {/* ── Impact KPI cards ── */}
       {orderStatsQuery.isLoading ? (

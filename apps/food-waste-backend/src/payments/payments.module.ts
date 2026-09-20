@@ -29,6 +29,7 @@ import { WalletTransaction, WalletTransactionSchema } from './schemas/wallet-tra
 import { PaymentWebhook, PaymentWebhookSchema } from './schemas/webhook.schema';
 import { KonnectOrderService } from './services/konnect-order.service';
 import { CommissionService } from './services/commission.service';
+import { MerchantCommissionService } from './services/merchant-commission.service';
 import { PayoutService } from './services/payout.service';
 import { RefundService } from './services/refund.service';
 import { WalletPayoutService } from './services/wallet-payout.service';
@@ -63,6 +64,7 @@ import { PayoutTask } from './tasks/payout.task';
     PaymentService,
     PayoutService,
     CommissionService,
+    MerchantCommissionService,
     RefundService,
     KonnectOrderService,
     WalletPayoutService,
@@ -70,6 +72,13 @@ import { PayoutTask } from './tasks/payout.task';
     PaymentExpiryTask,
     PaymentReconciliationTask,
   ],
-  exports: [PaymentService, PayoutService, CommissionService, RefundService, KonnectOrderService],
+  exports: [
+    PaymentService,
+    PayoutService,
+    CommissionService,
+    MerchantCommissionService,
+    RefundService,
+    KonnectOrderService,
+  ],
 })
 export class PaymentModule {}

@@ -8,6 +8,7 @@ import { AppVersionGuard } from 'src/common/guards/app-version.guard';
 
 import { PaymentService } from './payments.service';
 import { KonnectOrderService } from './services/konnect-order.service';
+import { MerchantCommissionService } from './services/merchant-commission.service';
 import { PaymentController } from './payments.controller';
 
 import type { TestingModule } from '@nestjs/testing';
@@ -35,6 +36,9 @@ describe('PaymentController — Konnect webhooks', () => {
           },
         },
         { provide: KonnectOrderService, useValue: konnectOrderService },
+        // Required by the controller's constructor since the commission
+        // statement endpoint was added. Unused by these webhook tests.
+        { provide: MerchantCommissionService, useValue: { getStatement: jest.fn() } },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: Reflector, useValue: new Reflector() },
       ],

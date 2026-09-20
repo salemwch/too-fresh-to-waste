@@ -30,6 +30,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 
 import { PaymentQueryDto } from './dto/payment-query.dto';
 import { PaymentService } from './payments.service';
+import { MerchantCommissionService } from './services/merchant-commission.service';
 import { KonnectOrderService } from './services/konnect-order.service';
 
 import type { Response } from 'express';
@@ -44,6 +45,7 @@ export class PaymentController {
 
   constructor(
     private readonly paymentService: PaymentService,
+    private readonly merchantCommissionService: MerchantCommissionService,
     private readonly konnectOrderService: KonnectOrderService,
   ) {}
 
@@ -123,6 +125,53 @@ export class PaymentController {
       },
     };
   }
+
+  @ApiOperation({
+    summary: 'Your commission statement for the current month',
+    description:
+      'Sold, commission and received for the period, plus the outstanding balance. ' +
+      'The merchant is credited the full price on most orders; the commission accrues ' +
+      'and settles from occasional later orders. The monthly totals reconcile to the ' +
+      'flat rate regardless.',
+  })
+  @ApiParam({ name: 'establishmentId', type: String })
+  @ApiQuery({ name: 'from', required: false, type: String })
+  @ApiQuery({ name: 'to', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'Commission statement retrieved' })
+  @ApiResponse({ status: 403, description: 'Not your establishment' })
+  @Get('my-commission/:establishmentId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MERCHANT)
+  async getMyCommission(
+    @Request() req: AuthenticatedRequest,
+    @Param('establishmentId') establishmentId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const parseDate = (value?: string): Date | undefined => {
+      if (!value) {
+        return undefined;
+      }
+      const parsed = new Date(value);
+      // An unparseable date silently becomes "all time" rather than throwing at
+      // a merchant who never typed it - the query string is not their input.
+      return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+    };
+
+    const data = await this.merchantCommissionService.getStatement(
+      establishmentId,
+      req.user.userId,
+      parseDate(from),
+      parseDate(to),
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Commission statement retrieved successfully',
+      data,
+    };
+  }
+
   @ApiOperation({
     summary: 'Get my wallet balance',
     description:

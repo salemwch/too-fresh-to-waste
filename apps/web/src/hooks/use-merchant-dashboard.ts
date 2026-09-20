@@ -27,6 +27,7 @@ import type {
   BusinessMetricsRequest,
   CustomerLocationItem,
   MerchantWallet,
+  MerchantCommissionStatement,
   FundLedgerResponse,
 } from '@/types/dashboard';
 
@@ -70,6 +71,8 @@ export const dashboardKeys = {
   myWallet: (estId?: string) => [...dashboardKeys.all, 'my-wallet', estId ?? 'all'] as const,
   fundLedger: (establishmentId?: string) =>
     [...dashboardKeys.all, 'fund-ledger', establishmentId ?? 'all'] as const,
+  commissionStatement: (estId: string) =>
+    [...dashboardKeys.all, 'commission-statement', estId] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -584,6 +587,28 @@ export function useMyWallet() {
       const response = await dashboardService.getMyWallet(estId ?? undefined);
       return response.data.data;
     },
+    staleTime: 60 * 1000,
+  });
+}
+
+/**
+ * The merchant's commission statement for the current month.
+ *
+ * Requires an establishment: the balance is per establishment, and the
+ * aggregate across several would hide which one is carrying it. Disabled until
+ * one is selected rather than falling back to "all".
+ */
+export function useCommissionStatement() {
+  const estId = useAuthStore(s => s.activeEstablishmentId);
+
+  return useQuery({
+    queryKey: dashboardKeys.commissionStatement(estId ?? ''),
+    queryFn: async (): Promise<MerchantCommissionStatement> => {
+      const response = await dashboardService.getMyCommission(estId as string);
+      return response.data.data;
+    },
+    enabled: !!estId,
+    // Moves only when an order completes; a shorter window is wasted requests.
     staleTime: 60 * 1000,
   });
 }

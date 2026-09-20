@@ -27,6 +27,7 @@ import type {
   CustomerLocationItem,
   PricingSuggestions,
   MerchantWallet,
+  MerchantCommissionStatement,
   FundLedgerResponse,
 } from '@/types/dashboard';
 
@@ -160,6 +161,16 @@ export const dashboardService = {
         ...(establishmentId ? { establishmentId } : {}),
       },
     });
+  },
+
+  /**
+   * GET /payments/my-commission/:establishmentId
+   * Sold, commission and received for the period, plus the outstanding balance.
+   */
+  getMyCommission(establishmentId: string) {
+    return apiClient.get<BackendEnvelope<MerchantCommissionStatement>>(
+      `${PAYMENTS_BASE}/my-commission/${establishmentId}`,
+    );
   },
 
   /**
