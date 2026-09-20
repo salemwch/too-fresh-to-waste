@@ -1089,7 +1089,8 @@
       "organizations": "Organisations",
       "gifts": "Cadeaux",
       "commission": "Commission",
-      "adminReviews": "Avis"
+      "adminReviews": "Avis",
+      "driverMap": "Carte en direct"
     },
     "stats": {
       "activeOffers": "Offres actives",
@@ -3458,6 +3459,42 @@
         "auto": "Libérée par expiration",
         "noReason": "Aucun motif indiqué"
       }
+    },
+    "map": {
+      "title": "Carte des livreurs en direct",
+      "subtitle": "Où se trouve chaque livreur en ce moment, et ce qu’il transporte.",
+      "error": "Impossible de charger la flotte. Veuillez réessayer.",
+      "kpi": {
+        "enRoute": "En route",
+        "idle": "Disponible",
+        "stale": "Signal perdu",
+        "offline": "Hors ligne"
+      },
+      "activity": {
+        "en_route": "En route",
+        "idle": "Disponible",
+        "stale": "Signal perdu",
+        "offline": "Hors ligne"
+      },
+      "assignmentStatus": {
+        "driver_assigned": "Récupère chez",
+        "out_for_delivery": "En livraison"
+      },
+      "pickup": "Point de retrait",
+      "destination": "Destination",
+      "noPhone": "Pas de numéro",
+      "callDriver": "Appeler {name}",
+      "noAssignment": "Aucune livraison en cours",
+      "lastFix": "Position {when}",
+      "neverReported": "Aucune position signalée",
+      "noDriversTitle": "Aucun livreur",
+      "noDriversBody": "Les comptes livreurs que vous créez apparaîtront ici dès leur première connexion.",
+      "noPositionsTitle": "Aucune position à afficher",
+      "noPositionsBody": "Aucun livreur n’a encore signalé sa position. Les positions apparaissent dès qu’un livreur se met en ligne.",
+      "noKeyTitle": "Carte non configurée",
+      "noKeyBody": "Définissez NEXT_PUBLIC_GOOGLE_MAPS_KEY et redéployez pour afficher la carte. La liste ci-dessous fonctionne sans elle.",
+      "loadErrorTitle": "La carte n’a pas pu se charger",
+      "loadErrorBody": "Google Maps ne s’est pas chargé. Vérifiez que la clé API est valide, que la facturation est activée et que ce domaine est autorisé."
     }
   },
   "audienceSplit": {

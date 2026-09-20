@@ -220,11 +220,19 @@ const nextConfig = {
             // TODO: migrate to nonce-based CSP when Next.js supports it natively
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com",
+              // maps.googleapis.com: the Maps JavaScript API loader used by the
+              // admin dispatch map. It then pulls its own modules from
+              // maps.gstatic.com, so both hosts are required - allowing only
+              // the first leaves the map a blank grey box with a console error
+              // rather than a visible failure.
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com https://maps.googleapis.com https://maps.gstatic.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: blob: http://localhost:* https://storage.googleapis.com https://firebasestorage.googleapis.com https://*.supabase.co https://www.google-analytics.com https://www.googletagmanager.com",
+              // Map tiles are served as images from several Google hosts;
+              // marker and control sprites come from gstatic.
+              "img-src 'self' data: blob: http://localhost:* https://storage.googleapis.com https://firebasestorage.googleapis.com https://*.supabase.co https://www.google-analytics.com https://www.googletagmanager.com https://maps.googleapis.com https://maps.gstatic.com https://*.googleusercontent.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://api.brevo.com https://www.google-analytics.com https://region1.google-analytics.com https://vitals.vercel-insights.com " +
+              // The Maps JS API fetches tile metadata and place data over XHR.
+              "connect-src 'self' https://api.brevo.com https://www.google-analytics.com https://region1.google-analytics.com https://vitals.vercel-insights.com https://maps.googleapis.com " +
                 getApiOrigin() +
                 ' ' +
                 getApiWsOrigin(),

@@ -23,6 +23,40 @@ export function useDrivers() {
   });
 }
 
+/**
+ * How often the dispatch map asks for new positions.
+ *
+ * Matched to the server's staleness threshold (5 min in
+ * `DRIVER_POSITION_STALE_MS`) divided by ten, so a driver's fix is never shown
+ * as fresh for long after it stops being so, without hammering the endpoint.
+ */
+const LIVE_FLEET_POLL_MS = 30 * 1000;
+
+/**
+ * Live positions for the dispatch map.
+ *
+ * Polls while the tab is visible and stops when it is not:
+ * `refetchIntervalInBackground` defaults to false, so a forgotten tab does not
+ * keep the endpoint warm all night. On return the stale data refetches
+ * immediately.
+ *
+ * `enabled` lets the page stop polling entirely - the map is one tab among
+ * several on the drivers screen, and a hidden map should cost nothing.
+ */
+export function useLiveFleet(enabled = true) {
+  return useQuery({
+    queryKey: adminKeys.liveFleet(),
+    queryFn: () => adminService.getLiveFleet().then(r => r.data.data),
+    // Anything older than one poll interval is worth replacing on this screen.
+    staleTime: LIVE_FLEET_POLL_MS,
+    refetchInterval: enabled ? LIVE_FLEET_POLL_MS : false,
+    // Keeps the previous markers on screen through a refetch, so the map does
+    // not blank out every thirty seconds.
+    placeholderData: keepPreviousData,
+    enabled,
+  });
+}
+
 export function useDriverDetail(driverId: string | null) {
   return useQuery({
     queryKey: adminKeys.driverDetail(driverId ?? ''),

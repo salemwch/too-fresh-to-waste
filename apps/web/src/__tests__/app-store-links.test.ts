@@ -42,7 +42,6 @@ describe('getStoreUrl', () => {
 
     expect(m.getStoreUrl('android')).toBeNull();
     expect(m.getStoreUrl('ios')).toBeNull();
-    expect(m.hasAnyStoreLink()).toBe(false);
   });
 
   it('treats an empty or whitespace value as unset', () => {
@@ -65,7 +64,6 @@ describe('getStoreUrl', () => {
 
     expect(m.getStoreUrl('android')).toBe(PLAY);
     expect(m.getStoreUrl('ios')).toBeNull();
-    expect(m.hasAnyStoreLink()).toBe(true);
   });
 
   describe('rejects a value that is not a real store URL', () => {

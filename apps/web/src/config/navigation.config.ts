@@ -14,6 +14,7 @@ import {
   Activity,
   HeartHandshake,
   Truck,
+  Map,
   Vote,
   Star,
   Wallet,
@@ -229,6 +230,12 @@ export const adminNavGroups: NavGroup[] = [
         titleKey: 'drivers',
         href: '/admin/drivers',
         icon: Truck,
+        roles: [UserRole.ADMIN],
+      },
+      {
+        titleKey: 'driverMap',
+        href: '/admin/drivers/map',
+        icon: Map,
         roles: [UserRole.ADMIN],
       },
       {

@@ -1435,6 +1435,52 @@ export interface DriverRow {
   stats: DriverStats;
 }
 
+/**
+ * What a driver is doing right now, classified server-side.
+ *
+ * Mirrors `DriverActivity` in
+ * `apps/food-waste-backend/src/admin/services/driver-management.service.ts`.
+ * The classification is deliberately not repeated here - two implementations of
+ * "is this driver available" is how two screens end up disagreeing.
+ */
+export type DriverActivity = 'offline' | 'en_route' | 'idle' | 'stale';
+
+/**
+ * The only statuses an active assignment can be in.
+ *
+ * Narrower than `AdminOrderStatus` on purpose: the endpoint filters on
+ * `DRIVER_ACTIVE_STATUSES`, so anything else would be a backend bug rather
+ * than a case for the UI to render. Keeping it narrow means a `switch` over
+ * these two is exhaustive and the compiler says so.
+ */
+export type ActiveAssignmentStatus = 'driver_assigned' | 'out_for_delivery';
+
+export interface LiveDriverAssignment {
+  orderId: string;
+  orderNumber: string;
+  status: ActiveAssignmentStatus;
+  /** Where the food is collected. Null when the order stored no address. */
+  pickup: { name: string | null; lat: number; lng: number } | null;
+  /** Where it is going. Null when the order stored no delivery coordinates. */
+  destination: { city: string | null; lat: number; lng: number } | null;
+}
+
+/**
+ * One marker on the admin dispatch map.
+ *
+ * Carries no lifetime stats - see `DriverRow` for those. This shape exists so
+ * the map can poll without paying for a per-driver stats aggregation.
+ */
+export interface LiveDriver {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+  activity: DriverActivity;
+  position: DriverPosition | null;
+  assignment: LiveDriverAssignment | null;
+}
+
 interface DriverEarnings {
   today: number;
   thisWeek: number;

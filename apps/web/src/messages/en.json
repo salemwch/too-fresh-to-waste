@@ -1089,7 +1089,8 @@
       },
       "gifts": "Gifts",
       "commission": "Commission",
-      "adminReviews": "Reviews"
+      "adminReviews": "Reviews",
+      "driverMap": "Live map"
     },
     "stats": {
       "activeOffers": "Active Offers",
@@ -3453,6 +3454,42 @@
         "auto": "Released by timeout",
         "noReason": "No reason given"
       }
+    },
+    "map": {
+      "title": "Live driver map",
+      "subtitle": "Where every driver is right now, and what they are carrying.",
+      "error": "Could not load the fleet. Please try again.",
+      "kpi": {
+        "enRoute": "En route",
+        "idle": "Available",
+        "stale": "Signal lost",
+        "offline": "Offline"
+      },
+      "activity": {
+        "en_route": "En route",
+        "idle": "Available",
+        "stale": "Signal lost",
+        "offline": "Offline"
+      },
+      "assignmentStatus": {
+        "driver_assigned": "Collecting from",
+        "out_for_delivery": "Delivering"
+      },
+      "pickup": "Pickup",
+      "destination": "Destination",
+      "noPhone": "No number",
+      "callDriver": "Call {name}",
+      "noAssignment": "No delivery in hand",
+      "lastFix": "Position {when}",
+      "neverReported": "Never reported a position",
+      "noDriversTitle": "No drivers yet",
+      "noDriversBody": "Driver accounts you create will appear here once they sign in.",
+      "noPositionsTitle": "No positions to show",
+      "noPositionsBody": "No driver has reported a location yet. Positions appear once a driver goes online in the app.",
+      "noKeyTitle": "Map not configured",
+      "noKeyBody": "Set NEXT_PUBLIC_GOOGLE_MAPS_KEY and redeploy to show the map. The driver list below works without it.",
+      "loadErrorTitle": "Map could not load",
+      "loadErrorBody": "Google Maps did not load. Check that the API key is valid, billing is enabled, and this domain is allowed."
     }
   },
   "audienceSplit": {

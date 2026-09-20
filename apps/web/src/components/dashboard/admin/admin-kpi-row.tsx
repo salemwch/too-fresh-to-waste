@@ -8,8 +8,17 @@ export interface KpiItem {
   label: string;
   value: string;
   icon: LucideIcon;
-  iconBg: string;
-  iconColor: string;
+  /**
+   * No longer painted. `AdminStatCard` dropped the filled colour chip - five
+   * differently-tinted squares in one row is five emphasis colours, and
+   * DESIGN.md §17 allows two - so these are inert.
+   *
+   * Kept optional rather than deleted because a dozen call sites still pass
+   * them; required, they force every *new* call site to invent a colour pair
+   * the component immediately discards.
+   */
+  iconBg?: string;
+  iconColor?: string;
   change?: {
     value: number;
     direction: 'up' | 'down';
@@ -43,8 +52,6 @@ export function AdminKpiRow({ items, loading = false, columns = 4 }: AdminKpiRow
           label={kpi.label}
           value={kpi.value}
           icon={kpi.icon}
-          iconBg={kpi.iconBg}
-          iconColor={kpi.iconColor}
           {...(kpi.change ? { change: kpi.change } : {})}
           {...(kpi.highlight ? { highlight: kpi.highlight } : {})}
         />

@@ -100,6 +100,7 @@ import type {
   CreateDriverPayload,
   CreateDriverResponse,
   DriverRow,
+  LiveDriver,
   DriverDetail,
   DriverOrderRow,
   DriverOrdersQuery,
@@ -671,6 +672,15 @@ export const adminService = {
    */
   getDrivers() {
     return apiClient.get<BackendEnvelope<DriverRow[]>>(`${ADMIN}/drivers`);
+  },
+
+  /**
+   * GET /admin/drivers/live
+   * Positions and current activity only - no lifetime stats, so it is cheap
+   * enough for the dispatch map to poll.
+   */
+  getLiveFleet() {
+    return apiClient.get<BackendEnvelope<LiveDriver[]>>(`${ADMIN}/drivers/live`);
   },
 
   /**

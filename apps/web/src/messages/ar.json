@@ -1089,7 +1089,8 @@
       "organizations": "المنظمات",
       "gifts": "الهدايا",
       "commission": "العمولة",
-      "adminReviews": "التقييمات"
+      "adminReviews": "التقييمات",
+      "driverMap": "الخريطة المباشرة"
     },
     "stats": {
       "activeOffers": "العروض النشطة",
@@ -3446,6 +3447,42 @@
         "auto": "أُطلقت بانتهاء المهلة",
         "noReason": "لم يُذكر سبب"
       }
+    },
+    "map": {
+      "title": "خريطة السائقين المباشرة",
+      "subtitle": "أين يوجد كل سائق الآن، وما الذي يحمله.",
+      "error": "تعذر تحميل الأسطول. يرجى المحاولة مرة أخرى.",
+      "kpi": {
+        "enRoute": "في الطريق",
+        "idle": "متاح",
+        "stale": "انقطع الاتصال",
+        "offline": "غير متصل"
+      },
+      "activity": {
+        "en_route": "في الطريق",
+        "idle": "متاح",
+        "stale": "انقطع الاتصال",
+        "offline": "غير متصل"
+      },
+      "assignmentStatus": {
+        "driver_assigned": "يستلم من",
+        "out_for_delivery": "قيد التوصيل"
+      },
+      "pickup": "نقطة الاستلام",
+      "destination": "الوجهة",
+      "noPhone": "لا يوجد رقم",
+      "callDriver": "اتصل بـ {name}",
+      "noAssignment": "لا توجد عملية توصيل حالية",
+      "lastFix": "الموقع {when}",
+      "neverReported": "لم يُبلّغ عن أي موقع",
+      "noDriversTitle": "لا يوجد سائقون بعد",
+      "noDriversBody": "ستظهر حسابات السائقين التي تنشئها هنا بمجرد تسجيل دخولهم.",
+      "noPositionsTitle": "لا توجد مواقع لعرضها",
+      "noPositionsBody": "لم يُبلّغ أي سائق عن موقعه بعد. تظهر المواقع بمجرد اتصال السائق عبر التطبيق.",
+      "noKeyTitle": "الخريطة غير مهيأة",
+      "noKeyBody": "اضبط NEXT_PUBLIC_GOOGLE_MAPS_KEY وأعد النشر لعرض الخريطة. قائمة السائقين أدناه تعمل بدونها.",
+      "loadErrorTitle": "تعذر تحميل الخريطة",
+      "loadErrorBody": "لم يتم تحميل خرائط Google. تحقق من صلاحية مفتاح API وتفعيل الفوترة والسماح لهذا النطاق."
     }
   },
   "audienceSplit": {

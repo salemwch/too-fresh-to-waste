@@ -359,6 +359,14 @@
       "h:80": 1
     }
   },
+  "apps/web/src/app/[locale]/(admin)/admin/drivers/map/page.tsx": {
+    "A": {
+      "space-y:32": 2,
+      "py:48": 1,
+      "gap:24": 1,
+      "pe:4": 1
+    }
+  },
   "apps/web/src/app/[locale]/(admin)/admin/drivers/page.tsx": {
     "A": {
       "gap:6": 1,
@@ -3383,6 +3391,52 @@
     },
     "C": {
       "h:28": 1
+    }
+  },
+  "apps/web/src/components/dashboard/admin/driver-fleet-map.tsx": {
+    "A": {
+      "mt:4": 1,
+      "gap:8": 1,
+      "px:16": 1,
+      "py:8": 1,
+      "gap:4": 1,
+      "p:40": 1,
+      "gap:16": 1
+    },
+    "B": {
+      "size:10": 1,
+      "size:40": 1
+    },
+    "D": {
+      "inset:0": 1,
+      "bottom:16": 1,
+      "start:16": 1
+    }
+  },
+  "apps/web/src/components/dashboard/admin/driver-fleet-panel.tsx": {
+    "A": {
+      "gap:8": 3,
+      "gap:16": 1,
+      "py:48": 1,
+      "p:16": 1,
+      "pb:0": 1,
+      "mt:2": 1,
+      "gap:4": 8,
+      "px:8": 1,
+      "py:2": 1,
+      "px:16": 1,
+      "pb:16": 1,
+      "pt:0": 1,
+      "mt:8": 3,
+      "pt:8": 2
+    },
+    "B": {
+      "size:40": 1,
+      "size:8": 1,
+      "size:12": 6
+    },
+    "C": {
+      "min-w:0": 1
     }
   },
   "apps/web/src/components/dashboard/admin/extend-trial-dialog.tsx": {

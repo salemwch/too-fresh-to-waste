@@ -59,6 +59,29 @@ export class AdminDriversController {
     };
   }
 
+  /**
+   * Declared before `:id` on purpose. Nest matches routes in declaration order,
+   * so if this sat below, `/admin/drivers/live` would be captured by `:id` and
+   * handled as a driver lookup for the id "live".
+   */
+  @Get('live')
+  @ApiOperation({
+    summary: 'Live driver fleet',
+    description:
+      'Every driver with their last known position, what they are currently doing ' +
+      '(en_route / idle / stale / offline) and the order they are carrying. Intended ' +
+      'for the admin dispatch map; carries no lifetime stats so it is cheap to poll.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Live fleet retrieved successfully' })
+  async getLiveFleet() {
+    const drivers = await this.driverManagementService.getLiveFleet();
+    return {
+      status: 'success',
+      message: 'Live fleet retrieved',
+      data: drivers,
+    };
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Get driver detail',

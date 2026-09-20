@@ -101,8 +101,3 @@ export function getStoreUrl(platform: AppPlatform): string | null {
 export function getPrimaryStoreUrl(): string | null {
   return STORE_URLS.android;
 }
-
-/** True when at least one store link is live. */
-export function hasAnyStoreLink(): boolean {
-  return STORE_URLS.android !== null || STORE_URLS.ios !== null;
-}

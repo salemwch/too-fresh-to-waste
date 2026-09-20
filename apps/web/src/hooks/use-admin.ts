@@ -148,6 +148,7 @@ export const adminKeys = {
 
   // Drivers
   drivers: () => [...adminKeys.all, 'drivers'] as const,
+  liveFleet: () => [...adminKeys.all, 'drivers', 'live'] as const,
   driverDetail: (id: string) => [...adminKeys.all, 'driver', id] as const,
   driverOrders: (id: string, params: DriverOrdersQuery) =>
     [...adminKeys.all, 'driver-orders', id, params] as const,

@@ -70,6 +70,85 @@ export interface AdminDriverRow {
   stats: DriverStats;
 }
 
+/**
+ * How long a position stays trustworthy.
+ *
+ * The driver app heartbeats while online. If the last fix is older than this
+ * the marker is still drawn - knowing where someone was ten minutes ago is
+ * useful - but it is labelled `stale`, because an online flag with a cold fix
+ * usually means the app was killed or lost signal, not that the driver parked.
+ * Presenting that as a live position is the one thing a dispatch map must not
+ * do.
+ */
+export const DRIVER_POSITION_STALE_MS = 5 * 60 * 1000;
+
+/**
+ * What a driver is doing right now, as far as the server can tell.
+ *
+ * Deliberately a closed set, resolved server-side so the map, any future
+ * dispatch tooling and the admin all classify identically. Doing it per-client
+ * is how two screens end up disagreeing about whether a driver is available.
+ */
+export type DriverActivity =
+  /** Not accepting work; position is the last one seen before going offline. */
+  | 'offline'
+  /** Online, fresh fix, carrying an order. */
+  | 'en_route'
+  /** Online, fresh fix, no order - available, stopped somewhere. */
+  | 'idle'
+  /** Online but the heartbeat stopped; the position cannot be trusted. */
+  | 'stale';
+
+export interface LiveDriverAssignment {
+  orderId: string;
+  orderNumber: string;
+  status: OrderStatus;
+  /** Where the food is collected from. Null when the order stored no address. */
+  pickup: { name: string | null; lat: number; lng: number } | null;
+  /** Where it is going. Null when the order stored no delivery coordinates. */
+  destination: { city: string | null; lat: number; lng: number } | null;
+}
+
+export interface LiveDriver {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+  activity: DriverActivity;
+  position: DriverPosition | null;
+  /** The order in hand, or null when idle. */
+  assignment: LiveDriverAssignment | null;
+}
+
+/**
+ * Decide what a driver is doing from the three facts the server holds.
+ *
+ * Exported and pure so it can be driven across the whole input space in tests
+ * rather than only through a seeded database - the ordering of these branches
+ * is the part that is easy to get wrong. Notably `offline` is checked before
+ * staleness: a driver who signed off an hour ago is offline, not stale, and
+ * labelling them stale would imply a fault where there is none.
+ */
+export function classifyDriverActivity(input: {
+  isOnline: boolean;
+  positionAt: Date | null;
+  hasAssignment: boolean;
+  now: number;
+}): DriverActivity {
+  if (!input.isOnline) {
+    return 'offline';
+  }
+
+  // Online but never reported a fix, or reported one too long ago. Either way
+  // the marker's position is not evidence of where the driver is now.
+  const at = input.positionAt?.getTime();
+  if (at === undefined || input.now - at > DRIVER_POSITION_STALE_MS) {
+    return 'stale';
+  }
+
+  return input.hasAssignment ? 'en_route' : 'idle';
+}
+
 export interface AdminDriverUnassignment {
   orderId: string;
   orderNumber: string;
@@ -300,6 +379,151 @@ export class DriverManagementService {
         stats: statsMap.get(id) ?? EMPTY_STATS,
       };
     });
+  }
+
+  // ── Live fleet ──────────────────────────────────────────────────────────────
+
+  /**
+   * Every driver, their last known position, and what they are doing.
+   *
+   * ## Why this is not part of `getDrivers`
+   *
+   * `getDrivers` runs a lifetime-stats aggregation per driver - delivered
+   * counts, mean delivery minutes, earnings. The map polls, so paying for that
+   * on every tick would be wasteful; this reads only what a marker and its
+   * popover render. `.claude/rules/performance.md` rule 6.
+   *
+   * ## Two queries, never N+1
+   *
+   * One pass for driver users, one for profiles, one for the active orders of
+   * all of them at once via `$in`, then joined in memory through a `Map`. The
+   * obvious shape - loop drivers, fetch each one's order - is a request per
+   * driver on a polling endpoint.
+   */
+  async getLiveFleet(): Promise<LiveDriver[]> {
+    const drivers = await this.userModel
+      .find({ role: UserRole.DRIVER, deletedAt: null })
+      .select('firstName lastName phoneNumber')
+      .lean<
+        Array<{
+          _id: Types.ObjectId;
+          firstName: string;
+          lastName: string;
+          phoneNumber?: string;
+        }>
+      >()
+      .exec();
+
+    if (drivers.length === 0) {
+      return [];
+    }
+
+    const ids = drivers.map(d => d._id);
+    const [profileMap, assignmentMap] = await Promise.all([
+      this.fetchProfiles(ids),
+      this.fetchActiveAssignments(ids),
+    ]);
+
+    const now = Date.now();
+
+    return drivers.map(d => {
+      const id = d._id.toString();
+      const profile = profileMap.get(id) ?? null;
+      const position = profile?.lastKnownLocation ?? null;
+      const assignment = assignmentMap.get(id) ?? null;
+
+      return {
+        _id: id,
+        firstName: d.firstName,
+        lastName: d.lastName,
+        phoneNumber: d.phoneNumber ?? null,
+        activity: classifyDriverActivity({
+          isOnline: profile?.isOnline ?? false,
+          positionAt: position?.at ?? null,
+          hasAssignment: assignment !== null,
+          now,
+        }),
+        position,
+        assignment,
+      };
+    });
+  }
+
+  /**
+   * The order currently in each driver's hands, keyed by driver id.
+   *
+   * A driver should only ever hold one active order, but nothing in the schema
+   * enforces that. Sorting by `driverAssignedAt` descending and letting the
+   * first write win means that if the invariant ever breaks, the map shows the
+   * most recent assignment rather than an arbitrary one.
+   */
+  private async fetchActiveAssignments(
+    ids: Types.ObjectId[],
+  ): Promise<Map<string, LiveDriverAssignment>> {
+    const orders = await this.orderModel
+      .find({
+        driverId: { $in: ids },
+        status: { $in: DRIVER_ACTIVE_STATUSES },
+      })
+      .select(
+        'driverId orderNumber status establishmentId establishmentAddress deliveryAddress driverAssignedAt',
+      )
+      .populate('establishmentId', 'name')
+      .sort({ driverAssignedAt: -1 })
+      .lean<
+        Array<{
+          _id: Types.ObjectId;
+          driverId: Types.ObjectId;
+          orderNumber: string;
+          status: OrderStatus;
+          establishmentId?: { name?: string } | Types.ObjectId | null;
+          establishmentAddress?: {
+            coordinates?: { type: 'Point'; coordinates: [number, number] };
+          };
+          deliveryAddress?: { city?: string; coordinates?: { lat: number; lng: number } };
+        }>
+      >()
+      .exec();
+
+    const map = new Map<string, LiveDriverAssignment>();
+
+    for (const order of orders) {
+      const driverId = order.driverId.toString();
+      if (map.has(driverId)) {
+        continue;
+      } // Sorted newest first, so keep the first.
+
+      // The establishment may be populated or a bare ObjectId - the same
+      // duality CLAUDE.md flags for `order.establishmentId`.
+      const establishment =
+        order.establishmentId && typeof order.establishmentId === 'object'
+          ? (order.establishmentId as { name?: string })
+          : null;
+
+      // GeoJSON is [lng, lat]; the delivery address stores {lat, lng}. Both are
+      // normalised to {lat, lng} here so no consumer has to remember which.
+      const pickupCoords = order.establishmentAddress?.coordinates?.coordinates;
+      const pickup =
+        pickupCoords?.length === 2 && pickupCoords[0] !== undefined && pickupCoords[1] !== undefined
+          ? { name: establishment?.name ?? null, lng: pickupCoords[0], lat: pickupCoords[1] }
+          : null;
+
+      const dest = order.deliveryAddress?.coordinates;
+      const destination =
+        dest && typeof dest.lat === 'number' && typeof dest.lng === 'number'
+          ? { city: order.deliveryAddress?.city ?? null, lat: dest.lat, lng: dest.lng }
+          : null;
+
+      map.set(driverId, {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        status: order.status,
+        pickup,
+        destination,
+      });
+    }
+
+    return map;
   }
 
   // ── Single driver ───────────────────────────────────────────────────────────
