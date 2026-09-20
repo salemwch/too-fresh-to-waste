@@ -31,7 +31,50 @@
     "back": "Back",
     "next": "Next",
     "submit": "Submit",
-    "reset": "Reset"
+    "reset": "Reset",
+    "table": {
+      "results": "{count, plural, one {# result} other {# results}}",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "selectAll": "Select all rows on this page",
+      "selectRow": "Select row"
+    },
+    "badges": {
+      "user": {
+        "active": "Active",
+        "pending": "Pending",
+        "suspended": "Suspended",
+        "blocked": "Blocked",
+        "deleted": "Deleted",
+        "anonymized": "Anonymized"
+      },
+      "establishment": {
+        "active": "Active",
+        "pending": "Pending",
+        "suspended": "Suspended",
+        "rejected": "Rejected",
+        "inactive": "Inactive"
+      },
+      "report": {
+        "pending": "Pending",
+        "in_review": "In review",
+        "resolved": "Resolved",
+        "rejected": "Rejected",
+        "escalated": "Escalated"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      },
+      "role": {
+        "consumer": "Consumer",
+        "merchant": "Merchant",
+        "admin": "Admin",
+        "moderator": "Moderator"
+      }
+    }
   },
   "nav": {
     "home": "Home",
@@ -1651,6 +1694,13 @@
         "cancel": "Release",
         "reserved": "Quantity reserved successfully",
         "cancelled": "Reservation cancelled successfully"
+      },
+      "status": {
+        "active": "Active",
+        "draft": "Draft",
+        "expired": "Expired",
+        "sold_out": "Sold out",
+        "cancelled": "Cancelled"
       }
     },
     "adminDonationPool": {
@@ -3105,6 +3155,11 @@
       "medium": "Medium",
       "high": "High",
       "urgent": "Urgent"
+    },
+    "authorRole": {
+      "user": "Customer",
+      "admin": "Support",
+      "system": "System"
     }
   },
   "adminAnnouncements": {
@@ -3193,7 +3248,8 @@
       "clearIpBlocksDesc": "Remove all IP address blocks and reset login attempt counters in Redis. This will allow previously blocked IPs to attempt login again.",
       "clearIpBlocksConfirm": "Clear All IP Blocks",
       "cleared": "IP blocks cleared successfully",
-      "clearedDetail": "Cleared {ipBlocks} IP blocks and {attempts} login attempt records"
+      "clearedDetail": "Cleared {ipBlocks} IP blocks and {attempts} login attempt records",
+      "clearIpBlocksFailed": "Could not clear the IP blocks. Please try again."
     },
     "lockedAccounts": {
       "title": "Locked Accounts",
@@ -3252,7 +3308,8 @@
       "confirmApprove": "Are you sure you want to approve this organization? Their establishments will become visible to customers.",
       "confirmSuspend": "Are you sure you want to suspend this organization? Their establishments and offers will be hidden.",
       "confirmActivate": "Are you sure you want to reactivate this organization?",
-      "statusUpdated": "Organization status updated successfully"
+      "statusUpdated": "Organization status updated successfully",
+      "statusUpdateFailed": "Could not update the organization status. Please try again."
     },
     "empty": "No organizations found",
     "emptyDesc": "There are no organizations matching the current filters.",

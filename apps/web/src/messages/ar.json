@@ -31,7 +31,50 @@
     "back": "رجوع",
     "next": "التالي",
     "submit": "إرسال",
-    "reset": "إعادة تعيين"
+    "reset": "إعادة تعيين",
+    "table": {
+      "results": "{count, plural, zero {لا نتائج} one {نتيجة واحدة} two {نتيجتان} few {# نتائج} many {# نتيجة} other {# نتيجة}}",
+      "previousPage": "الصفحة السابقة",
+      "nextPage": "الصفحة التالية",
+      "selectAll": "تحديد كل الصفوف في هذه الصفحة",
+      "selectRow": "تحديد الصف"
+    },
+    "badges": {
+      "user": {
+        "active": "نشط",
+        "pending": "قيد الانتظار",
+        "suspended": "موقوف",
+        "blocked": "محظور",
+        "deleted": "محذوف",
+        "anonymized": "مجهول الهوية"
+      },
+      "establishment": {
+        "active": "نشط",
+        "pending": "قيد الانتظار",
+        "suspended": "موقوف",
+        "rejected": "مرفوض",
+        "inactive": "غير نشط"
+      },
+      "report": {
+        "pending": "قيد الانتظار",
+        "in_review": "قيد المراجعة",
+        "resolved": "تم الحل",
+        "rejected": "مرفوض",
+        "escalated": "تم التصعيد"
+      },
+      "priority": {
+        "low": "منخفضة",
+        "medium": "متوسطة",
+        "high": "عالية",
+        "critical": "حرجة"
+      },
+      "role": {
+        "consumer": "مستهلك",
+        "merchant": "تاجر",
+        "admin": "مسؤول",
+        "moderator": "مشرف"
+      }
+    }
   },
   "nav": {
     "home": "الرئيسية",
@@ -1651,6 +1694,13 @@
         "cancel": "تحرير",
         "reserved": "تم حجز الكمية بنجاح",
         "cancelled": "تم إلغاء الحجز بنجاح"
+      },
+      "status": {
+        "active": "نشط",
+        "draft": "مسودة",
+        "expired": "منتهي",
+        "sold_out": "نفدت الكمية",
+        "cancelled": "ملغى"
       }
     },
     "adminDonationPool": {
@@ -3098,6 +3148,11 @@
       "medium": "متوسطة",
       "high": "عالية",
       "urgent": "عاجلة"
+    },
+    "authorRole": {
+      "user": "العميل",
+      "admin": "الدعم",
+      "system": "النظام"
     }
   },
   "adminAnnouncements": {
@@ -3186,7 +3241,8 @@
       "clearIpBlocksDesc": "إزالة جميع حظر عناوين IP وإعادة تعيين عدادات المحاولات. سيُسمح للعناوين المحظورة بمحاولة تسجيل الدخول مجدداً.",
       "clearIpBlocksConfirm": "إزالة جميع حظر العناوين",
       "cleared": "تم إزالة حظر العناوين بنجاح",
-      "clearedDetail": "تم إزالة {ipBlocks} حظر عنوان و{attempts} سجل محاولة"
+      "clearedDetail": "تم إزالة {ipBlocks} حظر عنوان و{attempts} سجل محاولة",
+      "clearIpBlocksFailed": "تعذر إزالة حظر عناوين IP. يرجى المحاولة مرة أخرى."
     },
     "lockedAccounts": {
       "title": "الحسابات المقفلة",
@@ -3245,7 +3301,8 @@
       "confirmApprove": "هل تريد الموافقة على هذه المنظمة؟ ستصبح مؤسساتها مرئية للعملاء.",
       "confirmSuspend": "هل تريد تعليق هذه المنظمة؟ سيتم إخفاء مؤسساتها وعروضها.",
       "confirmActivate": "هل تريد إعادة تفعيل هذه المنظمة؟",
-      "statusUpdated": "تم تحديث حالة المنظمة بنجاح"
+      "statusUpdated": "تم تحديث حالة المنظمة بنجاح",
+      "statusUpdateFailed": "تعذر تحديث حالة المنظمة. يرجى المحاولة مرة أخرى."
     },
     "empty": "لم يتم العثور على منظمات",
     "emptyDesc": "لا توجد منظمات تطابق الفلاتر الحالية.",

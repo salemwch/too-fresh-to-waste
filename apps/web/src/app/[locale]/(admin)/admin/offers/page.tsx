@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCurrentHour, MS_PER_HOUR } from '@/hooks/useClock';
 import {
@@ -42,6 +42,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@foodwaste/ui';
 import {
@@ -55,7 +56,6 @@ import {
   EyeOff,
   RotateCcw,
   Download,
-  Search,
   ShoppingBag,
   Percent,
   X,
@@ -237,218 +237,130 @@ function AllOffersTable({
     return () => clearTimeout(t);
   }, []);
 
+  /**
+   * Column definitions for `AdminDataTable`. These were the `<td>`s of an
+   * `OfferRow` component; as renderers they lose the per-cell `onClick={onView}`
+   * the old markup repeated six times, because the table handles row clicks.
+   *
+   * Memoised - .claude/rules/performance.md rule 1.
+   */
+  const columns: readonly ColumnDef<AdminOfferItem>[] = useMemo(
+    () => [
+      {
+        key: 'offer',
+        header: t('columns.offer'),
+        render: offer => (
+          <div className='flex items-center gap-sm'>
+            {offer.isFeaturedManual && <Star className='size-3 shrink-0 text-[#FFA000]' />}
+            <p className='max-w-[200px] truncate text-sm font-medium'>{offer.title}</p>
+          </div>
+        ),
+      },
+      {
+        key: 'establishment',
+        header: t('columns.establishment'),
+        className: 'hidden md:table-cell',
+        render: offer => (
+          <p className='max-w-[160px] truncate text-xs text-muted-foreground'>
+            {offer.establishment?.name ?? '-'}
+          </p>
+        ),
+      },
+      {
+        key: 'status',
+        header: t('columns.status'),
+        render: offer => (
+          <Badge variant={statusVariant(offer.status)} className='text-[10px]'>
+            {/* Was {offer.status} under a `capitalize` class - the raw enum. */}
+            {t(`status.${offer.status}` as Parameters<typeof t>[0])}
+          </Badge>
+        ),
+      },
+      {
+        key: 'discount',
+        header: t('columns.discount'),
+        className: 'hidden text-end text-xs tabular-nums lg:table-cell',
+        render: offer => fmtDiscount(offer.pricing.discountPercentage),
+      },
+      {
+        key: 'pickupRate',
+        header: t('columns.pickupRate'),
+        className: 'hidden text-end lg:table-cell',
+        render: offer => (
+          <span
+            className={cn('text-xs font-medium tabular-nums', pickupRateColor(offer.pickupRate))}
+          >
+            {fmtPct(offer.pickupRate)}
+          </span>
+        ),
+      },
+      {
+        key: 'quantity',
+        header: t('columns.quantity'),
+        className: 'hidden text-end text-xs tabular-nums text-muted-foreground xl:table-cell',
+        render: offer => `${offer.soldQuantity}/${offer.totalQuantity}`,
+      },
+    ],
+    [t],
+  );
+
   return (
     <div className='space-y-md'>
-      {/* Filters */}
-      <div className='flex flex-wrap gap-sm'>
-        <div className='relative flex-1 min-w-48'>
-          <Search className='absolute start-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground' />
-          <Input
-            value={search}
-            onChange={e => handleSearch(e.target.value)}
-            placeholder={t('filters.searchPlaceholder')}
-            className='ps-4xl h-8 text-sm'
-          />
-        </div>
-        <Select
-          value={status || '_all'}
-          onValueChange={v => {
-            setStatus(v === '_all' ? '' : v);
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className='h-8 w-36 text-sm'>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='_all'>{t('filters.allStatuses')}</SelectItem>
-            {['active', 'draft', 'expired', 'sold_out', 'cancelled'].map(s => (
-              <SelectItem key={s} value={s} className='capitalize'>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Table */}
-      <div className='overflow-x-auto rounded-lg border border-border/60'>
-        <table className='w-full text-sm'>
-          <thead>
-            <tr className='border-b border-border/60 bg-muted/40'>
-              <th className='w-8 px-md py-2.5'>
-                <input
-                  type='checkbox'
-                  className='rounded'
-                  checked={offers.length > 0 && offers.every(o => selected.includes(o._id))}
-                  onChange={() => onToggleAll(offers.map(o => o._id))}
-                  aria-label='Select all'
-                />
-              </th>
-              <th className='px-md py-2.5 text-start text-xs font-medium text-muted-foreground'>
-                {t('columns.offer')}
-              </th>
-              <th className='px-md py-2.5 text-start text-xs font-medium text-muted-foreground hidden md:table-cell'>
-                {t('columns.establishment')}
-              </th>
-              <th className='px-md py-2.5 text-start text-xs font-medium text-muted-foreground'>
-                {t('columns.status')}
-              </th>
-              <th className='px-md py-2.5 text-end text-xs font-medium text-muted-foreground hidden lg:table-cell'>
-                {t('columns.discount')}
-              </th>
-              <th className='px-md py-2.5 text-end text-xs font-medium text-muted-foreground hidden lg:table-cell'>
-                {t('columns.pickupRate')}
-              </th>
-              <th className='px-md py-2.5 text-end text-xs font-medium text-muted-foreground hidden xl:table-cell'>
-                {t('columns.quantity')}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              [...Array(8)].map((_, i) => (
-                <tr key={i} className='border-b border-border/40'>
-                  <td className='px-md py-2.5'>
-                    <Skeleton className='size-4 rounded' />
-                  </td>
-                  <td className='px-md py-2.5'>
-                    <Skeleton className='h-4 w-40 rounded' />
-                  </td>
-                  <td className='hidden px-md py-2.5 md:table-cell'>
-                    <Skeleton className='h-4 w-28 rounded' />
-                  </td>
-                  <td className='px-md py-2.5'>
-                    <Skeleton className='h-5 w-16 rounded-full' />
-                  </td>
-                  <td className='hidden px-md py-2.5 lg:table-cell'>
-                    <Skeleton className='h-4 w-10 rounded ms-auto' />
-                  </td>
-                  <td className='hidden px-md py-2.5 lg:table-cell'>
-                    <Skeleton className='h-4 w-12 rounded ms-auto' />
-                  </td>
-                  <td className='hidden px-md py-2.5 xl:table-cell'>
-                    <Skeleton className='h-4 w-10 rounded ms-auto' />
-                  </td>
-                </tr>
-              ))
-            ) : offers.length === 0 ? (
-              <tr>
-                <td colSpan={7} className='py-3xl text-center text-sm text-muted-foreground'>
-                  {t('empty')}
-                </td>
-              </tr>
-            ) : (
-              offers.map(offer => (
-                <OfferRow
-                  key={offer._id}
-                  offer={offer}
-                  selected={selected.includes(offer._id)}
-                  onToggle={() => onToggle(offer._id)}
-                  onView={() => onView(offer._id)}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className='flex items-center justify-between text-xs text-muted-foreground'>
-          <span>{total} offers</span>
-          <div className='flex gap-xs'>
-            <Button
-              size='sm'
-              variant='outline'
-              className='px-sm'
-              disabled={page <= 1}
-              onClick={() => setPage(p => p - 1)}
-            >
-              ←
-            </Button>
-            <span className='flex items-center px-sm'>
-              {page} / {totalPages}
-            </span>
-            <Button
-              size='sm'
-              variant='outline'
-              className='px-sm'
-              disabled={page >= totalPages}
-              onClick={() => setPage(p => p + 1)}
-            >
-              →
-            </Button>
-          </div>
-        </div>
-      )}
+      {/*
+        Was a hand-built <table> with its own header, skeleton, empty state and
+        pagination. It stayed hand-built because it needed row selection, which
+        AdminDataTable now supports - so the three other things it was also
+        re-implementing (and drifting on: the pagination read "{total} offers"
+        in hardcoded English) come from the primitive.
+      */}
+      <AdminDataTable
+        columns={columns}
+        data={offers}
+        isLoading={isLoading}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        onPageChange={setPage}
+        searchValue={search}
+        searchPlaceholder={t('filters.searchPlaceholder')}
+        onSearchChange={handleSearch}
+        onRowClick={offer => onView(offer._id)}
+        selection={{ selectedIds: selected, onToggle, onToggleAll }}
+        filterSlot={
+          <Select
+            value={status || '_all'}
+            onValueChange={v => {
+              setStatus(v === '_all' ? '' : v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className='h-8 w-36 text-sm'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='_all'>{t('filters.allStatuses')}</SelectItem>
+              {OFFER_STATUSES.map(s => (
+                <SelectItem key={s} value={s}>
+                  {/* Rendered the raw enum before, so the filter read
+                      "sold_out" on a French page. */}
+                  {t(`status.${s}` as Parameters<typeof t>[0])}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        }
+        emptyTitle={t('empty')}
+        emptyDescription={t('emptyDescription')}
+      />
     </div>
   );
 }
 
-function OfferRow({
-  offer,
-  selected,
-  onToggle,
-  onView,
-}: {
-  offer: AdminOfferItem;
-  selected: boolean;
-  onToggle: () => void;
-  onView: () => void;
-}) {
-  return (
-    <tr
-      className={cn(
-        'border-b border-border/40 transition-colors hover:bg-muted/30 cursor-pointer',
-        selected && 'bg-primary/5',
-      )}
-    >
-      <td className='px-md py-2.5' onClick={e => e.stopPropagation()}>
-        <input
-          type='checkbox'
-          className='rounded'
-          checked={selected}
-          onChange={onToggle}
-          aria-label='Select offer'
-        />
-      </td>
-      <td className='px-md py-2.5' onClick={onView}>
-        <div className='flex items-center gap-sm'>
-          {offer.isFeaturedManual && <Star className='size-3 shrink-0 text-[#FFA000]' />}
-          <p className='max-w-[200px] truncate text-sm font-medium'>{offer.title}</p>
-        </div>
-      </td>
-      <td className='hidden px-md py-2.5 md:table-cell' onClick={onView}>
-        <p className='max-w-[160px] truncate text-xs text-muted-foreground'>
-          {offer.establishment?.name ?? '—'}
-        </p>
-      </td>
-      <td className='px-md py-2.5' onClick={onView}>
-        <Badge variant={statusVariant(offer.status)} className='capitalize text-[10px]'>
-          {offer.status}
-        </Badge>
-      </td>
-      <td
-        className='hidden px-md py-2.5 text-end text-xs tabular-nums lg:table-cell'
-        onClick={onView}
-      >
-        {fmtDiscount(offer.pricing.discountPercentage)}
-      </td>
-      <td className='hidden px-md py-2.5 text-end lg:table-cell' onClick={onView}>
-        <span className={cn('text-xs font-medium tabular-nums', pickupRateColor(offer.pickupRate))}>
-          {fmtPct(offer.pickupRate)}
-        </span>
-      </td>
-      <td
-        className='hidden px-md py-2.5 text-end text-xs tabular-nums text-muted-foreground xl:table-cell'
-        onClick={onView}
-      >
-        {offer.soldQuantity}/{offer.totalQuantity}
-      </td>
-    </tr>
-  );
-}
+/**
+ * The statuses the admin filter offers. Extracted from an inline array literal
+ * so the filter and the status translations have one list to disagree with.
+ */
+const OFFER_STATUSES = ['active', 'draft', 'expired', 'sold_out', 'cancelled'] as const;
 
 // ─── Low pickup tab ───────────────────────────────────────────────────────────
 

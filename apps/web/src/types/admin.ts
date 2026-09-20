@@ -1250,7 +1250,7 @@ export interface SecurityStats {
   summary: { totalLoginAttempts: number; successRate: string };
 }
 
-interface LockedAccount {
+export interface LockedAccount {
   _id: string;
   firstName: string;
   lastName: string;

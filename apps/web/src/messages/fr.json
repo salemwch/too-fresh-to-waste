@@ -31,7 +31,50 @@
     "back": "Retour",
     "next": "Suivant",
     "submit": "Soumettre",
-    "reset": "Réinitialiser"
+    "reset": "Réinitialiser",
+    "table": {
+      "results": "{count, plural, one {# résultat} other {# résultats}}",
+      "previousPage": "Page précédente",
+      "nextPage": "Page suivante",
+      "selectAll": "Sélectionner toutes les lignes de cette page",
+      "selectRow": "Sélectionner la ligne"
+    },
+    "badges": {
+      "user": {
+        "active": "Actif",
+        "pending": "En attente",
+        "suspended": "Suspendu",
+        "blocked": "Bloqué",
+        "deleted": "Supprimé",
+        "anonymized": "Anonymisé"
+      },
+      "establishment": {
+        "active": "Actif",
+        "pending": "En attente",
+        "suspended": "Suspendu",
+        "rejected": "Rejeté",
+        "inactive": "Inactif"
+      },
+      "report": {
+        "pending": "En attente",
+        "in_review": "En cours d’examen",
+        "resolved": "Résolu",
+        "rejected": "Rejeté",
+        "escalated": "Escaladé"
+      },
+      "priority": {
+        "low": "Faible",
+        "medium": "Moyenne",
+        "high": "Élevée",
+        "critical": "Critique"
+      },
+      "role": {
+        "consumer": "Client",
+        "merchant": "Commerçant",
+        "admin": "Administrateur",
+        "moderator": "Modérateur"
+      }
+    }
   },
   "nav": {
     "home": "Accueil",
@@ -1651,6 +1694,13 @@
         "cancel": "Libérer",
         "reserved": "Quantité réservée avec succès",
         "cancelled": "Réservation annulée avec succès"
+      },
+      "status": {
+        "active": "Active",
+        "draft": "Brouillon",
+        "expired": "Expirée",
+        "sold_out": "Épuisée",
+        "cancelled": "Annulée"
       }
     },
     "adminDonationPool": {
@@ -3110,6 +3160,11 @@
       "medium": "Moyenne",
       "high": "Haute",
       "urgent": "Urgente"
+    },
+    "authorRole": {
+      "user": "Client",
+      "admin": "Support",
+      "system": "Système"
     }
   },
   "adminAnnouncements": {
@@ -3198,7 +3253,8 @@
       "clearIpBlocksDesc": "Supprimez tous les blocages IP et réinitialisez les compteurs de tentatives dans Redis. Les IP bloquées pourront se reconnecter.",
       "clearIpBlocksConfirm": "Effacer tous les blocages IP",
       "cleared": "Blocages IP effacés avec succès",
-      "clearedDetail": "{ipBlocks} blocages IP et {attempts} tentatives effacés"
+      "clearedDetail": "{ipBlocks} blocages IP et {attempts} tentatives effacés",
+      "clearIpBlocksFailed": "Impossible de lever les blocages IP. Veuillez réessayer."
     },
     "lockedAccounts": {
       "title": "Comptes verrouillés",
@@ -3257,7 +3313,8 @@
       "confirmApprove": "Voulez-vous approuver cette organisation ? Ses établissements seront visibles aux clients.",
       "confirmSuspend": "Voulez-vous suspendre cette organisation ? Ses établissements et offres seront masqués.",
       "confirmActivate": "Voulez-vous réactiver cette organisation ?",
-      "statusUpdated": "Statut de l'organisation mis à jour"
+      "statusUpdated": "Statut de l'organisation mis à jour",
+      "statusUpdateFailed": "Impossible de mettre à jour le statut de l'organisation. Veuillez réessayer."
     },
     "empty": "Aucune organisation trouvée",
     "emptyDesc": "Aucune organisation ne correspond aux filtres actuels.",

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useState, useCallback, useMemo } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { ShieldAlert, Lock, Unlock, Users, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@foodwaste/ui';
 import {
@@ -23,6 +23,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
 import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
+import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
+import { StatusBadge } from '@/components/dashboard/admin/status-badge';
+import type { LockedAccount } from '@/types/admin';
 import {
   useSecurityStats,
   useLockedAccounts,
@@ -141,8 +144,15 @@ function UnlockDialog({
   );
 }
 
+/**
+ * Stable identity for "no locked accounts". `?? []` allocated a new array each
+ * render - .claude/rules/performance.md rule 1.
+ */
+const NO_ACCOUNTS: readonly LockedAccount[] = Object.freeze([]);
+
 export default function SecurityPage() {
   const t = useTranslations('adminSecurity');
+  const locale = useLocale();
   const [periodDays, setPeriodDays] = useState(7);
   const [page, setPage] = useState(1);
   const [unlockTarget, setUnlockTarget] = useState<{ id: string; email: string } | null>(null);
@@ -155,7 +165,7 @@ export default function SecurityPage() {
   const unlockMutation = useUnlockAccount();
   const clearMutation = useClearIpBlocks();
 
-  const accounts = lockedData?.data?.accounts ?? [];
+  const accounts = lockedData?.data?.accounts ?? NO_ACCOUNTS;
   const totalLocked = lockedData?.data?.total ?? 0;
   const totalPages = Math.ceil(totalLocked / 20);
 
@@ -217,9 +227,77 @@ export default function SecurityPage() {
       });
       setShowClearConfirm(false);
     } catch {
-      toast.error('Failed to clear IP blocks');
+      toast.error(t('actions.clearIpBlocksFailed'));
     }
   }, [clearMutation, t]);
+
+  /**
+   * Column definitions for `AdminDataTable`. Memoised so the array keeps one
+   * identity across renders - see .claude/rules/performance.md rule 1.
+   */
+  const columns: readonly ColumnDef<LockedAccount>[] = useMemo(
+    () => [
+      {
+        key: 'user',
+        header: t('lockedAccounts.columns.user'),
+        render: account => (
+          <div>
+            <p className='font-medium text-foreground'>
+              {account.firstName} {account.lastName}
+            </p>
+            <p className='text-xs text-muted-foreground'>{account.email}</p>
+          </div>
+        ),
+      },
+      {
+        key: 'role',
+        header: t('lockedAccounts.columns.role'),
+        className: 'hidden md:table-cell',
+        // Was a bare `<span className='capitalize'>{account.role}</span>`, which
+        // painted the raw enum - "merchant" in an otherwise Arabic page.
+        // StatusBadge resolves common.badges.role.* and matches how the users
+        // page renders the same field.
+        render: account => <StatusBadge status={account.role} variant='role' />,
+      },
+      {
+        key: 'failedAttempts',
+        header: t('lockedAccounts.columns.failedAttempts'),
+        className: 'text-center',
+        render: account => (
+          <span className='inline-flex items-center justify-center rounded-full bg-destructive/10 px-sm py-xxs text-xs font-bold tabular-nums text-destructive'>
+            {account.failedLoginAttempts}
+          </span>
+        ),
+      },
+      {
+        key: 'lockedUntil',
+        header: t('lockedAccounts.columns.lockedUntil'),
+        className: 'hidden text-xs text-muted-foreground tabular-nums lg:table-cell',
+        // `toLocaleString()` with no argument formats in the browser's locale
+        // rather than the app's, so this read as a US timestamp on an Arabic
+        // page. The lock expiry is the one figure an admin acts on here.
+        render: account => new Date(account.accountLockedUntil).toLocaleString(locale),
+      },
+      {
+        key: 'actions',
+        header: t('lockedAccounts.columns.actions'),
+        className: 'text-end',
+        render: account => (
+          <div className='flex justify-end'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => setUnlockTarget({ id: account._id, email: account.email })}
+            >
+              <Unlock className='me-1.5 size-3.5' />
+              {t('lockedAccounts.unlock')}
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [t, locale],
+  );
 
   return (
     <div className='space-y-2xl p-2xl'>
@@ -260,127 +338,18 @@ export default function SecurityPage() {
       {/* Locked Accounts */}
       <div className='space-y-md'>
         <h2 className='text-lg font-semibold'>{t('lockedAccounts.title')}</h2>
-        <div className='overflow-x-auto rounded-lg border border-border/60'>
-          <table className='w-full text-sm'>
-            <thead>
-              <tr className='border-b border-border/60 bg-muted/40'>
-                <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground'>
-                  {t('lockedAccounts.columns.user')}
-                </th>
-                <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground hidden md:table-cell'>
-                  {t('lockedAccounts.columns.role')}
-                </th>
-                <th className='px-lg py-2.5 text-center text-xs font-medium text-muted-foreground'>
-                  {t('lockedAccounts.columns.failedAttempts')}
-                </th>
-                <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground hidden lg:table-cell'>
-                  {t('lockedAccounts.columns.lockedUntil')}
-                </th>
-                <th className='px-lg py-2.5 text-end text-xs font-medium text-muted-foreground'>
-                  {t('lockedAccounts.columns.actions')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {lockedLoading ? (
-                [...Array(5)].map((_, i) => (
-                  <tr key={i} className='border-b border-border/40'>
-                    <td className='px-lg py-md'>
-                      <Skeleton className='h-4 w-40 rounded' />
-                    </td>
-                    <td className='px-lg py-md hidden md:table-cell'>
-                      <Skeleton className='h-4 w-16 rounded' />
-                    </td>
-                    <td className='px-lg py-md'>
-                      <Skeleton className='h-4 w-8 mx-auto rounded' />
-                    </td>
-                    <td className='px-lg py-md hidden lg:table-cell'>
-                      <Skeleton className='h-4 w-32 rounded' />
-                    </td>
-                    <td className='px-lg py-md'>
-                      <Skeleton className='h-7 w-16 rounded ms-auto' />
-                    </td>
-                  </tr>
-                ))
-              ) : accounts.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className='py-3xl text-center'>
-                    <div className='flex flex-col items-center gap-sm'>
-                      <Unlock className='size-10 text-muted-foreground/40' />
-                      <p className='text-sm font-medium text-muted-foreground'>
-                        {t('lockedAccounts.empty')}
-                      </p>
-                      <p className='text-xs text-muted-foreground/70'>
-                        {t('lockedAccounts.emptyDesc')}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                accounts.map(account => (
-                  <tr key={account._id} className='border-b border-border/40 hover:bg-muted/20'>
-                    <td className='px-lg py-md'>
-                      <div>
-                        <p className='font-medium text-foreground'>
-                          {account.firstName} {account.lastName}
-                        </p>
-                        <p className='text-xs text-muted-foreground'>{account.email}</p>
-                      </div>
-                    </td>
-                    <td className='px-lg py-md hidden md:table-cell'>
-                      <span className='inline-flex items-center rounded-full bg-muted px-sm py-xxs text-xs font-medium capitalize'>
-                        {account.role}
-                      </span>
-                    </td>
-                    <td className='px-lg py-md text-center'>
-                      <span className='inline-flex items-center justify-center rounded-full bg-destructive/10 text-destructive px-sm py-xxs text-xs font-bold tabular-nums'>
-                        {account.failedLoginAttempts}
-                      </span>
-                    </td>
-                    <td className='px-lg py-md hidden lg:table-cell text-xs text-muted-foreground tabular-nums'>
-                      {new Date(account.accountLockedUntil).toLocaleString()}
-                    </td>
-                    <td className='px-lg py-md text-end'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setUnlockTarget({ id: account._id, email: account.email })}
-                      >
-                        <Unlock className='size-3.5 me-1.5' />
-                        {t('lockedAccounts.unlock')}
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className='flex items-center justify-center gap-sm pt-sm'>
-            <Button
-              variant='outline'
-              size='sm'
-              disabled={page <= 1}
-              onClick={() => setPage(p => p - 1)}
-            >
-              Previous
-            </Button>
-            <span className='text-sm text-muted-foreground tabular-nums'>
-              {page} / {totalPages}
-            </span>
-            <Button
-              variant='outline'
-              size='sm'
-              disabled={page >= totalPages}
-              onClick={() => setPage(p => p + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        )}
+        <AdminDataTable
+          columns={columns}
+          data={accounts}
+          isLoading={lockedLoading}
+          page={page}
+          totalPages={totalPages}
+          total={totalLocked}
+          onPageChange={setPage}
+          emptyIcon={Unlock}
+          emptyTitle={t('lockedAccounts.empty')}
+          emptyDescription={t('lockedAccounts.emptyDesc')}
+        />
       </div>
 
       {/* Unlock Dialog */}

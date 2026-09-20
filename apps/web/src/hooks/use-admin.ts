@@ -947,10 +947,24 @@ export function useRemoveTeamMember() {
 
 // ─── Support Ticket hooks ────────────────────────────────────────────────────
 
+/**
+ * Support tickets, page by page.
+ *
+ * This returned `r.data.data` and dropped `r.data.meta`, so the page had no
+ * `total` to paginate against and pinned itself to `page: 1, limit: 50`. Any
+ * ticket past the fiftieth was unreachable from the admin UI - it did not fail,
+ * it just stopped listing. Keeping `meta` matches `useOrganizations` and the
+ * envelope contract in CLAUDE.md, where web reads pagination from
+ * `response.data.meta`.
+ */
 export function useTickets(params: TicketSearchParams = {}) {
   return useQuery({
     queryKey: adminKeys.tickets(params),
-    queryFn: () => adminService.getTickets(params).then(r => r.data.data),
+    queryFn: () =>
+      adminService.getTickets(params).then(r => ({
+        data: r.data.data,
+        meta: r.data.meta,
+      })),
     staleTime: 30 * 1000,
     placeholderData: prev => prev,
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Ticket, AlertTriangle, Clock, CheckCircle2, MessageSquare, Send } from 'lucide-react';
 import { Button, Badge, Sheet, SheetContent, SheetTitle, Separator } from '@foodwaste/ui';
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
-import { activateOnKey } from '@/lib/utils';
+import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
 import {
   useTickets,
   useTicketStats,
@@ -49,23 +49,108 @@ function getUserName(user: SupportTicketRow['userId']): string {
   return `${user.firstName} ${user.lastName}`;
 }
 
+const TICKETS_PER_PAGE = 20;
+
+/**
+ * Stable identity for "no tickets". `?? []` allocated a fresh array every
+ * render - .claude/rules/performance.md rule 1.
+ */
+const NO_TICKETS: readonly SupportTicketRow[] = Object.freeze([]);
+
+/**
+ * The status enum and its translation keys disagree on casing, so the row used
+ * a nested ternary inline. A lookup keeps the mapping in one place and makes a
+ * newly-added status a missing key rather than a silently wrong one.
+ */
+const TICKET_STATUS_KEYS: Record<TicketStatus, string> = {
+  open: 'status.open',
+  in_progress: 'status.inProgress',
+  awaiting_user: 'status.awaitingUser',
+  resolved: 'status.resolved',
+  closed: 'status.closed',
+};
+
 export default function SupportTicketsPage() {
   const t = useTranslations('adminTickets');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const params: TicketSearchParams = {
-    page: 1,
-    limit: 50,
+    page,
+    limit: TICKETS_PER_PAGE,
     ...(search ? { search } : {}),
     ...(statusFilter !== 'all' ? { status: statusFilter as TicketStatus } : {}),
     ...(priorityFilter !== 'all' ? { priority: priorityFilter as TicketPriority } : {}),
   };
 
-  const { data: tickets, isLoading } = useTickets(params);
+  const { data: ticketData, isLoading } = useTickets(params);
   const { data: stats } = useTicketStats();
+
+  const tickets = ticketData?.data ?? NO_TICKETS;
+  const total = ticketData?.meta?.total ?? 0;
+  const totalPages = Math.ceil(total / TICKETS_PER_PAGE);
+
+  /**
+   * Column definitions for `AdminDataTable`, memoised so the array keeps one
+   * identity across renders - .claude/rules/performance.md rule 1.
+   */
+  const columns: readonly ColumnDef<SupportTicketRow>[] = useMemo(
+    () => [
+      {
+        key: 'subject',
+        header: t('subject'),
+        render: ticket => (
+          <div className='min-w-0'>
+            <p className='truncate text-sm font-medium'>{ticket.subject}</p>
+            <p className='truncate text-xs text-muted-foreground'>{getUserName(ticket.userId)}</p>
+          </div>
+        ),
+      },
+      {
+        key: 'category',
+        header: t('category'),
+        className: 'hidden md:table-cell',
+        render: ticket => (
+          <Badge variant='outline' className='text-xs'>
+            {t(`category.${ticket.category}` as Parameters<typeof t>[0])}
+          </Badge>
+        ),
+      },
+      {
+        key: 'priority',
+        header: t('priorityLabel'),
+        render: ticket => (
+          <Badge className={`text-xs ${PRIORITY_COLORS[ticket.priority]}`}>
+            {t(`priority.${ticket.priority}` as Parameters<typeof t>[0])}
+          </Badge>
+        ),
+      },
+      {
+        key: 'status',
+        header: t('statusLabel'),
+        render: ticket => (
+          <Badge className={`text-xs ${STATUS_COLORS[ticket.status]}`}>
+            {t(TICKET_STATUS_KEYS[ticket.status] as Parameters<typeof t>[0])}
+          </Badge>
+        ),
+      },
+      {
+        key: 'replies',
+        header: t('actions'),
+        className: 'hidden text-end lg:table-cell',
+        render: ticket => (
+          <span className='inline-flex items-center gap-xs text-xs text-muted-foreground tabular-nums'>
+            {ticket.replies.length}
+            <MessageSquare className='size-3' />
+          </span>
+        ),
+      },
+    ],
+    [t],
+  );
 
   return (
     <div className='space-y-2xl p-2xl'>
@@ -84,94 +169,73 @@ export default function SupportTicketsPage() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className='flex items-center gap-sm'>
-        <Input
-          placeholder={t('searchPlaceholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className='h-9 max-w-[220px] text-sm'
-        />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className='h-9 w-[150px] text-sm'>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>{t('allStatuses')}</SelectItem>
-            <SelectItem value='open'>{t('status.open')}</SelectItem>
-            <SelectItem value='in_progress'>{t('status.inProgress')}</SelectItem>
-            <SelectItem value='awaiting_user'>{t('status.awaitingUser')}</SelectItem>
-            <SelectItem value='resolved'>{t('status.resolved')}</SelectItem>
-            <SelectItem value='closed'>{t('status.closed')}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className='h-9 w-[130px] text-sm'>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>{t('allPriorities')}</SelectItem>
-            <SelectItem value='urgent'>{t('priority.urgent')}</SelectItem>
-            <SelectItem value='high'>{t('priority.high')}</SelectItem>
-            <SelectItem value='medium'>{t('priority.medium')}</SelectItem>
-            <SelectItem value='low'>{t('priority.low')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Ticket list */}
-      {isLoading ? (
-        <TicketSkeleton />
-      ) : !tickets || tickets.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-4xl gap-md text-center'>
-          <Ticket className='size-12 text-muted-foreground' />
-          <h3 className='text-md font-semibold'>{t('noTickets')}</h3>
-          <p className='text-sm text-muted-foreground max-w-xs'>{t('noTicketsDesc')}</p>
-        </div>
-      ) : (
-        <div className='rounded-md border'>
-          <div className='grid grid-cols-[1fr_120px_100px_100px_80px] gap-lg p-md border-b bg-muted/50 text-xs font-medium text-muted-foreground'>
-            <span>{t('subject')}</span>
-            <span>{t('category')}</span>
-            <span>{t('priorityLabel')}</span>
-            <span>{t('statusLabel')}</span>
-            <span>{t('actions')}</span>
-          </div>
-          {tickets.map(ticket => (
-            <div
-              key={ticket._id}
-              role='button'
-              tabIndex={0}
-              className='grid grid-cols-[1fr_120px_100px_100px_80px] gap-lg p-md border-b last:border-0 items-center cursor-pointer hover:bg-muted/30'
-              onClick={() => setSelectedId(ticket._id)}
-              onKeyDown={activateOnKey(() => setSelectedId(ticket._id))}
+      {/*
+        Was a CSS-grid pseudo-table with its own header row, skeleton, empty
+        state and no pagination at all - the query was pinned to page 1 of 50,
+        so the fifty-first ticket was unreachable. AdminDataTable supplies all
+        four, and the fix for the pagination is structural rather than a button
+        bolted onto the old markup.
+      */}
+      <AdminDataTable
+        columns={columns}
+        data={tickets}
+        isLoading={isLoading}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        onPageChange={setPage}
+        searchValue={search}
+        searchPlaceholder={t('searchPlaceholder')}
+        onSearchChange={value => {
+          setSearch(value);
+          setPage(1);
+        }}
+        onRowClick={ticket => setSelectedId(ticket._id)}
+        filterSlot={
+          <>
+            <Select
+              value={statusFilter}
+              onValueChange={v => {
+                setStatusFilter(v);
+                setPage(1);
+              }}
             >
-              <div className='min-w-0'>
-                <p className='text-sm font-medium truncate'>{ticket.subject}</p>
-                <p className='text-xs text-muted-foreground truncate'>
-                  {getUserName(ticket.userId)}
-                </p>
-              </div>
-              <Badge variant='outline' className='text-xs capitalize'>
-                {t(`category.${ticket.category}` as Parameters<typeof t>[0])}
-              </Badge>
-              <Badge className={`text-xs capitalize ${PRIORITY_COLORS[ticket.priority]}`}>
-                {t(`priority.${ticket.priority}` as Parameters<typeof t>[0])}
-              </Badge>
-              <Badge className={`text-xs ${STATUS_COLORS[ticket.status]}`}>
-                {t(
-                  `status.${ticket.status === 'in_progress' ? 'inProgress' : ticket.status === 'awaiting_user' ? 'awaitingUser' : ticket.status}` as Parameters<
-                    typeof t
-                  >[0],
-                )}
-              </Badge>
-              <div className='text-xs text-muted-foreground'>
-                {ticket.replies.length} <MessageSquare className='size-3 inline' />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+              <SelectTrigger className='h-9 w-[150px] text-sm'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>{t('allStatuses')}</SelectItem>
+                <SelectItem value='open'>{t('status.open')}</SelectItem>
+                <SelectItem value='in_progress'>{t('status.inProgress')}</SelectItem>
+                <SelectItem value='awaiting_user'>{t('status.awaitingUser')}</SelectItem>
+                <SelectItem value='resolved'>{t('status.resolved')}</SelectItem>
+                <SelectItem value='closed'>{t('status.closed')}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={priorityFilter}
+              onValueChange={v => {
+                setPriorityFilter(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className='h-9 w-[130px] text-sm'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>{t('allPriorities')}</SelectItem>
+                <SelectItem value='urgent'>{t('priority.urgent')}</SelectItem>
+                <SelectItem value='high'>{t('priority.high')}</SelectItem>
+                <SelectItem value='medium'>{t('priority.medium')}</SelectItem>
+                <SelectItem value='low'>{t('priority.low')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
+        }
+        emptyIcon={Ticket}
+        emptyTitle={t('noTickets')}
+        emptyDescription={t('noTicketsDesc')}
+      />
 
       {/* Detail sheet */}
       <TicketDetailSheet
@@ -295,7 +359,11 @@ function TicketDetailSheet({
                     r.authorRole === 'admin' ? 'bg-primary/5 ms-lg' : 'bg-muted me-lg'
                   }`}
                 >
-                  <p className='text-xs text-muted-foreground mb-xs capitalize'>{r.authorRole}</p>
+                  {/* Was the raw enum under a `capitalize` class, so an Arabic
+                      admin read "Admin" / "User" in Latin script. */}
+                  <p className='mb-xs text-xs text-muted-foreground'>
+                    {t(`authorRole.${r.authorRole}` as Parameters<typeof t>[0])}
+                  </p>
                   <p>{r.message}</p>
                 </div>
               ))}
@@ -323,20 +391,5 @@ function TicketDetailSheet({
         )}
       </SheetContent>
     </Sheet>
-  );
-}
-
-function TicketSkeleton() {
-  return (
-    <div className='space-y-md'>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className='flex items-center gap-lg p-md'>
-          <Skeleton className='h-4 w-48' />
-          <Skeleton className='h-4 w-20' />
-          <Skeleton className='h-4 w-16' />
-          <Skeleton className='h-4 w-16' />
-        </div>
-      ))}
-    </div>
   );
 }

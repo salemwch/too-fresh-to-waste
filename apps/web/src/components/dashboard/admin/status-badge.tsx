@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
 type BadgeVariant = 'user' | 'establishment' | 'report' | 'priority' | 'role';
@@ -65,14 +68,36 @@ interface StatusBadgeProps {
   variant: BadgeVariant;
   className?: string;
   /**
-   * Translated text to display. Without it the raw status is title-cased,
-   * which leaks untranslated enum values ("Out For Delivery") into the UI —
-   * pass a translated label on any screen that has one.
+   * Overrides the looked-up translation. Only needed when a screen has a more
+   * specific wording than the shared `common.badges` label.
    */
   label?: string;
 }
 
+/**
+ * A coloured status pill.
+ *
+ * ## Why it translates itself
+ *
+ * `label` used to be the only route to a translated string, with a comment
+ * asking call sites to pass one. Ten of the eleven usages did not, so French
+ * and Arabic admins read "Suspended", "In Review" and "Merchant" in English -
+ * the `formatLabel` fallback title-cases the raw enum and looks deliberate,
+ * which is why it survived review.
+ *
+ * Opt-in i18n on a shared primitive fails this way every time: the default has
+ * to be the correct behaviour, or the call site that forgets is the bug. So the
+ * lookup happens here, keyed by `common.badges.<variant>.<value>`, and `label`
+ * is now only an override.
+ *
+ * `formatLabel` stays as a last resort for a status the backend adds before the
+ * translations catch up - an English word beats a raw `common.badges.user.foo`
+ * key rendered at the user.
+ */
 export function StatusBadge({ status, variant, className, label }: StatusBadgeProps) {
+  const t = useTranslations('common.badges');
+  const key = `${variant}.${status.toLowerCase()}`;
+
   return (
     <span
       className={cn(
@@ -81,7 +106,7 @@ export function StatusBadge({ status, variant, className, label }: StatusBadgePr
         className,
       )}
     >
-      {label ?? formatLabel(status)}
+      {label ?? (t.has(key) ? t(key) : formatLabel(status))}
     </span>
   );
 }

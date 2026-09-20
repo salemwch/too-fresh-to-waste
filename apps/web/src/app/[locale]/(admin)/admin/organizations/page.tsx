@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Network, Building2, CheckCircle, Clock, Ban, Calendar, MapPin } from 'lucide-react';
 import { Button, Badge, Sheet, SheetContent, SheetTitle, Separator } from '@foodwaste/ui';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -15,13 +14,24 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
 import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
+import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
 import {
   useOrganizations,
   useOrganizationDetail,
   useUpdateOrganizationStatus,
 } from '@/hooks/use-admin';
-import type { OrganizationStatus, OrganizationQuery } from '@/types/admin';
+import type { OrganizationStatus, OrganizationQuery, OrganizationRow } from '@/types/admin';
 import { toast } from 'sonner';
+
+/**
+ * A stable identity for "no organizations yet".
+ *
+ * `orgData?.data ?? []` allocates a fresh array on every render, and both
+ * `useMemo`s below list `orgs` as a dependency - so while the request is
+ * in flight they recomputed on every keystroke in the search box. See
+ * .claude/rules/performance.md rule 1 and the `NO_OFFERS` precedent it cites.
+ */
+const NO_ORGANIZATIONS: readonly OrganizationRow[] = Object.freeze([]);
 
 const STATUS_STYLES: Record<OrganizationStatus, string> = {
   pending: 'bg-warning/10 text-warning border-warning',
@@ -151,6 +161,7 @@ function OrgDetailDrawer({
 
 export default function OrganizationsPage() {
   const t = useTranslations('adminOrganizations');
+  const locale = useLocale();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -170,7 +181,7 @@ export default function OrganizationsPage() {
   const { data: orgData, isLoading } = useOrganizations(params);
   const updateStatus = useUpdateOrganizationStatus();
 
-  const orgs = orgData?.data ?? [];
+  const orgs = orgData?.data ?? NO_ORGANIZATIONS;
   const total = orgData?.meta?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
@@ -227,9 +238,114 @@ export default function OrganizationsPage() {
       toast.success(t('actions.statusUpdated'));
       setConfirmAction(null);
     } catch {
-      toast.error('Failed to update status');
+      toast.error(t('actions.statusUpdateFailed'));
     }
   }, [confirmAction, updateStatus, t]);
+
+  /**
+   * Column definitions for `AdminDataTable`.
+   *
+   * `render` runs per row, so this is memoised on the values it closes over -
+   * `t` and `locale` are stable per render, `setConfirmAction` is a setState
+   * identity. Without this the array is a fresh identity every keystroke in the
+   * search box, which is exactly the allocation-in-render pattern
+   * `.claude/rules/performance.md` rule 1 rules out.
+   */
+  const columns: ColumnDef<OrganizationRow>[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        header: t('columns.name'),
+        render: org => (
+          <div className='flex items-center gap-2.5'>
+            <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10'>
+              <Network className='size-4 text-primary' />
+            </div>
+            <span className='font-medium text-foreground'>{org.name}</span>
+          </div>
+        ),
+      },
+      {
+        key: 'status',
+        header: t('columns.status'),
+        render: org => (
+          <Badge variant='outline' className={STATUS_STYLES[org.status]}>
+            {t(`status.${org.status}`)}
+          </Badge>
+        ),
+      },
+      {
+        key: 'locations',
+        header: t('columns.locations'),
+        className: 'hidden text-center tabular-nums md:table-cell',
+        render: org => org.establishmentIds.length,
+      },
+      {
+        key: 'created',
+        header: t('columns.created'),
+        className: 'hidden text-xs text-muted-foreground tabular-nums lg:table-cell',
+        // `toLocaleDateString()` with no argument formats in the *browser's*
+        // locale, not the app's - so an Arabic admin on an en-US machine read
+        // Gregorian US dates on an otherwise Arabic page. Passing `locale`
+        // makes the date follow the language the admin chose.
+        render: org => new Date(org.createdAt).toLocaleDateString(locale),
+      },
+      {
+        key: 'actions',
+        header: t('columns.actions'),
+        className: 'text-end',
+        render: org => (
+          // The row opens the detail drawer, so each action button stops the
+          // click from reaching it - otherwise approving an org also opened the
+          // sheet behind the confirm dialog. This used to live on a wrapping
+          // `div onClick`, which is unreachable by keyboard: a user tabbing to
+          // Approve and pressing Enter fired the button but never the guard.
+          // Buttons are natively interactive, so putting it on each one covers
+          // pointer and keyboard identically.
+          <div className='flex justify-end gap-sm'>
+            {org.status === 'pending' && (
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={e => {
+                  e.stopPropagation();
+                  setConfirmAction({ id: org._id, name: org.name, status: 'active' });
+                }}
+              >
+                {t('actions.approve')}
+              </Button>
+            )}
+            {org.status === 'active' && (
+              <Button
+                variant='outline'
+                size='sm'
+                className='text-destructive border-destructive/30'
+                onClick={e => {
+                  e.stopPropagation();
+                  setConfirmAction({ id: org._id, name: org.name, status: 'suspended' });
+                }}
+              >
+                {t('actions.suspend')}
+              </Button>
+            )}
+            {org.status === 'suspended' && (
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={e => {
+                  e.stopPropagation();
+                  setConfirmAction({ id: org._id, name: org.name, status: 'active' });
+                }}
+              >
+                {t('actions.activate')}
+              </Button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [t, locale],
+  );
 
   const getConfirmDesc = (status: OrganizationStatus) => {
     const key =
@@ -252,181 +368,50 @@ export default function OrganizationsPage() {
       {/* KPI Row */}
       <AdminKpiRow items={kpiItems} loading={isLoading} />
 
-      {/* Filters */}
-      <div className='flex flex-wrap items-center gap-md'>
-        <Input
-          placeholder={t('filters.searchPlaceholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className='w-64'
-        />
-        <Select
-          value={statusFilter}
-          onValueChange={v => {
-            setStatusFilter(v);
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className='w-[160px]'>
-            <SelectValue placeholder={t('filters.allStatuses')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>{t('filters.allStatuses')}</SelectItem>
-            <SelectItem value='pending'>{t('status.pending')}</SelectItem>
-            <SelectItem value='active'>{t('status.active')}</SelectItem>
-            <SelectItem value='suspended'>{t('status.suspended')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Table */}
-      <div className='overflow-x-auto rounded-lg border border-border/60'>
-        <table className='w-full text-sm'>
-          <thead>
-            <tr className='border-b border-border/60 bg-muted/40'>
-              <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground'>
-                {t('columns.name')}
-              </th>
-              <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground'>
-                {t('columns.status')}
-              </th>
-              <th className='px-lg py-2.5 text-center text-xs font-medium text-muted-foreground hidden md:table-cell'>
-                {t('columns.locations')}
-              </th>
-              <th className='px-lg py-2.5 text-start text-xs font-medium text-muted-foreground hidden lg:table-cell'>
-                {t('columns.created')}
-              </th>
-              <th className='px-lg py-2.5 text-end text-xs font-medium text-muted-foreground'>
-                {t('columns.actions')}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              [...Array(6)].map((_, i) => (
-                <tr key={i} className='border-b border-border/40'>
-                  <td className='px-lg py-md'>
-                    <Skeleton className='h-4 w-36 rounded' />
-                  </td>
-                  <td className='px-lg py-md'>
-                    <Skeleton className='h-5 w-16 rounded-full' />
-                  </td>
-                  <td className='px-lg py-md hidden md:table-cell'>
-                    <Skeleton className='h-4 w-8 mx-auto rounded' />
-                  </td>
-                  <td className='px-lg py-md hidden lg:table-cell'>
-                    <Skeleton className='h-4 w-24 rounded' />
-                  </td>
-                  <td className='px-lg py-md'>
-                    <Skeleton className='h-7 w-20 rounded ms-auto' />
-                  </td>
-                </tr>
-              ))
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={5} className='py-3xl text-center'>
-                  <div className='flex flex-col items-center gap-sm'>
-                    <Building2 className='size-10 text-muted-foreground/40' />
-                    <p className='text-sm font-medium text-muted-foreground'>{t('empty')}</p>
-                    <p className='text-xs text-muted-foreground/70'>{t('emptyDesc')}</p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              filtered.map(org => (
-                <tr
-                  key={org._id}
-                  className='border-b border-border/40 hover:bg-muted/20 cursor-pointer'
-                  onClick={() => setSelectedOrgId(org._id)}
-                >
-                  <td className='px-lg py-md'>
-                    <div className='flex items-center gap-2.5'>
-                      <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10'>
-                        <Network className='size-4 text-primary' />
-                      </div>
-                      <span className='font-medium text-foreground'>{org.name}</span>
-                    </div>
-                  </td>
-                  <td className='px-lg py-md'>
-                    <Badge variant='outline' className={STATUS_STYLES[org.status]}>
-                      {t(`status.${org.status}`)}
-                    </Badge>
-                  </td>
-                  <td className='px-lg py-md text-center hidden md:table-cell tabular-nums'>
-                    {org.establishmentIds.length}
-                  </td>
-                  <td className='px-lg py-md hidden lg:table-cell text-xs text-muted-foreground tabular-nums'>
-                    {new Date(org.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className='px-lg py-md text-end' onClick={e => e.stopPropagation()}>
-                    <div className='flex justify-end gap-sm'>
-                      {org.status === 'pending' && (
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={() =>
-                            setConfirmAction({ id: org._id, name: org.name, status: 'active' })
-                          }
-                        >
-                          {t('actions.approve')}
-                        </Button>
-                      )}
-                      {org.status === 'active' && (
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          className='text-destructive border-destructive/30'
-                          onClick={() =>
-                            setConfirmAction({ id: org._id, name: org.name, status: 'suspended' })
-                          }
-                        >
-                          {t('actions.suspend')}
-                        </Button>
-                      )}
-                      {org.status === 'suspended' && (
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={() =>
-                            setConfirmAction({ id: org._id, name: org.name, status: 'active' })
-                          }
-                        >
-                          {t('actions.activate')}
-                        </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className='flex items-center justify-center gap-sm'>
-          <Button
-            variant='outline'
-            size='sm'
-            disabled={page <= 1}
-            onClick={() => setPage(p => p - 1)}
+      {/*
+        Filters, table, empty state, skeleton and pagination were all hand-built
+        here. `AdminDataTable` already provides every one of them, and the
+        hand-rolled version had drifted: its pagination buttons read "Previous"
+        and "Next" in hardcoded English on a page that is otherwise translated.
+      */}
+      <AdminDataTable
+        columns={columns}
+        data={filtered}
+        isLoading={isLoading}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        onPageChange={setPage}
+        searchValue={search}
+        searchPlaceholder={t('filters.searchPlaceholder')}
+        onSearchChange={value => {
+          setSearch(value);
+          setPage(1);
+        }}
+        onRowClick={org => setSelectedOrgId(org._id)}
+        filterSlot={
+          <Select
+            value={statusFilter}
+            onValueChange={v => {
+              setStatusFilter(v);
+              setPage(1);
+            }}
           >
-            Previous
-          </Button>
-          <span className='text-sm text-muted-foreground tabular-nums'>
-            {page} / {totalPages}
-          </span>
-          <Button
-            variant='outline'
-            size='sm'
-            disabled={page >= totalPages}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      )}
+            <SelectTrigger className='w-[160px]'>
+              <SelectValue placeholder={t('filters.allStatuses')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>{t('filters.allStatuses')}</SelectItem>
+              <SelectItem value='pending'>{t('status.pending')}</SelectItem>
+              <SelectItem value='active'>{t('status.active')}</SelectItem>
+              <SelectItem value='suspended'>{t('status.suspended')}</SelectItem>
+            </SelectContent>
+          </Select>
+        }
+        emptyIcon={Building2}
+        emptyTitle={t('empty')}
+        emptyDescription={t('emptyDesc')}
+      />
 
       {/* Confirm Dialog */}
       {confirmAction && (
