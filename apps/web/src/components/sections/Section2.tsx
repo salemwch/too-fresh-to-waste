@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useAppLaunchModal } from '@/lib/app-launch-modal.store';
+import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 /**
@@ -15,7 +15,6 @@ import { useScrollReveal } from '@/hooks/useScrollReveal';
  */
 export default function Section2() {
   const t = useTranslations('section2');
-  const { open: openLaunchModal } = useAppLaunchModal();
   const sectionRef = useScrollReveal<HTMLElement>();
 
   return (
@@ -57,9 +56,8 @@ export default function Section2() {
           style={{ '--sr-delay': '0.8s' } as React.CSSProperties}
         >
           {/* App Store Button */}
-          <button
-            type='button'
-            onClick={openLaunchModal}
+          <AppDownloadButton
+            platform='ios'
             className='group flex items-center justify-center gap-sm bg-black text-white px-lg py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
             aria-label='Download on the App Store'
           >
@@ -72,12 +70,11 @@ export default function Section2() {
                 {t('downloadButtons.appStore.name')}
               </div>
             </div>
-          </button>
+          </AppDownloadButton>
 
           {/* Google Play Button */}
-          <button
-            type='button'
-            onClick={openLaunchModal}
+          <AppDownloadButton
+            platform='android'
             className='group flex items-center justify-center gap-sm bg-black text-white px-lg py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto'
             aria-label='Get it on Google Play'
           >
@@ -90,7 +87,7 @@ export default function Section2() {
                 {t('downloadButtons.playStore.name')}
               </div>
             </div>
-          </button>
+          </AppDownloadButton>
         </div>
       </div>
     </section>

@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
 import { LanguageSwitcher, LanguageSwitcherCompact } from '@/components/LanguageSwitcher';
 import { Link, usePathname } from '@/i18n/routing';
-import { useAppLaunchModal } from '@/lib/app-launch-modal.store';
+import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
 
 // Navigation types
 interface DropdownLink {
@@ -30,7 +30,6 @@ export default function Header() {
   const { isScrolled } = useScrollPosition(50);
   const hasMounted = useHasMounted();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { open: openLaunchModal } = useAppLaunchModal();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openMobileAccordion, setOpenMobileAccordion] = useState<string | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -309,16 +308,14 @@ export default function Header() {
             <div className='flex items-center justify-end gap-sm'>
               {/* Desktop: CTA Buttons */}
               <div className='hidden lg:flex items-center gap-sm xl:gap-md'>
-                <button
-                  type='button'
-                  onClick={openLaunchModal}
+                <AppDownloadButton
                   className={`px-2.5 xl:px-md py-sm rounded-full font-bold text-xs xl:text-sm tracking-tight transition-all duration-200 hover:opacity-90 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
                     isScrolledState ? 'bg-primary-500 text-white' : 'bg-white text-primary-500'
                   }`}
                   aria-label={t('cta.downloadApp')}
                 >
                   {t('cta.downloadApp')}
-                </button>
+                </AppDownloadButton>
                 <span
                   className={`text-base font-light select-none ${isScrolledState ? 'text-primary-500/40' : 'text-white/75'}`}
                 >
@@ -528,17 +525,13 @@ export default function Header() {
                 className={`my-lg border-t ${isScrolledState ? 'border-primary-500/20' : 'border-white/20'}`}
               />
               <div className='space-y-md px-lg'>
-                <button
-                  type='button'
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    openLaunchModal();
-                  }}
+                <AppDownloadButton
+                  onActivate={() => setIsMobileMenuOpen(false)}
                   className={`block w-full text-center px-2xl py-md border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}
                   role='menuitem'
                 >
                   {t('cta.downloadApp')}
-                </button>
+                </AppDownloadButton>
                 <Link
                   href='/merchant-signup'
                   className={`block text-center px-2xl py-md border-[0.5px] rounded-full font-semibold text-sm tracking-wide transition-all duration-200 whitespace-nowrap outline-none focus-visible:ring-2 ${focusRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${buttonBorderClass}`}

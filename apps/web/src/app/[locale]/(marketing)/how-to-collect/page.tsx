@@ -169,12 +169,14 @@ export default async function HowToCollectPage({ params }: PageProps) {
             <p className='text-white/75 text-base leading-relaxed mb-4xl'>{t('cta.body')}</p>
             <div className='flex flex-col sm:flex-row gap-md justify-center'>
               <AppDownloadButton
+                platform='ios'
                 className='inline-flex items-center justify-center gap-md bg-white text-primary-500 font-bold px-2xl py-3.5 rounded-full hover:opacity-90 transition-opacity shadow-lg text-sm'
                 aria-label={t('cta.appStore')}
               >
                 {t('cta.appStore')}
               </AppDownloadButton>
               <AppDownloadButton
+                platform='android'
                 className='inline-flex items-center justify-center gap-md border border-white/40 text-white font-bold px-2xl py-3.5 rounded-full hover:border-white/70 hover:bg-white/5 transition-colors text-sm'
                 aria-label={t('cta.googlePlay')}
               >

@@ -241,6 +241,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 <div className='flex flex-col sm:flex-row gap-md mb-xl'>
                   {/* App Store */}
                   <AppDownloadButton
+                    platform='ios'
                     className='inline-flex items-center gap-md bg-white text-primary-500 font-bold px-2xl py-3.5 rounded-full hover:bg-cream transition-colors shadow-lg text-sm'
                     aria-label={t('common.appStore')}
                   >
@@ -257,6 +258,7 @@ export default async function ConsumerPage({ params }: PageProps) {
 
                   {/* Google Play */}
                   <AppDownloadButton
+                    platform='android'
                     className='inline-flex items-center gap-md border border-white/40 text-white font-bold px-2xl py-3.5 rounded-full hover:border-white/70 hover:bg-white/5 transition-colors text-sm'
                     aria-label={t('common.googlePlay')}
                   >
@@ -782,6 +784,7 @@ export default async function ConsumerPage({ params }: PageProps) {
             {/* Download buttons */}
             <div className='flex flex-col sm:flex-row gap-lg justify-center mb-2xl'>
               <AppDownloadButton
+                platform='ios'
                 className='inline-flex items-center justify-center gap-md bg-white text-primary-500 font-black text-sm px-4xl py-lg rounded-full hover:bg-cream transition-colors shadow-xl'
                 aria-label={t('common.appStore')}
               >
@@ -796,6 +799,7 @@ export default async function ConsumerPage({ params }: PageProps) {
                 {t('common.appStore')}
               </AppDownloadButton>
               <AppDownloadButton
+                platform='android'
                 className='inline-flex items-center justify-center gap-md border-2 border-white text-white font-black text-sm px-4xl py-lg rounded-full hover:bg-white/10 transition-colors'
                 aria-label={t('common.googlePlay')}
               >

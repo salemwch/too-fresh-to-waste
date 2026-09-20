@@ -3,7 +3,7 @@
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { seoConfig } from '@/config/seo.config';
-import { useAppLaunchModal } from '@/lib/app-launch-modal.store';
+import { AppDownloadButton } from '@/components/sections/AppDownloadButton';
 import { cityNav } from '@/content/city-nav';
 
 import type { Locale } from '@/i18n/config';
@@ -24,7 +24,6 @@ export default function Footer() {
   const t = useTranslations('footer');
   const locale = useLocale() as Locale;
   const currentYear = new Date().getFullYear();
-  const { open: openLaunchModal } = useAppLaunchModal();
 
   // Footer sections configuration
   const footerSections: FooterSection[] = [
@@ -217,9 +216,8 @@ export default function Footer() {
             </h3>
             <div className='flex flex-col gap-sm'>
               {/* App Store */}
-              <button
-                type='button'
-                onClick={openLaunchModal}
+              <AppDownloadButton
+                platform='ios'
                 className='flex items-center gap-sm bg-black text-white px-md py-sm rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full max-w-[210px]'
                 aria-label='Download on the App Store'
               >
@@ -234,12 +232,11 @@ export default function Footer() {
                     {t('beWithUs.appStore.name')}
                   </div>
                 </div>
-              </button>
+              </AppDownloadButton>
 
               {/* Google Play */}
-              <button
-                type='button'
-                onClick={openLaunchModal}
+              <AppDownloadButton
+                platform='android'
                 className='flex items-center gap-sm bg-black text-white px-md py-sm rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg w-full max-w-[210px]'
                 aria-label='Get it on Google Play'
               >
@@ -254,7 +251,7 @@ export default function Footer() {
                     {t('beWithUs.playStore.name')}
                   </div>
                 </div>
-              </button>
+              </AppDownloadButton>
             </div>
           </div>
         </div>
