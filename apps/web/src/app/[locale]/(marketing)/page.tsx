@@ -210,16 +210,6 @@ function HeroSection({ locale }: { locale: Locale }) {
               <span className='text-sm text-white md:text-base'>{t('trust.shareLabel')}</span>
             </p>
 
-            {/*
-              The qualifier sits directly under the claim rather than in a
-              footnote. Settlement takes a share of some orders, so "every bag"
-              would be false - and a merchant discovers that on their first
-              settled order, which is the worst possible moment to find out.
-            */}
-            <p className='max-w-sm text-center text-xs text-white/60 lg:text-start'>
-              {t('trust.shareNote')}
-            </p>
-
             <ul className='flex flex-wrap justify-center gap-x-xl gap-y-sm lg:justify-start'>
               {(['marketing', 'supplies'] as const).map(key => (
                 <li key={key} className='flex items-center gap-sm text-white/75 text-xs md:text-sm'>
