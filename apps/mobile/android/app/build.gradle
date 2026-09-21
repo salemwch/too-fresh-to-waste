@@ -378,7 +378,7 @@ dependencies {
     // Google Play Services Location - Required by react-native-geolocation-service
     // Version forced in root build.gradle to 21.3.0 for Firebase BOM 33.7.0 compatibility
     // Source: https://developers.google.com/android/guides/setup
-    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'com.google.android.gms:play-services-location:21.4.0'
 
 }
 
