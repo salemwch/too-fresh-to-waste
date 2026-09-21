@@ -351,8 +351,8 @@ dependencies {
     // React Native core dependencies - Explicit versions for monorepo setup
     // Autolinking handles native modules, but core RN deps are explicit
     // Source: React Native 0.81 requirements
-    implementation("com.facebook.react:react-android:0.81.0")
-    implementation("com.facebook.react:hermes-android:0.81.0")
+    implementation("com.facebook.react:react-android:0.82.1")
+    implementation("com.facebook.react:hermes-android:0.82.1")
 
     // Nitro-based libraries require manual linking because CMake autolinking is disabled
     // Their Java/Kotlin code is autolinked, but we need explicit project dependencies
