@@ -258,32 +258,56 @@ export const envValidationSchema = Joi.object({
     otherwise: Joi.string().optional(),
   }),
 
-  // ── Phone Verification Feature Flag ─────────────────────────────────
-  // Set to false to bypass SMS OTP while Twilio is unpaid.
-  // Twilio credentials are kept intact — flip back to true to re-enable.
-  PHONE_VERIFICATION_ENABLED: Joi.boolean().default(false),
+  // ── SMS master switch ────────────────────────────────────────────────
+  // The one flag that decides whether Twilio exists at all. When false the
+  // client is never constructed, so boot does not pay for it and no SMS path
+  // can reach the network. Flip to true (and supply the three TWILIO_* values
+  // below) on the day SMS is wanted back.
+  //
+  // Defaults to false on purpose. SMS is not part of any user journey today:
+  // order placement requires a phone *number* (order.service.ts), never a
+  // verified one, and the checkout modal only PATCHes /users/profile.
+  //
+  // Replaces PHONE_VERIFICATION_ENABLED, which was declared here and set in
+  // .env but read by no code at all - a flag that looked live and did nothing.
+  SMS_ENABLED: Joi.boolean().default(false),
 
   // ── Twilio SMS ───────────────────────────────────────────────────────
-  TWILIO_ACCOUNT_SID: Joi.when('NODE_ENV', {
-    is: 'production',
-    then: Joi.string().required().messages({
-      'any.required': 'TWILIO_ACCOUNT_SID is required in production (SMS verification)',
+  // Required in production only when SMS_ENABLED is true. Demanding them
+  // unconditionally is what forced a misconfigured TWILIO_PHONE_NUMBER to stay
+  // in the environment while nothing could send with it.
+  TWILIO_ACCOUNT_SID: Joi.when('SMS_ENABLED', {
+    is: Joi.valid(true, 'true'),
+    then: Joi.when('NODE_ENV', {
+      is: 'production',
+      then: Joi.string().required().messages({
+        'any.required': 'TWILIO_ACCOUNT_SID is required in production when SMS_ENABLED=true',
+      }),
+      otherwise: Joi.string().allow('').optional(),
     }),
-    otherwise: Joi.string().optional(),
+    otherwise: Joi.string().allow('').optional(),
   }),
-  TWILIO_AUTH_TOKEN: Joi.when('NODE_ENV', {
-    is: 'production',
-    then: Joi.string().required().messages({
-      'any.required': 'TWILIO_AUTH_TOKEN is required in production',
+  TWILIO_AUTH_TOKEN: Joi.when('SMS_ENABLED', {
+    is: Joi.valid(true, 'true'),
+    then: Joi.when('NODE_ENV', {
+      is: 'production',
+      then: Joi.string().required().messages({
+        'any.required': 'TWILIO_AUTH_TOKEN is required in production when SMS_ENABLED=true',
+      }),
+      otherwise: Joi.string().allow('').optional(),
     }),
-    otherwise: Joi.string().optional(),
+    otherwise: Joi.string().allow('').optional(),
   }),
-  TWILIO_PHONE_NUMBER: Joi.when('NODE_ENV', {
-    is: 'production',
-    then: Joi.string().required().messages({
-      'any.required': 'TWILIO_PHONE_NUMBER is required in production',
+  TWILIO_PHONE_NUMBER: Joi.when('SMS_ENABLED', {
+    is: Joi.valid(true, 'true'),
+    then: Joi.when('NODE_ENV', {
+      is: 'production',
+      then: Joi.string().required().messages({
+        'any.required': 'TWILIO_PHONE_NUMBER is required in production when SMS_ENABLED=true',
+      }),
+      otherwise: Joi.string().allow('').optional(),
     }),
-    otherwise: Joi.string().optional(),
+    otherwise: Joi.string().allow('').optional(),
   }),
 
   // ── Sentry ───────────────────────────────────────────────────────────
@@ -346,6 +370,34 @@ export const envValidationSchema = Joi.object({
   // MAX_DELIVERY_KM is gone with the hard distance gate. Delivery used to be
   // rejected outright beyond 5 km; it is now available at any distance and the
   // price carries the cost instead of a cutoff.
+
+  // ── Driver dispatch radius ───────────────────────────────────────────
+  // How far from a driver's live GPS to look for unassigned delivery orders,
+  // measured to the *establishment* (the pickup), in metres.
+  //
+  // Declared here because it was not declared anywhere: not in .env, not in
+  // .env.example, not in render.yaml. It existed only as `?? 5000` inside
+  // drivers.service.ts and driver-notifications.service.ts - two copies of a
+  // magic number that silently defined the entire service area. Changing the
+  // market meant editing code.
+  //
+  // **This is a dispatch limit, not a market boundary.** It answers "which
+  // driver is close enough to take this job", never "do we operate here".
+  // Greater Sousse runs roughly 35 km end to end (Hergla in the north to
+  // Msaken in the south-west), so no single radius describes it: the number
+  // that reaches Hergla also shows a Sousse driver an unpaid 30 km ride to a
+  // pickup, and the fee only pays for shop → customer, not for getting to the
+  // shop. 15 km covers the dense cluster - Sousse and its districts, Hammam
+  // Sousse, Kantaoui, Akouda, Kalaa Sghira, Ksibet, Zaouiet, Messaadine,
+  // Msaken - which is where the merchants and the drivers actually are.
+  //
+  // When a real boundary is needed (a second governorate, per-area pricing, or
+  // pausing a town), that is the Geozone polygon's job, and this value stays
+  // what it is: the physics limit inside a market someone chose to open.
+  DRIVER_MAX_RADIUS_METERS: Joi.number().integer().min(500).max(100_000).default(15_000).messages({
+    'number.max':
+      'DRIVER_MAX_RADIUS_METERS is a dispatch radius, not a coverage map. Beyond ~100 km the unpaid ride to the pickup costs the driver more than the delivery pays; use a Geozone polygon to describe coverage instead.',
+  }),
 }).options({
   // Allow additional env vars not listed above (system vars, optional config)
   allowUnknown: true,
