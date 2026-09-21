@@ -90,7 +90,7 @@
     "i18next": "24.2.3",
     "intl-pluralrules": "2.0.1",
     "react": "19.1.0",
-    "react-hook-form": "^7.79.0",
+    "react-hook-form": "^7.88.0",
     "react-i18next": "15.7.4",
     "react-native": "0.81.0",
     "react-native-config": "^1.7.2",
