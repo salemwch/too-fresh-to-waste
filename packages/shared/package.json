@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build tsconfig.build.json",
     "dev": "tsc --build --watch",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --cache",

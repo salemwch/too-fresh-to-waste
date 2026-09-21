@@ -1,0 +1,16 @@
+{
+  // Build-only config. `tsconfig.json` includes the specs so editors and
+  // ESLint's project service can type them; this one excludes them so they
+  // never reach `dist/`.
+  //
+  // The split exists because `packages/shared` gained its first test file. The
+  // build config had excluded `**/*.spec.ts` outright, which kept them out of
+  // `dist` but also left them outside every TypeScript project - and ESLint's
+  // type-aware rules then refused the file with "was not found by the project
+  // service". Same arrangement as apps/food-waste-backend.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "exclude": ["node_modules", "dist", "coverage", "**/__tests__/**", "**/*.test.ts", "**/*.spec.ts"]
+}

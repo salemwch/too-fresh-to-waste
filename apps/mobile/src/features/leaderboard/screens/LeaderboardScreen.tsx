@@ -106,7 +106,7 @@ export const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
   const { cycle: activeCycle } = useActiveVotingCycle();
   const grandPrize = useMemo(
     () => getGrandPrizePresentation(activeCycle, i18n.language),
-    [activeCycle],
+    [activeCycle, i18n.language],
   );
   const ballotPrizes = useMemo(
     () => getBallotPrizeRows(activeCycle, i18n.language),
