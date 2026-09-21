@@ -190,7 +190,7 @@ jobs:
           DATABASE_URL: mongodb://test:test@localhost:27017/index_gate?authSource=admin
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./apps/food-waste-backend/coverage/coverage-final.json
