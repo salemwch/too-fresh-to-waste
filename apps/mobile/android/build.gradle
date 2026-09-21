@@ -166,7 +166,7 @@ allprojects {
             //
             // 18.11.0 is the highest version anything in the graph asks for, so
             // it satisfies every consumer rather than just the one that broke.
-            force("com.google.android.gms:play-services-base:18.10.1")
+            force("com.google.android.gms:play-services-base:18.11.0")
             force("com.google.android.gms:play-services-location:21.3.0")
             force("com.google.android.gms:play-services-maps:19.0.0")
             force("com.google.android.gms:play-services-basement:18.11.0")
