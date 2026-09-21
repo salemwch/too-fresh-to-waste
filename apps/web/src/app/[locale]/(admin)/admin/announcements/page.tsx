@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import {
   useAnnouncements,
   useCreateAnnouncement,
@@ -127,6 +128,7 @@ export default function AnnouncementsPage() {
 }
 
 function AnnouncementCard({ item }: { item: AnnouncementRow }) {
+  const fmt = useFormat();
   const t = useTranslations('adminAnnouncements');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const publish = usePublishAnnouncement();
@@ -149,12 +151,12 @@ function AnnouncementCard({ item }: { item: AnnouncementRow }) {
             </span>
             {item.startsAt && (
               <span>
-                {t('starts')}: {new Date(item.startsAt).toLocaleDateString()}
+                {t('starts')}: {fmt.date(item.startsAt) ?? MISSING_COUNT}
               </span>
             )}
             {item.expiresAt && (
               <span>
-                {t('expires')}: {new Date(item.expiresAt).toLocaleDateString()}
+                {t('expires')}: {fmt.date(item.expiresAt) ?? MISSING_COUNT}
               </span>
             )}
           </div>

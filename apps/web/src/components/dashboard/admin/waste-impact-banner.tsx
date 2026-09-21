@@ -1,6 +1,7 @@
 import { Leaf, UtensilsCrossed, Wind, Droplets } from 'lucide-react';
 import { Card, CardContent, Skeleton } from '@foodwaste/ui';
 import { cn } from '@/lib/utils';
+import { useFormat } from '@/lib/use-format';
 
 interface WasteImpactBannerProps {
   kgSaved: number;
@@ -16,12 +17,6 @@ interface WasteImpactBannerProps {
   loading?: boolean;
 }
 
-function formatNumber(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
-  return value.toLocaleString('en-US', { maximumFractionDigits: 1 });
-}
-
 export function WasteImpactBanner({
   kgSaved,
   mealsSaved,
@@ -35,6 +30,7 @@ export function WasteImpactBanner({
   subtitle,
   loading,
 }: WasteImpactBannerProps) {
+  const fmt = useFormat();
   if (loading) {
     return (
       <Card className='border-emerald-200/60 bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10'>
@@ -81,7 +77,7 @@ export function WasteImpactBanner({
                 <Icon className={cn('size-5 shrink-0', color)} />
                 <div>
                   <p className='text-xl font-bold tabular-nums text-foreground'>
-                    {formatNumber(value)}
+                    {fmt.compact(value)}
                   </p>
                   <p className='text-[11px] leading-tight text-muted-foreground'>{label}</p>
                 </div>

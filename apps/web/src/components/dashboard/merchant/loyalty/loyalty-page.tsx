@@ -41,6 +41,7 @@ import {
   useDonatePoints,
 } from '@/hooks/use-loyalty';
 import { TIER_CONFIG, type LoyaltyTier, type DonationHistoryItem } from '@/types/loyalty';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Skeletons ──────────────────────────────────────────────────────────────
 
@@ -195,6 +196,7 @@ function TierProgress({
 // ─── Badges Section ─────────────────────────────────────────────────────────
 
 function BadgesSection() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.loyalty.badges');
   const { data: account } = useLoyaltyAccount();
   const badges = account?.badges || [];
@@ -218,7 +220,7 @@ function BadgesSection() {
             </div>
             <span className='text-xs font-medium text-center truncate w-full'>{badge.name}</span>
             <span className='text-[10px] text-muted-foreground'>
-              {new Date(badge.earnedAt).toLocaleDateString()}
+              {fmt.date(badge.earnedAt) ?? MISSING_COUNT}
             </span>
           </motion.div>
         ))}
@@ -360,6 +362,7 @@ function GamificationSection() {
 // ─── Donation Section ───────────────────────────────────────────────────────
 
 function DonationSection() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.loyalty.donations');
   const { data: donations, isLoading } = useDonationHistory();
   const donatePoints = useDonatePoints();
@@ -476,7 +479,7 @@ function DonationSection() {
                   </p>
                   <p className='text-xs text-muted-foreground'>
                     ~{donation.estimatedMeals} meals ·{' '}
-                    {new Date(donation.createdAt).toLocaleDateString()}
+                    {fmt.date(donation.createdAt) ?? MISSING_COUNT}
                   </p>
                 </div>
               </div>
@@ -496,6 +499,7 @@ function DonationSection() {
 // ─── Main Loyalty Page ──────────────────────────────────────────────────────
 
 export function LoyaltyPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.loyalty');
   const { data: stats, isLoading, isError, refetch } = useLoyaltyStats();
 
@@ -514,12 +518,12 @@ export function LoyaltyPage() {
   }
 
   const statCards = [
-    { label: t('stats.totalPoints'), value: stats.totalPoints.toLocaleString(), icon: Star },
+    { label: t('stats.totalPoints'), value: fmt.count(stats.totalPoints), icon: Star },
     { label: t('stats.bagsSaved'), value: stats.totalBagsSaved, icon: ShoppingBag },
     { label: t('stats.ordersCount'), value: stats.totalOrdersCount, icon: Gift },
     {
       label: t('stats.pointsThisMonth'),
-      value: stats.availablePoints.toLocaleString(),
+      value: fmt.count(stats.availablePoints),
       icon: Award,
     },
   ];

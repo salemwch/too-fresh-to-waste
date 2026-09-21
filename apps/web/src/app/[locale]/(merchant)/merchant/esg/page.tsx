@@ -26,10 +26,7 @@ import {
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import { dashboardService } from '@/services/dashboard.service';
 import { ProGate } from '@/components/dashboard/merchant/pro-gate';
-
-function fmt(n: number, decimals = 0) {
-  return n.toLocaleString(undefined, { maximumFractionDigits: decimals });
-}
+import { useFormat } from '@/lib/use-format';
 
 function MetricRow({
   label,
@@ -52,6 +49,7 @@ function MetricRow({
 }
 
 function EsgContent() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.merchantEsg');
   const [downloading, setDownloading] = useState(false);
   const tierQuery = useEsgTier();
@@ -134,7 +132,7 @@ function EsgContent() {
           <div className='ms-auto text-end'>
             <div className='text-xs text-primary-500/60'>{t('bagsSavedTotal')}</div>
             <div className='font-display text-2xl text-primary-500'>
-              {fmt(tier?.bagsSaved ?? 0)}
+              {fmt.decimal(tier?.bagsSaved ?? 0, 0)}
             </div>
           </div>
         </div>
@@ -154,7 +152,7 @@ function EsgContent() {
                   {tierItem.label}
                 </div>
                 <div className='text-xs text-primary-500/50'>
-                  {fmt(tierItem.threshold)}+ {t('bags')}
+                  {fmt.decimal(tierItem.threshold, 0)}+ {t('bags')}
                 </div>
               </div>
               {tierItem.reached && (
@@ -170,7 +168,7 @@ function EsgContent() {
           <div className='mt-[24px] p-md rounded-xl bg-primary-500/[0.04]'>
             <p className='text-xs text-primary-500/70'>
               {t('remaining', {
-                count: fmt(tier.remaining),
+                count: fmt.decimal(tier.remaining, 0),
                 tier: tier.nextTier ? ` (${tier.nextTier})` : '',
               })}
             </p>
@@ -200,42 +198,42 @@ function EsgContent() {
             <div>
               <MetricRow
                 label={t('bagsSaved')}
-                value={`${fmt(carbon.bagsSaved)} ${t('bags')}`}
+                value={`${fmt.decimal(carbon.bagsSaved, 0)} ${t('bags')}`}
                 icon={Package}
               />
               <MetricRow
                 label={t('foodWeight')}
-                value={`${fmt(carbon.foodWeightKg, 1)} kg`}
+                value={`${fmt.decimal(carbon.foodWeightKg, 1)} kg`}
                 icon={Package}
               />
               <MetricRow
                 label={t('co2Avoided')}
-                value={`${fmt(carbon.carbonKgAvoided, 1)} kg CO₂`}
+                value={`${fmt.decimal(carbon.carbonKgAvoided, 1)} kg CO₂`}
                 icon={Leaf}
               />
               <MetricRow
                 label={t('waterSaved')}
-                value={`${fmt(carbon.waterLitersAvoided)} ${t('liters')}`}
+                value={`${fmt.decimal(carbon.waterLitersAvoided, 0)} ${t('liters')}`}
                 icon={Droplets}
               />
               <MetricRow
                 label={t('packagingSaved')}
-                value={`${fmt(carbon.packagingKgSaved, 1)} ${t('plastic')}`}
+                value={`${fmt.decimal(carbon.packagingKgSaved, 1)} ${t('plastic')}`}
                 icon={Package}
               />
               <MetricRow
                 label={t('energySaved')}
-                value={`${fmt(carbon.energyKwhSaved, 1)} kWh`}
+                value={`${fmt.decimal(carbon.energyKwhSaved, 1)} kWh`}
                 icon={Zap}
               />
               <MetricRow
                 label={t('carEquivalent')}
-                value={`${fmt(carbon.carKmEquivalent)} ${t('kmNotDriven')}`}
+                value={`${fmt.decimal(carbon.carKmEquivalent, 0)} ${t('kmNotDriven')}`}
                 icon={Car}
               />
               <MetricRow
                 label={t('treesEquivalent')}
-                value={`${fmt(carbon.treesEquivalent)} ${t('treesPlanted')}`}
+                value={`${fmt.decimal(carbon.treesEquivalent, 0)} ${t('treesPlanted')}`}
                 icon={TreePine}
               />
               <div className='mt-lg text-[10px] text-primary-500/45 italic'>
@@ -260,22 +258,22 @@ function EsgContent() {
             <div>
               <MetricRow
                 label={t('mealsDistributed')}
-                value={`${fmt(social.mealsDistributed)} ${t('meals')}`}
+                value={`${fmt.decimal(social.mealsDistributed, 0)} ${t('meals')}`}
                 icon={Users}
               />
               <MetricRow
                 label={t('peopleServed')}
-                value={`~${fmt(social.peopleServedEstimate)} ${t('beneficiaries')}`}
+                value={`~${fmt.decimal(social.peopleServedEstimate, 0)} ${t('beneficiaries')}`}
                 icon={Users}
               />
               <MetricRow
                 label={t('foodValueSaved')}
-                value={`~${fmt(social.estimatedValueTnd, 2)} TND`}
+                value={`~${fmt.decimal(social.estimatedValueTnd, 2)} TND`}
                 icon={Leaf}
               />
               <MetricRow
                 label={t('weightRescued')}
-                value={`${fmt(social.foodWeightKg, 1)} kg`}
+                value={`${fmt.decimal(social.foodWeightKg, 1)} kg`}
                 icon={Package}
               />
               <div className='mt-lg text-[10px] text-primary-500/45 italic'>
@@ -304,12 +302,12 @@ function EsgContent() {
           <div className='flex items-end justify-between mb-sm'>
             <span className='text-sm text-primary-500/70'>
               {t('bagsThisMonth', {
-                current: fmt(goal.currentMonthBags),
-                target: fmt(goal.targetBagsPerMonth),
+                current: fmt.decimal(goal.currentMonthBags, 0),
+                target: fmt.decimal(goal.targetBagsPerMonth, 0),
               })}
             </span>
             <span className='text-xs text-primary-500/60'>
-              {t('treesEq', { count: fmt(goal.treesEquivalent) })}
+              {t('treesEq', { count: fmt.decimal(goal.treesEquivalent, 0) })}
             </span>
           </div>
           <div className='h-2 w-full rounded-full bg-primary-500/[0.08] overflow-hidden'>

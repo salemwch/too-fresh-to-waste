@@ -22,6 +22,11 @@ function loadWith(env: { android?: string; ios?: string }): StoreLinks {
 
   let mod!: StoreLinks;
   jest.isolateModules(() => {
+    // `require`, not `import`: the module snapshots `process.env` at import
+    // time, so observing a different value needs a genuinely fresh evaluation
+    // inside the isolated registry. A static import is hoisted and evaluated
+    // once, which would make every case here read the same env.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     mod = require('@/lib/app-store-links') as StoreLinks;
   });
 

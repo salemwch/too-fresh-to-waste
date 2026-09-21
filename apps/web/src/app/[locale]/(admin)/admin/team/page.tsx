@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import {
   useTeamMembers,
   useInviteTeamMember,
@@ -150,6 +151,7 @@ export default function TeamManagementPage() {
 // ─── Member Row ──────────────────────────────────────────────────────────────
 
 function MemberRow({ member }: { member: TeamMemberRow }) {
+  const fmt = useFormat();
   const t = useTranslations('adminTeam');
   const [permissionsOpen, setPermissionsOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
@@ -198,7 +200,7 @@ function MemberRow({ member }: { member: TeamMemberRow }) {
 
         {/* Last login */}
         <div className='text-xs text-muted-foreground'>
-          {member.lastLoginAt ? new Date(member.lastLoginAt).toLocaleDateString() : t('never')}
+          {member.lastLoginAt ? (fmt.date(member.lastLoginAt) ?? MISSING_COUNT) : t('never')}
         </div>
 
         {/* Actions */}

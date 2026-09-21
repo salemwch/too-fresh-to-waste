@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { RolloutMap } from '@/components/sections';
 import { Link } from '@/i18n/routing';
 import { usePublicImpact } from '@/hooks/use-public';
+import { useFormat } from '@/lib/use-format';
 
 /** The three numbers that make the ambition concrete rather than rhetorical. */
 const PROOF = ['bags', 'meals', 'carbon'] as const;
@@ -12,14 +13,15 @@ const PROOF = ['bags', 'meals', 'carbon'] as const;
 const WINNERS = ['merchant', 'customer', 'planet', 'neighbour'] as const;
 
 function ProofRow() {
+  const fmt = useFormat();
   const t = useTranslations('dream');
   const { data } = usePublicImpact();
 
   const value = (key: (typeof PROOF)[number]): string => {
     if (!data) return '-';
-    if (key === 'bags') return data.bagsRescued.toLocaleString();
-    if (key === 'meals') return data.mealsRescued.toLocaleString();
-    return `${data.carbonAvoidedKg.toLocaleString()} kg`;
+    if (key === 'bags') return fmt.count(data.bagsRescued);
+    if (key === 'meals') return fmt.count(data.mealsRescued);
+    return `${fmt.count(data.carbonAvoidedKg)} kg`;
   };
 
   return (

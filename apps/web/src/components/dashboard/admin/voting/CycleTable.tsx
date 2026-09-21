@@ -8,6 +8,7 @@ import { CalendarDays, Target } from 'lucide-react';
 import type { VotingCycleRow } from '@/types/voting';
 import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/admin-data-table';
 import { formatCount, seasonProgressPercent } from '@/lib/format';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Status badge styles ──────────────────────────────────────────────────────
 
@@ -20,14 +21,6 @@ const STATUS_STYLES: Record<string, string> = {
   [CycleStatus.EXPIRED]: 'bg-destructive/10 text-destructive border-destructive/20',
   [CycleStatus.ARCHIVED]: 'bg-muted text-muted-foreground border-border',
 };
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-}
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -58,6 +51,7 @@ export function CycleTable({
   onArchive,
   onDelete,
 }: CycleTableProps) {
+  const fmt = useFormat();
   const locale = useLocale();
 
   const columns: ColumnDef<VotingCycleRow>[] = [
@@ -87,7 +81,8 @@ export function CycleTable({
         <div className='flex items-center gap-1.5 text-xs text-muted-foreground'>
           <CalendarDays className='size-3 shrink-0' />
           <span>
-            {formatDate(cycle.cycleStartDate)} — {formatDate(cycle.cycleEndDate)}
+            {fmt.date(cycle.cycleStartDate) ?? MISSING_COUNT} —{' '}
+            {fmt.date(cycle.cycleEndDate) ?? MISSING_COUNT}
           </span>
         </div>
       ),

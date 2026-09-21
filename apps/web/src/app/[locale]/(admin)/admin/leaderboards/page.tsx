@@ -52,6 +52,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { AdminLeaderboardEntry } from '@/types/admin';
+import { useFormat } from '@/lib/use-format';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -72,12 +73,6 @@ function getTierColor(tier: string) {
   return map[tier.toLowerCase()] ?? 'bg-muted text-muted-foreground border-border';
 }
 
-function formatNumber(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}K`;
-  return n.toLocaleString();
-}
-
 // ─── User Detail Drawer ──────────────────────────────────────────────────────
 
 function UserDetailDrawer({
@@ -89,6 +84,7 @@ function UserDetailDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const fmt = useFormat();
   const t = useTranslations('adminLeaderboards');
   if (!user) return null;
 
@@ -123,7 +119,7 @@ function UserDetailDrawer({
             <div className='mt-md grid grid-cols-3 gap-sm'>
               <div className='rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                 <p className='text-lg font-bold tabular-nums text-amber-600'>
-                  {user.totalPoints.toLocaleString()}
+                  {fmt.count(user.totalPoints)}
                 </p>
                 <p className='text-[10px] text-muted-foreground'>{t('columns.totalPoints')}</p>
               </div>
@@ -167,7 +163,7 @@ function UserDetailDrawer({
                       <span className='text-xs'>{item.label}</span>
                     </div>
                     <span className='text-xs font-semibold tabular-nums'>
-                      {item.value.toLocaleString()}
+                      {fmt.count(item.value)}
                     </span>
                   </div>
                 ))}
@@ -282,6 +278,7 @@ function AddPointsDialog({
 }
 
 function LeaderboardsContent() {
+  const fmt = useFormat();
   const t = useTranslations('adminLeaderboards');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'overview';
@@ -304,21 +301,21 @@ function LeaderboardsContent() {
   const kpis: KpiItem[] = [
     {
       label: t('kpi.totalParticipants'),
-      value: stats ? formatNumber(stats.totalParticipants) : '—',
+      value: stats ? fmt.compact(stats.totalParticipants) : '—',
       icon: Users,
       iconBg: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
     },
     {
       label: t('kpi.totalPoints'),
-      value: stats ? formatNumber(stats.totalPointsDistributed) : '—',
+      value: stats ? fmt.compact(stats.totalPointsDistributed) : '—',
       icon: Star,
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
     },
     {
       label: t('kpi.averagePoints'),
-      value: stats ? formatNumber(stats.averagePoints) : '—',
+      value: stats ? fmt.compact(stats.averagePoints) : '—',
       icon: TrendingUp,
       iconBg: 'bg-violet-50',
       iconColor: 'text-violet-600',
@@ -363,7 +360,7 @@ function LeaderboardsContent() {
       header: t('columns.totalPoints'),
       render: u => (
         <span className='text-xs font-bold tabular-nums text-amber-600'>
-          {u.totalPoints.toLocaleString()}
+          {fmt.count(u.totalPoints)}
         </span>
       ),
     },
@@ -454,9 +451,7 @@ function LeaderboardsContent() {
                             >
                               {tb.tier}
                             </Badge>
-                            <p className='text-2xl font-bold tabular-nums'>
-                              {tb.count.toLocaleString()}
-                            </p>
+                            <p className='text-2xl font-bold tabular-nums'>{fmt.count(tb.count)}</p>
                             <p className='text-[10px] text-muted-foreground mt-xs'>{t('users')}</p>
                           </CardContent>
                         </Card>
@@ -473,7 +468,7 @@ function LeaderboardsContent() {
                             </span>
                           </div>
                           <p className='text-xl font-bold tabular-nums'>
-                            {stats.totalParticipants.toLocaleString()}
+                            {fmt.count(stats.totalParticipants)}
                           </p>
                         </CardContent>
                       </Card>
@@ -484,7 +479,7 @@ function LeaderboardsContent() {
                             <span className='text-xs font-medium'>{t('kpi.totalPoints')}</span>
                           </div>
                           <p className='text-xl font-bold tabular-nums'>
-                            {stats.totalPointsDistributed.toLocaleString()}
+                            {fmt.count(stats.totalPointsDistributed)}
                           </p>
                         </CardContent>
                       </Card>
@@ -495,7 +490,7 @@ function LeaderboardsContent() {
                             <span className='text-xs font-medium'>{t('kpi.averagePoints')}</span>
                           </div>
                           <p className='text-xl font-bold tabular-nums'>
-                            {Math.round(stats.averagePoints).toLocaleString()}
+                            {fmt.count(Math.round(stats.averagePoints))}
                           </p>
                         </CardContent>
                       </Card>
@@ -519,7 +514,7 @@ function LeaderboardsContent() {
                               </div>
                               <div className='flex items-center gap-sm'>
                                 <span className='text-xs font-bold tabular-nums'>
-                                  {m.bagsSaved.toLocaleString()} {t('bags')}
+                                  {fmt.count(m.bagsSaved)} {t('bags')}
                                 </span>
                                 <Badge className='text-[10px] bg-primary/10 text-primary border-primary/20'>
                                   2 {t('sponsorDays')}

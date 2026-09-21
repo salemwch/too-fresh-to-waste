@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useAdminPaymentStats, useAdminPayouts } from '@/hooks/use-admin';
 import type { AdminPayoutSummary } from '@/types/admin';
+import { useFormat } from '@/lib/use-format';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,7 @@ function PaymentMethodsCard({
 // ─── Content ─────────────────────────────────────────────────────────────────
 
 function PaymentsContent() {
+  const fmt = useFormat();
   const t = useTranslations('adminPayments');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'overview';
@@ -98,14 +100,14 @@ function PaymentsContent() {
     },
     {
       label: t('kpi.completedPayments'),
-      value: stats?.completedPayments.toLocaleString() ?? '—',
+      value: fmt.count(stats?.completedPayments),
       icon: TrendingUp,
       iconBg: 'bg-violet-50',
       iconColor: 'text-violet-600',
     },
     {
       label: t('kpi.pendingPayments'),
-      value: stats?.pendingPayments.toLocaleString() ?? '—',
+      value: fmt.count(stats?.pendingPayments),
       icon: Clock,
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
@@ -113,7 +115,7 @@ function PaymentsContent() {
     },
     {
       label: t('kpi.failedPayments'),
-      value: stats?.failedPayments.toLocaleString() ?? '—',
+      value: fmt.count(stats?.failedPayments),
       icon: AlertCircle,
       iconBg: 'bg-rose-50',
       iconColor: 'text-rose-600',
@@ -190,7 +192,7 @@ function PaymentsContent() {
                       {[
                         {
                           label: t('overview.totalPayments'),
-                          value: stats?.totalPayments.toLocaleString() ?? '—',
+                          value: fmt.count(stats?.totalPayments),
                         },
                         {
                           label: t('overview.totalRefunded'),
@@ -206,7 +208,7 @@ function PaymentsContent() {
                         },
                         {
                           label: t('overview.refundedCount'),
-                          value: stats?.refundedPayments.toLocaleString() ?? '—',
+                          value: fmt.count(stats?.refundedPayments),
                         },
                       ].map(row => (
                         <div key={row.label} className='flex items-center justify-between'>

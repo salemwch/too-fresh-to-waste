@@ -3489,7 +3489,9 @@
       "noKeyTitle": "Map not configured",
       "noKeyBody": "Set NEXT_PUBLIC_GOOGLE_MAPS_KEY and redeploy to show the map. The driver list below works without it.",
       "loadErrorTitle": "Map could not load",
-      "loadErrorBody": "Google Maps did not load. Check that the API key is valid, billing is enabled, and this domain is allowed."
+      "loadErrorBody": "Google Maps did not load. Check that the API key is valid, billing is enabled, and this domain is allowed.",
+      "authErrorTitle": "Google rejected the map key",
+      "authErrorBody": "The key loaded but was refused. Usually the HTTP referrer restriction does not include this domain, or billing is not enabled on the Google Cloud project. Check both, then reload."
     }
   },
   "audienceSplit": {

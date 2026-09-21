@@ -8,14 +8,9 @@ import { dashboardService } from '@/services/dashboard.service';
 import { dashboardKeys, useSocialImpact } from '@/hooks/use-merchant-dashboard';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
 import type { MonthlyBagGoalStats, DonationStats } from '@/types/dashboard';
+import { useFormat } from '@/lib/use-format';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmt(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString();
-}
 
 function StatCard({
   title,
@@ -51,6 +46,7 @@ function StatCard({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CommunityPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.merchantCommunity');
 
   const communityQuery = useQuery({
@@ -101,28 +97,28 @@ export default function CommunityPage() {
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]'>
           <StatCard
             title={t('mealsDistributed')}
-            value={fmt(social?.mealsDistributed ?? 0)}
+            value={fmt.compact(social?.mealsDistributed ?? 0)}
             sub={t('mealsAllTime')}
             icon={Heart}
             delay={0}
           />
           <StatCard
             title={t('peopleFed')}
-            value={`~${fmt(social?.peopleServedEstimate ?? 0)}`}
+            value={`~${fmt.compact(social?.peopleServedEstimate ?? 0)}`}
             sub={t('estimatedBeneficiaries')}
             icon={Users}
             delay={0.07}
           />
           <StatCard
             title={t('foodValue')}
-            value={`${fmt(social?.estimatedValueTnd ?? 0)} TND`}
+            value={`${fmt.compact(social?.estimatedValueTnd ?? 0)} TND`}
             sub={t('foodSaved')}
             icon={Award}
             delay={0.14}
           />
           <StatCard
             title={t('weightRescued')}
-            value={`${fmt(social?.foodWeightKg ?? 0)} kg`}
+            value={`${fmt.compact(social?.foodWeightKg ?? 0)} kg`}
             sub={t('wasteAvoided')}
             icon={TrendingUp}
             delay={0.21}
@@ -165,9 +161,9 @@ export default function CommunityPage() {
         <div className='flex items-end justify-between mb-sm'>
           <span className='text-sm text-primary-500/70'>
             <span className='font-semibold text-primary-500'>
-              {fmt(community?.currentCount ?? 0)}
+              {fmt.compact(community?.currentCount ?? 0)}
             </span>{' '}
-            / {fmt(community?.targetCount ?? 10000)} {t('bags')}
+            / {fmt.compact(community?.targetCount ?? 10000)} {t('bags')}
           </span>
           <span className='font-semibold text-primary-500'>
             {community?.progressPercentage ?? 0}%
@@ -183,7 +179,7 @@ export default function CommunityPage() {
         </div>
         {community && community.remaining > 0 && (
           <p className='mt-md text-xs text-primary-500/55'>
-            {t('remainingGoal', { count: fmt(community.remaining) })}
+            {t('remainingGoal', { count: fmt.compact(community.remaining) })}
           </p>
         )}
       </motion.div>
@@ -212,11 +208,14 @@ export default function CommunityPage() {
             {[
               {
                 label: t('collected'),
-                value: `${fmt(donations.totalDonations)} ${donations.currency}`,
+                value: `${fmt.compact(donations.totalDonations)} ${donations.currency}`,
               },
-              { label: t('target'), value: `${fmt(donations.targetAmount)} ${donations.currency}` },
-              { label: t('mealsFunded'), value: `${fmt(donations.mealCount)}` },
-              { label: t('contributors'), value: `${fmt(donations.contributorCount)}` },
+              {
+                label: t('target'),
+                value: `${fmt.compact(donations.targetAmount)} ${donations.currency}`,
+              },
+              { label: t('mealsFunded'), value: `${fmt.compact(donations.mealCount)}` },
+              { label: t('contributors'), value: `${fmt.compact(donations.contributorCount)}` },
             ].map(item => (
               <div key={item.label} className='text-center p-md rounded-xl bg-primary-500/[0.04]'>
                 <div className='text-xs text-primary-500/55 mb-xs'>{item.label}</div>

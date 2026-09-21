@@ -38,6 +38,7 @@ import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/adm
 import { StatusBadge } from '@/components/dashboard/admin/status-badge';
 import { AdminStatCard } from '@/components/dashboard/admin/admin-stat-card';
 import { ConfirmActionDialog } from '@/components/dashboard/admin/confirm-action-dialog';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import {
   useModerationStats,
   useReports,
@@ -63,17 +64,10 @@ const REPORT_TYPE_ICONS: Record<string, React.ElementType> = {
   review: Star,
 };
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 const STATUS_TABS = ['all', 'pending', 'in_review', 'resolved', 'escalated'] as const;
 
 export default function AdminModerationPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.admin.moderation');
 
   const [activeTab, setActiveTab] = useState<string>('pending');
@@ -184,7 +178,7 @@ export default function AdminModerationPage() {
       header: t('columns.reported'),
       render: report => (
         <span className='text-xs text-muted-foreground tabular-nums'>
-          {formatDate(report.createdAt)}
+          {fmt.date(report.createdAt) ?? MISSING_COUNT}
         </span>
       ),
     },
@@ -374,7 +368,10 @@ export default function AdminModerationPage() {
                       ? `${reportDetail.reporter.firstName} ${reportDetail.reporter.lastName} (${reportDetail.reporter.email})`
                       : reportDetail.reporterId,
                   },
-                  { label: 'Reported at', value: formatDate(reportDetail.createdAt) },
+                  {
+                    label: 'Reported at',
+                    value: fmt.date(reportDetail.createdAt) ?? MISSING_COUNT,
+                  },
                   ...(reportDetail.assignedToModerator
                     ? [{ label: 'Assigned to', value: reportDetail.assignedToModerator }]
                     : []),

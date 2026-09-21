@@ -43,6 +43,7 @@ import {
   useStartDonationSeason,
 } from '@/hooks/use-admin';
 import { Link } from '@/i18n/routing';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import type {
   DonationPoolStatus,
   DonationGoalCategory,
@@ -116,6 +117,7 @@ function KpiCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminDonationPoolPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.adminDonationPool');
 
   const { data: pool, isLoading, refetch, isFetching } = useAdminDonationPool();
@@ -320,7 +322,7 @@ export default function AdminDonationPoolPage() {
           )}
           {pool?.targetDate && (
             <p className='mt-xs text-xs text-muted-foreground'>
-              Deadline: {new Date(pool.targetDate).toLocaleDateString()}
+              Deadline: {fmt.date(pool.targetDate) ?? MISSING_COUNT}
             </p>
           )}
         </CardContent>
@@ -475,7 +477,7 @@ export default function AdminDonationPoolPage() {
                           />
                         </td>
                         <td className='px-md py-sm text-end tabular-nums font-medium'>
-                          {total.toLocaleString()} TND
+                          {fmt.count(total)} TND
                         </td>
                       </tr>
                     );

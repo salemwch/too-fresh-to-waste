@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { useMerchantPayments, usePaymentStats } from '@/hooks/use-payments';
 import type { PaymentStatus, PaymentQueryFilters, MerchantPayment } from '@/types/payments';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Status badge config ────────────────────────────────────────────────────
 
@@ -157,6 +158,7 @@ function PaymentStatsCards() {
 // ─── Payment Row ────────────────────────────────────────────────────────────
 
 function PaymentRow({ payment }: { payment: MerchantPayment }) {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.payments');
   const statusConfig = PAYMENT_STATUS_STYLES[payment.status] || PAYMENT_STATUS_STYLES.pending;
   const StatusIcon = statusConfig.icon;
@@ -190,7 +192,7 @@ function PaymentRow({ payment }: { payment: MerchantPayment }) {
                 </span>
               )}
               <span>{t(`methods.${payment.paymentMethod}`)}</span>
-              <span>{new Date(payment.createdAt).toLocaleDateString()}</span>
+              <span>{fmt.date(payment.createdAt) ?? MISSING_COUNT}</span>
             </div>
           </div>
         </div>

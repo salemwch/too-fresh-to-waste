@@ -6,7 +6,8 @@ import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@foodwa
 import { CycleStatus } from '@foodwaste/shared';
 import { votingAdminService } from '@/services/voting.service';
 import type { VotingCycleRow } from '@/types/voting';
-import { formatCount, MISSING_COUNT, seasonProgressPercent } from '@/lib/format';
+import { formatCount, seasonProgressPercent } from '@/lib/format';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Status badge styles ──────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ interface VotingDashboardProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function VotingDashboard({ cycle }: VotingDashboardProps) {
+  const fmt = useFormat();
   const queryClient = useQueryClient();
   const locale = useLocale();
 
@@ -123,13 +125,9 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
             <span>Cycle #{cycle.cycleNumber}</span>
             {cycle.ballotOpensAt && (
               <span>
-                Ballot:{' '}
-                {new Date(cycle.ballotOpensAt).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                })}
+                Ballot: {fmt.dateShort(cycle.ballotOpensAt) ?? MISSING_COUNT}
                 {cycle.ballotClosesAt &&
-                  ` → ${new Date(cycle.ballotClosesAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`}
+                  ` → ${fmt.dateShort(cycle.ballotClosesAt) ?? MISSING_COUNT}`}
               </span>
             )}
           </div>
@@ -223,7 +221,7 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
                         {result.name}
                       </span>
                       <span className='text-xs text-muted-foreground tabular-nums'>
-                        {result.totalWeightedVotes.toLocaleString()} pts · {result.voterCount} voter
+                        {fmt.count(result.totalWeightedVotes)} pts · {result.voterCount} voter
                         {result.voterCount !== 1 ? 's' : ''}
                       </span>
                     </div>

@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import {
   useInventoryItems,
   useUpdateStock,
@@ -236,6 +237,7 @@ function InventoryItemCard({
   item: InventoryItem;
   onUpdateStock: (item: InventoryItem) => void;
 }) {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.inventory');
 
   // Day-quantised clock rather than Date.now() in render: keeps this row
@@ -284,7 +286,7 @@ function InventoryItemCard({
               </span>
             )}
             <span>
-              {t('item.expiresAt')}: {new Date(item.expiryDate).toLocaleDateString()}
+              {t('item.expiresAt')}: {fmt.date(item.expiryDate) ?? MISSING_COUNT}
             </span>
           </div>
           <div className='flex items-center gap-sm mt-sm'>
@@ -442,6 +444,7 @@ const ALERT_STYLES: Record<string, string> = {
 };
 
 function AlertsTab() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.inventory.alerts');
   const { data: alerts, isLoading, isError, refetch } = useInventoryAlerts();
 
@@ -494,7 +497,7 @@ function AlertsTab() {
                 <p className='text-sm font-medium'>{alert.itemName}</p>
                 <p className='text-xs text-muted-foreground mt-xxs'>{alert.message}</p>
                 <p className='text-xs text-muted-foreground mt-xs'>
-                  {new Date(alert.createdAt).toLocaleDateString()}
+                  {fmt.date(alert.createdAt) ?? MISSING_COUNT}
                 </p>
               </div>
               <Badge

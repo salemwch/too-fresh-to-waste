@@ -7,6 +7,7 @@ import { ArrowRight, Radio, TrendingUp, Users } from 'lucide-react';
 import { usePublicImpact, usePublicZones, useJoinWaitlist } from '@/hooks/use-public';
 import { cn } from '@/lib/utils';
 import type { PublicZone } from '@/types/public';
+import { useFormat } from '@/lib/use-format';
 
 /** The countries below Tunisia. Static: intent, with no date attached. */
 const DESTINATIONS = ['tunisia', 'algeria', 'morocco', 'uae', 'saudi'] as const;
@@ -23,6 +24,7 @@ function StatChip({
   label: string;
   value: number | undefined;
 }) {
+  const fmt = useFormat();
   return (
     <div className='flex flex-col gap-xs'>
       <span className='flex items-center gap-1.5 text-[10px] font-medium tracking-[0.16em] text-white/75 uppercase'>
@@ -33,7 +35,7 @@ function StatChip({
         className='font-heading text-xl leading-none tabular-nums text-white md:text-2xl'
         dir='ltr'
       >
-        {value === undefined ? '-' : value.toLocaleString()}
+        {value === undefined ? '-' : fmt.count(value)}
       </span>
     </div>
   );
@@ -176,6 +178,7 @@ function Stop({
 }
 
 function UnlockPanel({ zone }: { zone: PublicZone }) {
+  const fmt = useFormat();
   const t = useTranslations('rollout');
   const [email, setEmail] = useState('');
   const mutation = useJoinWaitlist();
@@ -212,7 +215,7 @@ function UnlockPanel({ zone }: { zone: PublicZone }) {
             {t('panel.waiting')}
           </dt>
           <dd className='font-heading text-lg leading-none text-white tabular-nums' dir='ltr'>
-            {zone.peopleWaiting.toLocaleString()}
+            {fmt.count(zone.peopleWaiting)}
           </dd>
         </div>
         {zone.foundingTarget > 0 && (

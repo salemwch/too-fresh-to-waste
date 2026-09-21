@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { HealthStatus } from '@/types/admin';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -174,6 +175,7 @@ function HealthSkeleton() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminHealthPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.adminHealth');
   const {
     data: health,
@@ -198,11 +200,7 @@ export default function AdminHealthPage() {
   }
 
   const lastChecked = dataUpdatedAt
-    ? new Date(dataUpdatedAt).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })
+    ? (fmt.time(dataUpdatedAt, { seconds: true }) ?? MISSING_COUNT)
     : '—';
 
   return (
@@ -272,11 +270,7 @@ export default function AdminHealthPage() {
                       <span className='flex items-center gap-1.5'>
                         <Clock className='size-3 text-muted-foreground' />
                         {liveness
-                          ? new Date(liveness.timestamp).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })
+                          ? (fmt.time(liveness.timestamp, { seconds: true }) ?? MISSING_COUNT)
                           : '—'}
                       </span>
                     }

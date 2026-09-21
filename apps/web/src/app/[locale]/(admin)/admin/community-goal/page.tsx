@@ -32,6 +32,7 @@ import {
   useResetMonthlyBagGoal,
 } from '@/hooks/use-admin';
 import type { MonthlyGoalStatus } from '@/types/dashboard';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ function KpiCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminMonthlyBagGoalPage() {
+  const fmt = useFormat();
   // Day-quantised clock rather than Date.now() in render - see hooks/useClock.
   const today = useToday();
   const t = useTranslations('dashboard.adminCommunityGoal');
@@ -234,7 +236,7 @@ export default function AdminMonthlyBagGoalPage() {
           </div>
           {goal?.endDate && (
             <p className='mt-xs text-xs text-muted-foreground'>
-              Deadline: {new Date(goal.endDate).toLocaleDateString()}
+              Deadline: {fmt.date(goal.endDate) ?? MISSING_COUNT}
             </p>
           )}
         </CardContent>

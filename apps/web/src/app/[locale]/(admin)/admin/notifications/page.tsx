@@ -39,6 +39,7 @@ import { AdminTabNav, type AdminTab } from '@/components/dashboard/admin/admin-t
 import { AdminKpiRow, type KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAdminNotificationStats, useAdminBroadcast } from '@/hooks/use-admin';
+import { useFormat } from '@/lib/use-format';
 
 // ─── Broadcast Builder Drawer ───────────────────────────────────────────────
 
@@ -183,6 +184,7 @@ function ChannelBreakdownCard({
 }: {
   channels: Array<{ channel: string; count: number }>;
 }) {
+  const fmt = useFormat();
   const t = useTranslations('adminNotifications');
   const totalCount = channels.reduce((s, c) => s + c.count, 0);
 
@@ -213,7 +215,7 @@ function ChannelBreakdownCard({
                     <span className='text-xs font-medium'>{info.label}</span>
                   </div>
                   <span className='text-xs text-muted-foreground tabular-nums'>
-                    {ch.count.toLocaleString()} ({pct.toFixed(0)}%)
+                    {fmt.count(ch.count)} ({pct.toFixed(0)}%)
                   </span>
                 </div>
                 <div className='h-1.5 w-full rounded-full bg-muted'>
@@ -237,6 +239,7 @@ function ChannelBreakdownCard({
 // ─── Content ─────────────────────────────────────────────────────────────────
 
 function NotificationsContent() {
+  const fmt = useFormat();
   const t = useTranslations('adminNotifications');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'overview';
@@ -252,7 +255,7 @@ function NotificationsContent() {
   const kpis: KpiItem[] = [
     {
       label: t('kpi.totalSent'),
-      value: stats?.totalSent.toLocaleString() ?? '—',
+      value: fmt.count(stats?.totalSent),
       icon: Send,
       iconBg: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
@@ -266,7 +269,7 @@ function NotificationsContent() {
     },
     {
       label: t('kpi.pending'),
-      value: stats?.pendingCount.toLocaleString() ?? '—',
+      value: fmt.count(stats?.pendingCount),
       icon: Clock,
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
@@ -274,7 +277,7 @@ function NotificationsContent() {
     },
     {
       label: t('kpi.failed'),
-      value: stats?.failedCount.toLocaleString() ?? '—',
+      value: fmt.count(stats?.failedCount),
       icon: AlertCircle,
       iconBg: 'bg-rose-50',
       iconColor: 'text-rose-600',
@@ -310,19 +313,19 @@ function NotificationsContent() {
                       {[
                         {
                           label: t('overview.totalSent'),
-                          value: stats?.totalSent.toLocaleString() ?? '—',
+                          value: fmt.count(stats?.totalSent),
                         },
                         {
                           label: t('overview.delivered'),
-                          value: stats?.deliveredCount.toLocaleString() ?? '—',
+                          value: fmt.count(stats?.deliveredCount),
                         },
                         {
                           label: t('overview.failed'),
-                          value: stats?.failedCount.toLocaleString() ?? '—',
+                          value: fmt.count(stats?.failedCount),
                         },
                         {
                           label: t('overview.pending'),
-                          value: stats?.pendingCount.toLocaleString() ?? '—',
+                          value: fmt.count(stats?.pendingCount),
                         },
                         {
                           label: t('overview.deliveryRate'),

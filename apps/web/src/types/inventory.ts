@@ -1,14 +1,7 @@
 export type InventoryStatus = 'available' | 'low_stock' | 'out_of_stock' | 'expired' | 'reserved';
 
 export type StockUpdateReason =
-  | 'restock'
-  | 'sale'
-  | 'waste'
-  | 'adjustment'
-  | 'return'
-  | 'reservation'
-  | 'release'
-  | 'correction';
+  'restock' | 'sale' | 'waste' | 'adjustment' | 'return' | 'reservation' | 'release' | 'correction';
 
 export interface InventoryItem {
   id: string;

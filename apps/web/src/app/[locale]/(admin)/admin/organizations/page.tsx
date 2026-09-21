@@ -22,6 +22,7 @@ import {
 } from '@/hooks/use-admin';
 import type { OrganizationStatus, OrganizationQuery, OrganizationRow } from '@/types/admin';
 import { toast } from 'sonner';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 /**
  * A stable identity for "no organizations yet".
@@ -48,6 +49,7 @@ function OrgDetailDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const fmt = useFormat();
   const t = useTranslations('adminOrganizations');
   const { data: org, isLoading } = useOrganizationDetail(orgId);
 
@@ -85,7 +87,7 @@ function OrgDetailDrawer({
                 </div>
                 <div className='rounded-lg bg-background/60 border border-border/40 px-md py-sm text-center'>
                   <p className='text-lg font-bold tabular-nums'>
-                    {new Date(org.createdAt).toLocaleDateString()}
+                    {fmt.date(org.createdAt) ?? MISSING_COUNT}
                   </p>
                   <p className='text-[10px] text-muted-foreground'>{t('columns.created')}</p>
                 </div>
@@ -122,7 +124,7 @@ function OrgDetailDrawer({
                       <span className='text-xs'>{t('detail.lastUpdated')}</span>
                     </div>
                     <span className='text-xs font-medium'>
-                      {new Date(org.updatedAt).toLocaleString()}
+                      {fmt.dateTime(org.updatedAt) ?? MISSING_COUNT}
                     </span>
                   </div>
                 </div>

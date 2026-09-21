@@ -34,6 +34,7 @@ import {
   useFailedLoginAttempts,
 } from '@/hooks/use-admin';
 import { toast } from 'sonner';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 const PERIOD_OPTIONS = [
   { value: '7', label: '7d' },
@@ -65,6 +66,7 @@ function UnlockDialog({
   isPending: boolean;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const fmt = useFormat();
   const { data: loginInfo, isLoading: infoLoading } = useFailedLoginAttempts(target?.id ?? null);
 
   return (
@@ -116,7 +118,7 @@ function UnlockDialog({
                     {t('lockedAccounts.columns.lockedUntil')}
                   </span>
                   <span className='font-medium tabular-nums'>
-                    {new Date(loginInfo.accountLockedUntil).toLocaleString()}
+                    {fmt.dateTime(loginInfo.accountLockedUntil) ?? MISSING_COUNT}
                   </span>
                 </div>
               )}
@@ -151,6 +153,7 @@ function UnlockDialog({
 const NO_ACCOUNTS: readonly LockedAccount[] = Object.freeze([]);
 
 export default function SecurityPage() {
+  const fmt = useFormat();
   const t = useTranslations('adminSecurity');
   const locale = useLocale();
   const [periodDays, setPeriodDays] = useState(7);
@@ -172,7 +175,7 @@ export default function SecurityPage() {
   const kpiItems: KpiItem[] = [
     {
       label: t('stats.totalAttempts'),
-      value: stats?.summary?.totalLoginAttempts?.toLocaleString() ?? '—',
+      value: fmt.count(stats?.summary?.totalLoginAttempts),
       icon: Users,
       iconBg: 'bg-blue-500/10',
       iconColor: 'text-blue-600',
@@ -194,7 +197,7 @@ export default function SecurityPage() {
     },
     {
       label: t('stats.failedLogins'),
-      value: stats?.failedLogins?.toLocaleString() ?? '—',
+      value: fmt.count(stats?.failedLogins),
       icon: XCircle,
       iconBg: 'bg-orange-500/10',
       iconColor: 'text-orange-600',

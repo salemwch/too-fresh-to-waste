@@ -7,6 +7,7 @@ import { establishmentService, type LegalDocumentType } from '@/services/establi
 import type { MyEstablishment, DocumentMetadata } from '@/types/dashboard';
 import { useAuthStore } from '@/lib/auth';
 import { Input, Button } from '@foodwaste/ui';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import {
   Store,
   Phone,
@@ -167,6 +168,7 @@ function DocRow({
   tReplaceDoc,
   tAwaitingUpload,
 }: DocRowProps) {
+  const fmt = useFormat();
   const inputRef = useRef<HTMLInputElement>(null);
   const [localError, setLocalError] = useState('');
 
@@ -188,13 +190,7 @@ function DocRow({
 
   const isUploaded = !!url;
   const isVerified = isUploaded && !!meta?.verified;
-  const uploadDate = meta?.uploadedAt
-    ? new Date(meta.uploadedAt).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : null;
+  const uploadDate = meta?.uploadedAt ? (fmt.date(meta.uploadedAt) ?? MISSING_COUNT) : null;
 
   return (
     <div className='flex flex-col'>
@@ -1313,8 +1309,7 @@ export default function MerchantEstablishmentPage() {
                 url={establishment.legalDocuments?.[urlKey] as string | undefined}
                 meta={
                   establishment.legalDocuments?.[metaKey] as
-                    | import('@/types/dashboard').DocumentMetadata
-                    | undefined
+                    import('@/types/dashboard').DocumentMetadata | undefined
                 }
                 uploading={!!docUploading[type]}
                 onUpload={file => handleDocUpload(type, file)}

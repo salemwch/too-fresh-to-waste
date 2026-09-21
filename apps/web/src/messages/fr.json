@@ -3494,7 +3494,9 @@
       "noKeyTitle": "Carte non configurée",
       "noKeyBody": "Définissez NEXT_PUBLIC_GOOGLE_MAPS_KEY et redéployez pour afficher la carte. La liste ci-dessous fonctionne sans elle.",
       "loadErrorTitle": "La carte n’a pas pu se charger",
-      "loadErrorBody": "Google Maps ne s’est pas chargé. Vérifiez que la clé API est valide, que la facturation est activée et que ce domaine est autorisé."
+      "loadErrorBody": "Google Maps ne s’est pas chargé. Vérifiez que la clé API est valide, que la facturation est activée et que ce domaine est autorisé.",
+      "authErrorTitle": "Google a refusé la clé de la carte",
+      "authErrorBody": "La clé a été chargée mais refusée. En général, la restriction de référent HTTP n’inclut pas ce domaine, ou la facturation n’est pas activée sur le projet Google Cloud. Vérifiez les deux, puis rechargez."
     }
   },
   "audienceSplit": {

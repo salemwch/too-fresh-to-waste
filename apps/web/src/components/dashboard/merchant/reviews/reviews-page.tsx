@@ -48,6 +48,7 @@ import {
 import { useMyEstablishments } from '@/hooks/use-merchant-dashboard';
 import type { Review, ReviewFilters, ReviewAnalyticsResponse } from '@/types/reviews';
 import { REPORT_REASONS } from '@/types/reviews';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Star Rating Display ────────────────────────────────────────────────────
 
@@ -76,6 +77,7 @@ function StatsHeader({
   isLoading: boolean;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const fmt = useFormat();
   if (isLoading) {
     return (
       <div className='grid grid-cols-1 sm:grid-cols-3 gap-md'>
@@ -100,7 +102,7 @@ function StatsHeader({
     },
     {
       label: t('stats.totalReviews'),
-      value: data.totalReviews.toLocaleString(),
+      value: fmt.count(data.totalReviews),
       icon: MessageSquare,
     },
     {
@@ -253,6 +255,7 @@ function ReviewCard({
   onReport: (review: Review) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const fmt = useFormat();
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -275,7 +278,7 @@ function ReviewCard({
               )}
             </div>
             <div className='text-xs text-primary-500/50'>
-              {new Date(review.createdAt).toLocaleDateString()}
+              {fmt.date(review.createdAt) ?? MISSING_COUNT}
             </div>
           </div>
 

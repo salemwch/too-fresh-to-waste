@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useFormat } from '@/lib/use-format';
 
 interface SliderRowProps {
   label: string;
@@ -56,10 +57,6 @@ function SliderRow({ label, value, min, max, step, unit, onChange }: SliderRowPr
   );
 }
 
-function fmt(n: number) {
-  return Math.round(n).toLocaleString('en-US');
-}
-
 function formatCO2(kg: number) {
   return kg >= 1000 ? (kg / 1000).toFixed(1) + ' t' : Math.round(kg) + ' kg';
 }
@@ -71,6 +68,7 @@ function formatWater(l: number) {
 }
 
 export default function RevenueCalculator() {
+  const fmt = useFormat();
   const [bags, setBags] = useState(10);
   const [price, setPrice] = useState(20);
   const [discount, setDiscount] = useState(60);
@@ -149,7 +147,7 @@ export default function RevenueCalculator() {
           </p>
           <div className='flex items-baseline gap-sm mb-sm'>
             <span className='font-heading text-5xl lg:text-6xl font-bold text-white tabular-nums leading-none'>
-              {fmt(revenuePerMonth)}
+              {fmt.count(Math.round(revenuePerMonth))}
             </span>
             <span className='text-white/75 text-xl font-normal'>TND</span>
           </div>
@@ -162,7 +160,7 @@ export default function RevenueCalculator() {
               Per year
             </p>
             <p className='font-heading text-3xl font-bold text-brand-coral tabular-nums'>
-              {fmt(revenuePerYear)}{' '}
+              {fmt.count(Math.round(revenuePerYear))}{' '}
               {/*
                 Not coral. The figure above is 28px bold, so it counts as large
                 text and clears the 3:1 bar at 3.11 on this ground (#35575A -
@@ -180,7 +178,7 @@ export default function RevenueCalculator() {
         <div className='grid grid-cols-3 gap-md'>
           <div className='bg-white/5 border border-white/10 rounded-2xl p-lg text-center'>
             <p className='font-heading text-xl font-bold text-white tabular-nums'>
-              {fmt(bagsPerYear)}
+              {fmt.count(Math.round(bagsPerYear))}
             </p>
             <p className='text-white/80 text-[10px] mt-xs leading-tight'>Bags saved / year</p>
           </div>

@@ -6,11 +6,13 @@ import { useTranslations } from 'next-intl';
 import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { useToday } from '@/hooks/useClock';
 import { SubscriptionModal } from './subscription-modal';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 const WARNING_THRESHOLD_DAYS = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export function TrialStatusBanner() {
+  const fmt = useFormat();
   // Stable day-quantised clock. Reading Date.now() in render made this
   // component non-reproducible and left the count stale overnight.
   const today = useToday();
@@ -66,11 +68,7 @@ export function TrialStatusBanner() {
     const daysRemaining = Math.ceil(msRemaining / MS_PER_DAY);
     if (daysRemaining > WARNING_THRESHOLD_DAYS) return null;
 
-    const formattedDate = expiresAt.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    const formattedDate = fmt.date(expiresAt) ?? MISSING_COUNT;
 
     return (
       <>
@@ -101,11 +99,7 @@ export function TrialStatusBanner() {
   const daysRemaining = Math.ceil(msRemaining / MS_PER_DAY);
   if (daysRemaining > WARNING_THRESHOLD_DAYS) return null;
 
-  const formattedDate = trialEndsAt.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const formattedDate = fmt.date(trialEndsAt) ?? MISSING_COUNT;
 
   return (
     <>

@@ -1,10 +1,5 @@
 export type PaymentStatus =
-  | 'pending'
-  | 'processing'
-  | 'completed'
-  | 'failed'
-  | 'refunded'
-  | 'cancelled';
+  'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'cancelled';
 
 type PaymentMethod = 'cash' | 'card' | 'smt_gateway' | 'wallet';
 

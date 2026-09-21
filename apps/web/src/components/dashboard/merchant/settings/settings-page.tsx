@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, type FormEvent } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import {
   User,
@@ -491,13 +491,15 @@ function DeviceIcon({
 
 function SessionCard({ session }: { session: ActiveSession }) {
   const t = useTranslations('dashboard.settings.sessions');
+  const locale = useLocale();
   const terminateSession = useTerminateSession();
   const deviceLabel = describeDevice(session.deviceInfo);
   const ipAddress = session.deviceInfo?.ipAddress;
   // Falls back to when the session started: a session with no recorded activity
   // is still worth dating, and showing nothing looks like a rendering fault.
   const lastActiveDate =
-    formatSessionDate(session.lastActivityAt) ?? formatSessionDate(session.createdAt);
+    formatSessionDate(locale, session.lastActivityAt) ??
+    formatSessionDate(locale, session.createdAt);
 
   return (
     <div className='flex items-center justify-between rounded-xl border border-border p-lg'>

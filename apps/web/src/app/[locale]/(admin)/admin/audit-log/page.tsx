@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { useAuditLogs, useAuditStats } from '@/hooks/use-admin';
 import { adminService } from '@/services/admin.service';
 import type { AuditLogItem, AuditLogSearchParams } from '@/types/admin';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -84,6 +85,7 @@ function AuditDetailDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const fmt = useFormat();
   if (!entry) return null;
 
   return (
@@ -101,7 +103,7 @@ function AuditDetailDrawer({
                   {entry.action.replace(/_/g, ' ')}
                 </p>
                 <p className='mt-xxs text-xs text-muted-foreground'>
-                  {new Date(entry.timestamp).toLocaleString('en-GB')}
+                  {fmt.dateTime(entry.timestamp) ?? MISSING_COUNT}
                 </p>
               </div>
             </div>
@@ -190,6 +192,7 @@ function AuditDetailDrawer({
 // ─── Content ─────────────────────────────────────────────────────────────────
 
 function AuditLogContent() {
+  const fmt = useFormat();
   const t = useTranslations('adminAuditLog');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'all';
@@ -233,7 +236,7 @@ function AuditLogContent() {
   const kpis: KpiItem[] = [
     {
       label: t('kpi.totalEvents'),
-      value: stats?.totalActions.toLocaleString() ?? '—',
+      value: fmt.count(stats?.totalActions),
       icon: ScrollText,
       iconBg: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
@@ -289,10 +292,7 @@ function AuditLogContent() {
         <div>
           <p className='text-xs tabular-nums'>{relativeDate(e.timestamp)}</p>
           <p className='text-[10px] text-muted-foreground'>
-            {new Date(e.timestamp).toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+            {fmt.time(e.timestamp) ?? MISSING_COUNT}
           </p>
         </div>
       ),

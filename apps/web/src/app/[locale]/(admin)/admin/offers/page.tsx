@@ -70,6 +70,7 @@ import {
   BookmarkMinus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import type {
   AdminOfferItem,
   AdminLowPickupItem,
@@ -514,6 +515,7 @@ function PriceViolationsTab({ t }: { t: ReturnType<typeof useTranslations> }) {
 // ─── Deleted tab ──────────────────────────────────────────────────────────────
 
 function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const fmt = useFormat();
   const [page, setPage] = useState(1);
   const { data, isLoading } = useDeletedOffers(page);
   const restoreMutation = useRestoreOffer();
@@ -545,7 +547,7 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
                 </p>
               </div>
               <p className='text-[10px] text-muted-foreground shrink-0'>
-                {new Date(item.deletedAt).toLocaleDateString()}
+                {fmt.date(item.deletedAt) ?? MISSING_COUNT}
               </p>
               <Button
                 size='sm'
@@ -592,6 +594,7 @@ function DeletedTab({ t }: { t: ReturnType<typeof useTranslations> }) {
 // ─── Offer detail sheet ───────────────────────────────────────────────────────
 
 function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClose: () => void }) {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.adminOffers');
   const { data: offer, isLoading } = useOfferDetail(offerId);
   const reserveMutation = useReserveOfferQuantity();
@@ -680,15 +683,13 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
               </div>
               <div className='space-y-xxs rounded-lg border border-border/60 px-md py-2.5'>
                 <p className='text-[10px] text-muted-foreground uppercase tracking-wide'>Views</p>
-                <p className='text-lg font-bold tabular-nums'>{offer.viewCount.toLocaleString()}</p>
+                <p className='text-lg font-bold tabular-nums'>{fmt.count(offer.viewCount)}</p>
               </div>
               <div className='space-y-xxs rounded-lg border border-border/60 px-md py-2.5'>
                 <p className='text-[10px] text-muted-foreground uppercase tracking-wide'>
                   Favorites
                 </p>
-                <p className='text-lg font-bold tabular-nums'>
-                  {offer.favoriteCount.toLocaleString()}
-                </p>
+                <p className='text-lg font-bold tabular-nums'>{fmt.count(offer.favoriteCount)}</p>
               </div>
             </div>
 
@@ -707,12 +708,12 @@ function OfferDetailSheet({ offerId, onClose }: { offerId: string | null; onClos
                 {
                   icon: Calendar,
                   label: 'Available',
-                  value: `${new Date(offer.availableFrom).toLocaleDateString()} → ${new Date(offer.availableUntil).toLocaleDateString()}`,
+                  value: `${fmt.date(offer.availableFrom) ?? MISSING_COUNT} → ${fmt.date(offer.availableUntil) ?? MISSING_COUNT}`,
                 },
                 {
                   icon: Calendar,
                   label: 'Created',
-                  value: new Date(offer.createdAt).toLocaleDateString(),
+                  value: fmt.date(offer.createdAt) ?? MISSING_COUNT,
                 },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className='flex items-start gap-md'>
@@ -879,6 +880,7 @@ function ExpiringTab({ t }: { t: ReturnType<typeof useTranslations> }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminOffersPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.adminOffers');
   const { data: stats, isLoading: loadingStats } = useOfferStats();
   const bulkMutation = useBulkOfferAction();
@@ -1005,14 +1007,14 @@ export default function AdminOffersPage() {
         <div className='grid grid-cols-2 gap-md sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7'>
           <StatCard
             label={t('stats.totalActive')}
-            value={(stats?.countByStatus?.['active'] ?? 0).toLocaleString()}
+            value={fmt.count(stats?.countByStatus?.['active'] ?? 0)}
             icon={Tag}
             iconBg='bg-emerald-50'
             iconColor='text-emerald-600'
           />
           <StatCard
             label={t('stats.totalBagsSold')}
-            value={(stats?.totalSoldBags ?? 0).toLocaleString()}
+            value={fmt.count(stats?.totalSoldBags ?? 0)}
             icon={ShoppingBag}
             iconBg='bg-sky-50'
             iconColor='text-sky-600'

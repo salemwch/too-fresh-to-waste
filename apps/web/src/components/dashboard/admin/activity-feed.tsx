@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { AuditLogItem, AdminAction } from '@/types/admin';
 import { AdminTableSkeleton } from './admin-skeletons';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Config maps ──────────────────────────────────────────────────────────────
 
@@ -142,20 +143,6 @@ function AdminAvatar({ firstName, email }: { firstName: string; email: string })
   );
 }
 
-function formatDate(ts: string) {
-  return new Date(ts).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-function formatTime(ts: string) {
-  return new Date(ts).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
 function DetailCell({ item }: { item: AuditLogItem }) {
   const parts: string[] = [];
   if (item.targetType && item.targetType !== 'system') {
@@ -228,6 +215,7 @@ export function ActivityFeed({
   emptyTitle = 'No recent activity',
   emptyDescription,
 }: ActivityFeedProps) {
+  const fmt = useFormat();
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [adminFilter, setAdminFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -334,10 +322,10 @@ export function ActivityFeed({
                     {/* Date — fixed-width, never wraps */}
                     <td className='whitespace-nowrap px-sm py-sm'>
                       <p className='text-[11px] font-medium tabular-nums text-foreground'>
-                        {formatDate(item.timestamp)}
+                        {fmt.dateShort(item.timestamp) ?? MISSING_COUNT}
                       </p>
                       <p className='text-[10px] tabular-nums text-muted-foreground'>
-                        {formatTime(item.timestamp)}
+                        {fmt.time(item.timestamp) ?? MISSING_COUNT}
                       </p>
                     </td>
 

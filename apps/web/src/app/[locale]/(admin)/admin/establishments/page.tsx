@@ -59,6 +59,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { AdminEstablishment, EstablishmentSearchParams } from '@/types/admin';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 function relativeDate(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -95,6 +96,7 @@ function formatLastActivity(iso: string | undefined): { label: string; dot: stri
 type ActionType = 'approve' | 'reject' | 'suspend' | 'reactivate';
 
 export default function AdminEstablishmentsPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.admin.establishments');
 
   const [params, setParams] = useState<EstablishmentSearchParams>({ page: 1, limit: 20 });
@@ -539,7 +541,7 @@ export default function AdminEstablishmentsPage() {
                         : []),
                       {
                         label: 'Submitted',
-                        value: new Date(detail.createdAt).toLocaleDateString(),
+                        value: fmt.date(detail.createdAt) ?? MISSING_COUNT,
                       },
                       ...(detail.owner
                         ? [
@@ -612,7 +614,7 @@ export default function AdminEstablishmentsPage() {
                         </div>
                         {detail.trialEndsAt && (
                           <span className='text-[10px] tabular-nums text-muted-foreground'>
-                            ends {new Date(detail.trialEndsAt).toLocaleDateString()}
+                            ends {fmt.date(detail.trialEndsAt) ?? MISSING_COUNT}
                           </span>
                         )}
                       </div>
@@ -749,11 +751,11 @@ export default function AdminEstablishmentsPage() {
                         {[
                           {
                             label: 'Total Orders',
-                            value: (estStats.totalOrders ?? 0).toLocaleString(),
+                            value: fmt.count(estStats.totalOrders ?? 0),
                           },
                           {
                             label: 'Completed',
-                            value: (estStats.completedOrders ?? 0).toLocaleString(),
+                            value: fmt.count(estStats.completedOrders ?? 0),
                             color: 'text-success',
                           },
                           {
@@ -763,7 +765,7 @@ export default function AdminEstablishmentsPage() {
                           },
                           {
                             label: 'Total Revenue',
-                            value: `${(estStats.totalRevenue ?? 0).toLocaleString()} TND`,
+                            value: `${fmt.count(estStats.totalRevenue ?? 0)} TND`,
                             color: 'text-primary',
                           },
                           {

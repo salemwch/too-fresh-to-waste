@@ -66,6 +66,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resolveProfileImage } from '@/lib/media';
 import type { AdminUser, UserSearchParams } from '@/types/admin';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -201,6 +202,7 @@ function AdminActionRow({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminUsersPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.admin.users');
 
   const [params, setParams] = useState<UserSearchParams>({ page: 1, limit: 20 });
@@ -646,11 +648,7 @@ export default function AdminUsersPage() {
                       <InfoRow
                         icon={Calendar}
                         label='Member since'
-                        value={new Date(selectedUser.createdAt).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                        value={fmt.date(selectedUser.createdAt) ?? MISSING_COUNT}
                       />
                       <InfoRow
                         icon={LogIn}

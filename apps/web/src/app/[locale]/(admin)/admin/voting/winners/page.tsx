@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { votingAdminService } from '@/services/voting.service';
 import type { VotingCycleRow, PrizeClaimRow, UpdatePrizeClaimPayload } from '@/types/voting';
 import { activateOnKey, cn } from '@/lib/utils';
+import { useFormat } from '@/lib/use-format';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,7 @@ function getUserEmail(userId: PrizeClaimRow['userId']) {
 // ─── Winners Tab ─────────────────────────────────────────────────────────────
 
 function WinnersSection({ cycleId }: { cycleId: string | null }) {
+  const fmt = useFormat();
   const t = useTranslations('adminVotingWinners');
 
   const { data: winners, isLoading } = useQuery({
@@ -116,7 +118,7 @@ function WinnersSection({ cycleId }: { cycleId: string | null }) {
           </div>
           <div className='text-end'>
             <p className='text-xs font-bold tabular-nums text-amber-600'>
-              {winner.pointsSnapshot.toLocaleString()} pts
+              {fmt.count(winner.pointsSnapshot)} pts
             </p>
             {winner.hasClaimed ? (
               <Badge
@@ -138,6 +140,7 @@ function WinnersSection({ cycleId }: { cycleId: string | null }) {
 // ─── Prize Claims Tab ────────────────────────────────────────────────────────
 
 function PrizeClaimsSection() {
+  const fmt = useFormat();
   const t = useTranslations('adminVotingWinners');
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -281,7 +284,7 @@ function PrizeClaimsSection() {
                 <div>
                   <span className='text-muted-foreground'>{t('points')}</span>
                   <p className='font-semibold tabular-nums'>
-                    {selectedClaim.totalPoints.toLocaleString()}
+                    {fmt.count(selectedClaim.totalPoints)}
                   </p>
                 </div>
                 <div>

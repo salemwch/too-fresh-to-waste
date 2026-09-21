@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@foodwaste/ui';
 import { useAdminDonationHistory } from '@/hooks/use-admin';
 import { Link } from '@/i18n/routing';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 const CATEGORY_LABELS: Record<string, string> = {
   TSHIRTS: 'T-Shirts',
@@ -31,6 +32,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function AdminDonationHistoryPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.adminDonationPool');
   const { data: history, isLoading } = useAdminDonationHistory();
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set());
@@ -196,7 +198,7 @@ export default function AdminDonationHistoryPage() {
                                   </div>
                                 </td>
                                 <td className='px-md py-sm text-end text-muted-foreground'>
-                                  {new Date(pool.startDate).toLocaleDateString()}
+                                  {fmt.date(pool.startDate) ?? MISSING_COUNT}
                                 </td>
                               </tr>
                             );

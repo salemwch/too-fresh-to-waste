@@ -12,6 +12,7 @@ import {
 } from '@foodwaste/ui';
 import { cn } from '@/lib/utils';
 import type { ExtendTrialPayload } from '@/types/admin';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 interface ExtendTrialDialogProps {
   open: boolean;
@@ -40,6 +41,7 @@ export function ExtendTrialDialog({
   isLoading,
   onConfirm,
 }: ExtendTrialDialogProps) {
+  const fmt = useFormat();
   const [mode, setMode] = useState<Mode>('days');
   const [days, setDays] = useState<number>(30);
   const [dateValue, setDateValue] = useState<string>('');
@@ -84,13 +86,7 @@ export function ExtendTrialDialog({
 
   const isValid = mode === 'days' ? days >= 1 && days <= 365 : dateValue.length > 0;
 
-  const currentLabel = currentTrialEndsAt
-    ? new Date(currentTrialEndsAt).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : '—';
+  const currentLabel = currentTrialEndsAt ? (fmt.date(currentTrialEndsAt) ?? MISSING_COUNT) : '—';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

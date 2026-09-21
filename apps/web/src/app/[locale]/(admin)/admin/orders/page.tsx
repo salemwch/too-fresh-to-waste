@@ -61,6 +61,7 @@ import {
 } from '@/hooks/use-admin';
 import type { KpiItem } from '@/components/dashboard/admin/admin-kpi-row';
 import type { AdminTab } from '@/components/dashboard/admin/admin-tab-nav';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import type {
   AdminOrderItem,
   AdminOrderStatus,
@@ -96,18 +97,12 @@ function DeliveryStep({
   at?: string | undefined;
   pending: string;
 }) {
+  const fmt = useFormat();
   return (
     <div className='flex items-center justify-between'>
       <span className='text-xs text-muted-foreground'>{label}</span>
       <span className={cn('text-xs', at ? 'font-medium' : 'text-muted-foreground')}>
-        {at
-          ? new Date(at).toLocaleString(undefined, {
-              day: 'numeric',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : pending}
+        {at ? (fmt.dateShortTime(at) ?? MISSING_COUNT) : pending}
       </span>
     </div>
   );
@@ -159,6 +154,7 @@ function OrderDetailDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const fmt = useFormat();
   const tStatus = useTranslations('adminOrders.statuses');
   const tDelivery = useTranslations('adminOrders.delivery');
   const { data: order } = useAdminOrderDetail(orderId);
@@ -190,13 +186,7 @@ function OrderDetailDrawer({
               <div>
                 <p className='text-base font-semibold'>{order.orderNumber}</p>
                 <p className='mt-xxs text-xs text-muted-foreground'>
-                  {new Date(order.createdAt).toLocaleDateString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {fmt.dateTime(order.createdAt) ?? MISSING_COUNT}
                 </p>
               </div>
               <span
@@ -367,7 +357,7 @@ function OrderDetailDrawer({
                     <span className='text-xs'>Created</span>
                   </div>
                   <span className='text-xs font-medium'>
-                    {new Date(order.createdAt).toLocaleString('en-GB')}
+                    {fmt.dateTime(order.createdAt) ?? MISSING_COUNT}
                   </span>
                 </div>
                 {order.expiresAt && (
@@ -377,10 +367,7 @@ function OrderDetailDrawer({
                       <span className='text-xs'>Pickup Before</span>
                     </div>
                     <span className='text-xs font-medium'>
-                      {new Date(order.expiresAt).toLocaleTimeString('en-GB', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {fmt.time(order.expiresAt) ?? MISSING_COUNT}
                     </span>
                   </div>
                 )}

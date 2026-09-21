@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
+import { useFormat } from '@/lib/use-format';
 import {
   useBusinessMetrics,
   useRevenueChart,
@@ -89,13 +90,6 @@ function formatCurrency(v: number | undefined): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return n.toFixed(2);
-}
-
-function formatNumber(v: number | undefined): string {
-  const n = v ?? 0;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString();
 }
 
 // ─── Period Filter ──────────────────────────────────────────────────────────
@@ -203,6 +197,7 @@ function KpiCardsSkeleton() {
 // ─── KPI Cards Grid ─────────────────────────────────────────────────────────
 
 function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof useTranslations> }) {
+  const fmt = useFormat();
   const cards: Omit<KpiCardProps, 'index'>[] = [
     {
       title: t('kpi.revenue'),
@@ -214,7 +209,7 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
     },
     {
       title: t('kpi.totalOrders'),
-      value: formatNumber(data.totalOrders?.value),
+      value: fmt.compact(data.totalOrders?.value),
       trend: data.totalOrders?.trend,
       changePercent: data.totalOrders?.changePercentage,
       icon: ShoppingBag,
@@ -236,7 +231,7 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
     },
     {
       title: t('kpi.foodSaved'),
-      value: formatNumber(data.foodWasteSaved?.value),
+      value: fmt.compact(data.foodWasteSaved?.value),
       unit: 'kg',
       trend: data.foodWasteSaved?.trend,
       changePercent: data.foodWasteSaved?.changePercentage,
@@ -244,7 +239,7 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
     },
     {
       title: t('kpi.co2Avoided'),
-      value: formatNumber(data.carbonFootprintReduced?.value),
+      value: fmt.compact(data.carbonFootprintReduced?.value),
       unit: 'kg',
       trend: data.carbonFootprintReduced?.trend,
       changePercent: data.carbonFootprintReduced?.changePercentage,
@@ -520,6 +515,7 @@ function SustainabilityPanel({
   data: BusinessMetrics | undefined;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const fmt = useFormat();
   if (!data) {
     return (
       <div className='glass rounded-2xl p-[24px] shadow-soft h-[300px] animate-pulse bg-white/30' />
@@ -530,31 +526,31 @@ function SustainabilityPanel({
     {
       icon: Leaf,
       label: t('sustainability.foodSaved'),
-      value: formatNumber(data.foodWasteSaved.value),
+      value: fmt.compact(data.foodWasteSaved.value),
       unit: 'kg',
     },
     {
       icon: Wind,
       label: t('sustainability.co2Avoided'),
-      value: formatNumber(data.carbonFootprintReduced.value),
+      value: fmt.compact(data.carbonFootprintReduced.value),
       unit: 'kg',
     },
     {
       icon: Droplets,
       label: t('sustainability.waterSaved'),
-      value: formatNumber(data.waterSaved.value),
+      value: fmt.compact(data.waterSaved.value),
       unit: 'L',
     },
     {
       icon: Zap,
       label: t('sustainability.energySaved'),
-      value: formatNumber(data.energySaved.value),
+      value: fmt.compact(data.energySaved.value),
       unit: 'kWh',
     },
     {
       icon: Package,
       label: t('sustainability.packagingSaved'),
-      value: formatNumber(data.packagingSaved.value),
+      value: fmt.compact(data.packagingSaved.value),
       unit: 'kg',
     },
   ];

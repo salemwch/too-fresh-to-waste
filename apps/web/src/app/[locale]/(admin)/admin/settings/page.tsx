@@ -42,6 +42,7 @@ import {
   useValidateConfigImport,
 } from '@/hooks/use-admin';
 import { adminService } from '@/services/admin.service';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import type {
   UpdateSystemConfigPayload,
   PlatformSettings,
@@ -120,19 +121,10 @@ function NumberInput({
   );
 }
 
-function relativeDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminSettingsPage() {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.admin.settings');
 
   const { data: config, isLoading } = useSystemConfig();
@@ -583,7 +575,7 @@ export default function AdminSettingsPage() {
                       </td>
                       <td className='px-md py-sm text-muted-foreground'>{ver.lastModifiedBy}</td>
                       <td className='px-md py-sm text-muted-foreground tabular-nums'>
-                        {relativeDate(ver.createdAt)}
+                        {fmt.dateTime(ver.createdAt) ?? MISSING_COUNT}
                       </td>
                       <td className='px-md py-sm'>
                         {!ver.isActive && (

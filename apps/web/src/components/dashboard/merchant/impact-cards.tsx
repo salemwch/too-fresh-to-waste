@@ -5,18 +5,14 @@ import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { useCarbonMetrics, useSocialImpact } from '@/hooks/use-merchant-dashboard';
 import type { OrderStatsResponse } from '@/types/dashboard';
+import { useFormat } from '@/lib/use-format';
 
 interface ImpactCardsProps {
   stats: OrderStatsResponse | null | undefined;
 }
 
-function formatValue(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return v.toLocaleString();
-}
-
 export function ImpactCards({ stats }: ImpactCardsProps) {
+  const fmt = useFormat();
   const t = useTranslations('dashboard.impactCards');
   const carbonQuery = useCarbonMetrics();
   const socialQuery = useSocialImpact();
@@ -40,7 +36,7 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
   const cards = [
     {
       title: t('rescued.title'),
-      value: formatValue(originalValue),
+      value: fmt.compact(originalValue),
       unit: t('rescued.unit'),
       delta: t('rescued.delta', { percent: savingsPercent }),
       icon: ShieldCheck,
@@ -48,7 +44,7 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
     },
     {
       title: t('revenue.title'),
-      value: formatValue(earnings),
+      value: fmt.compact(earnings),
       unit: t('revenue.unit'),
       delta: t('revenue.delta', { rate: completionRate }),
       icon: Coins,
@@ -64,7 +60,7 @@ export function ImpactCards({ stats }: ImpactCardsProps) {
     },
     {
       title: t('water.title'),
-      value: formatValue(waterLiters),
+      value: fmt.compact(waterLiters),
       unit: t('water.unit'),
       delta: t('water.delta'),
       icon: Droplets,

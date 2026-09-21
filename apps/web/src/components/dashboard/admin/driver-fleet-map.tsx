@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { GoogleMap, useJsApiLoader, MarkerF, PolylineF, InfoWindowF } from '@react-google-maps/api';
 import { MapPinOff, AlertTriangle } from 'lucide-react';
@@ -47,6 +47,34 @@ const ACTIVITY_COLOR: Record<DriverActivity, string> = {
 
 const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' } as const;
 
+/**
+ * Google's hook for "your key was refused".
+ *
+ * `loadError` from `useJsApiLoader` only fires when the *script tag* fails -
+ * network down, bad URL. A key that loads but is then refused is a different
+ * path entirely: the script runs, and the Maps API paints its own grey "This
+ * page can't load Google Maps correctly" panel over the map with a console
+ * message. Our error branch never runs, so the admin sees a broken-looking box
+ * and no explanation.
+ *
+ * That is the likely failure here, not a network one: it is what an HTTP
+ * referrer restriction that does not include the current origin produces, and
+ * also what a disabled billing account produces. Both are configuration, both
+ * are fixable, and neither is discoverable from a grey rectangle.
+ *
+ * `gm_authFailure` is the documented global the Maps API calls in exactly
+ * those cases.
+ * https://developers.google.com/maps/documentation/javascript/events#auth-errors
+ */
+declare global {
+  interface Window {
+    // `| undefined` explicitly: under `exactOptionalPropertyTypes` an optional
+    // property may not be *assigned* undefined, and the cleanup below restores
+    // exactly that when there was no previous handler.
+    gm_authFailure?: (() => void) | undefined;
+  }
+}
+
 interface DriverFleetMapProps {
   drivers: readonly LiveDriver[];
   isLoading: boolean;
@@ -69,6 +97,23 @@ export function DriverFleetMap({ drivers, isLoading, selectedId, onSelect }: Dri
     googleMapsApiKey: MAPS_API_KEY,
     libraries: MAP_LIBRARIES,
   });
+
+  const [authFailed, setAuthFailed] = useState(false);
+
+  useEffect(() => {
+    // Chains rather than overwrites: the global is shared page-wide, and
+    // clobbering someone else's handler would silently disable their error
+    // reporting. Restored on unmount for the same reason.
+    const previous = window.gm_authFailure;
+    window.gm_authFailure = () => {
+      setAuthFailed(true);
+      previous?.();
+    };
+
+    return () => {
+      window.gm_authFailure = previous;
+    };
+  }, []);
 
   const placed = useMemo(() => withPosition(drivers), [drivers]);
   const selected = useMemo(
@@ -107,6 +152,14 @@ export function DriverFleetMap({ drivers, isLoading, selectedId, onSelect }: Dri
     // error, which looks like the feature is broken. Say what is actually
     // wrong instead - this is an admin screen, the reader can act on it.
     return <EmptyMapState icon={AlertTriangle} title={t('noKeyTitle')} body={t('noKeyBody')} />;
+  }
+
+  if (authFailed) {
+    // Distinct copy from loadErrorBody on purpose: this one names the two
+    // things that actually cause it, so the reader can go and fix it.
+    return (
+      <EmptyMapState icon={AlertTriangle} title={t('authErrorTitle')} body={t('authErrorBody')} />
+    );
   }
 
   if (loadError) {

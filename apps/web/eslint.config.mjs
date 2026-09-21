@@ -79,6 +79,66 @@ export default [
   },
 
   /*
+   * Dates and numbers must be formatted in the *app's* locale, not the
+   * browser's.
+   *
+   * `value.toLocaleString()` with no argument formats in whatever locale the
+   * viewer's browser is set to. A French admin on an en-US machine then reads
+   * "1,234" and "3/12/2026" on an otherwise French page. Passing a hardcoded
+   * 'en-GB' or 'en-US' is the same bug wearing a disguise - it just picks the
+   * wrong locale deliberately.
+   *
+   * 69 call sites across 21 admin files had this before the rule existed, and
+   * the reason it spread is that every one of them looks correct in isolation
+   * and renders perfectly for an English reviewer. A rule in a document cannot
+   * catch that; this can.
+   *
+   * Use `useFormat()` from `@/lib/use-format`, or the `format*` helpers in
+   * `@/lib/format` with an explicit `locale` from `useLocale()`.
+   */
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.property.name=/^toLocale(String|DateString|TimeString)$/][arguments.length=0]",
+          message:
+            'Formats in the browser locale, not the app locale. Use useFormat() from @/lib/use-format, or pass a locale from useLocale().',
+        },
+        {
+          selector:
+            "CallExpression[callee.property.name=/^toLocale(String|DateString|TimeString)$/] > Literal.arguments:first-child[value=/^[a-z]{2}(-[A-Z]{2})?$/]",
+          message:
+            'Hardcoded locale. The app has three (en/fr/ar) - use useFormat() from @/lib/use-format so the output follows the reader.',
+        },
+        {
+          selector:
+            "CallExpression[callee.property.name=/^toLocale(String|DateString|TimeString)$/] > Identifier.arguments:first-child[name='undefined']",
+          message:
+            'Passing undefined as the locale falls back to the browser locale. Use useFormat() from @/lib/use-format.',
+        },
+        {
+          selector:
+            "CallExpression[callee.property.name=/^toLocale(String|DateString|TimeString)$/] > ArrayExpression.arguments:first-child[elements.length=0]",
+          message:
+            'An empty locales list falls back to the browser locale. Use useFormat() from @/lib/use-format.',
+        },
+      ],
+    },
+  },
+
+  /*
+   * The formatters themselves are where `Intl` is allowed to be called
+   * directly - that is their job.
+   */
+  {
+    files: ['src/lib/format.ts', 'src/lib/use-format.ts'],
+    rules: { 'no-restricted-syntax': 'off' },
+  },
+
+  /*
    * Playwright specs and fixtures are not React. Playwright's fixture API is
    * `async ({ page }, use) => { await use(value) }`, and the React Hooks plugin
    * matched that `use` against React's `use()` hook - reporting that

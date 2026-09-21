@@ -1,4 +1,5 @@
 import { describeDevice, formatSessionDate } from '../session-display';
+import { formatDate } from '@/lib/format';
 
 import type { SessionDeviceInfo } from '@/types/settings';
 
@@ -17,10 +18,13 @@ import type { SessionDeviceInfo } from '@/types/settings';
  * neither may render "Invalid Date" or "undefined" at a merchant.
  */
 
+/** A fixed locale keeps these assertions deterministic across machines. */
+const LOCALE = 'en';
+
 describe('formatSessionDate', () => {
   it('formats a real timestamp', () => {
-    expect(formatSessionDate('2026-07-31T09:00:00.000Z')).toBe(
-      new Date('2026-07-31T09:00:00.000Z').toLocaleDateString(),
+    expect(formatSessionDate(LOCALE, '2026-07-31T09:00:00.000Z')).toBe(
+      formatDate(LOCALE, '2026-07-31T09:00:00.000Z'),
     );
   });
 
@@ -28,19 +32,19 @@ describe('formatSessionDate', () => {
     ['undefined', undefined],
     ['empty string', ''],
   ])('returns null for %s rather than throwing', (_label, value) => {
-    expect(() => formatSessionDate(value)).not.toThrow();
-    expect(formatSessionDate(value)).toBeNull();
+    expect(() => formatSessionDate(LOCALE, value)).not.toThrow();
+    expect(formatSessionDate(LOCALE, value)).toBeNull();
   });
 
   it('returns null for an unparseable value instead of "Invalid Date"', () => {
     // This is the exact failure: Date rejects it, and every downstream method
     // on the result throws.
-    expect(formatSessionDate('not a date')).toBeNull();
+    expect(formatSessionDate(LOCALE, 'not a date')).toBeNull();
   });
 
   it('never returns a string containing "Invalid"', () => {
     for (const input of [undefined, '', 'nonsense', '2026-13-45', '0000-00-00']) {
-      const result = formatSessionDate(input);
+      const result = formatSessionDate(LOCALE, input);
       expect(result === null || !result.includes('Invalid')).toBe(true);
     }
   });

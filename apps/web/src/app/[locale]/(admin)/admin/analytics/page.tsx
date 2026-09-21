@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { usePlatformAnalytics } from '@/hooks/use-admin';
 import { adminService } from '@/services/admin.service';
 import type { AnalyticsPeriod } from '@/types/admin';
+import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 
 // ─── Bar Chart (CSS-based) ──────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ const REPORT_TEMPLATES = [
 // ─── Content ─────────────────────────────────────────────────────────────────
 
 function AnalyticsContent() {
+  const fmt = useFormat();
   const t = useTranslations('adminAnalytics');
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'impact';
@@ -111,28 +113,28 @@ function AnalyticsContent() {
   const kpis: KpiItem[] = [
     {
       label: t('kpi.wasteSaved'),
-      value: wasteMetrics ? `${wasteMetrics.totalKgSaved.toLocaleString()} kg` : '—',
+      value: wasteMetrics ? `${fmt.count(wasteMetrics.totalKgSaved)} kg` : '—',
       icon: Leaf,
       iconBg: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
     },
     {
       label: t('kpi.co2Reduced'),
-      value: wasteMetrics ? `${wasteMetrics.co2ReductionKg.toLocaleString()} kg` : '—',
+      value: wasteMetrics ? `${fmt.count(wasteMetrics.co2ReductionKg)} kg` : '—',
       icon: Wind,
       iconBg: 'bg-sky-50',
       iconColor: 'text-sky-600',
     },
     {
       label: t('kpi.mealsSaved'),
-      value: wasteMetrics?.totalMealsSaved.toLocaleString() ?? '—',
+      value: fmt.count(wasteMetrics?.totalMealsSaved),
       icon: Utensils,
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
     },
     {
       label: t('kpi.activeUsers'),
-      value: userAnalytics?.activeUsers.toLocaleString() ?? '—',
+      value: fmt.count(userAnalytics?.activeUsers),
       icon: Users,
       iconBg: 'bg-violet-50',
       iconColor: 'text-violet-600',
@@ -201,10 +203,7 @@ function AnalyticsContent() {
                     <CardContent>
                       <MiniBarChart
                         data={orderTrends.slice(-7).map(tr => ({
-                          date: new Date(tr.date).toLocaleDateString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                          }),
+                          date: fmt.dateShort(tr.date) ?? MISSING_COUNT,
                           revenue: tr.revenue,
                         }))}
                         labelKey='date'
@@ -239,7 +238,7 @@ function AnalyticsContent() {
                                     {item.status}
                                   </span>
                                   <span className='text-xs text-muted-foreground tabular-nums'>
-                                    {item.count.toLocaleString()} ({pct.toFixed(0)}%)
+                                    {fmt.count(item.count)} ({pct.toFixed(0)}%)
                                   </span>
                                 </div>
                                 <div className='h-2 w-full rounded-full bg-muted overflow-hidden'>
@@ -268,7 +267,7 @@ function AnalyticsContent() {
                       {[
                         {
                           label: t('impact.totalOrders'),
-                          value: orderData?.totalOrders.toLocaleString() ?? '—',
+                          value: fmt.count(orderData?.totalOrders),
                         },
                         {
                           label: t('impact.completionRate'),
@@ -320,15 +319,15 @@ function AnalyticsContent() {
                       {[
                         {
                           label: t('growth.totalUsers'),
-                          value: userAnalytics?.totalUsers.toLocaleString() ?? '—',
+                          value: fmt.count(userAnalytics?.totalUsers),
                         },
                         {
                           label: t('growth.newThisWeek'),
-                          value: userAnalytics?.newUsersThisWeek.toLocaleString() ?? '—',
+                          value: fmt.count(userAnalytics?.newUsersThisWeek),
                         },
                         {
                           label: t('growth.newThisMonth'),
-                          value: userAnalytics?.newUsersThisMonth.toLocaleString() ?? '—',
+                          value: fmt.count(userAnalytics?.newUsersThisMonth),
                         },
                         {
                           label: t('growth.retentionRate'),
@@ -355,15 +354,15 @@ function AnalyticsContent() {
                       {[
                         {
                           label: t('growth.totalMerchants'),
-                          value: estAnalytics?.totalEstablishments.toLocaleString() ?? '—',
+                          value: fmt.count(estAnalytics?.totalEstablishments),
                         },
                         {
                           label: t('growth.activeEstablishments'),
-                          value: estAnalytics?.activeEstablishments.toLocaleString() ?? '—',
+                          value: fmt.count(estAnalytics?.activeEstablishments),
                         },
                         {
                           label: t('growth.pendingApproval'),
-                          value: estAnalytics?.pendingApproval.toLocaleString() ?? '—',
+                          value: fmt.count(estAnalytics?.pendingApproval),
                         },
                         {
                           label: t('growth.averageRating'),

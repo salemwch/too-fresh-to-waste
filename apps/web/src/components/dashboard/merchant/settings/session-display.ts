@@ -1,4 +1,5 @@
 import type { SessionDeviceInfo } from '@/types/settings';
+import { formatDate } from '@/lib/format';
 
 /**
  * Presentation helpers for an active session row.
@@ -11,6 +12,10 @@ import type { SessionDeviceInfo } from '@/types/settings';
  * one absent field reached `new Date(undefined).toLocaleDateString()`, which
  * throws rather than degrading. Nothing here throws, and nothing renders
  * "Invalid Date" or "undefined" at a merchant.
+ *
+ * `formatSessionDate` takes `locale` rather than reaching for the `useFormat`
+ * hook: this module is deliberately not a component, and a hook here would put
+ * it back inside React and undo the extraction that makes it testable.
  */
 
 /** Platform, browser and device name, deduplicated — e.g. "Windows · Chrome". */
@@ -30,9 +35,11 @@ export function describeDevice(device: SessionDeviceInfo | undefined): string | 
  *
  * `null` rather than a placeholder string so the caller picks its own translated
  * fallback instead of this module inventing English copy.
+ *
+ * This used to call `date.toLocaleDateString()` with no locale, which formats
+ * in the *browser's* locale - so a French merchant on an en-US machine read US
+ * dates on an otherwise French settings page.
  */
-export function formatSessionDate(iso: string | undefined): string | null {
-  if (!iso) return null;
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString();
+export function formatSessionDate(locale: string, iso: string | undefined): string | null {
+  return formatDate(locale, iso);
 }

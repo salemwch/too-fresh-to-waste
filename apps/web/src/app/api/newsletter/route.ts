@@ -265,7 +265,11 @@ export async function POST(request: NextRequest) {
           <h2>New Newsletter Subscription</h2>
           <p><strong>Email:</strong> ${sanitizedEmail}</p>
           <p>This user has subscribed to be part of the first 1000 users and receive updates about the official app announcement.</p>
-          <p><em>Subscribed on: ${new Date().toLocaleString()}</em></p>
+          <!-- ISO, not a locale-formatted date: this email goes to the ops
+               inbox, not to a customer. There is no reader whose locale we
+               could follow, and an unambiguous timestamp is what you want when
+               correlating a signup against a log. -->
+          <p><em>Subscribed on: ${new Date().toISOString()}</em></p>
         `,
       }),
     });
