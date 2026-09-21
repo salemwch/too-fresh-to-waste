@@ -135,8 +135,8 @@ allprojects {
     // Source: https://stackoverflow.com/questions/74430295
     configurations.all {
         resolutionStrategy {
-            force("com.facebook.react:react-android:0.81.0")
-            force("com.facebook.react:hermes-android:0.81.0")
+            force("com.facebook.react:react-android:0.82.1")
+            force("com.facebook.react:hermes-android:0.82.1")
 
             // Force AndroidX Core 1.13.1 - compatible with AGP 8.5.2
             // Version 1.16.0+ requires AGP 8.6.0+ which has Windows stability issues
