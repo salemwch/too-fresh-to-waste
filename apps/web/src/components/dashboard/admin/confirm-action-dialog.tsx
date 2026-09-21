@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -35,13 +36,14 @@ export function ConfirmActionDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   variant = 'default',
   isLoading,
   onConfirm,
   reasonConfig,
 }: ConfirmActionDialogProps) {
+  const t = useTranslations('dashboard.adminShared');
   const reasonRef = useRef<HTMLTextAreaElement>(null);
 
   function handleConfirm() {
@@ -107,7 +109,7 @@ export function ConfirmActionDialog({
             disabled={isLoading}
             className='h-7 px-md text-xs'
           >
-            {cancelLabel}
+            {cancelLabel ?? t('cancel')}
           </Button>
           <Button
             size='sm'
@@ -118,10 +120,10 @@ export function ConfirmActionDialog({
             {isLoading ? (
               <>
                 <Loader2 className='me-sm size-3.5 animate-spin' />
-                Loading…
+                {t('loading')}
               </>
             ) : (
-              confirmLabel
+              (confirmLabel ?? t('confirm'))
             )}
           </Button>
         </div>

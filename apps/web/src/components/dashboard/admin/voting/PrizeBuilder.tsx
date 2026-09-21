@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@foodwaste/ui';
+import { useTranslations } from 'next-intl';
 import { Input } from '@foodwaste/ui';
 import { Label } from '@foodwaste/ui';
 import {
@@ -33,15 +34,15 @@ interface PrizeBuilderProps {
 
 const CATEGORIES = Object.values(PrizeCategory);
 
-const CATEGORY_LABELS: Record<PrizeCategory, string> = {
-  [PrizeCategory.PHONE]: 'Phone',
-  [PrizeCategory.HOTEL_STAY]: 'Hotel Stay',
-  [PrizeCategory.SHOPPING_VOUCHER]: 'Shopping Voucher',
-  [PrizeCategory.GYM_MEMBERSHIP]: 'Gym Membership',
-  [PrizeCategory.ELECTRIC_SCOOTER]: 'Electric Scooter',
-  [PrizeCategory.CUSTOM]: 'Custom',
-};
-
+/**
+ * Starting values for the prize form.
+ *
+ * Deliberately NOT translated. These are seed *content*, not chrome: the admin
+ * edits them and they are then persisted and shown to every user, whatever
+ * language that user reads. Translating the seed would make the stored prize
+ * name depend on which language the admin happened to have selected, so a
+ * French admin's cycle would ship French prize names to Arabic customers.
+ */
 export const DEFAULT_PRIZES: PrizeFormItem[] = [
   {
     name: 'Latest Smartphone',
@@ -91,6 +92,7 @@ const EMPTY_PRIZE: PrizeFormItem = {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) {
+  const t = useTranslations('adminVoting.prizes');
   function updatePrize(index: number, field: keyof PrizeFormItem, value: string) {
     const updated = [...prizes];
     updated[index] = { ...updated[index]!, [field]: value };
@@ -108,7 +110,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
   return (
     <div className='space-y-md'>
       <Label className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
-        Prizes ({prizes.length})
+        {t('sectionLabel', { count: prizes.length })}
       </Label>
 
       {prizes.map((prize, index) => (
@@ -123,7 +125,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
                 variant='outline'
                 className='w-6 p-0 border-destructive/30 text-destructive hover:bg-destructive/5'
                 onClick={() => removePrize(index)}
-                aria-label={`Remove prize ${index + 1}`}
+                aria-label={t('remove', { number: index + 1 })}
               >
                 <Trash2 className='size-3' />
               </Button>
@@ -133,41 +135,41 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
           {/* Fields grid */}
           <div className='grid grid-cols-2 gap-md'>
             <div className='space-y-xs'>
-              <Label className='text-xs'>Name *</Label>
+              <Label className='text-xs'>{t('name')} *</Label>
               <Input
                 value={prize.name}
                 onChange={e => updatePrize(index, 'name', e.target.value)}
                 disabled={disabled}
-                placeholder='e.g. Latest Smartphone'
+                placeholder={t('namePlaceholder')}
                 required
                 className='h-7 text-xs'
               />
             </div>
 
             <div className='space-y-xs'>
-              <Label className='text-xs'>Value</Label>
+              <Label className='text-xs'>{t('value')}</Label>
               <Input
                 value={prize.value}
                 onChange={e => updatePrize(index, 'value', e.target.value)}
                 disabled={disabled}
-                placeholder='e.g. 1000 DT'
+                placeholder={t('valuePlaceholder')}
                 className='h-7 text-xs'
               />
             </div>
 
             <div className='col-span-2 space-y-xs'>
-              <Label className='text-xs'>Description</Label>
+              <Label className='text-xs'>{t('description')}</Label>
               <Input
                 value={prize.description}
                 onChange={e => updatePrize(index, 'description', e.target.value)}
                 disabled={disabled}
-                placeholder='Short description of the prize'
+                placeholder={t('descriptionPlaceholder')}
                 className='h-7 text-xs'
               />
             </div>
 
             <div className='space-y-xs'>
-              <Label className='text-xs'>Category</Label>
+              <Label className='text-xs'>{t('category')}</Label>
               <Select
                 value={prize.category}
                 onValueChange={val => updatePrize(index, 'category', val)}
@@ -179,7 +181,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
                 <SelectContent>
                   {CATEGORIES.map(cat => (
                     <SelectItem key={cat} value={cat} className='text-xs'>
-                      {CATEGORY_LABELS[cat]}
+                      {t(`categories.${cat.toLowerCase()}` as Parameters<typeof t>[0])}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -187,12 +189,12 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
             </div>
 
             <div className='space-y-xs'>
-              <Label className='text-xs'>Image URL</Label>
+              <Label className='text-xs'>{t('imageUrl')}</Label>
               <Input
                 value={prize.imageUrl}
                 onChange={e => updatePrize(index, 'imageUrl', e.target.value)}
                 disabled={disabled}
-                placeholder='https://…'
+                placeholder={t('imageUrlPlaceholder')}
                 className='h-7 text-xs'
               />
             </div>
@@ -208,7 +210,7 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
           className='w-full text-xs border-dashed'
         >
           <Plus className='size-3.5 me-1.5' />
-          Add Prize
+          {t('addPrize')}
         </Button>
       )}
     </div>

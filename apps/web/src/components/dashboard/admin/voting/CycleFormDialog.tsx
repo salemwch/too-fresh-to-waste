@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Button,
   Dialog,
@@ -48,6 +49,8 @@ export function CycleFormDialog({
   onSubmit,
   isSubmitting,
 }: CycleFormDialogProps) {
+  const t = useTranslations('adminVoting.form');
+  const tStatus = useTranslations('adminVoting.status');
   const isEdit = !!editingCycle;
 
   // Fields that are locked once the cycle is no longer a DRAFT
@@ -134,24 +137,29 @@ export function CycleFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-2xl max-h-[85vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Voting Cycle' : 'Create Voting Cycle'}</DialogTitle>
+          <DialogTitle>{isEdit ? t('editTitle') : t('createTitle')}</DialogTitle>
         </DialogHeader>
 
         {isLocked && (
           <p className='rounded-lg border border-warning/30 bg-warning/10 px-md py-sm text-xs text-warning'>
-            This cycle is <span className='font-semibold'>{editingCycle?.status}</span> — most
-            fields are read-only. Only the end date and recipient count can be changed.
+            {/* The status was interpolated raw, so a French page read
+                "This cycle is BALLOT_OPEN". */}
+            {t('lockedNotice', {
+              status: editingCycle
+                ? tStatus(editingCycle.status.toLowerCase() as Parameters<typeof tStatus>[0])
+                : '',
+            })}
           </p>
         )}
 
         <form onSubmit={handleSubmit} className='space-y-lg'>
           {/* Name */}
           <div className='space-y-1.5'>
-            <Label className='text-xs font-medium'>Cycle Name *</Label>
+            <Label className='text-xs font-medium'>{t('name')} *</Label>
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder='e.g. Q3 2026 Voting Cycle'
+              placeholder={t('namePlaceholder')}
               required
               disabled={isLocked}
               className='h-8 text-xs'
@@ -161,7 +169,7 @@ export function CycleFormDialog({
           {/* Dates */}
           <div className='grid grid-cols-2 gap-lg'>
             <div className='space-y-1.5'>
-              <Label className='text-xs font-medium'>Start Date *</Label>
+              <Label className='text-xs font-medium'>{t('startDate')} *</Label>
               <Input
                 type='date'
                 value={startDate}
@@ -172,7 +180,7 @@ export function CycleFormDialog({
               />
             </div>
             <div className='space-y-1.5'>
-              <Label className='text-xs font-medium'>End Date *</Label>
+              <Label className='text-xs font-medium'>{t('endDate')} *</Label>
               <Input
                 type='date'
                 value={endDate}
@@ -187,7 +195,7 @@ export function CycleFormDialog({
           {/* Numeric fields */}
           <div className='grid grid-cols-3 gap-lg'>
             <div className='space-y-1.5'>
-              <Label className='text-xs font-medium'>Community Goal *</Label>
+              <Label className='text-xs font-medium'>{t('communityGoal')} *</Label>
               <Input
                 type='number'
                 value={goalTarget}
@@ -197,10 +205,10 @@ export function CycleFormDialog({
                 disabled={isLocked}
                 className='h-8 text-xs'
               />
-              <p className='text-[10px] text-muted-foreground'>Bags saved target</p>
+              <p className='text-[10px] text-muted-foreground'>{t('communityGoalHelp')}</p>
             </div>
             <div className='space-y-1.5'>
-              <Label className='text-xs font-medium'>Min. Bags *</Label>
+              <Label className='text-xs font-medium'>{t('minBags')} *</Label>
               <Input
                 type='number'
                 value={minimumBags}
@@ -211,10 +219,10 @@ export function CycleFormDialog({
                 disabled={isLocked}
                 className='h-8 text-xs'
               />
-              <p className='text-[10px] text-muted-foreground'>Eligibility threshold</p>
+              <p className='text-[10px] text-muted-foreground'>{t('minBagsHelp')}</p>
             </div>
             <div className='space-y-1.5'>
-              <Label className='text-xs font-medium'>Recipients *</Label>
+              <Label className='text-xs font-medium'>{t('recipients')} *</Label>
               <Input
                 type='number'
                 value={recipientCount}
@@ -224,7 +232,7 @@ export function CycleFormDialog({
                 required
                 className='h-8 text-xs'
               />
-              <p className='text-[10px] text-muted-foreground'>Winners to select</p>
+              <p className='text-[10px] text-muted-foreground'>{t('recipientsHelp')}</p>
             </div>
           </div>
 
@@ -239,10 +247,10 @@ export function CycleFormDialog({
               onClick={() => onOpenChange(false)}
               className='h-8 px-lg text-xs'
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type='submit' disabled={isSubmitting} className='px-lg text-xs'>
-              {isSubmitting ? 'Saving…' : isEdit ? 'Update Cycle' : 'Create Cycle'}
+              {isSubmitting ? t('saving') : isEdit ? t('update') : t('create')}
             </Button>
           </div>
         </form>

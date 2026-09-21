@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   User,
   Building2,
@@ -212,9 +213,10 @@ interface ActivityFeedProps {
 export function ActivityFeed({
   activities,
   loading,
-  emptyTitle = 'No recent activity',
+  emptyTitle,
   emptyDescription,
 }: ActivityFeedProps) {
+  const t = useTranslations('dashboard.adminShared');
   const fmt = useFormat();
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [adminFilter, setAdminFilter] = useState<string>('all');
@@ -251,7 +253,7 @@ export function ActivityFeed({
         <FilterSelect
           value={actionFilter}
           onChange={setActionFilter}
-          placeholder='All Actions'
+          placeholder={t('allActions')}
           options={uniqueActions.map(a => ({
             value: a,
             label: ACTION_LABEL[a] ?? a,
@@ -260,7 +262,7 @@ export function ActivityFeed({
         <FilterSelect
           value={adminFilter}
           onChange={setAdminFilter}
-          placeholder='All Admins'
+          placeholder={t('allAdmins')}
           options={uniqueAdmins.map(e => ({
             value: e,
             label: activities.find(a => a.adminEmail === e)?.adminFirstName ?? e,
@@ -271,7 +273,7 @@ export function ActivityFeed({
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder='Search action…'
+            placeholder={t('searchAction')}
             className='h-7 w-36 rounded-md border border-border/60 bg-background ps-2xl pe-sm text-[11px] placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/40'
           />
         </div>
@@ -281,7 +283,9 @@ export function ActivityFeed({
       {filtered.length === 0 ? (
         <div className='flex flex-col items-center justify-center gap-sm py-4xl text-center'>
           <Shield className='size-8 text-muted-foreground/30' />
-          <p className='text-sm font-medium text-muted-foreground'>{emptyTitle}</p>
+          <p className='text-sm font-medium text-muted-foreground'>
+            {emptyTitle ?? t('noActivity')}
+          </p>
           {emptyDescription && (
             <p className='max-w-xs text-xs text-muted-foreground/60'>{emptyDescription}</p>
           )}
@@ -298,16 +302,16 @@ export function ActivityFeed({
             <thead>
               <tr className='border-b border-border/60 bg-muted/40'>
                 <th className='px-sm py-sm text-start text-[11px] font-medium text-muted-foreground'>
-                  Date
+                  {t('date')}
                 </th>
                 <th className='px-sm py-sm text-start text-[11px] font-medium text-muted-foreground'>
-                  Admin
+                  {t('admin')}
                 </th>
                 <th className='px-sm py-sm text-start text-[11px] font-medium text-muted-foreground'>
-                  Action
+                  {t('action')}
                 </th>
                 <th className='px-sm py-sm text-start text-[11px] font-medium text-muted-foreground'>
-                  Details
+                  {t('details')}
                 </th>
               </tr>
             </thead>

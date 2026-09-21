@@ -1505,7 +1505,12 @@
           "severity": "Severity"
         },
         "empty": "No reports found",
-        "emptyDescription": "Adjust the tab or filters to see more reports"
+        "emptyDescription": "Adjust the tab or filters to see more reports",
+        "filters": {
+          "priority": "Priority",
+          "allPriority": "All priorities",
+          "searchPlaceholder": "Search reports…"
+        }
       },
       "settings": {
         "title": "System Configuration",
@@ -2248,6 +2253,30 @@
       "toSettle": "{amount} still to settle from upcoming orders. You never pay us directly.",
       "noActivity": "No sales yet this month. Your commission summary appears here once orders start coming in.",
       "error": "Could not load your commission summary."
+    },
+    "adminShared": {
+      "period": {
+        "day": "Today",
+        "week": "This week",
+        "month": "This month",
+        "quarter": "Quarter",
+        "year": "Year"
+      },
+      "export": "Export",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "loading": "Loading…",
+      "noActivity": "No recent activity",
+      "allActions": "All actions",
+      "allAdmins": "All admins",
+      "searchAction": "Search action…",
+      "date": "Date",
+      "admin": "Admin",
+      "action": "Action",
+      "details": "Details",
+      "toggleNav": "Toggle navigation",
+      "adminNav": "Admin navigation",
+      "logoAlt": "Too Fresh To Waste"
     }
   },
   "merchantSignup": {
@@ -5883,6 +5912,124 @@
       "title": "Could not load reviews",
       "body": "Something went wrong fetching the queue. Try again.",
       "retry": "Try again"
+    }
+  },
+  "adminVoting": {
+    "title": "Voting cycles",
+    "subtitle": "Manage community voting cycles, prizes, and eligibility settings.",
+    "refresh": "Refresh",
+    "createCycle": "Create cycle",
+    "liveDashboard": "Live dashboard",
+    "winnersAndClaims": "Winners & claims",
+    "totalCycles": "{count, plural, =0 {no cycles} one {# cycle} other {# cycles}}",
+    "allCycles": "All cycles",
+    "showing": "Showing {shown} of {total}",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed",
+      "expired": "Expired",
+      "archived": "Archived",
+      "ballot_open": "Ballot open",
+      "tallying": "Tallying"
+    },
+    "table": {
+      "name": "Name",
+      "cycleNumber": "Cycle #{number}",
+      "status": "Status",
+      "dates": "Dates",
+      "seasonBagGoal": "Season bag goal",
+      "prizes": "Prizes",
+      "prizeCount": "{count, plural, =0 {no prizes} one {# prize} other {# prizes}}",
+      "actions": "Actions",
+      "edit": "Edit",
+      "activate": "Activate",
+      "delete": "Delete",
+      "archive": "Archive",
+      "searchPlaceholder": "Search cycles…",
+      "empty": "No voting cycles yet",
+      "emptyDescription": "Create your first voting cycle to get started."
+    },
+    "form": {
+      "editTitle": "Edit voting cycle",
+      "createTitle": "Create voting cycle",
+      "lockedNotice": "This cycle is {status} - most fields are read-only. Only the end date and recipient count can be changed.",
+      "name": "Cycle name",
+      "namePlaceholder": "e.g. Q3 2026 voting cycle",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "communityGoal": "Community goal",
+      "communityGoalHelp": "Bags saved target",
+      "minBags": "Min. bags",
+      "minBagsHelp": "Eligibility threshold",
+      "recipients": "Recipients",
+      "recipientsHelp": "Winners to select",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "update": "Update cycle",
+      "create": "Create cycle"
+    },
+    "prizes": {
+      "sectionLabel": "Prizes ({count})",
+      "prizeLabel": "Prize {number}",
+      "remove": "Remove prize {number}",
+      "name": "Name",
+      "namePlaceholder": "e.g. Latest smartphone",
+      "value": "Value",
+      "valuePlaceholder": "e.g. 1000 TND",
+      "description": "Description",
+      "descriptionPlaceholder": "Short description of the prize",
+      "category": "Category",
+      "imageUrl": "Image URL",
+      "imageUrlPlaceholder": "https://…",
+      "addPrize": "Add prize",
+      "categories": {
+        "phone": "Phone",
+        "hotel_stay": "Hotel stay",
+        "shopping_voucher": "Shopping voucher",
+        "gym_membership": "Gym membership",
+        "electric_scooter": "Electric scooter",
+        "custom": "Custom"
+      }
+    },
+    "live": {
+      "back": "Cycles",
+      "title": "Voting dashboard",
+      "noActiveCycle": "No active voting cycle",
+      "noActiveCycleDescription": "Create a cycle from cycle management and activate it to see live data here.",
+      "ended": "Ended",
+      "remainingDays": "{days}d {hours}h remaining",
+      "remainingHours": "{hours}h {minutes}m remaining",
+      "remainingMinutes": "{minutes}m remaining",
+      "ballot": "Ballot:",
+      "communityGoal": "Community goal",
+      "bagsSaved": "bags saved",
+      "snapshotNotReady": "Snapshot not ready",
+      "snapshotNotReadyDescription": "Voting is blocked until the eligibility snapshot completes.",
+      "retrying": "Retrying…",
+      "retrySnapshot": "Retry snapshot",
+      "ballotResults": "Ballot results",
+      "participation": "{voters} / {eligible} eligible ({percent}% participation)",
+      "noVotes": "No votes cast yet.",
+      "leading": "Leading",
+      "resultLine": "{points} pts · {voters, plural, one {# voter} other {# voters}}",
+      "runningTally": "Running tally…",
+      "runManualTally": "Run manual tally",
+      "winnerAnnounced": "Winner announced",
+      "winnerStats": "{votes} weighted votes · {voters, plural, one {# voter} other {# voters}}",
+      "winnerNote": "Top {count} leaderboard users receive this prize.",
+      "expired": "Cycle expired",
+      "expiredDescription": "The community goal was not met. Archive this cycle to start a new one."
+    },
+    "toast": {
+      "created": "Voting cycle created",
+      "updated": "Voting cycle updated",
+      "activated": "Voting cycle activated",
+      "deleted": "Voting cycle deleted",
+      "archived": "Voting cycle archived",
+      "tallyComplete": "Tally complete",
+      "snapshotRetried": "Snapshot rebuild started",
+      "error": "Something went wrong. Please try again."
     }
   }
 }

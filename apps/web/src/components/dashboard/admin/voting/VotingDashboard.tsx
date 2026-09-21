@@ -1,10 +1,11 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@foodwaste/ui';
 import { CycleStatus } from '@foodwaste/shared';
 import { votingAdminService } from '@/services/voting.service';
+import { toast } from 'sonner';
 import type { VotingCycleRow } from '@/types/voting';
 import { formatCount, seasonProgressPercent } from '@/lib/format';
 import { useFormat, MISSING_COUNT } from '@/lib/use-format';
@@ -37,18 +38,25 @@ function ProgressBar({ value, className = '' }: { value: number; className?: str
 
 // ─── Countdown helper ─────────────────────────────────────────────────────────
 
-function getCountdown(cycle: VotingCycleRow): string {
+/**
+ * Takes the translator rather than returning English.
+ *
+ * Module-level and locale-blind, it produced "3d 4h remaining" on every page
+ * whatever the language. The unit letters are part of the copy, not formatting,
+ * so they belong in the message.
+ */
+function getCountdown(cycle: VotingCycleRow, t: ReturnType<typeof useTranslations>): string {
   const target =
     cycle.status === CycleStatus.BALLOT_OPEN ? cycle.ballotClosesAt : cycle.cycleEndDate;
   if (!target) return '';
   const diff = new Date(target).getTime() - Date.now();
-  if (diff <= 0) return 'Ended';
+  if (diff <= 0) return t('ended');
   const days = Math.floor(diff / 86_400_000);
   const hours = Math.floor((diff % 86_400_000) / 3_600_000);
   const mins = Math.floor((diff % 3_600_000) / 60_000);
-  if (days > 0) return `${days}d ${hours}h remaining`;
-  if (hours > 0) return `${hours}h ${mins}m remaining`;
-  return `${mins}m remaining`;
+  if (days > 0) return t('remainingDays', { days, hours });
+  if (hours > 0) return t('remainingHours', { hours, minutes: mins });
+  return t('remainingMinutes', { minutes: mins });
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -60,6 +68,9 @@ interface VotingDashboardProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function VotingDashboard({ cycle }: VotingDashboardProps) {
+  const t = useTranslations('adminVoting.live');
+  const tStatus = useTranslations('adminVoting.status');
+  const tToast = useTranslations('adminVoting.toast');
   const fmt = useFormat();
   const queryClient = useQueryClient();
   const locale = useLocale();
@@ -85,12 +96,20 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
 
   const tallyMutation = useMutation({
     mutationFn: () => votingAdminService.manualTally(cycle._id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'voting'] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'voting'] });
+      toast.success(tToast('tallyComplete'));
+    },
+    onError: () => toast.error(tToast('error')),
   });
 
   const retrySnapshotMutation = useMutation({
     mutationFn: () => votingAdminService.retrySnapshot(cycle._id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'voting'] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'voting'] });
+      toast.success(tToast('snapshotRetried'));
+    },
+    onError: () => toast.error(tToast('error')),
   });
 
   // ─── Derived values ───────────────────────────────────────────────────────
@@ -99,7 +118,7 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
   // the label claiming the season has made 0% progress.
   const goalPercent = seasonProgressPercent(cycle.seasonBagProgress, cycle.seasonBagTarget);
 
-  const countdown = getCountdown(cycle);
+  const countdown = getCountdown(cycle, t);
 
   const sortedResults = statsData?.results
     ? [...statsData.results].sort((a, b) => b.totalWeightedVotes - a.totalWeightedVotes)
@@ -116,16 +135,18 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
         <CardHeader className='pb-md'>
           <div className='flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between'>
             <CardTitle className='text-lg'>{cycle.name}</CardTitle>
-            <Badge className={STATUS_STYLES[cycle.status] ?? ''}>{cycle.status}</Badge>
+            <Badge className={STATUS_STYLES[cycle.status] ?? ''}>
+              {tStatus(cycle.status.toLowerCase() as Parameters<typeof tStatus>[0])}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className='flex flex-wrap gap-lg text-sm text-muted-foreground'>
             {countdown && <span className='font-medium text-foreground'>{countdown}</span>}
-            <span>Cycle #{cycle.cycleNumber}</span>
+            <span>{t('cycleNumber', { number: cycle.cycleNumber })}</span>
             {cycle.ballotOpensAt && (
               <span>
-                Ballot: {fmt.dateShort(cycle.ballotOpensAt) ?? MISSING_COUNT}
+                {t('ballot')} {fmt.dateShort(cycle.ballotOpensAt) ?? MISSING_COUNT}
                 {cycle.ballotClosesAt &&
                   ` → ${fmt.dateShort(cycle.ballotClosesAt) ?? MISSING_COUNT}`}
               </span>
@@ -137,14 +158,14 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
       {/* ── Community Goal ── */}
       <Card className='border-border/60'>
         <CardHeader className='pb-md'>
-          <CardTitle className='text-sm font-semibold'>Community Goal</CardTitle>
+          <CardTitle className='text-sm font-semibold'>{t('communityGoal')}</CardTitle>
         </CardHeader>
         <CardContent className='space-y-md'>
           <ProgressBar value={goalPercent ?? 0} />
           <div className='flex items-center justify-between text-sm'>
             <span className='text-muted-foreground'>
               {formatCount(locale, cycle.seasonBagProgress)} /{' '}
-              {formatCount(locale, cycle.seasonBagTarget)} bags saved
+              {formatCount(locale, cycle.seasonBagTarget)} {t('bagsSaved')}
             </span>
             <span className='font-semibold tabular-nums'>
               {goalPercent === null ? MISSING_COUNT : `${goalPercent.toFixed(0)}%`}
@@ -158,9 +179,9 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
         <Card className='border-warning/50 bg-warning/5'>
           <CardContent className='flex items-center justify-between pt-xl pb-xl'>
             <div>
-              <p className='text-sm font-medium text-warning'>Snapshot not ready</p>
+              <p className='text-sm font-medium text-warning'>{t('snapshotNotReady')}</p>
               <p className='text-xs text-muted-foreground mt-xxs'>
-                Voting is blocked until the eligibility snapshot completes.
+                {t('snapshotNotReadyDescription')}
               </p>
             </div>
             <Button
@@ -170,7 +191,7 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
               onClick={() => retrySnapshotMutation.mutate()}
               disabled={retrySnapshotMutation.isPending}
             >
-              {retrySnapshotMutation.isPending ? 'Retrying…' : 'Retry Snapshot'}
+              {retrySnapshotMutation.isPending ? t('retrying') : t('retrySnapshot')}
             </Button>
           </CardContent>
         </Card>
@@ -181,11 +202,14 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
         <Card className='border-border/60'>
           <CardHeader className='pb-md'>
             <div className='flex items-center justify-between'>
-              <CardTitle className='text-sm font-semibold'>Ballot Results</CardTitle>
+              <CardTitle className='text-sm font-semibold'>{t('ballotResults')}</CardTitle>
               {statsData && (
                 <span className='text-xs text-muted-foreground'>
-                  {statsData.totalVoters} / {statsData.totalEligible} eligible (
-                  {(statsData.participationRate * 100).toFixed(1)}% participation)
+                  {t('participation', {
+                    voters: statsData.totalVoters,
+                    eligible: statsData.totalEligible,
+                    percent: (statsData.participationRate * 100).toFixed(1),
+                  })}
                 </span>
               )}
             </div>
@@ -201,7 +225,7 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
                 ))}
               </div>
             ) : sortedResults.length === 0 ? (
-              <p className='py-lg text-center text-sm text-muted-foreground'>No votes cast yet.</p>
+              <p className='py-lg text-center text-sm text-muted-foreground'>{t('noVotes')}</p>
             ) : (
               sortedResults.map((result, index) => {
                 const pct = maxVotes > 0 ? (result.totalWeightedVotes / maxVotes) * 100 : 0;
@@ -215,14 +239,16 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
                       <span className={isLeading ? 'font-semibold text-primary' : 'font-medium'}>
                         {isLeading && (
                           <span className='me-1.5 inline-block rounded-sm bg-primary/10 px-xs py-xxs text-[10px] font-bold uppercase tracking-wide text-primary'>
-                            Leading
+                            {t('leading')}
                           </span>
                         )}
                         {result.name}
                       </span>
                       <span className='text-xs text-muted-foreground tabular-nums'>
-                        {fmt.count(result.totalWeightedVotes)} pts · {result.voterCount} voter
-                        {result.voterCount !== 1 ? 's' : ''}
+                        {t('resultLine', {
+                          points: fmt.count(result.totalWeightedVotes),
+                          voters: result.voterCount ?? 0,
+                        })}
                       </span>
                     </div>
                     <ProgressBar value={pct} />
@@ -242,7 +268,7 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
             disabled={tallyMutation.isPending}
             className='min-w-36'
           >
-            {tallyMutation.isPending ? 'Running tally…' : 'Run Manual Tally'}
+            {tallyMutation.isPending ? t('runningTally') : t('runManualTally')}
           </Button>
         </div>
       )}
@@ -251,17 +277,22 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
       {cycle.status === CycleStatus.COMPLETED && cycle.winner && (
         <Card className='border-success/50 bg-success/5'>
           <CardHeader className='pb-md'>
-            <CardTitle className='text-sm font-semibold text-success'>Winner Announced</CardTitle>
+            <CardTitle className='text-sm font-semibold text-success'>
+              {t('winnerAnnounced')}
+            </CardTitle>
           </CardHeader>
           <CardContent className='space-y-xs'>
             <p className='text-xl font-bold'>{cycle.winner.name}</p>
             <p className='text-sm text-muted-foreground'>
-              {formatCount(locale, cycle.winner.totalWeightedVotes)} weighted votes ·{' '}
-              {formatCount(locale, cycle.winner.voterCount)} voter
-              {cycle.winner.voterCount !== 1 ? 's' : ''}
+              {t('winnerStats', {
+                votes: formatCount(locale, cycle.winner.totalWeightedVotes),
+                voters: cycle.winner.voterCount ?? 0,
+              })}
             </p>
             <p className='text-sm text-muted-foreground'>
-              Top {cycle.recipientCount} leaderboard users receive this prize.
+              {/* `recipientCount` is optional on the row; 0 renders honestly
+                  as "top 0 users" rather than crashing the interpolation. */}
+              {t('winnerNote', { count: cycle.recipientCount ?? 0 })}
             </p>
           </CardContent>
         </Card>
@@ -271,10 +302,8 @@ export function VotingDashboard({ cycle }: VotingDashboardProps) {
       {cycle.status === CycleStatus.EXPIRED && (
         <Card className='border-destructive/50 bg-destructive/5'>
           <CardContent className='pt-xl pb-xl'>
-            <p className='text-sm font-medium text-destructive'>Cycle expired</p>
-            <p className='text-xs text-muted-foreground mt-xxs'>
-              The community goal was not met. Archive this cycle to start a new one.
-            </p>
+            <p className='text-sm font-medium text-destructive'>{t('expired')}</p>
+            <p className='text-xs text-muted-foreground mt-xxs'>{t('expiredDescription')}</p>
           </CardContent>
         </Card>
       )}

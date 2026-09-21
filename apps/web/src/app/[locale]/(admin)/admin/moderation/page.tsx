@@ -69,6 +69,7 @@ const STATUS_TABS = ['all', 'pending', 'in_review', 'resolved', 'escalated'] as 
 export default function AdminModerationPage() {
   const fmt = useFormat();
   const t = useTranslations('dashboard.admin.moderation');
+  const tBadges = useTranslations('common.badges');
 
   const [activeTab, setActiveTab] = useState<string>('pending');
   const [page, setPage] = useState(1);
@@ -299,14 +300,14 @@ export default function AdminModerationPage() {
           </Tabs>
           <Select onValueChange={setPriorityFilter} defaultValue='all'>
             <SelectTrigger className='h-8 w-28 text-xs'>
-              <SelectValue placeholder='Priority' />
+              <SelectValue placeholder={t('filters.priority')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>All Priority</SelectItem>
-              <SelectItem value='critical'>Critical</SelectItem>
-              <SelectItem value='high'>High</SelectItem>
-              <SelectItem value='medium'>Medium</SelectItem>
-              <SelectItem value='low'>Low</SelectItem>
+              <SelectItem value='all'>{t('filters.allPriority')}</SelectItem>
+              <SelectItem value='critical'>{tBadges('priority.critical')}</SelectItem>
+              <SelectItem value='high'>{tBadges('priority.high')}</SelectItem>
+              <SelectItem value='medium'>{tBadges('priority.medium')}</SelectItem>
+              <SelectItem value='low'>{tBadges('priority.low')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -320,7 +321,7 @@ export default function AdminModerationPage() {
           total={reportList.length}
           onPageChange={setPage}
           searchValue={search}
-          searchPlaceholder='Search reports…'
+          searchPlaceholder={t('filters.searchPlaceholder')}
           onSearchChange={setSearch}
           emptyIcon={Flag}
           emptyTitle={t('empty')}

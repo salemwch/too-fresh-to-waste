@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@foodwaste/ui';
 import { Button } from '@foodwaste/ui';
 import { CycleStatus } from '@foodwaste/shared';
@@ -51,32 +51,35 @@ export function CycleTable({
   onArchive,
   onDelete,
 }: CycleTableProps) {
+  const t = useTranslations('adminVoting');
   const fmt = useFormat();
   const locale = useLocale();
 
   const columns: ColumnDef<VotingCycleRow>[] = [
     {
       key: 'name',
-      header: 'Name',
+      header: t('table.name'),
       render: cycle => (
         <div>
           <p className='text-xs font-medium'>{cycle.name}</p>
-          <p className='text-[10px] text-muted-foreground'>Cycle #{cycle.cycleNumber}</p>
+          <p className='text-[10px] text-muted-foreground'>
+            {t('table.cycleNumber', { number: cycle.cycleNumber })}
+          </p>
         </div>
       ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('table.status'),
       render: cycle => (
         <Badge className={`text-[10px] ${STATUS_STYLES[cycle.status] ?? ''}`}>
-          {cycle.status.replace('_', ' ')}
+          {t(`status.${cycle.status.toLowerCase()}` as Parameters<typeof t>[0])}
         </Badge>
       ),
     },
     {
       key: 'dates',
-      header: 'Dates',
+      header: t('table.dates'),
       render: cycle => (
         <div className='flex items-center gap-1.5 text-xs text-muted-foreground'>
           <CalendarDays className='size-3 shrink-0' />
@@ -89,7 +92,7 @@ export function CycleTable({
     },
     {
       key: 'goal',
-      header: 'Season Bag Goal',
+      header: t('table.seasonBagGoal'),
       render: cycle => {
         // An absent target is not a zero target: with no denominator there is no
         // percentage to draw, so the bar stays empty rather than claiming 0%.
@@ -116,14 +119,16 @@ export function CycleTable({
     },
     {
       key: 'prizes',
-      header: 'Prizes',
+      header: t('table.prizes'),
       render: cycle => (
-        <span className='text-xs text-muted-foreground'>{cycle.prizes.length} prize(s)</span>
+        <span className='text-xs text-muted-foreground'>
+          {t('table.prizeCount', { count: cycle.prizes.length })}
+        </span>
       ),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('table.actions'),
       render: cycle => (
         <div className='flex flex-wrap gap-1.5'>
           {cycle.status === CycleStatus.DRAFT && (
@@ -134,10 +139,10 @@ export function CycleTable({
                 className='px-sm text-[10px]'
                 onClick={() => onEdit(cycle)}
               >
-                Edit
+                {t('table.edit')}
               </Button>
               <Button size='sm' className='px-sm text-[10px]' onClick={() => onActivate(cycle._id)}>
-                Activate
+                {t('table.activate')}
               </Button>
               <Button
                 size='sm'
@@ -145,7 +150,7 @@ export function CycleTable({
                 className='px-sm text-[10px] border-destructive/40 text-destructive hover:bg-destructive/5'
                 onClick={() => onDelete(cycle._id)}
               >
-                Delete
+                {t('table.delete')}
               </Button>
             </>
           )}
@@ -156,7 +161,7 @@ export function CycleTable({
               className='px-sm text-[10px]'
               onClick={() => onEdit(cycle)}
             >
-              Edit
+              {t('table.edit')}
             </Button>
           )}
           {(cycle.status === CycleStatus.COMPLETED || cycle.status === CycleStatus.EXPIRED) && (
@@ -166,7 +171,7 @@ export function CycleTable({
               className='px-sm text-[10px]'
               onClick={() => onArchive(cycle._id)}
             >
-              Archive
+              {t('table.archive')}
             </Button>
           )}
           {cycle.status !== CycleStatus.DRAFT &&
@@ -189,11 +194,8 @@ export function CycleTable({
       totalPages={totalPages}
       total={total}
       onPageChange={onPageChange}
-      searchValue=''
-      searchPlaceholder='Search cycles…'
-      onSearchChange={() => {}}
-      emptyTitle='No voting cycles yet'
-      emptyDescription='Create your first voting cycle to get started.'
+      emptyTitle={t('table.empty')}
+      emptyDescription={t('table.emptyDescription')}
     />
   );
 }

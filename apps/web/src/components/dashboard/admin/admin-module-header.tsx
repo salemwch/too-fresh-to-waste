@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Download } from 'lucide-react';
 import { Button } from '@foodwaste/ui';
 import {
@@ -21,13 +22,16 @@ interface AdminModuleHeaderProps {
   actions?: React.ReactNode;
 }
 
-const PERIOD_OPTIONS: { value: AnalyticsPeriod; label: string }[] = [
-  { value: 'day', label: 'Today' },
-  { value: 'week', label: 'This week' },
-  { value: 'month', label: 'This month' },
-  { value: 'quarter', label: 'Quarter' },
-  { value: 'year', label: 'Year' },
-];
+/**
+ * The period values only.
+ *
+ * The labels used to sit here as English string literals, so every admin screen
+ * carrying a period filter offered "This week" and "Quarter" in French and
+ * Arabic. Labels now come from `dashboard.adminShared.period`, keyed by the
+ * value, which also means a period added later is a missing key rather than a
+ * silently English one.
+ */
+const PERIOD_VALUES: AnalyticsPeriod[] = ['day', 'week', 'month', 'quarter', 'year'];
 
 export function AdminModuleHeader({
   title,
@@ -35,9 +39,12 @@ export function AdminModuleHeader({
   period,
   onPeriodChange,
   onExport,
-  exportLabel = 'Export',
+  /** Defaults to the translated "Export" rather than the English literal. */
+  exportLabel,
   actions,
 }: AdminModuleHeaderProps) {
+  const t = useTranslations('dashboard.adminShared');
+
   return (
     <div className='flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between'>
       <div>
@@ -52,9 +59,9 @@ export function AdminModuleHeader({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {PERIOD_OPTIONS.map(opt => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+              {PERIOD_VALUES.map(value => (
+                <SelectItem key={value} value={value}>
+                  {t(`period.${value}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -63,7 +70,7 @@ export function AdminModuleHeader({
         {onExport && (
           <Button size='sm' variant='outline' onClick={onExport} className='px-md text-xs'>
             <Download className='me-1.5 size-3.5' />
-            {exportLabel}
+            {exportLabel ?? t('export')}
           </Button>
         )}
       </div>

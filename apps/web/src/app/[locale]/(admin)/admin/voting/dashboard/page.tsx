@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { CycleStatus } from '@foodwaste/shared';
 import { Card, CardContent, Button } from '@foodwaste/ui';
 import { ArrowLeft } from 'lucide-react';
@@ -22,6 +23,7 @@ const LIVE_STATUSES = new Set<string>([
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function VotingDashboardPage() {
+  const t = useTranslations('adminVoting.live');
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'voting', 'cycles', 1, 50],
     queryFn: () => votingAdminService.listCycles(1, 50),
@@ -64,17 +66,15 @@ export default function VotingDashboardPage() {
           <Link href='/admin/voting'>
             <Button size='sm' variant='ghost' className='px-sm text-xs'>
               <ArrowLeft className='me-xs size-3.5' />
-              Cycles
+              {t('back')}
             </Button>
           </Link>
-          <h1 className='text-xl font-bold tracking-tight'>Voting Dashboard</h1>
+          <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
         </div>
         <Card className='border-border/60'>
           <CardContent className='flex flex-col items-center justify-center py-3xl text-center'>
-            <p className='text-sm font-medium'>No active voting cycle</p>
-            <p className='mt-xs text-xs text-muted-foreground'>
-              Create a cycle from Cycle Management and activate it to see live data here.
-            </p>
+            <p className='text-sm font-medium'>{t('noActiveCycle')}</p>
+            <p className='mt-xs text-xs text-muted-foreground'>{t('noActiveCycleDescription')}</p>
           </CardContent>
         </Card>
       </div>
@@ -90,10 +90,10 @@ export default function VotingDashboardPage() {
           <Link href='/admin/voting'>
             <Button size='sm' variant='ghost' className='px-sm text-xs'>
               <ArrowLeft className='me-xs size-3.5' />
-              Cycles
+              {t('back')}
             </Button>
           </Link>
-          <h1 className='text-xl font-bold tracking-tight'>Voting Dashboard</h1>
+          <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
         </div>
       </div>
       <VotingDashboard cycle={liveCycle} />

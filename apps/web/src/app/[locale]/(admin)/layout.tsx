@@ -18,6 +18,7 @@ const ADMIN_NAMESPACES = [
   'adminAnalytics',
   'adminNotifications',
   'adminLeaderboards',
+  'adminVoting',
   'adminVotingWinners',
   'adminTeam',
   'adminTickets',

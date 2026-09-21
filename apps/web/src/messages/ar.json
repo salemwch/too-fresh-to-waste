@@ -1505,7 +1505,12 @@
           "severity": "الخطورة"
         },
         "empty": "لم يتم العثور على بلاغات",
-        "emptyDescription": "عدّل التبويب أو الفلاتر"
+        "emptyDescription": "عدّل التبويب أو الفلاتر",
+        "filters": {
+          "priority": "الأولوية",
+          "allPriority": "كل الأولويات",
+          "searchPlaceholder": "ابحث في البلاغات…"
+        }
       },
       "settings": {
         "title": "إعدادات النظام",
@@ -2248,6 +2253,30 @@
       "toSettle": "{amount} تبقّى للتسوية من الطلبات القادمة. لا تدفع لنا مباشرة أبدًا.",
       "noActivity": "لا توجد مبيعات هذا الشهر. سيظهر ملخّص العمولة هنا بمجرد وصول الطلبات.",
       "error": "تعذّر تحميل ملخّص العمولة."
+    },
+    "adminShared": {
+      "period": {
+        "day": "اليوم",
+        "week": "هذا الأسبوع",
+        "month": "هذا الشهر",
+        "quarter": "الربع",
+        "year": "السنة"
+      },
+      "export": "تصدير",
+      "confirm": "تأكيد",
+      "cancel": "إلغاء",
+      "loading": "جارٍ التحميل…",
+      "noActivity": "لا يوجد نشاط حديث",
+      "allActions": "كل الإجراءات",
+      "allAdmins": "كل المسؤولين",
+      "searchAction": "ابحث عن إجراء…",
+      "date": "التاريخ",
+      "admin": "المسؤول",
+      "action": "الإجراء",
+      "details": "التفاصيل",
+      "toggleNav": "تبديل التنقل",
+      "adminNav": "تنقل المسؤول",
+      "logoAlt": "Too Fresh To Waste"
     }
   },
   "merchantSignup": {
@@ -5876,6 +5905,124 @@
       "title": "تعذّر تحميل التقييمات",
       "body": "حدث خطأ أثناء جلب القائمة. حاول مرة أخرى.",
       "retry": "حاول مرة أخرى"
+    }
+  },
+  "adminVoting": {
+    "title": "دورات التصويت",
+    "subtitle": "إدارة دورات التصويت المجتمعي والجوائز وشروط الأهلية.",
+    "refresh": "تحديث",
+    "createCycle": "إنشاء دورة",
+    "liveDashboard": "لوحة المتابعة المباشرة",
+    "winnersAndClaims": "الفائزون والمطالبات",
+    "totalCycles": "{count, plural, =0 {لا توجد دورات} one {دورة واحدة} two {دورتان} few {# دورات} many {# دورة} other {# دورة}}",
+    "allCycles": "كل الدورات",
+    "showing": "عرض {shown} من {total}",
+    "status": {
+      "draft": "مسودة",
+      "active": "نشطة",
+      "completed": "مكتملة",
+      "expired": "منتهية",
+      "archived": "مؤرشفة",
+      "ballot_open": "الاقتراع مفتوح",
+      "tallying": "جارٍ الفرز"
+    },
+    "table": {
+      "name": "الاسم",
+      "cycleNumber": "الدورة رقم {number}",
+      "status": "الحالة",
+      "dates": "التواريخ",
+      "seasonBagGoal": "هدف الأكياس للموسم",
+      "prizes": "الجوائز",
+      "prizeCount": "{count, plural, =0 {لا توجد جوائز} one {جائزة واحدة} two {جائزتان} few {# جوائز} many {# جائزة} other {# جائزة}}",
+      "actions": "الإجراءات",
+      "edit": "تعديل",
+      "activate": "تفعيل",
+      "delete": "حذف",
+      "archive": "أرشفة",
+      "searchPlaceholder": "ابحث في الدورات…",
+      "empty": "لا توجد دورات تصويت بعد",
+      "emptyDescription": "أنشئ أول دورة تصويت للبدء."
+    },
+    "form": {
+      "editTitle": "تعديل دورة التصويت",
+      "createTitle": "إنشاء دورة تصويت",
+      "lockedNotice": "هذه الدورة {status} - معظم الحقول للقراءة فقط. يمكن تغيير تاريخ الانتهاء وعدد المستفيدين فقط.",
+      "name": "اسم الدورة",
+      "namePlaceholder": "مثال: دورة تصويت الربع الثالث 2026",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "communityGoal": "الهدف المجتمعي",
+      "communityGoalHelp": "هدف الأكياس المُنقَذة",
+      "minBags": "الحد الأدنى للأكياس",
+      "minBagsHelp": "عتبة الأهلية",
+      "recipients": "المستفيدون",
+      "recipientsHelp": "عدد الفائزين",
+      "cancel": "إلغاء",
+      "saving": "جارٍ الحفظ…",
+      "update": "تحديث الدورة",
+      "create": "إنشاء الدورة"
+    },
+    "prizes": {
+      "sectionLabel": "الجوائز ({count})",
+      "prizeLabel": "الجائزة {number}",
+      "remove": "حذف الجائزة {number}",
+      "name": "الاسم",
+      "namePlaceholder": "مثال: أحدث هاتف ذكي",
+      "value": "القيمة",
+      "valuePlaceholder": "مثال: 1000 د.ت",
+      "description": "الوصف",
+      "descriptionPlaceholder": "وصف مختصر للجائزة",
+      "category": "الفئة",
+      "imageUrl": "رابط الصورة",
+      "imageUrlPlaceholder": "https://…",
+      "addPrize": "إضافة جائزة",
+      "categories": {
+        "phone": "هاتف",
+        "hotel_stay": "إقامة فندقية",
+        "shopping_voucher": "قسيمة تسوق",
+        "gym_membership": "اشتراك نادٍ رياضي",
+        "electric_scooter": "دراجة كهربائية",
+        "custom": "مخصص"
+      }
+    },
+    "live": {
+      "back": "الدورات",
+      "title": "لوحة التصويت",
+      "noActiveCycle": "لا توجد دورة تصويت نشطة",
+      "noActiveCycleDescription": "أنشئ دورة من إدارة الدورات وفعّلها لعرض البيانات المباشرة هنا.",
+      "ended": "انتهت",
+      "remainingDays": "متبقٍ {days} ي {hours} س",
+      "remainingHours": "متبقٍ {hours} س {minutes} د",
+      "remainingMinutes": "متبقٍ {minutes} د",
+      "ballot": "الاقتراع:",
+      "communityGoal": "الهدف المجتمعي",
+      "bagsSaved": "كيس مُنقَذ",
+      "snapshotNotReady": "اللقطة غير جاهزة",
+      "snapshotNotReadyDescription": "التصويت متوقف حتى تكتمل لقطة الأهلية.",
+      "retrying": "جارٍ إعادة المحاولة…",
+      "retrySnapshot": "إعادة إنشاء اللقطة",
+      "ballotResults": "نتائج الاقتراع",
+      "participation": "{voters} / {eligible} مؤهل ({percent}٪ مشاركة)",
+      "noVotes": "لم يُدلَ بأي صوت بعد.",
+      "leading": "المتصدر",
+      "resultLine": "{points} نقطة · {voters, plural, one {مصوّت واحد} two {مصوّتان} few {# مصوّتين} many {# مصوّتًا} other {# مصوّت}}",
+      "runningTally": "جارٍ الفرز…",
+      "runManualTally": "تشغيل الفرز اليدوي",
+      "winnerAnnounced": "تم إعلان الفائز",
+      "winnerStats": "{votes} صوتًا مرجّحًا · {voters, plural, one {مصوّت واحد} two {مصوّتان} few {# مصوّتين} many {# مصوّتًا} other {# مصوّت}}",
+      "winnerNote": "يحصل أعلى {count} في لوحة الصدارة على هذه الجائزة.",
+      "expired": "انتهت الدورة",
+      "expiredDescription": "لم يتحقق الهدف المجتمعي. أرشف هذه الدورة لبدء واحدة جديدة."
+    },
+    "toast": {
+      "created": "تم إنشاء دورة التصويت",
+      "updated": "تم تحديث دورة التصويت",
+      "activated": "تم تفعيل دورة التصويت",
+      "deleted": "تم حذف دورة التصويت",
+      "archived": "تمت أرشفة دورة التصويت",
+      "tallyComplete": "اكتمل الفرز",
+      "snapshotRetried": "بدأت إعادة إنشاء اللقطة",
+      "error": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
     }
   }
 }

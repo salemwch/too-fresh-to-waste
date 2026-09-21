@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@foodwaste/ui';
 import { Button } from '@foodwaste/ui';
@@ -10,6 +11,7 @@ import { votingAdminService } from '@/services/voting.service';
 import type { VotingCycleRow, CreateCyclePayload } from '@/types/voting';
 import { CycleTable } from '@/components/dashboard/admin/voting/CycleTable';
 import { CycleFormDialog } from '@/components/dashboard/admin/voting/CycleFormDialog';
+import { toast } from 'sonner';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
 
@@ -23,6 +25,7 @@ const PAGE_LIMIT = 10;
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function VotingAdminPage() {
+  const t = useTranslations('adminVoting');
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -54,24 +57,38 @@ export default function VotingAdminPage() {
         : votingAdminService.createCycle(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: votingKeys.all });
+      toast.success(editingCycle ? t('toast.updated') : t('toast.created'));
       setDialogOpen(false);
       setEditingCycle(null);
     },
+    onError: () => toast.error(t('toast.error')),
   });
 
   const activateMutation = useMutation({
     mutationFn: (id: string) => votingAdminService.activateCycle(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: votingKeys.all }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: votingKeys.all });
+      toast.success(t('toast.activated'));
+    },
+    onError: () => toast.error(t('toast.error')),
   });
 
   const archiveMutation = useMutation({
     mutationFn: (id: string) => votingAdminService.archiveCycle(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: votingKeys.all }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: votingKeys.all });
+      toast.success(t('toast.archived'));
+    },
+    onError: () => toast.error(t('toast.error')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => votingAdminService.deleteCycle(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: votingKeys.all }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: votingKeys.all });
+      toast.success(t('toast.deleted'));
+    },
+    onError: () => toast.error(t('toast.error')),
   });
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
@@ -102,10 +119,8 @@ export default function VotingAdminPage() {
       {/* Header */}
       <div className='flex flex-col gap-lg sm:flex-row sm:items-start sm:justify-between'>
         <div>
-          <h1 className='text-xl font-bold tracking-tight'>Voting Cycles</h1>
-          <p className='mt-xxs text-sm text-muted-foreground'>
-            Manage community voting cycles, prizes, and eligibility settings.
-          </p>
+          <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
+          <p className='mt-xxs text-sm text-muted-foreground'>{t('subtitle')}</p>
         </div>
         <div className='flex items-center gap-sm'>
           <Button
@@ -116,11 +131,11 @@ export default function VotingAdminPage() {
             className='h-7 px-2.5 text-xs'
           >
             <RefreshCw className={`me-1.5 size-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('refresh')}
           </Button>
           <Button size='sm' onClick={handleCreate} className='px-md text-xs'>
             <Plus className='me-1.5 size-3.5' />
-            Create Cycle
+            {t('createCycle')}
           </Button>
         </div>
       </div>
@@ -130,13 +145,13 @@ export default function VotingAdminPage() {
         <Link href='/admin/voting/dashboard'>
           <Button size='sm' variant='outline' className='px-md text-xs'>
             <BarChart3 className='me-1.5 size-3.5' />
-            Live Dashboard
+            {t('liveDashboard')}
           </Button>
         </Link>
         <Link href='/admin/voting/winners'>
           <Button size='sm' variant='outline' className='px-md text-xs'>
             <Trophy className='me-1.5 size-3.5' />
-            Winners & Claims
+            {t('winnersAndClaims')}
           </Button>
         </Link>
       </div>
@@ -145,17 +160,18 @@ export default function VotingAdminPage() {
       <div className='flex flex-wrap gap-md'>
         <div className='flex items-center gap-1.5 rounded-lg border border-border/60 bg-card px-md py-1.5'>
           <Vote className='size-3.5 text-primary' />
-          <span className='text-xs font-semibold tabular-nums'>{total}</span>
-          <span className='text-xs text-muted-foreground'>total cycle(s)</span>
+          <span className='text-xs text-muted-foreground'>
+            {t('totalCycles', { count: total })}
+          </span>
         </div>
       </div>
 
       {/* Table card */}
       <Card className='border-border/60'>
         <CardHeader className='pb-md'>
-          <CardTitle className='text-sm'>All Cycles</CardTitle>
+          <CardTitle className='text-sm'>{t('allCycles')}</CardTitle>
           <CardDescription className='text-xs'>
-            Showing {cycles.length} of {total} cycle(s)
+            {t('showing', { shown: cycles.length, total })}
           </CardDescription>
         </CardHeader>
         <CardContent className='p-0'>

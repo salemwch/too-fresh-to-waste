@@ -1505,7 +1505,12 @@
           "severity": "Sévérité"
         },
         "empty": "Aucun signalement trouvé",
-        "emptyDescription": "Ajustez l'onglet ou les filtres"
+        "emptyDescription": "Ajustez l'onglet ou les filtres",
+        "filters": {
+          "priority": "Priorité",
+          "allPriority": "Toutes les priorités",
+          "searchPlaceholder": "Rechercher des signalements…"
+        }
       },
       "settings": {
         "title": "Configuration Système",
@@ -2248,6 +2253,30 @@
       "toSettle": "{amount} restent à régler sur les prochaines commandes. Vous ne nous payez jamais directement.",
       "noActivity": "Aucune vente ce mois-ci. Votre récapitulatif de commission apparaîtra ici dès les premières commandes.",
       "error": "Impossible de charger votre récapitulatif de commission."
+    },
+    "adminShared": {
+      "period": {
+        "day": "Aujourd’hui",
+        "week": "Cette semaine",
+        "month": "Ce mois-ci",
+        "quarter": "Trimestre",
+        "year": "Année"
+      },
+      "export": "Exporter",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "loading": "Chargement…",
+      "noActivity": "Aucune activité récente",
+      "allActions": "Toutes les actions",
+      "allAdmins": "Tous les administrateurs",
+      "searchAction": "Rechercher une action…",
+      "date": "Date",
+      "admin": "Administrateur",
+      "action": "Action",
+      "details": "Détails",
+      "toggleNav": "Basculer la navigation",
+      "adminNav": "Navigation administrateur",
+      "logoAlt": "Too Fresh To Waste"
     }
   },
   "merchantSignup": {
@@ -5897,6 +5926,124 @@
       "title": "Impossible de charger les avis",
       "body": "Une erreur est survenue lors du chargement. Réessayez.",
       "retry": "Réessayer"
+    }
+  },
+  "adminVoting": {
+    "title": "Cycles de vote",
+    "subtitle": "Gérez les cycles de vote communautaires, les prix et les critères d’éligibilité.",
+    "refresh": "Actualiser",
+    "createCycle": "Créer un cycle",
+    "liveDashboard": "Tableau de bord en direct",
+    "winnersAndClaims": "Gagnants et réclamations",
+    "totalCycles": "{count, plural, =0 {aucun cycle} one {# cycle} other {# cycles}}",
+    "allCycles": "Tous les cycles",
+    "showing": "Affichage de {shown} sur {total}",
+    "status": {
+      "draft": "Brouillon",
+      "active": "Actif",
+      "completed": "Terminé",
+      "expired": "Expiré",
+      "archived": "Archivé",
+      "ballot_open": "Scrutin ouvert",
+      "tallying": "Comptage"
+    },
+    "table": {
+      "name": "Nom",
+      "cycleNumber": "Cycle n°{number}",
+      "status": "Statut",
+      "dates": "Dates",
+      "seasonBagGoal": "Objectif de paniers",
+      "prizes": "Prix",
+      "prizeCount": "{count, plural, =0 {aucun prix} one {# prix} other {# prix}}",
+      "actions": "Actions",
+      "edit": "Modifier",
+      "activate": "Activer",
+      "delete": "Supprimer",
+      "archive": "Archiver",
+      "searchPlaceholder": "Rechercher des cycles…",
+      "empty": "Aucun cycle de vote",
+      "emptyDescription": "Créez votre premier cycle de vote pour commencer."
+    },
+    "form": {
+      "editTitle": "Modifier le cycle de vote",
+      "createTitle": "Créer un cycle de vote",
+      "lockedNotice": "Ce cycle est {status} - la plupart des champs sont en lecture seule. Seuls la date de fin et le nombre de bénéficiaires peuvent être modifiés.",
+      "name": "Nom du cycle",
+      "namePlaceholder": "ex. Cycle de vote T3 2026",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "communityGoal": "Objectif communautaire",
+      "communityGoalHelp": "Objectif de paniers sauvés",
+      "minBags": "Paniers min.",
+      "minBagsHelp": "Seuil d’éligibilité",
+      "recipients": "Bénéficiaires",
+      "recipientsHelp": "Gagnants à sélectionner",
+      "cancel": "Annuler",
+      "saving": "Enregistrement…",
+      "update": "Mettre à jour",
+      "create": "Créer le cycle"
+    },
+    "prizes": {
+      "sectionLabel": "Prix ({count})",
+      "prizeLabel": "Prix {number}",
+      "remove": "Supprimer le prix {number}",
+      "name": "Nom",
+      "namePlaceholder": "ex. Smartphone dernier cri",
+      "value": "Valeur",
+      "valuePlaceholder": "ex. 1000 TND",
+      "description": "Description",
+      "descriptionPlaceholder": "Courte description du prix",
+      "category": "Catégorie",
+      "imageUrl": "URL de l’image",
+      "imageUrlPlaceholder": "https://…",
+      "addPrize": "Ajouter un prix",
+      "categories": {
+        "phone": "Téléphone",
+        "hotel_stay": "Séjour à l’hôtel",
+        "shopping_voucher": "Bon d’achat",
+        "gym_membership": "Abonnement salle de sport",
+        "electric_scooter": "Trottinette électrique",
+        "custom": "Personnalisé"
+      }
+    },
+    "live": {
+      "back": "Cycles",
+      "title": "Tableau de bord des votes",
+      "noActiveCycle": "Aucun cycle de vote actif",
+      "noActiveCycleDescription": "Créez un cycle depuis la gestion des cycles et activez-le pour voir les données en direct ici.",
+      "ended": "Terminé",
+      "remainingDays": "{days} j {hours} h restantes",
+      "remainingHours": "{hours} h {minutes} min restantes",
+      "remainingMinutes": "{minutes} min restantes",
+      "ballot": "Scrutin :",
+      "communityGoal": "Objectif communautaire",
+      "bagsSaved": "paniers sauvés",
+      "snapshotNotReady": "Instantané non prêt",
+      "snapshotNotReadyDescription": "Le vote est bloqué jusqu’à la fin de l’instantané d’éligibilité.",
+      "retrying": "Nouvelle tentative…",
+      "retrySnapshot": "Relancer l’instantané",
+      "ballotResults": "Résultats du scrutin",
+      "participation": "{voters} / {eligible} éligibles ({percent}% de participation)",
+      "noVotes": "Aucun vote pour le moment.",
+      "leading": "En tête",
+      "resultLine": "{points} pts · {voters, plural, one {# votant} other {# votants}}",
+      "runningTally": "Comptage en cours…",
+      "runManualTally": "Lancer le comptage manuel",
+      "winnerAnnounced": "Gagnant annoncé",
+      "winnerStats": "{votes} votes pondérés · {voters, plural, one {# votant} other {# votants}}",
+      "winnerNote": "Les {count} premiers du classement reçoivent ce prix.",
+      "expired": "Cycle expiré",
+      "expiredDescription": "L’objectif communautaire n’a pas été atteint. Archivez ce cycle pour en démarrer un nouveau."
+    },
+    "toast": {
+      "created": "Cycle de vote créé",
+      "updated": "Cycle de vote mis à jour",
+      "activated": "Cycle de vote activé",
+      "deleted": "Cycle de vote supprimé",
+      "archived": "Cycle de vote archivé",
+      "tallyComplete": "Comptage terminé",
+      "snapshotRetried": "Reconstruction de l’instantané lancée",
+      "error": "Une erreur est survenue. Veuillez réessayer."
     }
   }
 }

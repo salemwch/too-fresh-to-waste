@@ -21,6 +21,7 @@ export function AdminMobileNav({ groups }: AdminMobileNavProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const tNav = useTranslations('dashboard.nav');
+  const tShared = useTranslations('dashboard.adminShared');
   const tGroups = useTranslations('dashboard.nav.groups');
 
   // Resolved from the role-filtered groups, so a role without Settings still
@@ -35,17 +36,17 @@ export function AdminMobileNav({ groups }: AdminMobileNavProps) {
       <SheetTrigger asChild>
         <Button variant='ghost' className='xl:hidden h-9 w-9 p-0 flex items-center justify-center'>
           <Menu className='h-4 w-4' />
-          <span className='sr-only'>Toggle navigation</span>
+          <span className='sr-only'>{tShared('toggleNav')}</span>
         </Button>
       </SheetTrigger>
       <SheetContent side='left' className='w-64 p-0 overflow-y-auto'>
-        <SheetTitle className='sr-only'>Admin Navigation</SheetTitle>
+        <SheetTitle className='sr-only'>{tShared('adminNav')}</SheetTitle>
 
         <div className='flex h-12 items-center border-b px-lg'>
           <Link href='/' className='flex items-center gap-sm'>
             <Image
               src='/images/green-header-center.png'
-              alt='Logo'
+              alt={tShared('logoAlt')}
               width={28}
               height={28}
               className='h-7 w-auto'
