@@ -13,7 +13,7 @@
  * keeps the backend untouched.
  */
 
-import { PrizeCategory } from '@foodwaste/shared';
+import { PrizeCategory, resolveLocalisedText } from '@foodwaste/shared';
 
 import type { PrizeOption, VotingCycleData } from '@/features/voting/types/voting.types';
 
@@ -52,6 +52,7 @@ const UNDECIDED: GrandPrizePresentation = { icon: FALLBACK_ICON, name: null };
  */
 export function getGrandPrizePresentation(
   cycle: VotingCycleData | null | undefined,
+  locale: string,
 ): GrandPrizePresentation {
   const winner = cycle?.winner;
   const name = winner?.name?.trim();
@@ -62,7 +63,21 @@ export function getGrandPrizePresentation(
   const elected: PrizeOption | undefined = cycle?.prizes?.find(p => p._id === winner.prizeId);
   const icon = elected ? (CATEGORY_ICONS[elected.category] ?? FALLBACK_ICON) : FALLBACK_ICON;
 
-  return { icon, name };
+  /*
+   * The winner record snapshots the name at announcement and carries no
+   * translations, so the ballot entry is the only place the variants live.
+   * Resolving off `elected` rather than duplicating them onto the winner keeps
+   * one copy of the text.
+   *
+   * When the ballot entry is gone - an admin edited the prize list after the
+   * announcement - the snapshot is all there is, and naming the prize from it
+   * still beats blanking a result the season already decided.
+   */
+  const resolved = elected
+    ? resolveLocalisedText(elected.name, elected.nameI18n, locale).trim()
+    : name;
+
+  return { icon, name: resolved || name };
 }
 
 export interface PrizeRow {
@@ -87,7 +102,10 @@ export interface PrizeRow {
  * Empty array when no cycle is loaded — the modal then keeps its explanatory
  * text and simply omits the list, rather than rendering an empty box.
  */
-export function getBallotPrizeRows(cycle: VotingCycleData | null | undefined): PrizeRow[] {
+export function getBallotPrizeRows(
+  cycle: VotingCycleData | null | undefined,
+  locale: string,
+): PrizeRow[] {
   const electedId = cycle?.winner?.prizeId;
 
   return (cycle?.prizes ?? [])
@@ -95,7 +113,10 @@ export function getBallotPrizeRows(cycle: VotingCycleData | null | undefined): P
     .map(prize => ({
       id: prize._id,
       icon: CATEGORY_ICONS[prize.category] ?? FALLBACK_ICON,
-      name: prize.name.trim(),
+      // Prize names are admin-authored content, not chrome. An admin may have
+      // supplied a French or Arabic variant; resolveLocalisedText falls back to
+      // the default when they did not, so nothing ever renders blank.
+      name: resolveLocalisedText(prize.name, prize.nameI18n, locale).trim(),
       value: prize.value?.trim() ?? '',
       isElected: Boolean(electedId) && prize._id === electedId,
     }));

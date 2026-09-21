@@ -1,7 +1,20 @@
+import type { LocalisedText } from '@foodwaste/shared';
+
 export interface PrizeOption {
   _id: string;
+  /** The default, and the English copy. Always present. */
   name: string;
+  /**
+   * Optional French and Arabic variants an admin supplied.
+   *
+   * Absent on every cycle created before the field existed, and on any prize
+   * whose admin did not bother - which is why nothing may read this directly.
+   * Resolve through `resolveLocalisedText` so a missing variant falls back to
+   * `name` rather than rendering a gap where the prize should be.
+   */
+  nameI18n?: LocalisedText;
   description: string;
+  descriptionI18n?: LocalisedText;
   imageUrl: string;
   category: string;
   value: string;

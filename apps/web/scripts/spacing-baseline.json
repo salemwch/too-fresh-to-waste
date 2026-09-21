@@ -3524,8 +3524,12 @@
       "space-y:16": 2,
       "p:24": 1,
       "p:0": 1,
-      "gap:16": 1,
-      "space-y:4": 5,
+      "gap:16": 2,
+      "space-y:4": 6,
+      "px:16": 1,
+      "py:8": 1,
+      "mt:16": 1,
+      "mt:8": 1,
       "me:6": 1
     },
     "B": {
@@ -3534,7 +3538,7 @@
     },
     "C": {
       "w:24": 1,
-      "h:28": 5
+      "h:28": 7
     }
   },
   "apps/web/src/components/dashboard/admin/voting/VotingDashboard.tsx": {

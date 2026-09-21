@@ -74,7 +74,7 @@ interface Props {
 }
 
 export const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useUserProfile();
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useLeaderboard();
@@ -104,8 +104,14 @@ export const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
    * already fetched by the voting screen, so React Query serves it from cache.
    */
   const { cycle: activeCycle } = useActiveVotingCycle();
-  const grandPrize = useMemo(() => getGrandPrizePresentation(activeCycle), [activeCycle]);
-  const ballotPrizes = useMemo(() => getBallotPrizeRows(activeCycle), [activeCycle]);
+  const grandPrize = useMemo(
+    () => getGrandPrizePresentation(activeCycle, i18n.language),
+    [activeCycle],
+  );
+  const ballotPrizes = useMemo(
+    () => getBallotPrizeRows(activeCycle, i18n.language),
+    [activeCycle, i18n.language],
+  );
 
   const firstName = user?.firstName ?? '';
 

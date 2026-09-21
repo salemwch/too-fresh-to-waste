@@ -5990,6 +5990,12 @@
         "gym_membership": "Gym membership",
         "electric_scooter": "Electric scooter",
         "custom": "Custom"
+      },
+      "translations": "Translations (optional)",
+      "translationsHint": "Customers reading French or Arabic see these. Leave blank and they see the default above.",
+      "locale": {
+        "fr": "FR",
+        "ar": "AR"
       }
     },
     "live": {

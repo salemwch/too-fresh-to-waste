@@ -13,6 +13,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { resolveLocalisedText } from '@foodwaste/shared';
 import {
   Alert,
   Modal,
@@ -68,7 +69,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
   prizes,
   pointsSnapshot,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedPrizeId, setSelectedPrizeId] = useState<string | null>(null);
   const voteMutation = useVoteMutation();
 
@@ -153,6 +154,15 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
           >
             {prizes.map(prize => {
               const isSelected = selectedPrizeId === prize._id;
+              // Prize text is admin-authored content, so it is resolved per
+              // reader rather than read straight off the record. Falls back to
+              // the default when the admin supplied no variant.
+              const prizeName = resolveLocalisedText(prize.name, prize.nameI18n, i18n.language);
+              const prizeDescription = resolveLocalisedText(
+                prize.description,
+                prize.descriptionI18n,
+                i18n.language,
+              );
               return (
                 <TouchableOpacity
                   key={prize._id}
@@ -161,7 +171,7 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
                   activeOpacity={0.7}
                   accessibilityRole='radio'
                   accessibilityState={{ checked: isSelected }}
-                  accessibilityLabel={`${prize.name} — ${prize.value}`}
+                  accessibilityLabel={`${prizeName} — ${prize.value}`}
                   accessibilityHint={t('voting.a11ySelectPrizeHint')}
                 >
                   {prize.imageUrl ? (
@@ -189,10 +199,10 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
                       style={styles.prizeNameText}
                       numberOfLines={1}
                     >
-                      {prize.name}
+                      {prizeName}
                     </Text>
                     <Text variant='body' size='sm' style={styles.prizeDescText} numberOfLines={2}>
-                      {prize.description}
+                      {prizeDescription}
                     </Text>
                     <Text variant='body' size='xs' style={styles.prizeValueText}>
                       {prize.value}

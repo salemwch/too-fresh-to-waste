@@ -23,3 +23,4 @@ export * from './utils/order.utils';
 export * from './utils/format.utils';
 export * from './utils/date.utils';
 export * from './utils/api.utils';
+export * from './utils/localised-text';

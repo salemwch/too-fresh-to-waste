@@ -1,7 +1,13 @@
+import type { LocalisedText } from '@foodwaste/shared';
+
 interface PrizeOptionData {
   _id: string;
+  /** The default, and the English copy. Always present. */
   name: string;
+  /** Optional variants an admin supplied. Resolve via resolveLocalisedText. */
+  nameI18n?: LocalisedText;
   description: string;
+  descriptionI18n?: LocalisedText;
   imageUrl?: string;
   category: string;
   value: string;

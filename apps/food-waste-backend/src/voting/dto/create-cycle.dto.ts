@@ -14,18 +14,63 @@ import {
   Matches,
   ArrayMinSize,
   ArrayMaxSize,
+  IsOptional,
+  MaxLength,
 } from 'class-validator';
 
 import { CDN_IMAGE_PATTERN } from '../voting.constants';
+
+/**
+ * Caps a translated prize string. Matches nothing stricter than the default
+ * field, which is unbounded today - this is about keeping an optional,
+ * rarely-reviewed field from becoming an unbounded write vector, not about
+ * editorial length.
+ */
+const PRIZE_TEXT_MAX_LENGTH = 500;
+
+/**
+ * Optional per-language variants of one admin-authored string.
+ *
+ * Both fields optional: the required default on the prize is the floor, so a
+ * missing variant degrades to it rather than failing validation. `IsOptional`
+ * rather than `ValidateIf` because an omitted key and an explicit `undefined`
+ * should behave the same here - the admin form sends whichever the browser
+ * felt like.
+ */
+export class LocalisedTextDto {
+  @ApiProperty({ example: 'Dernier smartphone', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(PRIZE_TEXT_MAX_LENGTH)
+  fr?: string;
+
+  @ApiProperty({ example: 'أحدث هاتف ذكي', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(PRIZE_TEXT_MAX_LENGTH)
+  ar?: string;
+}
 
 export class CreatePrizeOptionDto {
   @ApiProperty({ example: 'Latest Smartphone' })
   @IsString()
   name!: string;
 
+  @ApiProperty({ type: LocalisedTextDto, required: false })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalisedTextDto)
+  nameI18n?: LocalisedTextDto;
+
   @ApiProperty({ example: 'Brand new flagship phone' })
   @IsString()
   description!: string;
+
+  @ApiProperty({ type: LocalisedTextDto, required: false })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalisedTextDto)
+  descriptionI18n?: LocalisedTextDto;
 
   @ApiProperty({ example: 'https://res.cloudinary.com/...', required: false })
   @ValidateIf((_o, value) => value !== undefined && value !== null && value !== '')

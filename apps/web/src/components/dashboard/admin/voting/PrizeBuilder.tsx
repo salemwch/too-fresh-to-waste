@@ -1,5 +1,6 @@
 'use client';
 
+import type { LocalisedText } from '@foodwaste/shared';
 import { Button } from '@foodwaste/ui';
 import { useTranslations } from 'next-intl';
 import { Input } from '@foodwaste/ui';
@@ -17,8 +18,19 @@ import { Trash2, Plus } from 'lucide-react';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface PrizeFormItem {
+  /** The default, and the English copy. Required. */
   name: string;
+  /**
+   * Optional French and Arabic variants.
+   *
+   * Optional on purpose: prize names are content an admin types, and requiring
+   * three versions of name and description would be thirty inputs for a
+   * five-prize cycle. A customer sees their own language when it exists and
+   * the default when it does not.
+   */
+  nameI18n?: LocalisedText;
   description: string;
+  descriptionI18n?: LocalisedText;
   imageUrl?: string;
   category: string;
   value: string;
@@ -99,6 +111,33 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
     onChange(updated);
   }
 
+  /**
+   * Writes one language variant.
+   *
+   * Clears the key when the admin empties the field rather than storing '',
+   * so "supplied nothing" and "supplied blank" cannot drift apart - the
+   * resolver treats both as absent, and the stored shape should say the same.
+   */
+  function updateTranslation(
+    index: number,
+    field: 'nameI18n' | 'descriptionI18n',
+    locale: 'fr' | 'ar',
+    value: string,
+  ) {
+    const updated = [...prizes];
+    const current = updated[index]!;
+    const next: LocalisedText = { ...(current[field] ?? {}) };
+
+    if (value.trim().length === 0) delete next[locale];
+    else next[locale] = value;
+
+    updated[index] = {
+      ...current,
+      ...(Object.keys(next).length > 0 ? { [field]: next } : { [field]: undefined }),
+    };
+    onChange(updated);
+  }
+
   function addPrize() {
     onChange([...prizes, { ...EMPTY_PRIZE }]);
   }
@@ -167,6 +206,51 @@ export function PrizeBuilder({ prizes, onChange, disabled }: PrizeBuilderProps) 
                 className='h-7 text-xs'
               />
             </div>
+
+            {/*
+              Translations sit behind a disclosure rather than inline. Six extra
+              inputs per prize shown by default would triple the height of a
+              five-prize form for a field most admins will skip - and burying
+              the required name among optional ones is how required fields get
+              missed.
+            */}
+            <details className='col-span-2 rounded-md border border-border/60 px-md py-sm'>
+              <summary className='cursor-pointer select-none text-xs font-medium text-muted-foreground'>
+                {t('translations')}
+              </summary>
+              <div className='mt-md grid grid-cols-2 gap-md'>
+                {(['fr', 'ar'] as const).map(locale => (
+                  <div key={locale} className='space-y-xs'>
+                    <Label className='text-xs'>
+                      {t('name')} ({t(`locale.${locale}`)})
+                    </Label>
+                    <Input
+                      value={prize.nameI18n?.[locale] ?? ''}
+                      onChange={e => updateTranslation(index, 'nameI18n', locale, e.target.value)}
+                      disabled={disabled}
+                      // The field reads in its own language, so it has to lay
+                      // out in its own direction - an Arabic name typed into an
+                      // ltr box puts the punctuation on the wrong end.
+                      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+                      className='h-7 text-xs'
+                    />
+                    <Label className='text-xs'>
+                      {t('description')} ({t(`locale.${locale}`)})
+                    </Label>
+                    <Input
+                      value={prize.descriptionI18n?.[locale] ?? ''}
+                      onChange={e =>
+                        updateTranslation(index, 'descriptionI18n', locale, e.target.value)
+                      }
+                      disabled={disabled}
+                      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+                      className='h-7 text-xs'
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className='mt-sm text-[10px] text-muted-foreground'>{t('translationsHint')}</p>
+            </details>
 
             <div className='space-y-xs'>
               <Label className='text-xs'>{t('category')}</Label>

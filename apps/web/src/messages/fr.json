@@ -6004,6 +6004,12 @@
         "gym_membership": "Abonnement salle de sport",
         "electric_scooter": "Trottinette électrique",
         "custom": "Personnalisé"
+      },
+      "translations": "Traductions (facultatif)",
+      "translationsHint": "Les clients lisant le français ou l’arabe verront ceci. Laissez vide et ils verront la valeur par défaut ci-dessus.",
+      "locale": {
+        "fr": "FR",
+        "ar": "AR"
       }
     },
     "live": {
