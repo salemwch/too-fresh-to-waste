@@ -166,7 +166,7 @@
     "@types/geoip-lite": "1.4.4",
     "@types/iso-3166-1-alpha-2": "^1.0.2",
     "@types/jest": "^29.5.13",
-    "@types/luxon": "^3.7.1",
+    "@types/luxon": "^3.7.5",
     "@types/ms": "^2.1.0",
     "@types/multer": "^2.1.0",
     "@types/node": "^20.19.43",
