@@ -126,7 +126,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
   const handleSavePhone = useCallback(async () => {
     if (!phoneNumber || phoneNumber.length < PHONE_FULL_LENGTH) {
-      setError(`Please enter a valid ${PHONE_LOCAL_DIGITS}-digit phone number`);
+      setError(t('orders.phoneInvalidLength', { digits: PHONE_LOCAL_DIGITS }));
       return;
     }
 
@@ -139,12 +139,11 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       await onVerificationComplete();
     } catch (err) {
       Logger.error('[PhoneModal] Failed to save phone', {}, err instanceof Error ? err : undefined);
-      const message = 'Failed to save your phone number. Please try again.';
-      setError(message);
+      setError(t('orders.phoneSaveFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [phoneNumber, onVerificationComplete, dispatch]);
+  }, [phoneNumber, onVerificationComplete, dispatch, t]);
 
   const handleCloseAnimated = useCallback(() => {
     Animated.parallel([
@@ -188,7 +187,7 @@ export const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
               </View>
               <TextInput
                 accessibilityLabel={t('orders.a11yPhoneInput')}
-                accessibilityHint={`Enter your ${PHONE_LOCAL_DIGITS}-digit phone number`}
+                accessibilityHint={t('orders.a11yPhoneInputHint', { digits: PHONE_LOCAL_DIGITS })}
                 style={[styles.input, styles.phoneInput]}
                 placeholder={t('orders.phonePlaceholder')}
                 placeholderTextColor={colorTokens.light.onSurfaceVariant}

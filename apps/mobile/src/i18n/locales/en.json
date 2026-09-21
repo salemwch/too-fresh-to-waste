@@ -178,7 +178,15 @@
     "signOut": "Sign out",
     "a11ySignOutHint": "Signs you out and returns to the login screen",
     "a11yFocusDigit": "Focuses this digit input field",
-    "a11yEnterDigit": "Enter a single verification digit"
+    "a11yEnterDigit": "Enter a single verification digit",
+    "errorServerSlow": "The server is taking longer than usual to respond. Please try again in a moment.",
+    "errorNoConnection": "No connection to the server. Check your internet and try again.",
+    "errorServerUnavailable": "Our servers are temporarily unavailable. Please try again later.",
+    "errorAccountSuspended": "Your account has been suspended. Please contact support for assistance.",
+    "errorAccountInactive": "Your account is not currently active. Please contact support for assistance.",
+    "errorTooManyAttempts": "Too many attempts. Please try again later.",
+    "errorEmailAlreadyExists": "An account with this email already exists. Try signing in with email instead.",
+    "errorGoogleTokenInvalid": "Google sign-in could not be verified. Please try again."
   },
   "register": {
     "firstNameLabel": "First name",
@@ -553,7 +561,10 @@
     "statusUnknown": "Processing",
     "pickupFailed": "Pickup could not be confirmed. Please try again.",
     "failedToLoad": "Failed to Load Orders",
-    "failedMessage": "Something went wrong. Please try again."
+    "failedMessage": "Something went wrong. Please try again.",
+    "phoneInvalidLength": "Please enter a valid {{digits}}-digit phone number.",
+    "phoneSaveFailed": "We could not save your phone number. Please try again.",
+    "a11yPhoneInputHint": "Enter your {{digits}}-digit phone number"
   },
   "checkout": {
     "fulfillmentMethod": "Receive Order",

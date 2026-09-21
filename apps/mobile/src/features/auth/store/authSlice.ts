@@ -164,10 +164,13 @@ const authSlice = createSlice({
 
     builder.addCase(googleSignInAsync.rejected, (state, action) => {
       const payload = action.payload as { message?: string } | undefined;
+      // The thunk always supplies a key, so the fallback is for a rejection
+      // that bypassed it (an unhandled throw inside the thunk itself). A key
+      // here too, so no path can put raw English on screen.
       state.error =
         payload?.message != null && payload.message !== ''
           ? payload.message
-          : 'Google Sign-In failed';
+          : 'auth.googleSignInFailed';
       state.isAuthenticated = false;
       state.user = null;
       state.flowState = AuthFlowState.UNAUTHENTICATED;
@@ -310,8 +313,7 @@ const authSlice = createSlice({
 
     builder.addCase(refreshTokenAsync.rejected, (state, action) => {
       const payload = action.payload as
-        | { message?: string; isNetworkError?: boolean; isAccountSuspended?: boolean }
-        | undefined;
+        { message?: string; isNetworkError?: boolean; isAccountSuspended?: boolean } | undefined;
 
       if (payload?.isNetworkError === true) {
         // NETWORK/SERVER ERROR: Device offline, server unreachable, or 5xx.
@@ -483,8 +485,7 @@ const authSlice = createSlice({
 
     builder.addCase(syncCurrentUserAsync.rejected, (state, action) => {
       const payload = action.payload as
-        | { isNetworkError?: boolean; isServerError?: boolean; isAuthError?: boolean }
-        | undefined;
+        { isNetworkError?: boolean; isServerError?: boolean; isAuthError?: boolean } | undefined;
 
       if (payload?.isAuthError === true) {
         // 401/403: interceptor will handle logout — don't touch isUserSynced

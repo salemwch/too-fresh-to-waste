@@ -4,7 +4,7 @@
  */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -36,6 +36,7 @@ import { loginSchema, type LoginFormData } from '@/utils/validation/schemas';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { authService } from '../services/authService';
 import { loginAsync, clearError, selectAuthIsLoading, selectAuthError } from '../store/authSlice';
+import { resolveAuthError } from '../utils/resolveAuthError';
 
 import type { LoginScreenNavigationProp } from '@/navigation/types';
 import type { TextInput } from 'react-native';
@@ -122,7 +123,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectAuthIsLoading);
-  const error = useAppSelector(selectAuthError);
+  const rawError = useAppSelector(selectAuthError);
+
+  // `state.auth.error` carries either a backend sentence or an i18n key (see
+  // resolveAuthError). Resolving here rather than in the thunk keeps the text
+  // following a live language change, since `t` is re-created on switch.
+  const error = useMemo(() => resolveAuthError(t, rawError), [t, rawError]);
 
   // React Hook Form setup with Yup validation
   const {

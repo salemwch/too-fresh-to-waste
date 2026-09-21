@@ -178,7 +178,15 @@
     "signOut": "Se déconnecter",
     "a11ySignOutHint": "Vous déconnecte et revient à l’écran de connexion",
     "a11yFocusDigit": "Active ce champ de saisie",
-    "a11yEnterDigit": "Saisissez un chiffre du code de vérification"
+    "a11yEnterDigit": "Saisissez un chiffre du code de vérification",
+    "errorServerSlow": "Le serveur met plus de temps que d'habitude à répondre. Veuillez réessayer dans un instant.",
+    "errorNoConnection": "Aucune connexion au serveur. Vérifiez votre connexion Internet et réessayez.",
+    "errorServerUnavailable": "Nos serveurs sont temporairement indisponibles. Veuillez réessayer plus tard.",
+    "errorAccountSuspended": "Votre compte a été suspendu. Veuillez contacter l'assistance.",
+    "errorAccountInactive": "Votre compte n'est pas actif actuellement. Veuillez contacter l'assistance.",
+    "errorTooManyAttempts": "Trop de tentatives. Veuillez réessayer plus tard.",
+    "errorEmailAlreadyExists": "Un compte existe déjà avec cet e-mail. Essayez de vous connecter par e-mail.",
+    "errorGoogleTokenInvalid": "La connexion Google n'a pas pu être vérifiée. Veuillez réessayer."
   },
   "register": {
     "firstNameLabel": "Prénom",
@@ -553,7 +561,10 @@
     "statusUnknown": "En traitement",
     "pickupFailed": "Le retrait n'a pas pu être confirmé. Veuillez réessayer.",
     "failedToLoad": "Échec du chargement des commandes",
-    "failedMessage": "Une erreur s'est produite. Veuillez réessayer."
+    "failedMessage": "Une erreur s'est produite. Veuillez réessayer.",
+    "phoneInvalidLength": "Veuillez saisir un numéro de téléphone valide à {{digits}} chiffres.",
+    "phoneSaveFailed": "Nous n'avons pas pu enregistrer votre numéro de téléphone. Veuillez réessayer.",
+    "a11yPhoneInputHint": "Saisissez votre numéro de téléphone à {{digits}} chiffres"
   },
   "checkout": {
     "fulfillmentMethod": "Recevoir la commande",

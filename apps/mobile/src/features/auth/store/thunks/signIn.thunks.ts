@@ -66,6 +66,20 @@ export const loginAsync = createAsyncThunk(
         message: errorMessage,
       };
 
+      // A connectivity failure carries no backend message worth showing - the
+      // server never answered. Swap in an i18n key so the screen renders
+      // translated advice instead of "Request timed out". Everything else keeps
+      // the backend's own wording, which is already user-facing and specific
+      // ("Invalid email or password", "Please verify your email first").
+      if (error !== null && error !== undefined && typeof error === 'object') {
+        const netCode = (error as Record<string, unknown>)['errorCode'];
+        if (netCode === 'TIMEOUT') {
+          errorPayload['message'] = 'auth.errorServerSlow';
+        } else if (netCode === 'OFFLINE') {
+          errorPayload['message'] = 'auth.errorNoConnection';
+        }
+      }
+
       // Check if error has field/errorCode/lockout/validationErrors metadata
       if (error !== null && error !== undefined && typeof error === 'object') {
         const errObj = error as Record<string, unknown>;
@@ -139,42 +153,50 @@ export const googleSignInAsync = createAsyncThunk(
       }
 
       const lower = rawMessage.toLowerCase();
-      let errorMessage: string;
+
+      // Resolves to an i18n key, not a sentence. These strings used to be
+      // hardcoded English, so fr and ar users were shown English on every
+      // failed sign-in. The screen runs it through `resolveAuthError`, which
+      // translates a key and passes any non-key string through unchanged.
+      let messageKey: string;
 
       if (
         lower.includes('suspended') ||
         lower.includes('no longer active') ||
         errorCode === 'ACCOUNT_SUSPENDED'
       ) {
-        errorMessage = 'Your account has been suspended. Please contact support for assistance.';
+        messageKey = 'auth.errorAccountSuspended';
       } else if (
         lower.includes('not currently active') ||
         lower.includes('not active') ||
         errorCode === 'ACCOUNT_INACTIVE'
       ) {
-        errorMessage =
-          'Your account is not currently active. Please contact support for assistance.';
+        messageKey = 'auth.errorAccountInactive';
       } else if (lower.includes('locked') || lower.includes('too many')) {
-        errorMessage = 'Too many attempts. Please try again later.';
+        messageKey = 'auth.errorTooManyAttempts';
       } else if (lower.includes('already exists') || lower.includes('conflict')) {
-        errorMessage =
-          'An account with this email already exists. Try signing in with email instead.';
+        messageKey = 'auth.errorEmailAlreadyExists';
+      } else if (errorCode === 'TIMEOUT') {
+        // Checked before the generic NETWORK case below, which would otherwise
+        // absorb it: a timeout means the server answered too slowly, not that
+        // the phone is offline, and the two need different advice.
+        messageKey = 'auth.errorServerSlow';
       } else if (
+        errorCode === 'OFFLINE' ||
+        errorType === 'NETWORK' ||
         lower.includes('network') ||
-        lower.includes('timeout') ||
-        errorType === 'NETWORK'
+        lower.includes('timeout')
       ) {
-        errorMessage = 'Unable to connect. Please check your internet and try again.';
+        messageKey = 'auth.errorNoConnection';
       } else if (lower.includes('invalid') && lower.includes('token')) {
-        errorMessage = 'Google sign-in could not be verified. Please try again.';
+        messageKey = 'auth.errorGoogleTokenInvalid';
       } else if (errorType === 'SERVER_ERROR') {
-        errorMessage = 'Our servers are temporarily unavailable. Please try again later.';
+        messageKey = 'auth.errorServerUnavailable';
       } else {
-        errorMessage = 'Could not sign in with Google. Please try again.';
+        messageKey = 'auth.googleSignInFailed';
       }
 
-      return rejectWithValue({ message: errorMessage });
+      return rejectWithValue({ message: messageKey });
     }
   },
 );
-

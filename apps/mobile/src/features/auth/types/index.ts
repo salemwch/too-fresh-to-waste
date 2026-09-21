@@ -68,6 +68,17 @@ export interface AuthState {
   readonly user: User | null;
   readonly isAuthenticated: boolean;
   readonly isLoading: boolean;
+  /**
+   * Either a ready-to-show sentence from the backend, or an i18n key such as
+   * `auth.errorServerSlow` for failures that have no backend text of their own
+   * (connectivity, timeouts, Google sign-in outcomes).
+   *
+   * Screens resolve it with `resolveAuthError` rather than rendering it raw, so
+   * a key becomes the viewer's language and a sentence passes through. Keeping
+   * both in one field is deliberate: a parallel `errorKey` would have to be
+   * cleared at all eleven sites that assign `error`, and the one missed site is
+   * a stale message shown under a new failure.
+   */
   readonly error: string | undefined;
   readonly lastLoginTime: string | null;
   readonly sessionExpiresAt: string | null;

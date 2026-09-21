@@ -81,7 +81,16 @@ class AuthService {
   private handleRequestError(error: unknown, url: string, duration: number): never {
     if (axios.isAxiosError(error)) {
       NetworkLogger.logResponse(url, error.response?.status ?? 0, duration);
-      this.handleHttpError(error);
+
+      // Only an error carrying a response is an HTTP error. Without one there
+      // is no status for handleHttpError to branch on, so it fell through to
+      // its final `throw NETWORK, 'Network request failed'` and every timeout
+      // came out labelled a connectivity problem. That made handleNetworkError's
+      // timeout branch unreachable for HTTP calls, and the UI told users to
+      // check their internet while the server was simply still waking up.
+      if (error.response !== undefined) {
+        this.handleHttpError(error);
+      }
     }
 
     this.handleNetworkError(error, url);
@@ -322,8 +331,12 @@ class AuthService {
       });
     }
 
-    // Axios error without response (network issue)
+    // Defensive only. handleRequestError now routes response-less errors to
+    // handleNetworkError, and an error that has a response always has a status,
+    // so nothing should arrive here. Kept because the function must return
+    // `never` and a silent fallthrough would be worse than a wrong label.
     throw ErrorHandler.createError(ErrorType.NETWORK, 'Network request failed', {
+      errorCode: 'OFFLINE',
       originalError: error,
     });
   }
@@ -336,19 +349,43 @@ class AuthService {
     const errorCode = (error as { code?: string }).code;
     const errorMessage = error instanceof Error ? error.message : '';
 
-    if (errorCode === 'ECONNABORTED' || errorMessage.includes('timeout')) {
+    // The request left the device and nothing came back in time. The server is
+    // reachable, it is just slow - a cold start on Render answers in ~54s
+    // against a 15s client timeout - so telling the user to check their
+    // internet is both wrong and unactionable. `errorCode` is what callers
+    // branch on; the message is a developer-facing fallback.
+    if (
+      errorCode === 'ECONNABORTED' ||
+      errorCode === 'ETIMEDOUT' ||
+      errorMessage.toLowerCase().includes('timeout')
+    ) {
+      // `errorCode` is what the sign-in thunks branch on to pick a translation.
+      // The message stays a readable English sentence because other screens
+      // (VerifyPhone, ResetPassword) render it through `getErrorMessage`
+      // untranslated - a bare "Request timed out" would be a downgrade there.
       throw ErrorHandler.createError(
         ErrorType.NETWORK,
-        'Request timeout. Please check your connection and try again.',
-        error instanceof Error ? { originalError: error } : {},
+        'The server is taking longer than usual to respond. Please try again in a moment.',
+        {
+          errorCode: 'TIMEOUT',
+          ...(error instanceof Error ? { originalError: error } : {}),
+        },
       );
     }
 
-    if (errorCode === 'NETWORK_ERROR' || !navigator.onLine) {
+    // Axios v1 reports a failed connection as ERR_NETWORK. The previous
+    // condition also tested `!navigator.onLine`, which React Native does not
+    // define - `!undefined` is always true, so this branch swallowed every
+    // error that reached it regardless of cause, including the UNKNOWN case
+    // below. Match on the code alone.
+    if (errorCode === 'ERR_NETWORK' || errorCode === 'NETWORK_ERROR') {
       throw ErrorHandler.createError(
         ErrorType.NETWORK,
-        'No internet connection. Please check your network and try again.',
-        error instanceof Error ? { originalError: error } : {},
+        'No connection to the server. Check your internet and try again.',
+        {
+          errorCode: 'OFFLINE',
+          ...(error instanceof Error ? { originalError: error } : {}),
+        },
       );
     }
 
