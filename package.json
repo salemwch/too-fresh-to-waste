@@ -20,7 +20,7 @@
     "type-check": "turbo run type-check",
     "knip": "knip --no-progress",
     "knip:strict": "knip --no-progress --max-issues 0",
-    "check:lockfile": "pnpm install --frozen-lockfile --lockfile-only --ignore-scripts",
+    "check:lockfile": "pnpm install --frozen-lockfile --lockfile-only --ignore-scripts && node scripts/check-manifest-overrides.mjs",
     "fix:lockfile": "pnpm install --lockfile-only",
     "test": "turbo run test",
     "test:ci": "turbo run test:ci",
@@ -59,7 +59,8 @@
     "security:sast": "semgrep --config=.semgrep/rules.yml --config=p/owasp-top-ten --config=p/jwt --config=p/nodejs --config=p/react --config=p/secrets --exclude=node_modules --exclude=dist --exclude=.next --exclude=android --exclude=ios --exclude=pnpm-lock.yaml apps/ packages/",
     "security:sast:ci": "semgrep --config=.semgrep/rules.yml --config=p/owasp-top-ten --config=p/jwt --config=p/nodejs --config=p/react --config=p/secrets --exclude=node_modules --exclude=dist --exclude=.next --exclude=android --exclude=ios --exclude=pnpm-lock.yaml --json apps/ packages/",
     "prepare-release": "turbo run build test:ci security:check && pnpm audit",
-    "check:tslib": "node scripts/check-tslib-helpers.mjs"
+    "check:tslib": "node scripts/check-tslib-helpers.mjs",
+    "check:manifests": "node scripts/check-manifest-overrides.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",

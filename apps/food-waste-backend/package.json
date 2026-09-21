@@ -122,7 +122,7 @@
     "helmet": "^8.2.0",
     "ioredis": "^5.11.1",
     "iso-3166-1-alpha-2": "^1.0.2",
-    "joi": "17.13.4",
+    "joi": "^18.2.5",
     "libphonenumber-js": "^1.13.6",
     "luxon": "^3.7.2",
     "minimatch": "^10.2.6",

@@ -242,3 +242,59 @@ standing between this override and a silently broken password reset.
 
 Do not raise it by bumping `query-string` alone: React Navigation pins the major
 it expects, and the failure mode here is silent at build time.
+
+## An override can hide a vulnerable pin in an app manifest (2026-09-21)
+
+`pnpm audit` was clean. Dependabot reported three open alerts. Both were right,
+and the gap between them is the thing to remember.
+
+The alerts pointed at **`package.json`**, not `pnpm-lock.yaml`:
+
+```
+sharp  apps/mobile/package.json              "sharp": "0.35.3"    advisory: <0.35.4
+joi    apps/food-waste-backend/package.json  "joi":   "17.13.4"   advisory: <17.13.6
+```
+
+Both were exact pins on vulnerable versions. The root `pnpm.overrides` forced
+the installed tree to `sharp@0.35.4` and `joi@18.2.8`, so nothing vulnerable was
+ever running - which is exactly why `pnpm audit` said nothing. **It reads the
+resolved tree. Dependabot reads the declaration.**
+
+That divergence is not cosmetic:
+
+- Remove or narrow the override and the vulnerable version comes straight back,
+  silently, with no gate failing.
+- Anyone installing that workspace on its own gets the vulnerable version - the
+  override lives in the _root_ manifest.
+- The manifest is what a reader believes. A file saying `"joi": "17.13.4"` next
+  to a tree running 18.2.8 means nobody can trust either.
+
+**So when an advisory is cleared by an override, update the app manifest too.**
+The override is for holding a _transitive_ dependency in place; it is not a
+substitute for the direct dependency being declared correctly.
+
+The fix here changed no resolved version at all - `git diff pnpm-lock.yaml` was
+empty after regenerating, because the overrides had been producing those
+versions all along. The manifests simply started telling the truth.
+
+**Check both, because they answer different questions:**
+
+```bash
+pnpm audit                      # what is installed
+grep -n '"<pkg>"' apps/*/package.json   # what is declared
+```
+
+Two further notes from the same pass:
+
+- **Dependabot's `scope` field is not reliable.** It labelled `sharp` as
+  `development`, but `pnpm why sharp -P` shows it is a production dependency of
+  the backend directly and of web through `next`. Had it still been vulnerable,
+  it would have shipped. Trust `pnpm why -P` per app, as the rest of this file
+  already insists.
+- **`joi` 17 -> 18 crossed a major and was still safe to take**, because the
+  tree had been resolving to 18.x under the override for some time and the suite
+  had been passing against it. The API surface in `config/env.validation.ts` is
+  `string/number/boolean/object/when/ref/valid/ required/optional/exist`,
+  unchanged across that major, and `config/__tests__/env-validation-*.spec.ts`
+  calls `envValidationSchema.validate(...)` directly - 15 assertions that
+  actually execute the schema rather than merely importing it.
