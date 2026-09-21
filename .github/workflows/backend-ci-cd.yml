@@ -368,7 +368,7 @@ jobs:
         uses: sigstore/cosign-installer@v3.7.0
 
       - name: Generate Docker image SBOM (CycloneDX)
-        uses: anchore/sbom-action@v0.17.2
+        uses: anchore/sbom-action@v0.24.2
         with:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}
           format: cyclonedx-json
@@ -377,7 +377,7 @@ jobs:
           upload-artifact-retention: 7
 
       - name: Generate Docker image SBOM (SPDX)
-        uses: anchore/sbom-action@v0.17.2
+        uses: anchore/sbom-action@v0.24.2
         with:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}
           format: spdx-json
@@ -386,7 +386,7 @@ jobs:
           upload-artifact-retention: 7
 
       - name: Generate source SBOM (CycloneDX)
-        uses: anchore/sbom-action@v0.17.2
+        uses: anchore/sbom-action@v0.24.2
         with:
           path: .
           format: cyclonedx-json
@@ -405,7 +405,7 @@ jobs:
           echo "✓ SBOM attestation attached to image"
 
       - name: Submit SBOM to GitHub Dependency Graph
-        uses: anchore/sbom-action/publish-sbom@v0.17.2
+        uses: anchore/sbom-action/publish-sbom@v0.24.2
         with:
           sbom-artifact-match: ".*cyclonedx.*"
 
