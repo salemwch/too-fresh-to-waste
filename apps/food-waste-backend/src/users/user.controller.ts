@@ -572,6 +572,15 @@ export class UsersController {
 
       return res.status(HttpStatus.OK).json(result);
     } catch (error) {
+      // Preserve a status the service chose deliberately. Without this every
+      // outcome collapsed to 400 - the 409 for a number already registered to
+      // another account, the 404 for a missing user, and now the 503 for SMS
+      // being switched off - so the client could not tell "your input is wrong"
+      // from "this feature is unavailable" and retried all of them.
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
       throw new HttpException(
         {
           success: false,

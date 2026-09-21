@@ -6,6 +6,7 @@ import {
   ConflictException,
   Logger,
   BadRequestException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
@@ -533,6 +534,20 @@ export class UsersService implements IUsersService {
     phoneNumber: string,
     auditData?: { ipAddress: string; userAgent: string },
   ): Promise<IPhoneVerificationResult> {
+    // 0. SMS off - refuse before touching anything.
+    //
+    // Above every step below on purpose. Letting it run would hash a code,
+    // write it to the user document, and burn one of the five hourly
+    // rate-limit slots, all for an SMS that cannot leave the building - then
+    // fail at step 10 with "Failed to send verification code. Please try
+    // again.", which invites the retry that spends the next slot.
+    if (!this.smsNotificationService.isSmsEnabled()) {
+      this.logger.warn('Phone verification requested while SMS is disabled', { userId });
+      throw new ServiceUnavailableException(
+        'Phone verification is currently unavailable. Please try again later.',
+      );
+    }
+
     try {
       // 1. Find user
       const user = await this.userModel.findById(userId);

@@ -175,3 +175,24 @@ envVarGroups:
     envVars:
       - key: NODE_ENV
         value: production
+
+      # SMS master switch. Off: Twilio is never constructed, so boot does not
+      # pay for it and no code path can reach the network.
+      #
+      # It is off because SMS is not in any user journey today. Order placement
+      # requires a phone *number* and never a verified one (order.service.ts),
+      # and the checkout modal only PATCHes /users/profile - no OTP is sent.
+      #
+      # It was also actively costing something. TWILIO_PHONE_NUMBER named a
+      # number the account does not own, so every worker boot ran the
+      # connectivity probe, failed after ~8.3s, and logged four ERROR lines -
+      # on a cold start, time the mobile client spends waiting on its first
+      # request before its 15s timeout.
+      #
+      # To re-enable: set this to true AND add TWILIO_ACCOUNT_SID,
+      # TWILIO_AUTH_TOKEN and a TWILIO_PHONE_NUMBER the account actually owns.
+      # env.validation.ts requires all three in production only when this is
+      # true, so turning it on without them fails the boot loudly rather than
+      # degrading in silence.
+      - key: SMS_ENABLED
+        value: "false"

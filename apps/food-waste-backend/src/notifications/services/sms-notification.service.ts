@@ -71,6 +71,7 @@ export class SmsNotificationService implements INotificationProvider {
   private twilioClient: Twilio | null = null;
   private readonly fromNumber: string;
   private readonly requirePhoneVerification: boolean;
+  private readonly smsEnabled: boolean;
 
   constructor(
     private readonly configService: ConfigService,
@@ -86,7 +87,21 @@ export class SmsNotificationService implements INotificationProvider {
       true,
     );
 
+    this.smsEnabled = this.configService.get<boolean>('SMS_ENABLED', false);
+
     this.logger.log('✅ SmsNotificationService initialized with shared RedisService');
+
+    if (!this.smsEnabled) {
+      // Deliberate, not degraded. Skipping the whole init is the point: the
+      // connectivity probe alone cost ~8.3s of every boot and logged four
+      // ERROR lines per worker, which on a cold start is time the mobile
+      // client spends waiting on its first request.
+      this.logger.log('SMS delivery is disabled (SMS_ENABLED=false) - Twilio will not be created', {
+        serviceStatus: 'disabled',
+        reEnableWith: 'SMS_ENABLED=true plus TWILIO_ACCOUNT_SID/AUTH_TOKEN/PHONE_NUMBER',
+      });
+      return;
+    }
 
     // Initialize Twilio asynchronously (non-blocking)
     this.initializeTwilio().catch(error => {
@@ -96,6 +111,35 @@ export class SmsNotificationService implements INotificationProvider {
       });
       this.twilioClient = null;
     });
+  }
+
+  /**
+   * Whether SMS delivery is switched on for this environment.
+   *
+   * Callers that own a user-facing flow (the phone-OTP endpoints) read this
+   * *before* doing any work, so a disabled service costs no DB write and no
+   * rate-limit slot. Callers that merely want to notify can ignore it and take
+   * the `success: false` result the send methods return.
+   */
+  isSmsEnabled(): boolean {
+    return this.smsEnabled;
+  }
+
+  /**
+   * The single result every send path returns while SMS is off.
+   *
+   * `success: false` is deliberate. The alternative - reporting a send that
+   * never happened - is how the mock branch in `sendSms` used to behave, and a
+   * notification record saying "sent" for a message nobody received is worse
+   * than no record at all.
+   */
+  private smsDisabledResult(context: string): NotificationResult {
+    this.logger.debug('SMS skipped - delivery disabled by configuration', { context });
+
+    return {
+      success: false,
+      error: 'SMS delivery is disabled',
+    };
   }
 
   /**
@@ -1429,6 +1473,10 @@ export class SmsNotificationService implements INotificationProvider {
     payload: NotificationPayload,
     target: NotificationTarget,
   ): Promise<NotificationResult> {
+    if (!this.smsEnabled) {
+      return this.smsDisabledResult('send');
+    }
+
     try {
       if (!payload?.title || !payload?.body) {
         throw new BadRequestException('SMS payload requires title and body');
@@ -1486,6 +1534,12 @@ export class SmsNotificationService implements INotificationProvider {
       return [];
     }
 
+    // Before the 100-recipient guard on purpose: a disabled service should not
+    // reject a caller for a limit it was never going to enforce.
+    if (!this.smsEnabled) {
+      return targets.map(() => this.smsDisabledResult('sendBulk'));
+    }
+
     if (targets.length > 100) {
       throw new BadRequestException('Bulk SMS limited to 100 recipients per request');
     }
@@ -1530,6 +1584,10 @@ export class SmsNotificationService implements INotificationProvider {
   }
 
   async sendVerificationCode(phoneNumber: string, code: string): Promise<NotificationResult> {
+    if (!this.smsEnabled) {
+      return this.smsDisabledResult('sendVerificationCode');
+    }
+
     // Build message with optional Android SMS Retriever hash for enhanced security
     // Format: <#> Your code is 123456. This code will expire in 10 minutes. ABC12defGHI
     // The hash ensures only YOUR app (signed with your keystore) can auto-read the SMS
@@ -1578,6 +1636,10 @@ export class SmsNotificationService implements INotificationProvider {
   }
 
   async sendPickupCode(phoneNumber: string, orderData: OrderData): Promise<NotificationResult> {
+    if (!this.smsEnabled) {
+      return this.smsDisabledResult('sendPickupCode');
+    }
+
     const message = `Your pickup code for ${orderData.establishmentName}: ${orderData.pickupCode}. Order: ${orderData.orderId}`;
 
     try {
@@ -1608,6 +1670,10 @@ export class SmsNotificationService implements INotificationProvider {
     phoneNumber: string,
     reminderData: ReminderData,
   ): Promise<NotificationResult> {
+    if (!this.smsEnabled) {
+      return this.smsDisabledResult('sendUrgentReminder');
+    }
+
     const message = `URGENT: Your food order expires in ${reminderData.timeLeft}! Pickup at ${reminderData.establishmentName}. Order: ${reminderData.orderId}`;
 
     try {
@@ -1802,6 +1868,15 @@ export class SmsNotificationService implements INotificationProvider {
     }
 
     if (!this.twilioClient) {
+      // Reachable in production only when SMS_ENABLED=true and Twilio failed to
+      // initialise - credentials rejected, or a from-number the account does not
+      // own. Returning the mock below there would hand back a fabricated SID and
+      // status:'sent', and every caller records a delivery that never happened.
+      // Fail loudly instead; the mock stays for local development.
+      if (this.configService.get<string>('NODE_ENV') === 'production') {
+        throw new Error('Twilio client unavailable - SMS was not sent');
+      }
+
       // Mock implementation for development
       this.logger.log('Mock SMS sent', {
         to: this.phoneValidator.maskPhoneNumber(phoneNumber),
