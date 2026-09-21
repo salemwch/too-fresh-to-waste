@@ -196,7 +196,7 @@ allprojects {
             force("io.netty:netty-transport-native-unix-common:4.2.18.Final")
             force("io.netty:netty-buffer:4.2.18.Final")
             force("io.netty:netty-resolver:4.2.18.Final")
-            force("com.google.protobuf:protobuf-java:3.25.5")
+            force("com.google.protobuf:protobuf-java:3.25.9")
             force("junit:junit:4.13.2")
             force("org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
             force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21")
