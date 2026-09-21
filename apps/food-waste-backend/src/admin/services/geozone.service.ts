@@ -144,8 +144,15 @@ export class GeozoneService {
 
     const enriched = await Promise.all(
       zones.map(async zone => {
+        // `address.coordinates`, not `location.coordinates`. Establishments have
+        // no `location` field at all - that path belongs to SearchQuery, which
+        // is a different collection. Querying it here matched nothing, so every
+        // zone reported establishmentCount: 0 on the admin geozones page, which
+        // read as "no merchants have signed up" rather than as a broken query.
+        // The 2dsphere index backing this lives on `address.coordinates`
+        // (establishment.schema.ts).
         const estCount = await this.establishmentModel.countDocuments({
-          'location.coordinates': {
+          'address.coordinates': {
             $geoWithin: { $geometry: zone.boundary },
           },
         });

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
+import { DEFAULT_DRIVER_MAX_RADIUS_METERS } from '../../common/constants/dispatch.constant';
 import { NotificationService } from '../../notifications/services/notification.service';
 import {
   NotificationPriority,
@@ -46,7 +47,9 @@ export class DriverNotificationsService {
       return;
     }
 
-    const radius = this.configService.get<number>('DRIVER_MAX_RADIUS_METERS') ?? 5000;
+    const radius =
+      this.configService.get<number>('DRIVER_MAX_RADIUS_METERS') ??
+      DEFAULT_DRIVER_MAX_RADIUS_METERS;
 
     try {
       const nearbyDrivers = await this.driverProfileModel

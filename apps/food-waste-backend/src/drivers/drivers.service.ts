@@ -13,6 +13,7 @@ import { Model, Types } from 'mongoose';
 
 import { OrderStatus } from '@foodwaste/shared';
 
+import { DEFAULT_DRIVER_MAX_RADIUS_METERS } from '../common/constants/dispatch.constant';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
 import { AvailableOrdersQueryDto } from './dto/available-orders-query.dto';
 import { OrderHistoryQueryDto } from './dto/order-history-query.dto';
@@ -155,7 +156,9 @@ export class DriversService {
 
     const bufferMs =
       (this.configService.get<number>('DRIVER_PRE_DISPATCH_BUFFER_MINUTES') ?? 20) * 60_000;
-    const maxRadius = this.configService.get<number>('DRIVER_MAX_RADIUS_METERS') ?? 5000;
+    const maxRadius =
+      this.configService.get<number>('DRIVER_MAX_RADIUS_METERS') ??
+      DEFAULT_DRIVER_MAX_RADIUS_METERS;
     const now = new Date();
 
     try {
