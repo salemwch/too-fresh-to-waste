@@ -7,6 +7,7 @@ import * as speakeasy from 'speakeasy';
 
 import { UsersService } from '../../users/user.service';
 
+import { appError } from '../../common/errors';
 export interface MfaSetupResponse {
   secret: string;
   qrCode: string;
@@ -49,7 +50,7 @@ export class MfaService {
     try {
       const user = await this.usersService.findById(userId);
       if (!user) {
-        throw new BadRequestException('User not found');
+        throw new BadRequestException(appError('USER_NOT_FOUND'));
       }
 
       // Generate secret for TOTP
@@ -88,7 +89,7 @@ export class MfaService {
       };
     } catch (error) {
       this.logger.error(`Error setting up TOTP for user ${userId}:`, error);
-      throw new BadRequestException('Failed to setup MFA');
+      throw new BadRequestException(appError('MFA_FAILED'));
     }
   }
 
@@ -96,7 +97,7 @@ export class MfaService {
     try {
       const user = await this.usersService.findById(userId);
       if (!user?.mfaSettings?.pendingTotpSecret) {
-        throw new BadRequestException('No pending TOTP setup found');
+        throw new BadRequestException(appError('MFA_SETUP_NOT_FOUND'));
       }
 
       const isValid = speakeasy.totp.verify({
@@ -122,7 +123,7 @@ export class MfaService {
       return false;
     } catch (error) {
       this.logger.error(`Error verifying TOTP setup for user ${userId}:`, error);
-      throw new BadRequestException('Failed to verify TOTP setup');
+      throw new BadRequestException(appError('MFA_FAILED'));
     }
   }
 
@@ -130,7 +131,7 @@ export class MfaService {
     try {
       const user = await this.usersService.findById(userId);
       if (!user || user.mfaSettings?.isEnabled !== true || !user.mfaSettings?.totpSecret) {
-        throw new UnauthorizedException('MFA not enabled for this user');
+        throw new UnauthorizedException(appError('MFA_NOT_ENABLED'));
       }
 
       // Check if it's a backup code
@@ -160,7 +161,7 @@ export class MfaService {
       };
     } catch (error) {
       this.logger.error(`Error verifying TOTP for user ${userId}:`, error);
-      throw new BadRequestException('Failed to verify MFA token');
+      throw new BadRequestException(appError('MFA_FAILED'));
     }
   }
 
@@ -168,7 +169,7 @@ export class MfaService {
     try {
       const user = await this.usersService.findById(userId);
       if (!user || user.mfaSettings?.isEnabled !== true || !user.mfaSettings?.backupCodes) {
-        throw new UnauthorizedException('MFA not enabled or no backup codes available');
+        throw new UnauthorizedException(appError('MFA_NO_BACKUP_CODES'));
       }
 
       const hashedCode = this.hashBackupCode(code);
@@ -208,7 +209,7 @@ export class MfaService {
       };
     } catch (error) {
       this.logger.error(`Error verifying backup code for user ${userId}:`, error);
-      throw new BadRequestException('Failed to verify backup code');
+      throw new BadRequestException(appError('MFA_FAILED'));
     }
   }
 
@@ -216,7 +217,7 @@ export class MfaService {
     try {
       const user = await this.usersService.findById(userId);
       if (!user || user.mfaSettings?.isEnabled !== true) {
-        throw new BadRequestException('MFA not enabled for this user');
+        throw new BadRequestException(appError('MFA_NOT_ENABLED'));
       }
 
       const newBackupCodes = this.generateBackupCodes();
@@ -230,7 +231,7 @@ export class MfaService {
       return newBackupCodes;
     } catch (error) {
       this.logger.error(`Error regenerating backup codes for user ${userId}:`, error);
-      throw new BadRequestException('Failed to regenerate backup codes');
+      throw new BadRequestException(appError('MFA_FAILED'));
     }
   }
 
@@ -239,14 +240,14 @@ export class MfaService {
       // Verify the token before disabling
       const verification = await this.verifyTotp(userId, verificationToken);
       if (!verification.isValid) {
-        throw new UnauthorizedException('Invalid verification token');
+        throw new UnauthorizedException(appError('VERIFICATION_TOKEN_INVALID'));
       }
 
       await this.usersService.disableMfa(userId);
       this.logger.log(`MFA disabled for user ${userId}`);
     } catch (error) {
       this.logger.error(`Error disabling MFA for user ${userId}:`, error);
-      throw new BadRequestException('Failed to disable MFA');
+      throw new BadRequestException(appError('MFA_FAILED'));
     }
   }
 
@@ -254,7 +255,7 @@ export class MfaService {
     try {
       const user = await this.usersService.findById(userId);
       if (!user) {
-        throw new BadRequestException('User not found');
+        throw new BadRequestException(appError('USER_NOT_FOUND'));
       }
 
       return {
@@ -270,7 +271,7 @@ export class MfaService {
       };
     } catch (error) {
       this.logger.error(`Error getting MFA status for user ${userId}:`, error);
-      throw new BadRequestException('Failed to get MFA status');
+      throw new BadRequestException(appError('MFA_FAILED'));
     }
   }
 
@@ -288,7 +289,7 @@ export class MfaService {
     try {
       const user = await this.usersService.findById(userId);
       if (!user || user.mfaSettings?.isEnabled !== true) {
-        throw new BadRequestException('MFA not enabled for this user');
+        throw new BadRequestException(appError('MFA_NOT_ENABLED'));
       }
 
       const emergencyTokens = this.generateBackupCodes();
@@ -302,7 +303,7 @@ export class MfaService {
       return emergencyTokens;
     } catch (error) {
       this.logger.error(`Error generating emergency tokens for user ${userId}:`, error);
-      throw new BadRequestException('Failed to generate emergency tokens');
+      throw new BadRequestException(appError('MFA_FAILED'));
     }
   }
 

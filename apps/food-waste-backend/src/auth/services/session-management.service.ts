@@ -44,6 +44,7 @@ import { scanBatches } from '../../common/utils/redis-scan.util';
 import { RedisService } from '../../redis/redis.service';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 
+import { appError } from '../../common/errors';
 /**
  * Redis key prefixes. Centralised because the cleanup routine has to rebuild
  * a `session:` key from a member of a `user:sessions:` set — if the two ever
@@ -262,7 +263,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
     const validation = await this.validateSession(sessionId);
 
     if (!validation.isValid || !validation.session) {
-      throw new UnauthorizedException('Invalid session');
+      throw new UnauthorizedException(appError('SESSION_EXPIRED'));
     }
 
     const session = validation.session;
@@ -356,7 +357,7 @@ export class SessionManagementService implements OnModuleInit, OnModuleDestroy {
   async trustDevice(userId: string, deviceId: string): Promise<void> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException(appError('USER_NOT_FOUND'));
     }
 
     user.trustedDevices ??= [];

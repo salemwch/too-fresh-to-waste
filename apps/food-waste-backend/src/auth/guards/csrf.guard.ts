@@ -12,6 +12,7 @@ import { Reflector } from '@nestjs/core';
 import { Request, Response } from 'express';
 import { COOKIE_NAMES } from '../../common/utils/cookie-security.util';
 
+import { appError } from '../../common/errors';
 export const CSRF_EXEMPT_KEY = 'csrf_exempt';
 export const CsrfExempt = () =>
   Reflector.createDecorator<boolean>({
@@ -108,20 +109,20 @@ export class CsrfGuard implements CanActivate {
         this.logger.warn(
           `CSRF token missing - IP: ${request.ip}, Method: ${request.method}, URL: ${request.url}`,
         );
-        throw new ForbiddenException('CSRF token required');
+        throw new ForbiddenException(appError('CSRF_REQUIRED'));
       }
 
       if (!this.validateCsrfToken(providedToken, csrfTokenFromCookie)) {
         this.logger.warn(
           `Invalid CSRF token - IP: ${request.ip}, Method: ${request.method}, URL: ${request.url}`,
         );
-        throw new ForbiddenException('Invalid CSRF token');
+        throw new ForbiddenException(appError('CSRF_INVALID'));
       }
 
       return true;
     } catch (error) {
       this.logger.error('CSRF validation error:', error);
-      throw new ForbiddenException('CSRF validation failed');
+      throw new ForbiddenException(appError('CSRF_INVALID'));
     }
   }
 

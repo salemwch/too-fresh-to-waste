@@ -5,6 +5,8 @@ import {
   ForbiddenException,
   ConflictException,
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -31,6 +33,13 @@ import { CaptchaService } from './services/captcha.service';
 import { PasswordPolicyService } from './services/password-policy.service';
 import { TokenService, DeviceInfo } from './services/token.service';
 
+import { appError } from '../common/errors';
+import { loginFailureReason, type LoginFailureReason } from './utils/login-failure';
+import {
+  getDummyPasswordHash,
+  USER_PASSWORD_HASH_OPTIONS,
+  verifyUserPassword,
+} from './utils/password-hash';
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -114,13 +123,20 @@ export class AuthService {
   ) {
     void this.captchaService;
     void this._generateTokens;
+    // Build the dummy hash now, so even the first unknown-email login in a
+    // worker costs the same as a real one (no one-off slow request).
+    getDummyPasswordHash().catch((error: unknown) =>
+      this.logger.error('Could not prepare the dummy password hash', {
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
   }
 
   async register(registerDto: RegisterDto): Promise<RegisterResponse> {
     // Check if email already exists
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      throw new ConflictException(appError('EMAIL_ALREADY_REGISTERED'));
     }
 
     // Normalize and validate phone number if provided
@@ -132,7 +148,7 @@ export class AuthService {
       );
 
       if (!phoneValidation.isValid) {
-        throw new BadRequestException(phoneValidation.error ?? 'Invalid phone number format');
+        throw new BadRequestException(appError('INVALID_PHONE'));
       }
 
       // Store in E.164 format for consistency
@@ -236,7 +252,7 @@ export class AuthService {
     const user = await this.usersService.findByEmailVerificationToken(token, expectedEmail);
 
     if (!user) {
-      throw new BadRequestException('Invalid or expired verification token');
+      throw new BadRequestException(appError('VERIFICATION_TOKEN_INVALID'));
     }
 
     // Mark email as verified
@@ -314,7 +330,7 @@ export class AuthService {
     const ipBlocked = await this.authSecurityService.isIpBlocked(ipAddress);
     if (ipBlocked) {
       this.logger.warn('Login attempt from blocked IP', { ip: ipAddress, email: loginDto.email });
-      throw new ForbiddenException('Access temporarily blocked due to suspicious activity');
+      throw new ForbiddenException(appError('ACCESS_BLOCKED_SUSPICIOUS'));
     }
 
     // 2. Bot / suspicious user-agent detection
@@ -324,7 +340,7 @@ export class AuthService {
     );
     if (isSuspicious) {
       await this.authSecurityService.blockIp(ipAddress, 300000); // 5 min
-      throw new ForbiddenException('Suspicious activity detected. Access temporarily blocked');
+      throw new ForbiddenException(appError('ACCESS_BLOCKED_SUSPICIOUS'));
     }
 
     // 3. Redis-based attempt-count gate
@@ -333,19 +349,16 @@ export class AuthService {
       loginDto.email,
     );
 
-    // If account is locked, return immediately
+    // Too many recent failures for this IP or this email. The counters are
+    // keyed on the email string, not on an account, so this answer is the same
+    // for a registered email and an unknown one.
     if (!securityCheck.allowed) {
-      this.logger.warn('Login attempt on locked account', {
+      this.logger.warn('Login blocked by attempt limit', {
         email: loginDto.email,
         ip: ipAddress,
         blockedUntil: securityCheck.blockedUntil,
       });
-
-      throw new UnauthorizedException({
-        message: 'Too many failed login attempts. Please try again later.',
-        blockedUntil: securityCheck.blockedUntil,
-        type: 'ACCOUNT_LOCKED',
-      });
+      throw this.loginBlocked(securityCheck.blockedUntil);
     }
 
     // PRODUCTION-READY IMPROVEMENT: Validate CAPTCHA if required
@@ -362,7 +375,7 @@ export class AuthService {
                 throw new UnauthorizedException({
                     message: 'CAPTCHA verification required. Please complete the CAPTCHA challenge.',
                     captchaRequired: true,
-                    remainingAttempts: securityCheck.remainingAttempts,
+                    // No attempts count to the client (enumeration + brute-force aid).
                     type: 'CAPTCHA_REQUIRED',
                 });
             }
@@ -402,107 +415,63 @@ export class AuthService {
 
     const user = await this.usersService.findByEmail(loginDto.email);
 
-    if (!user) {
-      this.logger.warn('Login attempt with invalid email', { email: loginDto.email });
-
-      // Record failed attempt for rate limiting
-      await this.authSecurityService.recordFailedLoginAttempt(ipAddress, loginDto.email);
-
-      // SECURITY: Never reveal user existence - prevents account enumeration attacks
-      throw new UnauthorizedException({
-        message: 'Invalid email or password',
-        type: 'INVALID_CREDENTIALS',
-        field: 'credentials',
+    /*
+     * Account enumeration: an unauthenticated caller must not be able to tell
+     * an unknown email from a wrong password, an unverified, suspended or
+     * social-only account. So the password is checked FIRST, and every failure
+     * before it is proven gets one identical response.
+     *
+     * The same argon2 work is done in every case - against the account's hash,
+     * or a dummy hash when there is no account or no password - so response
+     * time does not give it away either.
+     */
+    const passwordMatches = await verifyUserPassword(user?.password, loginDto.password);
+    const failure = loginFailureReason(user, passwordMatches);
+    if (failure !== null || !user) {
+      throw await this.rejectLogin(failure ?? 'USER_NOT_FOUND', {
+        email: loginDto.email,
+        ipAddress,
+        userAgent,
+        ...(user ? { userId: user._id.toString() } : {}),
       });
     }
 
-    if (!user.isEmailVerified) {
-      this.logger.warn('Login attempt with unverified email', { userId: user._id });
-      throw new UnauthorizedException('Please verify your email before logging in');
-    }
-
-    // Phone verification is now deferred to order placement
-    // Users can login without phone verification, but will be prompted
-    // when attempting to create an order
-
-    // Check account lockout status
+    /*
+     * The password is proven, so the caller owns this account: its state can
+     * be disclosed without revealing anything they do not already know. This
+     * is what lets an unverified user be told to verify, and a suspended one
+     * to contact support.
+     */
     if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
-      this.logger.warn('Login attempt on locked account', {
+      this.logger.warn('Login on an administratively locked account', {
         userId: user._id,
         lockedUntil: user.accountLockedUntil,
       });
-      throw new UnauthorizedException({
-        message: 'Account is temporarily locked due to multiple failed login attempts',
-        blockedUntil: user.accountLockedUntil,
-        type: 'ACCOUNT_LOCKED',
+      throw new UnauthorizedException(
+        appError('ACCOUNT_LOCKED', undefined, {
+          type: 'ACCOUNT_LOCKED',
+          blockedUntil: user.accountLockedUntil,
+        }),
+      );
+    }
+
+    if (!user.isEmailVerified) {
+      this.logger.warn('Login with correct password on an unverified email', {
+        userId: user._id,
       });
+      throw new UnauthorizedException(appError('EMAIL_NOT_VERIFIED'));
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      this.logger.warn('Login attempt with inactive account', {
+      this.logger.warn('Login with correct password on an inactive account', {
         userId: user._id,
         status: user.status,
       });
-
-      if (user.status === UserStatus.SUSPENDED) {
-        throw new UnauthorizedException({
-          message: 'Account is suspended',
-          type: 'ACCOUNT_SUSPENDED',
-        });
-      }
-
-      throw new UnauthorizedException({
-        message: 'Your account is not currently active. Please contact support for assistance.',
-        type: 'ACCOUNT_INACTIVE',
-      });
-    }
-
-    if (!user.password) {
-      throw new UnauthorizedException({
-        message: 'This account uses Google Sign-In. Please sign in with Google.',
-        type: 'SOCIAL_AUTH_ONLY',
-      });
-    }
-
-    const isPasswordValid = await argon2.verify(user.password, loginDto.password);
-
-    if (!isPasswordValid) {
-      // Redis: runtime gate (drives the lockout decision)
-      const securityResult = await this.authSecurityService.recordFailedLoginAttempt(
-        ipAddress,
-        loginDto.email,
+      throw new UnauthorizedException(
+        user.status === UserStatus.SUSPENDED
+          ? appError('ACCOUNT_SUSPENDED', undefined, { type: 'ACCOUNT_SUSPENDED' })
+          : appError('ACCOUNT_INACTIVE', undefined, { type: 'ACCOUNT_INACTIVE' }),
       );
-      // MongoDB: audit trail (atomic increment, no lockout logic)
-      await this.usersService.incrementFailedLoginAttempts(
-        user._id.toString(),
-        ipAddress,
-        userAgent,
-      );
-
-      this.logger.warn('Login attempt with invalid password', {
-        userId: user._id,
-        attempts: securityResult.currentAttempts,
-        maxAttempts: securityResult.maxAttempts,
-        attemptsRemaining: securityResult.attemptsRemaining,
-        isLocked: securityResult.isLocked,
-      });
-
-      if (securityResult.isLocked) {
-        throw new UnauthorizedException({
-          message: 'Account has been locked due to multiple failed login attempts',
-          type: 'ACCOUNT_LOCKED',
-          attemptsRemaining: 0,
-          blockedUntil: securityResult.blockedUntil,
-        });
-      }
-
-      throw new UnauthorizedException({
-        message: 'The password you entered is incorrect',
-        field: 'password',
-        attemptsRemaining: securityResult.attemptsRemaining,
-        type: 'INVALID_PASSWORD',
-        // captchaRequired: securityCheck.captchaRequired, // DISABLED for development
-      });
     }
 
     this.logger.log('User login successful', { userId: user._id, email: user.email });
@@ -612,7 +581,7 @@ export class AuthService {
   ): Promise<LoginResponse> {
     const user = await this.usersService.findOne(userId);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException(appError('USER_NOT_FOUND'));
     }
 
     const deviceInfo: DeviceInfo = {
@@ -681,6 +650,97 @@ export class AuthService {
     return num * (multipliers[unit ?? 'm'] ?? 60);
   }
 
+  /**
+   * Records a failed credential check and returns the exception to throw.
+   *
+   * The public answer is INVALID_CREDENTIALS - identical for every reason, with
+   * no attempts count and no account metadata - or, once the attempt limit is
+   * reached, the same blocked answer the gate gives. Only the log knows why.
+   */
+  private async rejectLogin(
+    reason: LoginFailureReason,
+    context: { email: string; ipAddress: string; userAgent: string; userId?: string },
+  ): Promise<HttpException> {
+    const attempt = await this.authSecurityService.recordFailedLoginAttempt(
+      context.ipAddress,
+      context.email,
+    );
+
+    const { userId } = context;
+    if (userId) {
+      // Audit trail only; not awaited so an existing account does no extra
+      // round trip an unknown email would not (a timing difference).
+      // Promise.resolve().then(): a synchronous throw is caught too.
+      void Promise.resolve()
+        .then(async () => {
+          await this.usersService.incrementFailedLoginAttempts(
+            userId,
+            context.ipAddress,
+            context.userAgent,
+          );
+        })
+        .catch((error: unknown) =>
+          this.logger.error('Could not record failed login for audit', {
+            userId,
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        );
+    }
+
+    // Never the password, a token or a hash.
+    this.logger.warn('Login failed', {
+      reason,
+      ...(context.userId ? { userId: context.userId } : { email: context.email }),
+      ip: context.ipAddress,
+      attempts: attempt.currentAttempts,
+      locked: attempt.isLocked,
+    });
+
+    if (attempt.isLocked) {
+      return this.loginBlocked(attempt.blockedUntil);
+    }
+    return new UnauthorizedException(appError('INVALID_CREDENTIALS'));
+  }
+
+  /**
+   * Too many attempts for this IP or email. `blockedUntil` is the same for a
+   * registered and an unknown email, so it is safe to return - and it lets the
+   * app show a countdown instead of a dead end.
+   */
+  private loginBlocked(blockedUntil: Date | undefined): HttpException {
+    return new HttpException(
+      appError('LOGIN_TEMPORARILY_BLOCKED', undefined, blockedUntil ? { blockedUntil } : undefined),
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+  }
+
+  /**
+   * Runs an account email - and the token write it depends on - without making
+   * the caller wait for either.
+   *
+   * Forgot-password and resend-verification answer the same message whether
+   * or not the email has an account. Awaiting the SMTP send, or the token
+   * write before it (a majority-acknowledged, journaled write), only for real
+   * accounts made the response slower exactly when the account exists - the
+   * same oracle, measured in milliseconds instead of words. The write stays
+   * before the send inside `sending`, so no link goes out for a token that was
+   * not stored.
+   */
+  private sendAuthEmailInBackground(kind: string, userId: string, sending: Promise<unknown>): void {
+    void sending
+      .then(sent => {
+        if (sent === false) {
+          this.logger.error(`Failed to send ${kind} email`, { userId });
+        }
+      })
+      .catch((error: unknown) => {
+        this.logger.error(`Failed to send ${kind} email`, {
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+  }
+
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
     const { email } = forgotPasswordDto;
     const user = await this.usersService.findByEmail(email);
@@ -708,10 +768,14 @@ export class AuthService {
     // of a reset link that would fail at the reset step.
     if (user.authProvider !== 'local') {
       this.logger.warn('Password reset requested for OAuth account', {
-        email,
+        userId: user._id.toString(),
         authProvider: user.authProvider,
       });
-      await this.emailService.sendOAuthSignInEmail(user);
+      this.sendAuthEmailInBackground(
+        'oauth sign-in reminder',
+        user._id.toString(),
+        this.emailService.sendOAuthSignInEmail(user),
+      );
       return {
         message: 'If an account with this email exists, you will receive a password reset link.',
       };
@@ -720,21 +784,16 @@ export class AuthService {
     const resetToken = CryptoUtil.generateRandomToken(32);
     const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    await this.usersService.setPasswordResetToken(user._id.toString(), resetToken, resetExpires);
-
-    const emailSent = await this.emailService.sendPasswordResetEmail(user, resetToken);
-
-    if (!emailSent) {
-      this.logger.error('Failed to send password reset email', {
-        userId: user._id.toString(),
-        email,
-      });
-    } else {
-      this.logger.log('Password reset email sent successfully', {
-        userId: user._id.toString(),
-        email,
-      });
-    }
+    const userId = user._id.toString();
+    this.sendAuthEmailInBackground(
+      'password reset',
+      userId,
+      (async () => {
+        await this.usersService.setPasswordResetToken(userId, resetToken, resetExpires);
+        const sent = await this.emailService.sendPasswordResetEmail(user, resetToken);
+        return sent;
+      })(),
+    );
 
     return {
       message: 'If an account with this email exists, you will receive a password reset link.',
@@ -747,7 +806,18 @@ export class AuthService {
     const user = await this.usersService.findByPasswordResetToken(token, email);
 
     if (!user || !(user.passwordResetExpires && user.passwordResetExpires >= new Date())) {
-      throw new BadRequestException('Invalid or expired password reset token');
+      throw new BadRequestException(appError('RESET_TOKEN_INVALID'));
+    }
+
+    // A link issued before the account was suspended or deleted must not set
+    // a password on it. Same answer as a bad token: the link holder learns
+    // nothing about why.
+    if (!MAILABLE_STATUSES.has(user.status)) {
+      this.logger.warn('Password reset attempted on an inactive account', {
+        userId: user._id.toString(),
+        status: user.status,
+      });
+      throw new BadRequestException(appError('RESET_TOKEN_INVALID'));
     }
 
     // Validate new password against security policy
@@ -793,28 +863,35 @@ export class AuthService {
       };
     }
 
+    // An error here ("already verified") confirmed the account exists and its
+    // state to anyone who typed the address. Same neutral answer instead.
     if (user.isEmailVerified) {
-      throw new BadRequestException('Email is already verified');
+      this.logger.log('Verification email requested for a verified account', {
+        userId: user._id.toString(),
+      });
+      return {
+        message:
+          'If an account with this email exists and is not verified, a new verification email will be sent.',
+      };
     }
 
     // Generate new verification token with 24h expiry
     const emailVerificationToken = CryptoUtil.generateRandomToken(32);
     const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await this.usersService.updateEmailVerificationToken(
-      user._id.toString(),
-      emailVerificationToken,
-      emailVerificationExpires,
+    const userId = user._id.toString();
+    this.sendAuthEmailInBackground(
+      'verification',
+      userId,
+      (async () => {
+        await this.usersService.updateEmailVerificationToken(
+          userId,
+          emailVerificationToken,
+          emailVerificationExpires,
+        );
+        const sent = await this.emailService.sendVerificationEmail(user, emailVerificationToken);
+        return sent;
+      })(),
     );
-
-    // Send new verification email
-    try {
-      await this.emailService.sendVerificationEmail(user, emailVerificationToken);
-    } catch (error) {
-      this.logger.warn('Failed to resend verification email', {
-        email,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
 
     return {
       message:
@@ -828,26 +905,23 @@ export class AuthService {
     requestInfo?: { ipAddress?: string; userAgent?: string },
   ): Promise<AuthTokens> {
     if (!userId || !refreshToken) {
-      throw new UnauthorizedException('Missing userId or refresh token');
+      throw new UnauthorizedException(appError('SESSION_EXPIRED'));
     }
 
     const user = await this.usersService.findOneWithTokens(userId);
 
     if (user === null || user === undefined) {
       // SECURITY: Never reveal user existence - use generic message for all auth failures
-      throw new UnauthorizedException('Session expired. Please log in again.');
+      throw new UnauthorizedException(appError('SESSION_EXPIRED'));
     }
 
     // SECURITY: Block deleted/suspended/blocked users from refreshing tokens.
     // Use 403 (not 401) so clients can distinguish "account suspended" from
     // "token expired" and show the appropriate screen instead of login.
     if (user.status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException({
-        statusCode: 403,
-        message: 'Account is no longer active',
-        error: 'ACCOUNT_SUSPENDED',
-        accountStatus: user.status,
-      });
+      throw new ForbiddenException(
+        appError('ACCOUNT_INACTIVE', undefined, { type: 'ACCOUNT_INACTIVE' }),
+      );
     }
 
     // Validate refresh token with token fixation attack prevention
@@ -877,11 +951,12 @@ export class AuthService {
         });
       }
 
-      throw new UnauthorizedException(validationResult.error ?? 'Invalid refresh token');
+      // validationResult.error is logged above; it is not written for users.
+      throw new UnauthorizedException(appError('SESSION_EXPIRED'));
     }
 
     if (!validationResult.jti) {
-      throw new UnauthorizedException('Invalid refresh token: missing JTI');
+      throw new UnauthorizedException(appError('SESSION_EXPIRED'));
     }
     await this.tokenService.rotateToken(validationResult.jti);
 
@@ -997,15 +1072,18 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string; user: object }> {
     const user = await this.usersService.findById(userId);
     if (!user?.requiresPasswordChange) {
-      throw new ForbiddenException('Password change is not required for this account');
+      throw new ForbiddenException(appError('PASSWORD_CHANGE_NOT_REQUIRED'));
     }
 
-    const hashedPassword = await argon2.hash(newPassword, {
-      type: argon2.argon2id,
-      memoryCost: 2 ** 16,
-      timeCost: 3,
-      parallelism: 1,
+    // A forced change replaces an admin-issued temporary password; it gets the
+    // same strength rules as every other way to choose one.
+    this.passwordPolicyService.validatePasswordStrength(newPassword, {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
+
+    const hashedPassword = await argon2.hash(newPassword, USER_PASSWORD_HASH_OPTIONS);
 
     await this.usersService.completePasswordChange(userId, hashedPassword);
 
@@ -1045,7 +1123,7 @@ export class AuthService {
     if (user?.password && (await argon2.verify(user.password, password))) {
       // SECURITY: Reject login for non-active accounts
       if (user.status !== UserStatus.ACTIVE) {
-        throw new UnauthorizedException('Account is no longer active');
+        throw new UnauthorizedException(appError('ACCOUNT_INACTIVE'));
       }
       const {
         password: _password,

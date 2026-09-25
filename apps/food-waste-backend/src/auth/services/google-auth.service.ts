@@ -13,6 +13,7 @@ import { AuthTokens, UserResponse } from '../auth.service';
 
 import { TokenService } from './token.service';
 
+import { appError } from '../../common/errors';
 export interface GoogleSignInResult {
   user: UserResponse;
   tokens: AuthTokens;
@@ -53,21 +54,21 @@ export class GoogleAuthService {
       googlePayload = ticket.getPayload();
     } catch (err) {
       this.logger.warn('Google token verification failed', { error: (err as Error).message });
-      throw new UnauthorizedException('Invalid Google token');
+      throw new UnauthorizedException(appError('GOOGLE_TOKEN_INVALID'));
     }
 
     if (!googlePayload) {
-      throw new UnauthorizedException('Empty Google token payload');
+      throw new UnauthorizedException(appError('GOOGLE_TOKEN_INVALID'));
     }
 
     // 2. Explicit email_verified check
     if (!googlePayload.email_verified) {
-      throw new UnauthorizedException('Google account email is not verified');
+      throw new UnauthorizedException(appError('GOOGLE_EMAIL_UNVERIFIED'));
     }
 
     const googleId = googlePayload.sub;
     if (!googlePayload.email) {
-      throw new UnauthorizedException('Google account has no email');
+      throw new UnauthorizedException(appError('GOOGLE_EMAIL_MISSING'));
     }
     const email = googlePayload.email;
     const firstName = googlePayload.given_name ?? '';
@@ -135,23 +136,22 @@ export class GoogleAuthService {
     // 3b. Account status and lockout checks (same as email/password login)
     if (user.status !== UserStatus.ACTIVE) {
       if (user.status === UserStatus.SUSPENDED) {
-        throw new UnauthorizedException({
-          message: 'Your account has been suspended. Please contact support for assistance.',
-          type: 'ACCOUNT_SUSPENDED',
-        });
+        throw new UnauthorizedException(
+          appError('ACCOUNT_SUSPENDED', undefined, { type: 'ACCOUNT_SUSPENDED' }),
+        );
       }
-      throw new UnauthorizedException({
-        message: 'Your account is not currently active. Please contact support for assistance.',
-        type: 'ACCOUNT_INACTIVE',
-      });
+      throw new UnauthorizedException(
+        appError('ACCOUNT_INACTIVE', undefined, { type: 'ACCOUNT_INACTIVE' }),
+      );
     }
 
     if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
-      throw new UnauthorizedException({
-        message: 'Too many failed login attempts. Please try again later.',
-        blockedUntil: user.accountLockedUntil,
-        type: 'ACCOUNT_LOCKED',
-      });
+      throw new UnauthorizedException(
+        appError('ACCOUNT_LOCKED', undefined, {
+          type: 'ACCOUNT_LOCKED',
+          blockedUntil: user.accountLockedUntil,
+        }),
+      );
     }
 
     // 4. Generate JWT tokens using existing TokenService pipeline

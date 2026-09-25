@@ -9,6 +9,7 @@ import {
 
 import { TenantContext } from '../interfaces/authorization.interface';
 
+import { appError } from '../../common/errors';
 interface TenantIsolationRequest {
   user?: {
     role: UserRole;
@@ -45,7 +46,7 @@ export class TenantIsolationGuard implements CanActivate {
     const user = request.user;
 
     if (user === null || user === undefined) {
-      throw new ForbiddenException('User not authenticated');
+      throw new ForbiddenException(appError('AUTH_REQUIRED'));
     }
 
     const { role, userId } = user;
@@ -62,7 +63,7 @@ export class TenantIsolationGuard implements CanActivate {
 
       if (!tenantContext) {
         this.logger.error(`Tenant context missing for merchant ${userId}`);
-        throw new ForbiddenException('Tenant context not available. Please contact support.');
+        throw new ForbiddenException(appError('TENANT_CONTEXT_MISSING'));
       }
 
       // Verify tenant context matches user
@@ -71,7 +72,7 @@ export class TenantIsolationGuard implements CanActivate {
           expectedTenantId: userId,
           actualTenantId: tenantContext.tenantId,
         });
-        throw new ForbiddenException('Tenant isolation violation detected');
+        throw new ForbiddenException(appError('ACCESS_DENIED'));
       }
 
       this.logger.debug(`Tenant isolation enforced for merchant ${userId}`);

@@ -11,6 +11,7 @@ import { EmailService } from '../email/email.service';
 import { UsersService } from '../users/user.service';
 
 import { AuthService } from './auth.service';
+import { getDummyPasswordHash } from './utils/password-hash';
 import { AuthSecurityService } from './services/auth-security.service';
 import { CaptchaService } from './services/captcha.service';
 import { PasswordPolicyService } from './services/password-policy.service';
@@ -22,8 +23,13 @@ import type { VerifyEmailDto } from './DTO/verify-email.dto';
 import type { UserDocument } from '../users/schemas/user.schema';
 import type { TestingModule } from '@nestjs/testing';
 
+import { appError } from '../common/errors';
+import { EN } from '../common/errors/catalog/en';
 jest.mock('argon2', () => ({
   verify: jest.fn(),
+  // Login verifies against a dummy hash for unknown emails (timing parity).
+  hash: jest.fn().mockResolvedValue('$argon2id$v=19$m=65536,t=3,p=1$dummy$dummy'),
+  argon2id: 2,
 }));
 
 describe('AuthService', () => {
@@ -33,6 +39,7 @@ describe('AuthService', () => {
   let emailService: EmailService;
   let passwordPolicyService: PasswordPolicyService;
   let tokenService: TokenService;
+  let authSecurityService: AuthSecurityService;
 
   // Mock data for consistent testing
   const mockUserId = '507f1f77bcf86c0012345678';
@@ -193,6 +200,7 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     usersService = module.get<UsersService>(UsersService);
+    authSecurityService = module.get<AuthSecurityService>(AuthSecurityService);
     configService = module.get<ConfigService>(ConfigService);
     emailService = module.get<EmailService>(EmailService);
     passwordPolicyService = module.get<PasswordPolicyService>(PasswordPolicyService);
@@ -288,7 +296,7 @@ describe('AuthService', () => {
 
         // Act & Assert
         await expect(service.register(mockRegisterDto)).rejects.toThrow(
-          new ConflictException('User with this email already exists'),
+          new ConflictException(appError('EMAIL_ALREADY_REGISTERED')),
         );
         expect(passwordPolicyService.validatePasswordStrength).not.toHaveBeenCalled();
         expect(usersService.create).not.toHaveBeenCalled();
@@ -457,7 +465,7 @@ describe('AuthService', () => {
 
         // Act & Assert
         await expect(service.verifyEmail(mockVerifyEmailDto)).rejects.toThrow(
-          new BadRequestException('Invalid or expired verification token'),
+          new BadRequestException(appError('VERIFICATION_TOKEN_INVALID')),
         );
         expect(usersService.verifyEmail).not.toHaveBeenCalled();
       });
@@ -471,7 +479,7 @@ describe('AuthService', () => {
 
         // Act & Assert
         await expect(service.verifyEmail(invalidVerifyDto)).rejects.toThrow(
-          new BadRequestException('Invalid or expired verification token'),
+          new BadRequestException(appError('VERIFICATION_TOKEN_INVALID')),
         );
       });
 
@@ -484,7 +492,7 @@ describe('AuthService', () => {
 
         // Act & Assert
         await expect(service.verifyEmail(wrongEmailDto)).rejects.toThrow(
-          new BadRequestException('Invalid or expired verification token'),
+          new BadRequestException(appError('VERIFICATION_TOKEN_INVALID')),
         );
       });
     });
@@ -647,14 +655,18 @@ describe('AuthService', () => {
 
       const getUnauthorizedResponse = (
         error: UnauthorizedException,
-      ): { message?: string | string[]; type?: string } => {
+      ): { message?: string | string[]; code?: string; details?: { type?: string } } => {
         const response = error.getResponse();
 
         if (typeof response === 'string') {
           return { message: response };
         }
 
-        return response as { message?: string | string[]; type?: string };
+        return response as {
+          message?: string | string[];
+          code?: string;
+          details?: { type?: string };
+        };
       };
 
       it('should_ThrowUnauthorizedException_When_UserNotFound', async () => {
@@ -667,81 +679,279 @@ describe('AuthService', () => {
         );
       });
 
-      it('should_ThrowUnauthorizedException_When_EmailNotVerified', async () => {
-        // Arrange
-        const unverifiedUser = createMockUser({ isEmailVerified: false });
-        jest
-          .spyOn(usersService, 'findByEmail')
-          .mockResolvedValue(unverifiedUser as unknown as UserDocument);
+      /*
+       * Account enumeration. Until the password is proven, every failure must
+       * look the same from outside: same status, same code, same message, no
+       * metadata. One table, so a new account state cannot slip through with
+       * its own answer.
+       */
+      describe('without a proven password, every failure is indistinguishable', () => {
+        const PUBLIC_FAILURE = { code: 'INVALID_CREDENTIALS', message: EN.INVALID_CREDENTIALS };
 
-        // Act & Assert
-        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          new UnauthorizedException('Please verify your email before logging in'),
-        );
-      });
+        const CASES: Array<[string, Record<string, unknown> | null]> = [
+          ['unknown email', null],
+          ['wrong password', {}],
+          ['unverified account', { isEmailVerified: false }],
+          ['suspended account', { status: UserStatus.SUSPENDED }],
+          ['blocked account', { status: UserStatus.BLOCKED }],
+          [
+            'administratively locked account',
+            { accountLockedUntil: new Date(Date.now() + 60_000) },
+          ],
+          ['Google-only account (no password)', { password: undefined, authProvider: 'google' }],
+        ];
 
-      it('should_ThrowUnauthorizedException_When_AccountLocked', async () => {
-        // Arrange
-        const lockedUser = createMockUser({
-          accountLockedUntil: new Date(Date.now() + 60000), // 1 minute from now
+        it.each(CASES)('%s: 401 INVALID_CREDENTIALS and nothing else', async (_case, overrides) => {
+          jest
+            .spyOn(usersService, 'findByEmail')
+            .mockResolvedValue(
+              (overrides === null ? null : createMockUser(overrides)) as unknown as UserDocument,
+            );
+          (argon2.verify as jest.Mock).mockResolvedValue(false);
+
+          const error = await getUnauthorizedLoginError();
+
+          expect(error.getStatus()).toBe(401);
+          // Exactly this body: no details, no params, no attempts count.
+          expect(error.getResponse()).toEqual(PUBLIC_FAILURE);
         });
-        jest
-          .spyOn(usersService, 'findByEmail')
-          .mockResolvedValue(lockedUser as unknown as UserDocument);
 
-        // Act & Assert
-        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          UnauthorizedException,
-        );
+        it('a social-only account fails even if the dummy hash were to match', async () => {
+          jest.spyOn(usersService, 'findByEmail').mockResolvedValue(
+            createMockUser({
+              password: undefined,
+              authProvider: 'google',
+            }) as unknown as UserDocument,
+          );
+          (argon2.verify as jest.Mock).mockResolvedValue(true);
+
+          const error = await getUnauthorizedLoginError();
+          expect(error.getResponse()).toEqual(PUBLIC_FAILURE);
+        });
+
+        it('does the same password work for an unknown email as for a real one', async () => {
+          // Timing parity: one argon2 verification in both cases - against the
+          // dummy hash when there is no account.
+          (argon2.verify as jest.Mock).mockResolvedValue(false);
+
+          jest
+            .spyOn(usersService, 'findByEmail')
+            .mockResolvedValue(null as unknown as UserDocument);
+          await getUnauthorizedLoginError();
+          const unknownCalls = (argon2.verify as jest.Mock).mock.calls.length;
+
+          (argon2.verify as jest.Mock).mockClear();
+          jest
+            .spyOn(usersService, 'findByEmail')
+            .mockResolvedValue(createMockUser() as unknown as UserDocument);
+          await getUnauthorizedLoginError();
+          const knownCalls = (argon2.verify as jest.Mock).mock.calls.length;
+
+          expect(unknownCalls).toBe(1);
+          expect(knownCalls).toBe(1);
+        });
+
+        it('verifies an unknown email against the dummy hash, not a cheaper stand-in', async () => {
+          // A count alone would pass with verify('', ...) - which real argon2
+          // rejects instantly, turning the unknown email into a fast 500.
+          (argon2.verify as jest.Mock).mockResolvedValue(false);
+          jest
+            .spyOn(usersService, 'findByEmail')
+            .mockResolvedValue(null as unknown as UserDocument);
+
+          await getUnauthorizedLoginError();
+
+          expect((argon2.verify as jest.Mock).mock.calls[0]?.[0]).toBe(
+            await getDummyPasswordHash(),
+          );
+        });
+
+        it('counts the failed attempt for an unknown email exactly as for a real one', async () => {
+          (argon2.verify as jest.Mock).mockResolvedValue(false);
+          jest
+            .spyOn(usersService, 'findByEmail')
+            .mockResolvedValue(null as unknown as UserDocument);
+
+          await getUnauthorizedLoginError();
+
+          expect(authSecurityService.recordFailedLoginAttempt).toHaveBeenCalledWith(
+            '192.168.1.1',
+            mockLoginDto.email,
+          );
+        });
+
+        it('logs the real reason internally, and never the password', async () => {
+          const warn = jest.spyOn(service['logger'], 'warn');
+          (argon2.verify as jest.Mock).mockResolvedValue(false);
+          jest
+            .spyOn(usersService, 'findByEmail')
+            .mockResolvedValue(
+              createMockUser({ status: UserStatus.SUSPENDED }) as unknown as UserDocument,
+            );
+
+          await getUnauthorizedLoginError();
+
+          expect(warn).toHaveBeenCalledWith(
+            'Login failed',
+            expect.objectContaining({ reason: 'INVALID_PASSWORD', userId: mockUserId }),
+          );
+          expect(JSON.stringify(warn.mock.calls)).not.toContain(mockLoginDto.password);
+        });
+
+        // The check above covers one branch and one log level. Every outcome
+        // logs something - success, the gate, a disclosed state - and a
+        // `{ ...loginDto }` in any of them would ship the password to the logs.
+        it.each([
+          [
+            'a successful login',
+            () => {
+              (argon2.verify as jest.Mock).mockResolvedValue(true);
+              jest
+                .spyOn(usersService, 'findByEmail')
+                .mockResolvedValue(createMockUser() as unknown as UserDocument);
+              jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
+              jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
+            },
+          ],
+          [
+            'the attempt-limit gate',
+            () => {
+              (authSecurityService.checkLoginAttempts as jest.Mock).mockResolvedValue({
+                allowed: false,
+                blockedUntil: new Date('2026-09-25T12:00:00.000Z'),
+              });
+            },
+          ],
+          [
+            'an unverified account with the right password',
+            () => {
+              (argon2.verify as jest.Mock).mockResolvedValue(true);
+              jest
+                .spyOn(usersService, 'findByEmail')
+                .mockResolvedValue(
+                  createMockUser({ isEmailVerified: false }) as unknown as UserDocument,
+                );
+            },
+          ],
+          [
+            'an unknown email',
+            () => {
+              (argon2.verify as jest.Mock).mockResolvedValue(false);
+              jest
+                .spyOn(usersService, 'findByEmail')
+                .mockResolvedValue(null as unknown as UserDocument);
+            },
+          ],
+        ])('%s logs no password at any level', async (_case, arrange) => {
+          const logger = service['logger'] as unknown as Record<string, (...a: unknown[]) => void>;
+          const spies = ['log', 'warn', 'error', 'debug'].map(level => jest.spyOn(logger, level));
+          arrange();
+
+          await service.login(mockLoginDto, mockRequestInfo).catch(() => undefined);
+
+          const logged = JSON.stringify(spies.flatMap(spy => spy.mock.calls));
+          expect(logged.length).toBeGreaterThan(2); // something was logged
+          expect(logged).not.toContain(mockLoginDto.password);
+        });
       });
 
-      it('should_ThrowUnauthorizedException_When_AccountSuspended', async () => {
-        // Arrange
-        const suspendedUser = createMockUser({ status: UserStatus.SUSPENDED });
-        jest
-          .spyOn(usersService, 'findByEmail')
-          .mockResolvedValue(suspendedUser as unknown as UserDocument);
+      describe('once the attempt limit is reached', () => {
+        const BLOCKED_UNTIL = new Date('2026-09-25T12:00:00.000Z');
 
-        // Act & Assert
-        const error = await getUnauthorizedLoginError();
-        const response = getUnauthorizedResponse(error);
-        expect(error).toBeInstanceOf(UnauthorizedException);
-        expect(response.message).toBe('Account is suspended');
-        expect(response.type).toBe('ACCOUNT_SUSPENDED');
+        it.each([
+          ['unknown email', null],
+          ['registered email', {}],
+        ])('%s gets the same 429 with no account metadata', async (_case, overrides) => {
+          jest
+            .spyOn(usersService, 'findByEmail')
+            .mockResolvedValue(
+              (overrides === null ? null : createMockUser(overrides)) as unknown as UserDocument,
+            );
+          (argon2.verify as jest.Mock).mockResolvedValue(false);
+          (authSecurityService.recordFailedLoginAttempt as jest.Mock).mockResolvedValueOnce({
+            currentAttempts: 5,
+            maxAttempts: 5,
+            attemptsRemaining: 0,
+            isLocked: true,
+            blockedUntil: BLOCKED_UNTIL,
+          });
+
+          const error = (await service.login(mockLoginDto, mockRequestInfo).catch(e => e)) as {
+            getStatus(): number;
+            getResponse(): unknown;
+          };
+
+          expect(error.getStatus()).toBe(429);
+          expect(error.getResponse()).toEqual({
+            code: 'LOGIN_TEMPORARILY_BLOCKED',
+            message: EN.LOGIN_TEMPORARILY_BLOCKED,
+            details: { blockedUntil: BLOCKED_UNTIL },
+          });
+        });
+
+        it('stops further attempts at the gate, before any account lookup', async () => {
+          (authSecurityService.checkLoginAttempts as jest.Mock).mockResolvedValueOnce({
+            allowed: false,
+            blockedUntil: BLOCKED_UNTIL,
+          });
+          const lookup = jest.spyOn(usersService, 'findByEmail');
+
+          const error = (await service.login(mockLoginDto, mockRequestInfo).catch(e => e)) as {
+            getStatus(): number;
+            getResponse(): { code?: string };
+          };
+
+          expect(error.getStatus()).toBe(429);
+          expect(error.getResponse().code).toBe('LOGIN_TEMPORARILY_BLOCKED');
+          expect(lookup).not.toHaveBeenCalled();
+          expect(argon2.verify).not.toHaveBeenCalled();
+        });
       });
 
-      it('should_ThrowUnauthorizedException_When_AccountInactive', async () => {
-        // Arrange
-        const inactiveUser = createMockUser({ status: UserStatus.BLOCKED });
-        jest
-          .spyOn(usersService, 'findByEmail')
-          .mockResolvedValue(inactiveUser as unknown as UserDocument);
+      /*
+       * With the correct password the caller owns the account, so its state
+       * may be disclosed - that is how an unverified user learns to verify.
+       * It is not an enumeration: it takes the password to see it.
+       */
+      describe('with the correct password, account state is disclosed', () => {
+        it.each([
+          ['unverified', { isEmailVerified: false }, 'EMAIL_NOT_VERIFIED'],
+          ['suspended', { status: UserStatus.SUSPENDED }, 'ACCOUNT_SUSPENDED'],
+          ['blocked', { status: UserStatus.BLOCKED }, 'ACCOUNT_INACTIVE'],
+          [
+            'administratively locked',
+            { accountLockedUntil: new Date(Date.now() + 60_000) },
+            'ACCOUNT_LOCKED',
+          ],
+        ])('%s account -> %s', async (_case, overrides, code) => {
+          jest
+            .spyOn(usersService, 'findByEmail')
+            .mockResolvedValue(createMockUser(overrides) as unknown as UserDocument);
+          (argon2.verify as jest.Mock).mockResolvedValue(true);
 
-        // Act & Assert
-        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow(
-          'Your account is not currently active. Please contact support for assistance.',
-        );
+          const error = await getUnauthorizedLoginError();
+
+          expect(getUnauthorizedResponse(error).code).toBe(code);
+          // A proven password is not a brute-force failure.
+          expect(authSecurityService.recordFailedLoginAttempt).not.toHaveBeenCalled();
+        });
       });
 
-      it('should_ThrowUnauthorizedException_When_InvalidPassword', async () => {
-        // Arrange
+      it('lets a valid user in, clearing the counters and recording no failure', async () => {
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (argon2.verify as jest.Mock).mockResolvedValue(false);
-        jest.spyOn(usersService, 'incrementFailedLoginAttempts').mockResolvedValue(undefined);
+        (argon2.verify as jest.Mock).mockResolvedValue(true);
+        jest.spyOn(usersService, 'resetFailedLoginAttempts').mockResolvedValue(undefined);
+        jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
-        // Act & Assert
-        const error = await getUnauthorizedLoginError();
-        const response = getUnauthorizedResponse(error);
-        expect(error).toBeInstanceOf(UnauthorizedException);
-        expect(response.message).toBe('The password you entered is incorrect');
-        expect(response.type).toBe('INVALID_PASSWORD');
-        // Audit counter persisted to MongoDB
-        expect(usersService.incrementFailedLoginAttempts).toHaveBeenCalledWith(
-          mockUserId,
+        const result = await service.login(mockLoginDto, mockRequestInfo);
+
+        expect(result.success).toBe(true);
+        expect(authSecurityService.recordFailedLoginAttempt).not.toHaveBeenCalled();
+        expect(authSecurityService.clearLoginAttempts).toHaveBeenCalledWith(
           '192.168.1.1',
-          'Mozilla/5.0 Test Browser',
+          mockLoginDto.email,
         );
       });
 
@@ -819,15 +1029,24 @@ describe('AuthService', () => {
         );
       });
 
-      it('should_ThrowError_When_PasswordComparisonFails', async () => {
-        // Arrange
+      it('a stored hash argon2 cannot read is a failed login, not a 500', async () => {
+        // A 500 for one account is a status no unknown email produces: an
+        // oracle. It is the same 401, and it counts as a failed attempt.
         jest
           .spyOn(usersService, 'findByEmail')
           .mockResolvedValue(createMockUser() as unknown as UserDocument);
-        (argon2.verify as jest.Mock).mockRejectedValue(new Error('bcrypt error'));
+        (argon2.verify as jest.Mock)
+          .mockRejectedValueOnce(new Error('pchstr must contain a $ as first char'))
+          .mockResolvedValue(false);
 
-        // Act & Assert
-        await expect(service.login(mockLoginDto, mockRequestInfo)).rejects.toThrow('bcrypt error');
+        const error = await service.login(mockLoginDto, mockRequestInfo).catch((e: unknown) => e);
+
+        expect(error).toBeInstanceOf(UnauthorizedException);
+        expect((error as UnauthorizedException).getResponse()).toEqual({
+          code: 'INVALID_CREDENTIALS',
+          message: EN.INVALID_CREDENTIALS,
+        });
+        expect(authSecurityService.recordFailedLoginAttempt).toHaveBeenCalled();
       });
 
       // Note: Token generation failure test removed due to complex mock interaction
@@ -1113,7 +1332,7 @@ describe('AuthService', () => {
 
         // Must NOT reveal that user doesn't exist
         await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
-          'Session expired. Please log in again.',
+          EN.SESSION_EXPIRED,
         );
       });
 
@@ -1125,7 +1344,7 @@ describe('AuthService', () => {
           );
 
         await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
-          'Account is no longer active',
+          EN.ACCOUNT_INACTIVE,
         );
       });
 
@@ -1137,7 +1356,7 @@ describe('AuthService', () => {
           );
 
         await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
-          'Account is no longer active',
+          EN.ACCOUNT_INACTIVE,
         );
       });
 
@@ -1149,7 +1368,7 @@ describe('AuthService', () => {
           );
 
         await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
-          'Account is no longer active',
+          EN.ACCOUNT_INACTIVE,
         );
       });
 
@@ -1183,7 +1402,7 @@ describe('AuthService', () => {
         });
 
         await expect(service.refreshTokens(mockUserId, mockRefreshTokenStr)).rejects.toThrow(
-          'Invalid refresh token: missing JTI',
+          EN.SESSION_EXPIRED,
         );
       });
     });

@@ -15,7 +15,6 @@ import {
   Param,
   BadRequestException,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -57,6 +56,7 @@ import { PasswordPolicyService } from './services/password-policy.service';
 import { SessionManagementService } from './services/session-management.service';
 import { COOKIE_NAMES } from '../common/utils/cookie-security.util';
 
+import { appError, toHttpException } from '../common/errors';
 /**
  * AUTHENTICATION CONTROLLER
  *
@@ -209,9 +209,7 @@ export class AuthController {
         email: verifyEmailDto.email,
       });
 
-      throw new InternalServerErrorException({
-        message: 'Email verification failed. Please try again.',
-      });
+      throw new InternalServerErrorException(appError('EMAIL_VERIFICATION_FAILED'));
     }
   }
 
@@ -222,30 +220,20 @@ export class AuthController {
   async resendVerification(@Body('email') email: string): Promise<{ message: string }> {
     try {
       if (!email || typeof email !== 'string') {
-        throw new BadRequestException('Valid email is required.');
+        throw new BadRequestException(appError('EMAIL_REQUIRED'));
       }
 
       await this.authService.resendVerificationEmail(email);
 
       return { message: 'Verification email resent successfully.' };
     } catch (error) {
-      const errorName = error instanceof Error ? error.name : undefined;
-      const errorMessage = error instanceof Error ? error.message : undefined;
-
-      // Handle specific known errors from AuthService
-      if (errorName === 'UserNotFoundError') {
-        throw new BadRequestException('No account found with that email.');
-      }
-
-      if (errorName === 'AlreadyVerifiedError') {
-        throw new BadRequestException('Account is already verified.');
-      }
-
-      // Unexpected error
-      throw new InternalServerErrorException({
-        message: 'Failed to resend verification email.',
-        details: errorMessage,
-      });
+      /*
+       * Coded HTTP errors pass through. The branches that used to map
+       * "UserNotFoundError" and "AlreadyVerifiedError" by name were dead -
+       * nothing throws either - and the first would have told anyone which
+       * emails have an account. The internal message is never sent back.
+       */
+      throw toHttpException(error, 'VERIFICATION_RESEND_FAILED');
     }
   }
 
@@ -322,9 +310,7 @@ export class AuthController {
     }
 
     if (!loginResponse.user || !loginResponse.tokens) {
-      throw new InternalServerErrorException(
-        'Login failed to return the required user session data.',
-      );
+      throw new InternalServerErrorException(appError('SIGN_IN_FAILED'));
     }
 
     // Create session with device tracking
@@ -400,19 +386,14 @@ export class AuthController {
     } catch (error) {
       const errorName = error instanceof Error ? error.name : undefined;
 
-      // Handle and rethrow specific error types for cleaner client responses
-      if (errorName === 'UserNotFoundError') {
-        throw new NotFoundException('No account found with the provided email.');
-      }
-
+      // No "UserNotFoundError" branch: nothing throws it, and an answer that
+      // differs for unknown emails is an account-enumeration oracle.
       if (errorName === 'EmailSendError') {
-        throw new InternalServerErrorException(
-          'Failed to send reset email. Please try again later.',
-        );
+        throw new InternalServerErrorException(appError('RESET_EMAIL_FAILED'));
       }
 
       // Fallback for unexpected errors
-      throw new InternalServerErrorException('An unexpected error occurred.');
+      throw new InternalServerErrorException(appError('INTERNAL_ERROR'));
     }
   }
 
@@ -446,21 +427,11 @@ export class AuthController {
 
       // Handle known custom error types for better client feedback
       if (errorName === 'InvalidOrExpiredTokenError') {
-        throw new BadRequestException('The reset token is invalid or has expired.');
-      }
-
-      if (errorName === 'UserNotFoundError') {
-        throw new NotFoundException('No user found for this token.');
-      }
-
-      if (errorName === 'PasswordPolicyError') {
-        throw new BadRequestException(
-          errorMessage ?? 'New password does not meet security requirements.',
-        );
+        throw new BadRequestException(appError('RESET_TOKEN_INVALID'));
       }
 
       // Fallback: Unexpected failure
-      throw new InternalServerErrorException('Failed to reset password. Please try again later.');
+      throw new InternalServerErrorException(appError('PASSWORD_RESET_FAILED'));
     }
   }
 
@@ -524,7 +495,7 @@ export class AuthController {
 
     if (refreshToken === null || refreshToken === undefined) {
       this.logger.warn('Token refresh attempted without refresh token', { ip });
-      throw new BadRequestException('Refresh token is required in request body or cookies');
+      throw new BadRequestException(appError('REFRESH_TOKEN_MISSING'));
     }
 
     // Validate and decode refresh token to get userId
@@ -535,7 +506,7 @@ export class AuthController {
         ip,
         userAgent: userAgent.substring(0, 100),
       });
-      throw new BadRequestException('Invalid or expired refresh token');
+      throw new BadRequestException(appError('SESSION_EXPIRED'));
     }
 
     const tokens = await this.authService.refreshTokens(decoded.userId, refreshToken);
@@ -767,7 +738,7 @@ export class AuthController {
     const sessionExists = userSessions.some(session => session.sessionId === sessionId);
 
     if (!sessionExists) {
-      throw new ForbiddenException('Session not found or does not belong to user');
+      throw new ForbiddenException(appError('SESSION_NOT_FOUND'));
     }
 
     await this.sessionManagementService.destroySession(sessionId);
@@ -851,7 +822,7 @@ export class AuthController {
         throw error;
       }
 
-      throw new InternalServerErrorException('Failed to delete account. Please try again.');
+      throw new InternalServerErrorException(appError('ACCOUNT_DELETE_FAILED'));
     }
   }
 
@@ -980,7 +951,7 @@ export class AuthController {
     const isValid = await this.mfaService.verifyTotpSetup(req.user.userId, body.token);
 
     if (!isValid) {
-      throw new BadRequestException('Invalid verification code');
+      throw new BadRequestException(appError('VERIFICATION_CODE_INVALID'));
     }
 
     return {
@@ -1003,18 +974,18 @@ export class AuthController {
     try {
       payload = this.jwtService.verify<{ sub?: string; purpose?: string }>(body.mfaToken);
     } catch {
-      throw new BadRequestException('Your verification session has expired. Please sign in again.');
+      throw new BadRequestException(appError('VERIFICATION_SESSION_EXPIRED'));
     }
 
     if (payload.purpose !== 'mfa' || !payload.sub) {
-      throw new BadRequestException('Your verification session has expired. Please sign in again.');
+      throw new BadRequestException(appError('VERIFICATION_SESSION_EXPIRED'));
     }
 
     const userId = payload.sub;
     const result = await this.mfaService.verifyTotp(userId, body.code);
 
     if (!result.isValid) {
-      throw new BadRequestException('The verification code is incorrect. Please try again.');
+      throw new BadRequestException(appError('VERIFICATION_CODE_INVALID'));
     }
 
     const requestInfo = {
@@ -1025,7 +996,7 @@ export class AuthController {
     const loginResponse = await this.authService.completeMfaLogin(userId, requestInfo);
 
     if (!loginResponse.tokens) {
-      throw new InternalServerErrorException('Something went wrong. Please try again.');
+      throw new InternalServerErrorException(appError('INTERNAL_ERROR'));
     }
 
     const sessionInfo = await this.sessionManagementService.createSession({
@@ -1176,7 +1147,7 @@ export class AuthController {
         isProduction,
         domain,
       });
-      throw new InternalServerErrorException('Failed to set authentication cookies');
+      throw new InternalServerErrorException(appError('SESSION_SETUP_FAILED'));
     }
   }
 
