@@ -87,7 +87,8 @@ describe('what the quote implies for the driver', () => {
   it('pays the driver a share, never a flat minimum', () => {
     // The old model paid a flat 3 TND, which the 2 TND band cannot cover.
     const { driverEarnings } = splitDeliveryFee(quotedFee(true, 1));
-    expect(driverEarnings).toBe(1.34);
+    // 80% of the 2 TND short-distance band.
+    expect(driverEarnings).toBe(1.6);
     expect(driverEarnings).toBeLessThan(3);
   });
 

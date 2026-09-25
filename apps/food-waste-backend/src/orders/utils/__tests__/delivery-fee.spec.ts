@@ -166,12 +166,13 @@ describe('splitting the fee between driver and platform', () => {
   it('matches the agreed table exactly', () => {
     // These are the numbers the split was signed off on. If any of them move,
     // someone is being paid differently than was agreed.
+    // Re-agreed 2026-09-24 at 80 / 20 (product owner); was 67 / 33.
     const expected: ReadonlyArray<readonly [number, number, number]> = [
-      [2, 1.34, 0.66],
-      [5, 3.35, 1.65],
-      [8, 5.36, 2.64],
-      [10, 6.7, 3.3],
-      [13, 8.71, 4.29],
+      [2, 1.6, 0.4],
+      [5, 4, 1],
+      [8, 6.4, 1.6],
+      [10, 8, 2],
+      [13, 10.4, 2.6],
     ];
     for (const [fee, driver, platform] of expected) {
       const split = splitDeliveryFee(fee);
