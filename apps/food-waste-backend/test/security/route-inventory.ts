@@ -22,7 +22,16 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 /** HTTP method decorators NestJS recognises. */
-const HTTP_DECORATORS = new Set(['Get', 'Post', 'Put', 'Patch', 'Delete', 'All', 'Head', 'Options']);
+const HTTP_DECORATORS = new Set([
+  'Get',
+  'Post',
+  'Put',
+  'Patch',
+  'Delete',
+  'All',
+  'Head',
+  'Options',
+]);
 
 export interface RouteRecord {
   /** e.g. `GET /orders/:id` — stable identity used by the baseline. */
@@ -74,17 +83,26 @@ function joinPath(prefix: string, suffix: string): string {
 
 function collectFromFile(absFile: string, repoRoot: string): RouteRecord[] {
   const source = fs.readFileSync(absFile, 'utf-8');
-  const sf = ts.createSourceFile(absFile, source, ts.ScriptTarget.Latest, /* setParentNodes */ true);
+  const sf = ts.createSourceFile(
+    absFile,
+    source,
+    ts.ScriptTarget.Latest,
+    /* setParentNodes */ true,
+  );
   const relFile = path.relative(repoRoot, absFile).split(path.sep).join('/');
 
   const routes: RouteRecord[] = [];
 
   for (const stmt of sf.statements) {
-    if (!ts.isClassDeclaration(stmt) || !stmt.name) continue;
+    if (!ts.isClassDeclaration(stmt) || !stmt.name) {
+      continue;
+    }
 
     const classDecorators = decoratorsOf(stmt);
     const controllerDec = classDecorators.find(d => decoratorName(d) === 'Controller');
-    if (!controllerDec) continue;
+    if (!controllerDec) {
+      continue;
+    }
 
     const controllerName = stmt.name.text;
     const prefix = firstStringArg(controllerDec) ?? '';
@@ -97,11 +115,15 @@ function collectFromFile(absFile: string, repoRoot: string): RouteRecord[] {
     const classPublic = classDecorators.some(d => decoratorName(d) === 'Public');
 
     for (const member of stmt.members) {
-      if (!ts.isMethodDeclaration(member) || !member.name) continue;
+      if (!ts.isMethodDeclaration(member) || !member.name) {
+        continue;
+      }
 
       const methodDecorators = decoratorsOf(member);
       const httpDec = methodDecorators.find(d => HTTP_DECORATORS.has(decoratorName(d)));
-      if (!httpDec) continue;
+      if (!httpDec) {
+        continue;
+      }
 
       const httpMethod = decoratorName(httpDec).toUpperCase();
       const routePath = joinPath(prefix, firstStringArg(httpDec) ?? '');
@@ -137,7 +159,9 @@ function walk(dir: string, out: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (entry.name === 'node_modules' || entry.name === 'dist') continue;
+      if (entry.name === 'node_modules' || entry.name === 'dist') {
+        continue;
+      }
       walk(full, out);
     } else if (entry.name.endsWith('.controller.ts') && !entry.name.endsWith('.spec.ts')) {
       out.push(full);
@@ -152,7 +176,9 @@ export function collectRoutes(): RouteRecord[] {
   const srcRoot = path.join(backendRoot, 'src');
   return walk(srcRoot)
     .flatMap(file => collectFromFile(file, backendRoot))
-    .sort((a, b) => (a.id === b.id ? a.controller.localeCompare(b.controller) : a.id < b.id ? -1 : 1));
+    .sort((a, b) =>
+      a.id === b.id ? a.controller.localeCompare(b.controller) : a.id < b.id ? -1 : 1,
+    );
 }
 
 /** Guards that establish caller identity. A route with none is unauthenticated. */
