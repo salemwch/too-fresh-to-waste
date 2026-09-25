@@ -1,3 +1,10 @@
+> **Historical - not the current contract.** This is a dump of an old login test
+> (bcrypt, per-attempt counts). Since 2026-09-25 login answers every unproven
+> failure with one 401 `INVALID_CREDENTIALS`, and too many attempts with 429
+> `LOGIN_TEMPORARILY_BLOCKED` + `details.blockedUntil`; it never sends
+> `attemptsRemaining`. The executable contract is `../auth.service.spec.ts` and
+> `../__tests__/login-attempt-limit.integration.spec.ts`.
+
 import { Test, TestingModule } from '@nestjs/testing'; import { JwtService }
 from '@nestjs/jwt'; import { ConfigService } from '@nestjs/config'; import {
 UnauthorizedException, Logger } from '@nestjs/common'; import \* as bcrypt from

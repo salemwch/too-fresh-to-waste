@@ -1327,6 +1327,24 @@ Sizes per §5.3. Always `radius full`. Resolution `profileImage > avatar > null`
 then initials. Never an empty grey circle. `alt` is the person's name, or
 `alt=""` when the name is already adjacent in text.
 
+### 13.12 Info disclosure
+
+For a figure or label a merchant may not understand ("pending settlement",
+"available"). Added 2026-09-24 for the dashboard money cards.
+
+- **Anatomy:** an `Info` glyph button beside the label; pressing it reveals one
+  or two sentences directly below, in the flow. Pressing again hides it.
+- **Why not a tooltip:** hover does not exist on the tablets and phones
+  merchants run the dashboard on, and a tooltip hides the answer the moment the
+  pointer moves. The disclosure works by touch, keyboard and screen reader.
+- **Hit area** 44 x 44 px (§5.6) around a 14-16px glyph.
+- **ARIA:** `<button aria-expanded aria-controls>` with an accessible name
+  ("What is Pending?"), and the panel carries the matching `id`.
+- **Copy:** caption scale (`text-sm`), muted foreground. Say what the number is
+  and when it changes - never restate the label.
+- **No motion requirement.** If animated, height only, and removed under
+  `prefers-reduced-motion`.
+
 ---
 
 ## 14. UX Standards
@@ -1379,6 +1397,7 @@ Predictable beats clever. These are the product's fixed conventions:
 | Choose several      | Checkboxes; chips when the set is small and visual          |
 | Confirm destruction | Dialog naming the exact object, with the verb on the button |
 | Reveal detail       | Drawer on desktop, bottom sheet on mobile                   |
+| Explain a figure    | Info disclosure (§13.12). Never a hover-only tooltip        |
 | Filter a list       | Inline sidebar on desktop, sheet with Apply on mobile       |
 | Bulk action         | Selection mode with a persistent action bar                 |
 
