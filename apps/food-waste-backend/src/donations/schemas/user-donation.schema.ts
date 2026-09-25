@@ -100,6 +100,26 @@ export class UserDonation {
   @Prop({ type: Object })
   metadata?: UserDonationMetadata;
 
+  /**
+   * Set when the order this contribution came from was refunded - the sale no
+   * longer happened, so it is no longer the customer's contribution. Reversed
+   * contributions are hidden from every read, like soft-deleted ones.
+   */
+  @Prop({ type: Date, default: null })
+  reversedAt?: Date | null;
+
+  @Prop({ type: String })
+  reversalReason?: string;
+
+  /**
+   * How the reversal was settled. POOL_REDUCED: the goal was still being
+   * funded, so the amount came back out of the pool. ABSORBED_BY_PLATFORM: the
+   * goal had already been funded and cannot be un-funded, so the charity keeps
+   * the money and TFTW pays for it.
+   */
+  @Prop({ type: String, enum: ['POOL_REDUCED', 'ABSORBED_BY_PLATFORM'] })
+  reversalOutcome?: 'POOL_REDUCED' | 'ABSORBED_BY_PLATFORM';
+
   @Prop({ default: false })
   isDeleted!: boolean;
 
@@ -126,12 +146,14 @@ UserDonationSchema.index({ createdAt: -1 });
 // Bypass with: .setOptions({ includeDeleted: true })
 // =============================================================================
 
+// A reversed contribution (its order was refunded) is hidden the same way.
+// `reversedAt: null` also matches documents written before the field existed.
 UserDonationSchema.pre<Query<UserDonationDocument[], UserDonationDocument>>(
   /^find/,
   function (next) {
     const queryOptions = this.getOptions() as Record<string, unknown> | undefined;
     if (queryOptions?.['includeDeleted'] !== true) {
-      this.where({ isDeleted: { $ne: true } });
+      this.where({ isDeleted: { $ne: true }, reversedAt: null });
     }
     next();
   },
@@ -141,5 +163,6 @@ UserDonationSchema.pre('aggregate', function () {
   const options = (this as { options?: Record<string, unknown> }).options;
   if (options?.['includeDeleted'] !== true) {
     applySoftDeleteFilter(this);
+    this.pipeline().splice(1, 0, { $match: { reversedAt: null } });
   }
 });

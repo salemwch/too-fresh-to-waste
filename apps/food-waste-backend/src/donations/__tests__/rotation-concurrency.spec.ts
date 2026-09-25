@@ -11,6 +11,7 @@ import { DEFAULT_CATEGORY_PRICES } from '../interfaces/donation.interface';
 import { DonationPool, DonationPoolStatus } from '../schemas/donation-pool.schema';
 import { DonationPoolSnapshot } from '../schemas/donation-pool-snapshot.schema';
 import { UserDonation } from '../schemas/user-donation.schema';
+import { PlatformTransaction } from '../../payments/schemas/platform-transaction.schema';
 
 /**
  * Regression cover for the donation pool double-rotation.
@@ -98,6 +99,7 @@ describe('donation pool rotation under concurrency', () => {
           provide: getModelToken(UserDonation.name),
           useValue: { findOne: jest.fn(), aggregate: jest.fn() },
         },
+        { provide: getModelToken(PlatformTransaction.name), useValue: { create: jest.fn() } },
         { provide: getQueueToken('donations'), useValue: { add: jest.fn() } },
         { provide: CronLockService, useValue: { runExclusive: jest.fn() } },
       ],

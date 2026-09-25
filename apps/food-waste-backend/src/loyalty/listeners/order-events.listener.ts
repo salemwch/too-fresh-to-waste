@@ -14,6 +14,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { plainToClass } from 'class-transformer';
 
+import { hasErrorCode } from '../../common/errors';
 import { OrderCompletedEvent } from '../../common/events';
 import { MonthlyBagGoalService } from '../../community-goal/community-goal.service';
 import { LeaderboardCacheService } from '../../leaderboard/leaderboard-cache.service';
@@ -104,8 +105,9 @@ export class OrderEventsListener {
           `✅ Awarded ${pointsToAward} loyalty points to user ${event.userId} for order ${event.orderId} (${totalBags} bags)`,
         );
       } catch (error) {
-        // If "Loyalty account not found", create it and retry
-        if (error instanceof Error && error.message === 'Loyalty account not found') {
+        // No loyalty account yet: create it and retry. Checked by code, not by
+        // text - the English copy of the message is allowed to change.
+        if (hasErrorCode(error, 'LOYALTY_ACCOUNT_NOT_FOUND')) {
           this.logger.warn(
             `Loyalty account not found for user ${event.userId}, creating now (fallback)`,
           );

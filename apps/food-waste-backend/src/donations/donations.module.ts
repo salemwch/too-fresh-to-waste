@@ -4,6 +4,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { CommonModule } from '../common/common.module';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
+import {
+  PlatformTransaction,
+  PlatformTransactionSchema,
+} from '../payments/schemas/platform-transaction.schema';
 
 import { DonationsAdminController } from './donations-admin.controller';
 import { DonationsController } from './donations.controller';
@@ -30,6 +34,8 @@ import { UserDonation, UserDonationSchema } from './schemas/user-donation.schema
       { name: UserDonation.name, schema: UserDonationSchema },
       { name: PoolContributor.name, schema: PoolContributorSchema },
       { name: Order.name, schema: OrderSchema },
+      // The DONATION pledge is booked with the pool contribution, here.
+      { name: PlatformTransaction.name, schema: PlatformTransactionSchema },
     ]),
     BullModule.registerQueue({
       name: 'donations',

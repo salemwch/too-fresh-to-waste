@@ -1,4 +1,5 @@
 import { Types } from 'mongoose';
+import { Nack } from '@golevelup/nestjs-rabbitmq';
 
 import { OrderCompletedEvent } from '../../common/events';
 import { findInvalidDonationIds, OrderEventsListener } from '../listeners/order-events.listener';
@@ -157,5 +158,59 @@ describe('OrderEventsListener donation id guard', () => {
 
     expect(donationsService.createDonation).not.toHaveBeenCalled();
     expect(errorSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('OrderEventsListener order.refunded', () => {
+  let reverseForOrder: jest.Mock;
+  let listener: OrderEventsListener;
+
+  beforeEach(() => {
+    reverseForOrder = jest.fn().mockResolvedValue('POOL_REDUCED');
+    listener = new OrderEventsListener(
+      { reverseForOrder } as unknown as DonationsService,
+      {} as unknown as Model<OrderDocument>,
+    );
+    jest
+      .spyOn(listener['logger'] as unknown as { error: (msg: string) => void }, 'error')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('reverses the refunded order and passes the reason through', async () => {
+    const orderId = new Types.ObjectId();
+
+    await listener.handleOrderRefundedLegacy({
+      orderId: orderId.toString(),
+      reason: 'Spoiled',
+      refundedAt: new Date(),
+    });
+
+    expect(reverseForOrder).toHaveBeenCalledWith(orderId, 'Spoiled');
+  });
+
+  it('skips a malformed order id instead of throwing into the broker forever', async () => {
+    await listener.handleOrderRefundedLegacy({
+      orderId: 'not-an-id',
+      reason: 'x',
+      refundedAt: new Date(),
+    });
+
+    expect(reverseForOrder).not.toHaveBeenCalled();
+  });
+
+  it('asks RabbitMQ to requeue when the reversal fails, so it is not lost', async () => {
+    reverseForOrder.mockRejectedValue(new Error('write conflict'));
+
+    const result = await listener.handleOrderRefundedRabbitMQ({
+      orderId: new Types.ObjectId().toString(),
+      reason: 'x',
+      refundedAt: new Date().toISOString(),
+    });
+
+    expect(result).toBeInstanceOf(Nack);
   });
 });
