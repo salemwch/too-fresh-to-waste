@@ -1,11 +1,28 @@
 import { ForbiddenException } from '@nestjs/common';
 import { EstablishmentStatus } from '@foodwaste/shared';
 
+import { appError, type ErrorCode } from '../../common/errors';
+
 /** The parts of an establishment that decide whether it may publish. */
 export interface PublishGateInput {
   status: EstablishmentStatus;
   subscriptionStatus: 'trial' | 'paid' | 'suspended';
 }
+
+/**
+ * One code per status that blocks publishing, so the merchant is told what
+ * blocks them and who unblocks it - in their language, not as a raw enum
+ * value. Typed over every non-ACTIVE status: a status added to the enum does
+ * not compile until it has a message here.
+ */
+export const BLOCKED_PUBLISH_CODES: Readonly<
+  Record<Exclude<EstablishmentStatus, EstablishmentStatus.ACTIVE>, ErrorCode>
+> = {
+  [EstablishmentStatus.PENDING]: 'ESTABLISHMENT_PENDING_APPROVAL',
+  [EstablishmentStatus.SUSPENDED]: 'ESTABLISHMENT_SUSPENDED',
+  [EstablishmentStatus.REJECTED]: 'ESTABLISHMENT_REJECTED',
+  [EstablishmentStatus.INACTIVE]: 'ESTABLISHMENT_INACTIVE',
+};
 
 /**
  * Whether an establishment is allowed to have a **live** offer.
@@ -29,22 +46,19 @@ export interface PublishGateInput {
  * Draft and cancelled are deliberately **not** gated - a merchant waiting on
  * approval is meant to be able to prepare listings.
  *
- * @throws ForbiddenException naming the blocking condition. A bare "forbidden"
- *         tells a merchant nothing they can act on.
+ * @throws ForbiddenException with the code of the blocking condition. A bare
+ *         "forbidden" tells a merchant nothing they can act on.
  */
 export function assertCanPublish(establishment: PublishGateInput): void {
   if (establishment.status !== EstablishmentStatus.ACTIVE) {
     throw new ForbiddenException(
-      'Your establishment must be approved before you can activate offers. ' +
-        `Current status: ${establishment.status}`,
+      appError(BLOCKED_PUBLISH_CODES[establishment.status], undefined, {
+        status: establishment.status,
+      }),
     );
   }
 
   if (establishment.subscriptionStatus === 'suspended') {
-    throw new ForbiddenException({
-      code: 'TRIAL_EXPIRED',
-      message:
-        'Your subscription has expired. Please renew your subscription before publishing offers.',
-    });
+    throw new ForbiddenException(appError('TRIAL_EXPIRED'));
   }
 }

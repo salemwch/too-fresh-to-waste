@@ -18,6 +18,7 @@ import { SystemConfig, SystemConfigDocument } from '../schemas/system-config.sch
 
 import { AdminAuditService, AuditableObject } from './admin-audit.service';
 
+import { appError } from '../../common/errors';
 export interface ConfigValidationResult {
   isValid: boolean;
   errors: string[];
@@ -206,7 +207,7 @@ export class SystemConfigService {
         .exec();
 
       if (!currentConfigDoc) {
-        throw new NotFoundException('No active system configuration found');
+        throw new NotFoundException(appError('CONFIG_NOT_FOUND'));
       }
 
       // Convert to interface for validation
@@ -217,7 +218,7 @@ export class SystemConfigService {
 
       if (!validationResult.isValid) {
         throw new BadRequestException(
-          `Configuration validation failed: ${validationResult.errors.join(', ')}`,
+          appError('CONFIG_INVALID', { details: String(validationResult.errors.join(', ')) }),
         );
       }
 
@@ -335,7 +336,7 @@ export class SystemConfigService {
         .exec();
 
       if (!targetConfig) {
-        throw new NotFoundException(`Configuration version ${version} not found`);
+        throw new NotFoundException(appError('CONFIG_VERSION_NOT_FOUND', { version }));
       }
 
       // Get current config document for deactivation
@@ -344,7 +345,7 @@ export class SystemConfigService {
         .exec();
 
       if (!currentConfigDoc) {
-        throw new NotFoundException('No active system configuration found');
+        throw new NotFoundException(appError('CONFIG_NOT_FOUND'));
       }
 
       // Deactivate current configuration
@@ -423,7 +424,7 @@ export class SystemConfigService {
           .exec();
 
         if (!versionConfig) {
-          throw new NotFoundException(`Configuration version ${version} not found`);
+          throw new NotFoundException(appError('CONFIG_VERSION_NOT_FOUND', { version }));
         }
         config = versionConfig;
       } else {
@@ -432,7 +433,7 @@ export class SystemConfigService {
           .exec();
 
         if (!currentConfig) {
-          throw new NotFoundException('No active system configuration found');
+          throw new NotFoundException(appError('CONFIG_NOT_FOUND'));
         }
         config = currentConfig;
       }
@@ -572,13 +573,15 @@ export class SystemConfigService {
 
       if (!validationResult.isValid) {
         throw new BadRequestException(
-          `Import validation failed: ${validationResult.errors.join(', ')}`,
+          appError('CONFIG_IMPORT_INVALID', {
+            details: String(validationResult.errors.join(', ')),
+          }),
         );
       }
 
       // Type guard after validation
       if (typeof importData !== 'object' || importData === null) {
-        throw new BadRequestException('Import data must be a valid object');
+        throw new BadRequestException(appError('CONFIG_IMPORT_NOT_OBJECT'));
       }
 
       const data = importData as ConfigImportData;

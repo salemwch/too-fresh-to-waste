@@ -7,6 +7,7 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { ConfigService } from '@nestjs/config';
 import sharp from 'sharp';
 
+import { appError } from '../errors';
 export interface LocalUploadOptions {
   folder: string;
   imageProcessing?: {
@@ -138,9 +139,7 @@ export class LocalStorageService {
       };
     } catch (error) {
       this.logger.error(`❌ Failed to upload file: ${file.originalname}`, error);
-      throw new InternalServerErrorException(
-        `File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new InternalServerErrorException(appError('FILE_UPLOAD_FAILED'));
     }
   }
 
@@ -197,9 +196,7 @@ export class LocalStorageService {
       }
     } catch (error) {
       this.logger.error(`Failed to delete file: ${fileUrl}`, error);
-      throw new InternalServerErrorException(
-        `File deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new InternalServerErrorException(appError('FILE_DELETE_FAILED'));
     }
   }
 

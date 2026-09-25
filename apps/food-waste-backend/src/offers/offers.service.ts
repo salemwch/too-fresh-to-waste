@@ -39,6 +39,7 @@ import { OfferPresenter } from './presenters/offer.presenter';
 import { resolveEstablishmentTypeFilter } from './utils/establishment-type-filter.util';
 import { Offer, OfferDocument, OfferStatus, OfferType, Currency } from './schemas/offer.schema';
 
+import { appError } from '../common/errors';
 // OFFER_LIST_FIELDS no longer needed — aggregation pipelines select fields via $project
 
 /**
@@ -591,10 +592,10 @@ export class OffersService {
     // 2-minute grace period covers network latency and the "Right Now" use case
     // where the frontend captures the timestamp at submit time (seconds included).
     if (availableFrom < new Date(now.getTime() - 2 * 60 * 1000)) {
-      throw new BadRequestException('Available from date cannot be in the past');
+      throw new BadRequestException(appError('OFFER_START_IN_PAST'));
     }
     if (availableUntil <= availableFrom) {
-      throw new BadRequestException('Available until date must be after available from date');
+      throw new BadRequestException(appError('OFFER_END_BEFORE_START'));
     }
 
     // ✅ SECURITY: Calculate discount percentage and enforce TND currency
@@ -701,13 +702,13 @@ export class OffersService {
     }
     if (filters.establishmentId) {
       if (!isValidObjectId(filters.establishmentId)) {
-        throw new BadRequestException('Invalid establishmentId format');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
       query.establishmentId = new Types.ObjectId(filters.establishmentId);
     }
     if (filters.merchantId) {
       if (!isValidObjectId(filters.merchantId)) {
-        throw new BadRequestException('Invalid merchantId format');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
       query.merchantId = new Types.ObjectId(filters.merchantId);
     }
@@ -1092,7 +1093,7 @@ export class OffersService {
 
   async findById(id: string, viewerUserId?: string): Promise<OfferDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid offer ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     // ✅ PERFORMANCE: Single aggregation replaces findById + 2 populates (3 → 1 round-trip)
@@ -1116,7 +1117,7 @@ export class OffersService {
     const offer = results[0] as OfferDocument | undefined;
 
     if (!offer) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException(appError('OFFER_NOT_FOUND'));
     }
 
     // Unique-view increment: atomic single op.
@@ -1191,14 +1192,14 @@ export class OffersService {
           ? (estId as { _id: Types.ObjectId })._id.toString()
           : String(estId ?? '');
       if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
-        throw new ForbiddenException('You can only update offers for your assigned establishment');
+        throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
       }
     } else if (userRole !== 'admin' && merchantIdString !== userId) {
-      throw new ForbiddenException('You can only update your own offers');
+      throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
     }
 
     if (offer.reservedQuantity > 0 && userRole !== 'admin') {
-      throw new BadRequestException('Cannot update offer with active reservations');
+      throw new BadRequestException(appError('OFFER_HAS_RESERVATIONS'));
     }
 
     /*
@@ -1252,7 +1253,7 @@ export class OffersService {
         : offer.availableUntil;
 
       if (availableUntil <= availableFrom) {
-        throw new BadRequestException('Available until date must be after available from date');
+        throw new BadRequestException(appError('OFFER_END_BEFORE_START'));
       }
 
       updateOfferDto.availableFrom = availableFrom.toISOString();
@@ -1289,7 +1290,7 @@ export class OffersService {
       const offer = await this.offerModel.findById(id).select('establishmentId merchantId').exec();
 
       if (!offer) {
-        throw new NotFoundException('Offer not found');
+        throw new NotFoundException(appError('OFFER_NOT_FOUND'));
       }
 
       if (isLM) {
@@ -1299,12 +1300,10 @@ export class OffersService {
             ? (estId as { _id: Types.ObjectId })._id.toString()
             : String(estId ?? '');
         if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
-          throw new ForbiddenException(
-            'You can only manage offers for your assigned establishment',
-          );
+          throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
         }
       } else if (offer.merchantId.toString() !== merchantId) {
-        throw new ForbiddenException('You can only manage your own offers');
+        throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
       }
 
       await this.validateEstablishmentOwnership(
@@ -1327,7 +1326,7 @@ export class OffersService {
       .exec();
 
     if (!updatedOffer) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException(appError('OFFER_NOT_FOUND'));
     }
 
     // Activating/deactivating an offer changes the featured and urgent lists.
@@ -1351,7 +1350,7 @@ export class OffersService {
     quantity: number,
   ): Promise<{ offer: OfferDocument; reservedQuantity: number; soldQuantity: number }> {
     if (quantity <= 0) {
-      throw new BadRequestException('Quantity must be greater than 0');
+      throw new BadRequestException(appError('QUANTITY_ABOVE_ZERO'));
     }
 
     const now = new Date();
@@ -1381,18 +1380,18 @@ export class OffersService {
       const offer = await this.offerModel.findById(id).exec();
 
       if (!offer) {
-        throw new NotFoundException(`Offer with id ${id} not found`);
+        throw new NotFoundException(appError('OFFER_NOT_FOUND'));
       }
 
       if (offer.status !== OfferStatus.ACTIVE || !offer.isActive) {
-        throw new BadRequestException('This offer is not active');
+        throw new BadRequestException(appError('OFFER_NOT_ACTIVE'));
       }
 
       if (offer.availableUntil <= now) {
-        throw new BadRequestException('This offer has expired');
+        throw new BadRequestException(appError('OFFER_EXPIRED'));
       }
 
-      throw new BadRequestException('Not enough quantity available to reserve');
+      throw new BadRequestException(appError('OFFER_QUANTITY_UNAVAILABLE'));
     }
 
     return {
@@ -1407,7 +1406,7 @@ export class OffersService {
     quantity: number,
   ): Promise<{ offer: OfferDocument; reservedQuantity: number; soldQuantity: number }> {
     if (quantity <= 0) {
-      throw new BadRequestException('Quantity must be greater than 0');
+      throw new BadRequestException(appError('QUANTITY_ABOVE_ZERO'));
     }
 
     const updatedOffer = await this.offerModel
@@ -1431,9 +1430,9 @@ export class OffersService {
     if (!updatedOffer) {
       const exists = await this.offerModel.exists({ _id: id });
       if (!exists) {
-        throw new NotFoundException('Offer not found');
+        throw new NotFoundException(appError('OFFER_NOT_FOUND'));
       }
-      throw new BadRequestException('Not enough reserved quantity to confirm sale');
+      throw new BadRequestException(appError('STOCK_RESERVATION_INVALID'));
     }
 
     return {
@@ -1448,7 +1447,7 @@ export class OffersService {
       .exec();
 
     if (!updatedOffer) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException(appError('OFFER_NOT_FOUND'));
     }
 
     return updatedOffer;
@@ -1485,13 +1484,13 @@ export class OffersService {
           ? (estId as { _id: Types.ObjectId })._id.toString()
           : String(estId ?? '');
       if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
-        throw new ForbiddenException('You can only delete offers for your assigned establishment');
+        throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
       }
     } else if (userRole !== 'admin' && merchantIdString !== userId) {
-      throw new ForbiddenException('You can only delete your own offers');
+      throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
     }
     if (offer.reservedQuantity > 0) {
-      throw new BadRequestException('Cannot delete offer with active reservations');
+      throw new BadRequestException(appError('OFFER_HAS_RESERVATIONS'));
     }
 
     // Soft delete: mark as deleted instead of removing from database
@@ -2446,10 +2445,10 @@ export class OffersService {
 
     if (userRole === UserRole.LOCATION_MANAGER) {
       if (!assignedEstablishmentId || establishment._id.toString() !== assignedEstablishmentId) {
-        throw new ForbiddenException('You can only manage offers for your assigned establishment');
+        throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
       }
     } else if (establishment.ownerId.toString() !== merchantId) {
-      throw new ForbiddenException('You can only create offers for your own establishment');
+      throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
     }
 
     // Shared with `update()`'s publish branch - see publish-gate.util.ts for
@@ -2476,20 +2475,16 @@ export class OffersService {
 
     if (userRole === UserRole.LOCATION_MANAGER) {
       if (!assignedEstablishmentId || establishment._id.toString() !== assignedEstablishmentId) {
-        throw new ForbiddenException('You can only create offers for your assigned establishment');
+        throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
       }
     } else if (establishment.ownerId.toString() !== merchantId) {
-      throw new ForbiddenException('You can only create offers for your own establishment');
+      throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
     }
 
     // Trial-expiry gate: merchant can still log in and manage existing offers,
     // but cannot create new ones until admin reactivates their subscription.
     if (establishment.subscriptionStatus === 'suspended') {
-      throw new ForbiddenException({
-        code: 'TRIAL_EXPIRED',
-        message:
-          'Your subscription has expired. Please renew your subscription to continue creating offers.',
-      });
+      throw new ForbiddenException(appError('TRIAL_EXPIRED'));
     }
 
     return establishment;
@@ -2503,11 +2498,11 @@ export class OffersService {
    */
   private calculateAndValidatePricing(pricing: Partial<OfferPricing>): OfferPricing {
     if (!pricing.originalPrice || !pricing.discountedPrice) {
-      throw new BadRequestException('Original price and discounted price are required');
+      throw new BadRequestException(appError('OFFER_PRICES_REQUIRED'));
     }
 
     if (pricing.discountedPrice >= pricing.originalPrice) {
-      throw new BadRequestException('Discounted price must be less than original price');
+      throw new BadRequestException(appError('OFFER_PRICE_ORDER'));
     }
 
     // ✅ Calculate discount percentage (backend-only, not user input)
@@ -2518,7 +2513,7 @@ export class OffersService {
     // ✅ BUSINESS: Enforce minimum 40% discount
     if (discountPercentage < 40 || discountPercentage > 90) {
       throw new BadRequestException(
-        `Discount must be between 40% and 90%. Your prices result in ${discountPercentage}% discount.`,
+        appError('OFFER_DISCOUNT_OUT_OF_RANGE', { discount: discountPercentage }),
       );
     }
 
@@ -2532,7 +2527,7 @@ export class OffersService {
 
   private validatePickupTimeSlots(slots: OfferPickupTimeSlot[]): void {
     if (slots?.length === 0) {
-      throw new BadRequestException('At least one pickup time slot is required');
+      throw new BadRequestException(appError('OFFER_SLOT_REQUIRED'));
     }
 
     for (const slot of slots) {
@@ -2545,11 +2540,11 @@ export class OffersService {
       const endMinutes = rawEnd === 0 ? 1440 : rawEnd;
 
       if (startMinutes >= endMinutes) {
-        throw new BadRequestException('Pickup slot start time must be before end time');
+        throw new BadRequestException(appError('OFFER_SLOT_ORDER'));
       }
 
       if (slot.maxOrders !== null && slot.maxOrders !== undefined && slot.maxOrders < 1) {
-        throw new BadRequestException('Maximum orders per slot must be at least 1');
+        throw new BadRequestException(appError('OFFER_SLOT_CAPACITY'));
       }
     }
   }
@@ -2574,8 +2569,10 @@ export class OffersService {
 
     if (totalSlotCapacity > totalQuantity) {
       throw new BadRequestException(
-        `Total pickup slot capacity (${totalSlotCapacity}) exceeds available quantity (${totalQuantity}). ` +
-          `Please reduce maxOrders per slot or increase totalQuantity.`,
+        appError('OFFER_SLOT_CAPACITY_EXCEEDED', {
+          capacity: totalSlotCapacity,
+          quantity: totalQuantity,
+        }),
       );
     }
   }
@@ -2630,12 +2627,10 @@ export class OffersService {
 
     if (userRole === UserRole.LOCATION_MANAGER) {
       if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
-        throw new ForbiddenException(
-          'You can only reactivate offers for your assigned establishment',
-        );
+        throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
       }
     } else if (userRole !== 'admin' && merchantIdString !== userId) {
-      throw new ForbiddenException('You can only reactivate your own offers');
+      throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
     }
 
     // Establishment approval guard — merchants/LMs cannot reactivate offers
@@ -2659,10 +2654,7 @@ export class OffersService {
     ];
 
     if (!reactivatableStatuses.includes(offer.status)) {
-      throw new BadRequestException(
-        `Cannot reactivate an offer with status "${offer.status}". ` +
-          `Only expired, cancelled, or sold-out offers can be reactivated.`,
-      );
+      throw new BadRequestException(appError('OFFER_CANNOT_REACTIVATE'));
     }
 
     // Validate new dates
@@ -2673,10 +2665,10 @@ export class OffersService {
 
     // 2-minute grace period — consistent with create() for "Right Now" reactivations.
     if (availableFrom < new Date(Date.now() - 2 * 60 * 1000)) {
-      throw new BadRequestException('Available from date cannot be in the past');
+      throw new BadRequestException(appError('OFFER_START_IN_PAST'));
     }
     if (availableUntil <= availableFrom) {
-      throw new BadRequestException('Available until date must be after available from date');
+      throw new BadRequestException(appError('OFFER_END_BEFORE_START'));
     }
 
     // Validate pickup time slots
@@ -2724,7 +2716,7 @@ export class OffersService {
       .exec();
 
     if (!updated) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException(appError('OFFER_NOT_FOUND'));
     }
 
     this.logger.log(
@@ -2787,33 +2779,26 @@ export class OffersService {
 
     if (userRole === UserRole.LOCATION_MANAGER) {
       if (!assignedEstablishmentId || offerEstId !== assignedEstablishmentId) {
-        throw new ForbiddenException(
-          'You can only enable/disable offers for your assigned establishment',
-        );
+        throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
       }
     } else if (userRole !== 'admin' && merchantIdString !== userId) {
-      throw new ForbiddenException('You can only enable/disable your own offers');
+      throw new ForbiddenException(appError('OFFER_NOT_YOURS'));
     }
 
     // Cannot disable offers with active reservations
     if (!enable && offer.reservedQuantity > 0) {
-      throw new BadRequestException(
-        'Cannot disable an offer with active reservations. Wait for reservations to complete or cancel them first.',
-      );
+      throw new BadRequestException(appError('OFFER_HAS_RESERVATIONS'));
     }
 
     // Status guard — only ACTIVE or DRAFT offers can be toggled
     const togglableStatuses: OfferStatus[] = [OfferStatus.ACTIVE, OfferStatus.DRAFT];
     if (!togglableStatuses.includes(offer.status)) {
-      throw new BadRequestException(
-        `Cannot toggle an offer with status "${offer.status}". ` +
-          `Only active or draft offers can be enabled/disabled.`,
-      );
+      throw new BadRequestException(appError('OFFER_CANNOT_TOGGLE'));
     }
 
     // Prevent no-op
     if (offer.isActive === enable) {
-      throw new BadRequestException(`Offer is already ${enable ? 'enabled' : 'disabled'}.`);
+      throw new BadRequestException(appError('OFFER_STATE_UNCHANGED'));
     }
 
     const updated = await this.offerModel
@@ -2832,7 +2817,7 @@ export class OffersService {
       .exec();
 
     if (!updated) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException(appError('OFFER_NOT_FOUND'));
     }
 
     this.logger.log(
@@ -2900,7 +2885,7 @@ export class OffersService {
       .exec();
 
     if (!offer) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException(appError('OFFER_NOT_FOUND'));
     }
 
     this.logger.log(

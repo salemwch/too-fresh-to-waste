@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 
 import { TooManyRequestsException } from '../../common/validators/to-many-request.exeptition';
 
+import { appError } from '../../common/errors';
 interface RequestRecord {
   count: number;
   expiresAt: number;
@@ -45,7 +46,9 @@ export class ModerationReportRateLimitGuard implements CanActivate {
 
     if (record.count >= limits.maxRequests) {
       throw new TooManyRequestsException(
-        `Rate limit exceeded for reporting. You can make ${limits.maxRequests} reports per ${Math.floor(limits.windowMs / 1000 / 60)} minutes. Try again after ${Math.ceil((record.expiresAt - now) / 1000)} seconds`,
+        appError('REPORT_RATE_LIMITED', {
+          seconds: String(Math.ceil((record.expiresAt - now) / 1000)),
+        }),
       );
     }
 
@@ -107,7 +110,9 @@ export class ModerationActionRateLimitGuard implements CanActivate {
 
     if (record.count >= this.maxActions) {
       throw new TooManyRequestsException(
-        `Moderation action rate limit exceeded. Maximum ${this.maxActions} actions per minute. Try again after ${Math.ceil((record.expiresAt - now) / 1000)} seconds`,
+        appError('MODERATION_RATE_LIMITED', {
+          seconds: String(Math.ceil((record.expiresAt - now) / 1000)),
+        }),
       );
     }
 

@@ -17,6 +17,7 @@ import { DistanceCalculator } from '../utils/distance.util';
 
 import { GeolocationService } from './geolocation.service';
 
+import { appError } from '../../common/errors';
 @Injectable()
 export class UserLocationService {
   private readonly logger = new Logger(UserLocationService.name);
@@ -35,7 +36,7 @@ export class UserLocationService {
     try {
       const user = await this.userModel.findById(userId).exec();
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       return (
@@ -58,12 +59,12 @@ export class UserLocationService {
     try {
       const user = await this.userModel.findById(userId).exec();
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       // Validate default location coordinates if provided
       if (dto.defaultLocation && !DistanceCalculator.isValidCoordinate(dto.defaultLocation)) {
-        throw new BadRequestException('Invalid default location coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       const updatedPreferences: Partial<UserLocationPreferences> = {
@@ -91,11 +92,11 @@ export class UserLocationService {
     try {
       const user = await this.userModel.findById(userId).exec();
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       if (!DistanceCalculator.isValidCoordinate(dto.coordinates)) {
-        throw new BadRequestException('Invalid coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       // Create new saved location
@@ -153,7 +154,7 @@ export class UserLocationService {
     try {
       const user = await this.userModel.findById(userId).exec();
       if (!user?.locationPreferences) {
-        throw new NotFoundException('User or location preferences not found');
+        throw new NotFoundException(appError('LOCATION_PREFERENCES_NOT_FOUND'));
       }
 
       const locationIndex = user.locationPreferences.savedLocations.findIndex(
@@ -161,17 +162,17 @@ export class UserLocationService {
       );
 
       if (locationIndex === -1) {
-        throw new NotFoundException('Saved location not found');
+        throw new NotFoundException(appError('SAVED_LOCATION_NOT_FOUND'));
       }
 
       // Validate coordinates if being updated
       if (updates.coordinates && !DistanceCalculator.isValidCoordinate(updates.coordinates)) {
-        throw new BadRequestException('Invalid coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       const currentLocation = user.locationPreferences.savedLocations[locationIndex];
       if (!currentLocation) {
-        throw new NotFoundException('Saved location not found');
+        throw new NotFoundException(appError('SAVED_LOCATION_NOT_FOUND'));
       }
 
       // Update the location
@@ -215,7 +216,7 @@ export class UserLocationService {
     try {
       const user = await this.userModel.findById(userId).exec();
       if (!user?.locationPreferences) {
-        throw new NotFoundException('User or location preferences not found');
+        throw new NotFoundException(appError('LOCATION_PREFERENCES_NOT_FOUND'));
       }
 
       const initialLength = user.locationPreferences.savedLocations.length;
@@ -224,7 +225,7 @@ export class UserLocationService {
       );
 
       if (user.locationPreferences.savedLocations.length === initialLength) {
-        throw new NotFoundException('Saved location not found');
+        throw new NotFoundException(appError('SAVED_LOCATION_NOT_FOUND'));
       }
 
       await user.save();
@@ -275,12 +276,12 @@ export class UserLocationService {
   ): Promise<void> {
     try {
       if (!DistanceCalculator.isValidCoordinate(coordinates)) {
-        throw new BadRequestException('Invalid coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       const user = await this.userModel.findById(userId).exec();
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       user.locationPreferences ??= this.getDefaultLocationPreferences();
@@ -403,7 +404,7 @@ export class UserLocationService {
   ): Promise<Array<SavedLocation & { distance: number }>> {
     try {
       if (!DistanceCalculator.isValidCoordinate(center)) {
-        throw new BadRequestException('Invalid center coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       const savedLocations = await this.getSavedLocations(userId);

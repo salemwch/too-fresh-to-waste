@@ -43,6 +43,7 @@ import {
 } from './schemas/favorite-list.schema';
 import { Favorite, FavoriteDocument, FavoriteType } from './schemas/favorite.schema';
 
+import { appError } from '../common/errors';
 @Injectable()
 export class FavoritesService {
   private readonly logger = new Logger(FavoritesService.name);
@@ -65,7 +66,7 @@ export class FavoritesService {
 
       if (existingFavorite) {
         if (existingFavorite.isActive) {
-          throw new ConflictException('Item is already in favorites');
+          throw new ConflictException(appError('FAVORITE_ALREADY_ADDED'));
         }
         // Reactivate existing favorite
         existingFavorite.isActive = true;
@@ -149,7 +150,7 @@ export class FavoritesService {
       );
 
       if (!result) {
-        throw new NotFoundException('Favorite not found');
+        throw new NotFoundException(appError('FAVORITE_NOT_FOUND'));
       }
 
       // Emit event for offers module to update favorite count
@@ -186,7 +187,7 @@ export class FavoritesService {
       );
 
       if (!result) {
-        throw new NotFoundException('Favorite not found');
+        throw new NotFoundException(appError('FAVORITE_NOT_FOUND'));
       }
 
       this.logger.log(`Favorite removed: ${type} ${itemId} for user ${userId}`);
@@ -221,7 +222,7 @@ export class FavoritesService {
       );
 
       if (!favorite) {
-        throw new NotFoundException('Favorite not found');
+        throw new NotFoundException(appError('FAVORITE_NOT_FOUND'));
       }
 
       this.logger.log(`Favorite updated: ${favoriteId} for user ${userId}`);
@@ -345,9 +346,7 @@ export class FavoritesService {
       // Map favorites to populated data
       const populatedFavorites = favorites.map(favorite => {
         let populatedItem:
-          | ReturnType<typeof OfferPresenter.toCardDto>
-          | Record<string, unknown>
-          | null = null;
+          ReturnType<typeof OfferPresenter.toCardDto> | Record<string, unknown> | null = null;
 
         try {
           if (favorite.type === FavoriteType.OFFER) {
@@ -462,7 +461,7 @@ export class FavoritesService {
       });
 
       if (existingList) {
-        throw new ConflictException('A list with this name already exists');
+        throw new ConflictException(appError('FAVORITE_LIST_NAME_TAKEN'));
       }
 
       const favoriteList = new this.favoriteListModel({
@@ -621,7 +620,7 @@ export class FavoritesService {
       const [list] = await this.favoriteListModel.aggregate<FavoriteListLean>(pipeline);
 
       if (!list) {
-        throw new NotFoundException('Favorite list not found or access denied');
+        throw new NotFoundException(appError('FAVORITE_LIST_NOT_FOUND'));
       }
 
       // Update view count and last accessed (separate write)
@@ -659,7 +658,7 @@ export class FavoritesService {
       );
 
       if (!list) {
-        throw new NotFoundException('Favorite list not found');
+        throw new NotFoundException(appError('FAVORITE_LIST_NOT_FOUND'));
       }
 
       this.logger.log(`Favorite list updated: ${listId} for user ${userId}`);
@@ -685,7 +684,7 @@ export class FavoritesService {
       });
 
       if (!list) {
-        throw new NotFoundException('Favorite list not found');
+        throw new NotFoundException(appError('FAVORITE_LIST_NOT_FOUND'));
       }
 
       // Check if item is already in the list
@@ -694,7 +693,7 @@ export class FavoritesService {
       );
 
       if (existingItem) {
-        throw new ConflictException('Item is already in this list');
+        throw new ConflictException(appError('FAVORITE_ALREADY_IN_LIST'));
       }
 
       const newItem: ListItem = {
@@ -743,7 +742,7 @@ export class FavoritesService {
       );
 
       if (!list) {
-        throw new NotFoundException('Favorite list not found');
+        throw new NotFoundException(appError('FAVORITE_LIST_NOT_FOUND'));
       }
 
       this.logger.log(`Item removed from favorite list: ${itemId} from list ${listId}`);
@@ -779,7 +778,7 @@ export class FavoritesService {
       );
 
       if (!list) {
-        throw new NotFoundException('Favorite list not found');
+        throw new NotFoundException(appError('FAVORITE_LIST_NOT_FOUND'));
       }
 
       this.logger.log(`List shared: ${listId} with ${shareDto.userIds.length} users`);

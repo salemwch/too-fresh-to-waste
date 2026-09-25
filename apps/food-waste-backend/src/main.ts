@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { BadRequestException, ValidationPipe, VersioningType } from '@nestjs/common';
+import { VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -13,6 +13,7 @@ import { static as expressStatic } from 'express';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
+import { createAppValidationPipe } from './common/errors/validation-pipe';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
 import { RequestLoggingInterceptor } from './common/interceptors/request-logging.interceptor';
@@ -419,24 +420,7 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      exceptionFactory: errors => {
-        const extractMessages = (errs: typeof errors): string[] =>
-          errs.flatMap(err => [
-            ...Object.values(err.constraints ?? {}),
-            ...(err.children?.length ? extractMessages(err.children) : []),
-          ]);
-        const messages = extractMessages(errors);
-        const detail = messages.join('; ');
-        logger.warn(`Validation failed: ${detail}`, 'ValidationPipe');
-        return new BadRequestException(`Validation failed: ${detail}`);
-      },
-    }),
-  );
+  app.useGlobalPipes(createAppValidationPipe(detail => logger.warn(detail, 'ValidationPipe')));
 
   /**
    * ENTERPRISE-GRADE SWAGGER/OpenAPI DOCUMENTATION

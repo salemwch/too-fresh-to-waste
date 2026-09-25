@@ -14,6 +14,7 @@ import {
   AnnouncementSearchDto,
 } from '../dto/announcement.dto';
 
+import { appError } from '../../common/errors';
 @Injectable()
 export class AnnouncementService {
   constructor(
@@ -64,7 +65,7 @@ export class AnnouncementService {
       .populate('createdBy', 'firstName lastName email')
       .lean();
     if (!item) {
-      throw new NotFoundException('Announcement not found');
+      throw new NotFoundException(appError('ANNOUNCEMENT_NOT_FOUND'));
     }
     return item;
   }
@@ -88,7 +89,7 @@ export class AnnouncementService {
   async update(id: string, dto: UpdateAnnouncementDto) {
     const item = await this.model.findById(id);
     if (!item) {
-      throw new NotFoundException('Announcement not found');
+      throw new NotFoundException(appError('ANNOUNCEMENT_NOT_FOUND'));
     }
 
     if (dto.title !== undefined) {
@@ -134,7 +135,7 @@ export class AnnouncementService {
   async remove(id: string) {
     const item = await this.model.findById(id);
     if (!item) {
-      throw new NotFoundException('Announcement not found');
+      throw new NotFoundException(appError('ANNOUNCEMENT_NOT_FOUND'));
     }
     await item.deleteOne();
   }
@@ -142,7 +143,7 @@ export class AnnouncementService {
   async publish(id: string) {
     const item = await this.model.findById(id);
     if (!item) {
-      throw new NotFoundException('Announcement not found');
+      throw new NotFoundException(appError('ANNOUNCEMENT_NOT_FOUND'));
     }
     item.status = AnnouncementStatus.ACTIVE;
     return item.save();
@@ -151,7 +152,7 @@ export class AnnouncementService {
   async archive(id: string) {
     const item = await this.model.findById(id);
     if (!item) {
-      throw new NotFoundException('Announcement not found');
+      throw new NotFoundException(appError('ANNOUNCEMENT_NOT_FOUND'));
     }
     item.status = AnnouncementStatus.ARCHIVED;
     return item.save();

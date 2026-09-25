@@ -39,6 +39,7 @@ import { ModerationAccessGuard, AdminOnlyModerationGuard } from '../guards/moder
 import { ModerationActionRateLimitGuard } from '../guards/moderation-rate-limit.guard';
 import { ModerationActionService } from '../services/moderation-action.service';
 
+import { appError } from '../../common/errors';
 interface AuthenticatedRequest extends Request {
   user: {
     id: string;
@@ -73,14 +74,14 @@ export class ModerationActionController {
   ) {
     // Validate MongoDB ObjectIds
     if (!Types.ObjectId.isValid(createActionDto.targetUserId)) {
-      throw new BadRequestException('Invalid target user ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     if (
       createActionDto.relatedReportId &&
       !Types.ObjectId.isValid(createActionDto.relatedReportId)
     ) {
-      throw new BadRequestException('Invalid report ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const headers = req.headers as unknown as Record<string, string | string[] | undefined>;
@@ -164,7 +165,7 @@ export class ModerationActionController {
   @UseGuards(ModerationAccessGuard)
   async getUserActiveActions(@Param('userId') userId: string) {
     if (!Types.ObjectId.isValid(userId)) {
-      throw new BadRequestException('Invalid user ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const actions = await this.moderationActionService.getUserActiveActions(userId);
@@ -193,7 +194,7 @@ export class ModerationActionController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!Types.ObjectId.isValid(actionId)) {
-      throw new BadRequestException('Invalid action ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const headers = req.headers as unknown as Record<string, string | string[] | undefined>;
@@ -237,7 +238,7 @@ export class ModerationActionController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!Types.ObjectId.isValid(actionId)) {
-      throw new BadRequestException('Invalid action ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const headers = req.headers as unknown as Record<string, string | string[] | undefined>;
@@ -282,7 +283,7 @@ export class ModerationActionController {
     // Validate all user IDs
     for (const userId of bulkActionDto.targetUserIds) {
       if (!Types.ObjectId.isValid(userId)) {
-        throw new BadRequestException(`Invalid user ID format: ${userId}`);
+        throw new BadRequestException(appError('INVALID_ID'));
       }
     }
 

@@ -9,6 +9,7 @@ import {
   GeocodingAccuracy,
 } from '../interfaces/geolocation.interface';
 
+import { appError } from '../../common/errors';
 /**
  * Geoapify Geocoding Service
  *
@@ -126,7 +127,7 @@ export class GeoapifyService {
 
       if (defaultResult.status === 'rejected') {
         this.handleError(defaultResult.reason, 'reverseGeocode');
-        throw new HttpException('Reverse geocoding failed', HttpStatus.BAD_GATEWAY);
+        throw new HttpException(appError('GEOCODING_FAILED'), HttpStatus.BAD_GATEWAY);
       }
 
       const features = defaultResult.value.data?.features ?? [];
@@ -237,7 +238,7 @@ export class GeoapifyService {
       };
     } catch (error) {
       this.handleError(error, 'reverseGeocode');
-      throw new HttpException('Reverse geocoding failed', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(appError('GEOCODING_FAILED'), HttpStatus.BAD_GATEWAY);
     }
   }
 
@@ -287,7 +288,7 @@ export class GeoapifyService {
       return results;
     } catch (error) {
       this.handleError(error, 'geocodeAddress');
-      throw new HttpException('Forward geocoding failed', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(appError('GEOCODING_FAILED'), HttpStatus.BAD_GATEWAY);
     }
   }
 
@@ -414,14 +415,11 @@ export class GeoapifyService {
       this.logger.error(`Geoapify API error in ${context}: status=${status}`, errorDetails);
 
       if (status === 401 || status === 403) {
-        throw new HttpException(
-          'Geoapify API key is invalid or has insufficient permissions',
-          HttpStatus.BAD_GATEWAY,
-        );
+        throw new HttpException(appError('GEOCODING_UNAVAILABLE'), HttpStatus.BAD_GATEWAY);
       }
 
       if (status === 429) {
-        throw new HttpException('Geoapify rate limit exceeded', HttpStatus.TOO_MANY_REQUESTS);
+        throw new HttpException(appError('GEOCODING_UNAVAILABLE'), HttpStatus.TOO_MANY_REQUESTS);
       }
     } else {
       this.logger.error(`Error in ${context}:`, error);

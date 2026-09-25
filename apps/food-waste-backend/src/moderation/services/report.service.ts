@@ -16,6 +16,7 @@ import { Report, ReportDocument, ReportStatus, ReportPriority } from '../schemas
 
 import { ModerationLogService } from './moderation-log.service';
 
+import { appError } from '../../common/errors';
 /** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
 export type ReportLean = FlattenMaps<Report> & { _id: Types.ObjectId };
 
@@ -53,9 +54,7 @@ export class ReportService {
     });
 
     if (existingReport) {
-      throw new BadRequestException(
-        'You have already reported this content within the last 24 hours',
-      );
+      throw new BadRequestException(appError('REPORT_DUPLICATE'));
     }
 
     // Auto-prioritize based on reason
@@ -194,7 +193,7 @@ export class ReportService {
     userRole: UserRole,
   ): Promise<ReportLean> {
     if (!Types.ObjectId.isValid(reportId)) {
-      throw new BadRequestException('Invalid report ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const [report] = await this.reportModel.aggregate<ReportLean>([
@@ -207,7 +206,7 @@ export class ReportService {
     ]);
 
     if (!report) {
-      throw new NotFoundException('Report not found');
+      throw new NotFoundException(appError('REPORT_NOT_FOUND'));
     }
 
     // Permission check for moderators — after $lookup, assignedToModerator is a user object or null
@@ -218,7 +217,7 @@ export class ReportService {
         assigned._id !== undefined &&
         String(assigned._id) !== currentUserId
       ) {
-        throw new ForbiddenException('You can only access reports assigned to you');
+        throw new ForbiddenException(appError('REPORT_NOT_ASSIGNED'));
       }
     }
 
@@ -236,7 +235,7 @@ export class ReportService {
     const report = await this.reportModel.findById(reportId).exec();
 
     if (!report) {
-      throw new NotFoundException('Report not found');
+      throw new NotFoundException(appError('REPORT_NOT_FOUND'));
     }
 
     // Permission check for moderators — assignedToModerator is a raw ObjectId
@@ -245,7 +244,7 @@ export class ReportService {
       report.assignedToModerator &&
       !report.assignedToModerator.equals(currentUserId)
     ) {
-      throw new ForbiddenException('You can only access reports assigned to you');
+      throw new ForbiddenException(appError('REPORT_NOT_ASSIGNED'));
     }
 
     return report;
@@ -343,7 +342,7 @@ export class ReportService {
     const report = await this.reportModel.findById(reportId);
 
     if (!report) {
-      throw new NotFoundException('Report not found');
+      throw new NotFoundException(appError('REPORT_NOT_FOUND'));
     }
 
     const previousModerator = report.assignedToModerator;

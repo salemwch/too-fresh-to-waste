@@ -24,6 +24,7 @@ import {
   PrizeType,
 } from '../schemas/prize-claim.schema';
 
+import { appError } from '../../common/errors';
 /**
  * Bags a user must have saved to place on the leaderboard at all, and so to
  * qualify for the discount.
@@ -38,7 +39,7 @@ const MIN_BAGS_FOR_DISCOUNT = 1;
  * One message for both duplicate-claim paths — the pre-check and the unique
  * index — so the user cannot tell which one caught them.
  */
-const DUPLICATE_CLAIM_MESSAGE = 'You have already claimed your prize for this challenge.';
+const DUPLICATE_CLAIM_MESSAGE = appError('CHALLENGE_PRIZE_ALREADY_CLAIMED');
 
 /**
  * MongoDB's duplicate-key error, narrowed enough to tell which unique index
@@ -127,14 +128,12 @@ export class PrizeClaimService {
      * told they had won by one screen and refused by the other.
      */
     if (targetReached(season) && rank <= season.recipientCount) {
-      throw new BadRequestException(
-        'You are in the top ranks — claim the grand prize instead of a discount.',
-      );
+      throw new BadRequestException(appError('LEADERBOARD_CLAIM_GRAND_PRIZE'));
     }
 
     const establishment = await this.establishmentModel.findById(establishmentId);
     if (!establishment) {
-      throw new NotFoundException('Establishment not found');
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     await this.ensureNoDuplicateClaim(userId, season.cycleNumber);
@@ -199,7 +198,7 @@ export class PrizeClaimService {
   private async requireEndedSeason() {
     const season = await this.getEndedSeason();
     if (!season) {
-      throw new BadRequestException('No challenge has ended yet. Prizes cannot be claimed.');
+      throw new BadRequestException(appError('CHALLENGE_NOT_ENDED'));
     }
     return season;
   }
@@ -244,7 +243,7 @@ export class PrizeClaimService {
   private async requireUserRank(userId: string): Promise<number> {
     const rank = await this.getUserRank(userId);
     if (rank === null) {
-      throw new BadRequestException('You are not a participant in the leaderboard.');
+      throw new BadRequestException(appError('LEADERBOARD_NOT_LISTED'));
     }
     return rank;
   }

@@ -22,6 +22,7 @@ import {
   StockAlert,
 } from './schemas/inventory-item.schema';
 
+import { appError } from '../common/errors';
 interface InventoryAnalyticsResult extends Record<string, unknown> {
   totalItems: number;
   totalStock: number;
@@ -175,7 +176,7 @@ export class InventoryService {
     const item = await this.inventoryModel.findById(id).exec();
 
     if (!item) {
-      throw new NotFoundException('Inventory item not found');
+      throw new NotFoundException(appError('INVENTORY_ITEM_NOT_FOUND'));
     }
 
     return item;
@@ -216,7 +217,7 @@ export class InventoryService {
       );
 
       if (!mutatedItem) {
-        throw new NotFoundException('Inventory item not found');
+        throw new NotFoundException(appError('INVENTORY_ITEM_NOT_FOUND'));
       }
 
       await this.checkAndCreateAlerts(mutatedItem);
@@ -241,7 +242,7 @@ export class InventoryService {
       const item = await this.getInventoryItemRaw(id);
 
       if (item.availableStock < reserveDto.quantity) {
-        throw new BadRequestException('Insufficient available stock');
+        throw new BadRequestException(appError('STOCK_INSUFFICIENT'));
       }
 
       await this.inventoryModel.findByIdAndUpdate(
@@ -286,7 +287,7 @@ export class InventoryService {
       const normalizedReleaseNotes = releaseDto.notes?.trim();
 
       if (item.reservedStock < releaseDto.quantity) {
-        throw new BadRequestException('Cannot release more stock than reserved');
+        throw new BadRequestException(appError('STOCK_RESERVATION_INVALID'));
       }
 
       await this.inventoryModel.findByIdAndUpdate(
@@ -333,7 +334,7 @@ export class InventoryService {
       const item = await this.getInventoryItemRaw(id);
 
       if (item.reservedStock < quantity) {
-        throw new BadRequestException('Cannot confirm sale: insufficient reserved stock');
+        throw new BadRequestException(appError('STOCK_RESERVATION_INVALID'));
       }
 
       const revenue = quantity * item.discountedPrice;
@@ -365,7 +366,7 @@ export class InventoryService {
       );
 
       if (!mutatedItem) {
-        throw new NotFoundException('Inventory item not found');
+        throw new NotFoundException(appError('INVENTORY_ITEM_NOT_FOUND'));
       }
 
       await this.checkAndCreateAlerts(mutatedItem);
@@ -593,7 +594,7 @@ export class InventoryService {
    */
   private async findByIdWithLookups(id: string): Promise<InventoryItemLean> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid inventory item ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const [item] = await this.inventoryModel.aggregate<InventoryItemLean>([
@@ -604,7 +605,7 @@ export class InventoryService {
     ]);
 
     if (!item) {
-      throw new NotFoundException('Inventory item not found');
+      throw new NotFoundException(appError('INVENTORY_ITEM_NOT_FOUND'));
     }
 
     return item;

@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { FileObject } from '@supabase/storage-js';
 
+import { appError } from '../errors';
 export interface UploadedFileInfo {
   fileName: string;
   downloadURL: string;
@@ -95,9 +96,7 @@ export class SupabaseStorageService implements OnModuleInit {
       this.initializeSupabase();
 
       if (!this.initialized || this.supabase === undefined) {
-        throw new InternalServerErrorException(
-          'Supabase Storage is not available. Check Supabase configuration.',
-        );
+        throw new InternalServerErrorException(appError('STORAGE_UNAVAILABLE'));
       }
     }
   }
@@ -138,7 +137,7 @@ export class SupabaseStorageService implements OnModuleInit {
 
       if (uploadError) {
         this.logger.error('Supabase upload error:', uploadError);
-        throw new InternalServerErrorException(`File upload failed: ${uploadError.message}`);
+        throw new InternalServerErrorException(appError('FILE_UPLOAD_FAILED'));
       }
 
       // Build the public URL
@@ -161,9 +160,7 @@ export class SupabaseStorageService implements OnModuleInit {
         throw error;
       }
       this.logger.error('Failed to upload file:', error);
-      throw new InternalServerErrorException(
-        `File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new InternalServerErrorException(appError('FILE_UPLOAD_FAILED'));
     }
   }
 
@@ -220,7 +217,7 @@ export class SupabaseStorageService implements OnModuleInit {
 
       if (error) {
         this.logger.error(`Failed to delete file ${filePath}:`, error);
-        throw new InternalServerErrorException(`File deletion failed: ${error.message}`);
+        throw new InternalServerErrorException(appError('FILE_DELETE_FAILED'));
       }
 
       this.logger.debug(`File deleted successfully: ${filePath}`);
@@ -229,9 +226,7 @@ export class SupabaseStorageService implements OnModuleInit {
         throw error;
       }
       this.logger.error(`Failed to delete file ${fileNameOrUrl}:`, error);
-      throw new InternalServerErrorException(
-        `File deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new InternalServerErrorException(appError('FILE_DELETE_FAILED'));
     }
   }
 
@@ -253,7 +248,7 @@ export class SupabaseStorageService implements OnModuleInit {
 
       if (error) {
         this.logger.error('Batch file deletion failed:', error);
-        throw new InternalServerErrorException(`Batch file deletion failed: ${error.message}`);
+        throw new InternalServerErrorException(appError('FILE_DELETE_FAILED'));
       }
 
       this.logger.log(`Processed deletion of ${filePaths.length} files`);
@@ -262,7 +257,7 @@ export class SupabaseStorageService implements OnModuleInit {
         throw error;
       }
       this.logger.error('Batch file deletion failed:', error);
-      throw new InternalServerErrorException('Batch file deletion failed');
+      throw new InternalServerErrorException(appError('FILE_DELETE_FAILED'));
     }
   }
 
@@ -285,11 +280,11 @@ export class SupabaseStorageService implements OnModuleInit {
       });
 
       if (error) {
-        throw new InternalServerErrorException(`Failed to get file metadata: ${error.message}`);
+        throw new InternalServerErrorException(appError('FILE_URL_FAILED'));
       }
 
       if (data === null || data === undefined || data.length === 0) {
-        throw new InternalServerErrorException(`File not found: ${filePath}`);
+        throw new InternalServerErrorException(appError('FILE_NOT_FOUND'));
       }
 
       return data[0] as FileObject;
@@ -298,9 +293,7 @@ export class SupabaseStorageService implements OnModuleInit {
         throw error;
       }
       this.logger.error(`Failed to get metadata for ${fileNameOrUrl}:`, error);
-      throw new InternalServerErrorException(
-        `Failed to get file metadata: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new InternalServerErrorException(appError('FILE_URL_FAILED'));
     }
   }
 
@@ -318,7 +311,7 @@ export class SupabaseStorageService implements OnModuleInit {
         .createSignedUrl(filePath, expiresIn);
 
       if (error) {
-        throw new InternalServerErrorException(`Failed to generate signed URL: ${error.message}`);
+        throw new InternalServerErrorException(appError('FILE_URL_FAILED'));
       }
 
       return data.signedUrl;
@@ -327,9 +320,7 @@ export class SupabaseStorageService implements OnModuleInit {
         throw error;
       }
       this.logger.error(`Failed to generate signed URL for ${fileNameOrUrl}:`, error);
-      throw new InternalServerErrorException(
-        `Failed to generate signed URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new InternalServerErrorException(appError('FILE_URL_FAILED'));
     }
   }
 
@@ -402,11 +393,11 @@ export class SupabaseStorageService implements OnModuleInit {
 
   private validateFile(file: Express.Multer.File | undefined): void {
     if (file === null || file === undefined) {
-      throw new BadRequestException('No file provided');
+      throw new BadRequestException(appError('FILE_REQUIRED'));
     }
 
     if (file.buffer.length === 0) {
-      throw new BadRequestException('File buffer is empty');
+      throw new BadRequestException(appError('FILE_EMPTY'));
     }
 
     const maxSizeMB = parseInt(
@@ -415,7 +406,7 @@ export class SupabaseStorageService implements OnModuleInit {
     );
     const maxSize = maxSizeMB * 1024 * 1024;
     if (file.size > maxSize) {
-      throw new BadRequestException(`File size exceeds ${maxSizeMB}MB limit`);
+      throw new BadRequestException(appError('FILE_TOO_LARGE', { maxMb: maxSizeMB }));
     }
 
     // Normalise image/jpg → image/jpeg (both refer to the same format)
@@ -432,7 +423,7 @@ export class SupabaseStorageService implements OnModuleInit {
     ];
 
     if (!allowedMimeTypes.includes(declaredMime)) {
-      throw new BadRequestException(`File type ${file.mimetype} is not allowed`);
+      throw new BadRequestException(appError('FILE_TYPE_NOT_ALLOWED'));
     }
 
     // Text files: scan for null bytes — pure UTF-8/ASCII never contains them,
@@ -442,7 +433,7 @@ export class SupabaseStorageService implements OnModuleInit {
       const scanLength = Math.min(file.buffer.length, 8192);
       for (let i = 0; i < scanLength; i++) {
         if (file.buffer[i] === 0x00) {
-          throw new BadRequestException('File content is binary despite declared text MIME type');
+          throw new BadRequestException(appError('FILE_TYPE_MISMATCH'));
         }
       }
       return;
@@ -452,13 +443,11 @@ export class SupabaseStorageService implements OnModuleInit {
     const detected = this.detectMimeType(file.buffer);
 
     if (!detected) {
-      throw new BadRequestException('Could not determine file type from content');
+      throw new BadRequestException(appError('FILE_TYPE_UNKNOWN'));
     }
 
     if (detected.mime !== declaredMime) {
-      throw new BadRequestException(
-        `File content (${detected.mime}) does not match declared type (${file.mimetype})`,
-      );
+      throw new BadRequestException(appError('FILE_TYPE_MISMATCH'));
     }
   }
 
@@ -576,9 +565,7 @@ export class SupabaseStorageService implements OnModuleInit {
       return { buffer: processedBuffer, mimeType, extension };
     } catch (error) {
       this.logger.error('Image processing failed:', error);
-      throw new InternalServerErrorException(
-        `Image processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new InternalServerErrorException(appError('IMAGE_PROCESSING_FAILED'));
     }
   }
 

@@ -26,6 +26,7 @@ import { AdminOnlyModerationGuard, ModerationAccessGuard } from '../guards/moder
 import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';
 import { ModerationLogService } from '../services/moderation-log.service';
 
+import { appError } from '../../common/errors';
 class ModerationLogQueryDto {
   level?: LogLevel;
   category?: LogCategory;
@@ -88,11 +89,11 @@ export class ModerationLogController {
   async getModerationLogs(@Query(ValidationPipe) queryDto: ModerationLogQueryDto) {
     // Validate ObjectId fields if provided
     if (queryDto.performedBy && !Types.ObjectId.isValid(queryDto.performedBy)) {
-      throw new BadRequestException('Invalid performedBy user ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     if (queryDto.targetId && !Types.ObjectId.isValid(queryDto.targetId)) {
-      throw new BadRequestException('Invalid target ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     // Parse date strings to Date objects
@@ -167,7 +168,7 @@ export class ModerationLogController {
     @CurrentUser('role') userRole?: UserRole,
   ) {
     if (!Types.ObjectId.isValid(userId)) {
-      throw new BadRequestException('Invalid user ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const historyLimit = Math.min(50, Math.max(1, limit ?? 10));

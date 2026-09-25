@@ -2,6 +2,7 @@ import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
+import { appError } from '../../common/errors';
 /**
  * Google Places API (New) Service
  *
@@ -393,10 +394,7 @@ export class GooglePlacesService {
       this.logger.error(`Google Places API error in ${context}:`, errorDetails);
 
       if (axiosError.response?.status === 403) {
-        throw new HttpException(
-          'Google Places API key is invalid or has insufficient permissions',
-          HttpStatus.BAD_GATEWAY,
-        );
+        throw new HttpException(appError('GEOCODING_UNAVAILABLE'), HttpStatus.BAD_GATEWAY);
       }
     } else {
       this.logger.error(`Error in ${context}:`, error);

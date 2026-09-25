@@ -13,6 +13,7 @@ import { Vote, type VoteDocument } from '../schemas/vote.schema';
 import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
 import { UpdatePrizeClaimDto } from '../dto/update-prize-claim.dto';
 
+import { appError } from '../../common/errors';
 export interface AdminWinnerRow {
   userId: string;
   firstName: string;
@@ -38,7 +39,7 @@ export class VotingPrizeAdminService {
   async getCycleWinners(cycleId: string): Promise<AdminWinnerRow[]> {
     const cycle = await this.cycleModel.findById(cycleId).lean();
     if (!cycle) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
     if (!cycle.winnerPrizeId) {
       return [];
@@ -125,14 +126,14 @@ export class VotingPrizeAdminService {
   async updatePrizeClaim(claimId: string, dto: UpdatePrizeClaimDto) {
     const claim = await this.prizeClaimModel.findById(claimId);
     if (!claim) {
-      throw new NotFoundException('Prize claim not found');
+      throw new NotFoundException(appError('VOTING_CLAIM_NOT_FOUND'));
     }
 
     if (claim.status === PrizeClaimStatus.DELIVERED) {
-      throw new BadRequestException('Cannot modify a delivered prize claim');
+      throw new BadRequestException(appError('VOTING_CLAIM_FINAL'));
     }
     if (claim.status === PrizeClaimStatus.REJECTED) {
-      throw new BadRequestException('Cannot modify a rejected prize claim');
+      throw new BadRequestException(appError('VOTING_CLAIM_FINAL'));
     }
 
     claim.status = dto.status;

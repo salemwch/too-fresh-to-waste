@@ -13,6 +13,7 @@ import { Model, Types } from 'mongoose';
 import { SKIP_PRO_GUARD_KEY } from '../decorators/skip-pro-guard.decorator';
 import { Establishment } from '../../establishments/schemas/establishment.schema';
 
+import { appError } from '../errors';
 interface ProGuardUser {
   userId: string;
   role: string;
@@ -42,7 +43,7 @@ export class ProSubscriptionGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('Authentication required.');
+      throw new ForbiddenException(appError('AUTH_REQUIRED'));
     }
 
     if (user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR) {
@@ -71,9 +72,7 @@ export class ProSubscriptionGuard implements CanActivate {
       this.logger.warn(
         `Pro feature access denied for user ${user.userId} (tier: ${establishment?.subscriptionTier ?? 'none'})`,
       );
-      throw new ForbiddenException(
-        'This feature requires a Pro subscription. Please upgrade your plan.',
-      );
+      throw new ForbiddenException(appError('PRO_PLAN_REQUIRED'));
     }
 
     return true;

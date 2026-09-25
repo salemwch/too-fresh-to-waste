@@ -28,7 +28,10 @@
 import { ForbiddenException } from '@nestjs/common';
 import { EstablishmentStatus } from '@foodwaste/shared';
 
-import { assertCanPublish } from '../utils/publish-gate.util';
+import { AR } from '../../common/errors/catalog/ar';
+import { EN } from '../../common/errors/catalog/en';
+import { FR } from '../../common/errors/catalog/fr';
+import { assertCanPublish, BLOCKED_PUBLISH_CODES } from '../utils/publish-gate.util';
 
 type SubscriptionStatus = 'trial' | 'paid' | 'suspended';
 
@@ -58,12 +61,32 @@ describe('assertCanPublish', () => {
       expect(() => assertCanPublish(establishment(EstablishmentStatus.ACTIVE))).not.toThrow();
     });
 
-    it.each(BLOCKING_STATUSES)('names %s in the message so the merchant can act on it', status => {
-      // A bare "forbidden" tells a merchant nothing. The message has to say
-      // what is blocking and imply who unblocks it.
-      expect(() => assertCanPublish(establishment(status))).toThrow(
-        new RegExp(`approved.*${status}`, 'i'),
+    it.each(BLOCKING_STATUSES)(
+      'tells the merchant specifically why %s blocks publishing',
+      status => {
+        // A bare "forbidden" tells a merchant nothing. Each blocking status has
+        // its own code, so the message says what is blocking and who unblocks it
+        // - translated, instead of the raw enum value it used to embed.
+        const code = BLOCKED_PUBLISH_CODES[status as keyof typeof BLOCKED_PUBLISH_CODES];
+        let thrown: unknown;
+        try {
+          assertCanPublish(establishment(status));
+        } catch (e) {
+          thrown = e;
+        }
+        expect((thrown as ForbiddenException).getResponse()).toMatchObject({ code });
+        // Translated, not the English copy (or a raw enum value) in every language.
+        expect(FR[code]).not.toBe(EN[code]);
+        expect(AR[code]).not.toBe(EN[code]);
+        expect(EN[code]).not.toMatch(/current status/i);
+      },
+    );
+
+    it('gives every blocking status a different message', () => {
+      const messages = BLOCKING_STATUSES.map(
+        s => EN[BLOCKED_PUBLISH_CODES[s as keyof typeof BLOCKED_PUBLISH_CODES]],
       );
+      expect(new Set(messages).size).toBe(BLOCKING_STATUSES.length);
     });
   });
 
@@ -99,9 +122,14 @@ describe('assertCanPublish', () => {
     it('reports approval before subscription when both are wrong', () => {
       // Order matters for the merchant: telling an unapproved merchant to renew
       // a subscription they never started sends them down a dead end.
-      expect(() =>
-        assertCanPublish(establishment(EstablishmentStatus.PENDING, 'suspended')),
-      ).toThrow(/approved/i);
+      try {
+        assertCanPublish(establishment(EstablishmentStatus.PENDING, 'suspended'));
+        throw new Error('expected assertCanPublish to throw');
+      } catch (error) {
+        expect((error as ForbiddenException).getResponse()).toMatchObject({
+          code: 'ESTABLISHMENT_PENDING_APPROVAL',
+        });
+      }
     });
   });
 });

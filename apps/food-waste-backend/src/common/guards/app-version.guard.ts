@@ -9,6 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 
+import { appError } from '../errors';
 @Injectable()
 export class AppVersionGuard implements CanActivate {
   private readonly logger = new Logger(AppVersionGuard.name);
@@ -30,7 +31,7 @@ export class AppVersionGuard implements CanActivate {
 
     if (!clientVersion) {
       this.logger.warn(`Mobile request without X-App-Version from ${req.ip}`);
-      throw new BadRequestException('X-App-Version header is required for mobile clients.');
+      throw new BadRequestException(appError('APP_UPDATE_REQUIRED'));
     }
 
     if (this.isVersionBelow(clientVersion, this.minVersion)) {
@@ -38,11 +39,7 @@ export class AppVersionGuard implements CanActivate {
         `Outdated app version ${clientVersion} (min: ${this.minVersion}) from ${req.ip}`,
       );
       throw new HttpException(
-        {
-          status: 'error',
-          message: `App version ${clientVersion} is no longer supported. Please update to at least ${this.minVersion}.`,
-          data: null,
-        },
+        appError('APP_UPDATE_REQUIRED', undefined, { minVersion: this.minVersion }),
         426,
       );
     }
