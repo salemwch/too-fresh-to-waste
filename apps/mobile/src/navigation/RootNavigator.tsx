@@ -37,7 +37,11 @@ import { canRenderNavigator } from './canRenderNavigator';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { onboardingStorage } from '@/storage/onboardingStorage';
 import { analytics } from '@/utils/analytics';
+import i18n from '@/i18n';
+import { localizeBiometricName } from '@/services/biometricName';
 import { Logger } from '@/utils/logger';
+
+import type { Translate } from '@/i18n/translate';
 import { networkErrorBus } from '@/utils/networkErrorBus';
 
 import { UserRole } from '@foodwaste/shared';
@@ -238,6 +242,7 @@ export const RootNavigator: React.FC = () => {
 
           if (isBiometricEnabled) {
             const { BiometricAuth } = await import('@/services/BiometricAuth');
+            const bootT: Translate = (key, options) => i18n.t(key, options);
             const biometricSupport = await BiometricAuth.isSupported();
 
             if (biometricSupport.success) {
@@ -246,19 +251,19 @@ export const RootNavigator: React.FC = () => {
               );
 
               const authResult = await BiometricAuth.authenticate(
-                `Unlock Food Waste App with ${biometricName}`,
+                bootT('auth.biometricUnlockPrompt', {
+                  type: localizeBiometricName(biometricName, bootT),
+                }),
               );
 
               if (!authResult.success) {
                 Logger.warn('[RootNavigator] Biometric auth failed - clearing session');
                 await dispatch(logoutAsync({})).unwrap();
                 Alert.alert(
-                  'Authentication Failed',
-                  typeof authResult.errorMessage === 'string' &&
-                    authResult.errorMessage.trim().length > 0
-                    ? authResult.errorMessage
-                    : 'Please login with your credentials.',
-                  [{ text: 'OK' }],
+                  // The service's errorMessage is written for logs, not users.
+                  bootT('auth.biometricFailedTitle', {}),
+                  bootT('auth.biometricFailedBody', {}),
+                  [{ text: bootT('common.ok', {}) }],
                 );
               }
             }

@@ -8,6 +8,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 
 import { Text, Icon } from '@/design-system/components/atoms';
@@ -30,6 +31,7 @@ import { spacingTokens } from '@/design-system/tokens/spacing';
 const { base: sp } = spacingTokens;
 
 export const LoyaltyScreen: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { account, gamification, isLoading, isRefetching, error, refetch } = useLoyalty();
   const { cycle: votingCycle } = useActiveVotingCycle();
@@ -61,18 +63,19 @@ export const LoyaltyScreen: React.FC = () => {
       <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
         <Icon name='alert-circle-outline' family='Ionicons' size={48} color={theme.colors.error} />
         <Text variant='body' size='md' color='secondary' style={styles.errorText}>
-          {'Failed to load loyalty data'}
+          {t('loyalty.loadFailed')}
         </Text>
         <Text
           variant='body'
           size='sm'
           color='primary'
           style={styles.retryText}
+          accessibilityRole='button'
           onPress={() => {
             void refetch();
           }}
         >
-          Tap to retry
+          {t('leaderboard.tapToRetry')}
         </Text>
       </View>
     );

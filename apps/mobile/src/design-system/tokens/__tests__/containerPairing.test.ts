@@ -117,24 +117,32 @@ const scan = (): Violation[] => {
  * an icon and wrong on the label beside it. Where both sat in one row the icon
  * was moved too, for visual consistency rather than compliance - these are the
  * ones with no adjacent text to match.
+ *
+ * Keyed by file and COUNT, not line number. Line numbers broke this test three
+ * times in one week on edits nowhere near the icons. A count still fails on
+ * what matters: a new bare site in the file (count goes up) or a reviewed one
+ * removed without updating the list (count goes down).
  */
 const REVIEWED_ICON_EXEMPTIONS: ReadonlyArray<readonly [string, number, string]> = [
   [
     'features/auth/screens/ForgotPasswordScreen.tsx',
-    100,
+    1,
     'lone lock icon in a circle, no adjacent text: 4.56 on successContainer, clears the 3.0 floor',
   ],
   [
     'features/auth/screens/ResetPasswordScreen.tsx',
-    257,
+    1,
     'lone 64px checkmark in a circle, no adjacent text: 4.56, clears the 3.0 floor',
   ],
   [
     'features/auth/screens/VerifyPhoneScreen.tsx',
-    403,
+    1,
     'lone 32px check in a badge, no adjacent text: 4.56, clears the 3.0 floor',
   ],
 ];
+
+const allowedCount = (file: string): number =>
+  REVIEWED_ICON_EXEMPTIONS.find(([f]) => f === file)?.[1] ?? 0;
 
 describe('status container foreground pairing', () => {
   it('scans a non-empty set of source files', () => {
@@ -166,9 +174,11 @@ describe('status container foreground pairing', () => {
   });
 
   it('has no site painting a bare status colour on its own container', () => {
-    const exempt = new Set(REVIEWED_ICON_EXEMPTIONS.map(([f, l]) => `${f}:${l}`));
-    const violations = scan()
-      .filter(v => !exempt.has(`${v.file}:${v.line}`))
+    const found = scan();
+    const perFile = new Map<string, number>();
+    for (const v of found) perFile.set(v.file, (perFile.get(v.file) ?? 0) + 1);
+    const violations = found
+      .filter(v => (perFile.get(v.file) ?? 0) > allowedCount(v.file))
       .map(
         v =>
           `${v.file}:${v.line} uses colors.${v.status} as text on ${v.status}Container ` +
@@ -180,10 +190,10 @@ describe('status container foreground pairing', () => {
   it('lists no exemption that has already been cleaned up', () => {
     // Keeps the allowlist honest: a stale entry would silently license a new
     // violation on that exact line.
-    const live = new Set(scan().map(v => `${v.file}:${v.line}`));
-    const stale = REVIEWED_ICON_EXEMPTIONS.filter(([f, l]) => !live.has(`${f}:${l}`)).map(
-      ([f, l, why]) => `${f}:${l} - ${why}`,
-    );
+    const found = scan();
+    const stale = REVIEWED_ICON_EXEMPTIONS.filter(
+      ([f, n]) => found.filter(v => v.file === f).length < n,
+    ).map(([f, n, why]) => `${f}: allows ${n}, found fewer - ${why}`);
     expect(stale).toEqual([]);
   });
 });

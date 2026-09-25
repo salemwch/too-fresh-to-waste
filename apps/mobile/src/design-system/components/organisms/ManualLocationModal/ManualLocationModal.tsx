@@ -104,7 +104,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
           <View style={styles.emptyState}>
             <ActivityIndicator size='large' color={theme.colors.primary} />
             <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-              Searching locations...
+              {t('location.searchingLocations')}
             </Text>
           </View>
         );
@@ -120,7 +120,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
               color={theme.colors.error}
             />
             <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-              Failed to search locations. Please try again.
+              {t('location.searchFailed')}
             </Text>
           </View>
         );
@@ -151,11 +151,11 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
             color={theme.colors.onSurfaceVariant}
           />
           <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-            Search for a city, address, or place
+            {t('location.searchPrompt')}
           </Text>
         </View>
       );
-    }, [isLoading, error, debouncedQuery, searchResults, theme.colors]);
+    }, [isLoading, error, debouncedQuery, searchResults, theme.colors, t]);
 
     return (
       <Modal
@@ -177,7 +177,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: theme.colors.outlineVariant }]}>
               <Text variant='title' size='lg' weight='semibold'>
-                Set Location
+                {t('location.setLocation')}
               </Text>
               <Pressable
                 onPress={onClose}
@@ -239,7 +239,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
             {/* Cancel Button */}
             <View style={[styles.footer, { borderTopColor: theme.colors.outlineVariant }]}>
               <Button variant='outline' size='lg' onPress={onClose} style={styles.cancelButton}>
-                Cancel
+                {t('common.cancel')}
               </Button>
             </View>
           </KeyboardAvoidingView>

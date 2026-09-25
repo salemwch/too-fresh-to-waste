@@ -1,6 +1,7 @@
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet } from 'react-native';
 
 type IconName = React.ComponentProps<typeof IoniconsIcon>['name'];
@@ -10,6 +11,11 @@ import { useTheme } from '@/design-system/providers';
 import { Freshness } from '@/lib/react-query/freshness';
 
 import { reviewsService } from '../services/reviewsService';
+import {
+  HIGHLIGHT_LABEL_KEYS,
+  isReviewHighlightKey,
+  type ReviewHighlightKey,
+} from '../utils/reviewComment';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -18,19 +24,14 @@ const { base: sp } = spacingTokens;
 
 // ─── Highlight config ────────────────────────────────────────────────────────
 
-interface HighlightConfig {
-  label: string;
-  icon: IconName;
-}
-
-const HIGHLIGHT_CONFIG: Record<string, HighlightConfig> = {
-  foodQuality: { label: 'Delicious food', icon: 'restaurant-outline' },
-  valueForMoney: { label: 'Great value', icon: 'cash-outline' },
-  serviceQuality: { label: 'Friendly staff', icon: 'happy-outline' },
-  packaging: { label: 'Well packaged', icon: 'cube-outline' },
-  pickupExperience: { label: 'Quick pickup', icon: 'flash-outline' },
-  sustainability: { label: 'Eco-friendly', icon: 'leaf-outline' },
-};
+const HIGHLIGHT_ICONS: Readonly<Record<ReviewHighlightKey, IconName>> = Object.freeze({
+  foodQuality: 'restaurant-outline',
+  valueForMoney: 'cash-outline',
+  serviceQuality: 'happy-outline',
+  packaging: 'cube-outline',
+  pickupExperience: 'flash-outline',
+  sustainability: 'leaf-outline',
+});
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -40,6 +41,7 @@ interface Props {
 
 export const ReviewSummarySection: React.FC<Props> = ({ establishmentId }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   const { data: summary } = useQuery({
     queryKey: ['establishment-review-summary', establishmentId],
@@ -51,12 +53,13 @@ export const ReviewSummarySection: React.FC<Props> = ({ establishmentId }) => {
   if (!summary || summary.totalReviews === 0) return null;
 
   // Top 3 highlights — sorted by average score descending
+  // `isReviewHighlightKey` is an own-property check: the old `key in CONFIG`
+  // also matched inherited names such as "toString".
   const topHighlights = Object.entries(summary.averageDetailedRatings ?? {})
-    .filter(([key]) => key in HIGHLIGHT_CONFIG)
+    .filter((entry): entry is [ReviewHighlightKey, number] => isReviewHighlightKey(entry[0]))
     .sort(([, a], [, b]) => b - a)
     .slice(0, 3)
-    .map(([key]) => HIGHLIGHT_CONFIG[key])
-    .filter((h): h is HighlightConfig => h !== undefined);
+    .map(([key]) => key);
 
   const iconCircleStyle = {
     backgroundColor: theme.colors.primary + '18',
@@ -68,7 +71,7 @@ export const ReviewSummarySection: React.FC<Props> = ({ establishmentId }) => {
     <View style={styles.container}>
       {/* Title */}
       <Text weight='semibold' size='md' style={styles.title}>
-        What other people are saying
+        {t('reviews.summaryTitle')}
       </Text>
 
       {/* Average rating */}
@@ -87,15 +90,15 @@ export const ReviewSummarySection: React.FC<Props> = ({ establishmentId }) => {
         <>
           <View style={styles.divider} />
           <Text size='sm' weight='semibold' color='secondary' style={styles.highlightsTitle}>
-            Top {topHighlights.length} highlights
+            {t('reviews.topHighlights', { count: topHighlights.length })}
           </Text>
-          {topHighlights.map(({ label, icon }) => (
-            <View key={label} style={styles.highlightRow}>
+          {topHighlights.map(key => (
+            <View key={key} style={styles.highlightRow}>
               <View style={[styles.iconCircle, iconCircleStyle]}>
-                <IoniconsIcon name={icon} size={20} color={theme.colors.primary} />
+                <IoniconsIcon name={HIGHLIGHT_ICONS[key]} size={20} color={theme.colors.primary} />
               </View>
               <Text size='md' style={styles.highlightLabel}>
-                {label}
+                {t(HIGHLIGHT_LABEL_KEYS[key])}
               </Text>
             </View>
           ))}
@@ -105,7 +108,7 @@ export const ReviewSummarySection: React.FC<Props> = ({ establishmentId }) => {
       {/* Footer */}
       <View style={styles.divider} />
       <Text size='sm' color='secondary' style={styles.footer}>
-        Based on {summary.totalReviews} rating{summary.totalReviews !== 1 ? 's' : ''}
+        {t('reviews.basedOnRatings', { count: summary.totalReviews })}
       </Text>
     </View>
   );

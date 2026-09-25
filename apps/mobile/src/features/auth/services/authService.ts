@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
 import { environment } from '@/config/environment';
+import i18n, { getCurrentLanguage } from '@/i18n';
 import { ErrorHandler, ErrorType } from '@/utils/errorHandler';
 import { Logger, NetworkLogger } from '@/utils/logger';
 
@@ -22,7 +23,54 @@ import type {
   User,
   AuthTokens,
 } from '../types';
+import { readApiError } from '@foodwaste/shared';
 import type { ApiResponse } from '@foodwaste/shared';
+
+/** First argument that is a non-empty string. */
+function pickString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && value !== '') return value;
+  }
+  return undefined;
+}
+
+function pickDate(...values: unknown[]): string | Date | undefined {
+  for (const value of values) {
+    if ((typeof value === 'string' && value !== '') || value instanceof Date) return value;
+  }
+  return undefined;
+}
+
+/** Field errors in the pre-code shape: class-validator items in `message`. */
+function legacyFieldErrors(body: Record<string, unknown>): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!Array.isArray(body['message'])) return out;
+  for (const item of body['message'] as unknown[]) {
+    if (item === null || typeof item !== 'object') continue;
+    const obj = item as Record<string, unknown>;
+    const constraints = obj['constraints'];
+    if (
+      typeof obj['property'] === 'string' &&
+      constraints !== null &&
+      typeof constraints === 'object'
+    ) {
+      const first = Object.values(constraints as Record<string, string>)[0];
+      if (first) out[obj['property']] = first;
+    }
+  }
+  return out;
+}
+
+/** The app-level category of an HTTP failure. */
+function errorTypeFor(status: number | undefined, code: string | undefined): ErrorType {
+  if (status === undefined) return ErrorType.NETWORK;
+  if (status >= 500) return ErrorType.SERVER_ERROR;
+  if (status === 401) return ErrorType.AUTHENTICATION;
+  if (status === 403) return ErrorType.PERMISSION;
+  if (status === 404) return ErrorType.NOT_FOUND;
+  if (status === 422 || code === 'VALIDATION_FAILED') return ErrorType.VALIDATION;
+  return ErrorType.CLIENT_ERROR;
+}
 
 class AuthService {
   private readonly baseURL: string;
@@ -58,6 +106,9 @@ class AuthService {
           'X-App-Version': environment.app.version,
           'ngrok-skip-browser-warning': 'true',
           'User-Agent': 'FoodWasteApp/1.0',
+          // The backend answers errors in this language. These calls go through
+          // bare axios, not apiClient, so they must send it themselves.
+          'Accept-Language': getCurrentLanguage(),
           ...headers,
         },
         timeout: this.timeout,
@@ -97,248 +148,46 @@ class AuthService {
   }
 
   /**
-   * HTTP status code error handler
-   * Cognitive Complexity: 6 (linear switch-like logic)
+   * HTTP status code error handler.
+   *
+   * The backend sends `{ code, message, details?, errors? }`, with `message`
+   * already in the app's language (makeRequest sends Accept-Language). This
+   * keeps that message, and hands screens the `code` (as `errorCode`) to
+   * branch on - never the text, which is translated and may change.
+   *
+   * Older response shapes (top-level `field` / `type` / `blockedUntil`, and
+   * class-validator arrays in `message`) are still read, so an app released
+   * before the backend deploy keeps working against the old API.
    */
-  private handleHttpError(
-    error: AxiosError<unknown>, // Use 'unknown' instead of 'any' for better type safety
-  ): never {
+  private handleHttpError(error: AxiosError<unknown>): never {
     const status = error.response?.status;
-    const responseData = error.response?.data;
+    const body = error.response?.data;
+    const info = readApiError(body);
+    const legacy =
+      body !== null && typeof body === 'object' ? (body as Record<string, unknown>) : {};
 
-    // Backend global exception filter returns: { statusCode, message, errorId, timestamp... }
-    // Extract message with defensive handling to ensure it's always a string
-    let message: string = 'Request failed';
+    const field = pickString(info.details['field'], legacy['field']);
+    const errorCode = pickString(info.code, info.details['type'], legacy['type']);
+    const blockedUntil = pickDate(info.details['blockedUntil'], legacy['blockedUntil']);
+    const validationErrors =
+      Object.keys(info.fieldErrors).length > 0 ? info.fieldErrors : legacyFieldErrors(legacy);
 
-    if (responseData !== null && responseData !== undefined) {
-      if (typeof responseData === 'string') {
-        // Response is a plain string
-        message = responseData;
-      } else if (typeof responseData === 'object') {
-        const dataObj = responseData as Record<string, unknown>;
+    const metadata = {
+      ...(status !== undefined ? { code: status } : {}),
+      ...(errorCode ? { errorCode } : {}),
+      ...(field ? { field } : {}),
+      ...(blockedUntil ? { blockedUntil, isAccountLocked: true } : {}),
+      ...(Object.keys(validationErrors).length > 0 ? { validationErrors } : {}),
+    };
 
-        if (typeof dataObj['message'] === 'string') {
-          // Standard case: { message: "error text" }
-          message = dataObj['message'];
-        } else if (Array.isArray(dataObj['message'])) {
-          // class-validator array: items are strings OR { property, constraints } objects
-          message = (dataObj['message'] as unknown[])
-            .map(item => {
-              if (typeof item === 'string') return item;
-              if (item !== null && typeof item === 'object') {
-                const obj = item as Record<string, unknown>;
-                if (obj['constraints'] !== null && typeof obj['constraints'] === 'object') {
-                  return Object.values(obj['constraints'] as Record<string, string>)[0] ?? '';
-                }
-              }
-              return '';
-            })
-            .filter(Boolean)
-            .join(', ');
-        } else if (
-          dataObj['message'] !== null &&
-          dataObj['message'] !== undefined &&
-          typeof dataObj['message'] === 'object'
-        ) {
-          // Nested message object: { message: { message: "error text" } }
-          const nestedMsg = dataObj['message'] as Record<string, unknown>;
-          if (typeof nestedMsg['message'] === 'string') {
-            message = nestedMsg['message'];
-          } else if (typeof nestedMsg['error'] === 'string') {
-            message = nestedMsg['error'];
-          } else {
-            message = JSON.stringify(dataObj['message']);
-          }
-        } else if (typeof dataObj['error'] === 'string') {
-          // Alternative error property
-          message = dataObj['error'];
-        }
-      }
-    }
+    Logger.debug('[authService] HTTP error', { status, errorCode, errorId: info.errorId });
 
-    Logger.debug('[authService] HTTP error extracted', { message, status });
+    const serverError = status !== undefined && status >= 500;
+    // A translated fallback only for a response with no message at all
+    // (a proxy error page, an empty body); the backend always sends one.
+    const message = info.message ?? i18n.t(serverError ? 'errors.serverError' : 'errors.generic');
 
-    if (status === 401) {
-      // Preserve field-specific error information from backend for inline error display
-      const errorMetadata: Record<string, unknown> = {
-        code: status,
-      };
-
-      if (responseData !== null && responseData !== undefined && typeof responseData === 'object') {
-        const dataObj = responseData as Record<string, unknown>;
-
-        // Check for field/type/blockedUntil at top level first (for direct error objects)
-        if (typeof dataObj['field'] === 'string') {
-          errorMetadata['field'] = dataObj['field'];
-        }
-        if (typeof dataObj['type'] === 'string') {
-          errorMetadata['errorCode'] = dataObj['type'];
-        }
-        if (
-          typeof dataObj['blockedUntil'] === 'string' ||
-          dataObj['blockedUntil'] instanceof Date
-        ) {
-          errorMetadata['blockedUntil'] = dataObj['blockedUntil'];
-          errorMetadata['isAccountLocked'] = true;
-        }
-
-        // Also check nested message object (for wrapped error responses)
-        if (
-          dataObj['message'] !== null &&
-          dataObj['message'] !== undefined &&
-          typeof dataObj['message'] === 'object'
-        ) {
-          const nestedMsg = dataObj['message'] as Record<string, unknown>;
-          if (typeof nestedMsg['field'] === 'string') {
-            errorMetadata['field'] = nestedMsg['field'];
-          }
-          if (typeof nestedMsg['type'] === 'string') {
-            errorMetadata['errorCode'] = nestedMsg['type'];
-          }
-          if (
-            typeof nestedMsg['blockedUntil'] === 'string' ||
-            nestedMsg['blockedUntil'] instanceof Date
-          ) {
-            errorMetadata['blockedUntil'] = nestedMsg['blockedUntil'];
-            errorMetadata['isAccountLocked'] = true;
-          }
-        }
-      }
-
-      Logger.debug('[authService] 401 error metadata', errorMetadata);
-
-      throw ErrorHandler.createError(
-        ErrorType.AUTHENTICATION,
-        message ?? 'Authentication failed',
-        errorMetadata,
-      );
-    }
-
-    if (status === 403) {
-      // Check if this is an account lockout error with blockedUntil timestamp
-      const errorMetadata: Record<string, unknown> = {
-        code: status,
-      };
-
-      if (responseData !== null && responseData !== undefined && typeof responseData === 'object') {
-        const dataObj = responseData as Record<string, unknown>;
-
-        // Extract blockedUntil timestamp for account lockout errors
-        if (
-          typeof dataObj['blockedUntil'] === 'string' ||
-          dataObj['blockedUntil'] instanceof Date
-        ) {
-          errorMetadata['blockedUntil'] = dataObj['blockedUntil'];
-          errorMetadata['isAccountLocked'] = true;
-        }
-
-        // Also check nested message object
-        if (
-          dataObj['message'] !== null &&
-          dataObj['message'] !== undefined &&
-          typeof dataObj['message'] === 'object'
-        ) {
-          const nestedMsg = dataObj['message'] as Record<string, unknown>;
-          if (
-            typeof nestedMsg['blockedUntil'] === 'string' ||
-            nestedMsg['blockedUntil'] instanceof Date
-          ) {
-            errorMetadata['blockedUntil'] = nestedMsg['blockedUntil'];
-            errorMetadata['isAccountLocked'] = true;
-          }
-        }
-      }
-
-      Logger.debug('[authService] 403 error metadata', errorMetadata);
-
-      throw ErrorHandler.createError(
-        ErrorType.PERMISSION,
-        message ?? 'Permission denied',
-        errorMetadata,
-      );
-    }
-
-    if (status === 426) {
-      throw ErrorHandler.createError(
-        ErrorType.CLIENT_ERROR,
-        'This version of the app is no longer supported. Please update to continue.',
-        { code: status },
-      );
-    }
-
-    if (status === 429) {
-      throw ErrorHandler.createError(
-        ErrorType.CLIENT_ERROR,
-        'Too many attempts. Please wait a moment and try again.',
-        { code: status },
-      );
-    }
-
-    if (status === 404) {
-      throw ErrorHandler.createError(ErrorType.NOT_FOUND, message ?? 'Resource not found', {
-        code: status,
-      });
-    }
-
-    if (status === 422) {
-      const errorMetadata: { code: number; validationErrors?: Record<string, string> } = {
-        code: status,
-      };
-      if (responseData !== null && responseData !== undefined && typeof responseData === 'object') {
-        const dataObj = responseData as Record<string, unknown>;
-        if (dataObj['errors'] !== undefined && typeof dataObj['errors'] === 'object') {
-          errorMetadata.validationErrors = dataObj['errors'] as Record<string, string>;
-        }
-      }
-      throw ErrorHandler.createError(
-        ErrorType.VALIDATION,
-        message ?? 'Validation failed',
-        errorMetadata,
-      );
-    }
-
-    if (status !== undefined && status >= 500) {
-      throw ErrorHandler.createError(ErrorType.SERVER_ERROR, 'Server is currently unavailable', {
-        code: status,
-      });
-    }
-
-    if (status !== undefined && status >= 400) {
-      // Extract field-level validation errors from class-validator response
-      const validationErrors: Record<string, string> = {};
-      if (responseData !== null && responseData !== undefined && typeof responseData === 'object') {
-        const dataObj = responseData as Record<string, unknown>;
-        if (Array.isArray(dataObj['message'])) {
-          for (const item of dataObj['message'] as unknown[]) {
-            if (item !== null && typeof item === 'object') {
-              const obj = item as Record<string, unknown>;
-              const prop = typeof obj['property'] === 'string' ? obj['property'] : null;
-              if (
-                prop !== null &&
-                obj['constraints'] !== null &&
-                typeof obj['constraints'] === 'object'
-              ) {
-                const first = Object.values(obj['constraints'] as Record<string, string>)[0];
-                if (first !== undefined && first !== '') validationErrors[prop] = first;
-              }
-            }
-          }
-        }
-      }
-      throw ErrorHandler.createError(ErrorType.CLIENT_ERROR, message, {
-        code: status,
-        ...(Object.keys(validationErrors).length > 0 ? { validationErrors } : {}),
-      });
-    }
-
-    // Defensive only. handleRequestError now routes response-less errors to
-    // handleNetworkError, and an error that has a response always has a status,
-    // so nothing should arrive here. Kept because the function must return
-    // `never` and a silent fallthrough would be worse than a wrong label.
-    throw ErrorHandler.createError(ErrorType.NETWORK, 'Network request failed', {
-      errorCode: 'OFFLINE',
-      originalError: error,
-    });
+    throw ErrorHandler.createError(errorTypeFor(status, errorCode), message, metadata);
   }
 
   /**

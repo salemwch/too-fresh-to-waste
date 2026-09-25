@@ -380,29 +380,29 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ navigation }) => {
           <Icon name='search' family='Ionicons' size={48} color={theme.colors.onSurfaceVariant} />
         </View>
         <Text variant='title' size='lg' weight='semibold' align='center' style={styles.emptyTitle}>
-          No offers found
+          {t('search.noOffersFound')}
         </Text>
         <Text variant='body' size='md' color='secondary' align='center' style={styles.emptyText}>
-          Try expanding your search radius or search for a place.
+          {t('search.noOffersFoundHint')}
         </Text>
       </View>
     );
-  }, [isLoadingOffers, theme.colors]);
+  }, [isLoadingOffers, theme.colors, t]);
 
   const renderListHeader = useCallback(
     () => (
       <View style={styles.listHeader}>
         <Text variant='title' size='md' weight='semibold'>
-          {groupedEstablishments.length}{' '}
-          {groupedEstablishments.length === 1 ? 'business' : 'businesses'} nearby
+          {t('search.businessesNearby', { count: groupedEstablishments.length })}
         </Text>
         <Text variant='body' size='sm' color='secondary'>
-          Within {searchRadius} km
-          {selectedPlace ? ` of ${selectedPlace.name}` : ''}
+          {selectedPlace
+            ? t('search.withinRadiusOfPlace', { radius: searchRadius, place: selectedPlace.name })
+            : t('search.withinRadius', { radius: searchRadius })}
         </Text>
       </View>
     ),
-    [groupedEstablishments.length, searchRadius, selectedPlace],
+    [groupedEstablishments.length, searchRadius, selectedPlace, t],
   );
 
   // ─────────────────────────────────────────────────────────────────────────

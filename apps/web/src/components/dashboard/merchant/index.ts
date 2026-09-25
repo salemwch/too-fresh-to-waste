@@ -12,4 +12,5 @@ export { StreakWidget } from './streak-widget';
 export { FundLedgerCard } from './fund-ledger-card';
 export { CommissionCard } from './commission-card';
 export { SmartPricingPanel } from './smart-pricing-panel';
+export { TodaySalesCard } from './today-sales-card';
 export { WalletBalanceCard } from './wallet-balance-card';

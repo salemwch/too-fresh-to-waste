@@ -85,7 +85,7 @@ describe('PremiumPointsCard', () => {
     const { getByText, getByTestId } = render(<PremiumPointsCard {...defaultProps} />);
 
     expect(getByTestId('animated-counter')).toBeTruthy();
-    expect(getByText('Available Points')).toBeTruthy();
+    expect(getByText('Available points')).toBeTruthy();
     expect(getByText('Silver')).toBeTruthy();
   });
 

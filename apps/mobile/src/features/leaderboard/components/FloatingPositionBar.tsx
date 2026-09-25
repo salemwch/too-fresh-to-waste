@@ -53,7 +53,7 @@ const FloatingPositionBarComponent: React.FC<FloatingPositionBarProps> = ({
         style={styles.bar}
         onPress={onPress}
         accessibilityRole='button'
-        accessibilityLabel={`Your position: rank ${entry.rank}`}
+        accessibilityLabel={t('leaderboard.a11yYourPosition', { rank: entry.rank })}
         accessibilityHint={t('leaderboard.a11yPositionBarHint')}
       >
         {/* Avatar */}

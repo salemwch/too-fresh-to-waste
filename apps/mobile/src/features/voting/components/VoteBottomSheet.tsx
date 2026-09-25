@@ -84,9 +84,10 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
       onError: (error: Error) => {
         const errorWithCode = error as Error & { code?: string };
         if (errorWithCode.code === 'SNAPSHOT_NOT_READY') {
-          Alert.alert('Not Ready', 'Voting is being prepared. Please try again in a few minutes.');
+          Alert.alert(t('voting.notReadyTitle'), t('voting.notReadyBody'));
         } else {
-          Alert.alert('Vote Failed', error.message || 'Something went wrong. Please try again.');
+          // The backend's message is already user-facing; the fallback is ours.
+          Alert.alert(t('voting.voteFailedTitle'), error.message || t('voting.voteFailedBody'));
         }
       },
     });
@@ -126,10 +127,13 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
           <View style={styles.header}>
             <View style={styles.headerTextBlock}>
               <Text variant='body' size='lg' weight='semibold' style={{ color: TEXT_PRIMARY }}>
-                {'Choose the Community Prize'}
+                {t('voting.chooseCommunityPrize')}
               </Text>
               <Text variant='body' size='sm' style={{ color: TEXT_SECONDARY }}>
-                {`Your vote carries ${pointsSnapshot.toLocaleString()} pts`}
+                {t('voting.voteWeight', {
+                  count: pointsSnapshot,
+                  formatted: pointsSnapshot.toLocaleString(i18n.language),
+                })}
               </Text>
             </View>
 
@@ -233,8 +237,8 @@ export const VoteBottomSheet: React.FC<VoteBottomSheetProps> = ({
             accessibilityRole='button'
             accessibilityLabel={
               voteMutation.isPending
-                ? 'Casting your vote…'
-                : `Cast my final vote (${pointsSnapshot} pts)`
+                ? t('voting.a11yCasting')
+                : t('voting.a11yCastFinal', { count: pointsSnapshot })
             }
             accessibilityHint={t('voting.a11ySubmitVoteHint')}
           >

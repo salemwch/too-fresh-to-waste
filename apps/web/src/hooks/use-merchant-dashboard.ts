@@ -28,6 +28,7 @@ import type {
   CustomerLocationItem,
   MerchantWallet,
   MerchantCommissionStatement,
+  TodaySales,
   FundLedgerResponse,
 } from '@/types/dashboard';
 
@@ -36,6 +37,7 @@ import type {
 
 export const dashboardKeys = {
   all: ['merchant-dashboard'] as const,
+  todaySales: (estId?: string) => [...dashboardKeys.all, 'today-sales', estId ?? 'all'] as const,
   orderStats: (startDate?: string, estId?: string) =>
     [...dashboardKeys.all, 'order-stats', startDate ?? 'all-time', estId ?? 'all'] as const,
   recentOrders: (page: number, limit: number) =>
@@ -71,8 +73,8 @@ export const dashboardKeys = {
   myWallet: (estId?: string) => [...dashboardKeys.all, 'my-wallet', estId ?? 'all'] as const,
   fundLedger: (establishmentId?: string) =>
     [...dashboardKeys.all, 'fund-ledger', establishmentId ?? 'all'] as const,
-  commissionStatement: (estId: string) =>
-    [...dashboardKeys.all, 'commission-statement', estId] as const,
+  commissionStatement: (estId?: string) =>
+    [...dashboardKeys.all, 'commission-statement', estId ?? 'all'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -94,6 +96,24 @@ interface MerchantOffersResult {
  * Scoped to the given startDate (undefined = all-time).
  * Backend: GET /orders/stats?startDate=
  */
+/**
+ * Today's sales, cash and online together. The wallet card shows only money
+ * TFTW holds; this is the day as the merchant lived it. Refetched every minute
+ * while the dashboard is open - a sale lands the moment a pickup is confirmed.
+ */
+export function useTodaySales() {
+  const estId = useAuthStore(s => s.activeEstablishmentId) ?? undefined;
+  return useQuery({
+    queryKey: dashboardKeys.todaySales(estId),
+    queryFn: async (): Promise<TodaySales> => {
+      const response = await dashboardService.getTodaySales(estId);
+      return response.data.data;
+    },
+    staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+}
+
 export function useOrderStats(startDate?: Date) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
@@ -594,20 +614,22 @@ export function useMyWallet() {
 /**
  * The merchant's commission statement for the current month.
  *
- * Requires an establishment: the balance is per establishment, and the
- * aggregate across several would hide which one is carrying it. Disabled until
- * one is selected rather than falling back to "all".
+ * With no establishment selected ("All locations") it asks for the statement
+ * across every establishment the merchant owns. It used to be disabled there,
+ * because a summed balance hides which location carries it - but a disabled
+ * query reads as "loading", so the card showed a skeleton forever. The backend
+ * now returns the balance per establishment (`dueByEstablishment`) alongside
+ * the total, which answers the original concern without hiding the card.
  */
 export function useCommissionStatement() {
-  const estId = useAuthStore(s => s.activeEstablishmentId);
+  const estId = useAuthStore(s => s.activeEstablishmentId) ?? undefined;
 
   return useQuery({
-    queryKey: dashboardKeys.commissionStatement(estId ?? ''),
+    queryKey: dashboardKeys.commissionStatement(estId),
     queryFn: async (): Promise<MerchantCommissionStatement> => {
-      const response = await dashboardService.getMyCommission(estId as string);
+      const response = await dashboardService.getMyCommission(estId);
       return response.data.data;
     },
-    enabled: !!estId,
     // Moves only when an order completes; a shorter window is wasted requests.
     staleTime: 60 * 1000,
   });

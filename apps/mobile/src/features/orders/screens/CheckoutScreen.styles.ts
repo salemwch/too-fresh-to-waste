@@ -205,6 +205,14 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
       fontSize: 15,
       fontWeight: '600',
       color: TEXT_TERTIARY,
+      // DESIGN.md §3.5: mandatory on numbers that change in place - these
+      // move when the fulfilment mode or the delivery distance changes.
+      fontVariant: ['tabular-nums'],
+    },
+    // Same role as OrderPricingCard's discount row: the success colour, which
+    // is already the savings badge's text colour on this screen.
+    discountValue: {
+      color: SUCCESS_TEXT,
     },
     savingsBadge: {
       flexDirection: 'row',
@@ -240,6 +248,7 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
       fontWeight: '800',
       color: BRAND_PRIMARY,
       letterSpacing: -0.5,
+      fontVariant: ['tabular-nums'],
     },
 
     // Divider

@@ -451,7 +451,7 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
       {/* Not started overlay — shown instead of sold out when offer hasn't begun */}
       {isNotStarted && startTimeText !== null && (
         <View style={styles.notStartedOverlay}>
-          <Badge variant='info' size='md' label={`Starts at ${startTimeText}`} />
+          <Badge variant='info' size='md' label={t('offers.startsAt', { time: startTimeText })} />
         </View>
       )}
 

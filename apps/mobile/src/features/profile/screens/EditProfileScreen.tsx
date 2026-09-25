@@ -18,7 +18,7 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -45,8 +45,10 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { SecureStorage } from '@/services/SecureStorage';
 import { Logger } from '@/utils/logger';
 import { showSuccessToast } from '@/utils/toast';
+import { nameRule } from '@/utils/validation/schemas';
 
 import type { EditProfileScreenNavigationProp } from '@/navigation/types';
+import type { Translate } from '@/i18n/translate';
 import type { InferType } from 'yup';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 import { useFloatingTabBarContentInset } from '@/navigation/hooks/useFloatingTabBarInset';
@@ -61,50 +63,43 @@ interface EditProfileScreenProps {
 // Validation Schema
 // ============================================================================
 
-const profileSchema = yup.object().shape({
-  firstName: yup
-    .string()
-    .required('First name is required')
-    .min(2, 'First name must be at least 2 characters')
-    .max(50, 'First name must not exceed 50 characters')
-    .matches(
-      /^[a-zA-Z\s'-]+$/,
-      'First name can only contain letters, spaces, hyphens, and apostrophes',
-    ),
+// Names share the register form's rule. This screen used to allow only
+// [a-zA-Z], so "Hélène" or any name written in Arabic could not be saved.
+const createProfileSchema = (t: Translate) =>
+  yup.object().shape({
+    firstName: nameRule(t, 'validation.firstNameRequired'),
 
-  lastName: yup
-    .string()
-    .required('Last name is required')
-    .min(2, 'Last name must be at least 2 characters')
-    .max(50, 'Last name must not exceed 50 characters')
-    .matches(
-      /^[a-zA-Z\s'-]+$/,
-      'Last name can only contain letters, spaces, hyphens, and apostrophes',
-    ),
+    lastName: nameRule(t, 'validation.lastNameRequired'),
 
-  phoneNumber: yup
-    .string()
-    .nullable()
-    .matches(
-      /^(\+\d{1,3}[- ]?)?\d{8,15}$/,
-      'Phone number must be a valid international format (e.g., +21612345678)',
-    ),
+    phoneNumber: yup
+      .string()
+      .nullable()
+      .matches(/^(\+\d{1,3}[- ]?)?\d{8,15}$/, t('validation.phoneInvalid', {})),
 
-  // Address fields
-  street: yup.string().nullable().max(100, 'Street address must not exceed 100 characters'),
+    // Address fields
+    street: yup
+      .string()
+      .nullable()
+      .max(100, t('validation.maxChars', { max: 100 })),
 
-  city: yup.string().nullable().max(50, 'City must not exceed 50 characters'),
+    city: yup
+      .string()
+      .nullable()
+      .max(50, t('validation.maxChars', { max: 50 })),
 
-  postalCode: yup
-    .string()
-    .nullable()
-    .matches(/^[0-9]{4,10}$/, 'Postal code must be 4-10 digits'),
+    postalCode: yup
+      .string()
+      .nullable()
+      .matches(/^[0-9]{4,10}$/, t('validation.postalCodeDigits', { min: 4, max: 10 })),
 
-  country: yup.string().nullable().max(50, 'Country must not exceed 50 characters'),
-});
+    country: yup
+      .string()
+      .nullable()
+      .max(50, t('validation.maxChars', { max: 50 })),
+  });
 
 // Derive type from Yup schema for better type inference with yupResolver
-type ProfileFormData = InferType<typeof profileSchema>;
+type ProfileFormData = InferType<ReturnType<typeof createProfileSchema>>;
 
 // Component
 
@@ -134,6 +129,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
   // pad itself or its last row can never be scrolled clear of the shape.
   const tabBarInset = useFloatingTabBarContentInset(styles.scrollContent);
   const { t } = useTranslation();
+  const profileSchema = useMemo(() => createProfileSchema(t), [t]);
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
@@ -190,7 +186,8 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             code: response.errorCode,
             message: response.errorMessage,
           });
-          Alert.alert('Error', response.errorMessage ?? 'Failed to select image');
+          // The native message is logged above; it is not written for users.
+          Alert.alert(t('profile.imagePickerFailedTitle'), t('profile.imagePickerFailedBody'));
           return;
         }
 
@@ -201,7 +198,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
         }
       },
     );
-  }, []);
+  }, [t]);
 
   // Ref to hold validated form data between render frames
   const pendingDataRef = useRef<ProfileFormData | null>(null);
@@ -307,16 +304,16 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
         });
 
         setSaveError(null);
-        showSuccessToast('Profile updated', 'Your changes have been saved');
+        showSuccessToast(t('profile.updatedTitle'), t('profile.updatedBody'));
         Logger.info('Profile updated successfully', { userId: user?.userId });
       } catch (error) {
         Logger.error('Failed to update profile', {}, error as Error);
-        setSaveError('Failed to update profile. Please try again.');
+        setSaveError(t('profile.updateFailed'));
       } finally {
         setIsSaving(false);
       }
     },
-    [dispatch, queryClient, user, imageUri, reset],
+    [dispatch, queryClient, user, imageUri, reset, t],
   );
 
   /**
@@ -351,26 +348,22 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
    */
   const handleCancel = useCallback(() => {
     if (isDirty || imageUri != null) {
-      Alert.alert(
-        'Discard Changes?',
-        'You have unsaved changes. Are you sure you want to discard them?',
-        [
-          { text: 'Keep Editing', style: 'cancel' },
-          {
-            text: 'Discard',
-            style: 'destructive',
-            onPress: () => {
-              reset();
-              setImageUri(null);
-              navigation.goBack();
-            },
+      Alert.alert(t('profile.discardTitle'), t('profile.discardBody'), [
+        { text: t('profile.keepEditing'), style: 'cancel' },
+        {
+          text: t('profile.discard'),
+          style: 'destructive',
+          onPress: () => {
+            reset();
+            setImageUri(null);
+            navigation.goBack();
           },
-        ],
-      );
+        },
+      ]);
     } else {
       navigation.goBack();
     }
-  }, [isDirty, imageUri, navigation, reset]);
+  }, [isDirty, imageUri, navigation, reset, t]);
 
   // Show skeleton while saving
   if (isSaving) {
@@ -417,17 +410,17 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
                 color='primary'
                 style={styles.changePhotoText}
               >
-                {isImageUploading ? 'Uploading...' : 'Change Photo'}
+                {isImageUploading ? t('profile.uploading') : t('profile.changePhoto')}
               </Text>
             </Pressable>
             {imageUri != null && !isImageUploading && (
               <Text variant='body' size='xs' color='success' style={styles.imageStatusText}>
-                New image selected
+                {t('profile.newImageSelected')}
               </Text>
             )}
             {isImageUploading && (
               <Text variant='body' size='xs' color='primary' style={styles.imageStatusText}>
-                Uploading image...
+                {t('profile.uploadingImage')}
               </Text>
             )}
           </View>
@@ -634,7 +627,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             accessibilityLabel={t('profile.a11ySaveChanges')}
             accessibilityHint={t('profile.a11ySaveChangesHint')}
           >
-            Save Changes
+            {t('profile.saveChanges')}
           </Button>
 
           <Button
@@ -644,7 +637,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             accessibilityLabel={t('profile.a11yCancelEditing')}
             accessibilityHint={t('profile.a11yCancelEditingHint')}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
         </View>
 
@@ -657,8 +650,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
             color={theme.colors.primary}
           />
           <Text variant='body' size='xs' color='secondary' style={styles.infoText}>
-            Your personal information is securely stored and will only be used for order delivery
-            and account management.
+            {t('profile.privacyNote')}
           </Text>
         </View>
       </ScrollView>

@@ -5,16 +5,19 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useMutation } from '@tanstack/react-query';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Controller, useForm } from 'react-hook-form';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import * as yup from 'yup';
 
+import type { Translate } from '@/i18n/translate';
+
 import { Text, Button, Card, Input, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { userService } from '@/features/profile/services/userService';
+import { passwordHint, passwordRule } from '@/utils/validation/schemas';
 
 import type { MainStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -42,28 +45,40 @@ interface PasswordFormValues {
 // Validation schema
 // ─────────────────────────────────────────────────────────────────────────────
 
-const schema = yup.object({
-  currentPassword: yup.string().required('Current password is required'),
-  newPassword: yup
-    .string()
-    .required('New password is required')
-    .min(8, 'Password must be at least 8 characters')
-    .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
-    .matches(/[a-z]/, 'Must contain at least one lowercase letter')
-    .matches(/\d/, 'Must contain at least one number')
-    .matches(/[@$!%*?&.]/, 'Must contain at least one special character (@$!%*?&.)'),
-  confirmPassword: yup
-    .string()
-    .required('Please confirm your password')
-    .oneOf([yup.ref('newPassword')], 'Passwords do not match'),
-});
+// The new password follows the same shared policy as register and reset. This
+// screen used to accept 8 characters while reset demanded 12, so one account
+// had two password rules depending on which screen the user was on.
+const createSchema = (t: Translate) =>
+  yup.object({
+    currentPassword: yup.string().required(t('validation.currentPasswordRequired', {})),
+    newPassword: passwordRule(t),
+    confirmPassword: yup
+      .string()
+      .required(t('validation.confirmPasswordRequired', {}))
+      .oneOf([yup.ref('newPassword')], t('validation.passwordsMismatch', {})),
+  });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sign-in providers
+// Brand names are not translated. Every non-local provider is listed, so a
+// Facebook or Apple user is not told their account is managed by Google.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type ExternalProvider = 'google' | 'facebook' | 'apple';
+
+const PROVIDER_DISPLAY: Readonly<Record<ExternalProvider, { name: string; icon: string }>> =
+  Object.freeze({
+    google: { name: 'Google', icon: 'logo-google' },
+    facebook: { name: 'Facebook', icon: 'logo-facebook' },
+    apple: { name: 'Apple', icon: 'logo-apple' },
+  });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Error parser
 // Handles structured backend errors like PASSWORD_REUSE_VIOLATION
 // ─────────────────────────────────────────────────────────────────────────────
 
-function parseServerError(error: unknown): string {
+function parseServerError(error: unknown, fallbackMessage: string): string {
   const axiosError = error as { response?: { data?: { message?: unknown } } };
   const raw = axiosError?.response?.data?.message;
 
@@ -78,7 +93,7 @@ function parseServerError(error: unknown): string {
 
   // Fallback
   const fallback = error as Error;
-  return fallback?.message ?? 'Unable to update password. Please try again.';
+  return fallback?.message || fallbackMessage;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -92,7 +107,15 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
   // device should reflect), and useCurrentUser falls back to the restored
   // identity so this is never empty for a signed-in user.
   const { user } = useCurrentUser();
-  const isOAuthAccount = user?.authProvider !== undefined && user.authProvider !== 'local';
+  const provider =
+    user?.authProvider !== undefined && user.authProvider !== 'local'
+      ? PROVIDER_DISPLAY[user.authProvider]
+      : null;
+  const isOAuthAccount = provider !== null;
+  const schema = useMemo(() => createSchema(t), [t]);
+  const unavailablePlaceholder = provider
+    ? t('profile.security.notAvailableFor', { provider: provider.name })
+    : '';
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -116,7 +139,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
       navigation.goBack();
     },
     onError: (error: unknown) => {
-      setServerError(parseServerError(error));
+      setServerError(parseServerError(error, t('profile.security.updateFailed')));
     },
   });
 
@@ -145,15 +168,15 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
       >
         <Card style={styles.card}>
           <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
-            Change Password
+            {t('profile.security.title')}
           </Text>
           <Text variant='body' size='sm' color='secondary' style={styles.subtitle}>
-            {isOAuthAccount
-              ? 'Your account is managed by Google. Password changes are not available.'
-              : 'Set a new password for your account.'}
+            {provider
+              ? t('profile.security.oauthSubtitle', { provider: provider.name })
+              : t('profile.security.subtitle')}
           </Text>
 
-          {isOAuthAccount && (
+          {provider && (
             <View
               style={[
                 styles.oauthInfoBox,
@@ -164,14 +187,14 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
               ]}
             >
               <Icon
-                name='logo-google'
+                name={provider.icon}
                 family='Ionicons'
                 size={20}
                 color={theme.colors.onSurfaceVariant}
               />
               <View style={styles.oauthInfoContent}>
                 <Text variant='body' size='sm' weight='medium'>
-                  Signed in with Google
+                  {t('profile.security.oauthSignedIn', { provider: provider.name })}
                 </Text>
                 <Text
                   variant='body'
@@ -179,8 +202,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                   color='secondary'
                   style={styles.oauthInfoDescription}
                 >
-                  Password is managed by your Google account. To change your password, visit your
-                  Google Account settings.
+                  {t('profile.security.oauthDescription', { provider: provider.name })}
                 </Text>
               </View>
             </View>
@@ -201,7 +223,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 onBlur={onBlur}
                 error={errors.currentPassword?.message}
                 placeholder={
-                  isOAuthAccount ? 'Not available for Google accounts' : 'Enter current password'
+                  isOAuthAccount ? unavailablePlaceholder : t('profile.security.currentPlaceholder')
                 }
                 secureTextEntry={!showCurrent}
                 autoCapitalize='none'
@@ -231,7 +253,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 onBlur={onBlur}
                 error={errors.newPassword?.message}
                 placeholder={
-                  isOAuthAccount ? 'Not available for Google accounts' : 'Enter new password'
+                  isOAuthAccount ? unavailablePlaceholder : t('profile.security.newPlaceholder')
                 }
                 secureTextEntry={!showNew}
                 autoCapitalize='none'
@@ -261,7 +283,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 onBlur={onBlur}
                 error={errors.confirmPassword?.message}
                 placeholder={
-                  isOAuthAccount ? 'Not available for Google accounts' : 'Re-enter new password'
+                  isOAuthAccount ? unavailablePlaceholder : t('profile.security.confirmPlaceholder')
                 }
                 secureTextEntry={!showConfirm}
                 autoCapitalize='none'
@@ -287,7 +309,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
                 color={theme.colors.onSurfaceVariant}
               />
               <Text variant='body' size='xs' color='secondary' style={styles.hintText}>
-                Min. 8 chars · uppercase · lowercase · number · special char (@$!%*?&.)
+                {passwordHint(t)}
               </Text>
             </View>
           )}
@@ -329,7 +351,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
               disabled={!isDirty || isPending}
               style={styles.saveButton}
             >
-              Save Changes
+              {t('profile.saveChanges')}
             </Button>
           )}
 
@@ -339,7 +361,7 @@ export const SecurityScreen: React.FC<SecurityScreenProps> = ({ navigation }) =>
             onPress={() => navigation.goBack()}
             disabled={isPending}
           >
-            {isOAuthAccount ? 'Go Back' : 'Cancel'}
+            {isOAuthAccount ? t('common.goBack') : t('common.cancel')}
           </Button>
         </Card>
       </ScrollView>

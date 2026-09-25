@@ -49,7 +49,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             style={styles.compactText}
             numberOfLines={1}
           >
-            Enable location for nearby offers
+            {t('location.bannerEnableForNearby')}
           </Text>
           <Button
             variant='ghost'
@@ -98,11 +98,10 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
 
           <View style={styles.textContainer}>
             <Text variant='title' size='md' weight='semibold' style={styles.title}>
-              See offers near you
+              {t('location.seeOffersNearYou')}
             </Text>
             <Text variant='body' size='sm' color='secondary' style={styles.description}>
-              Enable location to discover surplus food from nearby restaurants and save money while
-              reducing waste.
+              {t('location.bannerBody')}
             </Text>
           </View>
         </View>
@@ -130,7 +129,7 @@ export const LocationPromptBanner = memo<LocationPromptBannerProps>(
             {isLoading ? (
               <ActivityIndicator size='small' color={theme.colors.onPrimary} />
             ) : (
-              'Enable Location'
+              t('location.enableLocation')
             )}
           </Button>
         </View>

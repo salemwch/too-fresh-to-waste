@@ -43,6 +43,7 @@ jest.mock('../../hooks/useDriverOrders', () => ({
   useMarkPickedUp: () => ({ mutate: jest.fn(), isPending: false }),
   useMarkDelivered: () => ({ mutate: jest.fn(), isPending: false }),
   useUnassignOrder: () => ({ mutate: jest.fn(), isPending: false }),
+  useFailDelivery: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
 const navigation = {
@@ -87,6 +88,46 @@ describe('DriverActiveOrderScreen', () => {
   describe('collected, en route to the customer', () => {
     beforeAll(() => setState({ order: makeOutForDeliveryOrder() }));
     matrixSnapshotAsync('out-for-delivery', screen, FULL_CASES);
+  });
+
+  /*
+   * The money card, from a frozen instruction. Two cases because they read
+   * differently to the driver: cash to collect at the door, or nothing to
+   * collect because the customer paid online. SETTLEMENT (pay merchant 5 of a
+   * 10 TND bag) so the merchant row is not simply the price.
+   */
+  describe('collected, cash to collect - money card', () => {
+    beforeAll(() =>
+      setState({
+        order: makeOutForDeliveryOrder({
+          paymentControl: { controlledBy: 'TFTW', collector: 'DRIVER' },
+          driverInstruction: {
+            payMerchant: 5,
+            collectFromCustomer: 14,
+            driverKeeps: 3.2,
+            frozenAt: '2026-09-24T10:00:00.000Z',
+          },
+        }),
+      }),
+    );
+    matrixSnapshotAsync('money-cash', screen, FULL_CASES);
+  });
+
+  describe('collected, paid online - money card', () => {
+    beforeAll(() =>
+      setState({
+        order: makeOutForDeliveryOrder({
+          paymentControl: { controlledBy: 'TFTW', collector: 'PAYMENT_GATEWAY' },
+          driverInstruction: {
+            payMerchant: 10,
+            collectFromCustomer: 0,
+            driverKeeps: 3.2,
+            frozenAt: '2026-09-24T10:00:00.000Z',
+          },
+        }),
+      }),
+    );
+    matrixSnapshotAsync('money-online', screen, FULL_CASES);
   });
 
   describe('assigned, no coordinates to map', () => {

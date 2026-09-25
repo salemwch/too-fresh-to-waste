@@ -21,68 +21,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
+import { parseLoginError } from '@/lib/login-error';
 import '../../(merchant-onboarding)/merchant-signup/merchant-signup.css';
-
-/**
- * Extract a user-friendly error message from the login API response.
- * Never exposes technical details — maps every error type to safe copy.
- */
-function parseLoginError(error: unknown): string {
-  const res = (error as { response?: { status?: number; data?: Record<string, unknown> } })
-    ?.response;
-
-  if (!res?.status) {
-    return 'Unable to connect. Please check your internet connection and try again.';
-  }
-
-  const data = res.data;
-  let type = '';
-  let msg = '';
-
-  if (data) {
-    if (typeof data['type'] === 'string') type = data['type'];
-    if (typeof data['message'] === 'string') {
-      msg = data['message'];
-    } else if (typeof data['message'] === 'object' && data['message'] !== null) {
-      const nested = data['message'] as Record<string, unknown>;
-      if (typeof nested['type'] === 'string') type = nested['type'];
-      if (typeof nested['message'] === 'string') msg = nested['message'];
-    }
-  }
-
-  if (type === 'ACCOUNT_LOCKED') {
-    return 'Too many login attempts. Please try again later.';
-  }
-  if (type === 'ACCOUNT_SUSPENDED') {
-    return 'Your account has been suspended. Please contact support for assistance.';
-  }
-  if (type === 'ACCOUNT_INACTIVE') {
-    return 'Your account is not currently active. Please contact support for assistance.';
-  }
-  if (type === 'SOCIAL_AUTH_ONLY') {
-    return 'This account uses Google Sign-In. Please sign in with Google instead.';
-  }
-  if (
-    msg.toLowerCase().includes('verify your email') ||
-    msg.toLowerCase().includes('verify email')
-  ) {
-    return 'Please verify your email address before signing in. Check your inbox for the verification link.';
-  }
-  if (type === 'INVALID_CREDENTIALS' || type === 'INVALID_PASSWORD') {
-    return 'The email or password you entered is incorrect.';
-  }
-  if (res.status === 429) {
-    return 'Too many requests. Please wait a moment and try again.';
-  }
-  if (res.status === 403) {
-    return 'Access temporarily restricted. Please try again later.';
-  }
-  if (res.status >= 500) {
-    return 'Our servers are temporarily unavailable. Please try again later.';
-  }
-
-  return 'The email or password you entered is incorrect.';
-}
 
 // ── Inner form (uses useSearchParams — must be inside Suspense) ──────────────
 function LoginFormInner() {
@@ -131,7 +71,7 @@ function LoginFormInner() {
       }
       window.location.href = destination;
     } catch (error: unknown) {
-      setLoginError(parseLoginError(error));
+      setLoginError(parseLoginError(error, t));
     } finally {
       setIsSubmitting(false);
     }

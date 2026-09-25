@@ -596,6 +596,7 @@
     "resetPasswordSuccess": "Mot de passe réinitialisé ! Veuillez vous connecter.",
     "resetPasswordError": "Impossible de réinitialiser. Le lien a peut-être expiré.",
     "passwordReuseViolation": "Vous ne pouvez pas réutiliser votre ancien mot de passe. Veuillez en choisir un autre.",
+    "passwordRequirements": "Le mot de passe doit contenir au moins {min} caractères avec majuscule, minuscule, chiffre et caractère spécial (@$!%*?&.)",
     "verifyEmail": "Vérifiez votre email",
     "verifyEmailDescription": "Nous avons envoyé un code à 6 chiffres à votre adresse email",
     "verificationCodePlaceholder": "000000",
@@ -696,7 +697,8 @@
         "deleteConfirm": "Tapez SUPPRIMER pour confirmer",
         "deleting": "Suppression...",
         "logoutAll": "Déconnecter tous les appareils",
-        "logoutAllConfirm": "Cela terminera toutes les sessions actives"
+        "logoutAllConfirm": "Cela terminera toutes les sessions actives",
+        "passwordRequirements": "Le mot de passe doit contenir au moins {min} caractères avec majuscule, minuscule, chiffre et caractère spécial (@$!%*?&.)"
       },
       "sessions": {
         "title": "Sessions actives",
@@ -1277,8 +1279,8 @@
       "confirmPassword": "Confirmer le mot de passe",
       "showPassword": "Afficher le mot de passe",
       "hidePassword": "Masquer le mot de passe",
-      "passwordRequirementsHint": "Min 8 caractères · majuscule · minuscule · chiffre · caractère spécial (@$!%*?&.)",
-      "passwordRequirements": "Le mot de passe doit contenir au moins 8 caractères avec majuscule, minuscule, chiffre et caractère spécial",
+      "passwordRequirementsHint": "Min {min} caractères · majuscule · minuscule · chiffre · caractère spécial (@$!%*?&.)",
+      "passwordRequirements": "Le mot de passe doit contenir au moins {min} caractères avec majuscule, minuscule, chiffre et caractère spécial",
       "passwordMismatch": "Les mots de passe ne correspondent pas",
       "updatePassword": "Mettre à jour",
       "updatingPassword": "Mise à jour...",
@@ -1837,7 +1839,8 @@
       "updating": "Mise à jour...",
       "success": "Mot de passe mis à jour avec succès",
       "error": "Échec de la mise à jour du mot de passe",
-      "passwordMismatch": "Les mots de passe ne correspondent pas"
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "passwordRequirements": "Le mot de passe doit contenir au moins {min} caractères avec majuscule, minuscule, chiffre et caractère spécial (@$!%*?&.)"
     },
     "merchantEstablishment": {
       "title": "Mon Établissement",
@@ -2110,11 +2113,37 @@
       }
     },
     "walletBalance": {
-      "title": "Solde des paiements en ligne",
+      "title": "Paiements en ligne que nous gardons pour vous",
       "available": "Disponible",
-      "pending": "En attente de règlement",
+      "pending": "En attente du retrait",
       "availableNote": "Prêt pour votre prochain versement.",
-      "pendingNote": "Encore en cours - devient disponible une fois la fenêtre de retrait terminée."
+      "pendingNote": "Payé en ligne, pas encore récupéré.",
+      "availableInfoLabel": "Qu'est-ce que Disponible ?",
+      "availableInfo": "L'argent des commandes en ligne que vos clients ont déjà récupérées. Il vous est versé lors du prochain versement, en totalité - moins la commission réglée par une commande de règlement.",
+      "pendingInfoLabel": "Qu'est-ce qu'En attente du retrait ?",
+      "pendingInfo": "Les clients ont payé ces commandes en ligne mais ne les ont pas encore récupérées. L'argent passe en Disponible dès que vous confirmez le retrait. Si une commande est annulée, le client est remboursé.",
+      "cashNotHere": "Les commandes payées en espèces vous sont réglées directement : elles n'apparaissent pas ici.",
+      "error": "Impossible de charger vos paiements en ligne."
+    },
+    "todaySales": {
+      "title": "Ventes d'aujourd'hui",
+      "subtitle": "Espèces en magasin et paiements en ligne, ensemble",
+      "history": "Historique",
+      "orders": "{count, plural, one {# commande} other {# commandes}}",
+      "cash": "Espèces en magasin",
+      "online": "Payé en ligne",
+      "commission": "Commission enregistrée ({rate} %)",
+      "commissionInfoLabel": "Qu'est-ce que la commission enregistrée ?",
+      "commissionInfo": "{rate} % des ventes normales d'aujourd'hui sont ajoutés à votre solde de commission. Ce montant n'est jamais pris dans votre poche : il est réglé plus tard par des commandes de règlement.",
+      "settled": "Réglé par des commandes de règlement",
+      "settledInfoLabel": "Qu'est-ce que le montant réglé par des commandes de règlement ?",
+      "settledInfo": "Sur une commande de règlement, vous êtes payé moins que le prix, et la différence règle la commission des jours précédents. Aucune nouvelle commission n'y est enregistrée.",
+      "kept": "Vous gardez aujourd'hui",
+      "keptInfoLabel": "Qu'est-ce que Vous gardez aujourd'hui ?",
+      "keptInfo": "Ce que vous avez touché pour les ventes d'aujourd'hui, moins la commission enregistrée aujourd'hui.",
+      "toCollect": "{count, plural, one {# commande} other {# commandes}} encore à récupérer, pour {amount}",
+      "empty": "Aucune vente pour l'instant aujourd'hui. Chaque commande remise apparaît ici immédiatement.",
+      "error": "Impossible de charger les ventes d'aujourd'hui."
     },
     "greeting": "Félicitations, {name}.",
     "impactStatement": "Votre impact aujourd'hui est équivalent à {trees} arbres plantés.",
@@ -2251,6 +2280,7 @@
       "received": "Vous avez touché",
       "fullPriceOrders": "{count, plural, one {# commande vous a payé le prix complet} other {# commandes vous ont payé le prix complet}}",
       "toSettle": "{amount} restent à régler sur les prochaines commandes. Vous ne nous payez jamais directement.",
+      "toSettleByLocation": "Par établissement",
       "noActivity": "Aucune vente ce mois-ci. Votre récapitulatif de commission apparaîtra ici dès les premières commandes.",
       "error": "Impossible de charger votre récapitulatif de commission."
     },
@@ -2320,7 +2350,7 @@
     "phoneLabel": "Téléphone (optionnel)",
     "phonePlaceholder": "+216 XX XXX XXX",
     "passwordLabel": "Mot de passe",
-    "passwordPlaceholder": "Minimum 8 caractères",
+    "passwordPlaceholder": "Minimum {min} caractères",
     "confirmPasswordLabel": "Confirmer le mot de passe",
     "confirmPasswordPlaceholder": "Retapez votre mot de passe",
     "passwordMismatch": "Les mots de passe ne correspondent pas",
@@ -2519,7 +2549,7 @@
   "humanityMission": {
     "meta": {
       "title": "Mission Humanitaire | Too Fresh To Waste",
-      "description": "5% de chaque bénéfice est consacré à ceux qui en ont le plus besoin - nourriture, médicaments, éducation et chaleur pour les plus vulnérables de Tunisie."
+      "description": "5% de notre commission sur chaque commande va à ceux qui en ont le plus besoin : nourriture, médicaments, éducation, chaleur."
     },
     "hero": {
       "eyebrow": "NOTRE MISSION HUMANITAIRE",
@@ -2530,7 +2560,7 @@
       "eyebrow": "L'ENGAGEMENT",
       "percent": "5%",
       "headline": "Notre Engagement des 5%.",
-      "body": "Le vrai changement ne vous demande pas de payer plus. Nous consacrons automatiquement 5% de nos bénéfices nets de chaque sac vendu sur notre marketplace. Que vous achetiez un repas ou en vendiez un, vous financez activement la dignité humaine - sans dépenser un seul dinar supplémentaire."
+      "body": "Le vrai changement ne vous demande pas de payer plus. Sur chaque commande récupérée sur notre marketplace, nous reversons automatiquement 5% de notre commission. Que vous achetiez un repas ou en vendiez un, vous financez activement la dignité humaine - sans dépenser un seul dinar supplémentaire."
     },
     "pillars": {
       "eyebrow": "QUATRE PILIERS D'IMPACT",
@@ -3358,6 +3388,65 @@
     }
   },
   "adminDrivers": {
+    "cash": {
+      "link": "Rapprochement des espèces",
+      "title": "Espèces des livreurs",
+      "subtitle": "Attendu, encaissé, remis et restant dû - par livreur",
+      "back": "Retour aux livreurs",
+      "kpiExpected": "Attendu des clients",
+      "kpiCollected": "Encaissé par les livreurs",
+      "kpiHandedOver": "Remis",
+      "kpiOwedByDrivers": "Encore chez les livreurs",
+      "kpiOwedToDrivers": "Dû aux livreurs",
+      "kpiDeliveryRevenue": "Revenu de livraison TFTW",
+      "kpiSettlement": "Commission réglée en espèces",
+      "kpiLoss": "Nourriture perdue",
+      "colDriver": "Livreur",
+      "colFloat": "Fonds de caisse",
+      "colOwedByDriver": "Le livreur doit",
+      "colOwedToDriver": "Dû au livreur",
+      "colShouldHold": "Devrait détenir",
+      "colFlags": "Alertes",
+      "colActions": "Actions",
+      "unknownDriver": "Livreur inconnu",
+      "noFlags": "Aucune",
+      "emptyTitle": "Aucune espèce livreur pour le moment",
+      "emptyDescription": "Les espèces d'une livraison apparaissent ici dès qu'un livreur récupère une commande.",
+      "error": "Impossible de charger les espèces des livreurs. Réessayez.",
+      "recordHandover": "Enregistrer une remise",
+      "moveFloat": "Fonds de caisse",
+      "handoverTitle": "Enregistrer une remise d’espèces",
+      "handoverDirectionIn": "Le livreur remet des espèces à TFTW",
+      "handoverDirectionOut": "TFTW paie le livreur",
+      "handoverAmount": "Montant compté (TND)",
+      "handoverNotes": "Notes (facultatif)",
+      "handoverHint": "Affecté d'abord aux livraisons ouvertes les plus anciennes. Tout montant non dû est conservé et signalé.",
+      "floatTitle": "Fonds de caisse du livreur",
+      "floatIssue": "Remettre un fonds",
+      "floatReturn": "Reprendre le fonds",
+      "floatAmount": "Montant (TND)",
+      "floatReason": "Motif (facultatif)",
+      "submit": "Enregistrer",
+      "cancel": "Annuler",
+      "saved": "Enregistré.",
+      "saveFailed": "Impossible d'enregistrer. Vérifiez le montant et réessayez.",
+      "invalidAmount": "Saisissez un montant supérieur à zéro, avec au plus 3 décimales.",
+      "pendingTitle": "Livraisons échouées en attente de décision",
+      "pendingEmpty": "Rien en attente.",
+      "pendingPaid": "Payé au commerçant {amount}",
+      "pendingReturned": "Rapportée au commerce",
+      "pendingLost": "Nourriture perdue",
+      "pendingConfirmTitle": "Confirmez ce qu’est devenue la nourriture",
+      "pendingConfirmReturned": "Le commerce a repris la nourriture et rendu {amount} au livreur. La vente et sa commission sont annulées.",
+      "pendingConfirmLost": "La nourriture n'a pas pu être vendue. {amount} est comptabilisé comme perte pour TFTW.",
+      "flagSHORT_COLLECTION": "Encaissement incomplet",
+      "flagUNCONFIRMED_COLLECTION": "Encaissement non confirmé",
+      "flagSTALE_COLLECTION": "Non remis depuis 24 h",
+      "flagSTALE_UNDELIVERED": "Récupérée, jamais livrée",
+      "flagFAILED_DELIVERY": "Livraison échouée",
+      "flagUNALLOCATED_HANDOVER": "Remise non rapprochée",
+      "flagEXPECTED_COLLECTED_MISMATCH": "Attendu et encaissé différents"
+    },
     "title": "Livreurs",
     "subtitle": "Comptes de la flotte, disponibilité en direct et performance de livraison",
     "create": {
@@ -4321,7 +4410,7 @@
         {
           "n": "01",
           "title": "L’engagement des 5% est structurel, pas symbolique.",
-          "body": "5% de chaque transaction vont à des programmes de sécurité alimentaire - fonds de repas pour les familles, cantines scolaires, banques alimentaires. C’est inscrit dans le modèle de commission, pas ajouté par-dessus comme une couche de dons. On ne peut pas le retirer sans casser le produit."
+          "body": "5% de notre commission sur chaque commande vont à des programmes de sécurité alimentaire - fonds de repas pour les familles, cantines scolaires, banques alimentaires. C’est inscrit dans le modèle de commission, pas ajouté par-dessus comme une couche de dons. On ne peut pas le retirer sans casser le produit."
         },
         {
           "n": "02",
@@ -5797,18 +5886,58 @@
     }
   },
   "merchantGifts": {
-    "title": "D’autres cadeaux arrivent",
-    "subtitle": "Nous préparons une série d’avantages pour les commerces qui vendent avec nous. Ils apparaîtront ici dès qu’ils seront prêts.",
+    "eyebrow": "Avantages des commerces partenaires",
+    "title": "Achetez ce dont votre commerce a besoin, moins cher",
+    "subtitle": "Emballages, fournitures et matières premières que vous achetez déjà ailleurs - à des prix négociés pour tous les commerces partenaires ensemble.",
     "soon": "Bientôt",
+    "howTitle": "Comment ça marche",
+    "steps": {
+      "group": {
+        "title": "Nous regroupons les commandes",
+        "body": "Tous les commerces partenaires commandent ensemble : les fournisseurs voient un gros acheteur au lieu de plusieurs petits."
+      },
+      "negotiate": {
+        "title": "Les fournisseurs accordent des prix de gros",
+        "body": "Nous négocions le prix qu'obtient un gros acheteur, et nous vous en faisons profiter."
+      },
+      "order": {
+        "title": "Vous commandez ici et payez moins",
+        "body": "Choisissez ce dont vous avez besoin sur cette page - moins cher que si vous l’achetiez seul."
+      }
+    },
+    "categoriesTitle": "Ce que vous pourrez commander",
+    "examplesLabel": "Par exemple",
     "notify": "Nous vous préviendrons dès leur mise en ligne.",
     "perks": {
-      "internet": {
-        "title": "Internet offert",
-        "subtitle": "Nous aidons à couvrir la connexion de votre commerce, pour rester en ligne sans facture en plus."
-      },
       "packaging": {
         "title": "Emballages moins chers",
-        "subtitle": "Obtenez vos sacs et vos boîtes à un meilleur prix que si vous les achetiez seul."
+        "subtitle": "Obtenez vos sacs et vos boîtes à un meilleur prix que si vous les achetiez seul.",
+        "items": ["Boîtes à gâteaux", "Sachets pâtissiers", "Barquettes", "Sacs à emporter"]
+      },
+      "supplies": {
+        "title": "Fournitures de pâtisserie",
+        "subtitle": "Caissettes, poches à douille, moules et papier cuisson, réapprovisionnés à meilleur prix.",
+        "items": ["Caissettes", "Poches à douille", "Moules", "Papier cuisson"]
+      },
+      "ingredients": {
+        "title": "Matières premières moins chères",
+        "subtitle": "Farine, sucre, beurre et chocolat aux prix de gros que nous négocions pour vous.",
+        "items": ["Farine", "Sucre", "Beurre", "Chocolat"]
+      },
+      "hygiene": {
+        "title": "Hygiène et nettoyage",
+        "subtitle": "Tout ce dont votre cuisine et votre comptoir ont besoin pour rester propres et prêts pour un contrôle.",
+        "items": ["Gants alimentaires", "Charlottes", "Tabliers", "Produits d'entretien"]
+      },
+      "branding": {
+        "title": "Votre marque sur chaque boîte",
+        "subtitle": "Emballages et étiquettes imprimés au nom de votre commerce, sans le minimum de commande d'un imprimeur.",
+        "items": ["Autocollants logo", "Boîtes imprimées", "Étiquettes de prix", "Rubans"]
+      },
+      "equipment": {
+        "title": "Remises sur l’équipement",
+        "subtitle": "Tarifs partenaires sur les fours, batteurs et vitrines réfrigérées pour vos gros achats.",
+        "items": ["Fours", "Batteurs", "Vitrines réfrigérées", "Balances"]
       }
     }
   },

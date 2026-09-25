@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-import { Text, Icon } from '@/design-system/components/atoms';
+import { Button, Text, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 
 import { textAlignEnd } from '@/utils/rtl';
@@ -20,13 +20,21 @@ const { base: sp } = spacingTokens;
 
 const CATEGORY_CONFIG: Record<
   DonationGoalCategory,
-  { icon: string; label: string; color: string }
+  { icon: string; labelKey: string; color: string }
 > = {
-  TSHIRTS: { icon: 'shirt-outline', label: 'T-Shirts', color: '#E88D67' },
-  PANTS: { icon: 'accessibility-outline', label: 'Pants', color: '#7B8CDE' },
-  SHOES: { icon: 'footsteps-outline', label: 'Shoes', color: '#6BBF8A' },
-  CHILDREN_STUDIES: { icon: 'book-outline', label: "Children's Studies", color: '#D4A259' },
-  MEDICINE: { icon: 'medkit-outline', label: 'Medicine', color: '#E07B7B' },
+  TSHIRTS: { icon: 'shirt-outline', labelKey: 'donations.categories.TSHIRTS', color: '#E88D67' },
+  PANTS: {
+    icon: 'accessibility-outline',
+    labelKey: 'donations.categories.PANTS',
+    color: '#7B8CDE',
+  },
+  SHOES: { icon: 'footsteps-outline', labelKey: 'donations.categories.SHOES', color: '#6BBF8A' },
+  CHILDREN_STUDIES: {
+    icon: 'book-outline',
+    labelKey: 'donations.categories.CHILDREN_STUDIES',
+    color: '#D4A259',
+  },
+  MEDICINE: { icon: 'medkit-outline', labelKey: 'donations.categories.MEDICINE', color: '#E07B7B' },
 };
 
 const WHITE = '#FFFFFF';
@@ -53,6 +61,7 @@ function CategoryRow({
   itemPrice: number;
   isActive: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={[styles.categoryRow, isActive && styles.categoryRowActive]}>
       <View style={[styles.categoryIcon, { backgroundColor: color }]}>
@@ -66,14 +75,25 @@ function CategoryRow({
             </Text>
             {isActive && (
               <View style={styles.activePill}>
-                <Text variant='body' size='xs' weight='bold' style={styles.activePillText}>
-                  ACTIVE
+                <Text
+                  variant='body'
+                  size='xs'
+                  weight='bold'
+                  transform='uppercase'
+                  style={styles.activePillText}
+                >
+                  {t('donations.active')}
                 </Text>
               </View>
             )}
           </View>
           <Text variant='body' size='xs' style={styles.categoryCount}>
-            {totalItems} / {targetCount} · {itemPrice} TND each
+            {t('donations.categoryCount', {
+              total: totalItems,
+              target: targetCount,
+              price: itemPrice,
+              currency: t('common.currency'),
+            })}
           </Text>
         </View>
         <View style={styles.progressTrack}>
@@ -95,14 +115,44 @@ function CategoryRow({
 export const DonationImpactScreen: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { data: stats, isLoading } = useDonationStats();
+  const { data: stats, isLoading, isError, refetch } = useDonationStats();
+
+  // A failed request used to fall into the loading branch below and spin
+  // forever: `!stats` is true on error too.
+  if (isError && !stats) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.loadingContainer}>
+          <Icon
+            name='alert-circle-outline'
+            family='Ionicons'
+            size={48}
+            color={theme.colors.error}
+          />
+          <Text variant='body' size='md' color='secondary' align='center'>
+            {t('donations.loadFailed')}
+          </Text>
+          <Button
+            variant='outline'
+            size='md'
+            onPress={() => {
+              void refetch();
+            }}
+            accessibilityHint={t('common.a11yAppliesActionHint')}
+          >
+            {t('common.retry')}
+          </Button>
+        </View>
+      </View>
+    );
+  }
 
   if (isLoading || !stats) {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.loadingContainer}>
           <Text variant='body' size='sm' color='secondary'>
-            Loading impact data...
+            {t('donations.loadingImpact')}
           </Text>
         </View>
       </View>
@@ -195,7 +245,7 @@ export const DonationImpactScreen: React.FC = () => {
                 <CategoryRow
                   key={key}
                   icon={config.icon}
-                  label={config.label}
+                  label={t(config.labelKey)}
                   color={config.color}
                   percent={snap?.percent ?? 0}
                   totalItems={snap?.totalItems ?? 0}
@@ -218,7 +268,7 @@ export const DonationImpactScreen: React.FC = () => {
           />
           <View style={styles.causeTextContainer}>
             <Text variant='body' size='xs' color='secondary'>
-              Current Campaign
+              {t('donations.currentCampaign')}
             </Text>
             <Text variant='body' size='sm' weight='semibold'>
               {stats.cause}

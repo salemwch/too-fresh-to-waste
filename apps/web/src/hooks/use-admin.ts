@@ -5,6 +5,7 @@ import { adminService } from '@/services/admin.service';
 import { dashboardService } from '@/services/dashboard.service';
 import type { DonationStats, MonthlyBagGoalStats } from '@/types/dashboard';
 import type {
+  DriverCashQuery,
   AnalyticsPeriod,
   UserSearchParams,
   EstablishmentSearchParams,
@@ -148,6 +149,8 @@ export const adminKeys = {
 
   // Drivers
   drivers: () => [...adminKeys.all, 'drivers'] as const,
+  driverCash: (params: DriverCashQuery) => [...adminKeys.all, 'driver-cash', params] as const,
+  driverCashAll: () => [...adminKeys.all, 'driver-cash'] as const,
   liveFleet: () => [...adminKeys.all, 'drivers', 'live'] as const,
   driverDetail: (id: string) => [...adminKeys.all, 'driver', id] as const,
   driverOrders: (id: string, params: DriverOrdersQuery) =>

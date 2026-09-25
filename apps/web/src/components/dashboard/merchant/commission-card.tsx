@@ -34,20 +34,17 @@ import { formatMoney } from '@/lib/format';
 export function CommissionCard() {
   const t = useTranslations('dashboard.commission');
   const locale = useLocale();
-  const { data, isLoading, isError, isPending, fetchStatus } = useCommissionStatement();
+  const { data, isLoading, isError } = useCommissionStatement();
 
   const ratePercent = useMemo(() => (data ? Math.round(data.rate * 100) : null), [data]);
 
   /*
-   * The query is disabled until an establishment is selected. A disabled query
-   * in TanStack v5 reports `isPending` with `fetchStatus: 'idle'` and no data -
-   * so `isLoading` is false and `!data` is true, which sent a merchant who had
-   * simply not picked a shop yet straight into the error branch. Waiting is not
-   * failing; keep showing the skeleton.
+   * The query used to be disabled under "All locations", and a disabled query
+   * reports `isPending` forever - so the card showed this skeleton and never
+   * anything else. It now always runs (the backend has an all-locations
+   * statement), so a skeleton here really does mean "loading".
    */
-  const isWaitingForEstablishment = isPending && fetchStatus === 'idle';
-
-  if (isLoading || isWaitingForEstablishment) {
+  if (isLoading) {
     return (
       <div
         data-testid='commission-card-skeleton'
@@ -129,6 +126,30 @@ export function CommissionCard() {
             <p className='mt-xs text-xs text-primary-500/50'>
               {t('toSettle', { amount: formatMoney(locale, data.commissionDue) })}
             </p>
+          )}
+
+          {/*
+            Under "All locations" the total above spans several shops. Naming
+            each one keeps the sum from hiding which location carries the
+            balance. One location needs no breakdown - it would repeat the line.
+          */}
+          {data.dueByEstablishment.length > 1 && (
+            <dl
+              aria-label={t('toSettleByLocation')}
+              className='mt-xs space-y-xxs text-xs text-primary-500/50'
+            >
+              {data.dueByEstablishment.map(row => (
+                <div
+                  key={row.establishmentId}
+                  className='flex items-baseline justify-between gap-sm'
+                >
+                  <dt className='truncate'>{row.name}</dt>
+                  <dd className='font-mono tabular-nums shrink-0'>
+                    {formatMoney(locale, row.amount)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           )}
         </>
       ) : (

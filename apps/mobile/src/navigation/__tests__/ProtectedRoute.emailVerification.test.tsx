@@ -69,7 +69,7 @@ const renderRoute = () =>
     </ProtectedRoute>,
   );
 
-const WALL = 'Email Verification Required';
+const WALL = 'Email verification required';
 
 describe('ProtectedRoute — email verification gate', () => {
   beforeEach(() => {

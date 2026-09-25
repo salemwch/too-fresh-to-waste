@@ -311,6 +311,21 @@
       "w:96": 2
     }
   },
+  "apps/web/src/app/[locale]/(admin)/admin/drivers/cash/page.tsx": {
+    "A": {
+      "gap:4": 5,
+      "space-y:24": 1,
+      "p:16": 2,
+      "space-y:8": 3,
+      "gap:8": 3,
+      "p:8": 2,
+      "space-y:4": 4
+    },
+    "C": {
+      "min-h:44": 3,
+      "min-w:0": 1
+    }
+  },
   "apps/web/src/app/[locale]/(admin)/admin/drivers/driver-detail-sheet.tsx": {
     "A": {
       "p:16": 3,
@@ -372,6 +387,8 @@
       "gap:6": 1,
       "py:0": 1,
       "space-y:32": 1,
+      "gap:4": 1,
+      "px:16": 2,
       "p:24": 1,
       "mb:16": 1,
       "space-y:16": 1,
@@ -381,7 +398,6 @@
       "py:48": 1,
       "gap:8": 2,
       "space-y:24": 1,
-      "px:16": 1,
       "py:8": 1,
       "p:0": 1
     },
@@ -393,6 +409,7 @@
     },
     "C": {
       "min-w:0": 3,
+      "min-h:44": 1,
       "h:32": 1
     }
   },
@@ -2574,21 +2591,27 @@
   "apps/web/src/app/[locale]/(merchant)/merchant/gifts/page.tsx": {
     "A": {
       "gap:24": 2,
-      "p:64": 1,
+      "px:24": 1,
+      "py:48": 1,
       "mt:24": 1,
+      "mt:4": 2,
       "mt:8": 1,
-      "p:24": 1,
-      "gap:8": 2,
-      "px:8": 1,
-      "py:2": 1,
-      "mt:4": 1
+      "p:24": 2,
+      "mt:16": 2,
+      "gap:16": 2,
+      "gap:8": 3,
+      "mt:2": 1,
+      "px:8": 2,
+      "py:2": 2,
+      "gap:4": 1
     },
     "B": {
       "size:56": 1,
+      "size:32": 1,
       "size:40": 1
     },
     "C": {
-      "min-w:0": 1
+      "min-w:0": 2
     }
   },
   "apps/web/src/app/[locale]/(merchant)/merchant/leaderboard/page.tsx": {
@@ -3671,14 +3694,15 @@
   "apps/web/src/components/dashboard/merchant/commission-card.tsx": {
     "A": {
       "p:24": 2,
-      "gap:8": 4,
+      "gap:8": 5,
       "mb:16": 1,
       "mt:2": 1,
       "space-y:8": 1,
       "pt:8": 1,
       "mt:16": 1,
       "gap:4": 1,
-      "mt:4": 1
+      "mt:4": 2,
+      "space-y:2": 1
     },
     "B": {
       "square:40": 1
@@ -4357,6 +4381,29 @@
       "left:0": 1
     }
   },
+  "apps/web/src/components/dashboard/merchant/today-sales-card.tsx": {
+    "A": {
+      "p:24": 2,
+      "gap:8": 7,
+      "mb:16": 3,
+      "mt:2": 3,
+      "gap:2": 1,
+      "p:8": 2,
+      "gap:4": 2,
+      "space-y:8": 1,
+      "pt:8": 1,
+      "mt:16": 1
+    },
+    "B": {
+      "square:40": 1
+    },
+    "C": {
+      "min-w:0": 2,
+      "h:40": 1,
+      "w:40": 1,
+      "min-h:44": 1
+    }
+  },
   "apps/web/src/components/dashboard/merchant/trend-chart.tsx": {
     "A": {
       "py:16": 1,
@@ -4389,24 +4436,13 @@
   },
   "apps/web/src/components/dashboard/merchant/wallet-balance-card.tsx": {
     "A": {
-      "p:24": 2,
+      "p:24": 3,
       "mb:16": 1,
       "gap:24": 1,
       "gap:4": 2,
-      "mb:6": 2,
-      "gap:8": 2,
-      "mt:8": 2
-    },
-    "B": {
-      "square:160": 1
-    },
-    "C": {
-      "h:160": 1,
-      "w:160": 1
-    },
-    "D": {
-      "top:48": 1,
-      "right:48": 1
+      "mt:4": 4,
+      "mt:16": 1,
+      "pt:8": 1
     }
   },
   "apps/web/src/components/dashboard/mobile-nav.tsx": {
@@ -5201,6 +5237,16 @@
     },
     "D": {
       "start:8": 2
+    }
+  },
+  "apps/web/src/components/ui/info-disclosure.tsx": {
+    "A": {
+      "gap:4": 1,
+      "m:14": 1,
+      "mt:4": 1
+    },
+    "B": {
+      "size:44": 1
     }
   },
   "apps/web/src/components/ui/input.tsx": {

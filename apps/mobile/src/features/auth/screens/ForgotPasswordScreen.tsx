@@ -4,14 +4,17 @@
  */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
 import { Button, Input, Text, Card, Icon } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
-import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/utils/validation/schemas';
+import {
+  createForgotPasswordSchema,
+  type ForgotPasswordFormData,
+} from '@/utils/validation/schemas';
 
 import { authService } from '../services/authService';
 
@@ -27,6 +30,7 @@ interface ForgotPasswordScreenProps {
 export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const forgotPasswordSchema = useMemo(() => createForgotPasswordSchema(t), [t]);
 
   // React Hook Form setup with Yup validation
   const {

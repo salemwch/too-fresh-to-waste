@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 
 import { Text, Card } from '@/design-system/components/atoms';
@@ -28,6 +29,7 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({
   navigation: _navigation,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {
@@ -51,7 +53,7 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({
       >
         <Card style={styles.card}>
           <Text variant='headline' size='lg' weight='bold' style={styles.title}>
-            Order History
+            {t('orders.historyTitle')}
           </Text>
 
           <View style={styles.emptyState}>
@@ -59,7 +61,7 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({
               📜
             </Text>
             <Text variant='body' size='md' align='center' color='secondary'>
-              Your order history will appear here
+              {t('orders.historyEmpty')}
             </Text>
             <Text
               variant='body'
@@ -68,7 +70,7 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({
               color='secondary'
               style={styles.emptyStateNote}
             >
-              Once you place an order, it will show up in your history.
+              {t('orders.historyEmptyNote')}
             </Text>
           </View>
         </Card>

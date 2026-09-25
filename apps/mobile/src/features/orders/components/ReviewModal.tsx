@@ -4,11 +4,16 @@ type IconName = React.ComponentProps<typeof IoniconsIcon>['name'];
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, Modal, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Modal, Pressable, ScrollView } from 'react-native';
 
 import { Text, Button } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { reviewsService } from '@/features/offers/services/reviewsService';
+import {
+  HIGHLIGHT_LABEL_KEYS,
+  buildReviewComment,
+  type ReviewHighlightKey,
+} from '@/features/offers/utils/reviewComment';
 import { offlineWriteQueue } from '@/services/OfflineWriteQueue';
 import { offlineManager } from '@/utils/offlineManager';
 import { showSuccessToast } from '@/utils/toast';
@@ -25,36 +30,20 @@ const { base: sp } = spacingTokens;
 // ─── Highlight options ────────────────────────────────────────────────────────
 
 interface HighlightOption {
+  /** Sent as the review tag. */
   key: string;
-  label: string;
   icon: IconName;
-  detailedKey: string;
+  detailedKey: ReviewHighlightKey;
 }
 
 const HIGHLIGHT_OPTIONS: HighlightOption[] = [
-  { key: 'food', label: 'Delicious food', icon: 'restaurant-outline', detailedKey: 'foodQuality' },
-  { key: 'value', label: 'Great value', icon: 'cash-outline', detailedKey: 'valueForMoney' },
-  { key: 'staff', label: 'Friendly staff', icon: 'happy-outline', detailedKey: 'serviceQuality' },
-  { key: 'packaged', label: 'Well packaged', icon: 'cube-outline', detailedKey: 'packaging' },
-  { key: 'pickup', label: 'Quick pickup', icon: 'flash-outline', detailedKey: 'pickupExperience' },
-  { key: 'eco', label: 'Eco-friendly', icon: 'leaf-outline', detailedKey: 'sustainability' },
+  { key: 'food', icon: 'restaurant-outline', detailedKey: 'foodQuality' },
+  { key: 'value', icon: 'cash-outline', detailedKey: 'valueForMoney' },
+  { key: 'staff', icon: 'happy-outline', detailedKey: 'serviceQuality' },
+  { key: 'packaged', icon: 'cube-outline', detailedKey: 'packaging' },
+  { key: 'pickup', icon: 'flash-outline', detailedKey: 'pickupExperience' },
+  { key: 'eco', icon: 'leaf-outline', detailedKey: 'sustainability' },
 ];
-
-// ─── Comment generation ───────────────────────────────────────────────────────
-
-function buildComment(rating: number, selected: HighlightOption[]): string {
-  if (selected.length === 0) {
-    if (rating >= 4) return 'Great experience! Really enjoyed this surprise bag.';
-    if (rating === 3) return 'Decent experience. The bag was okay overall.';
-    return 'Disappointing experience. The bag did not meet my expectations.';
-  }
-  const labels = selected.map(h => h.label);
-  const joined =
-    labels.length === 1
-      ? labels[0]
-      : labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1];
-  return `${joined}! Really enjoyed this surprise bag.`;
-}
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -102,11 +91,15 @@ export const ReviewModal: React.FC<Props> = ({
       ...(offerId ? { offerId } : {}),
       overallRating: rating,
       ...(selected.length > 0 ? { detailedRatings } : {}),
-      comment: buildComment(rating, selected),
+      comment: buildReviewComment(
+        rating,
+        selected.map(h => h.detailedKey),
+        t,
+      ),
       tags: selected.map(h => h.key),
       isRecommended: rating >= 4,
     };
-  }, [selected, rating, establishmentId, orderId, offerId]);
+  }, [selected, rating, establishmentId, orderId, offerId, t]);
 
   const { mutate: submitReview, isPending } = useMutation({
     mutationFn: () => reviewsService.createReview(buildRequest()),
@@ -115,11 +108,11 @@ export const ReviewModal: React.FC<Props> = ({
       void queryClient.invalidateQueries({
         queryKey: ['establishment-review-summary', establishmentId],
       });
-      showSuccessToast('Thank you for your review!');
+      showSuccessToast(t('reviews.thankYou'));
       onSuccess();
     },
     onError: () => {
-      setSubmitError('Could not submit review. Please try again.');
+      setSubmitError(t('reviews.submitFailed'));
     },
   });
 
@@ -143,13 +136,13 @@ export const ReviewModal: React.FC<Props> = ({
         type: 'REVIEW_SUBMIT',
         payload: buildRequest(),
       });
-      showSuccessToast('Review saved — we will send it when you are back online.');
+      showSuccessToast(t('reviews.savedOffline'));
       onSuccess();
       return;
     }
 
     submitReview();
-  }, [buildRequest, orderId, submitReview, onSuccess]);
+  }, [buildRequest, orderId, submitReview, onSuccess, t]);
 
   const primaryColor = theme.colors.primary;
   const canSubmit = rating > 0 && !isPending;
@@ -161,7 +154,7 @@ export const ReviewModal: React.FC<Props> = ({
           {/* Header */}
           <View style={styles.header}>
             <Text weight='bold' size='lg'>
-              Rate your bag
+              {t('orders.rateBag')}
             </Text>
             {storeName ? (
               <Text size='sm' color='secondary'>
@@ -182,7 +175,7 @@ export const ReviewModal: React.FC<Props> = ({
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Star rating */}
             <Text size='sm' color='secondary' style={styles.sectionLabel}>
-              How was your experience?
+              {t('reviews.rateYourExperience')}
             </Text>
             <View style={styles.starsRow}>
               {[1, 2, 3, 4, 5].map(star => (
@@ -209,7 +202,7 @@ export const ReviewModal: React.FC<Props> = ({
             {rating > 0 && (
               <>
                 <Text size='sm' color='secondary' style={styles.sectionLabel}>
-                  What did you like? (optional)
+                  {t('reviews.whatDidYouLike')}
                 </Text>
                 <View style={styles.chipsGrid}>
                   {HIGHLIGHT_OPTIONS.map(option => {
@@ -240,7 +233,7 @@ export const ReviewModal: React.FC<Props> = ({
                           weight={isActive ? 'semibold' : 'regular'}
                           style={{ color: isActive ? primaryColor : theme.colors.onSurface }}
                         >
-                          {option.label}
+                          {t(HIGHLIGHT_LABEL_KEYS[option.detailedKey])}
                         </Text>
                       </Pressable>
                     );
@@ -277,10 +270,11 @@ export const ReviewModal: React.FC<Props> = ({
             variant='primary'
             size='lg'
             disabled={!canSubmit}
+            loading={isPending}
             onPress={handleSubmit}
             style={styles.submitBtn}
           >
-            {isPending ? <ActivityIndicator size='small' color='#fff' /> : 'Submit Review'}
+            {t('reviews.submit')}
           </Button>
         </View>
       </View>

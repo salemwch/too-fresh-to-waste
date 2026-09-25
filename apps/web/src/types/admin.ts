@@ -1422,6 +1422,76 @@ export interface DriverStats {
   autoReleaseCount: number;
 }
 
+// ─── Driver cash (commission-settlement model) ──────────────────────────────
+
+/**
+ * Flags raised by GET /admin/driver-cash/reconciliation. Mirrors the list built
+ * in the backend's `DriverCashService.reconciliation`. Every flag is shown to
+ * the admin; none is auto-resolved.
+ */
+export type DriverCashFlag =
+  | 'SHORT_COLLECTION'
+  | 'UNCONFIRMED_COLLECTION'
+  | 'STALE_COLLECTION'
+  | 'STALE_UNDELIVERED'
+  | 'FAILED_DELIVERY'
+  | 'UNALLOCATED_HANDOVER'
+  | 'EXPECTED_COLLECTED_MISMATCH';
+
+export interface DriverPendingRecovery {
+  orderId: string;
+  paidToMerchant: number;
+  paymentMethod: 'pay_on_delivery' | 'online';
+  since: string;
+}
+
+export interface DriverCashRow {
+  driverId: string;
+  orders: number;
+  expectedCash: number;
+  collectedCash: number;
+  handedOverCash: number;
+  /** The driver holds this much TFTW money. */
+  outstandingOwedByDriver: number;
+  /** TFTW owes the driver this (float replenishment + share on online deliveries). */
+  outstandingOwedToDriver: number;
+  paidToMerchant: number;
+  foodMoneyCollected: number;
+  driverDeliveryEarnings: number;
+  tftwDeliveryRevenue: number;
+  tftwCommissionSettlement: number;
+  lossAmount: number;
+  shortfall: number;
+  float: number;
+  /** Float + owed by the driver - owed to the driver. */
+  cashDriverShouldHold: number;
+  unallocatedHandovers: number;
+  pendingRecoveries: DriverPendingRecovery[];
+  flags: DriverCashFlag[];
+}
+
+export interface DriverCashReconciliation {
+  window: { from: string | null; to: string | null };
+  totals: {
+    expectedCash: number;
+    collectedCash: number;
+    handedOverCash: number;
+    outstandingOwedByDriver: number;
+    outstandingOwedToDriver: number;
+    driverDeliveryEarnings: number;
+    tftwDeliveryRevenue: number;
+    tftwCommissionSettlement: number;
+    lossAmount: number;
+  };
+  drivers: DriverCashRow[];
+}
+
+export interface DriverCashQuery {
+  from?: string;
+  to?: string;
+  driverId?: string;
+}
+
 export interface DriverRow {
   _id: string;
   firstName: string;

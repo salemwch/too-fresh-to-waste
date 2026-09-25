@@ -5,6 +5,7 @@
  */
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { readingGradient } from '@/utils/rtl';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -41,6 +42,7 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
   currentTier,
   votingLive,
 }) => {
+  const { t, i18n } = useTranslation();
   const { user } = useCurrentUser();
   const userImageUri = user?.profileImage ?? user?.avatar ?? undefined;
 
@@ -173,7 +175,7 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
           color={INVERSE_TEXT}
         />
         <Text variant='body' size='sm' style={styles.pointsSubtitle}>
-          Available Points
+          {t('loyalty.availablePoints')}
         </Text>
       </View>
 
@@ -186,8 +188,11 @@ const PremiumPointsCardComponent: React.FC<PremiumPointsCardProps> = ({
         </View>
         <Text variant='body' size='xs' style={styles.progressCaption}>
           {pointsToNext > 0
-            ? `${pointsToNext.toLocaleString()} pts to next tier`
-            : 'Maximum tier reached'}
+            ? t('loyalty.pointsToNextTier', {
+                count: pointsToNext,
+                formatted: pointsToNext.toLocaleString(i18n.language),
+              })
+            : t('loyalty.maxTierReached')}
         </Text>
       </View>
     </LinearGradient>

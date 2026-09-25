@@ -5,6 +5,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { Text } from '@/design-system/components/atoms';
@@ -45,6 +46,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRoles,
   fallback,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const [isSessionLogoutPending, setIsSessionLogoutPending] = useState(false);
@@ -155,11 +157,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.content}>
           <Text variant='headline' size='lg' color='error' align='center' style={styles.title}>
-            Access Denied
+            {t('auth.accessDeniedTitle')}
           </Text>
           <Text variant='body' size='md' color='secondary' align='center' style={styles.message}>
-            You don&apos;t have permission to access this content.
-            {requiredRoles && `\n\nRequired role: ${requiredRoles.join(', ')}`}
+            {t('auth.accessDeniedBody')}
           </Text>
         </View>
       </View>
@@ -185,11 +186,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.content}>
           <Text variant='headline' size='lg' color='warning' align='center' style={styles.title}>
-            Email Verification Required
+            {t('auth.verificationRequiredTitle')}
           </Text>
           <Text variant='body' size='md' color='secondary' align='center' style={styles.message}>
-            Please verify your email address to access this content. Check your inbox for the
-            verification link.
+            {t('auth.verificationRequiredBody')}
           </Text>
         </View>
       </View>

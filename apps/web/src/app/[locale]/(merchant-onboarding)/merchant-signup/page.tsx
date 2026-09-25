@@ -41,6 +41,7 @@ import Image from 'next/image';
 import { useAuth } from '@/hooks/use-auth';
 import { BusinessSearchAutocomplete } from '@/components/merchant-signup/business-search-autocomplete';
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator';
+import { meetsPasswordPolicy } from '@/lib/password-policy';
 import type { PlaceDetails } from '@/types/geolocation';
 import type { RegisterRequest } from '@foodwaste/shared';
 import {
@@ -48,6 +49,7 @@ import {
   PASSWORD_MAX_LENGTH,
   UserRole,
   EstablishmentType,
+  readApiError,
 } from '@foodwaste/shared';
 import { authService } from '@/services/auth.service';
 import './merchant-signup.css';
@@ -242,9 +244,9 @@ function MerchantSignupInner() {
   const isStep1Valid = !!formData.googlePlaceId;
   const isStep2Valid = !!formData.establishmentType;
   const isStep3Valid = isEmailValid;
-  const isStep4Valid =
-    formData.password.length >= PASSWORD_MIN_LENGTH &&
-    formData.password.length <= PASSWORD_MAX_LENGTH;
+  // The full server rule (length and character classes), not length alone:
+  // a 12-letter password passed here and was rejected on submit.
+  const isStep4Valid = meetsPasswordPolicy(formData.password);
 
   // ── Navigation ──
   const handleNext = useCallback(() => {
@@ -285,40 +287,19 @@ function MerchantSignupInner() {
       await register(payload);
       setRegisteredEmail(payload.email);
     } catch (error: unknown) {
-      const httpStatus = (error as { response?: { status?: number } })?.response?.status;
-      const responseData = (error as { response?: { data?: { message?: unknown } } })?.response
-        ?.data?.message;
-      let errorMessage = t('errorGeneric');
-      if (typeof responseData === 'string') {
-        errorMessage = responseData;
-      } else if (responseData && typeof responseData === 'object' && 'message' in responseData) {
-        // Backend validation errors: { message: [...], error: "Bad Request", statusCode: 400 }
-        const nested = (responseData as { message?: unknown }).message;
-        if (typeof nested === 'string') {
-          errorMessage = nested;
-        } else if (Array.isArray(nested)) {
-          // Extract first constraint message from validation errors
-          const first = nested[0];
-          if (typeof first === 'string') {
-            errorMessage = first;
-          } else if (first && typeof first === 'object' && 'constraints' in first) {
-            const constraints = (first as { constraints?: Record<string, string> }).constraints;
-            errorMessage = constraints
-              ? (Object.values(constraints)[0] ?? errorMessage)
-              : errorMessage;
-          }
-        }
-      }
-      // 409 = conflict — distinguish email vs phone so the right field gets the error
-      if (httpStatus === 409) {
-        if (errorMessage.toLowerCase().includes('phone')) {
-          setPhoneError('This phone number is already registered. Please use a different number.');
-        } else {
-          setEmailError(t('emailAlreadyInUse'));
-          setStep(3);
-        }
+      // The backend answers in the page's language with a stable code. Route
+      // by the code; it used to search the English text for "phone", which
+      // never matched in French or Arabic.
+      const info = readApiError(
+        (error as { response?: { data?: unknown } } | null)?.response?.data,
+      );
+      if (info.code === 'PHONE_ALREADY_REGISTERED') {
+        setPhoneError(info.message ?? t('errorGeneric'));
+      } else if (info.code === 'EMAIL_ALREADY_REGISTERED' || info.code === 'USER_ALREADY_EXISTS') {
+        setEmailError(t('emailAlreadyInUse'));
+        setStep(3);
       } else {
-        setSubmitError(errorMessage);
+        setSubmitError(info.message ?? t('errorGeneric'));
       }
     } finally {
       setIsSubmitting(false);
@@ -686,7 +667,7 @@ function MerchantSignupInner() {
                 <Input
                   id='password'
                   type={showPassword ? 'text' : 'password'}
-                  placeholder={t('passwordPlaceholder')}
+                  placeholder={t('passwordPlaceholder', { min: PASSWORD_MIN_LENGTH })}
                   className='h-11 rounded-xl border-input bg-secondary/50 ps-3xl pe-6xl text-sm sm:h-12'
                   value={formData.password}
                   onChange={e => updateField('password', e.target.value)}

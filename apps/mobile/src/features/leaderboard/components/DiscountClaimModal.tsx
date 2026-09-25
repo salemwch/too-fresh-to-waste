@@ -170,13 +170,13 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
   // Status label + colors for claimed voucher
   const statusConfig = useMemo(() => {
     if (claimData?.status === 'verified') {
-      return { label: 'Verified', bg: SUCCESS_BG, text: SUCCESS_TEXT };
+      return { label: t('leaderboard.statusVerified'), bg: SUCCESS_BG, text: SUCCESS_TEXT };
     }
     if (claimData?.status === 'delivered') {
-      return { label: 'Delivered', bg: DELIVERED_BG, text: DELIVERED_TEXT };
+      return { label: t('leaderboard.statusDelivered'), bg: DELIVERED_BG, text: DELIVERED_TEXT };
     }
-    return { label: 'Pending', bg: AMBER_BG, text: AMBER_TEXT };
-  }, [claimData?.status]);
+    return { label: t('leaderboard.statusPending'), bg: AMBER_BG, text: AMBER_TEXT };
+  }, [claimData?.status, t]);
 
   const handleShowMore = useCallback(() => setVisibleCount(c => c + PAGE_SIZE), []);
 
@@ -204,7 +204,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
 
           {/* Title */}
           <Text style={styles.heading}>
-            {hasClaimed ? 'Your Discount Voucher' : 'Choose a Business'}
+            {hasClaimed ? t('leaderboard.voucherTitle') : t('leaderboard.chooseBusiness')}
           </Text>
 
           {/* Search bar — only when selecting */}
@@ -248,9 +248,9 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                 <View style={styles.voucherIconCircle}>
                   <Icon name='gift-outline' family='Ionicons' size={28} color={PRIMARY} />
                 </View>
-                <Text style={styles.voucherDiscount}>10% Discount</Text>
+                <Text style={styles.voucherDiscount}>{t('leaderboard.prizeDiscount')}</Text>
                 <Text style={styles.voucherEstName}>
-                  {claimData?.establishmentName ?? 'Partner Business'}
+                  {claimData?.establishmentName ?? t('leaderboard.partnerBusiness')}
                 </Text>
 
                 {/* Voucher code */}
@@ -267,9 +267,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                     {statusConfig.label}
                   </Text>
                 </View>
-                <Text style={styles.voucherNote}>
-                  Show this voucher code at the establishment to redeem your discount.
-                </Text>
+                <Text style={styles.voucherNote}>{t('leaderboard.voucherNote')}</Text>
               </View>
             ) : isLoading ? (
               /* ── Loading skeletons ── */
@@ -290,13 +288,13 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                 <Icon name='storefront-outline' family='Ionicons' size={48} color={TEXT_TERTIARY} />
                 <Text style={styles.emptyHeading}>
                   {debouncedSearch.length > 0
-                    ? 'No results found'
-                    : 'No partner businesses available'}
+                    ? t('leaderboard.noResults')
+                    : t('leaderboard.noPartners')}
                 </Text>
                 <Text style={styles.emptySubtext}>
                   {debouncedSearch.length > 0
-                    ? 'Try a different search term.'
-                    : 'Please check back later for eligible establishments.'}
+                    ? t('leaderboard.tryDifferentSearch')
+                    : t('leaderboard.checkBackLater')}
                 </Text>
               </View>
             ) : (
@@ -304,7 +302,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
               <>
                 {/* Result count */}
                 <Text style={styles.resultCount}>
-                  {total} {total === 1 ? 'business' : 'businesses'} found
+                  {t('leaderboard.businessesFound', { count: total })}
                 </Text>
 
                 {establishments.map(est => {
@@ -322,7 +320,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
                       style={[styles.estRow, isSelected && styles.estRowSelected]}
                       onPress={() => setSelectedId(est._id)}
                       accessibilityRole='button'
-                      accessibilityLabel={`Select ${est.name}`}
+                      accessibilityLabel={t('leaderboard.a11ySelectBusiness', { name: est.name })}
                       accessibilityHint={t('common.a11yOpensDetailsHint')}
                       accessibilityState={{ selected: isSelected }}
                     >
@@ -426,8 +424,8 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
               accessibilityRole='button'
               accessibilityLabel={
                 selectedName != null
-                  ? `Claim 10% Discount at ${selectedName}`
-                  : 'Select a business first'
+                  ? t('leaderboard.claimAt', { name: selectedName })
+                  : t('leaderboard.selectBusinessFirst')
               }
               accessibilityHint={t('leaderboard.a11yClaimDiscountHint')}
             >
@@ -436,8 +434,8 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
               ) : (
                 <Text style={styles.modalBtnTxt} numberOfLines={1}>
                   {selectedName != null
-                    ? `Claim 10% Discount at ${selectedName}`
-                    : 'Select a Business'}
+                    ? t('leaderboard.claimAt', { name: selectedName })
+                    : t('leaderboard.selectBusiness')}
                 </Text>
               )}
             </Pressable>

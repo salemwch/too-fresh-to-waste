@@ -10,7 +10,15 @@
  *   else     → locale date
  */
 
-import { formatRelativeTime } from '../RecentActivityList';
+import i18next from 'i18next';
+
+import ar from '../../../../i18n/locales/ar.json';
+import fr from '../../../../i18n/locales/fr.json';
+import { formatRelativeTime as format } from '../RecentActivityList';
+
+// The jest setup initialises i18next with the English bundle.
+const t = (key: string, options: Record<string, string | number>) => i18next.t(key, options);
+const formatRelativeTime = (date: string) => format(date, t, 'en-US');
 
 const MINUTE = 60_000;
 const HOUR = 3_600_000;
@@ -105,5 +113,37 @@ describe('formatRelativeTime', () => {
 
   it('returns "Just now" for a date slightly in the future', () => {
     expect(formatRelativeTime(ago(-30_000))).toBe('Just now');
+  });
+});
+
+describe('formatRelativeTime in other locales', () => {
+  beforeAll(() => {
+    i18next.addResourceBundle('fr', 'translation', fr, true, true);
+    i18next.addResourceBundle('ar', 'translation', ar, true, true);
+  });
+
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(NOW);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const tIn = (lng: string) => (key: string, options: Record<string, string | number>) =>
+    i18next.t(key, { ...options, lng });
+
+  it('uses French wording', () => {
+    expect(format(ago(2 * HOUR), tIn('fr'), 'fr')).toBe('il y a 2 h');
+  });
+
+  // Arabic has a dedicated dual; "2 hours" is one word, not a number + noun.
+  it.each([
+    [1 * HOUR, 'منذ ساعة'],
+    [2 * HOUR, 'منذ ساعتين'],
+    [3 * HOUR, 'منذ 3 ساعات'],
+    [11 * HOUR, 'منذ 11 ساعة'],
+  ])('uses the Arabic plural form for %d ms', (ms, expected) => {
+    expect(format(ago(ms), tIn('ar'), 'ar')).toBe(expected);
   });
 });

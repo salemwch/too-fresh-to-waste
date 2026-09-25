@@ -251,7 +251,7 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
           <Animated.Text
             style={[styles.loadingLabel, { color: theme.colors.onPrimary }, loadingLabelStyle]}
           >
-            Logging in...
+            {t('auth.loggingInShort')}
           </Animated.Text>
 
           <View style={styles.iconWrapper}>

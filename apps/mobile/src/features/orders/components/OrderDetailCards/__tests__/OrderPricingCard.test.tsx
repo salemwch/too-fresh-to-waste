@@ -74,6 +74,31 @@ describe('OrderPricingCard', () => {
 
       expect(output).toContain('15.00');
     });
+
+    // Same rule as the checkout receipt: with nothing taken off, an "original
+    // price" row would only repeat the subtotal.
+    it('is omitted when nothing was discounted', () => {
+      const texts = textsOf(
+        render(
+          <OrderPricingCard order={order({ subtotal: 15, discountAmount: 0, total: 15 })} />,
+        ).toJSON(),
+      );
+
+      expect(texts.filter(s => s.startsWith('15.00')).length).toBe(2); // subtotal + total only
+      expect(texts.some(s => /original/i.test(s))).toBe(false);
+    });
+
+    it('reads top to bottom as original, discount, subtotal, total', () => {
+      const output = render$(order({ subtotal: 8, discountAmount: 12, total: 8 }));
+
+      const original = output.indexOf('20.00');
+      const discount = output.indexOf('-12.00');
+      const subtotal = output.indexOf('8.00', discount);
+
+      expect(original).toBeGreaterThanOrEqual(0);
+      expect(discount).toBeGreaterThan(original);
+      expect(subtotal).toBeGreaterThan(discount);
+    });
   });
 
   describe('the discount line', () => {

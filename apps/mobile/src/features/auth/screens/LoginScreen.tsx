@@ -28,13 +28,14 @@ import {
 } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { getErrorMessage, isAppError } from '@/utils/errorHandler';
+import { getErrorMessage } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
 import { showSuccessToast } from '@/utils/toast';
-import { loginSchema, type LoginFormData } from '@/utils/validation/schemas';
+import { createLoginSchema, type LoginFormData } from '@/utils/validation/schemas';
 
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { authService } from '../services/authService';
+import { loginFailureOutcome } from '../utils/loginFailure';
 import { loginAsync, clearError, selectAuthIsLoading, selectAuthError } from '../store/authSlice';
 import { resolveAuthError } from '../utils/resolveAuthError';
 
@@ -120,6 +121,7 @@ function parseBackendValidationError(error: unknown): Record<string, string> | n
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const loginSchema = useMemo(() => createLoginSchema(t), [t]);
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectAuthIsLoading);
@@ -161,6 +163,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   // Email verification state
   const [isEmailUnverified, setIsEmailUnverified] = useState(false);
+  /** The last failed sign-in was EMAIL_NOT_VERIFIED - decided by code, never by text. */
+  const [offerResend, setOfferResend] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
@@ -198,21 +202,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   /**
    * Detect if login error is due to unverified email
    */
+  // By code: the message is translated, so matching "verify your email" only
+  // ever worked in English.
   useEffect(() => {
-    if (typeof error === 'string' && error.toLowerCase().includes('verify your email')) {
+    if (offerResend) {
       setIsEmailUnverified(true);
     } else {
       setIsEmailUnverified(false);
       setResendSuccess(false);
       setResendError(null);
     }
-  }, [error]);
+  }, [offerResend]);
 
   /**
    * Handle form submission (React Hook Form automatically validates)
    */
   const onSubmit = useCallback(
     async (formData: LoginFormData) => {
+      setOfferResend(false);
       try {
         const result = await dispatch(
           loginAsync({
@@ -243,38 +250,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         );
       } catch (err: unknown) {
         Logger.error('Login error', undefined, err instanceof Error ? err : undefined);
-        const errorMessage = getErrorMessage(err, 'Invalid value');
-        const appError = isAppError(err) ? err : undefined;
+        const outcome = loginFailureOutcome(err);
+        setOfferResend(outcome.kind === 'banner' && outcome.offerResend);
 
-        if (appError?.isAccountLocked === true && appError.blockedUntil != null) {
-          setBlockedUntil(appError.blockedUntil);
+        if (outcome.kind === 'locked') {
+          setBlockedUntil(outcome.blockedUntil);
           setShowLockedModal(true);
           dispatch(clearError());
           return;
         }
 
-        if (appError?.field === 'email' || appError?.field === 'password') {
-          setError(appError.field, { type: 'manual', message: errorMessage });
+        if (outcome.kind === 'field') {
+          setError(outcome.field, { type: 'manual', message: outcome.message });
           dispatch(clearError());
           return;
         }
 
-        // Field-level validation errors from class-validator (e.g. invalid email format)
-        const payload = err as Record<string, unknown>;
-        const validationErrors = payload['validationErrors'] as Record<string, string> | undefined;
-        if (validationErrors !== undefined && Object.keys(validationErrors).length > 0) {
-          Object.entries(validationErrors)
-            .filter(([field]) => field === 'email' || field === 'password')
-            .forEach(([field, rawMsg]) => {
-              const friendlyMsg =
-                field === 'email'
-                  ? "Please check your email address — it doesn't look valid"
-                  : 'Please check your password';
-              setError(field as 'email' | 'password', {
-                type: 'manual',
-                message: rawMsg.toLowerCase().includes('email') ? friendlyMsg : rawMsg,
-              });
-            });
+        // Field-level validation errors, already translated by the backend
+        // (Accept-Language).
+        if (outcome.kind === 'fields') {
+          for (const { field, message } of outcome.errors) {
+            setError(field, { type: 'manual', message });
+          }
           dispatch(clearError());
           return;
         }

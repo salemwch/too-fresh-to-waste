@@ -10,6 +10,7 @@
  */
 
 import axios from 'axios';
+import { readApiError } from '@foodwaste/shared';
 
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
 
@@ -30,7 +31,10 @@ const handleApiError = (error: unknown): Error => {
       throw error;
     }
     const responseData = error.response?.data;
-    const errorCode = responseData?.error;
+    // The backend's stable code. This read `responseData.error`, which the
+    // exception filter only fills in development (with the class name), so
+    // SNAPSHOT_NOT_READY never matched in production.
+    const errorCode = readApiError(responseData).code;
     const message =
       typeof responseData?.message === 'string' && responseData.message.trim() !== ''
         ? responseData.message

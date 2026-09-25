@@ -5,7 +5,7 @@
 
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Linking, Share } from 'react-native';
 
 import { Text, Button, Card } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
@@ -15,6 +15,7 @@ const BORDER = colorTokens.base.neutral[200];
 import { deleteAccountAsync } from '@/features/auth/store/authSlice';
 import { PrivacyConsentModal } from '@/features/leaderboard/components/PrivacyConsentModal';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
+import { privacyService } from '@/features/profile/services/privacyService';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { showAlert } from '@/utils/alert';
 
@@ -29,27 +30,61 @@ type PrivacyScreenNavigationProp = NativeStackNavigationProp<MainStackParamList,
 const PRIMARY = colorTokens.base.primary[500];
 const DANGER_BORDER = '#ffebee';
 
+/** Safely under Android's ~1 MB Binder limit for the share intent, UTF-16 included. */
+const MAX_SHARE_CHARS = 200_000;
+
 interface PrivacyScreenProps {
   navigation: PrivacyScreenNavigationProp;
 }
 
 export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navigation }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
+  // The website has the same pages in every app language; open the reader's.
+  const siteLocale = ['en', 'fr', 'ar'].includes(i18n.language) ? i18n.language : 'en';
+  const [isExporting, setIsExporting] = useState(false);
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(state => state.auth.isLoading);
 
   const { account } = useLoyalty();
   const [consentModalVisible, setConsentModalVisible] = useState(false);
 
+  /*
+   * "Download my data" was a button wired to `() => {}`: it did nothing. It
+   * now requests the export the backend already serves and opens the share
+   * sheet. Android's share intent is bounded by the Binder transaction limit
+   * (about 1 MB), so an export beyond a safe size is refused with a message
+   * instead of crashing the app with TransactionTooLargeException.
+   */
+  const handleExportData = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const data = await privacyService.exportMyData();
+      const message = JSON.stringify(data, null, 2);
+      if (message.length > MAX_SHARE_CHARS) {
+        showAlert(t('profile.exportFailedTitle'), t('profile.exportTooLargeBody'), undefined, {
+          type: 'error',
+        });
+        return;
+      }
+      await Share.share({ title: t('profile.myDataTitle'), message });
+    } catch {
+      showAlert(t('profile.exportFailedTitle'), t('profile.exportFailedBody'), undefined, {
+        type: 'error',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  }, [t]);
+
   const handleDeleteAccount = useCallback(() => {
     showAlert(
-      'Delete Account?',
-      'This action is permanent and cannot be undone. All your data will be removed.',
+      t('profile.deleteAccountTitle'),
+      t('profile.deleteAccountBody'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             dispatch(deleteAccountAsync()).catch(() => undefined);
@@ -58,14 +93,14 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
       ],
       { type: 'error' },
     );
-  }, [dispatch]);
+  }, [dispatch, t]);
 
   const consent = account?.leaderboardConsent;
   const consentLabel = !consent?.given
-    ? 'Not set'
+    ? t('profile.consentNotSet')
     : consent.showRealName
-      ? 'Showing real name & photo'
-      : 'Showing as Anonymous';
+      ? t('profile.consentRealName')
+      : t('profile.consentAnonymous');
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -83,7 +118,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
             <Pressable
               style={[styles.settingRow, { borderColor: BORDER }]}
               onPress={() => {
-                void Linking.openURL('https://toofreshtowaste.com/en/privacy-policy');
+                void Linking.openURL(`https://toofreshtowaste.com/${siteLocale}/privacy-policy`);
               }}
               accessibilityRole='link'
               accessibilityLabel={t('profile.a11yViewPrivacyPolicy')}
@@ -92,15 +127,17 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
               <View style={styles.settingLeft}>
                 <Text style={styles.settingIcon}>🔒</Text>
                 <Text variant='body' size='md' weight='medium' color='primary'>
-                  Privacy Policy
+                  {t('profile.privacyPolicy')}
                 </Text>
               </View>
-              <Text style={[styles.editLabel, { color: PRIMARY }]}>View</Text>
+              <Text style={[styles.editLabel, { color: PRIMARY }]}>{t('profile.view')}</Text>
             </Pressable>
             <Pressable
               style={[styles.settingRow, styles.settingRowTop, { borderColor: BORDER }]}
               onPress={() => {
-                void Linking.openURL('https://toofreshtowaste.com/en/terms-and-conditions');
+                void Linking.openURL(
+                  `https://toofreshtowaste.com/${siteLocale}/terms-and-conditions`,
+                );
               }}
               accessibilityRole='link'
               accessibilityLabel={t('profile.a11yViewTerms')}
@@ -109,17 +146,17 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
               <View style={styles.settingLeft}>
                 <Text style={styles.settingIcon}>📄</Text>
                 <Text variant='body' size='md' weight='medium' color='primary'>
-                  Terms & Conditions
+                  {t('profile.termsConditions')}
                 </Text>
               </View>
-              <Text style={[styles.editLabel, { color: PRIMARY }]}>View</Text>
+              <Text style={[styles.editLabel, { color: PRIMARY }]}>{t('profile.view')}</Text>
             </Pressable>
           </View>
 
           {/* ── Leaderboard Display ── */}
           <View style={styles.section}>
             <Text variant='title' size='md' weight='semibold' style={styles.sectionTitle}>
-              Leaderboard Display
+              {t('profile.leaderboardDisplay')}
             </Text>
             <Pressable
               style={[styles.settingRow, { borderColor: BORDER }]}
@@ -132,7 +169,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
                 <Text style={styles.settingIcon}>🏆</Text>
                 <View>
                   <Text variant='body' size='md' weight='medium' color='primary'>
-                    Community Leaderboard
+                    {t('profile.communityLeaderboard')}
                   </Text>
                   <Text variant='body' size='sm' color='secondary'>
                     {consentLabel}
@@ -146,16 +183,18 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
           {/* ── Danger Zone ── */}
           <Card style={styles.dangerZone}>
             <Text variant='title' size='md' weight='semibold' style={styles.dangerTitle}>
-              Danger Zone
+              {t('profile.dangerZone')}
             </Text>
             <Button
               variant='outline'
               size='md'
-              onPress={() => {}}
+              onPress={handleExportData}
+              loading={isExporting}
+              disabled={isExporting}
               style={[styles.button, { borderColor: theme.colors.error }]}
               textStyle={{ color: theme.colors.error }}
             >
-              Download My Data
+              {t('profile.downloadMyData')}
             </Button>
             <Button
               variant='outline'
@@ -165,7 +204,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ navigation: _navig
               style={[styles.button, { borderColor: theme.colors.error }]}
               textStyle={{ color: theme.colors.error }}
             >
-              Delete Account
+              {t('profile.deleteAccount')}
             </Button>
           </Card>
         </Card>
