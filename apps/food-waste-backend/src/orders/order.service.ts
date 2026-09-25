@@ -17,9 +17,9 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Queue } from 'bull';
-import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoose';
+import { Model, Types, ClientSession, FlattenMaps, PipelineStage, isValidObjectId } from 'mongoose';
 
-import { OrderCompletedEvent } from '../common/events';
+import { buildOrderCompletedEvent } from './utils/order-completed-event.util';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
 import { AppLoggerService } from '../common/services/logger.service';
 import { CacheService } from '../common/services/cache.service';
@@ -33,6 +33,23 @@ import {
   calculateFoodRevenueSplit,
   calculateOrderPricing,
 } from './utils/order-pricing.util';
+import {
+  ORDER_ACCRUED_EXPR,
+  ORDER_MERCHANT_AMOUNT_EXPR,
+  ORDER_SETTLED_EXPR,
+  SALES_BUCKET_EXPR,
+  SALES_CHANNEL_EXPR,
+  TODAY_SOLD_STATUSES,
+  TODAY_TO_COLLECT_STATUSES,
+  summariseTodaySales,
+  type TodaySalesGroupRow,
+  type TodaySalesSummary,
+} from './utils/today-sales.util';
+import { TimezoneUtil } from '../common/utils/timezone.util';
+import {
+  assertPaymentMatchesFulfilment,
+  resolvePaymentControl,
+} from './utils/payment-control.util';
 import { ORDER_LIST_FIELDS, ORDER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import {
@@ -69,6 +86,7 @@ import {
   PaymentStatus as OrderPaymentStatus,
 } from './schemas/order.schema';
 
+import { appError } from '../common/errors';
 /**
  * Lean result type for Order documents
  * Use this for results from .lean() queries to maintain type safety
@@ -244,6 +262,18 @@ export class OrdersService {
     ]);
   }
   async create(createOrderDto: CreateOrderDto, customerId: string): Promise<OrderDocument> {
+    /*
+     * Who will hold the customer's money, decided once, before anything is
+     * written - an unsupported method or one that contradicts the fulfilment
+     * is rejected here rather than stored with a guessed collector. See
+     * utils/payment-control.util.ts.
+     */
+    assertPaymentMatchesFulfilment(
+      createOrderDto.paymentMethod,
+      createOrderDto.deliveryMode ?? 'pickup',
+    );
+    const paymentControl = resolvePaymentControl(createOrderDto.paymentMethod);
+
     const session = await this.orderModel.db.startSession();
 
     try {
@@ -262,21 +292,21 @@ export class OrdersService {
         ]);
         this.perf('fetch customer+establishment+offers', tFetch);
         if (!customer) {
-          throw new NotFoundException('Customer not found');
+          throw new NotFoundException(appError('CUSTOMER_NOT_FOUND'));
         }
         if (!establishment) {
-          throw new NotFoundException('Establishment not found');
+          throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
         }
 
         // Require a phone number for order placement.
         // OTP verification is optional (enabled separately via Twilio).
         if (!customer.phoneNumber) {
-          throw new BadRequestException({
-            message: 'Phone number required to place orders',
-            code: 'PHONE_VERIFICATION_REQUIRED',
-            requiresPhoneSetup: true,
-            requiresPhoneVerification: false,
-          });
+          throw new BadRequestException(
+            appError('PHONE_VERIFICATION_REQUIRED', undefined, {
+              requiresPhoneSetup: true,
+              requiresPhoneVerification: false,
+            }),
+          );
         }
         const tValidate = perfStart();
         const { orderItems, subtotal, totalDiscountAmount, updates, earliestOfferExpiry } =
@@ -316,10 +346,7 @@ export class OrdersService {
 
         for (let i = 0; i < reservationResults.length; i++) {
           if (!reservationResults[i]) {
-            throw new BadRequestException({
-              message: 'One or more items are no longer available',
-              code: 'INSUFFICIENT_STOCK',
-            });
+            throw new BadRequestException(appError('INSUFFICIENT_STOCK'));
           }
         }
         this.perf('reserve stock + slot increment (parallel)', tReserve);
@@ -486,6 +513,7 @@ export class OrdersService {
           expiresAt: new Date(earliestOfferExpiry.getTime() + ORDER_GRACE_PERIOD_MS),
           // Delivery fields — set at creation, never mutated
           deliveryMode: createOrderDto.deliveryMode ?? 'pickup',
+          paymentControl,
           ...(createOrderDto.paymentMethod === 'online'
             ? {
                 paymentProvider: 'konnect' as const,
@@ -534,7 +562,7 @@ export class OrdersService {
       // Donation creation is now handled via order.completed event
 
       if (finalOrder === null) {
-        throw new InternalServerErrorException('Order was not created');
+        throw new InternalServerErrorException(appError('ORDER_CREATE_FAILED'));
       }
 
       const createdOrder: OrderDocument = finalOrder;
@@ -588,7 +616,7 @@ export class OrdersService {
         throw error;
       }
 
-      throw new InternalServerErrorException('Failed to create order');
+      throw new InternalServerErrorException(appError('ORDER_CREATE_FAILED'));
     } finally {
       await session.endSession();
     }
@@ -822,7 +850,7 @@ export class OrdersService {
     const order = results[0] as OrderDocument | undefined;
 
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
     }
 
     // Check access permissions
@@ -831,7 +859,7 @@ export class OrdersService {
       const isMerchant = order.merchantId._id.toString() === userId;
 
       if (!isCustomer && !isMerchant) {
-        throw new ForbiddenException('Access denied');
+        throw new ForbiddenException(appError('ACCESS_DENIED'));
       }
     }
 
@@ -958,14 +986,12 @@ export class OrdersService {
     const order = await this.findById(orderId, userId, userRole);
 
     if (order.status !== 'confirmed' && order.status !== 'ready_for_pickup') {
-      throw new BadRequestException('Cannot extend pickup time for this order status');
+      throw new BadRequestException(appError('PICKUP_EXTENSION_NOT_ALLOWED'));
     }
 
     const parsedDate = new Date(newPickupDate);
     if (isNaN(parsedDate.getTime())) {
-      throw new BadRequestException(
-        'Invalid pickup date format. Use ISO string like 2025-08-26T21:00:00.000Z',
-      );
+      throw new BadRequestException(appError('INVALID_DATE'));
     }
     this.appLogger.log(
       `Incoming newPickupDate: ${newPickupDate} (type: ${typeof newPickupDate})`,
@@ -1064,26 +1090,37 @@ export class OrdersService {
     userId: string,
     userRole: UserRole,
   ): Promise<OrderDocument> {
+    /*
+     * A plain status write moves no money, so it may only make the two moves
+     * that carry none. Every other status has its own action that does the
+     * work the status implies, and writing the status here skipped all of it:
+     *
+     * - PICKED_UP  confirm-pickup: pickup code, commission, wallet, loyalty,
+     *              the charity contribution
+     * - DELIVERED  the driver's markDelivered: collected cash, driver ledger
+     * - CANCELLED  cancel: refund of an online payment, stock returned
+     * - REFUNDED   the admin refund: provider refund, commission and ledger
+     *              reversal, the donation reversal
+     *
+     * The transition map still allows those moves for the actions that own
+     * them; this endpoint is not one of them.
+     */
+    const target = updateDto.status as OrderStatus;
+    if (!OrdersService.PLAIN_STATUS_TARGETS.includes(target)) {
+      throw new BadRequestException(appError('ORDER_STATUS_NOT_SETTABLE', { status: target }));
+    }
+
     const order = await this.findById(orderId, userId, userRole);
     if (!this.isValidStatusTransition(order.status, updateDto.status as OrderStatus)) {
       throw new BadRequestException(
-        `Cannot transition from ${order.status} to ${updateDto.status}`,
+        appError('ORDER_INVALID_TRANSITION', { from: order.status, to: updateDto.status }),
       );
     }
 
     // Role-based permissions
     if (userRole === UserRole.MERCHANT) {
       if (order.merchantId._id.toString() !== userId) {
-        throw new ForbiddenException('Access denied');
-      }
-      // Merchants can only confirm, mark ready, or cancel
-      const allowedStatuses = [
-        OrderStatus.CONFIRMED,
-        OrderStatus.READY_FOR_PICKUP,
-        OrderStatus.CANCELLED,
-      ];
-      if (!allowedStatuses.includes(updateDto.status as OrderStatus)) {
-        throw new ForbiddenException('Invalid status update for merchant');
+        throw new ForbiddenException(appError('ACCESS_DENIED'));
       }
     }
 
@@ -1098,7 +1135,7 @@ export class OrdersService {
     );
 
     if (!updatedOrder) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
     }
 
     void this.invalidateOrderCaches(
@@ -1108,6 +1145,12 @@ export class OrdersService {
 
     return this.findById(updatedOrder._id.toString());
   }
+
+  /** The only statuses `updateStatus` may write - the ones that move no money. */
+  private static readonly PLAIN_STATUS_TARGETS: readonly OrderStatus[] = [
+    OrderStatus.CONFIRMED,
+    OrderStatus.READY_FOR_PICKUP,
+  ];
 
   /**
    * Maximum failed pickup attempts before lockout
@@ -1150,13 +1193,12 @@ export class OrdersService {
         `Pickup attempt on locked order ${orderId} by user ${userId}`,
         'OrderService.PickupSecurity',
       );
-      throw new ForbiddenException({
-        message: 'Order pickup is locked due to too many failed attempts',
-        code: 'PICKUP_LOCKED',
-        lockedAt: order.pickupLockedAt,
-        reason: order.pickupLockedReason,
-        contactSupport: true,
-      });
+      throw new ForbiddenException(
+        appError('PICKUP_LOCKED', undefined, {
+          lockedAt: order.pickupLockedAt,
+          contactSupport: true,
+        }),
+      );
     }
 
     // Check if order is ready for pickup (RESERVED, READY_FOR_PICKUP, or CONFIRMED for backward compat)
@@ -1166,10 +1208,7 @@ export class OrdersService {
       OrderStatus.CONFIRMED,
     ];
     if (!validStatuses.includes(order.status)) {
-      throw new BadRequestException({
-        message: 'Order is not ready for pickup yet. Please wait for the merchant to confirm it.',
-        code: 'ORDER_NOT_READY',
-      });
+      throw new BadRequestException(appError('ORDER_NOT_READY'));
     }
 
     // Pickup-code expiry: aligned with order expiration (offer.availableUntil + 30min)
@@ -1188,10 +1227,7 @@ export class OrdersService {
       }
 
       if (new Date() > codeExpiresAt) {
-        throw new BadRequestException({
-          message: 'Pickup code has expired. The order window has ended.',
-          code: 'CODE_EXPIRED',
-        });
+        throw new BadRequestException(appError('CODE_EXPIRED'));
       }
     }
 
@@ -1204,17 +1240,17 @@ export class OrdersService {
     if (userRole === UserRole.CONSUMER) {
       // Only the consumer who owns this order may confirm via pickup code
       if (order.customerId._id.toString() !== userId) {
-        throw new ForbiddenException('Only the order owner can confirm pickup');
+        throw new ForbiddenException(appError('PICKUP_OWNER_ONLY'));
       }
     }
     if (userRole === UserRole.MERCHANT) {
       // Merchants MUST provide a qrCode — they cannot rely on pickupCode alone
       if (!confirmDto.qrCode) {
-        throw new ForbiddenException('Merchants must confirm pickup using a QR code');
+        throw new ForbiddenException(appError('PICKUP_QR_REQUIRED'));
       }
       // And it must belong to this merchant's order
       if (order.merchantId._id.toString() !== userId) {
-        throw new ForbiddenException('Only the establishment merchant can confirm pickup');
+        throw new ForbiddenException(appError('PICKUP_MERCHANT_ONLY'));
       }
     }
 
@@ -1229,7 +1265,7 @@ export class OrdersService {
 
     if (!isValidCode) {
       await this.trackFailedPickupAttempt(orderId, userId);
-      throw new BadRequestException('Invalid pickup code or QR code');
+      throw new BadRequestException(appError('PICKUP_CODE_INVALID'));
     }
 
     // Use transaction for atomicity
@@ -1258,6 +1294,17 @@ export class OrdersService {
           order.paymentDetails?.method ?? '',
         );
 
+        /*
+         * One instant for the whole confirmation: the pickup timestamps and the
+         * commission decision's `appliedAt` (tested against
+         * COMMISSION_MODEL_EFFECTIVE_AT) must never disagree by a few ms.
+         *
+         * `pickedUpAt` is written explicitly: findOneAndUpdate skips the
+         * schema's pre-save hook, so it was never set on this path before.
+         */
+        const completedAt = new Date();
+        const completesAsKonnect = order.paymentProvider === 'konnect';
+
         const claimed = await this.orderModel.findOneAndUpdate(
           {
             _id: orderId,
@@ -1268,9 +1315,10 @@ export class OrdersService {
           },
           {
             $set: {
-              status:
-                order.paymentProvider === 'konnect' ? OrderStatus.COMPLETED : OrderStatus.PICKED_UP,
-              'pickupDetails.actualPickupTime': new Date(),
+              status: completesAsKonnect ? OrderStatus.COMPLETED : OrderStatus.PICKED_UP,
+              'pickupDetails.actualPickupTime': completedAt,
+              pickedUpAt: completedAt,
+              ...(completesAsKonnect && { completedAt }),
               ...(isCashPayment && { paymentStatus: OrderPaymentStatus.PAID }),
               ...(confirmDto.notes && { customerNotes: confirmDto.notes }),
             },
@@ -1279,10 +1327,7 @@ export class OrdersService {
         );
 
         if (!claimed) {
-          throw new BadRequestException({
-            message: 'Order already confirmed or invalid',
-            code: 'PICKUP_ALREADY_DONE',
-          });
+          throw new BadRequestException(appError('PICKUP_ALREADY_DONE'));
         }
 
         // 2. Update inventory (release reserved, add to sold)
@@ -1308,39 +1353,58 @@ export class OrdersService {
           })
           .session(session);
 
-        if (payment?.status === PaymentStatus.HELD) {
+        const paymentHeld = payment?.status === PaymentStatus.HELD;
+
+        /*
+         * Commission for EVERY pickup, in this transaction - the settlement
+         * reads the balance before writing it, so only snapshot isolation makes
+         * two concurrent confirmations safe. CommissionService decides which
+         * engine applies: the new model at or after the cutoff (cash and online
+         * alike), the pre-cutoff engine before it and only for HELD online
+         * payments, exactly as before. `null` = nothing applies, or another
+         * worker already applied it.
+         */
+        const commission = await this.commissionService.applyForOrder(
+          {
+            establishmentId: order.establishmentId._id,
+            merchantId: order.merchantId._id,
+            orderId: order._id,
+            subtotal: order.pricing.subtotal,
+            controlledBy: order.paymentControl?.controlledBy,
+            appliedAt: completedAt,
+            legacyEligible: paymentHeld,
+          },
+          session,
+        );
+
+        if (payment && paymentHeld) {
           payment.status = PaymentStatus.EARNED;
-          payment.earnedAt = new Date();
+          payment.earnedAt = completedAt;
           await payment.save({ session });
 
-          // 4. Create MerchantPayoutLedger entry for monthly payout
-          // Check if ledger entry already exists (idempotency)
+          /*
+           * Online pickup: TFTW holds the customer's money, so the merchant is
+           * owed `merchantAmount` through the payout ledger (the source of
+           * truth for what TFTW owes merchants). A cash pickup gets no entry -
+           * the merchant already holds the full price.
+           */
+          /*
+           * The decision this order was actually given: this worker's, or - when
+           * another worker applied it first - the one frozen on the order. Only
+           * an order with no decision at all (an integrity failure logged by
+           * CommissionService) falls back to the model's NORMAL rule, 100%.
+           */
+          const decided =
+            commission ??
+            (await this.orderModel.findById(order._id).select('commission').session(session).lean())
+              ?.commission ??
+            null;
+          const settlement = decided
+            ? { merchantAmount: decided.merchantAmount, settled: decided.settled }
+            : { merchantAmount: order.pricing.subtotal, settled: 0 };
+
           const existingLedger = await this.payoutService.findByOrderId(orderId);
           if (!existingLedger) {
-            /*
-             * Commission first: it decides what this order actually pays the
-             * merchant. Under the commission-wallet model the merchant is
-             * credited the FULL subtotal on most orders, and the platform's 19%
-             * accrues to `Establishment.commissionDue` to be collected from a
-             * later order instead.
-             *
-             * Runs inside this transaction on purpose — the settlement reads
-             * the current balance before writing it, so only snapshot isolation
-             * makes two concurrent pickup confirmations safe.
-             *
-             * `null` means another worker already applied it; fall back to the
-             * flat split rather than crediting the merchant twice.
-             */
-            const settlement = await this.commissionService.applyForOrder(
-              {
-                establishmentId: order.establishmentId._id,
-                merchantId: order.merchantId._id,
-                orderId: order._id,
-                subtotal: order.pricing.subtotal,
-              },
-              session,
-            );
-
             await this.payoutService.createLedgerEntry(
               {
                 merchantId: order.merchantId._id,
@@ -1349,37 +1413,22 @@ export class OrdersService {
                 establishmentId: order.establishmentId._id,
                 orderTotal: order.pricing.total,
                 subtotal: order.pricing.subtotal,
-                ...(settlement
-                  ? {
-                      commissionSettlement: {
-                        merchantAmount: settlement.merchantAmount,
-                        settled: settlement.settled,
-                      },
-                    }
-                  : {}),
+                commissionSettlement: settlement,
               },
               session,
             );
-
-            /*
-             * Denormalise onto the order so MERCHANT_EARNINGS_EXPR can read it.
-             * Every merchant-earnings aggregation goes through that expression,
-             * and none of them can afford to join the commission ledger. Same
-             * transaction, so the order and the ledger cannot disagree.
-             */
-            if (settlement) {
-              await this.orderModel.updateOne(
-                { _id: order._id },
-                {
-                  $set: {
-                    'pricing.merchantAmount': settlement.merchantAmount,
-                    'pricing.commissionSettled': settlement.settled,
-                  },
-                },
-                { session },
-              );
-            }
           }
+
+          /*
+           * Wallet pending -> available, INSIDE this transaction. It used to run
+           * after the commit in a try/catch that only logged, so a failure left
+           * the wallet permanently behind the payout ledger.
+           */
+          await this.konnectOrderService.processPickupConfirmation(
+            order,
+            settlement.merchantAmount,
+            session,
+          );
 
           this.appLogger.log(
             `Pickup confirmed for order ${orderId}: Payment status HELD -> EARNED, ledger created`,
@@ -1403,49 +1452,14 @@ export class OrdersService {
         }
       });
 
-      // 4b. Move wallet balance pending→available for konnect orders
-      if (order.paymentProvider === 'konnect') {
-        try {
-          const updatedOrder = await this.findById(orderId);
-          await this.konnectOrderService.processPickupConfirmation(updatedOrder);
-        } catch (walletError) {
-          this.appLogger.error(
-            `Failed to move wallet balance for order ${orderId}: ${(walletError as Error).message}`,
-            'OrderService',
-          );
-        }
-      }
-
       void this.invalidateOrderCaches(
         order.merchantId._id.toString(),
         order.customerId._id.toString(),
       );
 
       // 5. Emit order completed event for cross-module reactions (loyalty, donations, analytics)
-      const totalBags = order.items.reduce((sum, item) => sum + item.quantity, 0);
-
       try {
-        await this.eventBus.emit(
-          'order.completed',
-          new OrderCompletedEvent(
-            orderId,
-            order.customerId._id.toString(),
-            order.merchantId._id.toString(),
-            order.items[0]?.offerId.toString() ?? '',
-            order.pricing?.total || 0,
-            new Date(),
-            {
-              itemCount: totalBags,
-              isFirstOrder: false,
-            },
-            order.pricing?.subtotal || 0,
-            order.establishmentId
-              ? (
-                  (order.establishmentId as { _id?: unknown })._id ?? order.establishmentId
-                ).toString()
-              : undefined,
-          ),
-        );
+        await this.eventBus.emit('order.completed', buildOrderCompletedEvent(order, new Date()));
         this.appLogger.log(
           `Order completed event emitted for order ${orderId}`,
           'OrderService.Events',
@@ -1498,15 +1512,15 @@ export class OrdersService {
         OrderStatus.EXPIRED,
       ].includes(order.status)
     ) {
-      throw new BadRequestException('Order cannot be cancelled');
+      throw new BadRequestException(appError('ORDER_NOT_CANCELLABLE'));
     }
 
     // Authorization checks
     if (userRole === UserRole.CONSUMER && order.customerId._id.toString() !== userId) {
-      throw new ForbiddenException('Access denied');
+      throw new ForbiddenException(appError('ACCESS_DENIED'));
     }
     if (userRole === UserRole.MERCHANT && order.merchantId._id.toString() !== userId) {
-      throw new ForbiddenException('Access denied');
+      throw new ForbiddenException(appError('ACCESS_DENIED'));
     }
 
     // Cancel PENDING_PAYMENT order (not yet paid) — expire attempts, release inventory
@@ -1600,12 +1614,11 @@ export class OrdersService {
 
       // Consumer cannot cancel within 1 hour of pickup
       if (hoursUntilPickup < 1) {
-        throw new BadRequestException({
-          message: 'Cannot cancel order within 1 hour of pickup time',
-          code: 'CANCELLATION_WINDOW_CLOSED',
-          pickupStartTime: pickupStartTime.toISOString(),
-          hoursRemaining: Math.max(0, hoursUntilPickup).toFixed(2),
-        });
+        throw new BadRequestException(
+          appError('CANCELLATION_WINDOW_CLOSED', undefined, {
+            pickupStartTime: pickupStartTime.toISOString(),
+          }),
+        );
       }
 
       // Process cancellation with full refund using transaction
@@ -1714,11 +1727,11 @@ export class OrdersService {
     const order = await this.orderModel.findById(orderId);
 
     if (!order) {
-      throw new NotFoundException(`Order with ID ${orderId} not found`);
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
     }
 
     if (order.status === OrderStatus.CANCELLED || order.isDeleted) {
-      throw new BadRequestException(`Order is already cancelled or deleted`);
+      throw new BadRequestException(appError('ORDER_ALREADY_CANCELLED'));
     }
 
     order.isDeleted = true;
@@ -1881,6 +1894,64 @@ export class OrdersService {
       120,
     );
     return cached;
+  }
+
+  /**
+   * Today's sales for the merchant dashboard: cash and online together.
+   *
+   * "Today" is the merchant's calendar day in Africa/Tunis, by order creation.
+   * Offers are same-day and an order expires 30 minutes after its offer, so an
+   * order created today is sold, collected or lost today.
+   *
+   * Scoping mirrors `getOrderStats`: a merchant sees their own orders, narrowed
+   * to one establishment when given; a location manager sees only the
+   * establishment they are assigned to (resolved by the controller).
+   */
+  async getTodaySales(
+    userId: string,
+    userRole: UserRole,
+    establishmentId?: string,
+    now: Date = new Date(),
+  ): Promise<TodaySalesSummary> {
+    const date = now.toLocaleDateString('en-CA', { timeZone: 'Africa/Tunis' });
+
+    const match: Record<string, unknown> = {
+      createdAt: { $gte: TimezoneUtil.getStartOfDay(now), $lte: now },
+      status: { $in: [...TODAY_SOLD_STATUSES, ...TODAY_TO_COLLECT_STATUSES] },
+      isDeleted: { $ne: true },
+    };
+
+    if (userRole === UserRole.LOCATION_MANAGER) {
+      // No assignment means nothing to show - never fall through to "all".
+      if (!establishmentId || !isValidObjectId(establishmentId)) {
+        return summariseTodaySales([], date);
+      }
+      match['establishmentId'] = new Types.ObjectId(establishmentId);
+    } else {
+      match['merchantId'] = new Types.ObjectId(userId);
+      if (establishmentId) {
+        if (!isValidObjectId(establishmentId)) {
+          throw new BadRequestException(appError('INVALID_ID'));
+        }
+        match['establishmentId'] = new Types.ObjectId(establishmentId);
+      }
+    }
+
+    const rows = await this.orderModel.aggregate<TodaySalesGroupRow>([
+      { $match: match },
+      {
+        $group: {
+          _id: { bucket: SALES_BUCKET_EXPR, channel: SALES_CHANNEL_EXPR },
+          orders: { $sum: 1 },
+          sales: { $sum: { $ifNull: ['$pricing.subtotal', 0] } },
+          accrued: { $sum: ORDER_ACCRUED_EXPR },
+          settled: { $sum: ORDER_SETTLED_EXPR },
+          merchantAmount: { $sum: ORDER_MERCHANT_AMOUNT_EXPR },
+        },
+      },
+    ]);
+
+    return summariseTodaySales(rows, date);
   }
 
   /**
@@ -2463,25 +2534,23 @@ export class OrdersService {
     const now = new Date();
 
     if (offers.length !== createOrderDto.items.length) {
-      throw new BadRequestException('One or more offers are invalid or unavailable');
+      throw new BadRequestException(appError('ORDER_OFFERS_UNAVAILABLE'));
     }
 
     // Explicit time guard: reject if any offer has already expired
     // (covers the gap between offer cron runs)
     for (const offer of offers) {
       if (now > new Date(offer.availableUntil)) {
-        throw new BadRequestException({
-          message: `Offer "${offer.title}" has expired and can no longer accept orders`,
-          code: 'OFFER_EXPIRED',
-          offerId: offer._id.toString(),
-        });
+        throw new BadRequestException(
+          appError('OFFER_EXPIRED', undefined, { offerId: offer._id.toString() }),
+        );
       }
     }
 
     // Determine earliest offer expiry for order expiresAt calculation
     const firstOffer = offers[0];
     if (!firstOffer) {
-      throw new BadRequestException('At least one offer is required to create an order');
+      throw new BadRequestException(appError('ORDER_NEEDS_OFFER'));
     }
 
     const earliestOfferExpiry = offers.reduce((earliest, offer) => {
@@ -2566,10 +2635,12 @@ export class OrdersService {
     }
 
     if (validationDetails.length > 0) {
-      throw new BadRequestException({
-        message: 'Validation error: One or more offers are invalid or unavailable',
-        details: validationDetails,
-      });
+      // The per-offer reasons are internal (ids, stock numbers); logged, not sent.
+      this.appLogger.warn(
+        `Order validation failed: ${JSON.stringify(validationDetails)}`,
+        'OrderService',
+      );
+      throw new BadRequestException(appError('ORDER_OFFERS_UNAVAILABLE'));
     }
 
     return { orderItems, subtotal, totalDiscountAmount, updates, earliestOfferExpiry };
@@ -2595,13 +2666,13 @@ export class OrdersService {
   async handlePickupExtensionApproval(orderId: string, approved: boolean, merchantId: string) {
     const order = await this.orderModel.findById(orderId);
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
     }
     if (order.merchantId.toString() !== merchantId) {
-      throw new ForbiddenException('You are not authorized to manage this order');
+      throw new ForbiddenException(appError('ORDER_NOT_YOURS'));
     }
     if (order.pickupExtensionRequest === null || order.pickupExtensionRequest === undefined) {
-      throw new BadRequestException('No extension request found');
+      throw new BadRequestException(appError('PICKUP_EXTENSION_NOT_FOUND'));
     }
 
     const pickupExtensionRequest = order.pickupExtensionRequest;
@@ -2669,15 +2740,15 @@ export class OrdersService {
     const order = await this.orderModel.findById(orderId);
 
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
     }
 
     if (order.merchantId.toString() !== unlockedBy) {
-      throw new ForbiddenException('You are not authorized to unlock this order');
+      throw new ForbiddenException(appError('ORDER_NOT_YOURS'));
     }
 
     if (!order.pickupLocked) {
-      throw new BadRequestException('Order is not locked');
+      throw new BadRequestException(appError('ORDER_NOT_LOCKED'));
     }
 
     await this.orderModel.findByIdAndUpdate(orderId, {

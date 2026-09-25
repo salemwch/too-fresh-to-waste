@@ -19,6 +19,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import { DriversService } from './drivers.service';
 import { AvailableOrdersQueryDto } from './dto/available-orders-query.dto';
+import { FailDeliveryDto, MarkDeliveredDto } from './dto/driver-cash.dto';
 import { OrderHistoryQueryDto } from './dto/order-history-query.dto';
 import { UnassignOrderDto } from './dto/unassign-order.dto';
 import { UpdateDriverLocationDto } from './dto/update-driver-location.dto';
@@ -102,8 +103,36 @@ export class DriversController {
   }
 
   @Post('orders/:id/deliver')
-  async markDelivered(@Param('id') orderId: string, @GetUser('id') driverId: string) {
-    const result = await this.driversService.markDelivered(orderId, driverId);
+  async markDelivered(
+    @Param('id') orderId: string,
+    @GetUser('id') driverId: string,
+    @Body() dto: MarkDeliveredDto,
+  ) {
+    const result = await this.driversService.markDelivered(orderId, driverId, dto.collectedCash);
+    return result;
+  }
+
+  /** The delivery failed after the driver paid the merchant. Reason required. */
+  @Post('orders/:id/fail')
+  async failDelivery(
+    @Param('id') orderId: string,
+    @GetUser('id') driverId: string,
+    @Body() dto: FailDeliveryDto,
+  ) {
+    const result = await this.driversService.failDelivery(orderId, driverId, {
+      reason: dto.reason,
+      recovery: dto.recovery,
+      ...(dto.notes ? { notes: dto.notes } : {}),
+    });
+    return result;
+  }
+
+  // ── Cash ──────────────────────────────────────────────────────────────────
+
+  /** Float held, what the driver owes TFTW, what TFTW owes the driver. */
+  @Get('cash')
+  async getCashSummary(@GetUser('id') driverId: string) {
+    const result = await this.driversService.getCashSummary(driverId);
     return result;
   }
 

@@ -10,6 +10,7 @@ import {
   KonnectPaymentDetails,
 } from './konnect.service';
 
+import { appError } from '../../common/errors';
 /** Marks a reference as stub-issued: `stub-<millimes>-<digest>`. */
 const STUB_REF_PATTERN = /^stub-(\d+)-([0-9a-f]{12})$/;
 
@@ -83,16 +84,14 @@ export class StubPaymentService extends KonnectService {
     // The real client rejects a non-positive amount at the API boundary; keep
     // the same failure mode so tests cannot pass here and fail in production.
     if (!Number.isFinite(params.amount) || params.amount <= 0) {
-      throw new BadRequestException('Payment amount must be greater than zero.');
+      throw new BadRequestException(appError('PAYMENT_AMOUNT_INVALID'));
     }
 
     // Already millimes — see the class comment. Konnect's API takes an integer
     // number of millimes, so a fractional value here means a caller has not
     // converted and would be silently rounded rather than caught.
     if (!Number.isInteger(params.amount)) {
-      throw new BadRequestException(
-        `Payment amount must be an integer number of millimes, got ${params.amount}.`,
-      );
+      throw new BadRequestException(appError('PAYMENT_AMOUNT_INVALID'));
     }
 
     const millimes = params.amount;
@@ -118,7 +117,7 @@ export class StubPaymentService extends KonnectService {
     // a non-2xx lookup. The webhook treats that as "cannot verify" and returns
     // without settling — the behaviour we want a bad reference to produce.
     if (!match) {
-      throw new BadRequestException(`Unknown stub payment reference: ${paymentId}`);
+      throw new BadRequestException(appError('PAYMENT_NOT_FOUND'));
     }
 
     const millimes = Number.parseInt(match[1] as string, 10);

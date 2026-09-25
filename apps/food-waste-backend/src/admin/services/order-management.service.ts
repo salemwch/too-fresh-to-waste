@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage, isValidObjectId } from 'mongoose';
 import { OrderStatus, PaymentStatus as OrderPaymentStatus } from '@foodwaste/shared';
 
+import { OrderRefundedEvent } from '../../common/events';
+import { EventBusService } from '../../common/services/event-bus/event-bus.service';
 import { RegexSecurityUtil } from '../../common/utils/regex-security.util';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
 import { CommissionService } from '../../payments/services/commission.service';
@@ -16,6 +18,7 @@ import {
 import { AdminAction } from '../interfaces/admin-analytics.interface';
 import { AdminAuditService } from './admin-audit.service';
 
+import { appError } from '../../common/errors';
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
 export interface AdminOrderStats {
@@ -74,6 +77,7 @@ export class OrderManagementService {
     private readonly commissionService: CommissionService,
     private readonly auditService: AdminAuditService,
     private readonly regexSecurityUtil: RegexSecurityUtil,
+    private readonly eventBus: EventBusService,
   ) {}
 
   // ── List Orders ───────────────────────────────────────────────────────────
@@ -189,7 +193,7 @@ export class OrderManagementService {
 
   async getOrderDetail(orderId: string): Promise<Record<string, unknown>> {
     if (!isValidObjectId(orderId)) {
-      throw new BadRequestException('Invalid order ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const pipeline: PipelineStage[] = [
@@ -292,7 +296,7 @@ export class OrderManagementService {
 
     const [order] = await this.orderModel.aggregate(pipeline).exec();
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
     }
     return order as Record<string, unknown>;
   }
@@ -392,12 +396,12 @@ export class OrderManagementService {
     audit: AuditContext,
   ): Promise<Record<string, unknown>> {
     if (!isValidObjectId(orderId)) {
-      throw new BadRequestException('Invalid order ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const order = await this.orderModel.findById(orderId);
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
     }
 
     const terminalStatuses: string[] = [
@@ -410,7 +414,7 @@ export class OrderManagementService {
     ];
 
     if (terminalStatuses.includes(order.status)) {
-      throw new BadRequestException(`Cannot cancel order in "${order.status}" status`);
+      throw new BadRequestException(appError('ORDER_CANNOT_BE_CANCELLED'));
     }
 
     const session = await this.orderModel.db.startSession();
@@ -463,24 +467,23 @@ export class OrderManagementService {
     audit: AuditContext,
   ): Promise<Record<string, unknown>> {
     if (!isValidObjectId(orderId)) {
-      throw new BadRequestException('Invalid order ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const order = await this.orderModel.findById(orderId);
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
     }
 
     if (order.paymentProvider !== 'konnect') {
-      throw new BadRequestException('Refund is only available for online payments');
+      const refunded = await this.recordOfflineRefund(order, dto, audit);
+      return refunded;
     }
 
     const refundableStatuses: string[] = [OrderPaymentStatus.PAID, OrderPaymentStatus.HELD];
 
     if (!refundableStatuses.includes(order.paymentStatus)) {
-      throw new BadRequestException(
-        `Cannot refund order with payment status "${order.paymentStatus}"`,
-      );
+      throw new BadRequestException(appError('ORDER_NOT_REFUNDABLE'));
     }
 
     // Check for existing refund request
@@ -490,7 +493,7 @@ export class OrderManagementService {
     });
 
     if (existingRefund) {
-      throw new BadRequestException('A refund request already exists for this order');
+      throw new BadRequestException(appError('REFUND_ALREADY_REQUESTED'));
     }
 
     const session = await this.orderModel.db.startSession();
@@ -535,6 +538,8 @@ export class OrderManagementService {
       await session.endSession();
     }
 
+    await this.emitRefunded(order._id, dto.reason);
+
     await this.auditService.createAuditLog({
       action: AdminAction.ORDER_REFUNDED,
       adminId: audit.adminId,
@@ -553,6 +558,111 @@ export class OrderManagementService {
 
     this.logger.log(`Admin ${audit.adminEmail} issued refund for order ${order.orderNumber}`);
     return this.getOrderDetail(orderId);
+  }
+
+  /**
+   * A refund TFTW did not process: the customer paid in cash (at the counter,
+   * or to the driver) and was refunded in person. Nothing is sent to a payment
+   * provider; what the system must do is undo the sale's commission effect -
+   * the 19% it accrued, or the balance it settled - exactly as an online
+   * refund does. See "Refunds" in .claude/work/commission-settlement-model.md.
+   *
+   * Only a completed sale can be refunded this way; before completion there is
+   * no commission to reverse and cancelling is the right action. Idempotent:
+   * the REFUNDED status and the ledger's unique (orderId, REVERSAL) index both
+   * stop a second reversal.
+   */
+  private async recordOfflineRefund(
+    order: OrderDocument,
+    dto: AdminRefundOrderDto,
+    audit: AuditContext,
+  ): Promise<Record<string, unknown>> {
+    const completed: string[] = [
+      OrderStatus.PICKED_UP,
+      OrderStatus.COMPLETED,
+      OrderStatus.DELIVERED,
+    ];
+    if (!completed.includes(order.status)) {
+      throw new BadRequestException(appError('CASH_REFUND_NOT_COMPLETED'));
+    }
+
+    const session = await this.orderModel.db.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const claimed = await this.orderModel.findOneAndUpdate(
+          { _id: order._id, status: { $in: completed } },
+          {
+            $set: {
+              status: OrderStatus.REFUNDED,
+              paymentStatus: OrderPaymentStatus.REFUNDED,
+              refundReason: `[Admin, refunded in person] ${dto.reason}`,
+            },
+          },
+          { session, new: true },
+        );
+        if (!claimed) {
+          throw new BadRequestException(appError('ORDER_ALREADY_REFUNDED'));
+        }
+
+        await this.commissionService.reverseForOrder(
+          {
+            establishmentId: order.establishmentId as Types.ObjectId,
+            merchantId: order.merchantId as Types.ObjectId,
+            orderId: order._id,
+            subtotal: order.pricing.subtotal,
+          },
+          1,
+          session,
+        );
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    await this.emitRefunded(order._id, dto.reason);
+
+    await this.auditService.createAuditLog({
+      action: AdminAction.ORDER_REFUNDED,
+      adminId: audit.adminId,
+      adminEmail: audit.adminEmail,
+      targetType: 'order',
+      targetId: order._id.toString(),
+      reason: dto.reason,
+      metadata: {
+        notes: dto.notes,
+        orderNumber: order.orderNumber,
+        amount: order.pricing.total,
+        offline: true,
+        collector: order.paymentControl?.collector ?? null,
+      },
+      ipAddress: audit.ipAddress,
+      userAgent: audit.userAgent,
+    });
+
+    this.logger.log(
+      `Admin ${audit.adminEmail} recorded an in-person refund for order ${order.orderNumber}`,
+    );
+    const detail = await this.getOrderDetail(order._id.toString());
+    return detail;
+  }
+
+  /**
+   * The sale no longer happened: listeners undo what completion did (the
+   * charity contribution). Emitted after the refund commits, and never fatal -
+   * the refund stands; a lost event is logged at error level so it is visible,
+   * and the listener's reversal is idempotent, so replaying it is safe.
+   */
+  private async emitRefunded(orderId: Types.ObjectId, reason: string): Promise<void> {
+    try {
+      await this.eventBus.emit(
+        'order.refunded',
+        new OrderRefundedEvent(orderId.toString(), reason, new Date()),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit order.refunded for order ${orderId.toString()}: ${(error as Error).message}`,
+      );
+    }
   }
 
   // ── Private: Build match filter ───────────────────────────────────────────
@@ -574,21 +684,21 @@ export class OrderManagementService {
 
     if (query.customerId) {
       if (!isValidObjectId(query.customerId)) {
-        throw new BadRequestException('Invalid customerId');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
       match['customerId'] = new Types.ObjectId(query.customerId);
     }
 
     if (query.merchantId) {
       if (!isValidObjectId(query.merchantId)) {
-        throw new BadRequestException('Invalid merchantId');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
       match['merchantId'] = new Types.ObjectId(query.merchantId);
     }
 
     if (query.establishmentId) {
       if (!isValidObjectId(query.establishmentId)) {
-        throw new BadRequestException('Invalid establishmentId');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
       match['establishmentId'] = new Types.ObjectId(query.establishmentId);
     }

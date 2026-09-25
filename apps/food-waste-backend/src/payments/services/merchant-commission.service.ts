@@ -13,9 +13,22 @@ import {
   CommissionLedgerType,
 } from '../schemas/commission-ledger.schema';
 
+import { appError } from '../../common/errors';
+export interface EstablishmentCommissionDue {
+  establishmentId: string;
+  name: string;
+  amount: number;
+}
+
 export interface MerchantCommissionStatement {
-  /** What the merchant still owes. */
+  /** What the merchant still owes, summed over every establishment in scope. */
   commissionDue: number;
+  /**
+   * The same balance per establishment, largest first, zero balances omitted.
+   * Present so an all-locations statement never hides which location carries
+   * the balance - the reason the statement used to be single-location only.
+   */
+  dueByEstablishment: EstablishmentCommissionDue[];
   /** Food sales in the period. */
   sales: number;
   /** Commission charged on those sales. */
@@ -37,6 +50,10 @@ export interface MerchantCommissionStatement {
     createdAt: string;
   }[];
 }
+
+type OwnedEstablishment = Pick<EstablishmentDocument, 'name' | 'commissionDue'> & {
+  _id: Types.ObjectId;
+};
 
 /**
  * The merchant's own view of their commission.
@@ -64,26 +81,56 @@ export class MerchantCommissionService {
   }
 
   /**
+   * @param establishmentId  One establishment, or `undefined` for every
+   *                         establishment the caller owns ("All locations").
    * @param ownerId  From the JWT. Checked against the establishment's owner so
    *                 a merchant cannot read another merchant's balance by id.
    */
   async getStatement(
-    establishmentId: string,
+    establishmentId: string | undefined,
     ownerId: string,
     from?: Date,
     to?: Date,
   ): Promise<MerchantCommissionStatement> {
+    const establishments =
+      establishmentId === undefined
+        ? await this.ownedEstablishments(ownerId)
+        : [await this.ownedEstablishment(establishmentId, ownerId)];
+
+    return this.buildStatement(establishments, from, to);
+  }
+
+  /**
+   * Every establishment the merchant owns, deleted ones included: a balance or
+   * a sale recorded this month does not stop being true because the location
+   * was later closed.
+   */
+  private async ownedEstablishments(ownerId: string): Promise<OwnedEstablishment[]> {
+    if (!isValidObjectId(ownerId)) {
+      return [];
+    }
+    const owned = await this.establishmentModel
+      .find({ ownerId: new Types.ObjectId(ownerId) })
+      .select('_id name commissionDue')
+      .lean<OwnedEstablishment[]>();
+    return owned;
+  }
+
+  private async ownedEstablishment(
+    establishmentId: string,
+    ownerId: string,
+  ): Promise<OwnedEstablishment> {
     if (!isValidObjectId(establishmentId)) {
-      throw new NotFoundException('Establishment not found');
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     const establishment = await this.establishmentModel
       .findById(establishmentId)
-      .select('ownerId commissionDue')
+      .select('_id name ownerId commissionDue')
       .lean();
 
     if (!establishment) {
-      throw new NotFoundException('Establishment not found');
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     /*
@@ -92,22 +139,34 @@ export class MerchantCommissionService {
      * merchant's outstanding balance by guessing an establishment id.
      */
     if (establishment.ownerId.toString() !== ownerId) {
-      throw new ForbiddenException('You can only view your own establishment');
+      throw new ForbiddenException(appError('ESTABLISHMENT_NOT_YOURS'));
     }
 
+    return establishment;
+  }
+
+  private async buildStatement(
+    establishments: OwnedEstablishment[],
+    from?: Date,
+    to?: Date,
+  ): Promise<MerchantCommissionStatement> {
     // Default window is the current calendar month - the unit a merchant
     // actually reconciles against, and the one their own books use.
     const now = new Date();
     const start = from ?? new Date(now.getFullYear(), now.getMonth(), 1);
     const end = to ?? now;
 
-    const rows = await this.ledgerModel
-      .find({
-        establishmentId: new Types.ObjectId(establishmentId),
-        createdAt: { $gte: start, $lte: end },
-      })
-      .sort({ createdAt: -1 })
-      .lean();
+    // A merchant with no establishment yet has an empty month, not an error.
+    const rows =
+      establishments.length === 0
+        ? []
+        : await this.ledgerModel
+            .find({
+              establishmentId: { $in: establishments.map(e => e._id) },
+              createdAt: { $gte: start, $lte: end },
+            })
+            .sort({ createdAt: -1 })
+            .lean();
 
     let sales = 0;
     let commission = 0;
@@ -147,8 +206,20 @@ export class MerchantCommissionService {
     const roundedSales = this.round(sales);
     const roundedCommission = this.round(commission);
 
+    const dueByEstablishment = establishments
+      .map(e => ({
+        establishmentId: e._id.toString(),
+        name: e.name,
+        amount: this.round(e.commissionDue ?? 0),
+      }))
+      .filter(e => e.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
+
     return {
-      commissionDue: this.round(establishment.commissionDue ?? 0),
+      // Summed from the unrounded balances, then rounded once, so the total
+      // cannot drift a millime away from the stored figures.
+      commissionDue: this.round(establishments.reduce((sum, e) => sum + (e.commissionDue ?? 0), 0)),
+      dueByEstablishment,
       sales: roundedSales,
       commission: roundedCommission,
       received: this.round(roundedSales - roundedCommission),

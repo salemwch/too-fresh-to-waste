@@ -38,6 +38,7 @@ import {
   AuditStatisticsResult,
 } from '../services/admin-audit.service';
 
+import { appError } from '../../common/errors';
 @ApiTags('Admin Analytics')
 @Controller('admin/analytics')
 @UseGuards(JwtAuthGuard, AdminOnlyGuard)
@@ -90,9 +91,7 @@ export class AdminAnalyticsController {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException(
-        'Failed to retrieve platform analytics. Please try again later.',
-      );
+      throw new InternalServerErrorException(appError('ANALYTICS_FAILED'));
     }
   }
 
@@ -147,9 +146,7 @@ export class AdminAnalyticsController {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException(
-        'Failed to retrieve audit logs. Please try again later.',
-      );
+      throw new InternalServerErrorException(appError('AUDIT_LOGS_FAILED'));
     }
   }
 
@@ -187,9 +184,7 @@ export class AdminAnalyticsController {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException(
-        'Failed to retrieve audit statistics. Please try again later.',
-      );
+      throw new InternalServerErrorException(appError('AUDIT_LOGS_FAILED'));
     }
   }
 
@@ -236,9 +231,7 @@ export class AdminAnalyticsController {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException(
-        'Failed to retrieve recent activity. Please try again later.',
-      );
+      throw new InternalServerErrorException(appError('ANALYTICS_FAILED'));
     }
   }
 
@@ -287,9 +280,7 @@ export class AdminAnalyticsController {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException(
-        'Failed to export audit logs. Please try again later.',
-      );
+      throw new InternalServerErrorException(appError('AUDIT_LOGS_FAILED'));
     }
   }
 
@@ -561,9 +552,7 @@ export class AdminAnalyticsController {
 
   private validateAnalyticsQuery(query: GetAnalyticsQueryDto): void {
     if (query.period === 'custom' && (!query.startDate || !query.endDate)) {
-      throw new BadRequestException(
-        'Both startDate and endDate are required when period is set to "custom"',
-      );
+      throw new BadRequestException(appError('DATE_RANGE_REQUIRED'));
     }
 
     if (query.startDate && query.endDate) {
@@ -571,22 +560,22 @@ export class AdminAnalyticsController {
       const end = new Date(query.endDate);
 
       if (isNaN(start.getTime())) {
-        throw new BadRequestException('Invalid startDate format. Use ISO 8601 format.');
+        throw new BadRequestException(appError('INVALID_DATE'));
       }
 
       if (isNaN(end.getTime())) {
-        throw new BadRequestException('Invalid endDate format. Use ISO 8601 format.');
+        throw new BadRequestException(appError('INVALID_DATE'));
       }
 
       if (start >= end) {
-        throw new BadRequestException('startDate must be before endDate');
+        throw new BadRequestException(appError('DATE_RANGE_ORDER'));
       }
 
       // Limit date range to prevent performance issues
       const maxDays = 365; // 1 year max
       const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
       if (daysDiff > maxDays) {
-        throw new BadRequestException(`Date range cannot exceed ${maxDays} days`);
+        throw new BadRequestException(appError('DATE_RANGE_TOO_LONG', { maxDays }));
       }
     }
 
@@ -606,46 +595,48 @@ export class AdminAnalyticsController {
     const allowed = Object.values(AnalyticsPeriodType) as string[];
 
     if (query.period !== null && query.period !== undefined && !allowed.includes(query.period)) {
-      throw new BadRequestException(`Invalid period. Must be one of: ${allowed.join(', ')}`);
+      throw new BadRequestException(
+        appError('INVALID_PERIOD', { allowed: String(allowed.join(', ')) }),
+      );
     }
   }
 
   private validateAuditLogsQuery(query: GetAuditLogsQueryDto): void {
     if (query.page !== undefined && (query.page < 1 || !Number.isInteger(query.page))) {
-      throw new BadRequestException('Page must be a positive integer');
+      throw new BadRequestException(appError('INVALID_PAGINATION'));
     }
 
     if (query.limit !== undefined) {
       if (query.limit < 1 || query.limit > 1000 || !Number.isInteger(query.limit)) {
-        throw new BadRequestException('Limit must be an integer between 1 and 1000');
+        throw new BadRequestException(appError('INVALID_PAGINATION'));
       }
     }
 
     if (query.startDate && isNaN(new Date(query.startDate).getTime())) {
-      throw new BadRequestException('Invalid startDate format. Use ISO 8601 format.');
+      throw new BadRequestException(appError('INVALID_DATE'));
     }
 
     if (query.endDate && isNaN(new Date(query.endDate).getTime())) {
-      throw new BadRequestException('Invalid endDate format. Use ISO 8601 format.');
+      throw new BadRequestException(appError('INVALID_DATE'));
     }
 
     if (query.startDate && query.endDate) {
       const start = new Date(query.startDate);
       const end = new Date(query.endDate);
       if (start >= end) {
-        throw new BadRequestException('startDate must be before endDate');
+        throw new BadRequestException(appError('DATE_RANGE_ORDER'));
       }
     }
 
     if (query.adminId && !this.isValidObjectId(query.adminId)) {
-      throw new BadRequestException('Invalid adminId format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
   }
 
   private validateDaysParameter(days?: number): void {
     if (days !== undefined) {
       if (!Number.isInteger(days) || days < 1 || days > 365) {
-        throw new BadRequestException('Days must be an integer between 1 and 365');
+        throw new BadRequestException(appError('DAYS_OUT_OF_RANGE'));
       }
     }
   }
@@ -654,46 +645,46 @@ export class AdminAnalyticsController {
     if (hours !== undefined) {
       if (!Number.isInteger(hours) || hours < 1 || hours > 168) {
         // Max 1 week
-        throw new BadRequestException('Hours must be an integer between 1 and 168 (7 days)');
+        throw new BadRequestException(appError('HOURS_OUT_OF_RANGE'));
       }
     }
 
     if (limit !== undefined) {
       if (!Number.isInteger(limit) || limit < 1 || limit > 1000) {
-        throw new BadRequestException('Limit must be an integer between 1 and 1000');
+        throw new BadRequestException(appError('INVALID_PAGINATION'));
       }
     }
   }
 
   private validateExportParams(startDate: string, endDate: string, format: string): void {
     if (!startDate || !endDate) {
-      throw new BadRequestException('Both startDate and endDate are required for export');
+      throw new BadRequestException(appError('DATE_RANGE_REQUIRED'));
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
 
     if (isNaN(start.getTime())) {
-      throw new BadRequestException('Invalid startDate format. Use ISO 8601 format.');
+      throw new BadRequestException(appError('INVALID_DATE'));
     }
 
     if (isNaN(end.getTime())) {
-      throw new BadRequestException('Invalid endDate format. Use ISO 8601 format.');
+      throw new BadRequestException(appError('INVALID_DATE'));
     }
 
     if (start >= end) {
-      throw new BadRequestException('startDate must be before endDate');
+      throw new BadRequestException(appError('DATE_RANGE_ORDER'));
     }
 
     // Limit export range to prevent performance issues
     const maxDays = 90; // 3 months max for export
     const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
     if (daysDiff > maxDays) {
-      throw new BadRequestException(`Export date range cannot exceed ${maxDays} days`);
+      throw new BadRequestException(appError('DATE_RANGE_TOO_LONG', { maxDays }));
     }
 
     if (!['json', 'csv'].includes(format)) {
-      throw new BadRequestException('Format must be either "json" or "csv"');
+      throw new BadRequestException(appError('INVALID_EXPORT_FORMAT'));
     }
   }
 

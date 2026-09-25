@@ -7,6 +7,7 @@ import { PayoutBatchSummary, PayoutResult } from '../dto/create-ledger.dto';
 import { PayoutService } from '../services/payout.service';
 import { WalletPayoutService } from '../services/wallet-payout.service';
 
+import { appError } from '../../common/errors';
 /**
  * PayoutTask
  *
@@ -194,9 +195,7 @@ export class PayoutTask {
     const result = await this.processWeeklyPayouts();
 
     if (result === undefined) {
-      throw new ConflictException(
-        'A payout batch is already running. Please wait for it to finish before starting another.',
-      );
+      throw new ConflictException(appError('PAYOUT_ALREADY_RUNNING'));
     }
 
     return result;

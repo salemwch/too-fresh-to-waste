@@ -9,22 +9,30 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Queue } from 'bull';
-import { Model, Types } from 'mongoose';
+import { Model, Types, isValidObjectId } from 'mongoose';
 
 import { OrderStatus } from '@foodwaste/shared';
 
 import { DEFAULT_DRIVER_MAX_RADIUS_METERS } from '../common/constants/dispatch.constant';
+import { EventBusService } from '../common/services/event-bus/event-bus.service';
+import { buildOrderCompletedEvent } from '../orders/utils/order-completed-event.util';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
 import { AvailableOrdersQueryDto } from './dto/available-orders-query.dto';
 import { OrderHistoryQueryDto } from './dto/order-history-query.dto';
 import { DriverProfile, DriverProfileDocument } from './schemas/driver-profile.schema';
 import { DriverNotificationsService } from './services/driver-notifications.service';
 import {
+  DriverCashService,
+  type DeliveryFailureReason,
+  type DeliveryRecovery,
+} from './services/driver-cash.service';
+import {
   DELIVERY_TIMEOUT_JOB,
   DELIVERY_TIMEOUT_QUEUE,
   DeliveryTimeoutJobData,
 } from './processors/delivery-timeout.constants';
 
+import { appError } from '../common/errors';
 /**
  * Statuses in which an order is "in the driver's hands" — the driver has
  * committed to it and no other driver may take it. Used both for the
@@ -63,6 +71,8 @@ export class DriversService {
     @InjectQueue(DELIVERY_TIMEOUT_QUEUE) private readonly deliveryTimeoutQueue: Queue,
     private readonly configService: ConfigService,
     private readonly driverNotifications: DriverNotificationsService,
+    private readonly driverCash: DriverCashService,
+    private readonly eventBus: EventBusService,
   ) {}
 
   private static readonly CUSTOMER_POPULATE = {
@@ -85,7 +95,7 @@ export class DriversService {
       userId: new Types.ObjectId(driverId),
     });
     if (!profile) {
-      throw new NotFoundException('Driver profile not found');
+      throw new NotFoundException(appError('DRIVER_PROFILE_NOT_FOUND'));
     }
     return profile;
   }
@@ -97,7 +107,7 @@ export class DriversService {
       { new: true },
     );
     if (!profile) {
-      throw new NotFoundException('Driver profile not found');
+      throw new NotFoundException(appError('DRIVER_PROFILE_NOT_FOUND'));
     }
 
     this.logger.log(`Driver ${driverId} went ${isOnline ? 'online' : 'offline'}`);
@@ -123,7 +133,7 @@ export class DriversService {
       },
     );
     if (result.matchedCount === 0) {
-      throw new NotFoundException('Driver profile not found');
+      throw new NotFoundException(appError('DRIVER_PROFILE_NOT_FOUND'));
     }
   }
 
@@ -222,11 +232,11 @@ export class DriversService {
   async acceptOrder(orderId: string, driverId: string): Promise<OrderDocument> {
     const profile = await this.getProfile(driverId);
     if (!profile.isOnline) {
-      throw new ForbiddenException('You must be online to accept orders');
+      throw new ForbiddenException(appError('DRIVER_OFFLINE'));
     }
 
     if (await this.hasReachedConcurrencyLimit(driverId)) {
-      throw new ConflictException('Finish your current delivery before accepting another order');
+      throw new ConflictException(appError('DRIVER_BUSY'));
     }
 
     const order = await this.orderModel
@@ -249,7 +259,7 @@ export class DriversService {
       .populate(DriversService.CUSTOMER_POPULATE);
 
     if (!order) {
-      throw new ConflictException('Order already accepted by another driver');
+      throw new ConflictException(appError('DRIVER_ORDER_TAKEN'));
     }
 
     await this.scheduleDeliveryTimeout(order._id.toString(), driverId);
@@ -258,69 +268,118 @@ export class DriversService {
     return order;
   }
 
-  /** DRIVER_ASSIGNED → OUT_FOR_DELIVERY. The food is now with the driver. */
+  /**
+   * DRIVER_ASSIGNED → OUT_FOR_DELIVERY. The food is now with the driver.
+   *
+   * In one transaction (DriverCashService.onMerchantPickup): the commission
+   * decision, the merchant payment from the float, and the frozen
+   * `driverInstruction` the app shows ("PAY MERCHANT: x TND"). The returned
+   * order carries that instruction; it is never recalculated on re-open.
+   */
   async markPickedUp(orderId: string, driverId: string): Promise<OrderDocument> {
-    const order = await this.orderModel
-      .findOneAndUpdate(
-        {
-          _id: new Types.ObjectId(orderId),
-          driverId: new Types.ObjectId(driverId),
-          status: OrderStatus.DRIVER_ASSIGNED,
-        },
-        {
-          $set: {
-            status: OrderStatus.OUT_FOR_DELIVERY,
-            driverPickedUpAt: new Date(),
-          },
-        },
-        { new: true },
-      )
-      .populate(DriversService.CUSTOMER_POPULATE);
-
-    if (!order) {
-      throw new NotFoundException('Order not found, not yours, or already picked up');
-    }
+    this.assertOrderId(orderId);
+    await this.driverCash.onMerchantPickup(orderId, driverId);
+    const order = await this.populatedOrder(orderId);
 
     void this.driverNotifications.notifyCustomerOrderPickedUp(order);
     return order;
   }
 
-  /** OUT_FOR_DELIVERY → DELIVERED. Terminal success state. */
-  async markDelivered(orderId: string, driverId: string): Promise<OrderDocument> {
-    const order = await this.orderModel
-      .findOneAndUpdate(
-        {
-          _id: new Types.ObjectId(orderId),
-          driverId: new Types.ObjectId(driverId),
-          status: OrderStatus.OUT_FOR_DELIVERY,
-        },
-        {
-          $set: {
-            status: OrderStatus.DELIVERED,
-            deliveredAt: new Date(),
-          },
-        },
-        { new: true },
-      )
-      .populate(DriversService.CUSTOMER_POPULATE);
-
-    if (!order) {
-      throw new NotFoundException('Order not found, not yours, or not yet picked up');
-    }
+  /**
+   * OUT_FOR_DELIVERY → DELIVERED. Terminal success state.
+   *
+   * `collectedCash` is what the driver confirms the customer paid at the door
+   * (0 for an online-paid order). Recorded in the same transaction as the
+   * status - see DriverCashService.onDelivered.
+   */
+  async markDelivered(
+    orderId: string,
+    driverId: string,
+    collectedCash?: number,
+  ): Promise<OrderDocument> {
+    this.assertOrderId(orderId);
+    await this.driverCash.onDelivered(orderId, driverId, collectedCash);
+    const order = await this.populatedOrder(orderId);
 
     await this.cancelDeliveryTimeout(orderId);
     void this.driverNotifications.notifyCustomerOrderDelivered(order);
+    await this.emitCompleted(order);
 
+    return order;
+  }
+
+  /**
+   * A delivered order is a completed sale, exactly like a confirmed pickup:
+   * loyalty points, the charity contribution and analytics all hang off this
+   * event. It was never emitted here, so none of them happened for deliveries.
+   *
+   * After the transaction, like the pickup path, and never fatal: the delivery
+   * is already recorded, and every listener is idempotent per order.
+   */
+  private async emitCompleted(order: OrderDocument): Promise<void> {
+    try {
+      await this.eventBus.emit(
+        'order.completed',
+        buildOrderCompletedEvent(order, order.deliveredAt ?? new Date()),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit order.completed for delivered order ${order._id.toString()}: ${
+          (error as Error).message
+        }`,
+      );
+    }
+  }
+
+  /**
+   * OUT_FOR_DELIVERY → CANCELLED with a required reason and recovery status,
+   * after the driver has already paid the merchant. See "Failed deliveries"
+   * in the commission-settlement model.
+   */
+  async failDelivery(
+    orderId: string,
+    driverId: string,
+    input: { reason: DeliveryFailureReason; recovery: DeliveryRecovery; notes?: string },
+  ): Promise<OrderDocument> {
+    this.assertOrderId(orderId);
+    await this.driverCash.onFailed(orderId, driverId, input);
+    await this.cancelDeliveryTimeout(orderId);
+    const order = await this.populatedOrder(orderId);
+    return order;
+  }
+
+  /** The driver's own cash position: float, what they owe, what they are owed. */
+  async getCashSummary(driverId: string) {
+    const report = await this.driverCash.reconciliation({ driverId });
+    const summary = report.drivers[0] ?? null;
+    return summary;
+  }
+
+  private assertOrderId(orderId: string): void {
+    if (!isValidObjectId(orderId)) {
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
+    }
+  }
+
+  private async populatedOrder(orderId: string): Promise<OrderDocument> {
+    const order = await this.orderModel
+      .findById(orderId)
+      .populate(DriversService.CUSTOMER_POPULATE);
+    if (!order) {
+      throw new NotFoundException(appError('ORDER_NOT_FOUND'));
+    }
     return order;
   }
 
   /**
    * Driver drops the order and it returns to the pool.
    *
-   * Allowed from DRIVER_ASSIGNED and OUT_FOR_DELIVERY: a driver who has already
-   * collected the food can still break down, and leaving them no exit would
-   * strand the order until the timeout fires. The unassignment is recorded so
-   * repeated drops after pickup are visible to ops.
+   * Allowed from DRIVER_ASSIGNED only. Once the driver has collected the food
+   * (OUT_FOR_DELIVERY) they hold the food and the cash, and the commission is
+   * already applied, so handing the order to someone else would lose track of
+   * both: the drop is refused with DRIVER_ALREADY_COLLECTED and the order goes
+   * to ops instead - it shows as STALE_UNDELIVERED on the admin driver-cash
+   * reconciliation. The unassignment is recorded.
    */
   async unassignOrder(orderId: string, driverId: string, reason?: string): Promise<OrderDocument> {
     const order = await this.releaseOrder(orderId, driverId, {
@@ -328,7 +387,18 @@ export class DriversService {
       ...(reason ? { reason } : {}),
     });
     if (!order) {
-      throw new NotFoundException('Order not found or not yours to unassign');
+      const collected = await this.orderModel
+        .findOne({
+          _id: new Types.ObjectId(orderId),
+          driverId: new Types.ObjectId(driverId),
+          status: OrderStatus.OUT_FOR_DELIVERY,
+        })
+        .select('_id status')
+        .lean();
+      if (collected) {
+        throw new ConflictException(appError('DRIVER_ALREADY_COLLECTED'));
+      }
+      throw new NotFoundException(appError('DRIVER_ORDER_NOT_YOURS'));
     }
 
     await this.cancelDeliveryTimeout(orderId);
@@ -347,6 +417,12 @@ export class DriversService {
     });
 
     if (!order) {
+      /*
+       * Either the order moved on, or it is OUT_FOR_DELIVERY - which is never
+       * auto-released: the merchant has been paid from the float and the food
+       * is with this driver. Reconciliation flags it as a stale, undelivered
+       * record for an admin instead.
+       */
       return false;
     }
 
@@ -357,6 +433,13 @@ export class DriversService {
   /**
    * Single write path back to the pool, shared by the manual and automatic
    * unassign flows so the audit trail and the counter can never diverge.
+   *
+   * DRIVER_ASSIGNED only. Once the driver has collected the food
+   * (OUT_FOR_DELIVERY) they have also paid the merchant from the TFTW float;
+   * putting that order back in the pool would strand the payment and the food
+   * with a driver who no longer "has" the order, and the next driver's pickup
+   * would find the delivery's cash already recorded. After pickup, a driver who
+   * cannot finish reports a failed delivery instead.
    */
   private async releaseOrder(
     orderId: string,
@@ -368,7 +451,7 @@ export class DriversService {
         {
           _id: new Types.ObjectId(orderId),
           driverId: new Types.ObjectId(driverId),
-          status: { $in: DRIVER_ACTIVE_STATUSES },
+          status: OrderStatus.DRIVER_ASSIGNED,
         },
         {
           $set: {

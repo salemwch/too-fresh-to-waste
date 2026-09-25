@@ -439,6 +439,135 @@ export class Order {
     auto: boolean;
     at: Date;
   }>;
+
+  // ===========================================================================
+  // COMMISSION-SETTLEMENT MODEL - see .claude/work/commission-settlement-model.md
+  // ===========================================================================
+
+  /**
+   * Who holds the customer's payment. Written once at creation from the
+   * payment method (`resolvePaymentControl`) and never re-derived, so a later
+   * change to that table cannot re-classify an existing order.
+   *
+   * No default: an order without it predates the field, and a default would
+   * assert a collector nobody recorded. `scripts/migrations/backfill-payment-control.ts`
+   * fills historical orders once, from their stored payment method.
+   */
+  @Prop({
+    type: {
+      _id: false,
+      controlledBy: { type: String, enum: ['TFTW', 'MERCHANT'], required: true },
+      collector: {
+        type: String,
+        enum: ['MERCHANT', 'DRIVER', 'PAYMENT_GATEWAY'],
+        required: true,
+      },
+    },
+  })
+  paymentControl?: {
+    controlledBy: 'TFTW' | 'MERCHANT';
+    collector: 'MERCHANT' | 'DRIVER' | 'PAYMENT_GATEWAY';
+  };
+
+  /**
+   * The order's commission decision, frozen when it was made - at pickup
+   * confirmation, or at the driver's pickup from the merchant for delivery.
+   * Written in the same transaction as the ledger row and never edited;
+   * refunds add REVERSAL rows instead.
+   *
+   * `model: 'LEGACY'` marks a decision made by the pre-cutoff engine (online
+   * pickups only, which accrued and settled on the same order).
+   */
+  @Prop({
+    type: {
+      _id: false,
+      model: { type: String, enum: ['LEGACY', 'V2'], required: true },
+      kind: { type: String, enum: ['NORMAL', 'SETTLEMENT'], required: true },
+      controlledBy: { type: String, enum: ['TFTW', 'MERCHANT'] },
+      accrued: { type: Number, required: true, min: 0 },
+      settled: { type: Number, required: true, min: 0 },
+      merchantAmount: { type: Number, required: true, min: 0 },
+      dueBefore: { type: Number, required: true },
+      dueAfter: { type: Number, required: true },
+      appliedAt: { type: Date, required: true },
+    },
+  })
+  commission?: {
+    model: 'LEGACY' | 'V2';
+    kind: 'NORMAL' | 'SETTLEMENT';
+    controlledBy?: 'TFTW' | 'MERCHANT';
+    accrued: number;
+    settled: number;
+    merchantAmount: number;
+    dueBefore: number;
+    dueAfter: number;
+    appliedAt: Date;
+  };
+
+  /**
+   * What the driver must do with money on this delivery, frozen at the
+   * driver's pickup from the merchant. The driver app shows these figures; it
+   * never computes them, and they are never recalculated on re-open.
+   */
+  @Prop({
+    type: {
+      _id: false,
+      payMerchant: { type: Number, required: true, min: 0 },
+      collectFromCustomer: { type: Number, required: true, min: 0 },
+      driverKeeps: { type: Number, required: true, min: 0 },
+      frozenAt: { type: Date, required: true },
+    },
+  })
+  driverInstruction?: {
+    payMerchant: number;
+    collectFromCustomer: number;
+    driverKeeps: number;
+    frozenAt: Date;
+  };
+
+  /**
+   * Why a delivery failed after the driver collected the food, and what
+   * happened to the food. Required whenever a delivery fails - see
+   * `DriverCashService.failDelivery`.
+   */
+  @Prop({
+    type: {
+      _id: false,
+      reason: {
+        type: String,
+        enum: [
+          'CUSTOMER_REFUSED',
+          'CUSTOMER_UNREACHABLE',
+          'CUSTOMER_UNAVAILABLE',
+          'MERCHANT_FAULT',
+          'DRIVER_FAULT',
+        ],
+        required: true,
+      },
+      faultParty: { type: String, enum: ['CUSTOMER', 'MERCHANT', 'DRIVER'], required: true },
+      recovery: {
+        type: String,
+        enum: ['RECOVERABLE_PENDING', 'RETURNED_TO_MERCHANT', 'UNRECOVERABLE'],
+        required: true,
+      },
+      notes: { type: String, maxlength: 500 },
+      recordedAt: { type: Date, required: true },
+      recordedBy: { type: Types.ObjectId, ref: 'User', required: true },
+    },
+  })
+  deliveryFailure?: {
+    reason:
+      | 'CUSTOMER_REFUSED'
+      | 'CUSTOMER_UNREACHABLE'
+      | 'CUSTOMER_UNAVAILABLE'
+      | 'MERCHANT_FAULT'
+      | 'DRIVER_FAULT';
+    faultParty: 'CUSTOMER' | 'MERCHANT' | 'DRIVER';
+    recovery: 'RECOVERABLE_PENDING' | 'RETURNED_TO_MERCHANT' | 'UNRECOVERABLE';
+    notes?: string;
+    recordedAt: Date;
+    recordedBy: Types.ObjectId;
+  };
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

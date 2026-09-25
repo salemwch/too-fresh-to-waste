@@ -23,6 +23,7 @@ import { PaymentQueryDto } from './dto/payment-query.dto';
 import { MerchantWallet, MerchantWalletDocument } from './schemas/merchant-wallet.schema';
 import { Payment, PaymentDocument, PaymentStatus } from './schemas/payment.schema';
 
+import { appError } from '../common/errors';
 interface PaymentOverviewStats {
   totalPayments: number;
   totalAmount: number;
@@ -43,12 +44,7 @@ interface PaymentMethodStat {
 
 type MerchantPaymentUiMethod = 'cash' | 'card' | 'smt_gateway' | 'wallet';
 type MerchantPaymentUiStatus =
-  | 'pending'
-  | 'processing'
-  | 'completed'
-  | 'failed'
-  | 'refunded'
-  | 'cancelled';
+  'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'cancelled';
 
 export interface MerchantPaymentView {
   id: string;
@@ -106,7 +102,7 @@ export class PaymentService {
     establishmentId?: string,
   ): Promise<{ availableBalance: number; pendingBalance: number; currency: string }> {
     if (establishmentId && !isValidObjectId(establishmentId)) {
-      throw new BadRequestException('Invalid establishmentId format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const query: FilterQuery<MerchantWalletDocument> = {
@@ -240,7 +236,7 @@ export class PaymentService {
     const payment = results[0] as PaymentDocument | undefined;
 
     if (!payment) {
-      throw new NotFoundException('Payment not found');
+      throw new NotFoundException(appError('PAYMENT_NOT_FOUND'));
     }
 
     // Access control
@@ -249,7 +245,7 @@ export class PaymentService {
       const isMerchant = payment.merchantId._id.toString() === userId;
 
       if (!isCustomer && !isMerchant) {
-        throw new ForbiddenException('Access denied');
+        throw new ForbiddenException(appError('ACCESS_DENIED'));
       }
     }
 
@@ -514,9 +510,9 @@ export class PaymentService {
         matchCondition = {};
         break;
       case UserRole.MODERATOR:
-        throw new ForbiddenException('Role not allowed to view stats');
+        throw new ForbiddenException(appError('FORBIDDEN'));
       default:
-        throw new ForbiddenException('Role not allowed to view stats');
+        throw new ForbiddenException(appError('FORBIDDEN'));
     }
 
     // Aggregate overview stats

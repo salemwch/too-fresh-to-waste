@@ -43,6 +43,7 @@ import {
 import { AnalyticsService } from '../services/analytics.service';
 import { strictValidation } from '../../common/pipes/validation-pipes';
 
+import { appError } from '../../common/errors';
 @ApiTags('Analytics')
 @Controller('analytics')
 @UseGuards(JwtAuthGuard, ProSubscriptionGuard)
@@ -405,7 +406,7 @@ export class AnalyticsController {
   ): Promise<void> {
     // Only admin can invalidate cache
     if (userRole !== 'admin') {
-      throw new BadRequestException('Only administrators can invalidate cache');
+      throw new BadRequestException(appError('ADMIN_REQUIRED'));
     }
 
     const tagArray = tags ? tags.split(',').map(t => t.trim()) : undefined;
@@ -450,7 +451,7 @@ export class AnalyticsController {
   })
   async getCacheStats(@GetUser('role') userRole: string): Promise<CacheStatistics> {
     if (userRole !== 'admin') {
-      throw new BadRequestException('Only administrators can view cache statistics');
+      throw new BadRequestException(appError('ADMIN_REQUIRED'));
     }
 
     const result = await this.analyticsService.getCacheStatistics();
