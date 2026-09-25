@@ -13,6 +13,7 @@ import * as speakeasy from 'speakeasy';
 
 import { User, UserDocument } from '../schemas/user.schema';
 
+import { appError } from '../../common/errors';
 export interface MfaSetupResult {
   secret: string;
   qrCodeUrl: string;
@@ -37,7 +38,7 @@ export class MfaService {
   async setupTotp(userId: string): Promise<MfaSetupResult> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException(appError('USER_NOT_FOUND'));
     }
 
     // Generate TOTP secret
@@ -83,7 +84,7 @@ export class MfaService {
 
     const qrCodeUrl = secret.otpauth_url;
     if (!qrCodeUrl) {
-      throw new InternalServerErrorException('Failed to generate MFA QR code URL');
+      throw new InternalServerErrorException(appError('MFA_FAILED'));
     }
 
     return {
@@ -97,7 +98,7 @@ export class MfaService {
   async verifyTotpSetup(userId: string, token: string): Promise<boolean> {
     const user = await this.userModel.findById(userId);
     if (!user?.mfaSettings) {
-      throw new BadRequestException('MFA setup not found');
+      throw new BadRequestException(appError('MFA_SETUP_NOT_FOUND'));
     }
 
     const totpMethod = user.mfaSettings.methods.find(
@@ -105,7 +106,7 @@ export class MfaService {
     );
 
     if (!totpMethod?.secret) {
-      throw new BadRequestException('TOTP method not found');
+      throw new BadRequestException(appError('MFA_METHOD_NOT_FOUND'));
     }
 
     const verified = speakeasy.totp.verify({
@@ -133,7 +134,7 @@ export class MfaService {
   async verifyTotp(userId: string, token: string): Promise<MfaVerificationResult> {
     const user = await this.userModel.findById(userId);
     if (user?.mfaSettings?.isEnabled !== true) {
-      throw new BadRequestException('MFA not enabled for user');
+      throw new BadRequestException(appError('MFA_NOT_ENABLED'));
     }
 
     const totpMethod = user.mfaSettings.methods.find(
@@ -141,7 +142,7 @@ export class MfaService {
     );
 
     if (!totpMethod?.secret) {
-      throw new BadRequestException('TOTP method not found');
+      throw new BadRequestException(appError('MFA_METHOD_NOT_FOUND'));
     }
 
     // First try TOTP verification
@@ -209,7 +210,7 @@ export class MfaService {
   async generateNewBackupCodes(userId: string): Promise<string[]> {
     const user = await this.userModel.findById(userId);
     if (user?.mfaSettings?.isEnabled !== true) {
-      throw new BadRequestException('MFA not enabled for user');
+      throw new BadRequestException(appError('MFA_NOT_ENABLED'));
     }
 
     const totpMethod = user.mfaSettings.methods.find(
@@ -217,7 +218,7 @@ export class MfaService {
     );
 
     if (!totpMethod) {
-      throw new BadRequestException('TOTP method not found');
+      throw new BadRequestException(appError('MFA_METHOD_NOT_FOUND'));
     }
 
     const newBackupCodes = this.generateBackupCodes();
@@ -239,7 +240,7 @@ export class MfaService {
   async disableMfa(userId: string): Promise<void> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException(appError('USER_NOT_FOUND'));
     }
 
     if (user.mfaSettings) {

@@ -6,8 +6,11 @@
  */
 
 import 'dotenv/config';
+import { PASSWORD_MIN_LENGTH, PASSWORD_SPECIAL_CHARS, buildPasswordRegex } from '@foodwaste/shared';
 import * as argon2 from 'argon2';
 import { MongoClient, ObjectId } from 'mongodb';
+
+import { USER_PASSWORD_HASH_OPTIONS } from '../auth/utils/password-hash';
 
 async function main() {
   const mongoUrl = process.env['DATABASE_URL'];
@@ -22,7 +25,16 @@ async function main() {
   if (!adminPassword) {
     console.error('❌  ADMIN_PASSWORD env var is required');
     console.error(
-      '   Example: ADMIN_PASSWORD="YourSecurePass!" npx ts-node src/seeds/create-admin-direct.ts',
+      '   Example: ADMIN_PASSWORD="YourSecurePass1!" npx ts-node src/seeds/create-admin-direct.ts',
+    );
+    process.exit(1);
+  }
+
+  // The same rule as every other way to set a password; the admin account is
+  // the last one that should be exempt.
+  if (adminPassword.length < PASSWORD_MIN_LENGTH || !buildPasswordRegex().test(adminPassword)) {
+    console.error(
+      `❌  The password must be at least ${PASSWORD_MIN_LENGTH} characters, with an uppercase letter, a lowercase letter, a number and one of ${PASSWORD_SPECIAL_CHARS}`,
     );
     process.exit(1);
   }
@@ -30,12 +42,7 @@ async function main() {
   console.log(`📧  Email    : ${adminEmail}`);
   console.log(`🔐  Hashing password with argon2id…`);
 
-  const hashedPassword = await argon2.hash(adminPassword, {
-    type: argon2.argon2id,
-    memoryCost: 2 ** 16,
-    timeCost: 3,
-    parallelism: 1,
-  });
+  const hashedPassword = await argon2.hash(adminPassword, USER_PASSWORD_HASH_OPTIONS);
 
   const client = new MongoClient(mongoUrl);
   await client.connect();

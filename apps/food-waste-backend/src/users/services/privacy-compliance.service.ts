@@ -32,6 +32,7 @@ import {
 } from '../interfaces/privacy-consent.interface';
 import { User, UserDocument, UserStatus } from '../schemas/user.schema';
 
+import { appError } from '../../common/errors';
 // Privacy Export Data Interfaces
 interface IPrivacyOrderData {
   orderNumber: string;
@@ -321,7 +322,7 @@ export class PrivacyComplianceService {
   }> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     const tunisianConsent = user.privacySettings?.tunisianCompliance;
@@ -432,7 +433,7 @@ export class PrivacyComplianceService {
 
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     // Find the specific consent record
@@ -443,13 +444,13 @@ export class PrivacyComplianceService {
     );
 
     if (consentIndex === -1) {
-      throw new BadRequestException('No active consent found for the specified type');
+      throw new BadRequestException(appError('CONSENT_NOT_FOUND'));
     }
 
     // Update consent record
     const existingConsent = consentRecords[consentIndex];
     if (!existingConsent) {
-      throw new BadRequestException('No active consent found for the specified type');
+      throw new BadRequestException(appError('CONSENT_NOT_FOUND'));
     }
 
     const withdrawalRecord: IConsentRecord = {
@@ -505,7 +506,7 @@ export class PrivacyComplianceService {
 
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     // Record export request for audit
@@ -603,7 +604,7 @@ export class PrivacyComplianceService {
 
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     let result: IAnonymizationResult;
@@ -619,7 +620,7 @@ export class PrivacyComplianceService {
         result = await this.completeDeleteUser(userId, deletionRequest, requestIp, userAgent);
         break;
       default:
-        throw new BadRequestException('Invalid deletion type');
+        throw new BadRequestException(appError('INVALID_SETTING'));
     }
 
     this.logger.log(`✅ Data deletion completed for user ${userId}`);

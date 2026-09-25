@@ -174,9 +174,7 @@ export class RegisterDto implements RegisterInput {
   @IsString({ message: 'Password must be a string' })
   @MinLength(PASSWORD_MIN_LENGTH, { message: PASSWORD_ERROR_MESSAGES.TOO_SHORT })
   @MaxLength(PASSWORD_MAX_LENGTH, { message: PASSWORD_ERROR_MESSAGES.TOO_LONG })
-  @Matches(buildPasswordRegex(), {
-    message: `Password must contain at least one uppercase, one lowercase, one number, and one special character (${PASSWORD_SPECIAL_CHARS})`,
-  })
+  @Matches(buildPasswordRegex(), { message: 'PASSWORD_POLICY' })
   password!: string;
 
   /**

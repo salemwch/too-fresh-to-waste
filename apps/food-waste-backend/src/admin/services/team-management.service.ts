@@ -8,6 +8,8 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon2 from 'argon2';
+
+import { USER_PASSWORD_HASH_OPTIONS } from '../../auth/utils/password-hash';
 import * as crypto from 'crypto';
 import { Model } from 'mongoose';
 
@@ -23,6 +25,7 @@ import {
   MODERATOR_DEFAULT_PERMISSIONS,
 } from '../dto/team-management.dto';
 
+import { appError } from '../../common/errors';
 export interface TeamMemberRow {
   _id: string;
   firstName: string;
@@ -110,11 +113,11 @@ export class TeamManagementService {
   ): Promise<{ member: TeamMemberRow; temporaryPassword: string }> {
     const existing = await this.userModel.findOne({ email: dto.email.toLowerCase() }).lean();
     if (existing) {
-      throw new ConflictException('A user with this email already exists');
+      throw new ConflictException(appError('EMAIL_ALREADY_REGISTERED'));
     }
 
     const temporaryPassword = crypto.randomBytes(12).toString('base64url');
-    const hashedPassword = await argon2.hash(temporaryPassword);
+    const hashedPassword = await argon2.hash(temporaryPassword, USER_PASSWORD_HASH_OPTIONS);
 
     const permissions =
       dto.permissions ??
@@ -161,11 +164,11 @@ export class TeamManagementService {
   ): Promise<TeamMemberRow> {
     const member = await this.userModel.findById(memberId);
     if (!member) {
-      throw new NotFoundException('Team member not found');
+      throw new NotFoundException(appError('TEAM_MEMBER_NOT_FOUND'));
     }
 
     if (member.role !== UserRole.ADMIN && member.role !== UserRole.MODERATOR) {
-      throw new BadRequestException('Only admin/moderator team members can be updated');
+      throw new BadRequestException(appError('TEAM_ROLE_NOT_EDITABLE'));
     }
 
     member.role = dto.role;
@@ -196,11 +199,11 @@ export class TeamManagementService {
   ): Promise<TeamMemberRow> {
     const member = await this.userModel.findById(memberId);
     if (!member) {
-      throw new NotFoundException('Team member not found');
+      throw new NotFoundException(appError('TEAM_MEMBER_NOT_FOUND'));
     }
 
     if (member.role !== UserRole.ADMIN && member.role !== UserRole.MODERATOR) {
-      throw new BadRequestException('Only admin/moderator team members can be updated');
+      throw new BadRequestException(appError('TEAM_ROLE_NOT_EDITABLE'));
     }
 
     member.permissions = dto.permissions;
@@ -223,15 +226,15 @@ export class TeamManagementService {
   async removeTeamMember(memberId: string, adminId: string): Promise<void> {
     const member = await this.userModel.findById(memberId);
     if (!member) {
-      throw new NotFoundException('Team member not found');
+      throw new NotFoundException(appError('TEAM_MEMBER_NOT_FOUND'));
     }
 
     if (member.role !== UserRole.ADMIN && member.role !== UserRole.MODERATOR) {
-      throw new BadRequestException('Only admin/moderator team members can be removed');
+      throw new BadRequestException(appError('TEAM_ROLE_NOT_EDITABLE'));
     }
 
     if (member._id.toString() === adminId) {
-      throw new BadRequestException('You cannot remove yourself from the team');
+      throw new BadRequestException(appError('TEAM_CANNOT_REMOVE_SELF'));
     }
 
     member.status = UserStatus.BLOCKED;
@@ -248,11 +251,11 @@ export class TeamManagementService {
       .lean();
 
     if (!member) {
-      throw new NotFoundException('Team member not found');
+      throw new NotFoundException(appError('TEAM_MEMBER_NOT_FOUND'));
     }
 
     if (member.role !== UserRole.ADMIN && member.role !== UserRole.MODERATOR) {
-      throw new BadRequestException('User is not a team member');
+      throw new BadRequestException(appError('TEAM_NOT_MEMBER'));
     }
 
     return {

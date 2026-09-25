@@ -37,6 +37,7 @@ import {
 
 import { PasswordHistoryService } from './password-history.service';
 
+import { appError } from '../../common/errors';
 /**
  * PasswordPolicyService - Concrete implementation of IPasswordPolicyService
  *
@@ -92,40 +93,11 @@ export class PasswordPolicyService implements IPasswordPolicyService {
     let isValid = true;
 
     try {
-      // Basic length checks
-      if (password.length < policy.minLength) {
-        feedback.push(PASSWORD_ERROR_MESSAGES.TOO_SHORT);
-        suggestions.push(`Add ${policy.minLength - password.length} more characters`);
-        isValid = false;
-      }
-
-      if (password.length > policy.maxLength) {
-        feedback.push(PASSWORD_ERROR_MESSAGES.TOO_LONG);
-        isValid = false;
-      }
-
-      // Character requirements
-      if (policy.requireUppercase && !/[A-Z]/.test(password)) {
-        feedback.push(PASSWORD_ERROR_MESSAGES.NO_UPPERCASE);
-        suggestions.push('Add uppercase letters (A-Z)');
-        isValid = false;
-      }
-
-      if (policy.requireLowercase && !/[a-z]/.test(password)) {
-        feedback.push(PASSWORD_ERROR_MESSAGES.NO_LOWERCASE);
-        suggestions.push('Add lowercase letters (a-z)');
-        isValid = false;
-      }
-
-      if (policy.requireNumbers && !/[0-9]/.test(password)) {
-        feedback.push(PASSWORD_ERROR_MESSAGES.NO_DIGIT);
-        suggestions.push('Add numbers (0-9)');
-        isValid = false;
-      }
-
-      if (policy.requireSpecialChars && !buildSpecialCharRegex().test(password)) {
-        feedback.push(PASSWORD_ERROR_MESSAGES.NO_SPECIAL);
-        suggestions.push(`Add special characters (${policy.specialCharacters})`);
+      // Length and character classes - the rules the client forms also check.
+      const composition = this.compositionFailures(password, policy);
+      if (composition.feedback.length > 0) {
+        feedback.push(...composition.feedback);
+        suggestions.push(...composition.suggestions);
         isValid = false;
       }
 
@@ -193,7 +165,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
       return result;
     } catch (error) {
       this.logger.error('Error during password validation:', error);
-      throw new BadRequestException('Password validation failed');
+      throw new BadRequestException(appError('PASSWORD_POLICY'));
     }
   }
 
@@ -242,6 +214,53 @@ export class PasswordPolicyService implements IPasswordPolicyService {
     return password;
   }
 
+  /**
+   * Length and character-class failures, in the order the rules are listed.
+   * Empty when the password has the shape the policy asks for.
+   */
+  private compositionFailures(
+    password: string,
+    policy: PasswordPolicyConfig,
+  ): { feedback: string[]; suggestions: string[] } {
+    const feedback: string[] = [];
+    const suggestions: string[] = [];
+    if (password.length < policy.minLength) {
+      feedback.push(PASSWORD_ERROR_MESSAGES.TOO_SHORT);
+      suggestions.push(`Add ${policy.minLength - password.length} more characters`);
+    }
+    if (password.length > policy.maxLength) {
+      feedback.push(PASSWORD_ERROR_MESSAGES.TOO_LONG);
+    }
+    if (policy.requireUppercase && !/[A-Z]/.test(password)) {
+      feedback.push(PASSWORD_ERROR_MESSAGES.NO_UPPERCASE);
+      suggestions.push('Add uppercase letters (A-Z)');
+    }
+    if (policy.requireLowercase && !/[a-z]/.test(password)) {
+      feedback.push(PASSWORD_ERROR_MESSAGES.NO_LOWERCASE);
+      suggestions.push('Add lowercase letters (a-z)');
+    }
+    if (policy.requireNumbers && !/[0-9]/.test(password)) {
+      feedback.push(PASSWORD_ERROR_MESSAGES.NO_DIGIT);
+      suggestions.push('Add numbers (0-9)');
+    }
+    if (policy.requireSpecialChars && !buildSpecialCharRegex().test(password)) {
+      feedback.push(PASSWORD_ERROR_MESSAGES.NO_SPECIAL);
+      suggestions.push(`Add special characters (${policy.specialCharacters})`);
+    }
+    return { feedback, suggestions };
+  }
+
+  /**
+   * The code a rejected password gets. PASSWORD_POLICY's copy spells out the
+   * length and character rules, so it is only right when one of those failed;
+   * a password that has the right shape but is common, repetitive or easy to
+   * guess would otherwise be told to meet rules it already meets.
+   */
+  private rejectionCode(password: string): 'PASSWORD_POLICY' | 'PASSWORD_TOO_WEAK' {
+    const { feedback } = this.compositionFailures(password, this.getPasswordPolicy());
+    return feedback.length > 0 ? 'PASSWORD_POLICY' : 'PASSWORD_TOO_WEAK';
+  }
+
   validatePasswordStrength(password: string, context?: PasswordValidationContext): void {
     const result = this.validatePassword(password, context);
 
@@ -251,13 +270,7 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         suggestions: result.suggestions,
         score: result.score,
       });
-      throw new BadRequestException({
-        message: 'Password does not meet security requirements',
-        feedback: result.feedback,
-        suggestions: result.suggestions,
-        score: result.score,
-        type: 'WEAK_PASSWORD',
-      });
+      throw new BadRequestException(appError(this.rejectionCode(password)));
     }
   }
 
@@ -326,20 +339,13 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         suggestions: result.suggestions,
         score: result.score,
       });
-      throw new BadRequestException({
-        message: 'Password does not meet security requirements',
-        feedback: result.feedback,
-        suggestions: result.suggestions,
-        score: result.score,
-        type: 'WEAK_PASSWORD',
-      });
+      throw new BadRequestException(appError(this.rejectionCode(password)));
     }
   }
 
   getPasswordPolicy(): PasswordPolicyConfig {
     return {
-      minLength:
-        this.configService.get<number>('PASSWORD_MIN_LENGTH') ?? this.defaultPolicy.minLength,
+      minLength: this.minLength(),
       maxLength:
         this.configService.get<number>('PASSWORD_MAX_LENGTH') ?? this.defaultPolicy.maxLength,
       requireUppercase: this.parseBoolean(
@@ -375,6 +381,19 @@ export class PasswordPolicyService implements IPasswordPolicyService {
         this.configService.get<string>('PASSWORD_SPECIAL_CHARACTERS') ??
         this.defaultPolicy.specialCharacters,
     };
+  }
+
+  /**
+   * PASSWORD_MIN_LENGTH can raise the minimum, never lower it: the DTOs, the
+   * web and mobile forms and the error copy all state the shared minimum, and
+   * a lower env value (the example file once shipped 8) made the service accept
+   * passwords every client rejects. Env values arrive as strings.
+   */
+  private minLength(): number {
+    const configured = Number(this.configService.get<string | number>('PASSWORD_MIN_LENGTH'));
+    return Number.isFinite(configured)
+      ? Math.max(configured, PASSWORD_MIN_LENGTH)
+      : this.defaultPolicy.minLength;
   }
 
   /**

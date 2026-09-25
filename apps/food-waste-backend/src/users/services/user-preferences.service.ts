@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { USER_AUDIT_LOG_MAX } from '../../common/constants/document-limits.constant';
 import { User, UserDocument } from '../schemas/user.schema';
 
+import { appError } from '../../common/errors';
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'auto';
   language: string;
@@ -156,7 +157,7 @@ export class UserPreferencesService {
   async getUserPreferences(userId: string): Promise<UserPreferences> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     // Return user preferences or defaults if not set
@@ -170,7 +171,7 @@ export class UserPreferencesService {
   ): Promise<UserPreferences> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     // Initialize preferences if not exists
@@ -216,7 +217,7 @@ export class UserPreferencesService {
   ): Promise<NotificationPreferences> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     user.preferences ??= { ...this.defaultPreferences };
@@ -258,7 +259,7 @@ export class UserPreferencesService {
   ): Promise<PrivacyPreferences> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     user.preferences ??= { ...this.defaultPreferences };
@@ -300,7 +301,7 @@ export class UserPreferencesService {
   ): Promise<DiscoveryPreferences> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     user.preferences ??= { ...this.defaultPreferences };
@@ -310,14 +311,14 @@ export class UserPreferencesService {
       discoveryPrefs.maxDistance &&
       (discoveryPrefs.maxDistance < 100 || discoveryPrefs.maxDistance > 50000)
     ) {
-      throw new BadRequestException('Max distance must be between 100m and 50km');
+      throw new BadRequestException(appError('MAX_DISTANCE_RANGE'));
     }
 
     if (
       discoveryPrefs.minDiscount &&
       (discoveryPrefs.minDiscount < 0 || discoveryPrefs.minDiscount > 100)
     ) {
-      throw new BadRequestException('Minimum discount must be between 0% and 100%');
+      throw new BadRequestException(appError('MIN_DISCOUNT_RANGE'));
     }
 
     // Update only discovery preferences
@@ -353,7 +354,7 @@ export class UserPreferencesService {
   ): Promise<UserPreferences> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     // Reset to default preferences
@@ -391,7 +392,7 @@ export class UserPreferencesService {
   }> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     const preferences = user.preferences ?? this.defaultPreferences;
@@ -411,7 +412,7 @@ export class UserPreferencesService {
   ): Promise<UserPreferences> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     // Validate imported preferences
@@ -447,7 +448,7 @@ export class UserPreferencesService {
   async getPreferencesHistory(userId: string, limit = 10): Promise<PreferencesHistoryEntry[]> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     const preferencesActions = [
@@ -473,32 +474,32 @@ export class UserPreferencesService {
   private validatePreferences(preferences: UserPreferences): void {
     // Validate theme
     if (!['light', 'dark', 'auto'].includes(preferences.theme)) {
-      throw new BadRequestException('Invalid theme value');
+      throw new BadRequestException(appError('INVALID_SETTING'));
     }
 
     // Validate profile visibility
     if (!['public', 'friends', 'private'].includes(preferences.privacy.profileVisibility)) {
-      throw new BadRequestException('Invalid profile visibility value');
+      throw new BadRequestException(appError('INVALID_SETTING'));
     }
 
     // Validate max distance
     if (preferences.discovery.maxDistance < 100 || preferences.discovery.maxDistance > 50000) {
-      throw new BadRequestException('Max distance must be between 100m and 50km');
+      throw new BadRequestException(appError('MAX_DISTANCE_RANGE'));
     }
 
     // Validate min discount
     if (preferences.discovery.minDiscount < 0 || preferences.discovery.minDiscount > 100) {
-      throw new BadRequestException('Minimum discount must be between 0% and 100%');
+      throw new BadRequestException(appError('MIN_DISCOUNT_RANGE'));
     }
 
     // Validate language code (basic check)
     if (!/^[a-z]{2}(-[A-Z]{2})?$/.test(preferences.language)) {
-      throw new BadRequestException('Invalid language code format');
+      throw new BadRequestException(appError('INVALID_SETTING'));
     }
 
     // Validate currency code (basic check)
     if (!/^[A-Z]{3}$/.test(preferences.currency)) {
-      throw new BadRequestException('Invalid currency code format');
+      throw new BadRequestException(appError('INVALID_SETTING'));
     }
   }
 
@@ -544,7 +545,7 @@ export class UserPreferencesService {
   }> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     const preferences = user.preferences ?? this.defaultPreferences;

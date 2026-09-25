@@ -7,8 +7,6 @@ import {
   Body,
   Request,
   UseGuards,
-  HttpStatus,
-  HttpException,
   Ip,
   Headers,
   Res,
@@ -39,6 +37,7 @@ import {
 import { UserRole } from '../schemas/user.schema';
 import { PrivacyComplianceService } from '../services/privacy-compliance.service';
 
+import { toHttpException } from '../../common/errors';
 interface AuthenticatedRequest {
   user: AuthUser;
 }
@@ -102,14 +101,7 @@ export class PrivacyController {
         timestamp: new Date(),
       };
     } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Failed to record consent',
-          error: (error as Error).message,
-          compliance: 'Tunisia Law No. 2004-63',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'PRIVACY_REQUEST_FAILED');
     }
   }
 
@@ -137,13 +129,7 @@ export class PrivacyController {
         law: '🇹🇳 Tunisia Law No. 2004-63 on Personal Data Protection',
       };
     } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Failed to check compliance',
-          error: (error as Error).message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'PRIVACY_REQUEST_FAILED');
     }
   }
 
@@ -187,13 +173,7 @@ export class PrivacyController {
         timestamp: new Date(),
       };
     } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Failed to record international consent',
-          error: (error as Error).message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'PRIVACY_REQUEST_FAILED');
     }
   }
 
@@ -238,13 +218,7 @@ export class PrivacyController {
         updated,
       };
     } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Failed to update privacy settings',
-          error: (error as Error).message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'PRIVACY_REQUEST_FAILED');
     }
   }
 
@@ -272,13 +246,7 @@ export class PrivacyController {
         ],
       };
     } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Failed to withdraw consent',
-          error: (error as Error).message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'PRIVACY_REQUEST_FAILED');
     }
   }
 
@@ -325,13 +293,7 @@ export class PrivacyController {
         res.send(xml);
       }
     } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Failed to export data',
-          error: (error as Error).message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'PRIVACY_EXPORT_FAILED');
     }
   }
 
@@ -365,13 +327,7 @@ export class PrivacyController {
           deletionRequest.immediateProcessing === true ? 'Immediate' : 'Within 30 days',
       };
     } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Failed to process data deletion',
-          error: (error as Error).message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'PRIVACY_DELETION_FAILED');
     }
   }
 
@@ -392,13 +348,7 @@ export class PrivacyController {
 
       return complianceOverview;
     } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Failed to retrieve compliance overview',
-          error: (error as Error).message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'PRIVACY_REQUEST_FAILED');
     }
   }
 

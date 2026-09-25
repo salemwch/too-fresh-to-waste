@@ -44,6 +44,7 @@ import { VerifyPhoneDto } from './DTO/verify-phone.dto';
 import { UserRole, UserStatus } from './schemas/user.schema';
 import { UsersService } from './user.service';
 
+import { appError, toHttpException } from '../common/errors';
 @ApiTags('👥 User Management')
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -174,14 +175,7 @@ export class UsersController {
         data: user,
       });
     } catch (error) {
-      throw new HttpException(
-        {
-          success: false,
-          message: 'Failed to create user',
-          error: (error as Error).message || error,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'ACCOUNT_CREATE_FAILED');
     }
   }
   @Get()
@@ -250,7 +244,7 @@ export class UsersController {
     try {
       const user = await this.usersService.findOne(id);
       if (user === null || user === undefined) {
-        throw new HttpException({ message: 'User not found' }, HttpStatus.NOT_FOUND);
+        throw new HttpException(appError('USER_NOT_FOUND'), HttpStatus.NOT_FOUND);
       }
       return {
         statusCode: HttpStatus.OK,
@@ -258,10 +252,7 @@ export class UsersController {
         data: user,
       };
     } catch (error) {
-      throw new HttpException(
-        { message: (error as Error).message || 'Error fetching user' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'USER_LOAD_FAILED');
     }
   }
 
@@ -282,10 +273,7 @@ export class UsersController {
         data: updatedUser,
       };
     } catch (error) {
-      throw new HttpException(
-        { message: (error as Error).message || 'Error updating profile' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'PROFILE_UPDATE_FAILED');
     }
   }
 
@@ -342,7 +330,7 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File | undefined,
   ) {
     if (file === null || file === undefined) {
-      throw new HttpException({ message: 'No image file provided' }, HttpStatus.BAD_REQUEST);
+      throw new HttpException(appError('FILE_REQUIRED'), HttpStatus.BAD_REQUEST);
     }
 
     try {
@@ -379,10 +367,7 @@ export class UsersController {
         },
       };
     } catch (error) {
-      throw new HttpException(
-        { message: (error as Error).message || 'Error uploading profile image' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'FILE_UPLOAD_FAILED');
     }
   }
 
@@ -456,10 +441,7 @@ export class UsersController {
         data: result,
       };
     } catch (error) {
-      throw new HttpException(
-        { message: (error as Error).message || 'Error updating location' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'LOCATION_UPDATE_FAILED');
     }
   }
 
@@ -475,10 +457,7 @@ export class UsersController {
         data: updatedUser,
       };
     } catch (error) {
-      throw new HttpException(
-        { message: (error as Error).message || 'Error updating user' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'PROFILE_UPDATE_FAILED');
     }
   }
 
@@ -494,10 +473,7 @@ export class UsersController {
         data: updatedUser,
       };
     } catch (error) {
-      throw new HttpException(
-        { message: (error as Error).message || 'Error updating status' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw toHttpException(error, 'USER_STATUS_UPDATE_FAILED');
     }
   }
 
@@ -581,13 +557,7 @@ export class UsersController {
         throw error;
       }
 
-      throw new HttpException(
-        {
-          success: false,
-          message: (error as Error).message || 'Failed to send verification code',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'VERIFICATION_SEND_FAILED');
     }
   }
 
@@ -644,13 +614,7 @@ export class UsersController {
       const statusCode = result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
       return res.status(statusCode).json(result);
     } catch (error) {
-      throw new HttpException(
-        {
-          success: false,
-          message: (error as Error).message || 'Phone verification failed',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'PHONE_VERIFICATION_FAILED');
     }
   }
 
@@ -711,13 +675,7 @@ export class UsersController {
 
       return res.status(HttpStatus.OK).json(result);
     } catch (error) {
-      throw new HttpException(
-        {
-          success: false,
-          message: (error as Error).message || 'Failed to resend verification code',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw toHttpException(error, 'VERIFICATION_SEND_FAILED');
     }
   }
 
@@ -772,11 +730,8 @@ export class UsersController {
           lastKnownLocation: user.locationPreferences.locationHistory?.[0],
         },
       };
-    } catch {
-      throw new HttpException(
-        { message: 'Failed to fetch location preferences' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    } catch (error) {
+      throw toHttpException(error, 'LOCATION_PREFERENCES_FAILED');
     }
   }
 
@@ -840,11 +795,8 @@ export class UsersController {
         success: true,
         message: 'Location preferences saved successfully',
       };
-    } catch {
-      throw new HttpException(
-        { message: 'Failed to save location preferences' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    } catch (error) {
+      throw toHttpException(error, 'LOCATION_PREFERENCES_FAILED');
     }
   }
 
