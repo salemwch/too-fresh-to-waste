@@ -188,6 +188,9 @@ export const ORDER_DETAIL_FIELDS = [
   'pendingPaymentAt',
   'pricing',
   'pickupDetails',
+  // confirmPickup gates on these; without them a locked order still accepted codes.
+  'pickupLocked',
+  'pickupLockedAt',
   'establishmentAddress',
   'customerNotes',
   'merchantNotes',

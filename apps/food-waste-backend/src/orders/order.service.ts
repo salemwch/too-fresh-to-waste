@@ -1312,6 +1312,8 @@ export class OrdersService {
               $in: [OrderStatus.RESERVED, OrderStatus.READY_FOR_PICKUP, OrderStatus.CONFIRMED],
             },
             $or: codeMatch,
+            // The lockout holds even if it lands between the check above and here.
+            pickupLocked: { $ne: true },
           },
           {
             $set: {
@@ -1370,7 +1372,10 @@ export class OrdersService {
             merchantId: order.merchantId._id,
             orderId: order._id,
             subtotal: order.pricing.subtotal,
-            controlledBy: order.paymentControl?.controlledBy,
+            // From `claimed`, the full document read in this transaction:
+            // `order` is the detail view, which does not project paymentControl,
+            // so reading it there left every post-cutoff pickup unaccrued.
+            controlledBy: claimed.paymentControl?.controlledBy,
             appliedAt: completedAt,
             legacyEligible: paymentHeld,
           },

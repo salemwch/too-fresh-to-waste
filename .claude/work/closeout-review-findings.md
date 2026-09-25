@@ -89,6 +89,27 @@ Verification gaps:
 - 2026-09-25: resolveErrorLocale keeps first-listed-tag matching (documented;
   clients send one tag).
 
+- 2026-09-25 (after commit): the event-flow suite
+  (orders/**tests**/pickup-refund-event-flow.integration.spec.ts) found two
+  defects in confirmPickup, both from reading business state off the detail view
+  (ORDER_DETAIL_FIELDS), which projects neither field:
+  - paymentControl: every pickup after COMMISSION_MODEL_EFFECTIVE_AT booked no
+    commission and the online payout fell back to 100%. Introduced by c44a0417.
+    Fixed by reading it from `claimed`, the full document read in the pickup
+    transaction.
+  - pickupLocked: the 5-attempt pickup-code lockout never blocked a locked
+    order. Pre-existing on master. Fixed by projecting pickupLocked /
+    pickupLockedAt (additive on GET /orders/:id) and by adding
+    `pickupLocked: { $ne: true }` to the atomic claim filter. Both
+    mutation-checked. The atomic-filter guard only matters in a race and is not
+    separately tested.
+- 2026-09-25 correction: the close-out report said the local stack could not
+  boot because it runs production config. Wrong. docker-compose.yml starts PM2
+  with --env development; in development only JWT_SECRET and JWT_REFRESH_SECRET
+  fail (weak-secret denylist, already on master). Verified by validating the
+  container env against the real schema, and by booting the new image with
+  throwaway random JWT secrets.
+
 ## Not fixed (recorded, with reason)
 
 See the close-out report. Redis fail-open, no outbox for order events,
@@ -114,3 +135,19 @@ ratchet blind to identifiers, same-constraint params.
   the live curl check. The docker stack was stopped (clean exit 0) mid-session,
   and the backend image rebuild failed on `apk add` (gcc extract I/O / integrity
   error). Blocked on the user.
+
+## Verification (2026-09-25, after the event-flow fix)
+
+- The "NOT run" line above is superseded: test:db and the live check both ran.
+- Gates on the final tree: shared build + 41 tests; lockfile; backend check:ts,
+  139 suites / 2,342 unit tests, 15 suites / 152 test:db (real Mongo replica set
+  - Redis); mobile tsc, 157 suites / 2,593 tests / 430 snapshots; web tsc, 45
+    suites / 1,333 tests; check:design. Backend lint: the same 5 errors in
+    test/security/route-inventory.ts, none in a changed file.
+- Live check: image wfa-backend:closeout-2026-09-25 booted in a throwaway
+  container (dev PM2 env, random JWT secrets never written to disk, PROCESS_ROLE
+  api), liveness 200 in ~25s. POST /auth/login with an unknown email: 401
+  INVALID_CREDENTIALS in en / fr / ar (0.48-0.69s, dummy argon2 work); the 10th
+  failed attempt: 429 LOGIN_TEMPORARILY_BLOCKED with details.blockedUntil +5min.
+  A curl user agent is refused first with 403 ACCESS_BLOCKED_SUSPICIOUS (bot
+  defence, blocks the IP 5 minutes) - by design.
