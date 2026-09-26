@@ -1,5 +1,5 @@
 ---
-status: draft
+status: ready-for-dev
 scope: cross-app
 gate:
   pnpm --filter @foodwaste/backend check:ts && backend jest + test:db && pnpm
@@ -46,17 +46,34 @@ replaces `today-sales.util.ts`, `ORDER_MERCHANT_AMOUNT_EXPR` and
 
 ### Commission-completed time (`COMMISSION_MOMENT_EXPR`)
 
-The instant a sale completes for commission purposes - the same instant
-`CommissionService` records as `commission.appliedAt`:
+The single source of truth for when a sale completes for commission purposes. It
+is defined by the business completion event on the order, not by
+`commission.appliedAt`:
 
 | Fulfilment                 | Moment                                                         |
 | -------------------------- | -------------------------------------------------------------- |
 | `deliveryMode: 'delivery'` | `driverPickedUpAt` (the driver collecting from the merchant)   |
 | pickup                     | `pickedUpAt`, falling back to `pickupDetails.actualPickupTime` |
 
-`scripts/audit-commission-cutoff.ts` imports this expression instead of its own
-copy, so the audit and the earnings can never disagree about which side of the
-cutoff an order is on.
+The cutoff boundary is exact: moment `< cutoff` is pre-cutoff; moment
+`>= cutoff` with no decision is an integrity failure.
+
+Every consumer uses this definition: the earnings population, the chart, the
+Payments tabs, and `scripts/audit-commission-cutoff.ts`, which imports it
+instead of its own copy. `CommissionService` does not read the order to find the
+moment - its callers pass it - so the guarantee is at the two call sites, both
+of which pass the same instant they write to the moment field in the same
+update:
+
+- pickup, `OrdersService.confirmPickup`: one `completedAt` for `pickedUpAt` and
+  `appliedAt`;
+- delivery, `DriverCashService.onMerchantPickup`: one `now` for
+  `driverPickedUpAt` and `appliedAt`.
+
+This is verified by the code today, not assumed: an integration test confirms a
+pickup and a delivery through the real services and asserts
+`order.commission.appliedAt` equals `COMMISSION_MOMENT_EXPR` evaluated on the
+stored order. A change that lets the two drift fails it.
 
 ### Periods (`resolveSalesPeriod(period, now)`)
 
@@ -85,9 +102,16 @@ and a commission moment inside the period.
 | **Refunded**       | `REFUNDED`                            | any                                      | Payments "Refunded" tab                           |
 | **Being verified** | `PICKED_UP`, `COMPLETED`, `DELIVERED` | absent, at or after the cutoff           | `unverifiedOrders`, Payments "Being verified" tab |
 
-A refunded sale leaves the earnings of the period it was completed in. A refund
-before completion never was a sale: it has no commission moment and appears in
-no tab. Pending, failed, cancelled and expired orders appear in none.
+Refunds:
+
+- **Refunded after commission completion** (it has a moment): excluded from
+  Earnings and shown in the Refunded tab, with its status and reason. Which
+  period it belongs to is decided by its original commission moment, never by
+  the refund timestamp.
+- **Refunded before commission completion**: it was never a sale, has no moment,
+  and appears in no tab.
+
+Pending, failed, cancelled and expired orders appear in no tab.
 
 ### Per-order earned amount - three explicit cases
 
@@ -98,9 +122,14 @@ no tab. Pending, failed, cancelled and expired orders appear in none.
 | 3. Integrity failure    | no `commission`, moment **at or after** the cutoff                 | not an earning: the order is in the Being-verified population, contributes 0 to every total, and is logged                                        |
 
 The cutoff comes from `COMMISSION_MODEL_EFFECTIVE_AT` via `ConfigService`
-(parsed by `commission-cutoff.util.ts`). Outside production it may be unset:
-then the model is inactive, every order without a decision is case 2, and none
-is case 3 - which is what `CommissionService` already does.
+(parsed by `commission-cutoff.util.ts`), per environment:
+
+| Environment | Cutoff                           | Behaviour                                                                                                                                                                     |
+| ----------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| production  | required                         | fail closed: the backend refuses to boot without a valid value (already enforced in `env.validation.ts`); never falls back to the legacy model                                |
+| staging     | required (**new**)               | same rule as production. Today `env.validation.ts` requires it only for `NODE_ENV=production`, so a staging deploy without it would silently run the legacy model. Fixed here |
+| development | may be unset                     | unset = the model is inactive: orders without a decision are case 2, none is case 3, which is what `CommissionService` already does                                           |
+| test        | injected explicitly by each test | every suite states its cutoff; both the active and the unset (inactive) behaviour are covered                                                                                 |
 
 Commission and settlement figures (secondary on the card) come from the same
 decision: `commission.accrued` (NORMAL) and `commission.settled` (SETTLEMENT); 0
@@ -119,13 +148,21 @@ for case 2.
 
 ### Observability
 
-When the Being-verified population is non-empty, the request logs one error:
-`merchant earnings: N post-cutoff sales without a commission decision`, with the
-merchant id and up to 20 order ids (Sentry picks up `logger.error`). One line
-per request, not per order. `pnpm audit:commission-cutoff` keeps exiting 1 on
-the same orders, since it uses the same moment. When the decision is restored,
-the order moves back to Earnings on the next request with its persisted amount -
-nothing is cached per order.
+When the Being-verified population is non-empty, the request reports it once
+(never once per order), under the stable identifier
+`MERCHANT_EARNINGS_UNVERIFIED_ORDERS`, with the structured fields
+`{ code, merchantId, count, period, orderIds }` (`orderIds` capped at 20):
+
+- a structured `logger.error`;
+- an explicit `SentryService.captureMessage(..., 'error', ...)` with
+  `fingerprint: ['MERCHANT_EARNINGS_UNVERIFIED_ORDERS']`, so every occurrence
+  groups into one Sentry issue. `logger.error` alone does **not** reach Sentry
+  here: `main.ts` registers no log integration. `captureMessage` gains an
+  optional `fingerprint`; nothing else in `SentryService` changes.
+
+`pnpm audit:commission-cutoff` keeps exiting 1 on the same orders, since it uses
+the same moment. When the decision is restored, the order moves back to Earnings
+on the next request with its persisted amount - nothing is cached per order.
 
 ## API
 
@@ -182,6 +219,11 @@ summary - each to the millime.
 - [ ] `merchant-sales.ts`: periods, moment, populations, three amount cases,
       payment-method line - unit-tested per case and per boundary.
 - [ ] Audit script imports the shared moment; output unchanged on the same data.
+- [ ] `env.validation.ts` requires `COMMISSION_MODEL_EFFECTIVE_AT` for `staging`
+      as well as `production`; the env-validation spec covers production,
+      staging, development and test.
+- [ ] `SentryService.captureMessage` accepts an optional `fingerprint`; the
+      unverified-orders report sends `MERCHANT_EARNINGS_UNVERIFIED_ORDERS`.
 - [ ] Summary, chart, payments stats and list built on the shared module;
       `merchant-today-sales` and the two old expressions removed; every consumer
       migrated (grep proves none left).
@@ -204,7 +246,17 @@ summary - each to the millime.
 - **Case 3 can never be 81%:** a post-cutoff order without a decision whose
   `subtotal * 0.81` would be a distinctive value (e.g. 12.345) - that value must
   appear in no total, no slot and no row, and `unverifiedOrders` must be 1.
-- Cutoff unset (non-production): no order is case 3.
+- Cutoff boundary: an order whose moment is exactly the cutoff instant and has
+  no decision is case 3; one millisecond earlier is case 2.
+- Cutoff injected explicitly in every suite; with it unset (development) no
+  order is case 3.
+- Env validation: without `COMMISSION_MODEL_EFFECTIVE_AT`, `production` and
+  `staging` are rejected; `development` and `test` pass.
+- Refund period: a sale completed in one period and refunded in the next is in
+  the first period's Refunded tab and neither period's Earnings.
+- Observability: several unverified orders produce exactly one report per
+  request, with the stable code, merchantId, count, period and at most 20 ids,
+  and one `captureMessage` carrying the fingerprint.
 
 **Integration (real replica set)** - seeded for two merchants: cash in store,
 cash via delivery, online pickup, online delivery; NORMAL and SETTLEMENT;
@@ -220,6 +272,9 @@ periods:
 - case 3 is excluded, counted in `unverifiedOrders`, listed in Being verified,
   and logged once;
 - restoring its decision moves it to Earnings with its persisted amount;
+- a pickup confirmed through `OrdersService.confirmPickup` and a delivery picked
+  up through `DriverCashService.onMerchantPickup` each store
+  `commission.appliedAt` equal to `COMMISSION_MOMENT_EXPR` on the stored order;
 - the other merchant's orders never appear; LOCATION_MANAGER sees only its
   establishment, and nothing without an assignment.
 
@@ -233,8 +288,10 @@ periods:
 
 **Mutation checks** (each must fail a test): count `pricing.total`; include
 REFUNDED; date by `createdAt`; drop a payment-method line; use 81% for a
-post-cutoff order; ignore the cutoff; put the period in the held-money query
-key.
+post-cutoff order; ignore the cutoff; treat `moment == cutoff` as pre-cutoff;
+date a refunded sale by its refund time; drop `staging` from the cutoff
+requirement; report once per order instead of once per request; put the period
+in the held-money query key.
 
 ## Decisions
 
@@ -264,6 +321,26 @@ key.
   merchant's order count makes the summary slow.
 - 2026-09-26: Spec lives in `.claude/work/` (project `work-state.md` rule), not
   `docs/superpowers/specs/`.
+- 2026-09-26 (engineering review, each point checked against the code):
+  - Refunds: after commission completion -> Refunded tab, period by the original
+    moment, never the refund time; before completion -> no tab. The first
+    draft's "a refunded sale leaves the earnings of the period it was completed
+    in" was ambiguous and is replaced.
+  - The moment is defined by the business completion fields, not as "equal to
+    `commission.appliedAt`". Verified: both commission call sites
+    (`order.service.ts` confirmPickup, `driver-cash.service.ts`
+    onMerchantPickup) write the moment field and `appliedAt` from one instant,
+    so they are equal today; a test now holds that. Exact boundary: `< cutoff`
+    pre, `>= cutoff` with no decision is an integrity failure.
+  - The cutoff is required in staging too. Verified gap: `NODE_ENV` accepts
+    `staging`, but the rule required the cutoff only for `production`.
+    Production already fails closed.
+  - Correction of the first draft: it claimed `logger.error` reaches Sentry. It
+    does not (no log integration in `main.ts`). The report now calls
+    `SentryService.captureMessage` explicitly, with the stable fingerprint
+    `MERCHANT_EARNINGS_UNVERIFIED_ORDERS`.
+- 2026-09-26: `merchant-today-sales` is removed only after a repo-wide grep
+  shows no consumer left (engineering review).
 
 ## Open questions
 
