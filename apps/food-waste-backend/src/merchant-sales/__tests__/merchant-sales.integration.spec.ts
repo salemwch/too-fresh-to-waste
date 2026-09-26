@@ -124,9 +124,11 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
     logger.error.mockClear();
     await orders.collection.deleteMany({});
 
-    // 1. cash in store - NORMAL
+    // 1. cash in store - NORMAL. discountAmount 5 lives only here (the offer
+    // discount already applied to `subtotal`); `total` stays subtotal +
+    // deliveryFee, since `subtotal` is already the discounted price.
     await seed({
-      pricing: { subtotal: 10, discountAmount: 0, deliveryFee: 0, total: 10 },
+      pricing: { subtotal: 10, discountAmount: 5, deliveryFee: 0, total: 10 },
       pickedUpAt: T('2026-09-12T10:00:00+01:00'),
       commission: normalCommission(10, T('2026-09-12T10:00:00+01:00')),
     });
@@ -247,6 +249,19 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
     expect(millimes(s.total.foodValue)).toBe(63_241);
   });
 
+  it('originalValue adds back the one seeded discount; commission sums the NORMAL rows only', async () => {
+    const s = await service.summary(merchantA, 'month', now);
+    // discountAmount 5 lives only on the cash-in-store row (subtotal 10);
+    // foodValue reads `pricing.subtotal` only, so it is unaffected (63.241,
+    // asserted above) - originalValue is exactly foodValue + 5.
+    expect(millimes(s.total.originalValue)).toBe(millimes(s.total.foodValue) + millimes(5));
+    expect(millimes(s.total.originalValue)).toBe(68_241);
+    // accrued sums the four NORMAL rows' 19%: 10*0.19 + 7*0.19 + 12*0.19 + 9*0.19
+    // = 1.9 + 1.33 + 2.28 + 1.71 = 7.22. The settlement row is 0 accrued / 6
+    // settled; the legacy row has no decision, so 0 accrued and 0 settled.
+    expect(s.commission).toEqual({ rate: PLATFORM_FOOD_SHARE, accrued: 7.22, settled: 6 });
+  });
+
   it("case 3 can never become 81%: its 12.345 is in no total, only the legacy order's is", async () => {
     const s = await service.summary(merchantA, 'month', now);
     // Both orders have subtotal 15.241, so 81% of each is 12.345. Counting case 3
@@ -255,17 +270,67 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
     expect(s.unverifiedOrders).toBe(1); // counted, not earned (its row is checked in Task 8)
   });
 
-  it('reports the integrity failure once per request, with the stable code and at most 20 ids', async () => {
-    await service.summary(merchantA, 'month', now);
+  it('reports the integrity failure once per request - never once per verifying group - with both ids and one log line', async () => {
+    // A second post-cutoff order with no decision, on a different line
+    // (online, not case 3's cashStore), so there are two verifying *groups*.
+    // A per-group report would call captureMessage/logger.error twice; the
+    // binding rule is once per request regardless of how many groups exist.
+    const secondUnverifiedId = await seed({
+      paymentProvider: 'konnect',
+      pricing: { subtotal: 5, discountAmount: 0, deliveryFee: 0, total: 5 },
+      pickedUpAt: T('2026-09-15T11:00:00+01:00'), // after the cutoff, no decision
+    });
+
+    const s = await service.summary(merchantA, 'month', now);
+    expect(s.unverifiedOrders).toBe(2);
+
     expect(sentry.captureMessage).toHaveBeenCalledTimes(1);
     expect(sentry.captureMessage).toHaveBeenCalledWith(
       expect.stringContaining('MERCHANT_EARNINGS_UNVERIFIED_ORDERS'),
       'error',
       expect.objectContaining({
-        merchantEarnings: expect.objectContaining({ count: 1, period: 'month' }),
+        merchantEarnings: expect.objectContaining({ count: 2, period: 'month' }),
       }),
       ['MERCHANT_EARNINGS_UNVERIFIED_ORDERS'],
     );
+    const sentryOrderIds: string[] =
+      sentry.captureMessage.mock.calls[0][2].merchantEarnings.orderIds;
+    // Exactly the two verifying ids, as strings - no earnings order id, no
+    // duplicate, nothing dropped.
+    expect([...sentryOrderIds].sort()).toEqual(
+      [case3Id.toString(), secondUnverifiedId.toString()].sort(),
+    );
+
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('MERCHANT_EARNINGS_UNVERIFIED_ORDERS'),
+      expect.objectContaining({
+        code: 'MERCHANT_EARNINGS_UNVERIFIED_ORDERS',
+        count: 2,
+        period: 'month',
+      }),
+    );
+  });
+
+  it('caps orderIds at 20 when more than 20 orders are unverified', async () => {
+    // case3Id (1) plus 21 more post-cutoff orders with no decision = 22
+    // unverified orders; the report must still cap the id list at 20.
+    const extraMoments = Array.from({ length: 21 }, (_, i) =>
+      T(`2026-09-2${(i % 5) + 1}T10:00:00+01:00`),
+    );
+    for (const moment of extraMoments) {
+      await seed({
+        pricing: { subtotal: 1, discountAmount: 0, deliveryFee: 0, total: 1 },
+        pickedUpAt: moment,
+      });
+    }
+
+    const s = await service.summary(merchantA, 'month', now);
+    expect(s.unverifiedOrders).toBe(22);
+    expect(sentry.captureMessage).toHaveBeenCalledTimes(1);
+    const sentryOrderIds: string[] =
+      sentry.captureMessage.mock.calls[0][2].merchantEarnings.orderIds;
+    expect(sentryOrderIds.length).toBeLessThanOrEqual(20);
   });
 
   it('restoring the decision brings the order back with its persisted amount', async () => {
