@@ -171,7 +171,7 @@
     "@types/jest": "^29.5.13",
     "@types/luxon": "^3.7.1",
     "@types/ms": "^2.1.0",
-    "@types/multer": "^2.1.0",
+    "@types/multer": "^2.2.0",
     "@types/node": "^20.19.43",
     "@types/nodemailer": "8.0.1",
     "@types/passport-jwt": "^4.0.1",
