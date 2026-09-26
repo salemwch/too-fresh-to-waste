@@ -298,3 +298,38 @@ Two further notes from the same pass:
   unchanged across that major, and `config/__tests__/env-validation-*.spec.ts`
   calls `envValidationSchema.validate(...)` directly - 15 assertions that
   actually execute the schema rather than merely importing it.
+
+## `image-size` cleared by a Metro patch, not by an override (2026-09-26)
+
+The 2026-08-11 entry above accepted GHSA-5p2g-fcmc-qvqq and GHSA-w3rx-r6r6-pgpr
+because no fixed `image-size` existed. `2.0.3` has since shipped, and Dependabot
+re-raised both. The fix was **not** to take it.
+
+**Why an override to 2.x would have broken the app.** Metro 0.83.4
+(`metro/src/Assets.js`) calls `imageSize(assetInfo.files[0])` with a **file path
+string**. v2 `imageSize(input)` only accepts a `Uint8Array` (file reading moved
+to `image-size/fromFile`), so every image asset in the bundle would fail to
+resolve. The same trap as `brace-expansion` and `decode-uri-component`: it would
+install cleanly and fail only when Metro ran.
+
+**The actual fix.** `metro@0.83.8` dropped `image-size` entirely (its own
+`lib/imageSize` reads dimensions). 0.83.8 is inside the range React Native 0.81
+declares (`@react-native/community-cli-plugin` -> `metro ^0.83.1`), so this is a
+patch inside the line already in use, not a major. `pnpm update` could not do it
+(it moves direct dependencies only, and left `metro` at 0.83.4 next to a
+`metro-cache` 0.83.8), so the family is pinned together with version-scoped
+overrides, one per package, all `"<pkg>@^0.83": "^0.83.8"`. They must move as
+one: `metro` pins its `metro-*` siblings exactly, and a mixed family loads two
+copies of `metro-config`.
+
+Verified: all 14 `metro*` packages at 0.83.8 and no `image-size` in the
+lockfile; the only other resolved changes are Metro's own `ob1`, `hermes-*`
+0.33.3 -> 0.35.0, and `queue` removed. `pnpm audit` lists only the accepted
+GHSA-vcc3-ghjq-m6fr, so the two `image-size` entries were removed from
+`ignoreGhsas`. A release `react-native bundle --platform android` registered all
+20 image assets with real dimensions; mobile type-check and 157 suites / 2,593
+tests / 430 snapshots pass (including `linking.test.ts`).
+
+**Remove these overrides when** React Native moves to a Metro line that already
+ships without `image-size` (0.84+ does); leaving `metro@^0.83` selectors behind
+then does nothing, but they would hold a future 0.83 back.
