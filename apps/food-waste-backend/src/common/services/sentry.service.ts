@@ -329,6 +329,7 @@ export class SentryService implements OnModuleInit {
     message: string,
     level: Sentry.SeverityLevel = 'info',
     context?: SentryContext,
+    fingerprint?: string[],
   ): string {
     if (!this.isInitialized) {
       return '';
@@ -337,6 +338,7 @@ export class SentryService implements OnModuleInit {
     return Sentry.captureMessage(message, {
       level,
       ...(context ? { contexts: context } : {}),
+      ...(fingerprint ? { fingerprint } : {}),
     } as Parameters<typeof Sentry.captureMessage>[1]);
   }
 
