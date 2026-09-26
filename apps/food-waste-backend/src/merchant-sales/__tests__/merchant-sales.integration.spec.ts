@@ -401,4 +401,41 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
       millimes(augustEarnings),
     );
   });
+
+  // --- Task 7: the chart, built from the same population as the summary ---
+
+  it.each(['today', '7d', '30d', 'month', 'all'] as const)(
+    '%s: chart slots sum to the summary total, in millimes',
+    async period => {
+      const [summary, chart] = await Promise.all([
+        service.summary(merchantA, period, now),
+        service.chart(merchantA, period, now),
+      ]);
+      const slots = chart.slots.reduce((sum, s) => sum + Math.round(s.earned * 1000), 0);
+      expect(slots).toBe(Math.round(summary.total.earned * 1000));
+      expect(chart.slots.reduce((sum, s) => sum + s.orders, 0)).toBe(summary.total.orders);
+    },
+  );
+
+  it('today has 24 hourly slots, and a sale at 00:10 Tunis is in the 00:00 slot', async () => {
+    // Seeded here, not in the shared table, so the fixed totals of Task 6 stay
+    // valid: a NORMAL cash-in-store sale, subtotal 5, pickedUpAt
+    // 2026-09-25T23:10:00Z (00:10 local on the 26th).
+    await seed({
+      pricing: { subtotal: 5, discountAmount: 0, deliveryFee: 0, total: 5 },
+      pickedUpAt: T('2026-09-25T23:10:00Z'),
+      commission: normalCommission(5, T('2026-09-25T23:10:00Z')),
+    });
+
+    const chart = await service.chart(merchantA, 'today', now);
+    expect(chart.slots).toHaveLength(24);
+    expect(chart.slots[0]?.start).toBe('2026-09-25T23:00:00.000Z');
+    expect(chart.slots[0]?.orders).toBe(1);
+  });
+
+  it('empty days are 0 slots, not missing ones', async () => {
+    const chart = await service.chart(merchantA, '7d', now);
+    expect(chart.slots).toHaveLength(7);
+    expect(chart.slots.every(s => typeof s.earned === 'number')).toBe(true);
+  });
 });

@@ -1,5 +1,5 @@
 import type { PaymentLine } from './merchant-sales.expressions';
-import type { SalesPeriod } from './merchant-sales.period';
+import type { SalesGranularity, SalesPeriod } from './merchant-sales.period';
 
 export const MERCHANT_EARNINGS_UNVERIFIED_ORDERS = 'MERCHANT_EARNINGS_UNVERIFIED_ORDERS';
 
@@ -17,6 +17,12 @@ export interface MerchantSalesSummary {
   channels: Record<PaymentLine, LineTotals>;
   commission: { rate: number; accrued: number; settled: number };
   unverifiedOrders: number;
+}
+
+export interface MerchantSalesChart {
+  period: SalesPeriod;
+  granularity: SalesGranularity;
+  slots: Array<{ start: string; orders: number; bags: number; earned: number }>;
 }
 
 export interface SalesGroupRow {

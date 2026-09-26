@@ -8,11 +8,17 @@ import { parseCommissionCutoff } from '../config/commission-cutoff.util';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
 import { PLATFORM_FOOD_SHARE } from '../orders/utils/order-pricing.util';
 import { salesBaseStages } from './merchant-sales.expressions';
-import { resolveSalesPeriod, type SalesPeriod } from './merchant-sales.period';
+import {
+  resolveSalesPeriod,
+  salesSlots,
+  SALES_TIMEZONE,
+  type SalesPeriod,
+} from './merchant-sales.period';
 import { scopeMatch, type SalesScope } from './merchant-sales.scope';
 import { summariseSalesGroups } from './merchant-sales.summarise';
 import {
   MERCHANT_EARNINGS_UNVERIFIED_ORDERS,
+  type MerchantSalesChart,
   type MerchantSalesSummary,
   type SalesGroupRow,
 } from './merchant-sales.types';
@@ -61,6 +67,55 @@ export class MerchantSalesService {
   ): Promise<MerchantSalesSummary> {
     const result = await this.compute(scope, range, 'custom');
     return result;
+  }
+
+  /**
+   * The chart built from exactly the same population as `summary`, so its
+   * slots always add up to the summary total (Task 7). Gaps (an hour, day or
+   * month with no sale) are filled with a 0 slot rather than omitted.
+   */
+  async chart(
+    scope: SalesScope,
+    period: SalesPeriod,
+    now: Date = new Date(),
+  ): Promise<MerchantSalesChart> {
+    const range = resolveSalesPeriod(period, now);
+    const stages = this.baseStages(scope, range);
+    const buckets = stages
+      ? await this.orderModel.aggregate<{
+          _id: Date;
+          orders: number;
+          bags: number;
+          earnedMillimes: number;
+        }>([
+          ...stages,
+          { $match: { _population: 'earnings' } },
+          {
+            $group: {
+              _id: {
+                $dateTrunc: { date: '$_moment', unit: range.granularity, timezone: SALES_TIMEZONE },
+              },
+              orders: { $sum: 1 },
+              bags: { $sum: { $sum: '$items.quantity' } },
+              earnedMillimes: { $sum: '$_earnedMillimes' },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+      : [];
+
+    const byStart = new Map(buckets.map(b => [b._id.getTime(), b]));
+    const slots = salesSlots(range, buckets[0]?._id ?? null, now).map(start => {
+      const b = byStart.get(start.getTime());
+      return {
+        start: start.toISOString(),
+        orders: b?.orders ?? 0,
+        bags: b?.bags ?? 0,
+        earned: (b?.earnedMillimes ?? 0) / 1000,
+      };
+    });
+
+    return { period, granularity: range.granularity, slots };
   }
 
   private async compute(
