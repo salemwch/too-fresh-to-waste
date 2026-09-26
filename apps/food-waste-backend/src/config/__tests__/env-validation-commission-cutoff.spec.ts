@@ -100,4 +100,25 @@ describe('env validation - COMMISSION_MODEL_EFFECTIVE_AT', () => {
       ).not.toEqual([]);
     });
   });
+
+  describe.each([
+    ['production', true],
+    ['staging', true],
+    ['development', false],
+    ['test', false],
+  ])('COMMISSION_MODEL_EFFECTIVE_AT missing with NODE_ENV=%s', (nodeEnv, mustFail) => {
+    it(mustFail ? 'refuses to boot' : 'boots with the model inactive', () => {
+      const { NODE_ENV: _drop, ...rest } = PRODUCTION_BASE;
+      const env = { ...rest, NODE_ENV: nodeEnv };
+      delete (env as Record<string, unknown>)[KEY];
+
+      const { error } = envValidationSchema.validate(env, {
+        abortEarly: false,
+        allowUnknown: true,
+      });
+      const cutoffErrs = (error?.details ?? []).filter(d => d.path[0] === KEY);
+
+      expect(cutoffErrs.length > 0).toBe(mustFail);
+    });
+  });
 });
