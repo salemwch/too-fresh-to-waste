@@ -169,12 +169,12 @@ on the next request with its persisted amount - nothing is cached per order.
 All merchant endpoints take `period` (default `month`) and the existing optional
 `establishmentId`.
 
-| Endpoint                             | Returns                                                                                                                                                                                      |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /orders/merchant-sales-summary` | `{ period, from, to, currency, total: { orders, earned }, channels: { cashStore, cashDelivery, online: { orders, earned } }, commission: { rate, accrued, settled }, unverifiedOrders }`     |
-| `GET /orders/merchant-sales-chart`   | `{ period, granularity, slots: [{ start, orders, earned }] }`, gap-filled, Tunis-time slot starts                                                                                            |
-| `GET /payments/stats` (merchant)     | the summary's `total`, `channels` and `unverifiedOrders` - produced by the same function, not a copy                                                                                         |
-| `GET /payments/my-merchant-payments` | adds `period` and `tab = earnings \| refunded \| verifying` (default `earnings`); every row carries `earned`, the payment-method line, `commissionMoment`, and for the other tabs the reason |
+| Endpoint                             | Returns                                                                                                                                                                                                            |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /orders/merchant-sales-summary` | `{ period, from, to, currency, total: { orders, earned, foodValue, originalValue }, channels: { cashStore, cashDelivery, online: { orders, earned } }, commission: { rate, accrued, settled }, unverifiedOrders }` |
+| `GET /orders/merchant-sales-chart`   | `{ period, granularity, slots: [{ start, orders, earned }] }`, gap-filled, Tunis-time slot starts                                                                                                                  |
+| `GET /payments/stats` (merchant)     | the summary's `total`, `channels` and `unverifiedOrders` - produced by the same function, not a copy                                                                                                               |
+| `GET /payments/my-merchant-payments` | adds `period` and `tab = earnings \| refunded \| verifying` (default `earnings`); every row carries `earned`, the payment-method line, `commissionMoment`, and for the other tabs the reason                       |
 
 Removed: `GET /orders/merchant-today-sales` (web is its only consumer; replaced
 by `period=today`), the `revenue` series in the chart (`pricing.total` includes
@@ -341,6 +341,48 @@ in the held-money query key.
     `MERCHANT_EARNINGS_UNVERIFIED_ORDERS`.
 - 2026-09-26: `merchant-today-sales` is removed only after a repo-wide grep
   shows no consumer left (engineering review).
+
+- 2026-09-26 (plan review, user + engineer, checked against the code):
+  - Chart: the main line is merchant earnings in TND; bags stay in the tooltip.
+    (Today's chart plots bags.)
+  - **A merchant never sees or receives delivery money** - no delivery fee, no
+    customer total, no driver earnings, under any name ("Total revenue",
+    "Customer spend", "Gross order value" all rejected). The merchant earns from
+    the food they sell; delivery is its own financial flow and belongs to the
+    platform. This covers every merchant screen and the API: merchant and
+    location-manager responses omit `pricing.deliveryFee`, `pricing.total` and
+    `driverEarnings` (data minimisation - not sent, not only hidden). Every
+    merchant order route and socket event is covered by a test.
+  - `pricing.subtotal` is the food price **after** the offer discount
+    (`sum(discountedPrice x quantity)`, `order.service.ts` createOrder);
+    `discountAmount` is `original - discounted`, informational, and is never
+    subtracted from anything. So the merchant order detail shows: food items,
+    Original value (`subtotal + discountAmount`), Discount (`-discountAmount`),
+    Food price (`subtotal`), and after completion Your earnings (frozen
+    decision). "Subtotal -> Discount -> Food price" was rejected: it implies
+    `subtotal - discount`, which is wrong here.
+  - Tax: `calculateOrderPricing` sets `taxAmount = 0` for every order, so no
+    order has an authoritative tax amount. No Tax line is shown, nothing is
+    guessed, no rate is hard-coded, and tax never enters `Your earnings`.
+    `Your earnings` is TFTW's frozen merchant amount, not the merchant's
+    accounting profit after their own tax obligations.
+  - Analytics: "Average order value" (customer total) becomes "Average food
+    value per completed order" = food price (`pricing.subtotal`) / orders, over
+    the same Earnings population, from the shared summary (`total.foodValue`).
+    It is not earnings per order.
+  - "Revenue rescued" discount % =
+    `(originalValue - foodValue) / originalValue`, both from the shared summary
+    (`total.originalValue`, `total.foodValue`), so delivery never enters it and
+    it covers the same orders as the earnings.
+  - `commission.appliedAt` is never read as the source of truth. The planned
+    equality test stays because `CommissionService.isModelActiveAt(appliedAt)`
+    decides which model an order gets: if `appliedAt` drifted from the canonical
+    moment, an order could get the legacy engine while the earnings treat it as
+    post-cutoff (a false "being verified"). The pickup path already documents
+    the two "must never disagree"; the test holds it.
+  - Execution: subagent-driven, sequential, in this working tree (the plan file
+    is gitignored), review between task groups; Docker Desktop started before
+    the database tasks.
 
 ## Open questions
 
