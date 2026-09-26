@@ -74,8 +74,18 @@ describe('salesSlots', () => {
     expect(slots[6]?.toISOString()).toBe('2026-09-25T23:00:00.000Z');
   });
 
+  it('30d is thirty daily slots ending today', () => {
+    const slots = salesSlots(resolveSalesPeriod('30d', now), null, now);
+    expect(slots).toHaveLength(30);
+    expect(slots[0]?.toISOString()).toBe('2026-08-27T23:00:00.000Z');
+    expect(slots[29]?.toISOString()).toBe('2026-09-25T23:00:00.000Z');
+  });
+
   it('month is one slot per day from the 1st to today', () => {
-    expect(salesSlots(resolveSalesPeriod('month', now), null, now)).toHaveLength(26);
+    const slots = salesSlots(resolveSalesPeriod('month', now), null, now);
+    expect(slots).toHaveLength(26);
+    expect(slots[0]?.toISOString()).toBe('2026-08-31T23:00:00.000Z');
+    expect(slots[25]?.toISOString()).toBe('2026-09-25T23:00:00.000Z');
   });
 
   it('all runs monthly from the first sale month to this month', () => {
