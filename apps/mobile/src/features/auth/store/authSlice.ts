@@ -37,6 +37,7 @@ import {
 import type { User } from '../types';
 import type { RootState } from '@/store';
 
+import { isRegisterFieldError, type RegisterFailure } from '../utils/registerErrors';
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -203,26 +204,15 @@ const authSlice = createSlice({
 
     builder.addCase(registerAsync.rejected, (state, action) => {
       state.isLoading = false;
-      const payload = action.payload as { message?: string } | undefined;
-      const errorMessage =
-        payload?.message != null && payload.message !== ''
-          ? payload.message
-          : 'Registration failed';
+      const failure = (action.payload ?? {}) as RegisterFailure;
 
-      // DON'T set global error for field-level validation errors
-      // These are handled inline by the RegisterScreen component
-      const isFieldLevelError =
-        errorMessage.toLowerCase().includes('email') ||
-        errorMessage.toLowerCase().includes('phone') ||
-        errorMessage.toLowerCase().includes('password');
-
-      if (!isFieldLevelError) {
-        // Only set global error for general registration failures
-        state.error = errorMessage;
-      } else {
-        // Clear any previous global error for field-level errors
-        state.error = undefined;
-      }
+      // Field errors are shown inline by RegisterScreen; only a failure that
+      // belongs to no field goes to the global banner. Decided by the error
+      // code - the message is translated, so searching it for "email" only
+      // ever worked in English.
+      state.error = isRegisterFieldError(failure)
+        ? undefined
+        : (failure.message ?? 'register.registrationFailed');
 
       // DON'T change flowState - keep user on register screen to see the error
       // flowState should remain as UNAUTHENTICATED (or whatever it was before)

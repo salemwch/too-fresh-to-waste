@@ -1,5 +1,14 @@
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, buildPasswordRegex } from '@foodwaste/shared';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  Matches,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 
 import type { CreateUserInput } from '@foodwaste/shared';
 
@@ -20,9 +29,11 @@ export class CreateUserDto implements CreateUserInput {
   @Transform(normalizedEmailTransform)
   email!: string;
 
+  // The same rule as every other password input (register, reset, change).
   @IsString()
-  @MinLength(8)
-  @MaxLength(128)
+  @MinLength(PASSWORD_MIN_LENGTH)
+  @MaxLength(PASSWORD_MAX_LENGTH)
+  @Matches(buildPasswordRegex(), { message: 'PASSWORD_POLICY' })
   password!: string;
 
   @IsOptional()

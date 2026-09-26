@@ -1,6 +1,7 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import type { ApiError } from '@foodwaste/shared';
+import { readApiError, type ApiError } from '@foodwaste/shared';
 import { useAuthStore } from './auth';
+import { currentPageLocale } from './page-locale';
 
 /**
  * Resolve the API base URL.
@@ -23,6 +24,13 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Every request says which language the page is in, so backend errors come
+// back translated (the response `message`) with a stable `code` to branch on.
+apiClient.interceptors.request.use(config => {
+  config.headers.set('Accept-Language', currentPageLocale());
+  return config;
 });
 
 // ─── Refresh mutex + request queue ───────────────────────────────────────────
@@ -86,7 +94,12 @@ export async function performRefreshOnce(): Promise<string> {
     // Network errors, timeouts, and 5xx keep the session alive.
     const status = (err as { response?: { status?: number } })?.response?.status;
     const errorBody = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
-    const isAccountSuspended = status === 403 && errorBody?.['error'] === 'ACCOUNT_SUSPENDED';
+    // By code. The old check read a top-level `error` field the global filter
+    // never sent, so a suspended user's session was neither cleared nor sent
+    // to login - it stayed 'authenticated' and every call kept failing.
+    const errorCode = readApiError(errorBody).code;
+    const isAccountSuspended =
+      status === 403 && (errorCode === 'ACCOUNT_INACTIVE' || errorCode === 'ACCOUNT_SUSPENDED');
 
     if (status === 401) {
       if (process.env.NODE_ENV === 'development') {

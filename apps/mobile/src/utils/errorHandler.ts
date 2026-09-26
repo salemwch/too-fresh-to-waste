@@ -26,7 +26,7 @@ export interface AppError {
   validationErrors?: Record<string, string>;
   // Backend field-specific error metadata
   field?: string; // Field name for inline validation errors (e.g., 'email', 'password')
-  errorCode?: string; // Backend-specific error type code (e.g., 'EMAIL_NOT_FOUND', 'INVALID_PASSWORD')
+  errorCode?: string; // Backend error code (e.g. 'INVALID_CREDENTIALS', 'EMAIL_NOT_VERIFIED')
   // Account lockout metadata
   isAccountLocked?: boolean; // True if this is an account lockout error
   blockedUntil?: string | Date; // Timestamp when account will be unlocked

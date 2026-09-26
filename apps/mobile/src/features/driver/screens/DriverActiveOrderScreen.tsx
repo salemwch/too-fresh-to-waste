@@ -13,12 +13,19 @@
  * Actions:
  *   - "Navigate in Maps" → deep-links to Waze (preferred) or Google Maps, aimed
  *     at the store before pickup and at the customer after it
- *   - "Confirm Pickup" → driver_assigned → out_for_delivery
- *   - "Mark as Delivered" → out_for_delivery → delivered, resets to DriverOrdersList
- *   - "Unassign" → Alert confirmation → returns the order to the pool
+ *   - "Confirm Pickup" → driver_assigned → out_for_delivery. The backend freezes
+ *     the money instruction (`driverInstruction`) and the app shows it at
+ *     once: "Pay the merchant x TND" from the TFTW float.
+ *   - "Mark as Delivered" → ConfirmCashSheet (the driver confirms what the
+ *     customer paid) → out_for_delivery → delivered, resets to DriverOrdersList
+ *   - Before pickup: "Unassign" → returns the order to the pool.
+ *     After pickup: "Report a problem" → ReportProblemSheet. A collected order
+ *     cannot go back to the pool: the merchant has been paid from the float.
+ *
+ * Money model: .claude/work/commission-settlement-model.md ("Driver cash").
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -52,12 +59,17 @@ import type {
   DriverActiveOrderRouteProp,
 } from '@/navigation/types';
 
+import { ConfirmCashSheet } from '../components/ConfirmCashSheet';
+import { DeliveryMoneyCard } from '../components/DeliveryMoneyCard';
+import { ReportProblemSheet } from '../components/ReportProblemSheet';
 import {
   useActiveOrder,
+  useFailDelivery,
   useMarkDelivered,
   useMarkPickedUp,
   useUnassignOrder,
 } from '../hooks/useDriverOrders';
+import type { DeliveryFailureReason, DeliveryRecovery } from '../utils/deliveryCash';
 
 // ---------------------------------------------------------------------------
 // Design tokens
@@ -88,9 +100,7 @@ interface Props {
 
 function extractLatLng(
   coords:
-    | { lat: number; lng: number }
-    | { type: string; coordinates: [number, number] }
-    | undefined,
+    { lat: number; lng: number } | { type: string; coordinates: [number, number] } | undefined,
 ): { latitude: number; longitude: number } | null {
   if (!coords) return null;
   if ('lat' in coords) return { latitude: coords.lat, longitude: coords.lng };
@@ -196,12 +206,30 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
   const { mutate: confirmPickup, isPending: isPickingUp } = useMarkPickedUp();
   const { mutate: deliver, isPending: isDelivering } = useMarkDelivered();
   const { mutate: unassign, isPending: isUnassigning } = useUnassignOrder();
+  const { mutate: failDelivery, isPending: isReporting } = useFailDelivery();
 
-  const isBusy = isPickingUp || isDelivering || isUnassigning;
+  const [cashSheetOpen, setCashSheetOpen] = useState(false);
+  const [problemSheetOpen, setProblemSheetOpen] = useState(false);
+
+  const isBusy = isPickingUp || isDelivering || isUnassigning || isReporting;
 
   // Before pickup the driver is heading to the store; after it, to the customer.
   // This drives the map focus, the nav deep-link, and the primary action.
   const hasCollected = order?.status === 'out_for_delivery';
+
+  // Who collects at the door. Online-paid orders collect nothing.
+  const paidOnline =
+    order?.paymentControl?.collector === 'PAYMENT_GATEWAY' ||
+    order?.paymentDetails?.method === 'online';
+
+  // The frozen figure; the fallbacks only serve an order collected before the
+  // backend froze instructions, and are never computed from prices here.
+  const expectedCash = paidOnline
+    ? 0
+    : (order?.driverInstruction?.collectFromCustomer ??
+      order?.paymentDetails?.amount ??
+      order?.totalAmount ??
+      0);
 
   // ---------------------------------------------------------------------------
   // Navigation helpers
@@ -224,47 +252,99 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
 
   const handleConfirmPickup = useCallback(() => {
     confirmPickup(orderId, {
+      onSuccess: picked => {
+        // The instruction is frozen now; show it while the driver is at the counter.
+        const payMerchant = picked.driverInstruction?.payMerchant;
+        if (payMerchant === undefined) return;
+        Alert.alert(
+          t('driver.payMerchantNowTitle'),
+          payMerchant > 0
+            ? t('driver.payMerchantNowBody', {
+                amount: payMerchant.toFixed(3),
+                currency: t('common.currency'),
+              })
+            : t('driver.payMerchantNothingBody'),
+        );
+      },
       onError: () => {
         Alert.alert(t('driver.pickupFailedTitle'), t('driver.pickupFailedBody'));
       },
     });
   }, [confirmPickup, orderId, t]);
 
-  const handleDeliver = useCallback(() => {
-    deliver(orderId, {
-      onSuccess: resetToList,
-      onError: () => {
-        Alert.alert(t('driver.deliveryFailedTitle'), t('driver.deliveryFailedBody'));
-      },
-    });
-  }, [deliver, orderId, resetToList, t]);
+  const openCashSheet = useCallback(() => setCashSheetOpen(true), []);
+  const closeCashSheet = useCallback(() => setCashSheetOpen(false), []);
 
-  const handleUnassign = useCallback(() => {
-    // Dropping an order after collecting the food strands real food with the
-    // driver, so the confirmation has to say so plainly.
-    Alert.alert(
-      t('driver.unassignTitle'),
-      hasCollected ? t('driver.unassignBodyCollected') : t('driver.unassignBody'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
+  const handleDeliver = useCallback(
+    (collectedCash: number) => {
+      deliver(
+        { orderId, collectedCash },
         {
-          text: t('driver.unassign'),
-          style: 'destructive',
-          onPress: () => {
-            unassign(
-              { orderId },
-              {
-                onSuccess: resetToList,
-                onError: () => {
-                  Alert.alert(t('driver.unassignFailedTitle'), t('driver.unassignFailedBody'));
-                },
-              },
-            );
+          onSuccess: () => {
+            setCashSheetOpen(false);
+            resetToList();
+          },
+          onError: () => {
+            Alert.alert(t('driver.deliveryFailedTitle'), t('driver.deliveryFailedBody'));
           },
         },
-      ],
-    );
-  }, [unassign, orderId, resetToList, hasCollected, t]);
+      );
+    },
+    [deliver, orderId, resetToList, t],
+  );
+
+  const openProblemSheet = useCallback(() => setProblemSheetOpen(true), []);
+  const closeProblemSheet = useCallback(() => setProblemSheetOpen(false), []);
+
+  const handleReportProblem = useCallback(
+    (input: { reason: DeliveryFailureReason; recovery: DeliveryRecovery; notes?: string }) => {
+      failDelivery(
+        { orderId, ...input },
+        {
+          onSuccess: () => {
+            setProblemSheetOpen(false);
+            resetToList();
+          },
+          onError: () => {
+            Alert.alert(t('driver.reportFailedTitle'), t('driver.reportFailedBody'));
+          },
+        },
+      );
+    },
+    [failDelivery, orderId, resetToList, t],
+  );
+
+  const handleUnassign = useCallback(() => {
+    // Before pickup only: nothing has been paid and the food is still at the store.
+    Alert.alert(t('driver.unassignTitle'), t('driver.unassignBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('driver.unassign'),
+        style: 'destructive',
+        onPress: () => {
+          unassign(
+            { orderId },
+            {
+              onSuccess: resetToList,
+              onError: error => {
+                // 409: the order was collected meanwhile - the backend refuses to
+                // pool an order whose merchant was paid from the float.
+                const status = (error as { response?: { status?: number } }).response?.status;
+                if (status === 409) {
+                  Alert.alert(
+                    t('driver.unassignAfterPickupTitle'),
+                    t('driver.unassignAfterPickupBody'),
+                  );
+                  return;
+                }
+                Alert.alert(t('driver.unassignFailedTitle'), t('driver.unassignFailedBody'));
+              },
+            },
+          );
+        },
+      },
+    ]);
+  }, [unassign, orderId, resetToList, t]);
 
   // ---------------------------------------------------------------------------
   // Loading / recovery states
@@ -376,7 +456,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
                   coordinate={deliveryLatLng}
                   pinColor={colorTokens.base.info[500]}
                   title={t('driver.marker_customer')}
-                  description='Delivery location'
+                  description={t('driver.deliveryLocation')}
                 />
               ) : null}
               {pickupLatLng ? (
@@ -451,6 +531,11 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
           </SectionCard>
         ) : null}
 
+        {/* ── Money: frozen at pickup by the backend, displayed as-is ── */}
+        {order?.driverInstruction ? (
+          <DeliveryMoneyCard instruction={order.driverInstruction} paidOnline={paidOnline} />
+        ) : null}
+
         {/* ── Earnings ── */}
         {order?.driverEarnings != null ? (
           <View style={styles.earningsCard}>
@@ -470,7 +555,7 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
         {hasCollected ? (
           <TouchableOpacity
             style={[styles.deliverButton, isBusy && styles.buttonDisabled]}
-            onPress={handleDeliver}
+            onPress={openCashSheet}
             disabled={isBusy}
             activeOpacity={0.85}
             accessibilityRole='button'
@@ -503,23 +588,53 @@ export default function DriverActiveOrderScreen({ navigation, route }: Props) {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity
-          style={[styles.unassignButton, isBusy && styles.buttonDisabled]}
-          onPress={handleUnassign}
-          disabled={isBusy}
-          activeOpacity={0.85}
-          accessibilityRole='button'
-          accessibilityLabel={t('driver.a11yUnassign')}
-          accessibilityHint={t('driver.a11yUnassignHint')}
-          accessibilityState={{ disabled: isBusy }}
-        >
-          {isUnassigning ? (
-            <ActivityIndicator color={ERROR} />
-          ) : (
-            <Text style={styles.unassignText}>{t('driver.unassign')}</Text>
-          )}
-        </TouchableOpacity>
+        {hasCollected ? (
+          <TouchableOpacity
+            style={[styles.unassignButton, isBusy && styles.buttonDisabled]}
+            onPress={openProblemSheet}
+            disabled={isBusy}
+            activeOpacity={0.85}
+            accessibilityRole='button'
+            accessibilityLabel={t('driver.reportProblem')}
+            accessibilityHint={t('driver.a11yReportProblemHint')}
+            accessibilityState={{ disabled: isBusy }}
+          >
+            <Text style={styles.unassignText}>{t('driver.reportProblem')}</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.unassignButton, isBusy && styles.buttonDisabled]}
+            onPress={handleUnassign}
+            disabled={isBusy}
+            activeOpacity={0.85}
+            accessibilityRole='button'
+            accessibilityLabel={t('driver.a11yUnassign')}
+            accessibilityHint={t('driver.a11yUnassignHint')}
+            accessibilityState={{ disabled: isBusy }}
+          >
+            {isUnassigning ? (
+              <ActivityIndicator color={ERROR} />
+            ) : (
+              <Text style={styles.unassignText}>{t('driver.unassign')}</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
+
+      <ConfirmCashSheet
+        visible={cashSheetOpen}
+        expected={expectedCash}
+        paidOnline={paidOnline}
+        isSubmitting={isDelivering}
+        onClose={closeCashSheet}
+        onConfirm={handleDeliver}
+      />
+      <ReportProblemSheet
+        visible={problemSheetOpen}
+        isSubmitting={isReporting}
+        onClose={closeProblemSheet}
+        onSubmit={handleReportProblem}
+      />
     </View>
   );
 }

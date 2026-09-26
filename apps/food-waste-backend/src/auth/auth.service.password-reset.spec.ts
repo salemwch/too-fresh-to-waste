@@ -79,6 +79,8 @@ describe('AuthService — password reset actor matrix', () => {
             markTokenInvalidation: jest.fn().mockResolvedValue(undefined),
             incrementTokenRevocationVersion: jest.fn().mockResolvedValue(undefined),
             updateEmailVerificationToken: jest.fn().mockResolvedValue(undefined),
+            findById: jest.fn(),
+            completePasswordChange: jest.fn().mockResolvedValue(undefined),
           },
         },
         { provide: JwtService, useValue: { signAsync: jest.fn() } },
@@ -218,6 +220,44 @@ describe('AuthService — password reset actor matrix', () => {
       expect(new Set(messages).size).toBe(1);
     });
 
+    // Timing: awaiting SMTP only for real accounts made them measurably
+    // slower than unknown emails. A send that never finishes must not hold
+    // the response.
+    it.each([
+      ['local', {}, 'sendPasswordResetEmail'],
+      ['OAuth', { authProvider: 'google' }, 'sendOAuthSignInEmail'],
+    ] as const)('answers a %s account without waiting for the mail', async (_c, over, send) => {
+      usersService.findByEmail.mockResolvedValue(makeUser(over));
+      emailService[send].mockReturnValue(new Promise(() => undefined));
+
+      const result = await service.forgotPassword({ email: EMAIL });
+
+      expect(result.message).toBe(NEUTRAL_RESET_MESSAGE);
+      expect(emailService[send]).toHaveBeenCalledTimes(1);
+    });
+
+    // The token write is awaited only for a real local account, so it had
+    // the same timing tell as the mail. It runs in the background too, and
+    // still before the send: no link goes out for a token that was not stored.
+    it('answers before the reset token is stored, and mails only after it is', async () => {
+      usersService.findByEmail.mockResolvedValue(makeUser());
+      let stored!: () => void;
+      usersService.setPasswordResetToken.mockReturnValue(
+        new Promise<void>(resolve => {
+          stored = resolve;
+        }),
+      );
+
+      const result = await service.forgotPassword({ email: EMAIL });
+
+      expect(result.message).toBe(NEUTRAL_RESET_MESSAGE);
+      expect(emailService.sendPasswordResetEmail).not.toHaveBeenCalled();
+
+      stored();
+      await new Promise(resolve => setImmediate(resolve));
+      expect(emailService.sendPasswordResetEmail).toHaveBeenCalledTimes(1);
+    });
+
     // A mail provider outage must not change the response either.
     it('keeps the same message when the mail fails to send', async () => {
       usersService.findByEmail.mockResolvedValue(makeUser());
@@ -312,6 +352,25 @@ describe('AuthService — password reset actor matrix', () => {
       expect(usersService.incrementTokenRevocationVersion).toHaveBeenCalledWith(USER_ID);
     });
 
+    // A link issued before the account was disabled must not set a password
+    // on it, and must not say why it failed.
+    it.each([UserStatus.SUSPENDED, UserStatus.BLOCKED, UserStatus.DELETED, UserStatus.ANONYMIZED])(
+      'refuses a valid token on a %s account, as if the token were bad',
+      async status => {
+        usersService.findByPasswordResetToken.mockResolvedValue(makeUser({ status }));
+
+        const error = await service
+          .resetPassword({ email: EMAIL, token: 'valid', newPassword: 'NewPass123!@#' })
+          .catch((e: unknown) => e);
+
+        expect(error).toBeInstanceOf(BadRequestException);
+        expect((error as BadRequestException).getResponse()).toMatchObject({
+          code: 'RESET_TOKEN_INVALID',
+        });
+        expect(usersService.updatePassword).not.toHaveBeenCalled();
+      },
+    );
+
     // Single-use is enforced by updatePassword $unset-ing the token, which is
     // covered in user.service.spec.ts. Here we pin the consequence: once the
     // token is gone, the lookup misses and a replayed link is rejected.
@@ -325,6 +384,30 @@ describe('AuthService — password reset actor matrix', () => {
       ).rejects.toThrow(BadRequestException);
 
       expect(usersService.updatePassword).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // The forced first change replaces an admin-issued temporary password. It
+  // ran only the DTO's length and character rules, so a common or repetitive
+  // password that register and reset reject was accepted here.
+  describe('forcePasswordChange', () => {
+    it('applies the strength policy before storing anything', async () => {
+      usersService.findById.mockResolvedValue(makeUser({ requiresPasswordChange: true }));
+      passwordPolicyService.validatePasswordStrength.mockImplementation(() => {
+        throw new BadRequestException({ code: 'PASSWORD_TOO_WEAK' });
+      });
+
+      await expect(service.forcePasswordChange(USER_ID, 'Abcdef11111!')).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(passwordPolicyService.validatePasswordStrength).toHaveBeenCalledWith('Abcdef11111!', {
+        email: EMAIL,
+        firstName: 'John',
+        lastName: 'Doe',
+      });
+      expect(usersService.completePasswordChange).not.toHaveBeenCalled();
+      expect(tokenService.revokeAllUserTokens).not.toHaveBeenCalled();
     });
   });
 
@@ -349,10 +432,17 @@ describe('AuthService — password reset actor matrix', () => {
       expect(usersService.updateEmailVerificationToken).not.toHaveBeenCalled();
     });
 
-    it('rejects an already-verified account', async () => {
+    // It used to throw "already verified", which confirmed to anyone typing
+    // an address that the account exists and what state it is in.
+    it('answers an already-verified account exactly like an unknown email', async () => {
       usersService.findByEmail.mockResolvedValue(makeUser({ isEmailVerified: true }));
+      const verified = await service.resendVerificationEmail(EMAIL);
 
-      await expect(service.resendVerificationEmail(EMAIL)).rejects.toThrow(BadRequestException);
+      usersService.findByEmail.mockResolvedValue(null);
+      const unknown = await service.resendVerificationEmail(EMAIL);
+
+      expect(verified).toEqual(unknown);
+      expect(emailService.sendVerificationEmail).not.toHaveBeenCalled();
     });
 
     it('stays neutral for an unknown email', async () => {
@@ -361,6 +451,31 @@ describe('AuthService — password reset actor matrix', () => {
       await service.resendVerificationEmail(EMAIL);
 
       expect(emailService.sendVerificationEmail).not.toHaveBeenCalled();
+    });
+
+    it('answers before the verification token is stored, and mails only after it is', async () => {
+      usersService.findByEmail.mockResolvedValue(makeUser({ isEmailVerified: false }));
+      let stored!: () => void;
+      usersService.updateEmailVerificationToken.mockReturnValue(
+        new Promise<void>(resolve => {
+          stored = resolve;
+        }),
+      );
+
+      await expect(service.resendVerificationEmail(EMAIL)).resolves.toBeDefined();
+      expect(emailService.sendVerificationEmail).not.toHaveBeenCalled();
+
+      stored();
+      await new Promise(resolve => setImmediate(resolve));
+      expect(emailService.sendVerificationEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it('answers without waiting for the mail to be delivered', async () => {
+      usersService.findByEmail.mockResolvedValue(makeUser({ isEmailVerified: false }));
+      emailService.sendVerificationEmail.mockReturnValue(new Promise(() => undefined));
+
+      await expect(service.resendVerificationEmail(EMAIL)).resolves.toBeDefined();
+      expect(emailService.sendVerificationEmail).toHaveBeenCalledTimes(1);
     });
 
     // A mail outage must not surface as a 500 — the caller already got a

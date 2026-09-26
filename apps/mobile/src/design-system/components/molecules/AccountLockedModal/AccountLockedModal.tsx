@@ -21,30 +21,23 @@ interface AccountLockedModalProps {
   onPasswordReset?: () => void;
 }
 
+/**
+ * Numbers only - the words (and their plural forms, which Arabic has six of)
+ * come from the translations. An unparseable date counts as unlocked rather
+ * than rendering "NaN minutes"; the backend still enforces the real lock.
+ */
 const getLockState = (blockedUntil: string | Date, currentTime: number) => {
   const unlockTime = typeof blockedUntil === 'string' ? new Date(blockedUntil) : blockedUntil;
   const diffMs = unlockTime.getTime() - currentTime;
 
-  if (diffMs <= 0) {
-    return {
-      isExpired: true,
-      timeRemaining: 'Account unlocked',
-    };
-  }
-
-  const minutes = Math.floor(diffMs / 60000);
-  const seconds = Math.floor((diffMs % 60000) / 1000);
-
-  if (minutes > 0) {
-    return {
-      isExpired: false,
-      timeRemaining: `${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`,
-    };
+  if (!Number.isFinite(diffMs) || diffMs <= 0) {
+    return { isExpired: true, minutes: 0, seconds: 0 };
   }
 
   return {
     isExpired: false,
-    timeRemaining: `${seconds} second${seconds !== 1 ? 's' : ''}`,
+    minutes: Math.floor(diffMs / 60000),
+    seconds: Math.floor((diffMs % 60000) / 1000),
   };
 };
 
@@ -53,10 +46,14 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
     const { t } = useTranslation();
     const theme = useTheme();
     const [currentTime, setCurrentTime] = useState(() => Date.now());
-    const { isExpired, timeRemaining } = useMemo(
+    const { isExpired, minutes, seconds } = useMemo(
       () => getLockState(blockedUntil, currentTime),
       [blockedUntil, currentTime],
     );
+    const timeRemaining =
+      minutes > 0
+        ? t('auth.locked.minutesSeconds', { minutes, seconds })
+        : t('auth.locked.seconds', { count: seconds });
 
     /**
      * Update countdown every second
@@ -106,6 +103,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
       >
         <View style={[styles.overlay, { backgroundColor: theme.colors.overlay.dark }]}>
           <View
+            testID='account-locked-modal'
             style={[
               styles.modalContainer,
               {
@@ -152,14 +150,12 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
 
             {/* Title */}
             <Text variant='headline.medium' weight='semibold' align='center' style={styles.title}>
-              {isExpired ? 'Account Unlocked' : 'Account Temporarily Locked'}
+              {isExpired ? t('auth.locked.titleUnlocked') : t('auth.locked.titleLocked')}
             </Text>
 
             {/* Description */}
             <Text variant='body.medium' color='secondary' align='center' style={styles.description}>
-              {isExpired
-                ? 'You can now try logging in again.'
-                : 'Your account has been temporarily locked due to multiple failed login attempts. This is a security measure to protect your account.'}
+              {isExpired ? t('auth.locked.bodyUnlocked') : t('auth.locked.bodyLocked')}
             </Text>
 
             {/* Countdown timer */}
@@ -181,7 +177,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
                 />
                 <View style={styles.timerTextContainer}>
                   <Text variant='label.small' color='secondary'>
-                    Unlocks in
+                    {t('auth.locked.unlocksIn')}
                   </Text>
                   <Text variant='body.large' weight='semibold' color='primary'>
                     {timeRemaining}
@@ -194,7 +190,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
             {!isExpired && (
               <View style={styles.suggestionsContainer}>
                 <Text variant='label.medium' weight='semibold' style={styles.suggestionsTitle}>
-                  What can you do?
+                  {t('auth.locked.whatCanYouDo')}
                 </Text>
 
                 <View style={styles.suggestionItem}>
@@ -205,7 +201,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
                     color={theme.colors.primary}
                   />
                   <Text variant='body.small' color='secondary' style={styles.suggestionText}>
-                    Wait for the timer to expire and try again
+                    {t('auth.locked.tipWait')}
                   </Text>
                 </View>
 
@@ -217,7 +213,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
                     color={theme.colors.primary}
                   />
                   <Text variant='body.small' color='secondary' style={styles.suggestionText}>
-                    Make sure you&apos;re using the correct password
+                    {t('auth.locked.tipPassword')}
                   </Text>
                 </View>
 
@@ -229,7 +225,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
                     color={theme.colors.primary}
                   />
                   <Text variant='body.small' color='secondary' style={styles.suggestionText}>
-                    Reset your password if you&apos;ve forgotten it
+                    {t('auth.locked.tipReset')}
                   </Text>
                 </View>
               </View>
@@ -244,7 +240,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
                   onPress={handlePasswordReset}
                   style={styles.resetButton}
                 >
-                  Reset Password
+                  {t('auth.locked.resetPassword')}
                 </Button>
               )}
 
@@ -254,7 +250,7 @@ export const AccountLockedModal = memo<AccountLockedModalProps>(
                 onPress={onDismiss}
                 style={styles.okButton}
               >
-                {isExpired ? 'Try Again' : 'I Understand'}
+                {isExpired ? t('auth.locked.tryAgain') : t('auth.locked.understood')}
               </Button>
             </View>
           </View>

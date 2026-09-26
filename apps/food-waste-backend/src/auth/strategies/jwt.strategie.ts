@@ -8,6 +8,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from 'src/users/user.service';
 import { COOKIE_NAMES } from 'src/common/utils/cookie-security.util';
 
+import { appError } from '../../common/errors';
 export interface JwtPayload {
   sub: string;
   email: string;
@@ -49,7 +50,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersService.findByEmail(payload.email);
 
     if (user?.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('User not found or inactive');
+      throw new UnauthorizedException(appError('ACCOUNT_INACTIVE'));
     }
 
     return {

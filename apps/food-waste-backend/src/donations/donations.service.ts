@@ -11,7 +11,7 @@ import { CronLockName, CronLockTtl } from '../common/constants/cron-lock.constan
 import { CronLockService } from '../common/services/cron-lock.service';
 import { isDuplicateKeyError } from '../common/utils/mongo.utils';
 import { Queue } from 'bull';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 
 import { DEFAULT_CURRENCY, DonationGoalCategory } from '@foodwaste/shared';
 
@@ -34,7 +34,12 @@ import {
   DonationPoolSnapshotDocument,
 } from './schemas/donation-pool-snapshot.schema';
 import { UserDonation, UserDonationDocument } from './schemas/user-donation.schema';
+import {
+  PlatformTransaction,
+  PlatformTransactionDocument,
+} from '../payments/schemas/platform-transaction.schema';
 
+import { appError } from '../common/errors';
 interface AggregateCountResult {
   count: number;
 }
@@ -55,6 +60,8 @@ export class DonationsService {
     private readonly snapshotModel: Model<DonationPoolSnapshotDocument>,
     @InjectModel(UserDonation.name)
     private readonly userDonationModel: Model<UserDonationDocument>,
+    @InjectModel(PlatformTransaction.name)
+    private readonly platformTxModel: Model<PlatformTransactionDocument>,
     @InjectQueue('donations')
     private readonly donationsQueue: Queue<PostDonationJobData>,
     private readonly cronLock: CronLockService,
@@ -166,7 +173,7 @@ export class DonationsService {
    */
   calculateDonationAmount(orderTotal: number): number {
     if (orderTotal <= 0) {
-      throw new BadRequestException('Order total must be greater than 0');
+      throw new BadRequestException(appError('ORDER_TOTAL_INVALID'));
     }
 
     const platformFee = orderTotal * DONATION_CONSTANTS.PLATFORM_FEE_PERCENTAGE;
@@ -202,7 +209,7 @@ export class DonationsService {
     }
 
     if (!pool) {
-      throw new InternalServerErrorException('Failed to retrieve or create active donation pool');
+      throw new InternalServerErrorException(appError('DONATION_STATS_FAILED'));
     }
 
     return pool;
@@ -227,9 +234,11 @@ export class DonationsService {
 
       // Hard idempotency guard — orderId unique index prevents a second document,
       // this early-return prevents the queue from being enqueued twice.
-      const existingDonation = await this.userDonationModel.findOne({
-        orderId: input.orderId,
-      });
+      // `includeDeleted` so a reversed contribution also counts as "already
+      // done": a redelivered order.completed must not re-donate a refunded sale.
+      const existingDonation = await this.userDonationModel
+        .findOne({ orderId: input.orderId })
+        .setOptions({ includeDeleted: true });
       if (existingDonation) {
         this.logger.warn(`Donation already exists for order ${input.orderId}`);
         return existingDonation;
@@ -259,27 +268,48 @@ export class DonationsService {
         metadata: input.metadata,
       });
 
-      await donation.save();
+      /*
+       * The contribution, the pool total, the category snapshot and TFTW's
+       * pledge move together or not at all. They were separate writes, so a
+       * crash between the save and the $inc left a contribution the pool never
+       * counted - money promised and never tracked.
+       */
+      let updatedPool: DonationPoolDocument | null = null;
+      const session = await this.userDonationModel.db.startSession();
+      try {
+        await session.withTransaction(async () => {
+          // `create` of the prepared document, not `donation.save()`: a retried
+          // transaction would find the document no longer `isNew` and turn the
+          // insert into an update of a row that was rolled back.
+          await this.userDonationModel.create([donation.toObject()], { session });
 
-      // Atomic increment — reuse the returned doc to avoid an extra findById.
-      const updatedPool = await this.donationPoolModel.findByIdAndUpdate(
-        pool._id,
-        { $inc: { currentAmount: input.amount, mealCount: estimatedMeals } },
-        { new: true },
-      );
+          // Atomic increment — reuse the returned doc to avoid an extra findById.
+          updatedPool = await this.donationPoolModel.findByIdAndUpdate(
+            pool._id,
+            { $inc: { currentAmount: input.amount, mealCount: estimatedMeals } },
+            { new: true, session },
+          );
 
-      // O(1) increment on the active category's pre-aggregated snapshot.
-      await this.snapshotModel.updateOne(
-        { category: pool.activeGoalCategory },
-        { $inc: { totalAmount: input.amount, totalItems: estimatedMeals } },
-      );
+          // O(1) increment on the active category's pre-aggregated snapshot.
+          await this.snapshotModel.updateOne(
+            { category: pool.activeGoalCategory },
+            { $inc: { totalAmount: input.amount, totalItems: estimatedMeals } },
+            { session },
+          );
+
+          await this.bookPledge(input.orderId, input.amount, session);
+        });
+      } finally {
+        await session.endSession();
+      }
 
       // Target reached — hand off to the rotation claim. This check is only a
       // fast path: two concurrent donations each get their own post-image from
       // $inc and neither has written FUNDED yet, so both can arrive here for the
       // same pool. rotateIfFunded is what actually serialises them.
-      if (updatedPool && updatedPool.currentAmount >= updatedPool.targetAmount) {
-        await this.rotateIfFunded(updatedPool);
+      const fundedPool = updatedPool as DonationPoolDocument | null;
+      if (fundedPool && fundedPool.currentAmount >= fundedPool.targetAmount) {
+        await this.rotateIfFunded(fundedPool);
       }
 
       // Off the critical path: contributor count + badge assignment.
@@ -295,9 +325,152 @@ export class DonationsService {
 
       return donation;
     } catch (error) {
+      // A redelivery racing the findOne guard above: the orderId unique index
+      // let the other worker win, and this transaction rolled back whole. The
+      // donation exists - that is success, not DONATION_FAILED.
+      if (isDuplicateKeyError(error)) {
+        const winner = await this.userDonationModel
+          .findOne({ orderId: input.orderId })
+          .setOptions({ includeDeleted: true });
+        if (winner) {
+          this.logger.log(`Donation for order ${input.orderId} was recorded by another worker`);
+          return winner;
+        }
+      }
       this.logger.error('Failed to create donation', error);
-      throw new InternalServerErrorException('Failed to create donation record');
+      throw new InternalServerErrorException(appError('DONATION_FAILED'));
     }
+  }
+
+  /**
+   * TFTW's ledger entry for a charity pledge: the same amount the pool just
+   * received. An order paid online before revenue moved to completion already
+   * has its DONATION row from payment time; booking another would pledge twice.
+   */
+  private async bookPledge(
+    orderId: Types.ObjectId,
+    amount: number,
+    session: ClientSession,
+  ): Promise<void> {
+    const net = await this.netPledged(orderId, session);
+    if (net > 0 || amount <= 0) {
+      return;
+    }
+    await this.platformTxModel.create(
+      [
+        {
+          orderId,
+          type: 'DONATION',
+          amount,
+          currency: DEFAULT_CURRENCY,
+          reference: `DONATION-ORDER-${orderId.toString()}`,
+          notes: 'Charity pledge of a completed order (5% of the 19% commission basis)',
+        },
+      ],
+      { session },
+    );
+  }
+
+  /** Sum of every DONATION row for the order, reversals included. */
+  private async netPledged(orderId: Types.ObjectId, session: ClientSession): Promise<number> {
+    const rows = await this.platformTxModel
+      .find({ orderId, type: 'DONATION' })
+      .select('amount')
+      .session(session)
+      .lean();
+    const net = rows.reduce((sum, row) => sum + row.amount, 0);
+    return parseFloat(net.toFixed(3));
+  }
+
+  /**
+   * Reverses the charity contribution of a refunded order. Idempotent: the
+   * `reversedAt: null` claim lets exactly one call through.
+   *
+   * A goal that is still being funded gets the money back out of its pool. A
+   * goal that has already been funded cannot be un-funded - the charity keeps
+   * the money and TFTW pays for it (ABSORBED_BY_PLATFORM). Either way the
+   * contribution stops counting as the customer's, and the ledger ends at what
+   * the charity actually keeps: 0 when reduced, the amount when absorbed.
+   *
+   * @returns what happened, or NONE when the order has no live contribution.
+   */
+  async reverseForOrder(
+    orderId: Types.ObjectId,
+    reason: string,
+  ): Promise<'POOL_REDUCED' | 'ABSORBED_BY_PLATFORM' | 'NONE'> {
+    let outcome: 'POOL_REDUCED' | 'ABSORBED_BY_PLATFORM' | 'NONE' = 'NONE';
+    const session = await this.userDonationModel.db.startSession();
+    try {
+      await session.withTransaction(async () => {
+        outcome = 'NONE';
+        const donation = await this.userDonationModel
+          .findOneAndUpdate(
+            { orderId, reversedAt: null },
+            { $set: { reversedAt: new Date(), reversalReason: reason } },
+            { new: true, session },
+          )
+          .setOptions({ includeDeleted: true });
+        if (!donation) {
+          return;
+        }
+
+        const meals = this.calculateMealCount(donation.amount);
+        const pool = await this.donationPoolModel.findOneAndUpdate(
+          {
+            _id: donation.donationPoolId,
+            status: DonationPoolStatus.ACTIVE,
+            currentAmount: { $gte: donation.amount },
+          },
+          { $inc: { currentAmount: -donation.amount, mealCount: -meals } },
+          { session },
+        );
+
+        if (pool) {
+          await this.snapshotModel.updateOne(
+            { category: donation.goalCategoryAtContribution ?? pool.activeGoalCategory },
+            { $inc: { totalAmount: -donation.amount, totalItems: -meals } },
+            { session },
+          );
+          outcome = 'POOL_REDUCED';
+        } else {
+          outcome = 'ABSORBED_BY_PLATFORM';
+        }
+
+        await this.userDonationModel
+          .updateOne({ _id: donation._id }, { $set: { reversalOutcome: outcome } }, { session })
+          .setOptions({ includeDeleted: true });
+
+        const kept = outcome === 'POOL_REDUCED' ? 0 : donation.amount;
+        const adjustment = parseFloat(
+          (kept - (await this.netPledged(orderId, session))).toFixed(3),
+        );
+        if (adjustment !== 0) {
+          await this.platformTxModel.create(
+            [
+              {
+                orderId,
+                type: 'DONATION',
+                amount: adjustment,
+                currency: DEFAULT_CURRENCY,
+                reference: `REVERSAL-DONATION-ORDER-${orderId.toString()}`,
+                notes:
+                  outcome === 'POOL_REDUCED'
+                    ? `Order refunded: ${reason}`
+                    : `Order refunded after its goal was funded; TFTW absorbs it: ${reason}`,
+              },
+            ],
+            { session },
+          );
+        }
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    if (outcome !== 'NONE') {
+      this.logger.log(`Donation for order ${orderId.toString()} reversed: ${outcome}`);
+    }
+    return outcome;
   }
 
   /**
@@ -457,7 +630,7 @@ export class DonationsService {
       return stats;
     } catch (error) {
       this.logger.error('Failed to get current donation stats', error);
-      throw new InternalServerErrorException('Failed to retrieve donation statistics');
+      throw new InternalServerErrorException(appError('DONATION_STATS_FAILED'));
     }
   }
 
@@ -506,7 +679,7 @@ export class DonationsService {
       };
     } catch (error) {
       this.logger.error(`Failed to get user stats for ${userId}`, error);
-      throw new InternalServerErrorException('Failed to retrieve user donation statistics');
+      throw new InternalServerErrorException(appError('DONATION_STATS_FAILED'));
     }
   }
 

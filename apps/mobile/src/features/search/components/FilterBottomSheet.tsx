@@ -241,7 +241,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             ) : (
               <>
                 <Text variant='label' weight='semibold' style={styles.applyButtonText}>
-                  Apply Filters
+                  {t('search.applyFilters')}
                 </Text>
                 {resultCount !== undefined && (
                   <View style={styles.resultBadge}>

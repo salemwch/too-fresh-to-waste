@@ -34,6 +34,7 @@ import { DashboardConfig, DashboardTemplate } from '../interfaces/analytics.inte
 import { DashboardService } from '../services/dashboard.service';
 import { strictValidation } from '../../common/pipes/validation-pipes';
 
+import { appError } from '../../common/errors';
 @ApiTags('Analytics Dashboards')
 @Controller('analytics/dashboards')
 @UseGuards(JwtAuthGuard, ProSubscriptionGuard)
@@ -163,7 +164,7 @@ export class DashboardController {
   ): Promise<DashboardConfig[]> {
     this.logger.log(`Getting dashboards for user ${userId}, category: ${category}`);
     if (!userId || !userRole) {
-      throw new BadRequestException('Missing authenticated user context');
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     const result = await this.dashboardService.getDashboards(
       userId,
@@ -507,7 +508,7 @@ export class DashboardController {
     const validRoles = ['admin', 'merchant', 'consumer'];
     if (!validRoles.includes(userRole)) {
       this.logger.warn(`Invalid user role provided: ${userRole}`);
-      throw new BadRequestException('Invalid user role');
+      throw new BadRequestException(appError('INVALID_ROLE'));
     }
 
     // Define all available templates with comprehensive metadata
@@ -634,9 +635,7 @@ export class DashboardController {
       this.logger.warn(
         `Template ${templateId} not found or not accessible for user ${userId} with role ${userRole}`,
       );
-      throw new BadRequestException(
-        `Template '${templateId}' not found or not accessible for your role`,
-      );
+      throw new BadRequestException(appError('DASHBOARD_TEMPLATE_NOT_FOUND'));
     }
 
     // Load template configuration based on templateId
@@ -658,7 +657,7 @@ export class DashboardController {
   ): CreateDashboardDto {
     const requiredRole = template.requiredRole;
     if (!requiredRole) {
-      throw new BadRequestException(`Template '${template.id}' is missing a required role`);
+      throw new BadRequestException(appError('DASHBOARD_TEMPLATE_INVALID'));
     }
 
     const baseConfig = {
@@ -1161,7 +1160,7 @@ export class DashboardController {
 
       default:
         this.logger.error(`Unknown template ID: ${templateId}`);
-        throw new BadRequestException(`Template '${templateId}' configuration not found`);
+        throw new BadRequestException(appError('DASHBOARD_TEMPLATE_NOT_FOUND'));
     }
   }
 }

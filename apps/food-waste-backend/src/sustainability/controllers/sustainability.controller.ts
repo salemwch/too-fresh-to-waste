@@ -37,6 +37,7 @@ import { StreakService } from '../services/streak.service';
 import { SustainabilityService } from '../services/sustainability.service';
 import { strictValidation } from '../../common/pipes/validation-pipes';
 
+import { appError } from '../../common/errors';
 @ApiTags('Sustainability')
 @ApiBearerAuth()
 @Controller('sustainability')
@@ -216,9 +217,7 @@ export class SustainabilityController {
         this.logger.warn(
           `Fund ledger denied for location manager ${req.user.userId}: assigned establishment ${assignedEstablishmentId ?? 'none'} did not resolve to an owner`,
         );
-        throw new NotFoundException(
-          'We could not find the establishment linked to your account, so there is no community fund to show yet.',
-        );
+        throw new NotFoundException(appError('COMMUNITY_FUND_NO_ESTABLISHMENT'));
       }
 
       const data = await this.fundLedgerService.getFundLedger(ownerId, assignedEstablishmentId);

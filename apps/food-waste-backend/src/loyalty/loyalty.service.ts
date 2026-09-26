@@ -37,6 +37,7 @@ import {
 } from './schemas/loyalty-account.schema';
 import { LeaderboardNotificationService } from './services/leaderboard-notification.service';
 
+import { appError } from '../common/errors';
 interface TotalBagsResult {
   totalBags: number;
 }
@@ -116,7 +117,7 @@ export class LoyaltyService {
     try {
       const existingAccount = await this.loyaltyModel.findOne({ userId: createDto.userId });
       if (existingAccount) {
-        throw new BadRequestException('Loyalty account already exists for this user');
+        throw new BadRequestException(appError('LOYALTY_ACCOUNT_EXISTS'));
       }
 
       const loyaltyAccount = new this.loyaltyModel({
@@ -156,7 +157,7 @@ export class LoyaltyService {
   async getLoyaltyAccount(userId: string): Promise<LoyaltyAccountDocument> {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     if (!account) {
-      throw new NotFoundException('Loyalty account not found');
+      throw new NotFoundException(appError('LOYALTY_ACCOUNT_NOT_FOUND'));
     }
     return account;
   }
@@ -310,7 +311,7 @@ export class LoyaltyService {
           );
           return account;
         }
-        throw new NotFoundException('Loyalty account not found');
+        throw new NotFoundException(appError('LOYALTY_ACCOUNT_NOT_FOUND'));
       }
 
       await this.checkAndAwardBadges(updatedAccount);
@@ -351,7 +352,7 @@ export class LoyaltyService {
 
       if (account.availablePoints < donateDto.amount) {
         throw new BadRequestException(
-          `Insufficient points. You have ${account.availablePoints} points available.`,
+          appError('LOYALTY_INSUFFICIENT_POINTS', { available: account.availablePoints }),
         );
       }
 
@@ -388,7 +389,7 @@ export class LoyaltyService {
       );
 
       if (!updatedAccount) {
-        throw new BadRequestException('Insufficient points or loyalty account not found');
+        throw new BadRequestException(appError('LOYALTY_NOT_ENOUGH_POINTS'));
       }
 
       // Add to donation pool
@@ -436,7 +437,7 @@ export class LoyaltyService {
   private getCurrentTier(totalPoints: number): (typeof this.tiers)[number] {
     const defaultTier = this.tiers[0];
     if (!defaultTier) {
-      throw new BadRequestException('No loyalty tiers configured');
+      throw new BadRequestException(appError('LOYALTY_TIERS_MISSING'));
     }
 
     return (
@@ -829,7 +830,7 @@ export class LoyaltyService {
 
     const cached = await this.leaderboardCache.getLoyaltyNeighborhood(currentUserId, radius);
     if (!cached) {
-      throw new NotFoundException('User not found on leaderboard');
+      throw new NotFoundException(appError('LEADERBOARD_NOT_LISTED'));
     }
 
     const startRank = Math.max(1, cached.rank - radius);

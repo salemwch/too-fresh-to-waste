@@ -20,6 +20,7 @@ import { AdminDataTable, type ColumnDef } from '@/components/dashboard/admin/adm
 import { StatusBadge } from '@/components/dashboard/admin/status-badge';
 import { useCreateDriver, useDrivers } from '@/hooks/use-drivers';
 import { formatDate, formatMoney, formatRelative } from '@/lib/format';
+import { Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import type { CreateDriverResponse, DriverRow } from '@/types/admin';
 import { DriverDetailSheet } from './driver-detail-sheet';
@@ -357,7 +358,19 @@ export default function DriversPage() {
 
   return (
     <div className='space-y-xl'>
-      <AdminModuleHeader title={t('title')} subtitle={t('subtitle')} />
+      <AdminModuleHeader
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={
+          <Link
+            href='/admin/drivers/cash'
+            className='inline-flex min-h-11 items-center gap-xs rounded-md border border-border px-md text-sm font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+          >
+            <Wallet size={16} aria-hidden='true' />
+            {t('cash.link')}
+          </Link>
+        }
+      />
 
       <AdminKpiRow items={kpis} loading={isLoading} columns={4} />
 

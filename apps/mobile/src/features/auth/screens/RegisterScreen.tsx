@@ -7,7 +7,7 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import Icon from '@react-native-vector-icons/ionicons';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -25,7 +25,12 @@ import { PasswordStrengthIndicator } from '@/design-system/components/molecules'
 import { useTheme } from '@/design-system/providers';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { Logger } from '@/utils/logger';
-import { registerMobileSchema, type RegisterMobileFormData } from '@/utils/validation/schemas';
+import { resolveAuthError } from '../utils/resolveAuthError';
+import { registerFieldErrors, type RegisterFailure } from '../utils/registerErrors';
+import {
+  createRegisterMobileSchema,
+  type RegisterMobileFormData,
+} from '@/utils/validation/schemas';
 
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { registerAsync, clearError } from '../store/authSlice';
@@ -48,6 +53,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
   const referralCode = route.params?.referralCode;
   const theme = useTheme();
   const { t } = useTranslation();
+  const registerMobileSchema = useMemo(() => createRegisterMobileSchema(t), [t]);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -110,13 +116,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
 
       // Only clear global errors, not field-level errors
       // Field-level errors are handled by local state
-      if (
-        typeof error === 'string' &&
-        error.trim() !== '' &&
-        !error.toLowerCase().includes('email') &&
-        !error.toLowerCase().includes('phone') &&
-        !error.toLowerCase().includes('password')
-      ) {
+      if (typeof error === 'string' && error.trim() !== '') {
         dispatch(clearError());
       }
     };
@@ -160,108 +160,28 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
 
         const dispatchResult = await dispatch(registerAsync(registerData));
 
-        const result = dispatchResult.payload as RegisterResponse;
-
         if (dispatchResult.type.endsWith('/rejected')) {
-          throw new Error(
-            typeof result === 'object' && result !== null && 'message' in result
-              ? (result as { message: string }).message
-              : t('register.registrationFailed'),
-          );
+          if (!isMountedRef.current) return;
+          // Inline errors come from the backend, already translated, routed by
+          // code. A failure with no field is in the Redux banner (authSlice).
+          const failure = (dispatchResult.payload ?? {}) as RegisterFailure;
+          Object.entries(registerFieldErrors(failure)).forEach(([field, message]) => {
+            setError(field as keyof RegisterMobileFormData, { type: 'manual', message });
+          });
+          return;
         }
 
-        // ✅ IMPERATIVE NAVIGATION (Best Practice)
-        // Screen is responsible for navigation after successful async operation
-        // This is explicit, testable, and follows React Navigation recommendations
-        //
-        // Why imperative vs state-driven?
-        // - Explicit: Easy to trace navigation flow in code
-        // - Testable: Can mock navigation and assert it was called
-        // - No side effects: Doesn't cause unwanted re-renders
-        // - Standard pattern: Used by Uber, Stripe, Airbnb
-        //
-        // Redux state (flowState, pendingVerificationEmail) is still set for:
-        // - Deep linking support
-        // - Session restoration
-        // - Cross-screen data sharing
-        // Navigate to email verification with the registered email
+        const result = dispatchResult.payload as RegisterResponse;
+
+        // Imperative navigation after the async operation; Redux still records
+        // flowState and pendingVerificationEmail for deep links and restoration.
         navigation.navigate('VerifyEmail', {
           email: result.user.email ?? registerData.email,
         });
       } catch (err: unknown) {
-        const rawErrorMessage = err instanceof Error ? err.message : '';
-        const errorMessage = rawErrorMessage || t('register.registrationFailed');
-
-        // Only update state if component is still mounted
-        if (!isMountedRef.current) {
-          return;
-        }
-
-        // Parse backend validation errors (class-validator format)
-        // Backend returns: { message: [{ property: 'email', constraints: { isEmail: '...' } }], ... }
-        const fieldErrors: Record<string, string> = {};
-
-        try {
-          // Extract the error payload from the error message
-          if (typeof err === 'object' && err !== null && 'message' in err) {
-            const errObj = err as { message?: unknown };
-
-            // Check if message is an array of validation errors
-            if (Array.isArray(errObj.message)) {
-              errObj.message.forEach((validationError: unknown) => {
-                if (
-                  typeof validationError === 'object' &&
-                  validationError !== null &&
-                  'property' in validationError &&
-                  'constraints' in validationError
-                ) {
-                  const fieldError = validationError as {
-                    property: string;
-                    constraints: Record<string, string>;
-                  };
-                  const field = fieldError.property;
-                  const constraintKeys = Object.keys(fieldError.constraints);
-                  if (constraintKeys.length > 0) {
-                    // Take the first constraint message
-                    const firstKey = constraintKeys[0]!;
-                    const message = fieldError.constraints[firstKey];
-                    if (message !== undefined) {
-                      fieldErrors[field] = message;
-                    }
-                  }
-                }
-              });
-            }
-          }
-        } catch {
-          // Ignore parse errors and fall back to generic handling below.
-        }
-
-        // If we extracted field-specific errors from backend, use them
-        if (Object.keys(fieldErrors).length > 0) {
-          // Set each field error using React Hook Form's setError
-          Object.entries(fieldErrors).forEach(([field, message]) => {
-            setError(field as keyof RegisterMobileFormData, {
-              type: 'manual',
-              message,
-            });
-          });
-        } else {
-          // Fallback to legacy error message parsing
-          const lowerErrorMsg = errorMessage.toLowerCase();
-
-          if (lowerErrorMsg.includes('email') && lowerErrorMsg.includes('already')) {
-            setError('email', {
-              type: 'manual',
-              message: t('register.emailAlreadyRegistered'),
-            });
-          } else if (lowerErrorMsg.includes('password')) {
-            setError('password', {
-              type: 'manual',
-              message: t('register.passwordRequirements'),
-            });
-          }
-        }
+        // dispatch() resolves on a rejected thunk, so only a programming error
+        // reaches here. Log it; the user sees the generic banner.
+        Logger.error('[RegisterScreen] Unexpected registration failure', undefined, err as Error);
       }
     },
     [isPasswordValid, setError, dispatch, navigation, isMountedRef, referralCode, t],
@@ -307,11 +227,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
           {error !== undefined &&
             error !== '' &&
             error.trim() !== '' &&
-            !isGlobalErrorDismissed &&
-            // Only show in banner if NOT already shown as field error
-            !(error.toLowerCase().includes('email') && error.toLowerCase().includes('already')) &&
-            !error.toLowerCase().includes('phone') &&
-            !error.toLowerCase().includes('password') && (
+            // authSlice only sets a global error when no field owns it.
+            !isGlobalErrorDismissed && (
               <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorContainer }]}>
                 <Icon
                   name='alert-circle'
@@ -323,7 +240,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation, rout
                   variant='body.small'
                   style={[styles.errorBannerText, { color: theme.colors.onErrorContainer }]}
                 >
-                  {error}
+                  {resolveAuthError(t, error)}
                 </Text>
                 <Pressable
                   accessibilityRole='button'

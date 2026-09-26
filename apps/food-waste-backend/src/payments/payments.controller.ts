@@ -36,6 +36,18 @@ import { KonnectOrderService } from './services/konnect-order.service';
 import type { Response } from 'express';
 import { strictValidation } from '../common/pipes/validation-pipes';
 
+/**
+ * An unparseable date silently becomes "all time" rather than throwing at a
+ * merchant who never typed it - the query string is not their input.
+ */
+function parseStatementDate(value?: string): Date | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
 @ApiTags('Payments')
 @ApiBearerAuth('JWT-auth')
 @Controller('payments')
@@ -148,21 +160,43 @@ export class PaymentController {
     @Query('from') from?: string,
     @Query('to') to?: string,
   ) {
-    const parseDate = (value?: string): Date | undefined => {
-      if (!value) {
-        return undefined;
-      }
-      const parsed = new Date(value);
-      // An unparseable date silently becomes "all time" rather than throwing at
-      // a merchant who never typed it - the query string is not their input.
-      return Number.isNaN(parsed.getTime()) ? undefined : parsed;
-    };
-
     const data = await this.merchantCommissionService.getStatement(
       establishmentId,
       req.user.userId,
-      parseDate(from),
-      parseDate(to),
+      parseStatementDate(from),
+      parseStatementDate(to),
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Commission statement retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Your commission statement for the current month, across all your establishments',
+    description:
+      'The "All locations" view of my-commission/:establishmentId. Sold, commission and ' +
+      'received are summed; the outstanding balance is also broken down per establishment ' +
+      'in dueByEstablishment, so the total never hides which location carries it.',
+  })
+  @ApiQuery({ name: 'from', required: false, type: String })
+  @ApiQuery({ name: 'to', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'Commission statement retrieved' })
+  @Get('my-commission')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MERCHANT)
+  async getMyCommissionAllLocations(
+    @Request() req: AuthenticatedRequest,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const data = await this.merchantCommissionService.getStatement(
+      undefined,
+      req.user.userId,
+      parseStatementDate(from),
+      parseStatementDate(to),
     );
 
     return {

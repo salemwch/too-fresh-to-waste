@@ -19,6 +19,7 @@ import { SessionManagementService } from './session-management.service';
 import type { CreateSessionRequest } from '../../common/security/interfaces/session.interface';
 import type { TestingModule } from '@nestjs/testing';
 
+import { EN } from '../../common/errors/catalog/en';
 describe('SessionManagementService', () => {
   let service: SessionManagementService;
   let userModel: { findById: jest.Mock };
@@ -260,7 +261,7 @@ describe('SessionManagementService', () => {
     it('should throw for invalid session', async () => {
       mockRedisClient.get.mockResolvedValue(null);
 
-      await expect(service.refreshSession('invalid')).rejects.toThrow('Invalid session');
+      await expect(service.refreshSession('invalid')).rejects.toThrow(EN.SESSION_EXPIRED);
     });
   });
 

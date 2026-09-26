@@ -328,7 +328,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                   },
                 ]}
               >
-                {isLoadingGPS ? 'Getting location...' : 'Use current location'}
+                {isLoadingGPS ? t('location.gettingLocation') : t('location.useCurrentLocation')}
               </Text>
             </Pressable>
 
@@ -349,13 +349,15 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
 
                 {isSearching ? (
                   <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-                    Searching for locations...
+                    {t('location.searchingLocations')}
                   </Text>
                 ) : searchResults !== undefined && searchResults.length > 0 ? (
                   searchResults.map(location => (
                     <Pressable
                       accessibilityRole='button'
-                      accessibilityLabel={`Select ${getPrimaryLocationLabel(location)}`}
+                      accessibilityLabel={t('location.a11ySelectLocation', {
+                        location: getPrimaryLocationLabel(location),
+                      })}
                       accessibilityHint={t('location.a11ySetAsCurrentHint')}
                       key={location.id}
                       style={
@@ -418,7 +420,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                   ))
                 ) : (
                   <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-                    {`No locations found for "${searchQuery}"`}
+                    {t('location.noLocationsFor', { query: searchQuery })}
                   </Text>
                 )}
               </View>
@@ -436,7 +438,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     },
                   ]}
                 >
-                  RECENT LOCATIONS
+                  {t('location.recentLocations')}
                 </Text>
 
                 {recentLocations.map(location => (
@@ -448,7 +450,9 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                         : styles.recentItem
                     }
                     onPress={() => handleSelectLocation(location)}
-                    accessibilityLabel={`Select ${location.name}`}
+                    accessibilityLabel={t('location.a11ySelectLocation', {
+                      location: location.name,
+                    })}
                     accessibilityHint={t('location.a11ySetAsCurrentHint')}
                     accessibilityRole='button'
                   >
@@ -527,7 +531,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     },
                   ]}
                 >
-                  No recent locations
+                  {t('location.noRecentLocations')}
                 </Text>
                 <Text
                   style={[
@@ -538,7 +542,7 @@ export const LocationPickerBottomSheet: React.FC<LocationPickerBottomSheetProps>
                     },
                   ]}
                 >
-                  Search for a location or use your current location
+                  {t('location.recentEmptyHint')}
                 </Text>
               </View>
             )}

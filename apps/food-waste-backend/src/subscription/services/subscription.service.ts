@@ -18,6 +18,7 @@ import { InitiatePaymentResponseDto, SubscriptionStatusResponseDto } from '../dt
 import { nextSubscriptionExpiry, toSubscriptionCycle } from '../subscription-period';
 import { KonnectService } from './konnect.service';
 
+import { appError } from '../../common/errors';
 const PRICES_MILLIMES: Record<'standard' | 'pro', Record<'monthly' | 'yearly', number>> = {
   standard: {
     monthly: 15_500,
@@ -78,7 +79,7 @@ export class SubscriptionService {
       );
       if (daysRemaining > 7) {
         throw new BadRequestException(
-          `Your subscription is still active for ${daysRemaining} more days. You can renew when fewer than 7 days remain.`,
+          appError('SUBSCRIPTION_RENEW_TOO_EARLY', { days: daysRemaining }),
         );
       }
     }
@@ -90,7 +91,7 @@ export class SubscriptionService {
       .exec();
 
     if (!merchant) {
-      throw new NotFoundException('Merchant not found');
+      throw new NotFoundException(appError('MERCHANT_NOT_FOUND'));
     }
 
     const amount = PRICES_MILLIMES[tier][cycle];
@@ -167,8 +168,7 @@ export class SubscriptionService {
     }
 
     const tier = (establishment.get('pendingTier') === 'pro' ? 'pro' : 'standard') as
-      | 'standard'
-      | 'pro';
+      'standard' | 'pro';
     const cycle = toSubscriptionCycle(establishment.get('pendingCycle'));
 
     // Confirm the amount actually captured matches what this tier and cycle
@@ -259,11 +259,11 @@ export class SubscriptionService {
     const establishment = await this.establishmentModel.findOne(query).exec();
 
     if (!establishment) {
-      throw new NotFoundException('Establishment not found');
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     if (establishment.ownerId.toString() !== merchantId) {
-      throw new ForbiddenException('You can only manage subscriptions for your own establishment');
+      throw new ForbiddenException(appError('SUBSCRIPTION_NOT_YOURS'));
     }
 
     return establishment;

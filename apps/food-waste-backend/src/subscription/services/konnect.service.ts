@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { perfLog, perfStart } from '../../common/utils/perf-log.util';
 
+import { appError } from '../../common/errors';
 const KONNECT_TIMEOUT_MS = 8_000;
 
 export interface KonnectInitPaymentParams {
@@ -99,9 +100,7 @@ export class KonnectService implements OnModuleInit {
     overrides?: KonnectPaymentOverrides,
   ): Promise<KonnectPaymentResponse> {
     if (!this.isConfigured()) {
-      throw new ServiceUnavailableException(
-        'Payment service is not configured. Please contact support.',
-      );
+      throw new ServiceUnavailableException(appError('PAYMENT_UNAVAILABLE'));
     }
 
     const body = {
@@ -151,7 +150,7 @@ export class KonnectService implements OnModuleInit {
       if (!response.ok) {
         const errorText = await response.text();
         this.logger.error(`Konnect init-payment failed: ${response.status} — ${errorText}`);
-        throw new ServiceUnavailableException('Payment initiation failed. Please try again.');
+        throw new ServiceUnavailableException(appError('PAYMENT_FAILED'));
       }
 
       const data = (await response.json()) as KonnectPaymentResponse;
@@ -171,16 +170,16 @@ export class KonnectService implements OnModuleInit {
         this.logger.error(
           `[PERF] Konnect TIMEOUT after ${elapsed}ms (limit=${KONNECT_TIMEOUT_MS}ms)`,
         );
-        throw new ServiceUnavailableException('Payment service timed out. Please try again.');
+        throw new ServiceUnavailableException(appError('TIMEOUT'));
       }
       this.logger.error(`Konnect API error after ${elapsed}ms: ${(error as Error).message}`);
-      throw new ServiceUnavailableException('Payment service temporarily unavailable.');
+      throw new ServiceUnavailableException(appError('PAYMENT_UNAVAILABLE'));
     }
   }
 
   async getPaymentDetails(paymentId: string): Promise<KonnectPaymentDetails> {
     if (!this.isConfigured()) {
-      throw new ServiceUnavailableException('Payment service is not configured.');
+      throw new ServiceUnavailableException(appError('PAYMENT_UNAVAILABLE'));
     }
 
     const controller = new AbortController();
@@ -198,7 +197,7 @@ export class KonnectService implements OnModuleInit {
     if (!response.ok) {
       const errorText = await response.text();
       this.logger.error(`Konnect get-payment failed: ${response.status} — ${errorText}`);
-      throw new ServiceUnavailableException('Could not verify payment status.');
+      throw new ServiceUnavailableException(appError('PAYMENT_VERIFY_FAILED'));
     }
 
     return (await response.json()) as KonnectPaymentDetails;

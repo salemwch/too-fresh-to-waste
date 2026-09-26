@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/lib/auth';
+import { meetsPasswordPolicy, PASSWORD_MIN_LENGTH } from '@/lib/password-policy';
 import { userService } from '@/services/user.service';
 import { Input, Button, Label } from '@foodwaste/ui';
 import {
@@ -47,15 +48,13 @@ export default function MerchantProfilePage() {
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  const PW_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
-
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPwError('');
     setPwSuccess(false);
 
-    if (!PW_REGEX.test(newPassword)) {
-      setPwError(t('passwordRequirements'));
+    if (!meetsPasswordPolicy(newPassword)) {
+      setPwError(t('passwordRequirements', { min: PASSWORD_MIN_LENGTH }));
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -425,7 +424,9 @@ export default function MerchantProfilePage() {
             </div>
           </div>
 
-          <p className='text-[11px] text-slate-400'>{t('passwordRequirementsHint')}</p>
+          <p className='text-[11px] text-slate-400'>
+            {t('passwordRequirementsHint', { min: PASSWORD_MIN_LENGTH })}
+          </p>
 
           {/* Feedback */}
           {pwError && (

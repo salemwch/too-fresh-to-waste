@@ -28,6 +28,7 @@ import type {
   PricingSuggestions,
   MerchantWallet,
   MerchantCommissionStatement,
+  TodaySales,
   FundLedgerResponse,
 } from '@/types/dashboard';
 
@@ -47,6 +48,15 @@ export const dashboardService = {
    * Merchant/Admin order statistics (totals, breakdown by status, revenue)
    * Pass startDate to restrict results to a specific time window.
    */
+  /** GET /orders/merchant-today-sales?establishmentId= - cash and online together. */
+  getTodaySales(establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<TodaySales>>(`${ORDERS_BASE}/merchant-today-sales`, {
+      params: {
+        ...(establishmentId ? { establishmentId } : {}),
+      },
+    });
+  },
+
   getOrderStats(startDate?: Date, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<OrderStatsResponse>>(`${ORDERS_BASE}/stats`, {
       params: {
@@ -167,9 +177,11 @@ export const dashboardService = {
    * GET /payments/my-commission/:establishmentId
    * Sold, commission and received for the period, plus the outstanding balance.
    */
-  getMyCommission(establishmentId: string) {
+  getMyCommission(establishmentId?: string) {
     return apiClient.get<BackendEnvelope<MerchantCommissionStatement>>(
-      `${PAYMENTS_BASE}/my-commission/${establishmentId}`,
+      establishmentId
+        ? `${PAYMENTS_BASE}/my-commission/${establishmentId}`
+        : `${PAYMENTS_BASE}/my-commission`,
     );
   },
 

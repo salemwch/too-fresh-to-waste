@@ -9,6 +9,7 @@ import {
 
 import type { AuthUser } from '../../common/decorators/get-user.decorator';
 
+import { appError } from '../../common/errors';
 interface AdminRequest {
   user?: AuthUser;
 }
@@ -20,11 +21,11 @@ export class AdminOnlyGuard implements CanActivate {
     const user = request.user;
 
     if (user === null || user === undefined) {
-      throw new UnauthorizedException('Authentication required');
+      throw new UnauthorizedException(appError('AUTH_REQUIRED'));
     }
 
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Admin access required');
+      throw new ForbiddenException(appError('ADMIN_REQUIRED'));
     }
 
     return true;

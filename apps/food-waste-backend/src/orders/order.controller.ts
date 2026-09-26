@@ -15,12 +15,7 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   BadRequestException,
-  NotFoundException,
   UseFilters,
-  Catch,
-  ExceptionFilter,
-  ArgumentsHost,
-  ConflictException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
@@ -56,6 +51,7 @@ import {
   OrderQueryDto,
 } from './DTO/create-order.dto';
 import { ConsumerOrderResponseDto, MerchantOrderResponseDto } from './DTO/order-response.dto';
+import { OrderExceptionFilter } from './filters/order-exception.filter';
 import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
 import {
   OrdersService,
@@ -64,10 +60,11 @@ import {
   CustomerLocationResponse,
   type ChartGranularity,
 } from './order.service';
+import type { TodaySalesSummary } from './utils/today-sales.util';
 
-import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { strictValidation } from '../common/pipes/validation-pipes';
 
+import { appError } from '../common/errors';
 /** Allowed granularity values — validated at the controller boundary. */
 const VALID_GRANULARITIES = new Set<ChartGranularity>(['day', 'week', 'month']);
 
@@ -82,63 +79,6 @@ const CHART_LIMITS: Record<ChartGranularity, number> = { day: 90, week: 52, mont
  *  plainToInstance and the eventual HTTP serialisation expect. */
 const toPlain = (doc: unknown): unknown => JSON.parse(JSON.stringify(doc));
 
-@Catch()
-export class OrderExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: AppLoggerService) {}
-
-  catch(exception: unknown, host: ArgumentsHost) {
-    // Log full error details for debugging
-    const errorMessage = exception instanceof Error ? exception.message : 'Unknown error';
-    const errorStack = exception instanceof Error ? (exception.stack ?? '') : '';
-    const errorResponse = exception instanceof BadRequestException ? exception.getResponse() : null;
-
-    this.logger.error(
-      `Order error: ${errorMessage}`,
-      JSON.stringify({
-        message: errorMessage,
-        response: errorResponse,
-        stack: errorStack,
-      }),
-      'OrderExceptionFilter',
-    );
-
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<ExpressResponse>();
-    const request = ctx.getRequest<ExpressRequest>();
-
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message: string | Record<string, unknown> | string[] = 'Internal server error';
-    let details: Record<string, unknown> | null = null;
-
-    if (exception instanceof BadRequestException) {
-      status = HttpStatus.BAD_REQUEST;
-      const exceptionResponse = exception.getResponse() as Record<string, unknown> | string;
-      if (typeof exceptionResponse === 'string') {
-        message = exceptionResponse || 'Invalid order data';
-      } else {
-        message = (exceptionResponse['message'] as string | string[]) ?? 'Invalid order data';
-        details =
-          (exceptionResponse['code'] !== null && exceptionResponse['code'] !== undefined
-            ? exceptionResponse
-            : (exceptionResponse['details'] as Record<string, unknown> | null)) ?? null;
-      }
-    } else if (exception instanceof NotFoundException) {
-      status = HttpStatus.NOT_FOUND;
-      message = exception.message || 'Resource not found';
-    } else if (exception instanceof ConflictException) {
-      status = HttpStatus.CONFLICT;
-      message = exception.message || 'Resource conflict';
-    }
-
-    response.status(status).json({
-      statusCode: status,
-      message,
-      details,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-    });
-  }
-}
 @ApiTags('Orders')
 @ApiBearerAuth('JWT-auth')
 @Controller('orders')
@@ -305,7 +245,7 @@ export class OrdersController {
     @Query('cursor') cursor?: string,
   ) {
     if (limit > 50) {
-      throw new BadRequestException('Limit cannot exceed 50');
+      throw new BadRequestException(appError('LIMIT_TOO_HIGH'));
     }
 
     if (cursor) {
@@ -368,7 +308,7 @@ export class OrdersController {
     @Query('establishmentId') establishmentId?: string,
   ) {
     if (limit > 50) {
-      throw new BadRequestException('Limit cannot exceed 50');
+      throw new BadRequestException(appError('LIMIT_TOO_HIGH'));
     }
 
     // Location managers can only see their assigned establishment
@@ -487,16 +427,14 @@ export class OrdersController {
   }> {
     if (!VALID_GRANULARITIES.has(rawGranularity as ChartGranularity)) {
       throw new BadRequestException(
-        `granularity must be one of: ${[...VALID_GRANULARITIES].join(', ')}`,
+        appError('INVALID_GRANULARITY', { allowed: String([...VALID_GRANULARITIES].join(', ')) }),
       );
     }
     const granularity = rawGranularity as ChartGranularity;
 
     const limit = CHART_LIMITS[granularity];
     if (value < 1 || value > limit) {
-      throw new BadRequestException(
-        `value for granularity "${granularity}" must be between 1 and ${limit}`,
-      );
+      throw new BadRequestException(appError('INVALID_GRANULARITY_VALUE', { max: limit }));
     }
 
     const effectiveEstablishmentId =
@@ -515,6 +453,46 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Revenue chart data retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiOperation({
+    summary: "Today's sales, cash and online together",
+    description:
+      'Orders created today (Africa/Tunis) split by how they were paid. Cash orders never ' +
+      'pass through the platform wallet, so this is the only place they appear as money.',
+  })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description: 'Scope to one establishment (merchants only)',
+  })
+  @ApiResponse({ status: 200, description: "Today's sales retrieved successfully" })
+  @ApiResponse({ status: 401, description: 'Unauthorized — merchant access required' })
+  @Get('merchant-today-sales')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
+  async getMerchantTodaySales(
+    @Request() req: AuthenticatedRequest,
+    @Query('establishmentId') establishmentId?: string,
+  ): Promise<{ statusCode: number; message: string; data: TodaySalesSummary }> {
+    // A location manager is pinned to their assignment, whatever they ask for.
+    const effectiveEstablishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : establishmentId;
+
+    const data = await this.ordersService.getTodaySales(
+      req.user.userId,
+      req.user.role,
+      effectiveEstablishmentId,
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: "Today's sales retrieved successfully",
       data,
     };
   }
@@ -657,6 +635,11 @@ export class OrdersController {
   @ApiResponse({ status: 200, description: 'Order status updated successfully' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not a merchant or admin' })
+  // Had no role guard: any signed-in user - a consumer on their own order -
+  // could set a status. The service now also limits which statuses.
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.MERCHANT, UserRole.ADMIN)
   @Patch(':id/status')
   async updateStatus(
     @Param('id') id: string,

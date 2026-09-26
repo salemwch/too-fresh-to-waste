@@ -29,6 +29,7 @@ import { DistanceCalculator } from '../utils/distance.util';
 
 import { GeoapifyService } from './geoapify.service';
 
+import { appError } from '../../common/errors';
 @Injectable()
 export class GeolocationService {
   private readonly logger = new Logger(GeolocationService.name);
@@ -52,11 +53,11 @@ export class GeolocationService {
   calculateDistance(dto: DistanceCalculationDto): Distance {
     try {
       if (!DistanceCalculator.isValidCoordinate(dto.origin)) {
-        throw new BadRequestException('Invalid origin coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       if (!DistanceCalculator.isValidCoordinate(dto.destination)) {
-        throw new BadRequestException('Invalid destination coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       return DistanceCalculator.calculateDistance(
@@ -80,12 +81,12 @@ export class GeolocationService {
   ): Distance[] {
     try {
       if (!DistanceCalculator.isValidCoordinate(origin)) {
-        throw new BadRequestException('Invalid origin coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       return destinations.map(destination => {
         if (!DistanceCalculator.isValidCoordinate(destination)) {
-          throw new BadRequestException('Invalid destination coordinates');
+          throw new BadRequestException(appError('INVALID_COORDINATES'));
         }
         return DistanceCalculator.calculateDistance(origin, destination, unit);
       });
@@ -101,11 +102,11 @@ export class GeolocationService {
   checkGeofence(dto: GeofenceCheckDto): GeofenceResult {
     try {
       if (!DistanceCalculator.isValidCoordinate(dto.point)) {
-        throw new BadRequestException('Invalid point coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       if (!DistanceCalculator.isValidCoordinate(dto.geofence.center)) {
-        throw new BadRequestException('Invalid geofence center coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       const distance = DistanceCalculator.calculateDistance(
@@ -142,7 +143,7 @@ export class GeolocationService {
   ): { northeast: GeoCoordinate; southwest: GeoCoordinate } {
     try {
       if (!DistanceCalculator.isValidCoordinate(center)) {
-        throw new BadRequestException('Invalid center coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       return DistanceCalculator.getBoundingBox(center, radius, unit);
@@ -157,7 +158,7 @@ export class GeolocationService {
    */
   coordinateToGeoPoint(coordinate: GeoCoordinate): GeoPoint {
     if (!DistanceCalculator.isValidCoordinate(coordinate)) {
-      throw new BadRequestException('Invalid coordinates');
+      throw new BadRequestException(appError('INVALID_COORDINATES'));
     }
 
     return DistanceCalculator.coordinateToPoint(coordinate);
@@ -168,13 +169,13 @@ export class GeolocationService {
    */
   geoPointToCoordinate(point: GeoPoint): GeoCoordinate {
     if (point.coordinates?.length !== 2) {
-      throw new BadRequestException('Invalid GeoJSON point');
+      throw new BadRequestException(appError('INVALID_COORDINATES'));
     }
 
     const coordinate = DistanceCalculator.pointToCoordinate(point);
 
     if (!DistanceCalculator.isValidCoordinate(coordinate)) {
-      throw new BadRequestException('Invalid coordinates in GeoJSON point');
+      throw new BadRequestException(appError('INVALID_COORDINATES'));
     }
 
     return coordinate;
@@ -211,13 +212,13 @@ export class GeolocationService {
   calculateCenter(coordinates: GeoCoordinate[]): GeoCoordinate {
     try {
       if (coordinates.length === 0) {
-        throw new BadRequestException('Coordinates array cannot be empty');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       // Validate all coordinates
       for (const coord of coordinates) {
         if (!DistanceCalculator.isValidCoordinate(coord)) {
-          throw new BadRequestException('Invalid coordinates in array');
+          throw new BadRequestException(appError('INVALID_COORDINATES'));
         }
       }
 
@@ -238,7 +239,7 @@ export class GeolocationService {
   ): Array<T & { distance: Distance }> {
     try {
       if (!DistanceCalculator.isValidCoordinate(reference)) {
-        throw new BadRequestException('Invalid reference coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       return DistanceCalculator.sortByDistance(locations, reference, unit);
@@ -259,7 +260,7 @@ export class GeolocationService {
   ): Array<T & { distance: Distance }> {
     try {
       if (!DistanceCalculator.isValidCoordinate(center)) {
-        throw new BadRequestException('Invalid center coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       return DistanceCalculator.filterByRadius(locations, center, radius, unit);

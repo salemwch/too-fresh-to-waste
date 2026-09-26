@@ -47,6 +47,7 @@ import {
   useDeleteAccount,
   useMfaStatus,
 } from '@/hooks/use-settings';
+import { meetsPasswordPolicy, PASSWORD_MIN_LENGTH } from '@/lib/password-policy';
 import { describeDevice, formatSessionDate } from './session-display';
 import type { ActiveSession, SessionDeviceInfo } from '@/types/settings';
 
@@ -260,6 +261,10 @@ function SecurityTab() {
 
   function handleChangePassword(e: FormEvent) {
     e.preventDefault();
+    if (!meetsPasswordPolicy(newPassword)) {
+      toast.error(t('security.passwordRequirements', { min: PASSWORD_MIN_LENGTH }));
+      return;
+    }
     if (newPassword !== confirmPassword) {
       toast.error(t('security.passwordMismatch'));
       return;
@@ -338,7 +343,7 @@ function SecurityTab() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 required
-                minLength={8}
+                minLength={PASSWORD_MIN_LENGTH}
               />
             </div>
             <div className='space-y-sm'>
@@ -349,7 +354,7 @@ function SecurityTab() {
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 required
-                minLength={8}
+                minLength={PASSWORD_MIN_LENGTH}
               />
             </div>
             <Button

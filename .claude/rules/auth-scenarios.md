@@ -22,7 +22,16 @@ handled, flag it and fix it — do not leave it as a known gap.
 **Rule**: Any flow that touches passwords (forgot, reset, change, login with
 password) must guard on `authProvider !== 'local'` **before** running password
 logic. OAuth users must receive a provider-specific response — never a generic
-password error.
+password error - **except where saying so would reveal the account**.
+
+**Login is that exception (2026-09-25).** An unauthenticated caller must not be
+able to tell an unknown email from a social-only account, so a password typed
+for a Google/Facebook/Apple account gets the same 401 `INVALID_CREDENTIALS` as a
+wrong password, after the same argon2 work (dummy hash), and counts as a failed
+attempt. The provider hint reaches the real owner privately: the forgot-password
+flow emails "sign in with <provider>". The engineer-approved enumeration
+requirements and the decision record are in
+`.claude/work/backend-error-messages-i18n.md`.
 
 ### Email verification state
 
@@ -91,5 +100,5 @@ If you cannot answer all five from the code, the implementation is incomplete.
 | Forgot password     | ✅ sends reset link | ✅ sends "sign in with Google" email                                                                         | ✅ sends "sign in with Facebook" email | ✅ sends "sign in with Apple" email |
 | Reset password      | ✅                  | ❌ blocked in `updatePassword` (`authProvider !== 'local'` guard in `forgotPassword` prevents reaching this) | same                                   | same                                |
 | Change password     | ✅                  | ❌ `updatePassword` throws — UI must hide this option for OAuth users                                        | same                                   | same                                |
-| Login with password | ✅                  | ❌ no password field                                                                                         | same                                   | same                                |
+| Login with password | ✅                  | ❌ generic `INVALID_CREDENTIALS` (no hint - enumeration), counted as a failed attempt                        | same                                   | same                                |
 | Delete account      | ✅                  | ✅ (no password confirmation needed)                                                                         | ✅                                     | ✅                                  |

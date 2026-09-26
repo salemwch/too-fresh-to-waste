@@ -14,6 +14,8 @@ import { Model, Types } from 'mongoose';
 
 import { InvitationStatus, OrganizationRole, UserRole, UserStatus } from '@foodwaste/shared';
 
+import { PasswordPolicyService } from '../auth/services/password-policy.service';
+import { USER_PASSWORD_HASH_OPTIONS } from '../auth/utils/password-hash';
 import { EmailService } from '../email/email.service';
 import { UsersService } from '../users/user.service';
 
@@ -25,6 +27,7 @@ import {
   OrganizationInvitationDocument,
 } from './schemas/organization-invitation.schema';
 
+import { appError } from '../common/errors';
 /** 7 days in milliseconds */
 const INVITATION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -38,6 +41,7 @@ export class OrganizationsInvitationService {
     private readonly organizationsService: OrganizationsService,
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
+    private readonly passwordPolicyService: PasswordPolicyService,
   ) {}
 
   /**
@@ -52,14 +56,14 @@ export class OrganizationsInvitationService {
     const org = await this.organizationsService.findById(orgId);
 
     if (org.ownerId.toString() !== invitedByUserId) {
-      throw new ForbiddenException('Only the organization owner can send invitations');
+      throw new ForbiddenException(appError('ORGANIZATION_OWNER_ONLY'));
     }
 
     // Check the assigned establishment belongs to this org.
     // Query the establishment directly by its own organizationId field — this is always
     // correct even for establishments created before org.establishmentIds was being synced.
     if (!Types.ObjectId.isValid(dto.assignedEstablishmentId)) {
-      throw new BadRequestException('Invalid establishment ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
     const establishment = await this.invitationModel.db.collection('establishments').findOne({
       _id: new Types.ObjectId(dto.assignedEstablishmentId),
@@ -67,9 +71,7 @@ export class OrganizationsInvitationService {
       isDeleted: { $ne: true },
     });
     if (!establishment) {
-      throw new BadRequestException(
-        'The assigned establishment does not belong to this organization',
-      );
+      throw new BadRequestException(appError('ORGANIZATION_ESTABLISHMENT_MISMATCH'));
     }
 
     // Prevent duplicate pending invitations for the same email + org
@@ -83,15 +85,13 @@ export class OrganizationsInvitationService {
       .exec();
 
     if (existingPending) {
-      throw new ConflictException(
-        'A pending invitation for this email already exists in this organization',
-      );
+      throw new ConflictException(appError('INVITATION_ALREADY_PENDING'));
     }
 
     // Check if the user already exists and has an account
     const existingUser = await this.usersService.findByEmail(dto.email);
     if (existingUser) {
-      throw new ConflictException('A user with this email already exists on the platform');
+      throw new ConflictException(appError('EMAIL_ALREADY_REGISTERED'));
     }
 
     // Clean up orphaned accepted/expired invitations for the same email in this org.
@@ -142,22 +142,29 @@ export class OrganizationsInvitationService {
     const invitation = await this.invitationModel.findOne({ token: dto.token }).exec();
 
     if (!invitation) {
-      throw new NotFoundException('Invitation not found');
+      throw new NotFoundException(appError('INVITATION_NOT_FOUND'));
     }
 
     if (invitation.status !== InvitationStatus.PENDING) {
-      throw new BadRequestException(`Invitation is no longer valid (status: ${invitation.status})`);
+      throw new BadRequestException(appError('INVITATION_NOT_VALID'));
     }
 
     if (invitation.expiresAt < new Date()) {
       // Mark as expired
       invitation.status = InvitationStatus.EXPIRED;
       await invitation.save();
-      throw new BadRequestException('Invitation has expired');
+      throw new BadRequestException(appError('INVITATION_EXPIRED'));
     }
 
-    // Hash the password the same way auth.service does
-    const hashedPassword = await argon2.hash(dto.password);
+    // The same strength rules as register and reset (common, repetitive or
+    // guessable passwords), not only the DTO's length and character classes.
+    this.passwordPolicyService.validatePasswordStrength(dto.password, {
+      email: invitation.email,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+    });
+
+    const hashedPassword = await argon2.hash(dto.password, USER_PASSWORD_HASH_OPTIONS);
 
     // Clicking the invitation link from their inbox proves email ownership —
     // no separate verification step needed (same pattern as Slack / GitHub Teams).
@@ -194,7 +201,7 @@ export class OrganizationsInvitationService {
     const org = await this.organizationsService.findById(orgId);
 
     if (org.ownerId.toString() !== userId) {
-      throw new ForbiddenException('Only the organization owner can view invitations');
+      throw new ForbiddenException(appError('ORGANIZATION_OWNER_ONLY'));
     }
 
     return this.invitationModel
@@ -208,24 +215,24 @@ export class OrganizationsInvitationService {
    */
   async revoke(invitationId: string, userId: string): Promise<{ message: string }> {
     if (!Types.ObjectId.isValid(invitationId)) {
-      throw new BadRequestException('Invalid invitation ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const invitation = await this.invitationModel.findById(invitationId).exec();
 
     if (!invitation) {
-      throw new NotFoundException('Invitation not found');
+      throw new NotFoundException(appError('INVITATION_NOT_FOUND'));
     }
 
     if (invitation.status !== InvitationStatus.PENDING) {
-      throw new BadRequestException('Only pending invitations can be revoked');
+      throw new BadRequestException(appError('INVITATION_NOT_PENDING'));
     }
 
     // Verify the caller owns the organization
     const org = await this.organizationsService.findById(invitation.organizationId.toString());
 
     if (org.ownerId.toString() !== userId) {
-      throw new ForbiddenException('Only the organization owner can revoke invitations');
+      throw new ForbiddenException(appError('ORGANIZATION_OWNER_ONLY'));
     }
 
     invitation.status = InvitationStatus.REVOKED;
@@ -251,7 +258,7 @@ export class OrganizationsInvitationService {
       .exec();
 
     if (!invitation) {
-      throw new NotFoundException('Invitation not found');
+      throw new NotFoundException(appError('INVITATION_NOT_FOUND'));
     }
 
     const isValid =

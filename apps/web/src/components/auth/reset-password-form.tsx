@@ -21,6 +21,8 @@ import { Button, Input } from '@foodwaste/ui';
 import { Link } from '@/i18n/routing';
 import { PasswordStrengthIndicator } from './password-strength-indicator';
 import { isAxiosError } from 'axios';
+import { apiErrorCode, readApiError } from '@foodwaste/shared';
+import { meetsPasswordPolicy, PASSWORD_MIN_LENGTH } from '@/lib/password-policy';
 import { authService } from '@/services/auth.service';
 import '../../app/[locale]/(merchant-onboarding)/merchant-signup/merchant-signup.css';
 
@@ -48,15 +50,29 @@ export function ResetPasswordForm() {
       return;
     }
 
+    // The same rule the server applies, so the form does not send what it
+    // knows will be rejected.
+    if (!meetsPasswordPolicy(password)) {
+      setError(t('passwordRequirements', { min: PASSWORD_MIN_LENGTH }));
+      return;
+    }
+
     setIsLoading(true);
     try {
       await authService.resetPassword({ token, newPassword: password });
       setIsSuccess(true);
     } catch (err) {
-      if (isAxiosError(err) && err.response?.data?.message?.type === 'PASSWORD_REUSE_VIOLATION') {
+      // By code. The old check read `message.type`, which the backend never
+      // sent, so a reused password always got the generic error.
+      if (apiErrorCode(err) === 'PASSWORD_REUSED') {
         setError(t('passwordReuseViolation'));
       } else {
-        setError(t('resetPasswordError'));
+        // An invalid link, a weak password: the backend's message is already
+        // in the page's language and says which.
+        const serverMessage = isAxiosError(err)
+          ? readApiError(err.response?.data).message
+          : undefined;
+        setError(serverMessage ?? t('resetPasswordError'));
       }
     } finally {
       setIsLoading(false);

@@ -11,6 +11,7 @@
 import { render, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
+import en from '../../../../i18n/locales/en.json';
 import { ThemeProvider } from '../../../providers';
 
 import { ResendVerificationModal } from './ResendVerificationModal';
@@ -38,7 +39,7 @@ const setup = (props: Partial<React.ComponentProps<typeof ResendVerificationModa
 };
 
 const emailField = () => screen.getByPlaceholderText('Enter your email');
-const sendButton = () => screen.getByText('Send Verification Link');
+const sendButton = () => screen.getByText(en.auth.resend.send);
 
 describe('ResendVerificationModal', () => {
   beforeEach(() => {
@@ -131,11 +132,7 @@ describe('ResendVerificationModal', () => {
       fireEvent.changeText(emailField(), VALID_EMAIL);
       fireEvent.press(sendButton());
 
-      await waitFor(() =>
-        expect(
-          screen.getByText('Failed to send verification email. Please try again.'),
-        ).toBeTruthy(),
-      );
+      await waitFor(() => expect(screen.getByText(en.verifyEmail.failedToResend)).toBeTruthy());
     });
 
     it('allows retrying after a failure', async () => {

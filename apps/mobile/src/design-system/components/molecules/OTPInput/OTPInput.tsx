@@ -168,14 +168,20 @@ export const OTPInput = memo<OTPInputProps>(
           return (
             <Pressable
               accessibilityRole='button'
-              accessibilityLabel={`Verification digit ${index + 1} of ${length}`}
+              accessibilityLabel={t('auth.a11yDigitPosition', {
+                position: index + 1,
+                total: length,
+              })}
               accessibilityHint={t('auth.a11yFocusDigit')}
               key={index}
               onPress={() => handleBoxPress(index)}
               style={[styles.inputContainer, inputContainerDynamicStyle]}
             >
               <TextInput
-                accessibilityLabel={`Digit ${index + 1} of ${length}`}
+                accessibilityLabel={t('auth.a11yDigitInput', {
+                  position: index + 1,
+                  total: length,
+                })}
                 accessibilityHint={t('auth.a11yEnterDigit')}
                 ref={ref => {
                   inputRefs.current[index] = ref;

@@ -73,7 +73,9 @@ export class AuthThrottlerGuard extends ThrottlerGuard {
     });
 
     await Promise.resolve();
-    throw new ThrottlerException('Too many requests. Please wait before trying again.');
+    // ThrottlerException only takes a string, so it carries the code itself;
+    // the exception filter translates it for the client.
+    throw new ThrottlerException('TOO_MANY_REQUESTS');
   }
 
   /**

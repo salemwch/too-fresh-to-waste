@@ -3,6 +3,8 @@ import * as Sentry from '@sentry/node';
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
+import { resolveErrorLocale } from '../errors/app-error';
+import { toClientError, type ClientError } from '../errors/client-error';
 import { AppLoggerService } from '../services/logger.service';
 
 /**
@@ -23,7 +25,13 @@ import { AppLoggerService } from '../services/logger.service';
 
 interface ErrorResponse {
   status: number;
+  /** Stable machine-readable code; clients branch on it. */
+  code: string;
+  /** In the requester's language (Accept-Language) when the code is known. */
   message: string;
+  params?: ClientError['params'];
+  errors?: ClientError['errors'];
+  details?: ClientError['details'];
   error?: string;
   errorId: string;
   correlationId?: string;
@@ -130,6 +138,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = 'Internal server error';
     }
 
+    // What the client reads: a code, and the message in its own language.
+    // Built from the unsanitised English message; it applies its own
+    // production rule for 5xx.
+    const clientError = toClientError({
+      body: exception instanceof HttpException ? exception.getResponse() : undefined,
+      rawMessage: message,
+      status,
+      locale: resolveErrorLocale(request.headers['accept-language']),
+      isProduction: this.isProduction,
+    });
+
     // Sanitize message for production (prevent information leakage)
     if (this.isProduction && status === HttpStatus.INTERNAL_SERVER_ERROR) {
       message = 'An unexpected error occurred. Please contact support with the error ID.';
@@ -192,7 +211,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // Build error response
     const errorResponse: ErrorResponse = {
       status,
-      message,
+      code: clientError.code,
+      message: clientError.message,
+      ...(clientError.params ? { params: clientError.params } : {}),
+      ...(clientError.errors ? { errors: clientError.errors } : {}),
+      ...(clientError.details ? { details: clientError.details } : {}),
       errorId, // Critical: Return error ID to client for support tickets
       correlationId,
       timestamp: new Date().toISOString(),

@@ -9,6 +9,7 @@ import { MerchantWallet } from './schemas/merchant-wallet.schema';
 import { Payment } from './schemas/payment.schema';
 import { PaymentService } from './payments.service';
 
+import { EN } from '../common/errors/catalog/en';
 describe('PaymentService.getMyWallet', () => {
   let service: PaymentService;
   let walletModel: { find: jest.Mock };
@@ -82,7 +83,7 @@ describe('PaymentService.getMyWallet', () => {
 
   it('rejects a malformed establishmentId with a clean 400 instead of throwing inside Types.ObjectId', async () => {
     await expect(service.getMyWallet(merchantId.toString(), 'not-an-object-id')).rejects.toThrow(
-      'Invalid establishmentId format',
+      EN.INVALID_ID,
     );
     expect(walletModel.find).not.toHaveBeenCalled();
   });

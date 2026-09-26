@@ -15,6 +15,7 @@ import {
   JWT_REFRESH_EXPIRES_IN_DEFAULT,
   JWT_REFRESH_REMEMBER_ME_EXPIRES_IN_DEFAULT,
 } from './token-lifetimes';
+import { parseCommissionCutoff } from './commission-cutoff.util';
 import { describeWeakSecret } from './weak-secrets';
 
 /**
@@ -339,7 +340,7 @@ export const envValidationSchema = Joi.object({
   // Declared so Joi COERCES it to a number. It is read as
   // `configService.get<number>(...)`, but env vars arrive as strings and the
   // type argument only asserts - it converts nothing. Undeclared, a share of
-  // `0.67` would arrive as the string "0.67" and multiplying by it would still
+  // `0.8` would arrive as the string "0.8" and multiplying by it would still
   // work while any `+` against it silently concatenated.
   //
   // Model: customer pays food + FLAT_DELIVERY_FEE on delivery orders (never on
@@ -356,13 +357,39 @@ export const envValidationSchema = Joi.object({
   // every short trip - exactly the failure the pricing model was rewritten to
   // remove. A share cannot produce that at any fee.
   //
-  // The platform's 33% is not profit. It funds fuel and vehicle support where
+  // The platform's 20% is not profit. It funds fuel and vehicle support where
   // that applies, operations, payment processing, failed deliveries, support
   // and logistics overhead.
   //
   // Tips are 100% the driver's and never pass through this split. Tipping is
   // not implemented yet.
-  DELIVERY_DRIVER_SHARE: Joi.number().min(0).max(1).default(0.67).messages({
+  // Default 0.8 (driver 80%, platform 20%) since 2026-09-24; mirrors
+  // DEFAULT_DRIVER_SHARE in packages/shared/src/utils/deliveryFee.ts.
+  // ── Commission-settlement model ──────────────────────────────────────
+  // The instant the model starts applying: sales completed before it are never
+  // re-accrued, sales after it all are. Money, so no default - a missing value
+  // must stop a production boot rather than mean "now" or "never". The date is
+  // chosen by the product owner at release; see commission-cutoff.util.ts for
+  // the accepted format and .claude/work/commission-settlement-model.md.
+  // Outside production it may be absent, which leaves the new model inactive.
+  COMMISSION_MODEL_EFFECTIVE_AT: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    // Empty is what .env.example ships with: inactive, not an error.
+    otherwise: Joi.string().allow('').optional(),
+  })
+    .custom((value: unknown, helpers) =>
+      parseCommissionCutoff(value) === null ? helpers.error('any.invalid') : value,
+    )
+    .messages({
+      'any.required':
+        'COMMISSION_MODEL_EFFECTIVE_AT is required in production: the instant the commission model starts, as YYYY-MM-DDTHH:mm:ss+01:00.',
+      'any.invalid':
+        'COMMISSION_MODEL_EFFECTIVE_AT must be an ISO date-time with an explicit offset (Z or +01:00), and a real calendar instant.',
+      'string.empty': 'COMMISSION_MODEL_EFFECTIVE_AT must not be empty.',
+    }),
+
+  DELIVERY_DRIVER_SHARE: Joi.number().min(0).max(1).default(0.8).messages({
     'number.max':
       'DELIVERY_DRIVER_SHARE is a fraction of the delivery fee, so it cannot exceed 1 - the platform would pay the driver more than it collects on every delivery.',
   }),

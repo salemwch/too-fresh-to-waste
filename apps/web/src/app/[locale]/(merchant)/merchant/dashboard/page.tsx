@@ -13,6 +13,7 @@ import {
   ReportingBar,
   StreakWidget,
   SmartPricingPanel,
+  TodaySalesCard,
   WalletBalanceCard,
   FundLedgerCard,
   CommissionCard,
@@ -57,6 +58,9 @@ export default function MerchantDashboardPage() {
 
       {/* ── Daily listing streak ── */}
       <StreakWidget onListOffer={() => setPanelOpen(true)} disabled={isTrialSuspended} />
+
+      {/* ── Today: every sale, cash and online together ── */}
+      <TodaySalesCard />
 
       {/* ── Payout balance + commission statement ── */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-[24px]'>

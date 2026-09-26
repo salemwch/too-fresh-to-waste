@@ -66,7 +66,7 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({ onPress }) => {
       style={styles.locationHeader}
       onPress={onPress}
       accessibilityRole='button'
-      accessibilityLabel={`Current location: ${formattedLocationDisplay}`}
+      accessibilityLabel={t('location.a11yCurrentLocation', { location: formattedLocationDisplay })}
       accessibilityHint={t('location.a11yChangeLocationHint')}
       disabled={!onPress}
     >

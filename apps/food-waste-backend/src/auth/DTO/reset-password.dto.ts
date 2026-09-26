@@ -18,9 +18,6 @@ export class ResetPasswordDto {
   @IsString()
   @MinLength(PASSWORD_MIN_LENGTH, { message: PASSWORD_ERROR_MESSAGES.TOO_SHORT })
   @MaxLength(PASSWORD_MAX_LENGTH, { message: PASSWORD_ERROR_MESSAGES.TOO_LONG })
-  @Matches(buildPasswordRegex(), {
-    message:
-      'Password must contain at least one uppercase, one lowercase, one number, and one special character',
-  })
+  @Matches(buildPasswordRegex(), { message: 'PASSWORD_POLICY' })
   newPassword!: string;
 }

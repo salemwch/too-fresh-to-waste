@@ -34,6 +34,7 @@ import {
   type VotingEligibilityDocument,
 } from './schemas/voting-eligibility.schema';
 
+import { appError } from '../common/errors';
 // ── Result / Stats payload types ─────────────────────────────────────────────
 
 export interface PrizeTallyRow {
@@ -121,7 +122,7 @@ export class VotingService {
   async updateCycle(cycleId: string, dto: UpdateCycleDto): Promise<VotingCycleDocument> {
     const cycle = await this.cycleModel.findById(cycleId);
     if (!cycle) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
 
     const lockedAfterDraft: (keyof UpdateCycleDto)[] = [
@@ -145,11 +146,9 @@ export class VotingService {
 
     for (const field of fieldsToCheck) {
       if (dto[field] !== undefined) {
-        throw new BadRequestException({
-          statusCode: 400,
-          error: VOTING_ERROR_CODES.FIELD_LOCKED_AFTER_ACTIVATION,
-          message: `Field '${field}' cannot be modified in ${cycle.status} status`,
-        });
+        throw new BadRequestException(
+          appError(VOTING_ERROR_CODES.FIELD_LOCKED_AFTER_ACTIVATION, undefined, { field }),
+        );
       }
     }
 
@@ -183,7 +182,7 @@ export class VotingService {
     );
 
     if (!updated) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
     return updated;
   }
@@ -191,10 +190,10 @@ export class VotingService {
   async deleteCycle(cycleId: string): Promise<void> {
     const cycle = await this.cycleModel.findById(cycleId);
     if (!cycle) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
     if (cycle.status !== CycleStatus.DRAFT) {
-      throw new BadRequestException('Only DRAFT cycles can be deleted');
+      throw new BadRequestException(appError('VOTING_CYCLE_NOT_DRAFT'));
     }
     await this.cycleModel.deleteOne({ _id: cycle._id });
   }
@@ -226,12 +225,12 @@ export class VotingService {
     if (!updated) {
       const exists = await this.cycleModel.findById(cycleId);
       if (!exists) {
-        throw new NotFoundException('Voting cycle not found');
+        throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
       }
       if (exists.status !== CycleStatus.DRAFT) {
-        throw new BadRequestException(`Cycle is ${exists.status}, not DRAFT`);
+        throw new BadRequestException(appError('VOTING_CYCLE_NOT_DRAFT'));
       }
-      throw new ConflictException('Another live cycle already exists');
+      throw new ConflictException(appError('VOTING_CYCLE_EXISTS'));
     }
 
     await this.writeAuditLog(
@@ -338,9 +337,11 @@ export class VotingService {
     if (!before) {
       const exists = await this.cycleModel.findById(cycleId);
       if (!exists) {
-        throw new NotFoundException('Voting cycle not found');
+        throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
       }
-      throw new BadRequestException(`Cannot archive cycle in ${exists.status} status`);
+      throw new BadRequestException(
+        appError('VOTING_CYCLE_INVALID_STATE', { status: exists.status }),
+      );
     }
 
     const fromStatus = before.status;
@@ -355,7 +356,7 @@ export class VotingService {
     );
 
     if (!updated) {
-      throw new ConflictException('Archive transition failed due to concurrent update');
+      throw new ConflictException(appError('VOTING_CYCLE_CHANGED'));
     }
 
     await this.writeAuditLog(
@@ -390,7 +391,7 @@ export class VotingService {
 
     const cycle = await this.cycleModel.findById(cycleId);
     if (!cycle) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
 
     let winnerUpdate: Record<string, unknown>;
@@ -427,7 +428,7 @@ export class VotingService {
     );
 
     if (!completed) {
-      throw new BadRequestException('Cycle is no longer in TALLYING status');
+      throw new BadRequestException(appError('VOTING_CYCLE_CHANGED'));
     }
 
     await this.writeAuditLog(
@@ -451,7 +452,7 @@ export class VotingService {
   async manualTally(cycleId: string, adminId: string): Promise<VotingCycleDocument> {
     const cycle = await this.cycleModel.findById(cycleId);
     if (!cycle) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
 
     if (cycle.status === CycleStatus.COMPLETED) {
@@ -459,7 +460,9 @@ export class VotingService {
     }
 
     if (cycle.status !== CycleStatus.TALLYING) {
-      throw new BadRequestException(`Cannot tally cycle in ${cycle.status} status`);
+      throw new BadRequestException(
+        appError('VOTING_CYCLE_INVALID_STATE', { status: cycle.status }),
+      );
     }
 
     const result = await this.runTally(cycleId);
@@ -480,7 +483,7 @@ export class VotingService {
   async createEligibilitySnapshots(cycleId: string): Promise<number> {
     const cycle = await this.cycleModel.findById(cycleId);
     if (!cycle) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
 
     const eligibleUsers = await this.getEligibleUsersForCycle(
@@ -540,12 +543,10 @@ export class VotingService {
   async retrySnapshot(cycleId: string, adminId: string): Promise<number> {
     const cycle = await this.cycleModel.findById(cycleId);
     if (!cycle) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
     if (cycle.status !== CycleStatus.BALLOT_OPEN || cycle.snapshotReady) {
-      throw new BadRequestException(
-        'Snapshot retry only available for BALLOT_OPEN cycles with snapshotReady=false',
-      );
+      throw new BadRequestException(appError('VOTING_SNAPSHOT_RETRY_INVALID'));
     }
 
     const count = await this.createEligibilitySnapshots(cycleId);
@@ -886,7 +887,7 @@ export class VotingService {
   async getCycleStats(cycleId: string): Promise<StatsPayload> {
     const cycle = await this.cycleModel.findById(cycleId);
     if (!cycle) {
-      throw new NotFoundException('Voting cycle not found');
+      throw new NotFoundException(appError('VOTING_CYCLE_NOT_FOUND'));
     }
 
     const aggResults = await this.voteModel.aggregate<{

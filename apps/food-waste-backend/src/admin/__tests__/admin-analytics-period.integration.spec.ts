@@ -66,7 +66,15 @@ describe('AdminAnalyticsService — period filtering against a real MongoDB', ()
   let establishmentModel: Model<EstablishmentDocument>;
 
   const now = new Date();
-  const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
+  /*
+   * Today, and already past. This used to be 12:00 today, which is in the future
+   * every morning: the service rightly excludes it, so this suite failed before
+   * noon and passed after. Halfway between midnight and now is always both.
+   */
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEarlier = new Date(
+    startOfToday.getTime() + Math.floor((now.getTime() - startOfToday.getTime()) / 2),
+  );
   const threeDaysAgo = new Date(now.getTime() - 3 * DAY);
   const twoYearsAgo = new Date(now.getTime() - 730 * DAY);
 
@@ -146,16 +154,16 @@ describe('AdminAnalyticsService — period filtering against a real MongoDB', ()
     // 2 orders today, 1 three days ago, 1 two years ago. One of today's is a
     // DELIVERED order - the status the old `'completed'` filter dropped.
     await orderModel.collection.insertMany([
-      order(todayNoon, OrderStatus.PICKED_UP),
-      order(todayNoon, OrderStatus.DELIVERED),
+      order(todayEarlier, OrderStatus.PICKED_UP),
+      order(todayEarlier, OrderStatus.DELIVERED),
       order(threeDaysAgo, OrderStatus.PICKED_UP),
       order(twoYearsAgo, OrderStatus.PICKED_UP),
       // Never counts toward revenue, in any period.
-      order(todayNoon, OrderStatus.CANCELLED),
+      order(todayEarlier, OrderStatus.CANCELLED),
     ] as never[]);
 
     await userModel.collection.insertMany([
-      user(todayNoon),
+      user(todayEarlier),
       user(threeDaysAgo),
       user(twoYearsAgo),
     ] as never[]);
@@ -166,7 +174,7 @@ describe('AdminAnalyticsService — period filtering against a real MongoDB', ()
         name: 'Today Shop',
         status: 'active',
         isActive: true,
-        createdAt: todayNoon,
+        createdAt: todayEarlier,
       },
       {
         _id: new Types.ObjectId(),

@@ -22,6 +22,7 @@ import { EmailNotificationService } from '../../notifications/services/email-not
 import { PushNotificationService } from '../../notifications/services/push-notification.service';
 import { VotingCycle, type VotingCycleDocument } from '../schemas/voting-cycle.schema';
 
+import { appError } from '../../common/errors';
 export interface VotingWinnerRow {
   userId: string;
   rank: number;
@@ -175,7 +176,7 @@ export class VotingPrizeService {
   async claimPrize(userId: string): Promise<VotingPrizeStatus> {
     const cycle = await this.getLatestCompletedCycle();
     if (!cycle?.winnerPrizeId) {
-      throw new BadRequestException('No completed voting cycle is available to claim.');
+      throw new BadRequestException(appError('VOTING_NO_COMPLETED_CYCLE'));
     }
 
     const cycleId = (cycle._id as Types.ObjectId).toString();
@@ -183,7 +184,7 @@ export class VotingPrizeService {
     const mine = ranks.find(r => r.userId === userId);
     if (!mine) {
       throw new BadRequestException(
-        `Only the top ${cycle.recipientCount} on the leaderboard can claim this prize.`,
+        appError('VOTING_PRIZE_TOP_ONLY', { count: cycle.recipientCount }),
       );
     }
 
@@ -193,7 +194,7 @@ export class VotingPrizeService {
       source: PrizeSource.VOTING,
     });
     if (duplicate) {
-      throw new ConflictException('You have already claimed your voting prize for this cycle.');
+      throw new ConflictException(appError('VOTING_PRIZE_ALREADY_CLAIMED'));
     }
 
     const prizeLabel = cycle.winner?.name ?? 'the grand prize';
@@ -220,7 +221,7 @@ export class VotingPrizeService {
       // The read-then-write above lets two concurrent claims through; the
       // partial unique index is what actually stops the second one.
       if (typeof err === 'object' && err !== null && (err as { code?: unknown }).code === 11000) {
-        throw new ConflictException('You have already claimed your voting prize for this cycle.');
+        throw new ConflictException(appError('VOTING_PRIZE_ALREADY_CLAIMED'));
       }
       throw err;
     }

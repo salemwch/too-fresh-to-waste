@@ -22,6 +22,7 @@ import {
   WidgetPosition,
   Widget,
 } from '../schemas/dashboard-config.schema';
+import { appError } from '../../common/errors';
 @Injectable()
 export class DashboardService {
   private readonly logger = new Logger(DashboardService.name);
@@ -45,7 +46,7 @@ export class DashboardService {
     try {
       // Validate user permissions
       if (!this.canCreateDashboard(userRole)) {
-        throw new ForbiddenException('Insufficient permissions to create dashboard');
+        throw new ForbiddenException(appError('DASHBOARD_FORBIDDEN'));
       }
 
       // Check for duplicate names for the user
@@ -58,7 +59,7 @@ export class DashboardService {
       });
 
       if (existingDashboard) {
-        throw new ConflictException('Dashboard with this name already exists');
+        throw new ConflictException(appError('DASHBOARD_NAME_TAKEN'));
       }
 
       // Validate widgets
@@ -128,12 +129,12 @@ export class DashboardService {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
       if (!dashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       // Check permissions
       if (!this.canViewDashboard(dashboard, userId, userRole)) {
-        throw new ForbiddenException('Insufficient permissions to view dashboard');
+        throw new ForbiddenException(appError('DASHBOARD_FORBIDDEN'));
       }
 
       // Update view statistics
@@ -204,12 +205,12 @@ export class DashboardService {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
       if (!dashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       // Check permissions
       if (!this.canEditDashboard(dashboard, userId, userRole)) {
-        throw new ForbiddenException('Insufficient permissions to edit dashboard');
+        throw new ForbiddenException(appError('DASHBOARD_FORBIDDEN'));
       }
 
       // Validate widgets if provided
@@ -249,7 +250,7 @@ export class DashboardService {
       );
 
       if (!updatedDashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       this.logger.log(`Dashboard updated: ${updatedDashboard.name} by user ${userId}`);
@@ -276,12 +277,12 @@ export class DashboardService {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
       if (!dashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       // Check permissions
       if (!this.canEditDashboard(dashboard, userId, userRole)) {
-        throw new ForbiddenException('Insufficient permissions to delete dashboard');
+        throw new ForbiddenException(appError('DASHBOARD_FORBIDDEN'));
       }
 
       // Soft delete - mark as inactive
@@ -325,16 +326,16 @@ export class DashboardService {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
       if (!dashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       if (!this.canEditDashboard(dashboard, userId, userRole)) {
-        throw new ForbiddenException('Insufficient permissions to edit dashboard');
+        throw new ForbiddenException(appError('DASHBOARD_FORBIDDEN'));
       }
 
       // Validate widget limit
       if (dashboard.widgets.length >= 20) {
-        throw new BadRequestException('Maximum of 20 widgets per dashboard allowed');
+        throw new BadRequestException(appError('DASHBOARD_TOO_MANY_WIDGETS'));
       }
 
       // Validate widget position
@@ -358,7 +359,7 @@ export class DashboardService {
       );
 
       if (!updatedDashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       // Emit event
@@ -389,21 +390,21 @@ export class DashboardService {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
       if (!dashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       if (!this.canEditDashboard(dashboard, userId, userRole)) {
-        throw new ForbiddenException('Insufficient permissions to edit dashboard');
+        throw new ForbiddenException(appError('DASHBOARD_FORBIDDEN'));
       }
 
       const widgetIndex = dashboard.widgets.findIndex(w => w.id === widgetId);
       if (widgetIndex === -1) {
-        throw new NotFoundException('Widget not found');
+        throw new NotFoundException(appError('WIDGET_NOT_FOUND'));
       }
 
       const existingWidget = dashboard.widgets[widgetIndex];
       if (!existingWidget) {
-        throw new NotFoundException('Widget not found');
+        throw new NotFoundException(appError('WIDGET_NOT_FOUND'));
       }
 
       // Update the widget
@@ -444,11 +445,11 @@ export class DashboardService {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
       if (!dashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       if (!this.canEditDashboard(dashboard, userId, userRole)) {
-        throw new ForbiddenException('Insufficient permissions to edit dashboard');
+        throw new ForbiddenException(appError('DASHBOARD_FORBIDDEN'));
       }
 
       const updatedDashboard = await this.dashboardModel.findByIdAndUpdate(
@@ -464,7 +465,7 @@ export class DashboardService {
       );
 
       if (!updatedDashboard) {
-        throw new NotFoundException('Widget not found');
+        throw new NotFoundException(appError('WIDGET_NOT_FOUND'));
       }
 
       // Emit event
@@ -511,11 +512,11 @@ export class DashboardService {
       const dashboard = await this.dashboardModel.findById(dashboardId);
 
       if (!dashboard) {
-        throw new NotFoundException('Dashboard not found');
+        throw new NotFoundException(appError('DASHBOARD_NOT_FOUND'));
       }
 
       if (!this.canEditDashboard(dashboard, userId, userRole)) {
-        throw new ForbiddenException('Insufficient permissions to modify dashboard');
+        throw new ForbiddenException(appError('DASHBOARD_FORBIDDEN'));
       }
 
       // Unset existing defaults
@@ -541,11 +542,11 @@ export class DashboardService {
 
   private validateWidgets(widgets: CreateWidgetDto[]): void {
     if (widgets.length === 0) {
-      throw new BadRequestException('Dashboard must have at least one widget');
+      throw new BadRequestException(appError('DASHBOARD_NO_WIDGETS'));
     }
 
     if (widgets.length > 20) {
-      throw new BadRequestException('Dashboard cannot have more than 20 widgets');
+      throw new BadRequestException(appError('DASHBOARD_TOO_MANY_WIDGETS'));
     }
 
     // Check for position conflicts
@@ -554,22 +555,25 @@ export class DashboardService {
       const posKey = `${widget.position.row}-${widget.position.column}`;
       if (positions.has(posKey)) {
         throw new BadRequestException(
-          `Widget position conflict at row ${widget.position.row}, column ${widget.position.column}`,
+          appError('WIDGET_POSITION_CONFLICT', {
+            row: widget.position.row,
+            column: widget.position.column,
+          }),
         );
       }
       positions.add(posKey);
 
       // Validate position bounds
       if (widget.position.row < 1 || widget.position.column < 1) {
-        throw new BadRequestException('Widget position must start from row 1, column 1');
+        throw new BadRequestException(appError('WIDGET_POSITION_START'));
       }
 
       if (widget.position.width < 1 || widget.position.width > 12) {
-        throw new BadRequestException('Widget width must be between 1 and 12');
+        throw new BadRequestException(appError('WIDGET_WIDTH_RANGE'));
       }
 
       if (widget.position.height < 1 || widget.position.height > 6) {
-        throw new BadRequestException('Widget height must be between 1 and 6');
+        throw new BadRequestException(appError('WIDGET_HEIGHT_RANGE'));
       }
     }
   }
@@ -579,7 +583,7 @@ export class DashboardService {
     for (const widget of existingWidgets) {
       if (widget.position.row === position.row && widget.position.column === position.column) {
         throw new BadRequestException(
-          `Position conflict at row ${position.row}, column ${position.column}`,
+          appError('WIDGET_POSITION_CONFLICT', { row: position.row, column: position.column }),
         );
       }
     }
@@ -758,7 +762,7 @@ export class DashboardService {
     const systemUserId = new Types.ObjectId('000000000000000000000000');
     const requiredRole = template.requiredRole;
     if (!requiredRole) {
-      throw new BadRequestException(`Template '${template.id}' is missing a required role`);
+      throw new BadRequestException(appError('DASHBOARD_TEMPLATE_INVALID'));
     }
 
     return {

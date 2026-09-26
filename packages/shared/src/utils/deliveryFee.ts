@@ -132,7 +132,7 @@ export const calculateDeliveryFee = (distanceKm: number): number => {
  * trip - the exact failure the pricing model was rewritten to remove. A share
  * cannot produce that outcome at any fee.
  *
- * ## The platform's 33% is not margin
+ * ## The platform's 20% is not margin
  *
  * It funds fuel and vehicle support where that applies, operations, payment
  * processing, failed deliveries, support, and logistics overhead. Recorded here
@@ -153,7 +153,12 @@ export const calculateDeliveryFee = (distanceKm: number): number => {
  * implemented anywhere yet, so there is nothing to route - when it is added it
  * must bypass this function entirely rather than pass through it.
  */
-export const DEFAULT_DRIVER_SHARE = 0.67;
+/*
+ * 80 / 20 since 2026-09-24 (product owner). Was 0.67. Orders store the split
+ * they were created with (`driverEarnings`, `platformDeliveryCommission`), so
+ * this changes new orders only - historical orders are never re-split.
+ */
+export const DEFAULT_DRIVER_SHARE = 0.8;
 
 export interface DeliveryFeeSplit {
   /** What the driver is paid, in TND. */

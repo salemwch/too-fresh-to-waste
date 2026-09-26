@@ -40,6 +40,7 @@ import { ModerationReportRateLimitGuard } from '../guards/moderation-rate-limit.
 import { ReportStatus } from '../schemas/report.schema';
 import { ReportService } from '../services/report.service';
 
+import { appError } from '../../common/errors';
 interface AuthenticatedRequest extends Request {
   user: {
     id: string;
@@ -72,7 +73,7 @@ export class ReportController {
   ) {
     // Additional validation for MongoDB ObjectId
     if (!Types.ObjectId.isValid(createReportDto.targetId)) {
-      throw new BadRequestException('Invalid target ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const headers = req.headers as unknown as Record<string, string | string[] | undefined>;
@@ -181,7 +182,7 @@ export class ReportController {
     @CurrentUser('role') userRole: UserRole,
   ) {
     if (!Types.ObjectId.isValid(reportId)) {
-      throw new BadRequestException('Invalid report ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const report = await this.reportService.getReportById(reportId, userId, userRole);
@@ -209,7 +210,7 @@ export class ReportController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!Types.ObjectId.isValid(reportId)) {
-      throw new BadRequestException('Invalid report ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const headers = req.headers as unknown as Record<string, string | string[] | undefined>;
@@ -252,7 +253,7 @@ export class ReportController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!Types.ObjectId.isValid(reportId) || !Types.ObjectId.isValid(moderatorId)) {
-      throw new BadRequestException('Invalid ID format');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const headers = req.headers as unknown as Record<string, string | string[] | undefined>;

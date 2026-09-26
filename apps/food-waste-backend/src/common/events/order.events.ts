@@ -51,6 +51,18 @@ export class OrderCreatedEvent {
  * Emitted when an order is cancelled
  * Listeners: Inventory (release items), Payments (refund), Notifications
  */
+/**
+ * Emitted when a completed sale is refunded - it no longer happened.
+ * Listeners: Donations (reverse the order's charity contribution).
+ */
+export class OrderRefundedEvent {
+  constructor(
+    public readonly orderId: string,
+    public readonly reason: string,
+    public readonly refundedAt: Date,
+  ) {}
+}
+
 export class OrderCancelledEvent {
   constructor(
     public readonly orderId: string,

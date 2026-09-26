@@ -31,6 +31,8 @@ import { UpdateUserDto } from './DTO/update-user.dto';
 import { IUsersService } from './interfaces/users-service.interface';
 import { User, UserDocument, UserRole, UserStatus, IAuditLogDetails } from './schemas/user.schema';
 
+import { appError } from '../common/errors';
+import { USER_PASSWORD_HASH_OPTIONS } from '../auth/utils/password-hash';
 interface IPaginationMeta {
   page: number;
   limit: number;
@@ -180,17 +182,17 @@ export class UsersService implements IUsersService {
   ): Promise<UserDocument> {
     // 1. Input validation for required fields
     if (!createUserDto?.email || createUserDto.email.trim() === '') {
-      throw new BadRequestException('Email is required and cannot be empty');
+      throw new BadRequestException(appError('EMAIL_REQUIRED'));
     }
     if (!createUserDto?.password || createUserDto.password.trim() === '') {
-      throw new BadRequestException('Password is required and cannot be empty');
+      throw new BadRequestException(appError('PASSWORD_REQUIRED'));
     }
     if (createUserDto?.role !== UserRole.MERCHANT) {
       if (!createUserDto?.firstName || createUserDto.firstName.trim() === '') {
-        throw new BadRequestException('First name is required and cannot be empty');
+        throw new BadRequestException(appError('FIRST_NAME_REQUIRED'));
       }
       if (!createUserDto?.lastName || createUserDto.lastName.trim() === '') {
-        throw new BadRequestException('Last name is required and cannot be empty');
+        throw new BadRequestException(appError('LAST_NAME_REQUIRED'));
       }
     }
 
@@ -207,7 +209,7 @@ export class UsersService implements IUsersService {
         );
 
         if (!phoneValidation.isValid) {
-          throw new BadRequestException(phoneValidation.error ?? 'Invalid phone number format');
+          throw new BadRequestException(appError('INVALID_PHONE'));
         }
 
         // Store in E.164 format for consistency
@@ -231,12 +233,7 @@ export class UsersService implements IUsersService {
 
       // Throw if password is invalid
       if (!passwordValidation.isValid) {
-        throw new BadRequestException({
-          message: 'Password does not meet security requirements',
-          feedback: passwordValidation.feedback,
-          suggestions: passwordValidation.suggestions,
-          score: passwordValidation.score,
-        });
+        throw new BadRequestException(appError('PASSWORD_POLICY'));
       }
 
       // 5. Check for existing user with normalized email OR phone number
@@ -254,20 +251,15 @@ export class UsersService implements IUsersService {
       ]);
 
       if (existingEmailUser) {
-        throw new ConflictException('User with this email already exists');
+        throw new ConflictException(appError('EMAIL_ALREADY_REGISTERED'));
       }
 
       if (existingPhoneUser) {
-        throw new ConflictException('User with this phone number already exists');
+        throw new ConflictException(appError('PHONE_ALREADY_REGISTERED'));
       }
 
       // 6. Hash password with argon2
-      const hashedPassword = await argon2.hash(createUserDto.password, {
-        type: argon2.argon2id,
-        memoryCost: 2 ** 16,
-        timeCost: 3,
-        parallelism: 1,
-      });
+      const hashedPassword = await argon2.hash(createUserDto.password, USER_PASSWORD_HASH_OPTIONS);
 
       // 7. Initialize privacy settings with default values
       const defaultPrivacySettings = {
@@ -362,15 +354,15 @@ export class UsersService implements IUsersService {
           mongoError.keyPattern?.['email'] !== null &&
           mongoError.keyPattern?.['email'] !== undefined
         ) {
-          throw new ConflictException('User with this email already exists');
+          throw new ConflictException(appError('EMAIL_ALREADY_REGISTERED'));
         }
         if (
           mongoError.keyPattern?.['phoneNumber'] !== null &&
           mongoError.keyPattern?.['phoneNumber'] !== undefined
         ) {
-          throw new ConflictException('User with this phone number already exists');
+          throw new ConflictException(appError('PHONE_ALREADY_REGISTERED'));
         }
-        throw new ConflictException('User with this information already exists');
+        throw new ConflictException(appError('USER_ALREADY_EXISTS'));
       }
 
       // Ensure no sensitive data is leaked in error messages
@@ -384,7 +376,7 @@ export class UsersService implements IUsersService {
         `User creation failed for email: ${createUserDto.email}`,
         (error instanceof Error ? error.stack : undefined) ?? 'No stack trace available',
       );
-      throw new BadRequestException('User creation failed due to system error');
+      throw new BadRequestException(appError('ACCOUNT_CREATE_FAILED'));
     }
   }
   async findAll(
@@ -437,7 +429,7 @@ export class UsersService implements IUsersService {
       .exec();
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     return user as User;
@@ -449,7 +441,7 @@ export class UsersService implements IUsersService {
       .exec();
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     return user;
@@ -543,16 +535,14 @@ export class UsersService implements IUsersService {
     // again.", which invites the retry that spends the next slot.
     if (!this.smsNotificationService.isSmsEnabled()) {
       this.logger.warn('Phone verification requested while SMS is disabled', { userId });
-      throw new ServiceUnavailableException(
-        'Phone verification is currently unavailable. Please try again later.',
-      );
+      throw new ServiceUnavailableException(appError('PHONE_VERIFICATION_UNAVAILABLE'));
     }
 
     try {
       // 1. Find user
       const user = await this.userModel.findById(userId);
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       // 2. Check if phone is already verified
@@ -583,12 +573,12 @@ export class UsersService implements IUsersService {
       // 4. Normalize and validate phone number
       const phoneValidation = this.phoneNumberService.validatePhoneNumber(phoneNumber, 'TN');
       if (!phoneValidation.isValid) {
-        throw new BadRequestException(phoneValidation.error ?? 'Invalid phone number format');
+        throw new BadRequestException(appError('INVALID_PHONE'));
       }
 
       const normalizedPhone = phoneValidation.details?.formatted.e164;
       if (!normalizedPhone) {
-        throw new BadRequestException('Failed to normalize phone number');
+        throw new BadRequestException(appError('INVALID_PHONE'));
       }
 
       // 5. Check if phone number is already used by another user
@@ -600,7 +590,7 @@ export class UsersService implements IUsersService {
         });
 
         if (existingUser) {
-          throw new ConflictException('This phone number is already registered to another account');
+          throw new ConflictException(appError('PHONE_ALREADY_REGISTERED'));
         }
       }
 
@@ -661,7 +651,7 @@ export class UsersService implements IUsersService {
             error: smsResult.error,
           },
         );
-        throw new BadRequestException('Failed to send verification code. Please try again.');
+        throw new BadRequestException(appError('VERIFICATION_SEND_FAILED'));
       }
 
       this.logger.log(
@@ -686,7 +676,7 @@ export class UsersService implements IUsersService {
         error: (error as Error).message,
         stack: (error as Error).stack,
       });
-      throw new BadRequestException('Failed to send verification code due to system error');
+      throw new BadRequestException(appError('VERIFICATION_SEND_FAILED'));
     }
   }
 
@@ -705,7 +695,7 @@ export class UsersService implements IUsersService {
       // 1. Find user
       const user = await this.userModel.findById(userId);
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       // 2. Check if phone is already verified
@@ -719,17 +709,17 @@ export class UsersService implements IUsersService {
       // 3. Validate that phone number matches
       const phoneValidation = this.phoneNumberService.validatePhoneNumber(phoneNumber, 'TN');
       if (!phoneValidation.isValid) {
-        throw new BadRequestException('Invalid phone number format');
+        throw new BadRequestException(appError('INVALID_PHONE'));
       }
 
       const normalizedPhone = phoneValidation.details?.formatted.e164;
       if (user.phoneNumber !== normalizedPhone) {
-        throw new BadRequestException('Phone number does not match verification request');
+        throw new BadRequestException(appError('PHONE_MISMATCH'));
       }
 
       // 4. Check if verification code exists
       if (!user.phoneVerificationCode) {
-        throw new BadRequestException('No verification code found. Please request a new code.');
+        throw new BadRequestException(appError('VERIFICATION_CODE_MISSING'));
       }
 
       // 5. Check if code has expired
@@ -741,7 +731,7 @@ export class UsersService implements IUsersService {
           phoneVerificationAttempts: 0,
         });
 
-        throw new BadRequestException('Verification code has expired. Please request a new code.');
+        throw new BadRequestException(appError('VERIFICATION_CODE_EXPIRED'));
       }
 
       // 6. Check verification attempts
@@ -774,9 +764,7 @@ export class UsersService implements IUsersService {
             : {}),
         });
 
-        throw new BadRequestException(
-          'Maximum verification attempts exceeded. Please request a new code.',
-        );
+        throw new BadRequestException(appError('VERIFICATION_ATTEMPTS_EXCEEDED'));
       }
 
       // 7. Verify code using timing-safe comparison (argon2.verify)
@@ -854,7 +842,7 @@ export class UsersService implements IUsersService {
         error: (error as Error).message,
         stack: (error as Error).stack,
       });
-      throw new BadRequestException('Phone verification failed due to system error');
+      throw new BadRequestException(appError('PHONE_VERIFICATION_UNAVAILABLE'));
     }
   }
 
@@ -910,17 +898,17 @@ export class UsersService implements IUsersService {
   ): Promise<void> {
     const user = await this.userModel.findById(userId).select('+password +securitySettings');
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     if (!user.password) {
-      throw new BadRequestException('Cannot set password for a Google-only account');
+      throw new BadRequestException(appError('PASSWORD_OAUTH_ACCOUNT'));
     }
 
     if (currentPassword) {
       const isValid = await argon2.verify(user.password, currentPassword);
       if (!isValid) {
-        throw new BadRequestException('Current password is incorrect');
+        throw new BadRequestException(appError('CURRENT_PASSWORD_INCORRECT'));
       }
     }
 
@@ -929,12 +917,7 @@ export class UsersService implements IUsersService {
     await this.passwordHistoryService.validatePasswordHistory(newPassword, currentHistory);
 
     // 3. Hash new password using Argon2id with OWASP recommended parameters
-    const hashedPassword = await argon2.hash(newPassword, {
-      type: argon2.argon2id,
-      memoryCost: 2 ** 16, // 64 MiB
-      timeCost: 3,
-      parallelism: 1,
-    });
+    const hashedPassword = await argon2.hash(newPassword, USER_PASSWORD_HASH_OPTIONS);
 
     // 4. Add current password to history before updating
     const updatedHistory = this.passwordHistoryService.addToHistory(user.password, currentHistory);
@@ -1033,7 +1016,7 @@ export class UsersService implements IUsersService {
       .exec();
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     return user;
@@ -1153,7 +1136,7 @@ export class UsersService implements IUsersService {
       .exec();
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     this.logger.log('User location updated', {
@@ -1177,7 +1160,7 @@ export class UsersService implements IUsersService {
       .exec();
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     return user;
@@ -1298,7 +1281,7 @@ export class UsersService implements IUsersService {
   ): Promise<void> {
     const user = await this.userModel.findOne({ _id: id, deletedAt: null });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     const now = new Date();
@@ -1354,11 +1337,11 @@ export class UsersService implements IUsersService {
   ): Promise<User> {
     const user = await this.userModel.findById(id);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     if (!user.deletedAt) {
-      throw new BadRequestException('User is not deleted');
+      throw new BadRequestException(appError('USER_NOT_DELETED'));
     }
 
     const restoredUser = await this.userModel
@@ -1389,7 +1372,7 @@ export class UsersService implements IUsersService {
 
     this.logger.log(`User restored: ${id}`);
     if (!restoredUser) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     await this.eventBus.emit(
@@ -1409,7 +1392,7 @@ export class UsersService implements IUsersService {
     const result = await this.userModel.deleteOne({ _id: id });
 
     if (result.deletedCount === 0) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     this.logger.warn(`User PERMANENTLY DELETED: ${id}`);
@@ -1527,7 +1510,7 @@ export class UsersService implements IUsersService {
     const user = await this.userModel.findById(userId).select('auditLog').exec();
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     return (user.auditLog ?? [])
@@ -1578,7 +1561,7 @@ export class UsersService implements IUsersService {
   }> {
     const user = await this.userModel.findById(userId).select('privacySettings').exec();
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
 
     const privacy = user.privacySettings;
@@ -1639,7 +1622,7 @@ export class UsersService implements IUsersService {
     try {
       const user = await this.userModel.findById(userId);
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       // Check if device already exists
@@ -1894,7 +1877,7 @@ export class UsersService implements IUsersService {
       $set: { password: hashedPassword, requiresPasswordChange: false },
     });
     if (!result) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
     this.logger.log(`Force password change completed for user ${userId}`);
   }
@@ -1911,7 +1894,7 @@ export class UsersService implements IUsersService {
       .findByIdAndUpdate(userId, { $set: { googleId, authProvider: 'google' } }, { new: true })
       .exec();
     if (!updated) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
     return updated;
   }
@@ -1934,7 +1917,7 @@ export class UsersService implements IUsersService {
       )
       .exec();
     if (!updated) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
     return updated;
   }

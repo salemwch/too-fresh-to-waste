@@ -88,10 +88,10 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({ navigation
   useEffect(() => {
     if (routeStatus === 'success' && verificationStatus === 'pending') {
       setVerificationStatus('success');
-      showSuccessToast('Email Verified', 'Please log in to continue');
+      showSuccessToast(t('verifyEmail.verifiedTitle'), t('auth.emailVerifiedToastBody'));
       navigation.navigate('Login');
     }
-  }, [routeStatus, verificationStatus, navigation]);
+  }, [routeStatus, verificationStatus, navigation, t]);
 
   /**
    * Cooldown timer for resend button

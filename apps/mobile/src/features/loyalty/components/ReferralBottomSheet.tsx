@@ -41,9 +41,6 @@ const WHATSAPP_BG = '#D4EDDA';
 const WHATSAPP_FG = '#25D366';
 const HANDLE_COLOR = colorTokens.base.neutral[300];
 
-const SHARE_MESSAGE_PREFIX =
-  'Join Too Fresh To Waste and help reduce food waste! Sign up with my link: ';
-
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
@@ -97,24 +94,24 @@ export const ReferralBottomSheet: React.FC<ReferralBottomSheetProps> = ({ visibl
     if (!referralLink) return;
     try {
       await Share.share({
-        message: `${SHARE_MESSAGE_PREFIX}${referralLink}`,
+        message: t('loyalty.referralShareMessage', { link: referralLink }),
       });
     } catch {
       // User cancelled or share failed — nothing to handle
     }
-  }, [referralLink]);
+  }, [referralLink, t]);
 
   const handleWhatsApp = useCallback(async () => {
     if (!referralLink) return;
-    const message = encodeURIComponent(`${SHARE_MESSAGE_PREFIX}${referralLink}`);
+    const message = encodeURIComponent(t('loyalty.referralShareMessage', { link: referralLink }));
     const url = `whatsapp://send?text=${message}`;
     const canOpen = await Linking.canOpenURL(url);
     if (canOpen) {
       await Linking.openURL(url);
     } else {
-      Alert.alert('WhatsApp not found', 'Please install WhatsApp to share via this option.');
+      Alert.alert(t('loyalty.whatsappMissingTitle'), t('loyalty.whatsappMissingBody'));
     }
-  }, [referralLink]);
+  }, [referralLink, t]);
 
   return (
     <Modal visible={visible} transparent animationType='slide' onRequestClose={onClose}>

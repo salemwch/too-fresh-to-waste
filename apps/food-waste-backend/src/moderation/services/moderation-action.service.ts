@@ -29,6 +29,7 @@ import { LogLevel, LogCategory } from '../schemas/moderation-log.schema';
 
 import { ModerationLogService } from './moderation-log.service';
 
+import { appError } from '../../common/errors';
 /** Plain-object shape returned by aggregate pipelines (no Mongoose Document methods). */
 export type ModerationActionLean = FlattenMaps<ModerationAction> & { _id: Types.ObjectId };
 
@@ -266,16 +267,16 @@ export class ModerationActionService {
     const action = await this.moderationActionModel.findById(actionId);
 
     if (!action) {
-      throw new NotFoundException('Moderation action not found');
+      throw new NotFoundException(appError('MODERATION_ACTION_NOT_FOUND'));
     }
 
     if (action.status !== ModerationActionStatus.ACTIVE) {
-      throw new BadRequestException('Only active actions can be revoked');
+      throw new BadRequestException(appError('MODERATION_ACTION_NOT_ACTIVE'));
     }
 
     // Permission check - moderators can only revoke their own actions, admins can revoke any
     if (userRole === UserRole.MODERATOR && !action.moderatorId.equals(revokedBy)) {
-      throw new ForbiddenException('You can only revoke actions you created');
+      throw new ForbiddenException(appError('MODERATION_NOT_OWNER'));
     }
 
     const beforeState = {
@@ -336,12 +337,12 @@ export class ModerationActionService {
     const action = await this.moderationActionModel.findById(actionId);
 
     if (!action) {
-      throw new NotFoundException('Moderation action not found');
+      throw new NotFoundException(appError('MODERATION_ACTION_NOT_FOUND'));
     }
 
     // Permission check
     if (userRole === UserRole.MODERATOR && !action.moderatorId.equals(updatedBy)) {
-      throw new ForbiddenException('You can only update actions you created');
+      throw new ForbiddenException(appError('MODERATION_NOT_OWNER'));
     }
 
     const beforeState = {
@@ -427,7 +428,7 @@ export class ModerationActionService {
     failed: Array<{ userId: string; error: string }>;
   }> {
     if (moderatorRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Bulk actions are only available to administrators');
+      throw new ForbiddenException(appError('ADMIN_REQUIRED'));
     }
 
     const successful: ModerationActionDocument[] = [];
@@ -607,7 +608,7 @@ export class ModerationActionService {
     const adminOnlyActions = [ModerationActionType.BAN, ModerationActionType.DEMONETIZE];
 
     if (adminOnlyActions.includes(actionType) && moderatorRole !== UserRole.ADMIN) {
-      throw new ForbiddenException(`Action type ${actionType} requires admin privileges`);
+      throw new ForbiddenException(appError('ADMIN_REQUIRED'));
     }
   }
 
@@ -636,9 +637,7 @@ export class ModerationActionService {
       });
 
       if (existingAction) {
-        throw new BadRequestException(
-          `Cannot apply ${actionType}. User has conflicting ${existingAction.actionType} action`,
-        );
+        throw new BadRequestException(appError('MODERATION_CONFLICT'));
       }
     }
   }

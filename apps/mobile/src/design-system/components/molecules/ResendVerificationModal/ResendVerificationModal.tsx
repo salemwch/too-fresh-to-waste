@@ -5,7 +5,7 @@
  */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -17,11 +17,11 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import * as yup from 'yup';
 
 import { Button, Input, Text, Card, Icon, EnteringView } from '@/design-system/components/atoms';
 import { useTheme } from '@/design-system/providers';
 import { spacingTokens } from '@/design-system/tokens/spacing';
+import { createEmailSchema, type EmailFormData } from '@/utils/validation/schemas';
 
 const { base: sp } = spacingTokens;
 
@@ -32,21 +32,10 @@ interface ResendVerificationModalProps {
   onSendVerification: (email: string) => Promise<void>;
 }
 
-// Validation schema
-const emailSchema = yup.object({
-  email: yup
-    .string()
-    .required('Email is required')
-    .email('Please enter a valid email address')
-    .trim()
-    .lowercase(),
-});
-
-type EmailFormData = yup.InferType<typeof emailSchema>;
-
 export const ResendVerificationModal = memo<ResendVerificationModalProps>(
   ({ visible, onDismiss, onSuccess, onSendVerification }) => {
     const { t } = useTranslation();
+    const emailSchema = useMemo(() => createEmailSchema(t), [t]);
     const theme = useTheme();
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -80,16 +69,18 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
           reset();
           onSuccess(formData.email);
         } catch (error: unknown) {
+          // A backend sentence is already user-facing and is shown as sent;
+          // anything else gets the translated fallback.
           const message =
-            error instanceof Error
+            error instanceof Error && error.message !== ''
               ? error.message
-              : 'Failed to send verification email. Please try again.';
+              : t('verifyEmail.failedToResend');
           setErrorMessage(message);
         } finally {
           setIsLoading(false);
         }
       },
-      [onSendVerification, onSuccess, reset],
+      [onSendVerification, onSuccess, reset, t],
     );
 
     /**
@@ -152,7 +143,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                       />
                     </View>
                     <Text variant='headline.medium' weight='semibold' style={styles.title}>
-                      Verify Your Email
+                      {t('verifyEmail.title')}
                     </Text>
                     <Text
                       variant='body.medium'
@@ -160,13 +151,15 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                       align='center'
                       style={styles.description}
                     >
-                      Enter your email address to receive a new verification link
+                      {t('auth.resend.description')}
                     </Text>
                   </View>
 
                   {/* Close Button */}
                   <Pressable
                     accessibilityRole='button'
+                    accessibilityLabel={t('common.close')}
+                    accessibilityHint={t('common.a11yCloseModalHint')}
                     style={styles.closeButton}
                     onPress={handleDismiss}
                     disabled={isLoading}
@@ -237,7 +230,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                   disabled={isLoading}
                   style={styles.sendButton}
                 >
-                  Send Verification Link
+                  {t('auth.resend.send')}
                 </Button>
 
                 {/* Cancel Button */}
@@ -248,7 +241,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                   disabled={isLoading}
                   style={styles.cancelButton}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
 
                 {/* Help Text */}
@@ -260,8 +253,7 @@ export const ResendVerificationModal = memo<ResendVerificationModalProps>(
                     color={theme.colors.onSurfaceVariant}
                   />
                   <Text variant='body.small' color='secondary' style={styles.helpText}>
-                    A verification link will be sent to your email. Please check your inbox and spam
-                    folder.
+                    {t('auth.resend.help')}
                   </Text>
                 </View>
               </Card>

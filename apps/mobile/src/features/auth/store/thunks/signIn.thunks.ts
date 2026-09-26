@@ -106,6 +106,23 @@ export const loginAsync = createAsyncThunk(
   },
 );
 
+/**
+ * Backend code -> i18n key for a failed Google sign-in. Checked before the
+ * text matches below, which only an older backend still needs: the message is
+ * translated now, so "locked" / "too many" never matched in fr or ar and a
+ * lockout read as a generic failure.
+ */
+const GOOGLE_SIGN_IN_ERROR_KEYS: Readonly<Record<string, string>> = {
+  ACCOUNT_SUSPENDED: 'auth.errorAccountSuspended',
+  ACCOUNT_INACTIVE: 'auth.errorAccountInactive',
+  ACCOUNT_LOCKED: 'auth.errorTooManyAttempts',
+  LOGIN_TEMPORARILY_BLOCKED: 'auth.errorTooManyAttempts',
+  TOO_MANY_REQUESTS: 'auth.errorTooManyAttempts',
+  GOOGLE_TOKEN_INVALID: 'auth.errorGoogleTokenInvalid',
+  TIMEOUT: 'auth.errorServerSlow',
+  OFFLINE: 'auth.errorNoConnection',
+};
+
 export const googleSignInAsync = createAsyncThunk(
   'auth/googleSignIn',
   async (
@@ -159,8 +176,11 @@ export const googleSignInAsync = createAsyncThunk(
       // failed sign-in. The screen runs it through `resolveAuthError`, which
       // translates a key and passes any non-key string through unchanged.
       let messageKey: string;
+      const byCode = errorCode !== '' ? GOOGLE_SIGN_IN_ERROR_KEYS[errorCode] : undefined;
 
-      if (
+      if (byCode !== undefined) {
+        messageKey = byCode;
+      } else if (
         lower.includes('suspended') ||
         lower.includes('no longer active') ||
         errorCode === 'ACCOUNT_SUSPENDED'
@@ -192,6 +212,10 @@ export const googleSignInAsync = createAsyncThunk(
         messageKey = 'auth.errorGoogleTokenInvalid';
       } else if (errorType === 'SERVER_ERROR') {
         messageKey = 'auth.errorServerUnavailable';
+      } else if (errorCode !== '' && rawMessage !== '') {
+        // A backend code with no key of its own (GOOGLE_EMAIL_UNVERIFIED, ...):
+        // its message is already in the app's language and says what to do.
+        messageKey = rawMessage;
       } else {
         messageKey = 'auth.googleSignInFailed';
       }

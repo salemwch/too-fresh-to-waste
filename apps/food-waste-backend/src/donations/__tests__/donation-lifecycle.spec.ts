@@ -9,6 +9,7 @@ import {
 } from '../constants/goal-sequence.constant';
 import { DEFAULT_CATEGORY_PRICES, DONATION_CONSTANTS } from '../interfaces/donation.interface';
 import { DonationPoolStatus } from '../schemas/donation-pool.schema';
+import { UserDonationSchema } from '../schemas/user-donation.schema';
 import {
   PLATFORM_FOOD_SHARE,
   DONATION_RATE_OF_COMMISSION,
@@ -383,20 +384,17 @@ describe('Donation lifecycle', () => {
   // ─── Edge cases ───────────────────────────────────────────────────────────
 
   describe('edge cases', () => {
-    it('idempotency: same orderId should not create duplicate donation', () => {
-      // This is enforced by MongoDB unique index on orderId in UserDonation schema
-      // and by the early-return check in createDonation. Test verifies the design.
-      const orderId1 = 'order-123';
-      const orderId2 = 'order-123';
-      expect(orderId1).toBe(orderId2);
-    });
-
-    it('concurrent donations: $inc is atomic, no read-modify-write race', () => {
-      // Design assertion: createDonation uses findByIdAndUpdate with $inc,
-      // which is an atomic MongoDB operation — two concurrent donations
-      // cannot lose either increment.
-      const atomicOp = { $inc: { currentAmount: 0.95 } };
-      expect(atomicOp.$inc.currentAmount).toBe(0.95);
+    // Both of these used to assert a constant against itself ('order-123' ===
+    // 'order-123', 0.95 === 0.95), which passes whatever the code does. What
+    // actually guarantees one donation per order is this index - createDonation's
+    // E11000 handling relies on it - and the behaviour itself is exercised
+    // against a real replica set in charity-ledger.integration.spec.ts
+    // ('does not pledge twice', 'treats a concurrent duplicate as success').
+    it('one donation per order: orderId is a unique index', () => {
+      expect(UserDonationSchema.indexes()).toContainEqual([
+        { orderId: 1 },
+        expect.objectContaining({ unique: true }),
+      ]);
     });
 
     it('zero-amount donation: should not happen (listener guards > 0)', () => {

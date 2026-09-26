@@ -5,7 +5,6 @@ import { ClientSession, Model, Types } from 'mongoose';
 import { AppLoggerService } from 'src/common/services/logger.service';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 
-import { calculateFoodRevenueSplit } from '../../orders/utils/order-pricing.util';
 import {
   CreateLedgerDto,
   BankTransferParams,
@@ -85,12 +84,8 @@ export class PayoutService {
      * split here would double-count the commission — once in the balance and
      * again in the payout — so the caller's figures win when supplied.
      */
-    const { merchantAmount, platformFee } = data.commissionSettlement
-      ? {
-          merchantAmount: data.commissionSettlement.merchantAmount,
-          platformFee: data.commissionSettlement.settled,
-        }
-      : calculateFoodRevenueSplit(data.subtotal);
+    const merchantAmount = data.commissionSettlement.merchantAmount;
+    const platformFee = data.commissionSettlement.settled;
 
     const ledgerEntry = new this.ledgerModel({
       merchantId: data.merchantId,

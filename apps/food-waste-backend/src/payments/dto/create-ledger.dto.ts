@@ -14,16 +14,16 @@ export interface CreateLedgerDto {
   /** Food line only (excludes delivery fee) — this is what the 81/19 split is computed on. */
   subtotal: number;
   /**
-   * Result of {@link calculateCommissionSettlement}, when the commission-wallet
-   * model applies.
+   * The order's commission decision (CommissionService / `order.commission`).
    *
-   * Under that model the merchant is credited the **full** subtotal on most
-   * orders and the platform's 19% accrues to `Establishment.commissionDue`
-   * instead, so the per-order 81/19 split no longer describes what is owed.
-   * Absent for any flow still on the flat split, in which case
-   * `calculateFoodRevenueSplit` is used.
+   * REQUIRED. The merchant is credited the full subtotal on a NORMAL sale and
+   * `subtotal - settled` on a SETTLEMENT; the 19% accrues to
+   * `Establishment.commissionDue` instead of being deducted here. There used
+   * to be a fallback to a flat 81 / 19 split when this was absent - which the
+   * commission-settlement model forbids - so it is no longer optional and the
+   * compiler holds every caller to it.
    */
-  commissionSettlement?: {
+  commissionSettlement: {
     /** `subtotal - settled`. What this order pays the merchant. */
     merchantAmount: number;
     /** Balance collected from this order. `0` on most orders. */

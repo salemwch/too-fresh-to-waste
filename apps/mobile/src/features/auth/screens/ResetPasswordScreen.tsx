@@ -10,7 +10,8 @@
  */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import React, { useState, useCallback, useEffect } from 'react';
+import { PASSWORD_MIN_LENGTH } from '@foodwaste/shared';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,7 +28,7 @@ import { PasswordStrengthIndicator } from '@/design-system/components/molecules'
 import { useTheme } from '@/design-system/providers';
 import { ErrorType, getErrorMessage, isAppError } from '@/utils/errorHandler';
 import { Logger } from '@/utils/logger';
-import { resetPasswordSchema, type ResetPasswordFormData } from '@/utils/validation/schemas';
+import { createResetPasswordSchema, type ResetPasswordFormData } from '@/utils/validation/schemas';
 
 import { authService } from '../services/authService';
 
@@ -43,6 +44,7 @@ const { base: sp } = spacingTokens;
 export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const resetPasswordSchema = useMemo(() => createResetPasswordSchema(t), [t]);
 
   // Extract params from deep link
   const { email, token } = route.params;
@@ -69,6 +71,13 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /**
+   * The link itself cannot be used (missing, expired or invalid token), so the
+   * screen offers a new one. Its own state: it used to be derived by searching
+   * the error text for "expired" or "invalid", which only worked in English,
+   * and it vanished as soon as the user typed, although the link stays dead.
+   */
+  const [linkUnusable, setLinkUnusable] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [passwordReuseError, setPasswordReuseError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -85,6 +94,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
     if (!token) {
       Logger.error('ResetPasswordScreen: Missing token param');
       setError(t('resetPassword.invalidLink'));
+      setLinkUnusable(true);
     }
 
     return () => {
@@ -102,6 +112,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
 
       if (!token) {
         setError(t('resetPassword.requestNewReset'));
+        setLinkUnusable(true);
         Logger.error('ResetPassword: Missing token');
         return;
       }
@@ -132,7 +143,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
         // Show success screen
         setIsSuccess(true);
       } catch (err: unknown) {
-        const errorMessage = getErrorMessage(err, 'Failed to reset password. Please try again.');
+        const errorMessage = getErrorMessage(err, t('resetPassword.failed'));
         const errorType = isAppError(err) ? err.type : undefined;
 
         Logger.error('Password reset failed', {
@@ -140,27 +151,18 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
           type: errorType ?? 'UNKNOWN',
         });
 
-        // Handle specific error types
-        if (
-          errorMessage.toLowerCase().includes('expired') ||
-          errorMessage.toLowerCase().includes('invalid token')
-        ) {
+        // Branch on the backend code; the message is already translated.
+        const code = isAppError(err) ? err.errorCode : undefined;
+        if (code === 'RESET_TOKEN_INVALID' || code === 'LINK_INVALID') {
           setError(t('resetPassword.expiredLink'));
-        } else if (
-          errorMessage.toLowerCase().includes('password') &&
-          (errorMessage.toLowerCase().includes('last') ||
-            errorMessage.toLowerCase().includes('used before') ||
-            errorMessage.toLowerCase().includes('reuse'))
-        ) {
-          // Handle password reuse error - show under password field
-          setPasswordReuseError(t('resetPassword.passwordReused'));
+          setLinkUnusable(true);
+        } else if (code === 'PASSWORD_REUSED') {
+          // Under the password field; the backend message names the count.
+          setPasswordReuseError(errorMessage || t('resetPassword.passwordReused'));
         } else if (errorType === ErrorType.NETWORK) {
           setError(t('resetPassword.networkError'));
         } else if (errorType === ErrorType.VALIDATION) {
-          setError(
-            errorMessage ||
-              'Password does not meet security requirements. Please choose a stronger password.',
-          );
+          setError(errorMessage || t('resetPassword.weakPassword'));
         } else {
           setError(errorMessage);
         }
@@ -229,9 +231,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
   /**
    * Render error banner if expired/invalid token
    */
-  const showRequestNewLinkButton =
-    (error?.toLowerCase().includes('expired') ?? false) ||
-    (error?.toLowerCase().includes('invalid') ?? false);
+  const showRequestNewLinkButton = linkUnusable;
 
   // Success state - password reset complete
   if (isSuccess) {
@@ -358,7 +358,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               />
               <View style={styles.emailTextContainer}>
                 <Text variant='body' size='xs' color='secondary'>
-                  Resetting password for:
+                  {t('resetPassword.resettingFor')}
                 </Text>
                 <Text variant='body' size='sm' weight='semibold' style={styles.emailText}>
                   {email}
@@ -422,7 +422,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
                 editable={!isLoading}
                 testID='reset-password-new-input'
                 accessibilityLabel={t('auth.a11yNewPasswordInput')}
-                accessibilityHint={t('auth.a11yNewPasswordHint')}
+                accessibilityHint={t('auth.a11yNewPasswordHint', { min: PASSWORD_MIN_LENGTH })}
               />
             )}
           />
@@ -472,7 +472,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             accessibilityHint={t('auth.a11yResetPasswordHint')}
             accessibilityState={{ disabled: isLoading || !isPasswordValid, busy: isLoading }}
           >
-            {isLoading ? 'Resetting Password...' : 'Reset Password'}
+            {isLoading ? t('resetPassword.resettingButton') : t('resetPassword.resetButton')}
           </Button>
 
           {/* Request New Link Button (shown on expired/invalid token) */}
@@ -486,7 +486,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
               accessibilityLabel={t('auth.a11yRequestNewLink')}
               accessibilityHint={t('auth.a11yRequestNewLinkHint')}
             >
-              Request New Reset Link
+              {t('resetPassword.requestNewLink')}
             </Button>
           )}
 
@@ -501,7 +501,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             accessibilityLabel={t('auth.a11yBackToLogin')}
             accessibilityHint={t('auth.a11yBackToLoginHint')}
           >
-            Back to Login
+            {t('resetPassword.backToLogin')}
           </Button>
         </Card>
 
@@ -514,8 +514,7 @@ export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ naviga
             color={theme.colors.onSurfaceVariant}
           />
           <Text variant='body' size='xs' color='secondary' style={styles.securityText}>
-            Your password is encrypted with industry-standard Argon2 hashing and stored securely.
-            For your security, all active sessions will be logged out after password reset.
+            {t('resetPassword.securityNote')}
           </Text>
         </View>
       </ScrollView>

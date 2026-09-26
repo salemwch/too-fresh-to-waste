@@ -393,13 +393,16 @@ describe('CommissionManagementService — against a real MongoDB', () => {
     });
 
     it('rejects a malformed id instead of querying with it', async () => {
-      await expect(service.getLedger('not-an-object-id')).rejects.toThrow(/Invalid establishment/i);
+      await expect(service.getLedger('not-an-object-id')).rejects.toMatchObject({
+        response: { code: 'INVALID_ID' },
+      });
     });
 
     it('404s for an id that does not exist', async () => {
-      await expect(service.getLedger(new Types.ObjectId().toString())).rejects.toThrow(
-        /not found/i,
-      );
+      await expect(service.getLedger(new Types.ObjectId().toString())).rejects.toMatchObject({
+        status: 404,
+        response: { code: 'ESTABLISHMENT_NOT_FOUND' },
+      });
     });
   });
 

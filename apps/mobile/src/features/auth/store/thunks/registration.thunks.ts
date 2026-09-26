@@ -17,6 +17,7 @@ import { authService } from '../../services/authService';
 import { assertMobileRole } from '../authState';
 
 import type { RegisterRequest, MFAVerificationRequest } from '../../types';
+import type { RegisterFailure } from '../../utils/registerErrors';
 
 export const registerAsync = createAsyncThunk(
   'auth/register',
@@ -31,18 +32,20 @@ export const registerAsync = createAsyncThunk(
       // DO NOT call ErrorHandler.handle() - it shows red box
       // Registration errors should be handled gracefully in UI with inline messages
 
-      // Extract message from AppError or Error
-      let errorMessage = 'Registration failed';
-      if (error !== null && error !== undefined && typeof error === 'object') {
-        const errObj = error as Record<string, unknown>;
-        if (typeof errObj['message'] === 'string') {
-          errorMessage = errObj['message'];
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
-      return rejectWithValue({ message: errorMessage });
+      // The backend's message is already translated; the code says which
+      // field it belongs to (see registerErrors.ts).
+      const errObj =
+        error !== null && typeof error === 'object' ? (error as Record<string, unknown>) : {};
+      const failure: RegisterFailure = {
+        ...(typeof errObj['message'] === 'string' && errObj['message'] !== ''
+          ? { message: errObj['message'] }
+          : {}),
+        ...(typeof errObj['errorCode'] === 'string' ? { code: errObj['errorCode'] } : {}),
+        ...(errObj['validationErrors'] !== null && typeof errObj['validationErrors'] === 'object'
+          ? { validationErrors: errObj['validationErrors'] as Record<string, string> }
+          : {}),
+      };
+      return rejectWithValue(failure);
     }
   },
 );
@@ -129,4 +132,3 @@ export const verifyMFAAsync = createAsyncThunk(
     }
   },
 );
-

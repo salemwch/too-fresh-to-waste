@@ -38,6 +38,7 @@ import { UsersService } from '../user.service';
 import type { UserDocument } from '../schemas/user.schema';
 import type { TestingModule } from '@nestjs/testing';
 
+import { EN } from '../../common/errors/catalog/en';
 jest.mock('argon2', () => ({
   hash: jest.fn().mockResolvedValue('$argon2id$hashed'),
   verify: jest.fn().mockResolvedValue(true),
@@ -162,7 +163,7 @@ describe('UsersService.updatePassword', () => {
     (argon2.verify as jest.Mock).mockResolvedValueOnce(false);
 
     await expect(service.updatePassword(USER_ID, 'NewPass123!@#', 'wrong-current')).rejects.toThrow(
-      'Current password is incorrect',
+      EN.CURRENT_PASSWORD_INCORRECT,
     );
     expect(findByIdAndUpdate).not.toHaveBeenCalled();
   });

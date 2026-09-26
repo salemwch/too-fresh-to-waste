@@ -16,6 +16,7 @@ import {
   OwnershipCheckConfig,
 } from '../../common/decorators/check-ownership.decorator';
 
+import { appError } from '../../common/errors';
 interface ResourceOwnershipRequest {
   user?: {
     userId: string;
@@ -67,7 +68,7 @@ export class ResourceOwnershipGuard implements CanActivate {
     const user = request.user;
 
     if (user === null || user === undefined) {
-      throw new ForbiddenException('User not authenticated');
+      throw new ForbiddenException(appError('AUTH_REQUIRED'));
     }
 
     const { userId, role } = user;
@@ -83,14 +84,14 @@ export class ResourceOwnershipGuard implements CanActivate {
     const resourceId = request.params[resourceIdParam];
 
     if (resourceId === null || resourceId === undefined || resourceId === '') {
-      throw new ForbiddenException(`Resource ID parameter '${resourceIdParam}' not found`);
+      throw new ForbiddenException(appError('BAD_REQUEST'));
     }
 
     // Fetch resource from database
     const resource = await this.fetchResource(config.resourceType, resourceId);
 
     if (!resource) {
-      throw new NotFoundException(`${config.resourceType} with ID '${resourceId}' not found`);
+      throw new NotFoundException(appError('RESOURCE_NOT_FOUND'));
     }
 
     // Check ownership
@@ -117,9 +118,7 @@ export class ResourceOwnershipGuard implements CanActivate {
         },
       );
 
-      throw new ForbiddenException(
-        `You do not have permission to access this ${config.resourceType}`,
-      );
+      throw new ForbiddenException(appError('ACCESS_DENIED'));
     }
 
     this.logger.debug(

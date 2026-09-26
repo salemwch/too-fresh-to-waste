@@ -12,7 +12,7 @@ import { DEFAULT_DRIVER_SHARE, calculateDeliveryFee, splitDeliveryFee } from './
  *                     platform  19%
  *
  *   Delivery fee      distance-based, see delivery-fee.util.ts
- *   Delivery split    driver    67% of the fee (DELIVERY_DRIVER_SHARE)
+ *   Delivery split    driver    80% of the fee (DELIVERY_DRIVER_SHARE)
  *                     platform  the remainder
  * ```
  *

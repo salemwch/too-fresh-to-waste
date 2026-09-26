@@ -16,6 +16,7 @@ import {
   ReplyToTicketDto,
 } from '../dto/support-ticket.dto';
 
+import { appError } from '../../common/errors';
 @Injectable()
 export class SupportTicketService {
   constructor(
@@ -73,7 +74,7 @@ export class SupportTicketService {
       .lean();
 
     if (!ticket) {
-      throw new NotFoundException('Ticket not found');
+      throw new NotFoundException(appError('TICKET_NOT_FOUND'));
     }
     return ticket;
   }
@@ -81,7 +82,7 @@ export class SupportTicketService {
   async updateStatus(id: string, dto: UpdateTicketStatusDto) {
     const ticket = await this.ticketModel.findById(id);
     if (!ticket) {
-      throw new NotFoundException('Ticket not found');
+      throw new NotFoundException(appError('TICKET_NOT_FOUND'));
     }
 
     ticket.status = dto.status;
@@ -98,7 +99,7 @@ export class SupportTicketService {
   async assignTicket(id: string, dto: AssignTicketDto) {
     const ticket = await this.ticketModel.findById(id);
     if (!ticket) {
-      throw new NotFoundException('Ticket not found');
+      throw new NotFoundException(appError('TICKET_NOT_FOUND'));
     }
 
     ticket.assignedTo = new Types.ObjectId(dto.assignedTo);
@@ -112,7 +113,7 @@ export class SupportTicketService {
   async updatePriority(id: string, dto: UpdateTicketPriorityDto) {
     const ticket = await this.ticketModel.findById(id);
     if (!ticket) {
-      throw new NotFoundException('Ticket not found');
+      throw new NotFoundException(appError('TICKET_NOT_FOUND'));
     }
 
     ticket.priority = dto.priority;
@@ -122,7 +123,7 @@ export class SupportTicketService {
   async addReply(id: string, adminId: string, dto: ReplyToTicketDto) {
     const ticket = await this.ticketModel.findById(id);
     if (!ticket) {
-      throw new NotFoundException('Ticket not found');
+      throw new NotFoundException(appError('TICKET_NOT_FOUND'));
     }
 
     ticket.replies.push({

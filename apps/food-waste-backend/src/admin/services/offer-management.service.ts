@@ -15,6 +15,7 @@ import {
 import { AdminAction } from '../interfaces/admin-analytics.interface';
 import { AdminAuditService } from './admin-audit.service';
 
+import { appError } from '../../common/errors';
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
 export interface OfferStats {
@@ -53,7 +54,7 @@ export class OfferManagementService {
 
   async findById(id: string): Promise<Record<string, unknown>> {
     if (!isValidObjectId(id)) {
-      throw new BadRequestException('Invalid offer ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const pipeline: PipelineStage[] = [
@@ -100,7 +101,7 @@ export class OfferManagementService {
     const offer = results[0] as Record<string, unknown> | undefined;
 
     if (!offer) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException(appError('OFFER_NOT_FOUND'));
     }
 
     return offer;
@@ -127,13 +128,13 @@ export class OfferManagementService {
     }
     if (query.establishmentId) {
       if (!isValidObjectId(query.establishmentId)) {
-        throw new BadRequestException('Invalid establishmentId');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
       match['establishmentId'] = new Types.ObjectId(query.establishmentId);
     }
     if (query.merchantId) {
       if (!isValidObjectId(query.merchantId)) {
-        throw new BadRequestException('Invalid merchantId');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
       match['merchantId'] = new Types.ObjectId(query.merchantId);
     }
@@ -492,7 +493,7 @@ export class OfferManagementService {
     audit: CreateAuditParams,
   ): Promise<{ processed: number; failed: string[]; action: BulkOfferAction }> {
     if (dto.action === 'delete' && !dto.reason) {
-      throw new BadRequestException('Reason is required for bulk delete');
+      throw new BadRequestException(appError('REASON_REQUIRED'));
     }
 
     const objectIds = dto.offerIds.map(id => new Types.ObjectId(id));
@@ -569,7 +570,9 @@ export class OfferManagementService {
       case 'unfeature':
         return { isFeaturedManual: false, isFeaturedAuto: false };
       default:
-        throw new BadRequestException(`Unknown bulk action: ${action as string}`);
+        throw new BadRequestException(
+          appError('UNKNOWN_BULK_ACTION', { action: String(action as string) }),
+        );
     }
   }
 
@@ -586,7 +589,7 @@ export class OfferManagementService {
 
     if (query.deletedBy) {
       if (!isValidObjectId(query.deletedBy)) {
-        throw new BadRequestException('Invalid deletedBy');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
       match['deletedBy'] = query.deletedBy;
     }
@@ -626,7 +629,7 @@ export class OfferManagementService {
 
   async restoreOffer(offerId: string, audit: CreateAuditParams): Promise<Record<string, unknown>> {
     if (!isValidObjectId(offerId)) {
-      throw new BadRequestException('Invalid offer ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const offer = await this.offerModel
@@ -635,7 +638,7 @@ export class OfferManagementService {
       .lean();
 
     if (!offer) {
-      throw new NotFoundException('Deleted offer not found');
+      throw new NotFoundException(appError('DELETED_OFFER_NOT_FOUND'));
     }
 
     const restored = await this.offerModel

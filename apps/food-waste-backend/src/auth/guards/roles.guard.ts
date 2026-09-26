@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core';
 
 import { ROLES_KEY } from '../../common/decorators/roles.decorator';
 
+import { appError } from '../../common/errors';
 interface RolesGuardRequest {
   user?: {
     role?: UserRole;
@@ -27,13 +28,13 @@ export class RolesGuard implements CanActivate {
     const { user } = context.switchToHttp().getRequest<RolesGuardRequest>();
 
     if (user === null || user === undefined) {
-      throw new ForbiddenException('User not authenticated');
+      throw new ForbiddenException(appError('AUTH_REQUIRED'));
     }
 
     const hasRole = requiredRoles.some(role => user.role === role);
 
     if (!hasRole) {
-      throw new ForbiddenException('Insufficient permissions');
+      throw new ForbiddenException(appError('FORBIDDEN'));
     }
 
     return true;

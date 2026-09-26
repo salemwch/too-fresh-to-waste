@@ -39,6 +39,7 @@ import {
 
 import { PhoneValidatorService } from './phone-validator.service';
 
+import { appError } from '../../common/errors';
 @Injectable()
 export class OptOutManagerService {
   private readonly logger = new Logger(OptOutManagerService.name);
@@ -182,7 +183,7 @@ export class OptOutManagerService {
             phoneNumber: this.phoneValidator.maskPhoneNumber(phoneNumber),
           },
         );
-        throw new BadRequestException('Invalid phone number format - must be in E.164 format');
+        throw new BadRequestException(appError('INVALID_PHONE'));
       }
 
       const record = await this.optOutModel
@@ -284,7 +285,7 @@ export class OptOutManagerService {
         throw error;
       }
 
-      throw new InternalServerErrorException('Failed to check opt-out status');
+      throw new InternalServerErrorException(appError('SMS_OPT_OUT_FAILED'));
     }
   }
 
@@ -300,7 +301,7 @@ export class OptOutManagerService {
           operationId,
           phoneNumber: this.phoneValidator.maskPhoneNumber(optOutRequest.phoneNumber),
         });
-        throw new BadRequestException('Invalid phone number format - must be in E.164 format');
+        throw new BadRequestException(appError('INVALID_PHONE'));
       }
 
       // Calculate expiration date if not provided
@@ -404,7 +405,7 @@ export class OptOutManagerService {
         throw error;
       }
 
-      throw new InternalServerErrorException('Failed to process opt-out request');
+      throw new InternalServerErrorException(appError('SMS_OPT_OUT_FAILED'));
     }
   }
 
@@ -420,7 +421,7 @@ export class OptOutManagerService {
           operationId,
           phoneNumber: this.phoneValidator.maskPhoneNumber(optInRequest.phoneNumber),
         });
-        throw new BadRequestException('Invalid phone number format - must be in E.164 format');
+        throw new BadRequestException(appError('INVALID_PHONE'));
       }
 
       // Check if record exists
@@ -431,7 +432,7 @@ export class OptOutManagerService {
           operationId,
           phoneNumber: this.phoneValidator.maskPhoneNumber(sanitized),
         });
-        throw new NotFoundException('No opt-out record found for this phone number');
+        throw new NotFoundException(appError('SMS_OPT_OUT_NOT_FOUND'));
       }
 
       if (!existingRecord.isOptedOut) {
@@ -487,7 +488,7 @@ export class OptOutManagerService {
         .exec();
 
       if (!result) {
-        throw new InternalServerErrorException('Failed to update opt-in status');
+        throw new InternalServerErrorException(appError('SMS_OPT_OUT_FAILED'));
       }
 
       await this.writeAuditEntries([
@@ -550,15 +551,13 @@ export class OptOutManagerService {
         throw error;
       }
 
-      throw new InternalServerErrorException('Failed to process opt-in request');
+      throw new InternalServerErrorException(appError('SMS_OPT_OUT_FAILED'));
     }
   }
 
   private validateBulkRequestSize(phoneNumberCount: number): void {
     if (phoneNumberCount > this.maxBulkSize) {
-      throw new BadRequestException(
-        `Bulk request exceeds maximum size of ${this.maxBulkSize} phone numbers`,
-      );
+      throw new BadRequestException(appError('BULK_TOO_LARGE', { max: this.maxBulkSize }));
     }
   }
 
@@ -841,7 +840,7 @@ export class OptOutManagerService {
         throw error;
       }
 
-      throw new InternalServerErrorException('Failed to process bulk opt-out status check');
+      throw new InternalServerErrorException(appError('SMS_OPT_OUT_FAILED'));
     }
   }
 
@@ -994,7 +993,7 @@ export class OptOutManagerService {
         processingTimeMs: Date.now() - startTime,
       });
 
-      throw new InternalServerErrorException('Failed to retrieve opt-out list');
+      throw new InternalServerErrorException(appError('SMS_OPT_OUT_FAILED'));
     }
   }
 
@@ -1202,7 +1201,7 @@ export class OptOutManagerService {
         processingTimeMs: Date.now() - startTime,
       });
 
-      throw new InternalServerErrorException('Failed to generate opt-out statistics');
+      throw new InternalServerErrorException(appError('SMS_OPT_OUT_FAILED'));
     }
   }
 }

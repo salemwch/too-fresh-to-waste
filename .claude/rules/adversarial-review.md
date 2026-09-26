@@ -100,7 +100,7 @@ Parity claims are the highest-yield target in this repo, because the same logic
 genuinely does exist in three places (mobile / web / backend) and drifts:
 
 - `unwrapBackendResponse()` (mobile) vs `response.data.data` (web)
-- Pricing split — `81/19`, driver `3.00`, platform `1.00`, donation
+- Pricing split — `81/19`, delivery fee driver `80%` / platform `20%`, donation
   `subtotal * 0.19 * 0.05`
 - Order expiry — `offer.availableUntil + ORDER_GRACE_PERIOD_MS`
 - `profileImage > avatar > null`

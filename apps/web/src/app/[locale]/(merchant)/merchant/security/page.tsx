@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { userService } from '@/services/user.service';
+import { meetsPasswordPolicy, PASSWORD_MIN_LENGTH } from '@/lib/password-policy';
 import { Input, Button, Label } from '@foodwaste/ui';
 import { Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator';
@@ -25,6 +26,10 @@ export default function MerchantSecurityPage() {
     setError('');
     setSuccess(false);
 
+    if (!meetsPasswordPolicy(newPassword)) {
+      setError(t('passwordRequirements', { min: PASSWORD_MIN_LENGTH }));
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError(t('passwordMismatch'));
       return;

@@ -1,17 +1,20 @@
 /**
- * Settlement must split the FOOD line, never the order total.
+ * The merchant wallet at pickup confirmation, under the commission-settlement
+ * model (.claude/work/commission-settlement-model.md).
  *
- * `total` now includes the delivery fee. The merchant sells food and has no
- * part in delivery, so splitting `total` would pay them 81% of the delivery fee
- * — leaving the platform to fund a 3.00 TND driver out of its 0.76 TND share
- * and turning every delivery into a loss.
+ * - The payment put the SALE amount into `pendingBalance`. Confirmation moves
+ *   exactly that amount out of pending - whatever it was (100% for sales made
+ *   under the model, 81% for sales paid before it) - so pending can never be
+ *   left short or overdrawn by a rule change between payment and pickup.
+ * - It puts `merchantAmount` into `availableBalance`: the full subtotal on a
+ *   NORMAL sale, `subtotal - settled` on a SETTLEMENT. Never 81%, and never
+ *   any share of the delivery fee.
+ * - A delivery was never credited to the wallet: the driver paid the merchant
+ *   in cash at pickup. Confirming it moves nothing.
  *
- * These tests exist because a mutation survived without them: changing
- * `calculateFoodRevenueSplit(order.pricing.subtotal)` to `…(order.pricing.total)`
- * broke nothing in the suite. `calculateFoodRevenueSplit` was well covered in
- * isolation, but nothing asserted what the call sites feed it — and that
- * argument is the whole difference between a profitable delivery and a
- * loss-making one.
+ * Carried over from the 81% era because it is still the costliest mistake
+ * available: splitting `total` instead of `subtotal` hands the merchant the
+ * delivery fee.
  */
 
 import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
@@ -39,9 +42,6 @@ const FOOD = 20;
 const DELIVERY_FEE = 4;
 const TOTAL = FOOD + DELIVERY_FEE;
 
-/** 81% of food. Deliberately NOT 81% of total (which would be 19.44). */
-const EXPECTED_MERCHANT_AMOUNT = 16.2;
-
 const deliveryOrder = () =>
   ({
     _id: new Types.ObjectId(),
@@ -62,6 +62,18 @@ const deliveryOrder = () =>
 describe('Settlement splits food, not total', () => {
   let service: KonnectOrderService;
   let walletModel: { findOneAndUpdate: jest.Mock };
+  let walletTxModel: ReturnType<typeof createMockModel> & { findOne: jest.Mock };
+
+  /** What the payment put into pending for this order - the SALE row. */
+  const saleOf = (amount: number | null) => {
+    walletTxModel.findOne.mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        session: jest.fn().mockReturnValue({
+          lean: jest.fn().mockResolvedValue(amount === null ? null : { amount }),
+        }),
+      }),
+    });
+  };
   let establishmentModel: { findById: jest.Mock };
 
   const createMockModel = () => ({
@@ -74,6 +86,8 @@ describe('Settlement splits food, not total', () => {
 
   beforeEach(async () => {
     walletModel = createMockModel();
+    walletTxModel = { ...createMockModel(), findOne: jest.fn() };
+    saleOf(FOOD);
     establishmentModel = createMockModel();
     establishmentModel.findById.mockReturnValue({
       select: jest.fn().mockReturnValue({
@@ -94,7 +108,7 @@ describe('Settlement splits food, not total', () => {
         { provide: getModelToken(Order.name), useValue: createMockModel() },
         { provide: getModelToken(PaymentAttempt.name), useValue: createMockModel() },
         { provide: getModelToken(MerchantWallet.name), useValue: walletModel },
-        { provide: getModelToken(WalletTransaction.name), useValue: createMockModel() },
+        { provide: getModelToken(WalletTransaction.name), useValue: walletTxModel },
         { provide: getModelToken(PlatformTransaction.name), useValue: createMockModel() },
         { provide: getModelToken(Establishment.name), useValue: establishmentModel },
         { provide: getModelToken(RefundRequest.name), useValue: createMockModel() },
@@ -104,67 +118,66 @@ describe('Settlement splits food, not total', () => {
     service = module.get(KonnectOrderService);
   });
 
-  describe('processPickupConfirmation', () => {
-    it('releases 81% of FOOD to the merchant, not 81% of total', async () => {
-      await service.processPickupConfirmation(deliveryOrder());
+  const pickupOrder = () => {
+    const order = deliveryOrder();
+    (order as unknown as { deliveryMode: string }).deliveryMode = 'pickup';
+    order.pricing.deliveryFee = 0;
+    order.pricing.total = FOOD;
+    return order;
+  };
 
-      const update = walletModel.findOneAndUpdate.mock.calls[0]?.[1] as {
+  const inc = () =>
+    (
+      walletModel.findOneAndUpdate.mock.calls[0]?.[1] as {
         $inc: { availableBalance: number; pendingBalance: number };
-      };
+      }
+    ).$inc;
 
-      expect(update.$inc.availableBalance).toBe(EXPECTED_MERCHANT_AMOUNT);
-      expect(update.$inc.pendingBalance).toBe(-EXPECTED_MERCHANT_AMOUNT);
+  describe('processPickupConfirmation', () => {
+    it('releases the full food price on a NORMAL sale - 100%, not 81%', async () => {
+      await service.processPickupConfirmation(pickupOrder(), FOOD);
+
+      expect(inc()).toEqual({ pendingBalance: -FOOD, availableBalance: FOOD });
     });
 
-    it('does not hand the merchant any share of the delivery fee', async () => {
-      // 81% of 24 = 19.44. If this ever appears, the split is using `total`.
-      await service.processPickupConfirmation(deliveryOrder());
+    it('releases subtotal - settled on a SETTLEMENT sale', async () => {
+      // Due 5 settled from a 20 TND sale: the merchant is owed 15.
+      await service.processPickupConfirmation(pickupOrder(), 15);
 
-      const update = walletModel.findOneAndUpdate.mock.calls[0]?.[1] as {
-        $inc: { availableBalance: number };
-      };
-
-      expect(update.$inc.availableBalance).not.toBeCloseTo(TOTAL * 0.81, 2);
+      expect(inc()).toEqual({ pendingBalance: -FOOD, availableBalance: 15 });
     });
 
-    it('leaves the full delivery fee available to cover the driver', async () => {
-      // Collected 24. Merchant takes 16.20, so 7.80 remains — comfortably more
-      // than the 3.00 owed to the driver. Splitting `total` would leave 4.56,
-      // still positive here but negative on small baskets.
-      await service.processPickupConfirmation(deliveryOrder());
+    it('moves out of pending exactly what the payment put in, for a sale paid under the old rule', async () => {
+      // Paid before the model: pending got 16.20 (81%). Taking 20 out would
+      // overdraw pending by 3.80.
+      saleOf(16.2);
 
-      const update = walletModel.findOneAndUpdate.mock.calls[0]?.[1] as {
-        $inc: { availableBalance: number };
-      };
-      const remaining = TOTAL - update.$inc.availableBalance;
+      await service.processPickupConfirmation(pickupOrder(), FOOD);
 
-      expect(remaining).toBeGreaterThanOrEqual(DELIVERY_FEE);
+      expect(inc()).toEqual({ pendingBalance: -16.2, availableBalance: FOOD });
     });
 
-    it('pays the same food share whether the order was delivery or pickup', async () => {
-      // The merchant's economics must not depend on how the food reached the
-      // customer — only on what they sold.
-      await service.processPickupConfirmation(deliveryOrder());
-      const deliveryAmount = (
-        walletModel.findOneAndUpdate.mock.calls[0]?.[1] as {
-          $inc: { availableBalance: number };
-        }
-      ).$inc.availableBalance;
+    it('never hands the merchant any share of the delivery fee', async () => {
+      await service.processPickupConfirmation(pickupOrder(), FOOD);
 
-      walletModel.findOneAndUpdate.mockClear();
-
-      const pickup = deliveryOrder();
-      pickup.pricing.deliveryFee = 0;
-      pickup.pricing.total = FOOD;
-      await service.processPickupConfirmation(pickup);
-
-      const pickupAmount = (
-        walletModel.findOneAndUpdate.mock.calls[0]?.[1] as {
-          $inc: { availableBalance: number };
-        }
-      ).$inc.availableBalance;
-
-      expect(pickupAmount).toBe(deliveryAmount);
+      expect(inc().availableBalance).not.toBe(TOTAL);
+      expect(inc().availableBalance).toBeLessThanOrEqual(FOOD);
     });
+
+    it('moves nothing for a delivery - the driver already paid the merchant', async () => {
+      saleOf(null);
+
+      await service.processPickupConfirmation(deliveryOrder(), FOOD);
+
+      expect(walletModel.findOneAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it.each([Number.NaN, -1])(
+      'refuses a merchant amount of %p rather than corrupt the wallet',
+      async bad => {
+        await expect(service.processPickupConfirmation(pickupOrder(), bad)).rejects.toThrow();
+        expect(walletModel.findOneAndUpdate).not.toHaveBeenCalled();
+      },
+    );
   });
 });

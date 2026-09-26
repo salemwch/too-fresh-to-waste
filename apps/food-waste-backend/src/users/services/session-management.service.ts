@@ -11,6 +11,7 @@ import {
 } from '../../common/constants/document-limits.constant';
 import { User, UserDocument } from '../schemas/user.schema';
 
+import { appError } from '../../common/errors';
 export interface DeviceInfo {
   deviceId: string;
   deviceFingerprint: string;
@@ -49,7 +50,7 @@ export class SessionManagementService {
     // large user document on every single login.
     const user = await this.userModel.findById(userId).select('email').lean();
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException(appError('USER_NOT_FOUND'));
     }
 
     // Generate location from IP
@@ -151,7 +152,7 @@ export class SessionManagementService {
   async revokeSession(sessionId: string, userId: string): Promise<void> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException(appError('USER_NOT_FOUND'));
     }
 
     // Add audit log entry
@@ -177,7 +178,7 @@ export class SessionManagementService {
   async revokeAllSessions(userId: string, currentSessionId?: string): Promise<void> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException(appError('USER_NOT_FOUND'));
     }
 
     // NOTE: this service is not registered in any module — it is dead code,
@@ -219,7 +220,7 @@ export class SessionManagementService {
   ): Promise<void> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException(appError('USER_NOT_FOUND'));
     }
 
     user.trustedDevices ??= [];
@@ -300,7 +301,7 @@ export class SessionManagementService {
   async revokeDeviceTrust(userId: string, deviceId: string, reason?: string): Promise<void> {
     const user = await this.userModel.findById(userId);
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException(appError('USER_NOT_FOUND'));
     }
 
     if (user.trustedDevices === null || user.trustedDevices === undefined) {

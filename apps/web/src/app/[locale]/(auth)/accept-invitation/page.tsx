@@ -2,10 +2,12 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { Building2, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { meetsPasswordPolicy, PASSWORD_MIN_LENGTH } from '@/lib/password-policy';
 import {
   organizationService,
   type InvitationVerifyResponse,
@@ -18,6 +20,7 @@ function AcceptInvitationInner() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const router = useRouter();
+  const t = useTranslations('auth');
 
   /*
    * A missing token is decided here, not by an effect. There is nothing to
@@ -34,6 +37,8 @@ function AcceptInvitationInner() {
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  /** Inline, so a too-weak password keeps the form (and the invitation) on screen. */
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     if (!token) return;
@@ -56,6 +61,13 @@ function AcceptInvitationInner() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
+
+    // The server's rule: it rejected 8-11 characters while this form allowed them.
+    if (!meetsPasswordPolicy(password)) {
+      setPasswordError(t('passwordRequirements', { min: PASSWORD_MIN_LENGTH }));
+      return;
+    }
+    setPasswordError('');
 
     setSubmitting(true);
     try {
@@ -177,10 +189,19 @@ function AcceptInvitationInner() {
               onChange={e => setPassword(e.target.value)}
               className='w-full px-md py-sm border border-border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30'
               required
-              minLength={8}
-              placeholder='Min 8 chars, uppercase, lowercase, number, special'
+              minLength={PASSWORD_MIN_LENGTH}
+              aria-invalid={passwordError !== ''}
+              aria-describedby='password-requirements'
               autoComplete='new-password'
             />
+            <p
+              id='password-requirements'
+              className={
+                passwordError ? 'text-sm text-destructive' : 'text-xs text-muted-foreground'
+              }
+            >
+              {passwordError || t('passwordRequirements', { min: PASSWORD_MIN_LENGTH })}
+            </p>
           </div>
 
           <div className='space-y-xs'>

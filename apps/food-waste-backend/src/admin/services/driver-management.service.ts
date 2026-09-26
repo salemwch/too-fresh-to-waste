@@ -1,4 +1,6 @@
 import * as argon2 from 'argon2';
+
+import { USER_PASSWORD_HASH_OPTIONS } from '../../auth/utils/password-hash';
 import * as crypto from 'crypto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
@@ -13,6 +15,7 @@ import { User, UserDocument } from '../../users/schemas/user.schema';
 import { CreateDriverDto } from '../dto/create-driver.dto';
 import { DriverOrdersQueryDto } from '../dto/driver-orders-query.dto';
 
+import { appError } from '../../common/errors';
 /** Statuses in which an order is currently in a driver's hands. */
 const DRIVER_ACTIVE_STATUSES: readonly OrderStatus[] = [
   OrderStatus.DRIVER_ASSIGNED,
@@ -270,12 +273,7 @@ export class DriverManagementService {
     temporaryPassword: string;
   }> {
     const temporaryPassword = `Drv-${crypto.randomBytes(3).toString('hex')}-${crypto.randomBytes(3).toString('hex')}`;
-    const hashedPassword = await argon2.hash(temporaryPassword, {
-      type: argon2.argon2id,
-      memoryCost: 2 ** 16,
-      timeCost: 3,
-      parallelism: 1,
-    });
+    const hashedPassword = await argon2.hash(temporaryPassword, USER_PASSWORD_HASH_OPTIONS);
 
     const session = await this.connection.startSession();
     session.startTransaction();
@@ -560,7 +558,7 @@ export class DriverManagementService {
    */
   async getDriverDetail(driverId: string): Promise<AdminDriverDetail> {
     if (!Types.ObjectId.isValid(driverId)) {
-      throw new NotFoundException('Driver not found');
+      throw new NotFoundException(appError('DRIVER_NOT_FOUND'));
     }
     const oid = new Types.ObjectId(driverId);
 
@@ -583,7 +581,7 @@ export class DriverManagementService {
       .exec();
 
     if (!driver) {
-      throw new NotFoundException('Driver not found');
+      throw new NotFoundException(appError('DRIVER_NOT_FOUND'));
     }
 
     const [profileMap, statsMap, earnings, unassignments] = await Promise.all([
@@ -622,7 +620,7 @@ export class DriverManagementService {
     query: DriverOrdersQueryDto,
   ): Promise<AdminDriverOrdersPage> {
     if (!Types.ObjectId.isValid(driverId)) {
-      throw new NotFoundException('Driver not found');
+      throw new NotFoundException(appError('DRIVER_NOT_FOUND'));
     }
 
     const { page = 1, limit = 20 } = query;

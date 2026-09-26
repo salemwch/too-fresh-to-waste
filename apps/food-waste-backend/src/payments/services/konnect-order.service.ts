@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-  NotFoundException,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import { Model, Types, Connection, ClientSession } from 'mongoose';
@@ -12,7 +6,6 @@ import { Model, Types, Connection, ClientSession } from 'mongoose';
 import { OrderStatus, PaymentStatus } from '@foodwaste/shared';
 
 import { perfLog, perfStart } from '../../common/utils/perf-log.util';
-import { calculateFoodRevenueSplit } from '../../orders/utils/order-pricing.util';
 import { Establishment } from '../../establishments/schemas/establishment.schema';
 import { KonnectService, toMillimes } from '../../subscription/services/konnect.service';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
@@ -22,6 +15,7 @@ import { PlatformTransaction } from '../schemas/platform-transaction.schema';
 import { WalletTransaction } from '../schemas/wallet-transaction.schema';
 import { RefundRequest } from '../schemas/refund-request.schema';
 
+import { appError } from '../../common/errors';
 /**
  * Revenue splitting lives in orders/utils/order-pricing.util.ts.
  *
@@ -340,7 +334,7 @@ export class KonnectOrderService implements OnModuleInit {
     user: { firstName: string; lastName: string; email: string },
   ): Promise<{ payUrl: string; paymentRef: string }> {
     if (order.status !== OrderStatus.PENDING_PAYMENT) {
-      throw new BadRequestException('Order is not awaiting payment');
+      throw new BadRequestException(appError('ORDER_NOT_AWAITING_PAYMENT'));
     }
 
     const activeAttempt = await this.paymentAttemptModel
@@ -353,7 +347,7 @@ export class KonnectOrderService implements OnModuleInit {
 
         if (details.payment.status === 'completed') {
           await this.handleOrderWebhook(activeAttempt.reference);
-          throw new BadRequestException('Previous payment was actually successful. Order updated.');
+          throw new BadRequestException(appError('PAYMENT_ALREADY_SUCCEEDED'));
         }
 
         // Only resume the existing checkout if it is still open on Konnect's
@@ -390,28 +384,95 @@ export class KonnectOrderService implements OnModuleInit {
     return this.initOrderPayment(order, user);
   }
 
-  async processPickupConfirmation(order: OrderDocument, session?: ClientSession): Promise<void> {
-    const establishment = await this.establishmentModel
-      .findById(order.establishmentId)
-      .select('ownerId')
-      .lean();
-
-    if (!establishment) {
-      throw new NotFoundException('Establishment not found');
+  /**
+   * Pickup confirmed: pending -> available for an online PICKUP sale.
+   *
+   * Moves out of pending exactly what the payment put in (the SALE row's
+   * amount) - 100% for sales made under the commission-settlement model, 81%
+   * for sales paid before it - so a rule change between payment and pickup
+   * can never overdraw pending. Puts `merchantAmount` into available: the
+   * full subtotal on a NORMAL sale, `subtotal - settled` on a SETTLEMENT,
+   * as decided by CommissionService in the same transaction.
+   *
+   * A delivery has no SALE row - the driver paid the merchant in cash at
+   * pickup - so there is nothing to move.
+   */
+  async processPickupConfirmation(
+    order: OrderDocument,
+    merchantAmount: number,
+    session?: ClientSession,
+  ): Promise<void> {
+    if (!Number.isFinite(merchantAmount) || merchantAmount < 0) {
+      throw new Error(
+        `Invalid merchantAmount ${String(merchantAmount)} for order ${order._id.toString()}`,
+      );
     }
 
-    const { merchantAmount } = calculateFoodRevenueSplit(order.pricing.subtotal);
+    const pendingCredit = await this.saleAmountFor(order._id, session);
+    if (pendingCredit === null) {
+      return;
+    }
 
     await this.walletModel.findOneAndUpdate(
       { establishmentId: order.establishmentId },
       {
         $inc: {
-          pendingBalance: -merchantAmount,
-          availableBalance: merchantAmount,
+          pendingBalance: -pendingCredit,
+          availableBalance: parseFloat(merchantAmount.toFixed(3)),
         },
       },
       { ...(session && { session }) },
     );
+  }
+
+  /**
+   * Reverses the NET_COMMISSION / DONATION pair a payment booked before revenue
+   * moved to completion. Reads what is there instead of recomputing it: an
+   * order paid after the change has no such rows, and reversing a recomputed
+   * 19% would book negative revenue for a sale that never earned any.
+   *
+   * `ordered: true` is mandatory: Mongoose refuses `create()` with a session
+   * and several documents without it, and the throw aborts the refund.
+   */
+  private async reverseLegacyPaymentBookings(
+    order: OrderDocument,
+    session: ClientSession,
+  ): Promise<void> {
+    const booked = await this.platformTxModel
+      .find({
+        orderId: order._id,
+        type: { $in: ['NET_COMMISSION', 'DONATION'] },
+        amount: { $gt: 0 },
+      })
+      .session(session)
+      .lean();
+    if (booked.length === 0) {
+      return;
+    }
+    await this.platformTxModel.create(
+      booked.map(row => ({
+        orderId: order._id,
+        type: row.type,
+        amount: -row.amount,
+        currency: row.currency,
+        reference: `REFUND-${row.reference}`,
+      })),
+      { session, ordered: true },
+    );
+  }
+
+  /** What the payment credited to pending for this order, or `null` if nothing. */
+  private async saleAmountFor(
+    orderId: Types.ObjectId,
+    session?: ClientSession,
+  ): Promise<number | null> {
+    const sale = await this.walletTxModel
+      .findOne({ orderId, type: 'SALE' })
+      .select('amount')
+      .session(session ?? null)
+      .lean();
+    const amount = sale ? sale.amount : null;
+    return amount;
   }
 
   async processRefundRequest(
@@ -420,59 +481,40 @@ export class KonnectOrderService implements OnModuleInit {
     reason: 'consumer_cancel' | 'merchant_cancel',
     session: ClientSession,
   ): Promise<void> {
-    // The refund reverses what was recorded on sale: the merchant's food share
-    // and the platform's NET commission. Gross `platformFee` is not needed —
-    // the donation was already deducted from it when the sale was booked.
-    const { merchantAmount, donation, netCommission } = calculateFoodRevenueSplit(
-      order.pricing.subtotal,
-    );
+    /*
+     * Reverse exactly what the sale credited to pending (0 for a delivery,
+     * which never credited the wallet), not a recomputed share - the SALE row
+     * may predate the commission-settlement model.
+     */
+    const merchantAmount = (await this.saleAmountFor(order._id, session)) ?? 0;
 
-    await this.walletModel.findOneAndUpdate(
-      { establishmentId: order.establishmentId },
-      { $inc: { pendingBalance: -merchantAmount } },
-      { session },
-    );
+    // No SALE row (a delivery) means nothing was credited, so nothing to reverse.
+    if (merchantAmount > 0) {
+      await this.walletModel.findOneAndUpdate(
+        { establishmentId: order.establishmentId },
+        { $inc: { pendingBalance: -merchantAmount } },
+        { session },
+      );
 
-    await this.walletTxModel.create(
-      [
-        {
-          establishmentId: order.establishmentId,
-          merchantId: order.merchantId,
-          orderId: order._id,
-          type: 'REFUND',
-          status: 'CREATED',
-          amount: -merchantAmount,
-          currency: 'TND',
-          reference: `REFUND-${order.orderNumber}`,
-          notes: `${reason}: reversal of SALE-${order.orderNumber}`,
-        },
-      ],
-      { session },
-    );
+      await this.walletTxModel.create(
+        [
+          {
+            establishmentId: order.establishmentId,
+            merchantId: order.merchantId,
+            orderId: order._id,
+            type: 'REFUND',
+            status: 'CREATED',
+            amount: -merchantAmount,
+            currency: 'TND',
+            reference: `REFUND-${order.orderNumber}`,
+            notes: `${reason}: reversal of SALE-${order.orderNumber}`,
+          },
+        ],
+        { session },
+      );
+    }
 
-    await this.platformTxModel.create(
-      [
-        {
-          orderId: order._id,
-          type: 'NET_COMMISSION',
-          amount: -netCommission,
-          currency: 'TND',
-          reference: `REFUND-COMMISSION-${order.orderNumber}`,
-        },
-        {
-          orderId: order._id,
-          type: 'DONATION',
-          amount: -donation,
-          currency: 'TND',
-          reference: `REFUND-DONATION-${order.orderNumber}`,
-        },
-      ],
-      // `ordered: true` is mandatory, not a preference: Mongoose refuses
-      // `create()` with a session and more than one document without it, and
-      // the throw aborts the whole refund transaction. See the settlement path
-      // below for the full explanation.
-      { session, ordered: true },
-    );
+    await this.reverseLegacyPaymentBookings(order, session);
 
     await this.refundRequestModel.create(
       [
@@ -505,73 +547,58 @@ export class KonnectOrderService implements OnModuleInit {
       return;
     }
 
-    const { merchantAmount, platformFee, donation, netCommission } = calculateFoodRevenueSplit(
-      order.pricing.subtotal,
-    );
+    /*
+     * Payment time moves the merchant wallet only. TFTW's revenue and the
+     * charity pledge are booked when the sale completes - CommissionService
+     * (COMMISSION_EARNED / COMMISSION_SETTLED) and DonationsService (DONATION) -
+     * for every payment method. Booking them here counted online sales only,
+     * at a flat 19%, before anything was earned, and a cancelled order had to
+     * be unwound out of revenue it never produced.
+     */
+    /*
+     * Merchant wallet, per the model:
+     * - pickup: the FULL subtotal goes to pending. The 19% is not deducted per
+     *   sale; it accrues to commissionDue at pickup, and a settlement (if any)
+     *   is taken when pending moves to available.
+     * - delivery: nothing. The driver pays the merchant in cash from the TFTW
+     *   float at pickup - crediting the wallet as well would pay them twice.
+     */
+    if (order.deliveryMode !== 'delivery') {
+      const saleAmount = parseFloat(order.pricing.subtotal.toFixed(3));
 
-    await this.walletTxModel.create(
-      [
-        {
-          establishmentId: order.establishmentId,
-          merchantId: establishment.ownerId,
-          orderId: order._id,
-          paymentAttemptId: attempt._id,
-          type: 'SALE',
-          status: 'COMPLETED',
-          amount: merchantAmount,
-          currency: 'TND',
-          orderTotal: order.pricing.total,
-          merchantAmount,
-          platformFee,
-          reference: `SALE-${order.orderNumber}`,
-        },
-      ],
-      { session },
-    );
+      await this.walletTxModel.create(
+        [
+          {
+            establishmentId: order.establishmentId,
+            merchantId: establishment.ownerId,
+            orderId: order._id,
+            paymentAttemptId: attempt._id,
+            type: 'SALE',
+            status: 'COMPLETED',
+            amount: saleAmount,
+            currency: 'TND',
+            orderTotal: order.pricing.total,
+            merchantAmount: saleAmount,
+            // Nothing is deducted from this sale; see above.
+            platformFee: 0,
+            reference: `SALE-${order.orderNumber}`,
+          },
+        ],
+        { session },
+      );
 
-    await this.walletModel.findOneAndUpdate(
-      { establishmentId: order.establishmentId },
-      {
-        $inc: { pendingBalance: merchantAmount },
-        $setOnInsert: {
-          merchantId: establishment.ownerId,
-          availableBalance: 0,
-          currency: 'TND',
-        },
-      },
-      { upsert: true, session },
-    );
-
-    await this.platformTxModel.create(
-      [
+      await this.walletModel.findOneAndUpdate(
+        { establishmentId: order.establishmentId },
         {
-          orderId: order._id,
-          type: 'NET_COMMISSION',
-          amount: netCommission,
-          currency: 'TND',
-          reference: `COMMISSION-${order.orderNumber}`,
+          $inc: { pendingBalance: saleAmount },
+          $setOnInsert: {
+            merchantId: establishment.ownerId,
+            availableBalance: 0,
+            currency: 'TND',
+          },
         },
-        {
-          orderId: order._id,
-          type: 'DONATION',
-          amount: donation,
-          currency: 'TND',
-          reference: `DONATION-${order.orderNumber}`,
-          notes: `5% of platform commission (${platformFee} TND)`,
-        },
-      ],
-      // `ordered: true` is mandatory here. Mongoose throws
-      // "Cannot call `create()` with a session and multiple documents unless
-      // `ordered: true` is set" — and this call sits inside the payment
-      // settlement transaction, so the throw aborted it every single time. The
-      // attempt was reset to `pending`, the order never reached PAID, and the
-      // reconciliation cron retried into the same error every five minutes.
-      //
-      // Nothing caught it earlier because it can only happen inside a
-      // transaction, and transactions require a replica set: against the old
-      // standalone MongoDB this path failed with IllegalOperation long before
-      // reaching here.
-      { session, ordered: true },
-    );
+        { upsert: true, session },
+      );
+    }
   }
 }

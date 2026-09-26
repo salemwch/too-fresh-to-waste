@@ -1,6 +1,8 @@
 import { apiClient } from '@/lib/api-client';
 import type { BackendEnvelope } from '@/types/dashboard';
 import type {
+  DriverCashQuery,
+  DriverCashReconciliation,
   CommissionLedgerRow,
   CommissionMerchantRow,
   CommissionQuery,
@@ -699,6 +701,46 @@ export const adminService = {
     return apiClient.get<BackendEnvelope<DriverOrderRow[]>>(`${ADMIN}/drivers/${driverId}/orders`, {
       params,
     });
+  },
+
+  // ── Driver cash ────────────────────────────────────────────────────────────
+
+  /** GET /admin/driver-cash/reconciliation - expected vs collected vs handed over vs outstanding. */
+  getDriverCashReconciliation(params: DriverCashQuery = {}) {
+    return apiClient.get<BackendEnvelope<DriverCashReconciliation>>(
+      `${ADMIN}/driver-cash/reconciliation`,
+      { params },
+    );
+  },
+
+  /** POST /admin/driver-cash/drivers/:id/float - issue or return TFTW working cash. */
+  moveDriverFloat(
+    driverId: string,
+    body: { type: 'ISSUED' | 'RETURNED'; amount: number; reason?: string },
+  ) {
+    return apiClient.post<BackendEnvelope<{ float: number }>>(
+      `${ADMIN}/driver-cash/drivers/${driverId}/float`,
+      body,
+    );
+  },
+
+  /**
+   * POST /admin/driver-cash/drivers/:id/handovers - one counted handover.
+   * `amount > 0` the driver handed cash to TFTW; `< 0` TFTW paid the driver.
+   */
+  recordDriverHandover(driverId: string, body: { amount: number; notes?: string }) {
+    return apiClient.post<BackendEnvelope<{ batchId: string; unallocated: number }>>(
+      `${ADMIN}/driver-cash/drivers/${driverId}/handovers`,
+      body,
+    );
+  },
+
+  /** PATCH /admin/driver-cash/orders/:id/recovery - decide a pending failed delivery. */
+  resolveDeliveryRecovery(orderId: string, recovery: 'RETURNED_TO_MERCHANT' | 'UNRECOVERABLE') {
+    return apiClient.patch<BackendEnvelope<{ orderId: string; recovery: string }>>(
+      `${ADMIN}/driver-cash/orders/${orderId}/recovery`,
+      { recovery },
+    );
   },
 
   // ── Team Management ─────────────────────────────────────────────────────────

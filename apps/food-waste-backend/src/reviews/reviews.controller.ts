@@ -19,7 +19,6 @@ import {
   DefaultValuePipe,
   BadRequestException,
   Logger,
-  UseFilters,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -31,7 +30,6 @@ import { AuthenticatedRequest } from '../common/decorators/get-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ProSubscriptionGuard } from '../common/guards/pro-subscription.guard';
-import { GlobalExceptionFilter } from '../common/filters/http-exception.filter';
 import { AppLoggerService } from '../common/services/logger.service';
 import { SupabaseStorageService } from '../common/services/supabase-storage.service';
 import { RateLimitGuard } from '../common/validators/RateLimitGuard';
@@ -50,10 +48,10 @@ import {
 import { ReviewsService } from './reviews.service';
 import { ReviewImages, ReviewStatus } from './schemas/review.schema';
 
+import { appError } from '../common/errors';
 @ApiTags('Reviews')
 @Controller('reviews')
 @UseGuards(JwtAuthGuard)
-@UseFilters(GlobalExceptionFilter)
 export class ReviewsController {
   private readonly logger = new Logger(ReviewsController.name);
 
@@ -98,7 +96,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(` userId is : ${req.user.userId} is required`);
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const uploadedFiles = files ?? [];
@@ -150,7 +148,7 @@ export class ReviewsController {
         error instanceof Error ? error.stack : String(error),
         'ReviewController',
       );
-      throw new InternalServerErrorException('Failed to create review');
+      throw new InternalServerErrorException(appError('REVIEW_FAILED'));
     }
   }
 
@@ -216,7 +214,7 @@ export class ReviewsController {
     @Query('status') status?: string,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(` userId is : ${req.user.userId} is required`);
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const queryDto: ReviewQueryDto = {
@@ -292,7 +290,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(`userId is required`);
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const getIdString = (id: unknown) =>
@@ -347,7 +345,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(` userId is : ${req.user.userId} is required `);
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const getIdString = (id: unknown) =>
@@ -451,9 +449,7 @@ export class ReviewsController {
   @ApiResponse({ status: 404, description: 'Review not found' })
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     if (!req.user.userId) {
-      throw new BadRequestException(
-        ` user Id is : ${req.user.userId} and user Role is : ${req.user.role} are required`,
-      );
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const review = await this.reviewsService.findOne(id, req.user?.userId, req.user?.role);
@@ -485,9 +481,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(
-        ` user Id is : ${req.user.userId} and user Role is : ${req.user.role} are required`,
-      );
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const uploadedFiles = files ?? [];
@@ -560,9 +554,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(
-        `userId is : ${req.user.userId}  and user Role is : ${req.user.role} are required`,
-      );
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const review = await this.reviewsService.addResponse(
@@ -596,7 +588,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(`userId is : ${req.user.userId} is required  `);
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const review = await this.reviewsService.handleInteraction(
@@ -635,7 +627,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(` user Id is : ${req.user.userId} is required`);
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const result = await this.reviewsService.reportReview(reviewId, reportDto, req.user.userId);
@@ -661,7 +653,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(`user Id is : ${req.user.userId} is required`);
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const review = await this.reviewsService.moderateReview(
@@ -692,7 +684,7 @@ export class ReviewsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(`userId is ${req.user.userId} is required`);
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const result = await this.reviewsService.bulkModerationReviews(bulkDto, req.user.userId);
@@ -725,9 +717,7 @@ export class ReviewsController {
     @Body('reason') reason?: string,
   ) {
     if (!req.user.userId) {
-      throw new BadRequestException(
-        `user Id is : ${req.user.userId} and user Role is : ${req.user.role} are required`,
-      );
+      throw new BadRequestException(appError('AUTH_REQUIRED'));
     }
     try {
       const result = await this.reviewsService.remove(id, req.user.userId, req.user.role, reason);

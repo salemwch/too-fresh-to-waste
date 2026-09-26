@@ -26,6 +26,7 @@ import { OrderSuccessModal } from '../components/OrderSuccessModal';
 import { PhoneVerificationModal } from '../components/PhoneVerificationModal';
 import { SkeletonCheckoutScreen } from '../components/SkeletonCheckoutScreen';
 import { useCreateOrder } from '../hooks/useCreateOrder';
+import { computeCheckoutPricing } from '../utils/checkoutPricing';
 
 import { createCheckoutStyles, SUCCESS_TEXT } from './CheckoutScreen.styles';
 
@@ -439,14 +440,19 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
    *
    * `distanceKm` is null until a delivery pin is dropped; the fee function
    * floors a missing distance to the cheapest band rather than to free.
+   *
+   * The food lines (original price, discount, subtotal) follow the same rule
+   * as the order the backend stores, so this receipt and `OrderPricingCard`
+   * show the same lines before and after purchase - see `checkoutPricing.ts`.
    */
-  const subtotal = offer ? (offer.pricing?.discountedPrice ?? 0) * quantity : 0;
-  const deliveryFee =
-    selectedFulfillment === 'delivery' ? calculateDeliveryFee(distanceKm ?? 0) : 0;
-  const total = subtotal + deliveryFee;
+  const { originalTotal, discount, subtotal, deliveryFee, total, hasDiscount } =
+    computeCheckoutPricing({
+      originalUnitPrice: offer?.pricing?.originalPrice,
+      discountedUnitPrice: offer?.pricing?.discountedPrice,
+      quantity: offer ? quantity : 0,
+      deliveryFee: selectedFulfillment === 'delivery' ? calculateDeliveryFee(distanceKm ?? 0) : 0,
+    });
   const currency = offer?.pricing?.currency ?? 'TND';
-  const originalPrice = offer ? (offer.pricing?.originalPrice ?? 0) * quantity : 0;
-  const savings = originalPrice - subtotal;
 
   /**
    * Handle success modal dismissal
@@ -716,7 +722,26 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
             </View>
 
             <View style={styles.priceBreakdown}>
-              {/* Subtotal */}
+              {/* Original price and discount - omitted rather than shown as
+                  zero when the offer carries no real reduction. */}
+              {hasDiscount && (
+                <>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceLabel}>{t('checkout.originalPrice')}</Text>
+                    <Text style={styles.priceValue}>
+                      {originalTotal.toFixed(2)} {currency}
+                    </Text>
+                  </View>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceLabel}>{t('orders.discount')}</Text>
+                    <Text style={[styles.priceValue, styles.discountValue]}>
+                      -{discount.toFixed(2)} {currency}
+                    </Text>
+                  </View>
+                </>
+              )}
+
+              {/* Subtotal - the food price after the discount */}
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>{t('common.subtotal')}</Text>
                 <Text style={styles.priceValue}>
@@ -734,8 +759,18 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                 </View>
               )}
 
-              {/* Savings Badge */}
-              {savings > 0 && (
+              {/* Total */}
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>{t('checkout.totalAmount')}</Text>
+                <Text style={styles.totalValue}>
+                  {total.toFixed(2)} {currency}
+                </Text>
+              </View>
+
+              {/* Savings Badge - below the total, as a summary of the receipt
+                  rather than a line in it. Between the rows it read as a second
+                  deduction of the same amount the Discount row already takes. */}
+              {hasDiscount && (
                 <View style={styles.savingsBadge}>
                   <Icon
                     name='trending-down'
@@ -744,18 +779,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ navigation, rout
                     color={colorTokens.base.success[500]}
                   />
                   <Text style={styles.savingsText}>
-                    {t('checkout.youSave', { amount: savings.toFixed(2), currency })}
+                    {t('checkout.youSave', { amount: discount.toFixed(2), currency })}
                   </Text>
                 </View>
               )}
-
-              {/* Total */}
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>{t('checkout.totalAmount')}</Text>
-                <Text style={styles.totalValue}>
-                  {total.toFixed(2)} {currency}
-                </Text>
-              </View>
             </View>
           </View>
 

@@ -190,7 +190,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
           <Text variant='body' size='md' weight='medium' numberOfLines={1}>
             {item.address?.city && item.address.city !== 'Unknown'
               ? item.address.city
-              : (item.displayName?.split(',')[0] ?? 'Unknown location')}
+              : (item.displayName?.split(',')[0] ?? t('location.unknownLocation'))}
           </Text>
           <Text variant='body' size='sm' color='secondary' numberOfLines={1}>
             {item.displayName ?? ''}
@@ -204,7 +204,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
         />
       </Pressable>
     ),
-    [theme.colors, handleLocationSelect],
+    [theme.colors, handleLocationSelect, t],
   );
 
   if (!visible) return null;
@@ -251,7 +251,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <Text variant='title' size='lg' weight='bold'>
-            Location & Distance
+            {t('location.locationAndDistance')}
           </Text>
           <Pressable
             accessibilityRole='button'
@@ -276,7 +276,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
               <Icon name='resize' family='Ionicons' size={20} color={theme.colors.primary} />
             </View>
             <Text variant='title' size='md' weight='semibold'>
-              Search Radius
+              {t('location.searchRadius')}
             </Text>
           </View>
 
@@ -304,13 +304,10 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
 
             <View style={styles.sliderLabels}>
               <Text variant='label' size='xs' color='secondary' lineHeight={18}>
-                500m
+                {t('location.distanceMeters', { value: 500 })}
               </Text>
               <Text variant='label' size='xs' color='secondary' lineHeight={18}>
-                10km
-              </Text>
-              <Text variant='label' size='xs' color='secondary' lineHeight={18}>
-                15km
+                {t('location.distanceKm', { value: 15 })}
               </Text>
             </View>
           </View>
@@ -331,7 +328,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
               <Icon name='search' family='Ionicons' size={20} color={theme.colors.primary} />
             </View>
             <Text variant='title' size='md' weight='semibold'>
-              Search City
+              {t('location.searchCity')}
             </Text>
           </View>
 
@@ -361,7 +358,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
                 <View style={styles.searchLoading}>
                   <ActivityIndicator size='small' color={theme.colors.primary} />
                   <Text variant='body' size='sm' color='secondary' style={styles.searchLoadingText}>
-                    Searching...
+                    {t('search.searching')}
                   </Text>
                 </View>
               ) : searchResults && searchResults.length > 0 ? (
@@ -377,7 +374,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
               ) : (
                 <View style={styles.noResults}>
                   <Text variant='body' size='sm' color='secondary'>
-                    No cities found
+                    {t('location.noCitiesFound')}
                   </Text>
                 </View>
               )}
@@ -405,10 +402,10 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
             </View>
             <View style={styles.useLocationText}>
               <Text variant='title' size='md' weight='semibold'>
-                Use My Current Location
+                {t('location.useMyCurrentLocation')}
               </Text>
               <Text variant='body' size='sm' color='secondary'>
-                {isLoadingLocation ? 'Getting location...' : 'Enable GPS to find offers near you'}
+                {isLoadingLocation ? t('location.gettingLocation') : t('location.enableGpsHint')}
               </Text>
             </View>
             <Icon name='chevron-forward' family='Ionicons' size={20} color={theme.colors.primary} />

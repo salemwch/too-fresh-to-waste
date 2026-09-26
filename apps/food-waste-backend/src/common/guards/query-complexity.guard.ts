@@ -8,6 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 
+import { appError } from '../errors';
 /**
  * Enterprise-grade MongoDB query complexity limits
  *
@@ -161,16 +162,7 @@ export class QueryComplexityGuard implements CanActivate {
         `Query complexity limit exceeded: ${stats.violations.join(', ')} | Route: ${request.url}`,
       );
 
-      throw new BadRequestException({
-        message: 'Query too complex',
-        violations: stats.violations,
-        stats: {
-          nestingDepth: stats.nestingDepth,
-          orConditionCount: stats.orConditionCount,
-          totalConditions: stats.totalConditions,
-          regexCount: stats.regexCount,
-        },
-      });
+      throw new BadRequestException(appError('QUERY_TOO_COMPLEX'));
     }
 
     // Attach stats to request for observability

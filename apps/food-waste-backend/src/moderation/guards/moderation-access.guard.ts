@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
+import { appError } from '../../common/errors';
 interface ModerationRequestUser {
   role?: UserRole;
   userId?: string;
@@ -29,14 +30,14 @@ export class ModerationAccessGuard implements CanActivate {
     const user = request.user;
 
     if (user === null || user === undefined) {
-      throw new UnauthorizedException('Authentication required');
+      throw new UnauthorizedException(appError('AUTH_REQUIRED'));
     }
 
     const allowedRoles = [UserRole.ADMIN, UserRole.MODERATOR];
     const userRole = user.role;
 
     if (userRole === null || userRole === undefined || !allowedRoles.includes(userRole)) {
-      throw new ForbiddenException('Access denied. Admin or Moderator privileges required');
+      throw new ForbiddenException(appError('MODERATOR_REQUIRED'));
     }
 
     request.moderatorRole = userRole;
@@ -55,11 +56,11 @@ export class AdminOnlyModerationGuard implements CanActivate {
     const user = request.user;
 
     if (user === null || user === undefined) {
-      throw new UnauthorizedException('Authentication required');
+      throw new UnauthorizedException(appError('AUTH_REQUIRED'));
     }
 
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Admin privileges required for this action');
+      throw new ForbiddenException(appError('ADMIN_REQUIRED'));
     }
 
     return true;
@@ -77,7 +78,7 @@ export class ReportOwnershipGuard implements CanActivate {
     const user = request.user;
 
     if (user === null || user === undefined) {
-      throw new UnauthorizedException('Authentication required');
+      throw new UnauthorizedException(appError('AUTH_REQUIRED'));
     }
 
     // Admins have full access
@@ -88,7 +89,7 @@ export class ReportOwnershipGuard implements CanActivate {
     // For moderators, we'll check ownership in the service layer
     // This guard just ensures they have moderation access
     if (user.role !== UserRole.MODERATOR) {
-      throw new ForbiddenException('Moderation privileges required');
+      throw new ForbiddenException(appError('MODERATOR_REQUIRED'));
     }
 
     return true;

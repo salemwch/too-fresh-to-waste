@@ -36,6 +36,7 @@ import { useAppDispatch } from '@/hooks/redux';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { BiometricAuth, BiometricType } from '@/services/BiometricAuth';
 import { SecureStorage } from '@/services/SecureStorage';
+import { localizeBiometricName } from '@/services/biometricName';
 import { Logger } from '@/utils/logger';
 
 import type { TierName } from '@/features/loyalty/types/loyalty.types';
@@ -57,32 +58,39 @@ const LEADERBOARD_SUBTEXT = 'rgba(224,214,255,0.85)';
 
 const SOCIAL_LINKS: ReadonlyArray<{
   key: string;
+  /** Brand name, the same in every language. */
+  name: string;
   Svg: React.FC<SvgProps>;
   url: string;
 }> = [
   {
     key: 'facebook',
+    name: 'Facebook',
     Svg: FacebookIcon,
     url: 'https://www.facebook.com/profile.php?id=61585767061906',
   },
   {
     key: 'instagram',
+    name: 'Instagram',
     Svg: InstagramIcon,
     url: 'https://www.instagram.com/toofreshtowaste/',
   },
-  { key: 'x', Svg: XTwitterIcon, url: 'https://x.com/TooFresh2Waste' },
+  { key: 'x', name: 'X', Svg: XTwitterIcon, url: 'https://x.com/TooFresh2Waste' },
   {
     key: 'youtube',
+    name: 'YouTube',
     Svg: YouTubeIcon,
     url: 'https://www.youtube.com/channel/UC_LqWpEBa-7wP5gDC2hz8Ew',
   },
   {
     key: 'tiktok',
+    name: 'TikTok',
     Svg: TikTokIcon,
     url: 'https://www.tiktok.com/@toofreshtowaste',
   },
   {
     key: 'linkedin',
+    name: 'LinkedIn',
     Svg: LinkedInIcon,
     url: 'https://www.linkedin.com/company/too-fresh-to-waste/',
   },
@@ -202,6 +210,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
   const [biometricType, setBiometricType] = useState<BiometricType>(BiometricType.NONE);
+  const biometricName = localizeBiometricName(BiometricAuth.getBiometricTypeName(biometricType), t);
   const [loadingBiometric, setLoadingBiometric] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -256,31 +265,32 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       if (value) {
         // Enabling biometric - verify first
         const authResult = await BiometricAuth.authenticate(
-          `Enable ${BiometricAuth.getBiometricTypeName(biometricType)} for quick login`,
+          t('profile.biometricPrompt', { type: biometricName }),
         );
 
         if (authResult.success) {
           await SecureStorage.setBiometricEnabled(true);
           setBiometricEnabled(true);
           Alert.alert(
-            'Biometric Enabled',
-            `${BiometricAuth.getBiometricTypeName(biometricType)} authentication has been enabled for this device.`,
+            t('profile.biometricEnabled'),
+            t('profile.biometricEnabledMessage', { type: biometricName }),
           );
         } else {
           Alert.alert(
-            'Authentication Failed',
-            authResult.errorMessage ?? 'Failed to enable biometric authentication.',
+            // The service's errorMessage is written for logs, not users.
+            t('auth.biometricFailedTitle'),
+            t('profile.biometricEnableFailed'),
           );
         }
       } else {
         // Disabling biometric
         Alert.alert(
-          'Disable Biometric',
-          `Are you sure you want to disable ${BiometricAuth.getBiometricTypeName(biometricType)} authentication?`,
+          t('profile.disableBiometric'),
+          t('profile.disableBiometricMessage', { type: biometricName }),
           [
-            { text: 'Cancel', style: 'cancel' },
+            { text: t('common.cancel'), style: 'cancel' },
             {
-              text: 'Disable',
+              text: t('profile.disable'),
               style: 'destructive',
               onPress: () => {
                 (async () => {
@@ -293,7 +303,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         );
       }
     },
-    [biometricType],
+    [biometricName, t],
   );
 
   /**
@@ -516,15 +526,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   : 'finger-print-outline'
               }
               label={t('profile.biometricLogin', {
-                type: BiometricAuth.getBiometricTypeName(biometricType),
+                type: biometricName,
               })}
               switchValue={biometricEnabled}
               onSwitchChange={value => {
                 handleBiometricToggle(value).catch(() => undefined);
               }}
               disabled={!biometricSupported || loadingBiometric}
-              accessibilityLabel={`${BiometricAuth.getBiometricTypeName(biometricType)} login, ${biometricEnabled ? 'enabled' : 'disabled'}`}
-              accessibilityHint={`Double tap to ${biometricEnabled ? 'disable' : 'enable'} ${BiometricAuth.getBiometricTypeName(biometricType)} authentication`}
+              accessibilityLabel={t('profile.a11ySwitchState', {
+                label: t('profile.biometricLogin', { type: biometricName }),
+                state: biometricEnabled ? t('profile.a11yEnabled') : t('profile.a11yDisabled'),
+              })}
+              accessibilityHint={t(
+                biometricEnabled
+                  ? 'profile.a11yBiometricDisableHint'
+                  : 'profile.a11yBiometricEnableHint',
+                { type: biometricName },
+              )}
             />
           </View>
           {!biometricSupported && !loadingBiometric && (
@@ -535,7 +553,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           {biometricSupported && (
             <Text variant='body' size='xs' color='secondary' style={styles.biometricHint}>
               {t('profile.biometricHint', {
-                type: BiometricAuth.getBiometricTypeName(biometricType),
+                type: biometricName,
               })}
             </Text>
           )}
@@ -554,7 +572,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               onSwitchChange={handleLeaderboardNameToggle}
               disabled={leaderboardConsentMutation.isPending}
               showArrow={false}
-              accessibilityLabel={`Use my real name on leaderboard, ${showRealName ? 'enabled' : 'disabled'}`}
+              accessibilityLabel={t('profile.a11ySwitchState', {
+                label: t('profile.useRealName'),
+                state: showRealName ? t('profile.a11yEnabled') : t('profile.a11yDisabled'),
+              })}
               accessibilityHint={t('profile.a11yRealNameHint')}
             />
           </View>
@@ -605,8 +626,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   Linking.openURL(link.url).catch(() => undefined);
                 }}
                 accessibilityRole='link'
-                accessibilityLabel={`Follow us on ${link.key}`}
-                accessibilityHint={`Opens ${link.key} in your browser or app`}
+                accessibilityLabel={t('profile.a11yFollowUs', { network: link.name })}
+                accessibilityHint={t('profile.a11yFollowUsHint', { network: link.name })}
                 hitSlop={SOCIAL_ICON_HIT_SLOP}
               >
                 <link.Svg width='100%' height='100%' />

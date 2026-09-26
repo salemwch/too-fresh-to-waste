@@ -16,6 +16,7 @@ import {
 import { ReferredIdentity, ReferredIdentityDocument } from '../schemas/referred-identity.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 
+import { appError } from '../../common/errors';
 /**
  * Gamification Constants
  */
@@ -170,7 +171,7 @@ export class GamificationService {
   async generateReferralCode(userId: string): Promise<string> {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     if (!account) {
-      throw new NotFoundException('Loyalty account not found');
+      throw new NotFoundException(appError('LOYALTY_ACCOUNT_NOT_FOUND'));
     }
 
     const user = await this.userModel.findById(userId).select('firstName').lean();
@@ -190,7 +191,7 @@ export class GamificationService {
   async getReferralCode(userId: string): Promise<string> {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     if (!account) {
-      throw new NotFoundException('Loyalty account not found');
+      throw new NotFoundException(appError('LOYALTY_ACCOUNT_NOT_FOUND'));
     }
 
     // Auto-migrate old-format codes (e.g. USERPEEF, JOHN1234) that lack a hyphen
@@ -314,7 +315,7 @@ export class GamificationService {
       // already referred. Distinguish them so a missing account still raises.
       const accountExists = await this.loyaltyModel.exists({ userId: referrerObjectId });
       if (!accountExists) {
-        throw new NotFoundException('Referrer loyalty account not found');
+        throw new NotFoundException(appError('REFERRER_NOT_FOUND'));
       }
       this.logger.warn(`Friend ${friendUserId} already referred by ${referrerUserId}`);
       return;
@@ -430,7 +431,7 @@ export class GamificationService {
     });
 
     if (!referrerAccount) {
-      throw new NotFoundException('Referrer loyalty account not found');
+      throw new NotFoundException(appError('REFERRER_NOT_FOUND'));
     }
 
     // Check if this business is already referred
@@ -579,7 +580,7 @@ export class GamificationService {
     const userIdObj = new Types.ObjectId(userId);
     const account = await this.loyaltyModel.findOne({ userId: userIdObj });
     if (!account) {
-      throw new NotFoundException('Loyalty account not found');
+      throw new NotFoundException(appError('LOYALTY_ACCOUNT_NOT_FOUND'));
     }
 
     const now = new Date();
@@ -915,7 +916,7 @@ export class GamificationService {
   async getGamificationStats(userId: string) {
     const account = await this.loyaltyModel.findOne({ userId: new Types.ObjectId(userId) });
     if (!account) {
-      throw new NotFoundException('Loyalty account not found');
+      throw new NotFoundException(appError('LOYALTY_ACCOUNT_NOT_FOUND'));
     }
 
     return {

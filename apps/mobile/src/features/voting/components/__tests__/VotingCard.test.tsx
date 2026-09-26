@@ -175,7 +175,7 @@ describe('VotingCard', () => {
     const { getByText } = render(<VotingCard />);
     expect(getByText('Summer Eco Championship')).toBeTruthy();
     // 20400/30000 = 68%
-    expect(getByText('20,400 / 30,000 bags — 68%')).toBeTruthy();
+    expect(getByText('20,400 / 30,000 bags - 68%')).toBeTruthy();
   });
 
   // 4. ACTIVE state — eligibility hint when NOT enough bags
@@ -205,7 +205,7 @@ describe('VotingCard', () => {
     expect(queryByText(/Save.*more bag.*to unlock voting/)).toBeNull();
   });
 
-  // 6. BALLOT_OPEN + canVote, no vote yet → "Voting is Live!" + "Vote Now" button
+  // 6. BALLOT_OPEN + canVote, no vote yet → "Voting is live!" + "Vote Now" button
   it('renders BALLOT_OPEN + canVote state with Vote Now button', () => {
     mockUseActiveVotingCycle.mockReturnValue({
       cycle: makeCycle({
@@ -218,7 +218,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('Voting is Live!')).toBeTruthy();
+    expect(getByText('Voting is live!')).toBeTruthy();
     expect(getByText('Vote Now')).toBeTruthy();
   });
 
@@ -267,7 +267,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('You Voted!')).toBeTruthy();
+    expect(getByText('You voted!')).toBeTruthy();
     expect(getByText('Eco Phone')).toBeTruthy();
   });
 
@@ -285,7 +285,7 @@ describe('VotingCard', () => {
 
     const { getByText } = render(<VotingCard />);
     // 50 - 5 = 45 more bags needed
-    expect(getByText('Save 45 more bags to participate')).toBeTruthy();
+    expect(getByText('Save 45 more bags to take part')).toBeTruthy();
   });
 
   // 10. COMPLETED — Victory Lap (winner announced ≤ 7 days ago)
@@ -309,7 +309,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('The Community Has Spoken!')).toBeTruthy();
+    expect(getByText('The community has spoken!')).toBeTruthy();
     expect(getByText(/Eco Phone/)).toBeTruthy();
   });
 
@@ -363,7 +363,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('0 / 0 bags — 0%')).toBeTruthy();
+    expect(getByText('0 / 0 bags - 0%')).toBeTruthy();
   });
 
   // 14. Countdown format — ballot closes in ~24 hours
@@ -432,7 +432,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('Save 1 more bag to participate')).toBeTruthy();
+    expect(getByText('Save 1 more bag to take part')).toBeTruthy();
   });
 
   // 18. Voted prize not found in prizes array — fallback to "Your choice"
@@ -535,7 +535,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('The Community Has Spoken!')).toBeTruthy();
+    expect(getByText('The community has spoken!')).toBeTruthy();
 
     jest.useRealTimers();
   });
@@ -574,7 +574,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('35,000 / 30,000 bags — 100%')).toBeTruthy();
+    expect(getByText('35,000 / 30,000 bags - 100%')).toBeTruthy();
   });
 
   // 24. BALLOT_OPEN + canVote: bottom sheet not shown before pressing Vote Now
@@ -593,8 +593,8 @@ describe('VotingCard', () => {
     expect(queryByTestId('vote-bottom-sheet')).toBeNull();
   });
 
-  // 25. Victory Lap section label shows "COMMUNITY CHAMPION"
-  it('shows COMMUNITY CHAMPION section label in Victory Lap', () => {
+  // 25. Victory Lap section label shows "Community champion"
+  it('shows Community champion section label in Victory Lap', () => {
     const announcedAt = new Date(Date.now() - 1 * 86_400_000).toISOString();
 
     mockUseActiveVotingCycle.mockReturnValue({
@@ -614,11 +614,11 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('COMMUNITY CHAMPION')).toBeTruthy();
+    expect(getByText('Community champion')).toBeTruthy();
   });
 
-  // 26. Anticipation Hook section label shows "COMING SOON"
-  it('shows COMING SOON section label in Anticipation Hook', () => {
+  // 26. Anticipation Hook section label shows "Coming soon"
+  it('shows Coming soon section label in Anticipation Hook', () => {
     mockUseActiveVotingCycle.mockReturnValue({
       cycle: makeCycle({
         status: 'COMPLETED',
@@ -630,7 +630,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('COMING SOON')).toBeTruthy();
+    expect(getByText('Coming soon')).toBeTruthy();
   });
 
   // 27. Anticipation Hook renders motivational subtext
@@ -685,7 +685,7 @@ describe('VotingCard', () => {
     });
 
     const { getByText } = render(<VotingCard />);
-    expect(getByText('Save 50 more bags to participate')).toBeTruthy();
+    expect(getByText('Save 50 more bags to take part')).toBeTruthy();
   });
 
   // 30. Winner name null-coalesce fallback in Victory Lap

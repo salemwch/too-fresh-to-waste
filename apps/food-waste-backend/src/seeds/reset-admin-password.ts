@@ -4,13 +4,16 @@
  * (same config as UsersService), and patches the document directly in MongoDB.
  *
  * Usage:
- *   NEW_ADMIN_PASSWORD=MyNewPass1! npx ts-node -r tsconfig-paths/register \
+ *   NEW_ADMIN_PASSWORD=MyNewAdminPass1! npx ts-node -r tsconfig-paths/register \
  *     src/seeds/reset-admin-password.ts
  */
 
 import 'dotenv/config';
+import { PASSWORD_MIN_LENGTH, PASSWORD_SPECIAL_CHARS, buildPasswordRegex } from '@foodwaste/shared';
 import * as argon2 from 'argon2';
 import { MongoClient } from 'mongodb';
+
+import { USER_PASSWORD_HASH_OPTIONS } from '../auth/utils/password-hash';
 
 async function main() {
   const mongoUrl = process.env['DATABASE_URL'];
@@ -24,7 +27,16 @@ async function main() {
   if (!newPassword) {
     console.error('❌  NEW_ADMIN_PASSWORD env var is required');
     console.error(
-      '   Example: NEW_ADMIN_PASSWORD="MyNewPass1!" npx ts-node src/seeds/reset-admin-password.ts',
+      '   Example: NEW_ADMIN_PASSWORD="MyNewAdminPass1!" npx ts-node src/seeds/reset-admin-password.ts',
+    );
+    process.exit(1);
+  }
+
+  // The same rule as every other way to set a password; the admin account is
+  // the last one that should be exempt.
+  if (newPassword.length < PASSWORD_MIN_LENGTH || !buildPasswordRegex().test(newPassword)) {
+    console.error(
+      `❌  The password must be at least ${PASSWORD_MIN_LENGTH} characters, with an uppercase letter, a lowercase letter, a number and one of ${PASSWORD_SPECIAL_CHARS}`,
     );
     process.exit(1);
   }
@@ -42,12 +54,7 @@ async function main() {
     process.exit(1);
   }
 
-  const hashed = await argon2.hash(newPassword, {
-    type: argon2.argon2id,
-    memoryCost: 2 ** 16,
-    timeCost: 3,
-    parallelism: 1,
-  });
+  const hashed = await argon2.hash(newPassword, USER_PASSWORD_HASH_OPTIONS);
 
   await users.updateOne(
     { _id: admin._id },

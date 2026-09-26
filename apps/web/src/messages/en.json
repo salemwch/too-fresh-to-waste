@@ -596,6 +596,7 @@
     "resetPasswordSuccess": "Password reset successfully! Please sign in.",
     "resetPasswordError": "Could not reset password. The link may have expired.",
     "passwordReuseViolation": "You cannot reuse your previous password. Please choose a different one.",
+    "passwordRequirements": "Password must be at least {min} characters and include uppercase, lowercase, number and special character (@$!%*?&.)",
     "verifyEmail": "Verify Your Email",
     "verifyEmailDescription": "We've sent a 6-digit code to your email address",
     "verificationCodePlaceholder": "000000",
@@ -696,7 +697,8 @@
         "deleteConfirm": "Type DELETE to confirm",
         "deleting": "Deleting...",
         "logoutAll": "Log Out All Devices",
-        "logoutAllConfirm": "This will terminate all active sessions"
+        "logoutAllConfirm": "This will terminate all active sessions",
+        "passwordRequirements": "Password must be at least {min} characters and include uppercase, lowercase, number and special character (@$!%*?&.)"
       },
       "sessions": {
         "title": "Active Sessions",
@@ -1277,8 +1279,8 @@
       "confirmPassword": "Confirm Password",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
-      "passwordRequirementsHint": "Min 8 characters · uppercase · lowercase · number · special character (@$!%*?&.)",
-      "passwordRequirements": "Password must be at least 8 characters and include uppercase, lowercase, number and special character",
+      "passwordRequirementsHint": "Min {min} characters · uppercase · lowercase · number · special character (@$!%*?&.)",
+      "passwordRequirements": "Password must be at least {min} characters and include uppercase, lowercase, number and special character",
       "passwordMismatch": "Passwords do not match",
       "updatePassword": "Update Password",
       "updatingPassword": "Updating...",
@@ -1837,7 +1839,8 @@
       "updating": "Updating...",
       "success": "Password updated successfully",
       "error": "Failed to update password",
-      "passwordMismatch": "Passwords do not match"
+      "passwordMismatch": "Passwords do not match",
+      "passwordRequirements": "Password must be at least {min} characters and include uppercase, lowercase, number and special character (@$!%*?&.)"
     },
     "merchantEstablishment": {
       "title": "My Establishment",
@@ -2110,11 +2113,37 @@
       }
     },
     "walletBalance": {
-      "title": "Online Payout Balance",
+      "title": "Online payments we hold for you",
       "available": "Available",
-      "pending": "Pending settlement",
+      "pending": "Awaiting pickup",
       "availableNote": "Ready for your next payout.",
-      "pendingNote": "Still clearing - moves to available once the pickup window closes."
+      "pendingNote": "Paid online, not collected yet.",
+      "availableInfoLabel": "What is Available?",
+      "availableInfo": "Money from online orders your customers have already collected. It is paid to you in your next payout, in full - minus any commission paid off by a settlement order.",
+      "pendingInfoLabel": "What is Awaiting pickup?",
+      "pendingInfo": "Customers paid online for these orders but have not collected them yet. The money moves to Available as soon as you confirm the pickup. If an order is cancelled, the customer is refunded.",
+      "cashNotHere": "Cash orders are paid to you directly, so they do not appear here.",
+      "error": "Could not load your online payments."
+    },
+    "todaySales": {
+      "title": "Today's sales",
+      "subtitle": "Cash in store and online, together",
+      "history": "History",
+      "orders": "{count, plural, one {# order} other {# orders}}",
+      "cash": "Cash in store",
+      "online": "Paid online",
+      "commission": "Commission recorded ({rate}%)",
+      "commissionInfoLabel": "What is commission recorded?",
+      "commissionInfo": "{rate}% of today's normal sales is added to your commission balance. It is never taken from your pocket: it is paid off later by settlement orders.",
+      "settled": "Paid off by settlement orders",
+      "settledInfoLabel": "What is paid off by settlement orders?",
+      "settledInfo": "On a settlement order you are paid less than the price, and the difference pays off commission from earlier days. No new commission is recorded on it.",
+      "kept": "You keep today",
+      "keptInfoLabel": "What is You keep today?",
+      "keptInfo": "What you were paid for today's sales, minus the commission recorded today.",
+      "toCollect": "{count, plural, one {# order} other {# orders}} still to collect, worth {amount}",
+      "empty": "No sales yet today. Every order you hand over appears here straight away.",
+      "error": "Could not load today's sales."
     },
     "greeting": "Congratulations, {name}.",
     "impactStatement": "Your impact today is equivalent to {trees} trees planted.",
@@ -2251,6 +2280,7 @@
       "received": "You received",
       "fullPriceOrders": "{count, plural, one {# order paid you the full price} other {# orders paid you the full price}}",
       "toSettle": "{amount} still to settle from upcoming orders. You never pay us directly.",
+      "toSettleByLocation": "By location",
       "noActivity": "No sales yet this month. Your commission summary appears here once orders start coming in.",
       "error": "Could not load your commission summary."
     },
@@ -2320,7 +2350,7 @@
     "phoneLabel": "Phone (optional)",
     "phonePlaceholder": "+216 XX XXX XXX",
     "passwordLabel": "Password",
-    "passwordPlaceholder": "Minimum 8 characters",
+    "passwordPlaceholder": "Minimum {min} characters",
     "confirmPasswordLabel": "Confirm password",
     "confirmPasswordPlaceholder": "Re-enter your password",
     "passwordMismatch": "Passwords do not match",
@@ -2519,7 +2549,7 @@
   "humanityMission": {
     "meta": {
       "title": "Humanity Mission | Too Fresh To Waste",
-      "description": "5% of every profit goes to those who need it most - food, medicine, education, and warmth for Tunisia's most vulnerable."
+      "description": "5% of our commission on every order goes to those who need it most - food, medicine, education and warmth for Tunisia's most vulnerable."
     },
     "hero": {
       "eyebrow": "OUR HUMANITY MISSION",
@@ -2529,8 +2559,8 @@
     "pledge": {
       "eyebrow": "THE COMMITMENT",
       "percent": "5%",
-      "headline": "Our 5% Profit Pledge.",
-      "body": "True change doesn't ask you to pay extra. We automatically dedicate 5% of our net profits from every surplus bag sold on our marketplace. Whether you are buying a meal or selling one, you are actively funding human dignity - without spending a single extra dinar."
+      "headline": "Our 5% Pledge.",
+      "body": "True change doesn't ask you to pay extra. On every order collected on our marketplace, we give 5% of our commission, automatically. Whether you are buying a meal or selling one, you are actively funding human dignity - without spending a single extra dinar."
     },
     "pillars": {
       "eyebrow": "FOUR PILLARS OF IMPACT",
@@ -3353,6 +3383,65 @@
     }
   },
   "adminDrivers": {
+    "cash": {
+      "link": "Cash reconciliation",
+      "title": "Driver cash",
+      "subtitle": "Expected, collected, handed over and outstanding - per driver",
+      "back": "Back to drivers",
+      "kpiExpected": "Expected from customers",
+      "kpiCollected": "Collected by drivers",
+      "kpiHandedOver": "Handed over",
+      "kpiOwedByDrivers": "Still with drivers",
+      "kpiOwedToDrivers": "Owed to drivers",
+      "kpiDeliveryRevenue": "TFTW delivery revenue",
+      "kpiSettlement": "Commission settled in cash",
+      "kpiLoss": "Food lost",
+      "colDriver": "Driver",
+      "colFloat": "Float",
+      "colOwedByDriver": "Driver owes",
+      "colOwedToDriver": "Owed to driver",
+      "colShouldHold": "Should hold",
+      "colFlags": "Flags",
+      "colActions": "Actions",
+      "unknownDriver": "Unknown driver",
+      "noFlags": "None",
+      "emptyTitle": "No driver cash yet",
+      "emptyDescription": "Delivery cash appears here once a driver collects an order.",
+      "error": "Could not load driver cash. Try again.",
+      "recordHandover": "Record handover",
+      "moveFloat": "Float",
+      "handoverTitle": "Record a cash handover",
+      "handoverDirectionIn": "Driver hands cash to TFTW",
+      "handoverDirectionOut": "TFTW pays the driver",
+      "handoverAmount": "Amount counted (TND)",
+      "handoverNotes": "Notes (optional)",
+      "handoverHint": "Allocated to the oldest open deliveries first. Anything not owed is kept on record and flagged.",
+      "floatTitle": "Driver float",
+      "floatIssue": "Issue float",
+      "floatReturn": "Take float back",
+      "floatAmount": "Amount (TND)",
+      "floatReason": "Reason (optional)",
+      "submit": "Save",
+      "cancel": "Cancel",
+      "saved": "Saved.",
+      "saveFailed": "Could not save. Check the amount and try again.",
+      "invalidAmount": "Enter an amount above zero, with at most 3 decimals.",
+      "pendingTitle": "Failed deliveries awaiting a decision",
+      "pendingEmpty": "Nothing waiting.",
+      "pendingPaid": "Paid to merchant {amount}",
+      "pendingReturned": "Returned to store",
+      "pendingLost": "Food lost",
+      "pendingConfirmTitle": "Confirm what happened to the food",
+      "pendingConfirmReturned": "The store took the food back and returned {amount} to the driver. The sale and its commission are undone.",
+      "pendingConfirmLost": "The food could not be sold. {amount} is booked as a loss for TFTW.",
+      "flagSHORT_COLLECTION": "Short collection",
+      "flagUNCONFIRMED_COLLECTION": "Unconfirmed collection",
+      "flagSTALE_COLLECTION": "Not handed over for 24h",
+      "flagSTALE_UNDELIVERED": "Collected, never delivered",
+      "flagFAILED_DELIVERY": "Failed delivery",
+      "flagUNALLOCATED_HANDOVER": "Unmatched handover",
+      "flagEXPECTED_COLLECTED_MISMATCH": "Expected and collected differ"
+    },
     "title": "Drivers",
     "subtitle": "Fleet accounts, live availability and delivery performance",
     "create": {
@@ -4311,7 +4400,7 @@
         {
           "n": "01",
           "title": "The 5% pledge is structural, not symbolic.",
-          "body": "5% of every transaction goes to food security programmes - meal funds for families, school meal initiatives, and community food banks. It is written into how the fee model works, not added as a donation layer on top. You cannot remove it without breaking the product."
+          "body": "5% of our commission on every order goes to food security programmes - meal funds for families, school meal initiatives, and community food banks. It is written into how the fee model works, not added as a donation layer on top. You cannot remove it without breaking the product."
         },
         {
           "n": "02",
@@ -5783,18 +5872,58 @@
     }
   },
   "merchantGifts": {
-    "title": "More gifts are on the way",
-    "subtitle": "We are putting together a set of perks for shops that sell with us. They will appear here as soon as they are ready.",
+    "eyebrow": "Partner shop benefits",
+    "title": "Buy what your shop needs, for less",
+    "subtitle": "Packaging, supplies and ingredients you already buy elsewhere - at prices we negotiate for every partner shop together.",
     "soon": "Soon",
+    "howTitle": "How it works",
+    "steps": {
+      "group": {
+        "title": "We group the orders",
+        "body": "Every partner shop orders together, so suppliers see one large buyer instead of many small ones."
+      },
+      "negotiate": {
+        "title": "Suppliers give wholesale prices",
+        "body": "We negotiate the price a big buyer gets, and pass it on to you."
+      },
+      "order": {
+        "title": "You order here and pay less",
+        "body": "Pick what you need from this page - cheaper than buying it on your own."
+      }
+    },
+    "categoriesTitle": "What you will be able to order",
+    "examplesLabel": "For example",
     "notify": "We will let you know the moment these go live.",
     "perks": {
-      "internet": {
-        "title": "Free internet",
-        "subtitle": "We help cover your shop connection so you can stay online without another bill."
-      },
       "packaging": {
         "title": "Cheaper packaging",
-        "subtitle": "Get your bags and boxes at a better price than buying them on your own."
+        "subtitle": "Get your bags and boxes at a better price than buying them on your own.",
+        "items": ["Cake boxes", "Pastry bags", "Paper trays", "Takeaway bags"]
+      },
+      "supplies": {
+        "title": "Baking supplies",
+        "subtitle": "Cake liners, piping bags, moulds and baking paper, restocked at a better price.",
+        "items": ["Cake liners", "Piping bags", "Moulds", "Baking paper"]
+      },
+      "ingredients": {
+        "title": "Cheaper raw ingredients",
+        "subtitle": "Flour, sugar, butter and chocolate at wholesale prices we negotiate for you.",
+        "items": ["Flour", "Sugar", "Butter", "Chocolate"]
+      },
+      "hygiene": {
+        "title": "Hygiene and cleaning",
+        "subtitle": "Everything your kitchen and counter need to stay clean and inspection-ready.",
+        "items": ["Food-safe gloves", "Hairnets", "Aprons", "Cleaning products"]
+      },
+      "branding": {
+        "title": "Your brand on every box",
+        "subtitle": "Printed packaging and labels with your shop name, without the minimum order of a printer.",
+        "items": ["Logo stickers", "Printed boxes", "Price labels", "Ribbons"]
+      },
+      "equipment": {
+        "title": "Equipment discounts",
+        "subtitle": "Partner pricing on ovens, mixers and display fridges when you need to buy big.",
+        "items": ["Ovens", "Mixers", "Display fridges", "Scales"]
       }
     }
   },

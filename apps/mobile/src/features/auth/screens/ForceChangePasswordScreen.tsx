@@ -11,7 +11,9 @@
  *   3. Dispatch setFlowState(AUTHENTICATED) → RootNavigator routes to MainStack
  */
 
-import React, { useCallback, useEffect } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { PASSWORD_MIN_LENGTH } from '@foodwaste/shared';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -27,6 +29,7 @@ import {
   View,
 } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
+import * as yup from 'yup';
 
 import { setFlowState } from '@/features/auth/store/authSlice';
 import { AuthFlowState } from '@/features/auth/types';
@@ -35,6 +38,7 @@ import { apiClient, BackendApiResponse } from '@/services/apiClient';
 import { SecureStorage } from '@/services/SecureStorage';
 import { backgroundStorage } from '@/utils/backgroundStorage';
 import { Logger } from '@/utils/logger';
+import { passwordRule } from '@/utils/validation/schemas';
 import { createThemedStyles, type ThemePalette } from '@/design-system/hooks/createThemedStyles';
 import { colorTokens } from '@/design-system/tokens/colors';
 
@@ -62,11 +66,14 @@ export default function ForceChangePasswordScreen() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
 
+  // The shared policy, as on register, reset and change password. This screen
+  // asked for 8 characters and nothing else, on admin-created accounts.
+  const schema = useMemo(() => yup.object({ newPassword: passwordRule(t) }), [t]);
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>();
+  } = useForm<FormData>({ resolver: yupResolver(schema) });
 
   // Disable Android hardware back button — this is a hard wall.
   // The navigator also sets gestureEnabled: false for iOS swipe-back.
@@ -126,16 +133,12 @@ export default function ForceChangePasswordScreen() {
           <Controller
             control={control}
             name='newPassword'
-            rules={{
-              required: t('auth.passwordRequired'),
-              minLength: { value: 8, message: t('auth.passwordMinLength') },
-            }}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={[styles.input, errors.newPassword != null && styles.inputError]}
-                placeholder={t('auth.newPasswordPlaceholder')}
+                placeholder={t('auth.newPasswordPlaceholder', { min: PASSWORD_MIN_LENGTH })}
                 accessibilityLabel={t('auth.a11yNewPasswordInput')}
-                accessibilityHint={t('auth.a11yNewPasswordHint')}
+                accessibilityHint={t('auth.a11yNewPasswordHint', { min: PASSWORD_MIN_LENGTH })}
                 placeholderTextColor={colorTokens.light.onSurfaceVariant}
                 secureTextEntry
                 autoCapitalize='none'

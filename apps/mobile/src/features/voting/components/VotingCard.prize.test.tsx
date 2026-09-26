@@ -1,6 +1,6 @@
 /**
  * VotingCard — Voting Prize Tests
- * Tests the "Claim Your Prize" CTA and WinnerCelebrationModal integration
+ * Tests the "Claim your prize" CTA and WinnerCelebrationModal integration
  * in the Victory Lap branch (COMPLETED cycle, winner announced ≤ 7 days).
  */
 
@@ -172,14 +172,14 @@ describe('VotingCard — voting prize', () => {
     mockClaimMutate.mockReset();
   });
 
-  it('shows a Claim Your Prize CTA for a winner who has not claimed', () => {
+  it('shows a Claim your prize CTA for a winner who has not claimed', () => {
     render(<VotingCard />);
-    expect(screen.getByText('Claim Your Prize')).toBeTruthy();
+    expect(screen.getByText('Claim your prize')).toBeTruthy();
   });
 
   it('opens the grand prize modal when the CTA is pressed', () => {
     render(<VotingCard />);
-    fireEvent.press(screen.getByText('Claim Your Prize'));
+    fireEvent.press(screen.getByText('Claim your prize'));
     expect(screen.getByTestId('grand-prize-modal')).toBeTruthy();
   });
 
@@ -187,7 +187,7 @@ describe('VotingCard — voting prize', () => {
   // prize — and no business picker, because a scooter is not redeemed anywhere.
   it('passes the voted prize name through to the modal', () => {
     render(<VotingCard />);
-    fireEvent.press(screen.getByText('Claim Your Prize'));
+    fireEvent.press(screen.getByText('Claim your prize'));
 
     // "Smart Garden" is the fixture's winning prize — proving the name comes
     // from the cycle rather than a hardcoded "Smartphone".
@@ -222,7 +222,7 @@ describe('VotingCard — voting prize', () => {
         },
       });
     render(<VotingCard />);
-    expect(screen.queryByText('Claim Your Prize')).toBeNull();
+    expect(screen.queryByText('Claim your prize')).toBeNull();
     expect(screen.queryByText('View Your Voucher')).toBeNull();
   });
 });

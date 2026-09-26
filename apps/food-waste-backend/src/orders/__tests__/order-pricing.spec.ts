@@ -184,14 +184,14 @@ describe('calculateOrderPricing — the four order shapes', () => {
 });
 
 describe('calculateDeliveryEconomics', () => {
-  it('pays the driver 67% and keeps 33% for the platform', () => {
-    // Was a flat 3 TND driver / 1 TND platform on a flat 4 TND fee. Now a share
-    // of a distance-based fee, so it scales with the trip instead of being
-    // fixed - and cannot exceed what was collected.
+  it('pays the driver 80% and keeps 20% for the platform', () => {
+    // Was a flat 3 TND driver / 1 TND platform on a flat 4 TND fee, then 67/33
+    // of a distance-based fee. 80/20 since 2026-09-24 (product owner). A share
+    // scales with the trip and cannot exceed what was collected.
     expect(economics()).toEqual({
       deliveryFee: 5,
-      driverEarnings: 3.35,
-      platformDeliveryCommission: 1.65,
+      driverEarnings: 4,
+      platformDeliveryCommission: 1,
     });
   });
 
@@ -245,10 +245,10 @@ describe('calculateDeliveryEconomics', () => {
       driverShare: DEFAULT_DRIVER_SHARE,
     });
 
-    // 5 TND fee at 67 / 33.
+    // 5 TND fee at 80 / 20.
     expect(e?.deliveryFee).toBe(TEST_FEE);
-    expect(e?.driverEarnings).toBe(3.35);
-    expect(e?.platformDeliveryCommission).toBe(1.65);
+    expect(e?.driverEarnings).toBe(4);
+    expect(e?.platformDeliveryCommission).toBe(1);
   });
 
   it('never pays a flat minimum on a short trip', () => {
@@ -261,7 +261,7 @@ describe('calculateDeliveryEconomics', () => {
     });
 
     expect(e?.deliveryFee).toBe(2);
-    expect(e?.driverEarnings).toBe(1.34);
+    expect(e?.driverEarnings).toBe(1.6);
     expect(e?.driverEarnings).toBeLessThan(3);
   });
 });

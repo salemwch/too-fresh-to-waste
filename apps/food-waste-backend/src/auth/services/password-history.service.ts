@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
 
+import { appError } from '../../common/errors';
 /**
  * Password History Service
  *
@@ -94,11 +95,9 @@ export class PasswordHistoryService {
 
     if (isReused) {
       const historyCount = this.getPasswordHistoryCount();
-      throw new BadRequestException({
-        message: `Password cannot be one of your last ${historyCount} passwords`,
-        type: 'PASSWORD_REUSE_VIOLATION',
-        historyCount,
-      });
+      throw new BadRequestException(
+        appError('PASSWORD_REUSED', { count: historyCount }, { type: 'PASSWORD_REUSE_VIOLATION' }),
+      );
     }
   }
 

@@ -1,7 +1,6 @@
 import {
   PASSWORD_MIN_LENGTH,
   PASSWORD_MAX_LENGTH,
-  PASSWORD_SPECIAL_CHARS,
   PASSWORD_ERROR_MESSAGES,
   buildPasswordRegex,
 } from '@foodwaste/shared';
@@ -35,9 +34,7 @@ export class AcceptInvitationDto {
   @IsString()
   @MinLength(PASSWORD_MIN_LENGTH, { message: PASSWORD_ERROR_MESSAGES.TOO_SHORT })
   @MaxLength(PASSWORD_MAX_LENGTH, { message: PASSWORD_ERROR_MESSAGES.TOO_LONG })
-  @Matches(buildPasswordRegex(), {
-    message: `Password must contain uppercase, lowercase, number, and special character (${PASSWORD_SPECIAL_CHARS})`,
-  })
+  @Matches(buildPasswordRegex(), { message: 'PASSWORD_POLICY' })
   password!: string;
 
   @ApiPropertyOptional({ description: 'Phone number' })

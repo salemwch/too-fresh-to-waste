@@ -11,11 +11,11 @@
 
 import { apiClient, unwrapBackendResponse, type BackendApiResponse } from '@/services/apiClient';
 import { Logger } from '@/utils/logger';
+import type { DeliveryFailureReason, DeliveryRecovery } from '../utils/deliveryCash';
 
 /** Backend may return either a GeoJSON point or a plain lat/lng pair. */
 type DriverCoordinates =
-  | { lat: number; lng: number }
-  | { type: string; coordinates: [number, number] };
+  { lat: number; lng: number } | { type: string; coordinates: [number, number] };
 
 /**
  * Driver-visible order with location and earnings info.
@@ -69,9 +69,30 @@ export interface DriverAvailableOrder {
   };
   driverAssignedAt?: string;
   driverPickedUpAt?: string;
+  /**
+   * What the driver must do with money, frozen by the backend when the order
+   * was collected from the merchant. The app shows these figures and never
+   * computes them. Absent before pickup.
+   */
+  driverInstruction?: DriverInstruction;
+  /** Who holds the customer's payment - decides whether cash is collected at the door. */
+  paymentControl?: {
+    controlledBy: 'TFTW' | 'MERCHANT';
+    collector: 'MERCHANT' | 'DRIVER' | 'PAYMENT_GATEWAY';
+  };
   deliveredAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DriverInstruction {
+  /** Pay the merchant this, from the TFTW float, at pickup. */
+  payMerchant: number;
+  /** Collect this from the customer at the door. 0 when they paid online. */
+  collectFromCustomer: number;
+  /** The driver's share of the delivery fee, kept from the cash collected. */
+  driverKeeps: number;
+  frozenAt: string;
 }
 
 export interface DriverProfile {
@@ -228,17 +249,45 @@ export const driverService = {
     return unwrapBackendResponse<DriverAvailableOrder>(response, 'markPickedUp');
   },
 
-  /** out_for_delivery → delivered. Terminal success state. */
-  async markDelivered(orderId: string): Promise<DriverAvailableOrder> {
+  /**
+   * out_for_delivery → delivered. Terminal success state.
+   *
+   * `collectedCash` is what the driver confirms the customer paid at the door
+   * (0 for an online-paid order). The backend records it against the driver's
+   * cash; omitting it is recorded as an unconfirmed collection and flagged.
+   */
+  async markDelivered(orderId: string, collectedCash: number): Promise<DriverAvailableOrder> {
     Logger.debug('[driverService] Marking order as delivered', { orderId });
 
     const response = await apiClient.post<BackendApiResponse<DriverAvailableOrder>>(
       `/drivers/orders/${orderId}/deliver`,
+      { collectedCash },
     );
     return unwrapBackendResponse<DriverAvailableOrder>(response, 'markDelivered');
   },
 
-  /** Return the order to the pool. Allowed both before and after pickup. */
+  /**
+   * The delivery failed after the food was collected (and the merchant paid).
+   * Reason and what happened to the food are required; out_for_delivery → cancelled.
+   */
+  async failDelivery(
+    orderId: string,
+    input: { reason: DeliveryFailureReason; recovery: DeliveryRecovery; notes?: string },
+  ): Promise<DriverAvailableOrder> {
+    Logger.debug('[driverService] Reporting a failed delivery', { orderId, reason: input.reason });
+
+    const response = await apiClient.post<BackendApiResponse<DriverAvailableOrder>>(
+      `/drivers/orders/${orderId}/fail`,
+      input,
+    );
+    return unwrapBackendResponse<DriverAvailableOrder>(response, 'failDelivery');
+  },
+
+  /**
+   * Return the order to the pool. Before pickup only: once the food is
+   * collected the merchant has been paid from the float, and the backend
+   * answers 409 - report a problem instead (`failDelivery`).
+   */
   async unassignOrder(orderId: string, reason?: string): Promise<DriverAvailableOrder> {
     Logger.debug('[driverService] Unassigning from order', { orderId, reason });
 

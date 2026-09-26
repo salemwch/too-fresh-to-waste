@@ -8,6 +8,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { DeliveryFailureReason, DeliveryRecovery } from '../utils/deliveryCash';
 
 import { Freshness } from '@/lib/react-query/freshness';
 import { useQueryWithFocus } from '@/lib/react-query/hooks';
@@ -182,13 +183,18 @@ export function useMarkPickedUp() {
   });
 }
 
-/** Complete the delivery: out_for_delivery → delivered. */
+/** Complete the delivery, with the cash the driver confirms: out_for_delivery → delivered. */
 export function useMarkDelivered() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (orderId: string): Promise<DriverAvailableOrder> =>
-      driverService.markDelivered(orderId),
+    mutationFn: ({
+      orderId,
+      collectedCash,
+    }: {
+      orderId: string;
+      collectedCash: number;
+    }): Promise<DriverAvailableOrder> => driverService.markDelivered(orderId, collectedCash),
 
     onSuccess: () => {
       queryClient.setQueryData(driverOrdersKeys.active(), null);
@@ -201,7 +207,37 @@ export function useMarkDelivered() {
   });
 }
 
-/** Drop the order back into the pool. Allowed before and after pickup. */
+/** The delivery failed after pickup: out_for_delivery → cancelled, reason required. */
+export function useFailDelivery() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      orderId,
+      ...input
+    }: {
+      orderId: string;
+      reason: DeliveryFailureReason;
+      recovery: DeliveryRecovery;
+      notes?: string;
+    }): Promise<DriverAvailableOrder> => driverService.failDelivery(orderId, input),
+
+    onSuccess: () => {
+      queryClient.setQueryData(driverOrdersKeys.active(), null);
+      void queryClient.invalidateQueries({ queryKey: driverOrdersKeys.all });
+    },
+
+    onError: error => {
+      Logger.error(
+        '[useFailDelivery] Failed to report a failed delivery',
+        undefined,
+        error as Error,
+      );
+    },
+  });
+}
+
+/** Drop the order back into the pool. Before pickup only - see driverService.unassignOrder. */
 export function useUnassignOrder() {
   const queryClient = useQueryClient();
 

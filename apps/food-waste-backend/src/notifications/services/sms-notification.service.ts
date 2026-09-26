@@ -28,6 +28,7 @@ import {
 import { OptOutManagerService } from './opt-out-manager.service';
 import { PhoneValidatorService } from './phone-validator.service';
 
+import { appError } from '../../common/errors';
 type RedisClient = Awaited<ReturnType<RedisService['getClient']>>;
 
 // Enterprise-grade interfaces for type safety
@@ -1479,7 +1480,7 @@ export class SmsNotificationService implements INotificationProvider {
 
     try {
       if (!payload?.title || !payload?.body) {
-        throw new BadRequestException('SMS payload requires title and body');
+        throw new BadRequestException(appError('SMS_PAYLOAD_INVALID'));
       }
 
       const phoneNumber = await this.getPhoneNumber(target);
@@ -1541,7 +1542,7 @@ export class SmsNotificationService implements INotificationProvider {
     }
 
     if (targets.length > 100) {
-      throw new BadRequestException('Bulk SMS limited to 100 recipients per request');
+      throw new BadRequestException(appError('BULK_TOO_LARGE', { max: 100 }));
     }
 
     // Process in batches to avoid overwhelming the service
@@ -1833,12 +1834,12 @@ export class SmsNotificationService implements INotificationProvider {
   ): Promise<TwilioMessageResponse> {
     const validation = this.phoneValidator.validateAndFormat(phoneNumber);
     if (!validation.isValid) {
-      throw new BadRequestException(`Invalid phone number: ${validation.errorMessage}`);
+      throw new BadRequestException(appError('INVALID_PHONE'));
     }
 
     const formattedPhoneNumber = validation.formatted;
     if (!formattedPhoneNumber) {
-      throw new BadRequestException('Invalid phone number: missing formatted value');
+      throw new BadRequestException(appError('INVALID_PHONE'));
     }
 
     for (let attempt = 1; attempt <= retries; attempt++) {
@@ -1991,9 +1992,7 @@ export class SmsNotificationService implements INotificationProvider {
       // Input validation
       if (!webhookData?.MessageSid || !webhookData?.MessageStatus) {
         this.logger.warn('Invalid webhook data received', { webhookData });
-        throw new BadRequestException(
-          'Invalid webhook data: missing required fields (MessageSid, MessageStatus)',
-        );
+        throw new BadRequestException(appError('WEBHOOK_INVALID'));
       }
 
       // Validate Twilio webhook signature for security
@@ -2007,7 +2006,7 @@ export class SmsNotificationService implements INotificationProvider {
 
       const isSignatureValid = this.validateTwilioSignature(webhookUrl, params, signature);
       if (!isSignatureValid) {
-        throw new BadRequestException('Invalid webhook signature');
+        throw new BadRequestException(appError('WEBHOOK_INVALID'));
       }
 
       const { MessageSid, MessageStatus, ErrorCode, ErrorMessage, Price, PriceUnit } = webhookData;
@@ -2708,12 +2707,12 @@ export class SmsNotificationService implements INotificationProvider {
 
       if (!authToken) {
         this.logger.error('Twilio auth token not configured for webhook validation');
-        throw new BadRequestException('Webhook validation not configured');
+        throw new BadRequestException(appError('SERVICE_UNAVAILABLE'));
       }
 
       if (!signature) {
         this.logger.warn('Missing X-Twilio-Signature header in webhook request');
-        throw new BadRequestException('Missing webhook signature');
+        throw new BadRequestException(appError('WEBHOOK_INVALID'));
       }
 
       // Sort parameters alphabetically by key and create URL-encoded string

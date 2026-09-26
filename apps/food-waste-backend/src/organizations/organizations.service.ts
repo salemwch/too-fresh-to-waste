@@ -15,6 +15,7 @@ import { Organization, OrganizationDocument } from './schemas/organization.schem
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
+import { appError } from '../common/errors';
 export interface OrganizationLean {
   _id: unknown;
   name: string;
@@ -62,9 +63,7 @@ export class OrganizationsService {
       .exec();
 
     if (existing) {
-      throw new ConflictException(
-        'You already have an organization. Only one organization per merchant is allowed.',
-      );
+      throw new ConflictException(appError('ORGANIZATION_LIMIT_REACHED'));
     }
 
     const org = new this.organizationModel({
@@ -84,7 +83,7 @@ export class OrganizationsService {
    */
   async findById(id: string): Promise<OrganizationDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid organization ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const org = await this.organizationModel
@@ -92,7 +91,7 @@ export class OrganizationsService {
       .exec();
 
     if (!org) {
-      throw new NotFoundException('Organization not found');
+      throw new NotFoundException(appError('ORGANIZATION_NOT_FOUND'));
     }
 
     return org;
@@ -136,7 +135,7 @@ export class OrganizationsService {
     const org = await this.findById(id);
 
     if (org.ownerId.toString() !== userId) {
-      throw new ForbiddenException('Only the organization owner can update it');
+      throw new ForbiddenException(appError('ORGANIZATION_OWNER_ONLY'));
     }
 
     Object.assign(org, dto);
@@ -156,14 +155,14 @@ export class OrganizationsService {
     const org = await this.findById(orgId);
 
     if (org.ownerId.toString() !== userId) {
-      throw new ForbiddenException('Only the organization owner can add establishments');
+      throw new ForbiddenException(appError('ORGANIZATION_OWNER_ONLY'));
     }
 
     const estabObjId = new Types.ObjectId(establishmentId);
     const alreadyLinked = org.establishmentIds.some(id => id.toString() === establishmentId);
 
     if (alreadyLinked) {
-      throw new ConflictException('This establishment is already part of the organization');
+      throw new ConflictException(appError('ORGANIZATION_ESTABLISHMENT_EXISTS'));
     }
 
     org.establishmentIds.push(estabObjId);
@@ -185,19 +184,17 @@ export class OrganizationsService {
     const org = await this.findById(orgId);
 
     if (org.ownerId.toString() !== userId) {
-      throw new ForbiddenException('Only the organization owner can remove establishments');
+      throw new ForbiddenException(appError('ORGANIZATION_OWNER_ONLY'));
     }
 
     const idx = org.establishmentIds.findIndex(id => id.toString() === establishmentId);
 
     if (idx === -1) {
-      throw new NotFoundException('Establishment not found in this organization');
+      throw new NotFoundException(appError('ORGANIZATION_ESTABLISHMENT_NOT_FOUND'));
     }
 
     if (org.establishmentIds.length <= 1) {
-      throw new BadRequestException(
-        'Cannot remove the last establishment from an organization. Delete the organization instead.',
-      );
+      throw new BadRequestException(appError('ORGANIZATION_LAST_ESTABLISHMENT'));
     }
 
     org.establishmentIds.splice(idx, 1);

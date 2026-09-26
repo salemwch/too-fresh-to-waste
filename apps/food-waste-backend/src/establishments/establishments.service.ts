@@ -35,6 +35,7 @@ import {
 
 import type { BusinessInfo } from '@foodwaste/shared';
 
+import { appError } from '../common/errors';
 // ESTABLISHMENT_LIST_FIELDS import removed - not currently used
 
 /**
@@ -83,16 +84,14 @@ export class EstablishmentsService {
     if (!org) {
       const existingEstablishment = await this.establishmentModel.findOne({ ownerId });
       if (existingEstablishment) {
-        throw new ConflictException(
-          'User already has an establishment. Create an organization to add more locations.',
-        );
+        throw new ConflictException(appError('ESTABLISHMENT_LIMIT_REACHED'));
       }
     }
 
     if (createEstablishmentDto.googlePlaceId) {
       const taken = await this.isGooglePlaceRegistered(createEstablishmentDto.googlePlaceId);
       if (taken) {
-        throw new ConflictException('This location is already registered on the platform.');
+        throw new ConflictException(appError('LOCATION_ALREADY_REGISTERED'));
       }
     }
 
@@ -198,9 +197,7 @@ export class EstablishmentsService {
     if (businessInfo.googlePlaceId) {
       const taken = await this.isGooglePlaceRegistered(businessInfo.googlePlaceId);
       if (taken) {
-        throw new ConflictException(
-          'This business location is already registered on our platform. If you own this business, please contact support.',
-        );
+        throw new ConflictException(appError('LOCATION_ALREADY_REGISTERED'));
       }
     }
 
@@ -414,7 +411,7 @@ export class EstablishmentsService {
 
   async findById(id: string): Promise<EstablishmentDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid establishment ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     // No populate — internal callers use .save() and only need ownerId as ObjectId.
@@ -422,7 +419,7 @@ export class EstablishmentsService {
     const establishment = await this.establishmentModel.findById(id).exec();
 
     if (!establishment) {
-      throw new NotFoundException('Establishment not found');
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     return establishment;
@@ -466,7 +463,7 @@ export class EstablishmentsService {
     const establishment = await this.findById(id);
 
     if (userRole !== 'admin' && establishment.ownerId.toString() !== userId) {
-      throw new ForbiddenException('You can only update your own establishment');
+      throw new ForbiddenException(appError('ESTABLISHMENT_NOT_YOURS'));
     }
 
     if (
@@ -558,7 +555,7 @@ export class EstablishmentsService {
       .exec();
 
     if (!updateResult) {
-      throw new NotFoundException('Establishment not found');
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     // Invalidate stale cache entries
@@ -619,7 +616,7 @@ export class EstablishmentsService {
     const establishment = await this.findById(id);
 
     if (userRole !== 'admin' && establishment.ownerId.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own establishment');
+      throw new ForbiddenException(appError('ESTABLISHMENT_NOT_YOURS'));
     }
 
     const isAdminDeletion = userRole === 'admin';
@@ -770,7 +767,7 @@ export class EstablishmentsService {
     const establishment = await this.findById(establishmentId);
 
     if (userRole !== 'admin' && establishment.ownerId.toString() !== userId) {
-      throw new ForbiddenException('You can only upload documents to your own establishment');
+      throw new ForbiddenException(appError('ESTABLISHMENT_NOT_YOURS'));
     }
 
     // Create document metadata
@@ -826,7 +823,7 @@ export class EstablishmentsService {
         break;
 
       default:
-        throw new BadRequestException('Invalid document type');
+        throw new BadRequestException(appError('DOCUMENT_TYPE_INVALID'));
     }
 
     // Save and return updated establishment
@@ -873,7 +870,7 @@ export class EstablishmentsService {
     const establishment = await this.findById(establishmentId);
 
     if (!establishment.legalDocuments) {
-      throw new BadRequestException('No documents uploaded for this establishment');
+      throw new BadRequestException(appError('DOCUMENTS_NOT_FOUND'));
     }
 
     const verificationData = {
@@ -931,12 +928,10 @@ export class EstablishmentsService {
         break;
 
       case DocumentType.ADDITIONAL:
-        throw new BadRequestException(
-          'Additional documents require a dedicated identifier for verification',
-        );
+        throw new BadRequestException(appError('DOCUMENT_ID_REQUIRED'));
 
       default:
-        throw new BadRequestException('Invalid document type for verification');
+        throw new BadRequestException(appError('DOCUMENT_TYPE_INVALID'));
     }
 
     await establishment.save();
@@ -986,11 +981,11 @@ export class EstablishmentsService {
     const establishment = await this.findById(establishmentId);
 
     if (userRole !== 'admin' && establishment.ownerId.toString() !== userId) {
-      throw new ForbiddenException('You can only delete documents from your own establishment');
+      throw new ForbiddenException(appError('ESTABLISHMENT_NOT_YOURS'));
     }
 
     if (!establishment.legalDocuments) {
-      throw new BadRequestException('No documents found for this establishment');
+      throw new BadRequestException(appError('DOCUMENTS_NOT_FOUND'));
     }
 
     const isAdminDeletion = userRole === 'admin';
@@ -1023,12 +1018,10 @@ export class EstablishmentsService {
         break;
 
       case DocumentType.ADDITIONAL:
-        throw new BadRequestException(
-          'Additional documents require a dedicated identifier for deletion',
-        );
+        throw new BadRequestException(appError('DOCUMENT_ID_REQUIRED'));
 
       default:
-        throw new BadRequestException('Invalid document type');
+        throw new BadRequestException(appError('DOCUMENT_TYPE_INVALID'));
     }
 
     await establishment.save();
@@ -1100,7 +1093,7 @@ export class EstablishmentsService {
    */
   async findByIdWithOwner(id: string): Promise<EstablishmentLean> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid establishment ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const cacheKey = `estab:owner:${id}`;
@@ -1114,7 +1107,7 @@ export class EstablishmentsService {
         ]);
 
         if (!establishment) {
-          throw new NotFoundException('Establishment not found');
+          throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
         }
 
         return establishment;

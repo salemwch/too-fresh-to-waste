@@ -47,6 +47,7 @@ import { CacheService } from '../../common/services/cache.service';
 import { AnalyticsCache, AnalyticsCacheDocument } from '../schemas/analytics-cache.schema';
 import { AnalyticsUtil } from '../utils/analytics.util';
 
+import { appError } from '../../common/errors';
 interface TotalUsersAggregationResult {
   total: number;
 }
@@ -261,7 +262,9 @@ export class AnalyticsService {
       const filters = this.convertFiltersToInterface(request.filters);
       const validationErrors = AnalyticsUtil.validateAnalyticsFilters(filters);
       if (validationErrors.length > 0) {
-        throw new BadRequestException(`Invalid filters: ${validationErrors.join(', ')}`);
+        throw new BadRequestException(
+          appError('INVALID_FILTERS', { details: String(validationErrors.join(', ')) }),
+        );
       }
 
       // Get comparison period if needed
@@ -353,7 +356,7 @@ export class AnalyticsService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to calculate business metrics');
+      throw new InternalServerErrorException(appError('ANALYTICS_FAILED'));
     }
   }
 
@@ -377,7 +380,9 @@ export class AnalyticsService {
       const filters = this.convertFiltersToInterface(request.filters);
       const validationErrors = AnalyticsUtil.validateAnalyticsFilters(filters);
       if (validationErrors.length > 0) {
-        throw new BadRequestException(`Invalid filters: ${validationErrors.join(', ')}`);
+        throw new BadRequestException(
+          appError('INVALID_FILTERS', { details: String(validationErrors.join(', ')) }),
+        );
       }
 
       const matchPipeline = AnalyticsUtil.createMatchPipeline(filters);
@@ -531,7 +536,7 @@ export class AnalyticsService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to calculate user analytics');
+      throw new InternalServerErrorException(appError('ANALYTICS_FAILED'));
     }
   }
 
@@ -622,7 +627,7 @@ export class AnalyticsService {
       };
     } catch (error) {
       this.logger.error('Failed to get real-time metrics:', error);
-      throw new InternalServerErrorException('Failed to get real-time metrics');
+      throw new InternalServerErrorException(appError('ANALYTICS_FAILED'));
     }
   }
 
@@ -1506,7 +1511,7 @@ export class AnalyticsService {
       };
     } catch (error) {
       this.logger.error('Failed to get cache statistics:', error);
-      throw new InternalServerErrorException('Failed to get cache statistics');
+      throw new InternalServerErrorException(appError('ANALYTICS_FAILED'));
     }
   }
 }

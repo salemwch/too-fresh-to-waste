@@ -137,8 +137,14 @@ const StreakCardComponent: React.FC<StreakCardProps> = ({ gamification }) => {
 
   return (
     <View style={styles.container}>
-      <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
-        ACTIVE STREAKS
+      <Text
+        variant='body'
+        size='xs'
+        weight='semibold'
+        transform='uppercase'
+        style={styles.sectionLabel}
+      >
+        {t('loyalty.activeStreaks')}
       </Text>
 
       <View style={styles.card}>

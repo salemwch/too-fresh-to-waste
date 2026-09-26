@@ -15,6 +15,7 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
 import { environment } from '@/config/environment';
+import { getCurrentLanguage } from '@/i18n';
 import { apiClient, unwrapBackendResponse } from '@/services/apiClient';
 import { Logger, NetworkLogger } from '@/utils/logger';
 
@@ -111,6 +112,9 @@ class NearbyOffersService {
           'X-Requested-With': 'XMLHttpRequest',
           'X-Platform': 'mobile',
           'X-App-Version': environment.app.version,
+          // Bare axios, not apiClient: the language has to be sent here, or the
+          // backend's error message comes back in English.
+          'Accept-Language': getCurrentLanguage(),
           ...headers,
         },
         timeout: this.timeout,

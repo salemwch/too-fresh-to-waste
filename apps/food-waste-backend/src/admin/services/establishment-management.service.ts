@@ -64,6 +64,7 @@ import { AdminAuditLogDocument } from '../schemas/admin-audit-log.schema';
 
 import { AdminAuditService } from './admin-audit.service';
 
+import { appError } from '../../common/errors';
 interface EstablishmentReactivationJob {
   establishmentId: string;
   reactivationDate: Date;
@@ -517,7 +518,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
         ]);
 
       if (establishment === null || establishment === undefined) {
-        throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+        throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
       }
 
       return EstablishmentMapper.toInterface(establishment);
@@ -539,11 +540,11 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const establishment = await this.establishmentModel.findById(establishmentId);
 
       if (!establishment) {
-        throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+        throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
       }
 
       if (establishment.status !== EstablishmentStatus.PENDING) {
-        throw new BadRequestException('Only pending establishments can be approved or rejected');
+        throw new BadRequestException(appError('ESTABLISHMENT_NOT_PENDING'));
       }
 
       const previousValue = {
@@ -629,7 +630,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const establishment = await this.establishmentModel.findById(establishmentId);
 
       if (!establishment) {
-        throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+        throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
       }
 
       const previousStatus = establishment.status;
@@ -726,7 +727,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const establishment = await this.establishmentModel.findById(establishmentId);
 
       if (!establishment) {
-        throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+        throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
       }
 
       establishment.isVerified = true;
@@ -777,7 +778,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
       const establishment = await this.establishmentModel.findById(establishmentId);
 
       if (!establishment) {
-        throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+        throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
       }
 
       // Build date filter for aggregations
@@ -1736,11 +1737,11 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
   ): Promise<IEstablishment> {
     const establishment = await this.establishmentModel.findById(establishmentId);
     if (!establishment) {
-      throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     if (extendDto.trialEndsAt === undefined && extendDto.extendByDays === undefined) {
-      throw new BadRequestException('Either trialEndsAt or extendByDays must be provided');
+      throw new BadRequestException(appError('TRIAL_EXTENSION_REQUIRED'));
     }
 
     const previousTrialEndsAt = establishment.trialEndsAt;
@@ -1750,7 +1751,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
     if (extendDto.trialEndsAt !== undefined) {
       newTrialEndsAt = new Date(extendDto.trialEndsAt);
       if (Number.isNaN(newTrialEndsAt.getTime()) || newTrialEndsAt.getTime() <= Date.now()) {
-        throw new BadRequestException('trialEndsAt must be a valid future date');
+        throw new BadRequestException(appError('TRIAL_END_IN_PAST'));
       }
     } else {
       const base =
@@ -1846,7 +1847,7 @@ export class EstablishmentManagementService implements IEstablishmentManagementS
   ): Promise<IEstablishment> {
     const establishment = await this.establishmentModel.findById(establishmentId);
     if (!establishment) {
-      throw new NotFoundException(`Establishment with ID ${establishmentId} not found`);
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     const previousSubscriptionStatus = establishment.subscriptionStatus;

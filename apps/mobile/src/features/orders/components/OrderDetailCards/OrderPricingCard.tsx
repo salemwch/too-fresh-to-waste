@@ -77,20 +77,28 @@ const OrderPricingCardComponent: React.FC<OrderPricingCardProps> = ({ order }) =
         {t('orders.pricing')}
       </Text>
 
-      <PricingRow label={t('orders.price')} value={originalPrice} currency={pricing.currency} />
-
-      {/* Omitted rather than shown as zero when nothing was discounted. */}
+      {/* Omitted rather than shown as zero when nothing was discounted - the
+          original price would then just repeat the subtotal. Same lines and
+          labels as the checkout receipt (`checkoutPricing.ts`), so what the
+          customer agreed to reads the same after purchase. */}
       {pricing.discountAmount > 0 && (
-        <PricingRow
-          label={t('orders.discount')}
-          value={-pricing.discountAmount}
-          currency={pricing.currency}
-          isDiscount
-        />
+        <>
+          <PricingRow
+            label={t('checkout.originalPrice')}
+            value={originalPrice}
+            currency={pricing.currency}
+          />
+          <PricingRow
+            label={t('orders.discount')}
+            value={-pricing.discountAmount}
+            currency={pricing.currency}
+            isDiscount
+          />
+        </>
       )}
 
       <PricingRow
-        label={t('orders.finalPrice')}
+        label={t('common.subtotal')}
         value={pricing.subtotal}
         currency={pricing.currency}
       />

@@ -2,6 +2,7 @@ import { Injectable, NestMiddleware, BadRequestException } from '@nestjs/common'
 import { Request, Response, NextFunction } from 'express';
 import { rateLimit } from 'express-rate-limit';
 
+import { appError } from '../../common/errors';
 @Injectable()
 export class PaymentSecurityMiddleware implements NestMiddleware {
   private readonly paymentRateLimit = rateLimit({
@@ -22,7 +23,7 @@ export class PaymentSecurityMiddleware implements NestMiddleware {
       const bodySize = JSON.stringify(req.body).length;
       if (bodySize > 50000) {
         // 50KB limit
-        throw new BadRequestException('Request payload too large');
+        throw new BadRequestException(appError('PAYLOAD_TOO_LARGE'));
       }
     }
 

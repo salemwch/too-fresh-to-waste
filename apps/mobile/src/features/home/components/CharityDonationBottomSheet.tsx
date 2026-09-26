@@ -36,57 +36,24 @@ const SHEET_START_Y = 700; // large enough to start below any screen
 
 // ─── Cause config ─────────────────────────────────────────────────────────────
 
+/**
+ * The badge at the top of the sheet. Only the emoji and its background are
+ * rendered; the copy lives in the translations (home.charity*). This config
+ * used to carry an English title and story per cause that nothing displayed.
+ */
 interface CauseConfig {
   emoji: string;
-  accentColor: string;
   bgColor: string;
-  defaultTitle: string;
-  defaultStory: string;
 }
 
 const CAUSE_CONFIG: Record<MonthlyGoalCauseType, CauseConfig> = {
-  FOOD: {
-    emoji: '🍞',
-    accentColor: '#E65100',
-    bgColor: '#FFF3E0',
-    defaultTitle: 'Food for Families in Need',
-    defaultStory:
-      'Every day, families across Tunisia struggle to put a meal on the table — not because food does not exist, but because it never reached them. Our donations go directly to food banks and local organisations that distribute meals to those who need them most.',
-  },
-  CLOTHING: {
-    emoji: '👕',
-    accentColor: '#1565C0',
-    bgColor: '#E3F2FD',
-    defaultTitle: 'Clothes for Children',
-    defaultStory:
-      'Thousands of children in Tunisia head to school wearing clothes that are worn out or too thin for the cold. Our donations fund the purchase and distribution of clothing to children whose families cannot afford them.',
-  },
-  EDUCATION: {
-    emoji: '📚',
-    accentColor: '#6A1B9A',
-    bgColor: '#F3E5F5',
-    defaultTitle: 'Education for Every Child',
-    defaultStory:
-      "Some families in Tunisia cannot afford school supplies, uniforms, or registration fees — and so their children stay home. Our donations cover those costs so that a child's future is never decided by their family's income.",
-  },
-  MEDICINE: {
-    emoji: '💊',
-    accentColor: '#B71C1C',
-    bgColor: '#FFEBEE',
-    defaultTitle: 'Medicine for Our Elders',
-    defaultStory:
-      "Many elderly men and women in Tunisia — our grandparents' generation — are forced to choose between food and medicine. Our donations go directly to pharmacies and health organisations to cover the cost of essential medication for those who cannot afford it.",
-  },
+  FOOD: { emoji: '🍞', bgColor: '#FFF3E0' },
+  CLOTHING: { emoji: '👕', bgColor: '#E3F2FD' },
+  EDUCATION: { emoji: '📚', bgColor: '#F3E5F5' },
+  MEDICINE: { emoji: '💊', bgColor: '#FFEBEE' },
 };
 
-const DEFAULT_CAUSE: CauseConfig = {
-  emoji: '🤲',
-  accentColor: colorTokens.base.primary[500],
-  bgColor: '#E0F2F1',
-  defaultTitle: 'Supporting Our Community',
-  defaultStory:
-    "Our donations support a rotating set of causes chosen based on the community's most urgent needs — food, clothing, education, and healthcare for those who cannot afford them.",
-};
+const DEFAULT_CAUSE: CauseConfig = { emoji: '🤲', bgColor: '#E0F2F1' };
 
 // ─── Step row ─────────────────────────────────────────────────────────────────
 
@@ -142,7 +109,7 @@ interface Props {
 }
 
 export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { data: stats } = useMonthlyBagGoal();
 
@@ -283,8 +250,8 @@ export const CharityDonationBottomSheet: React.FC<Props> = ({ visible, onClose }
               <View style={styles.progressHeader}>
                 <Text style={styles.progressLabel}>{t('home.communityProgress')}</Text>
                 <Text style={styles.progressFraction}>
-                  {stats.currentCount.toLocaleString()} / {stats.targetCount.toLocaleString()}{' '}
-                  {t('common.bags')}
+                  {stats.currentCount.toLocaleString(i18n.language)} /{' '}
+                  {stats.targetCount.toLocaleString(i18n.language)} {t('common.bags')}
                 </Text>
               </View>
               <ProgressBar percentage={stats.progressPercentage} />

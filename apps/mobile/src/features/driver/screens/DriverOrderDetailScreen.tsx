@@ -77,9 +77,7 @@ interface Coords {
 
 function extractLatLng(
   coords:
-    | { lat: number; lng: number }
-    | { type: string; coordinates: [number, number] }
-    | undefined,
+    { lat: number; lng: number } | { type: string; coordinates: [number, number] } | undefined,
 ): { latitude: number; longitude: number } | null {
   if (!coords) return null;
   if ('lat' in coords) return { latitude: coords.lat, longitude: coords.lng };
@@ -244,9 +242,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
       <View style={styles.centerContainer}>
         <Text style={styles.notFoundIcon}>🚫</Text>
         <Text style={styles.notFoundTitle}>{t('driver.orderNoLongerAvailable')}</Text>
-        <Text style={styles.notFoundSubtitle}>
-          This order may have been accepted by another driver.
-        </Text>
+        <Text style={styles.notFoundSubtitle}>{t('driver.mayHaveBeenTaken')}</Text>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -343,7 +339,7 @@ export default function DriverOrderDetailScreen({ navigation, route }: Props) {
         ) : null}
 
         {/* ── Items ── */}
-        <SectionCard title={`Items (${order.items.length})`}>
+        <SectionCard title={t('driver.itemsCount', { count: order.items.length })}>
           {order.items.map((item, idx) => (
             <View key={`${item.offerId}-${idx}`} style={styles.itemRow}>
               <Text style={styles.itemTitle} numberOfLines={1}>

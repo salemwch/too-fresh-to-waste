@@ -33,6 +33,7 @@ import { AdminAction } from '../interfaces/admin-analytics.interface';
 
 import { AdminAuditService, AuditableObject } from './admin-audit.service';
 
+import { appError } from '../../common/errors';
 export interface UserListResponse {
   users: IUser[];
   total: number;
@@ -364,7 +365,7 @@ export class UserManagementService {
         .exec();
 
       if (!user) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       return UserMapper.toInterface(
@@ -388,7 +389,7 @@ export class UserManagementService {
       const user = await this.userModel.findById(userId);
 
       if (!user) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       const previousStatus = user.status;
@@ -457,7 +458,7 @@ export class UserManagementService {
 
     try {
       if (!adminId || !adminEmail) {
-        throw new BadRequestException('Admin information is missing or invalid');
+        throw new BadRequestException(appError('ADMIN_CONTEXT_MISSING'));
       }
 
       const { userIds, status, reason, sendNotification } = bulkActionDto;
@@ -548,12 +549,12 @@ export class UserManagementService {
     try {
       // Validate admin information first to avoid unnecessary DB calls
       if (!adminId || !adminEmail) {
-        throw new BadRequestException('Admin information is missing or invalid');
+        throw new BadRequestException(appError('ADMIN_CONTEXT_MISSING'));
       }
 
       const user = await this.userModel.findById(userId);
       if (!user) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       const previousValue = user.toObject();
@@ -622,7 +623,7 @@ export class UserManagementService {
       ]);
 
       if (!user) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
+        throw new NotFoundException(appError('USER_NOT_FOUND'));
       }
 
       // Process audit logs to extract meaningful activity

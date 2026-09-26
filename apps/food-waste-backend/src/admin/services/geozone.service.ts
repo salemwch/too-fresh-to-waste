@@ -10,6 +10,7 @@ import {
 import { Geozone, GeozoneDocument } from '../schemas/geozone.schema';
 import { CreateGeozoneDto, UpdateGeozoneDto, GeozoneSearchDto } from '../dto/geozone.dto';
 
+import { appError } from '../../common/errors';
 @Injectable()
 export class GeozoneService {
   constructor(
@@ -52,7 +53,7 @@ export class GeozoneService {
   async getById(id: string) {
     const item = await this.model.findById(id).lean();
     if (!item) {
-      throw new NotFoundException('Geozone not found');
+      throw new NotFoundException(appError('GEOZONE_NOT_FOUND'));
     }
     return item;
   }
@@ -60,7 +61,7 @@ export class GeozoneService {
   async create(dto: CreateGeozoneDto) {
     const existing = await this.model.findOne({ name: dto.name }).lean();
     if (existing) {
-      throw new ConflictException('A zone with this name already exists');
+      throw new ConflictException(appError('ZONE_NAME_TAKEN'));
     }
 
     const closed = [...dto.polygonCoordinates];
@@ -91,7 +92,7 @@ export class GeozoneService {
   async update(id: string, dto: UpdateGeozoneDto) {
     const item = await this.model.findById(id);
     if (!item) {
-      throw new NotFoundException('Geozone not found');
+      throw new NotFoundException(appError('GEOZONE_NOT_FOUND'));
     }
 
     if (dto.displayName !== undefined) {
@@ -134,7 +135,7 @@ export class GeozoneService {
   async remove(id: string) {
     const item = await this.model.findById(id);
     if (!item) {
-      throw new NotFoundException('Geozone not found');
+      throw new NotFoundException(appError('GEOZONE_NOT_FOUND'));
     }
     await item.deleteOne();
   }

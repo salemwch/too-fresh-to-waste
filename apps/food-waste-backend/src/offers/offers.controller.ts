@@ -39,6 +39,7 @@ import { OffersService } from './offers.service';
 import { OfferStatus } from './schemas/offer.schema';
 import { strictValidation } from '../common/pipes/validation-pipes';
 
+import { appError } from '../common/errors';
 @ApiTags('Offers Management')
 @Controller('offers')
 @UseGuards(JwtAuthGuard)
@@ -842,7 +843,7 @@ export class OffersController {
       const uploadedFiles = files ?? [];
 
       if (uploadedFiles.length === 0) {
-        throw new BadRequestException('No images provided');
+        throw new BadRequestException(appError('IMAGES_REQUIRED'));
       }
 
       // Upload images to Supabase Storage

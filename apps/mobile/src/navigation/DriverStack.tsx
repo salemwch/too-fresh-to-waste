@@ -30,17 +30,17 @@ function LogoutButton() {
   const user = useAppSelector(s => s.auth.user);
 
   const handleLogout = useCallback(() => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('auth.signOut'), t('auth.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign out',
+        text: t('auth.signOut'),
         style: 'destructive',
         onPress: () => {
           void dispatch(logoutAsync({ reason: 'user_action' }));
         },
       },
     ]);
-  }, [dispatch]);
+  }, [dispatch, t]);
 
   return (
     <View style={styles.headerRight}>

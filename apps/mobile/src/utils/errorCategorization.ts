@@ -7,6 +7,10 @@
  * @security Never logout users for network issues - only for explicit auth failures
  */
 
+import { readApiError } from '@foodwaste/shared';
+
+import i18n from '@/i18n';
+
 import type { AxiosError } from 'axios';
 
 /**
@@ -228,20 +232,30 @@ function isAuthEndpoint(url?: string): boolean {
 
 /**
  * Extract user-friendly error message from axios error.
- * Maps technical backend messages to safe, user-facing copy.
+ *
+ * A response with a `code` carries a message the backend wrote for users, in
+ * the app's language (apiClient sends Accept-Language): shown as is. Only a
+ * body without one - an older backend, a framework default - goes through
+ * sanitizeErrorMessage. That filter blocks anything containing "not found",
+ * "cannot", "failed to" in English, so applied to coded messages it replaced
+ * real English copy ("You cannot cancel this order") with a generic line while
+ * the same error in French or Arabic got through.
  */
 function extractErrorMessage(error: AxiosError): string {
   const data = error.response?.data;
+  const info = readApiError(data);
+  if (info.code !== undefined && info.message !== undefined) {
+    return info.message;
+  }
 
+  // Not the API's JSON (a proxy page, a plain string) is never shown.
   let raw: string | undefined;
-  if (typeof data === 'string') {
-    raw = data;
-  } else if (data !== null && typeof data === 'object') {
+  if (data !== null && typeof data === 'object') {
     if ('message' in data && typeof data.message === 'string') raw = data.message;
     else if ('error' in data && typeof data.error === 'string') raw = data.error;
   }
 
-  if (!raw) return 'Something went wrong. Please try again.';
+  if (!raw) return i18n.t('errors.generic');
 
   return sanitizeErrorMessage(raw);
 }

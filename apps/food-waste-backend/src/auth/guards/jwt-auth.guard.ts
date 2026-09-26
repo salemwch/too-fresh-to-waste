@@ -2,6 +2,7 @@ import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/com
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 
+import { appError } from '../../common/errors';
 export interface JwtUser {
   userId: string;
   email: string;
@@ -47,7 +48,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     _context: ExecutionContext,
   ): TUser {
     if (err || !user) {
-      throw err ?? new UnauthorizedException('Invalid or expired token');
+      throw err ?? new UnauthorizedException(appError('LINK_INVALID'));
     }
     return user as TUser;
   }

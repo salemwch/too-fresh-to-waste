@@ -28,6 +28,12 @@ import { summaryHandler } from '../lib/summary.js';
 
 export const authLeaked = new Counter('auth_leaked');
 export const non429Count = new Counter('non_429_count');
+// Two layers answer 429 on /auth/login: the route throttler (TOO_MANY_REQUESTS)
+// and the per-email/IP attempt limit (LOGIN_TEMPORARILY_BLOCKED). Counted apart
+// by body code, so a run shows which one stopped the attack instead of
+// crediting the throttler with the attempt limit's work.
+export const throttled429 = new Counter('login_429_throttler');
+export const attemptLimit429 = new Counter('login_429_attempt_limit');
 export const legitimateSuccessRate = new Rate('legitimate_success_rate');
 export const forgotNon429 = new Counter('forgot_non_429_count');
 export const crossReplicaNon429 = new Counter('cross_replica_non_429');
@@ -147,11 +153,15 @@ export function bruteForceLogin() {
     'auth_login',
   );
 
+  const body = safeParseBody(res);
   if (res.status !== 429) {
     non429Count.add(1);
+  } else if (body.code === 'LOGIN_TEMPORARILY_BLOCKED') {
+    attemptLimit429.add(1);
+  } else {
+    throttled429.add(1);
   }
 
-  const body = safeParseBody(res);
   const hasTokens = body.data && body.data.tokens && body.data.tokens.accessToken;
   if (hasTokens && res.status === 200) {
     authLeaked.add(1);
@@ -317,7 +327,10 @@ export function handleSummary(data) {
       name: `login non-429 responses <= ${policy.limit} (${policy.label})`,
       status: non429 <= policy.limit ? 'PASS' : 'FAIL',
       passed: non429 <= policy.limit,
-      detail: `non_429=${non429}, limit=${policy.limit}`,
+      detail:
+        `non_429=${non429}, limit=${policy.limit}, ` +
+        `429 by throttler=${counter('login_429_throttler')}, ` +
+        `429 by attempt limit=${counter('login_429_attempt_limit')}`,
     },
     {
       name: `forgot-password non-429 <= ${THROTTLE_POLICIES.forgotPassword.limit} (${THROTTLE_POLICIES.forgotPassword.label})`,

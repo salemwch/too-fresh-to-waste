@@ -1,5 +1,5 @@
 /* eslint-disable require-await */
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
@@ -302,18 +302,11 @@ describe('KonnectOrderService', () => {
         expect(orderUpdateCall[1].status).toBe(OrderStatus.RESERVED);
       });
 
-      it('passes ordered:true on every multi-document create inside the transaction', async () => {
-        // Mongoose throws "Cannot call `create()` with a session and multiple
-        // documents unless `ordered: true` is set". That throw aborts the
-        // settlement transaction, resets the attempt to `pending`, and leaves
-        // the order unpaid — and the reconciliation cron then retries into the
-        // same error every five minutes, forever.
-        //
-        // This asserts the call shape rather than the outcome, because the
-        // model is a mock here: `create` resolves happily no matter what it is
-        // given, which is precisely why the existing settlement tests passed
-        // while the real path could never once succeed. The shape is the only
-        // thing a mocked model can still tell the truth about.
+      it('books no platform revenue or charity pledge at payment time', async () => {
+        // Revenue is recognised when the sale completes (CommissionService)
+        // and the pledge is booked with the pool contribution (DonationsService).
+        // Booking here counted online sales only, at a flat 19%, before
+        // anything was earned.
         attemptModel.findOne.mockResolvedValue(makeAttempt());
         konnectService.getPaymentDetails.mockResolvedValue(completedPaymentDetails);
         orderModel.findById.mockResolvedValue(makeOrder());
@@ -331,20 +324,12 @@ describe('KonnectOrderService', () => {
 
         await service.handleOrderWebhook(PAYMENT_REF);
 
-        const multiDocCreates = [
-          ...platformTxModel.create.mock.calls,
-          ...walletTxModel.create.mock.calls,
-        ].filter(([docs]: [unknown]) => Array.isArray(docs) && docs.length > 1);
-
-        // The settlement writes NET_COMMISSION and DONATION together, so there
-        // is at least one. If that ever stops being true the assertion below
-        // would pass vacuously.
-        expect(multiDocCreates.length).toBeGreaterThan(0);
-
-        for (const [, options] of multiDocCreates) {
-          expect(options).toMatchObject({ ordered: true });
-          expect(options.session).toBeDefined();
-        }
+        expect(platformTxModel.create).not.toHaveBeenCalled();
+        // The merchant wallet still moves, inside the settlement transaction.
+        expect(walletTxModel.create).toHaveBeenCalledWith(
+          [expect.objectContaining({ type: 'SALE' })],
+          expect.objectContaining({ session: expect.anything() }),
+        );
       });
 
       it('should confirm order as CONFIRMED for delivery', async () => {
@@ -390,58 +375,65 @@ describe('KonnectOrderService', () => {
         platformTxModel.create.mockResolvedValue({});
       });
 
-      it('should create SALE wallet transaction with 81% merchant share', async () => {
+      /*
+       * The commission-settlement model (.claude/work/commission-settlement-model.md):
+       * a NORMAL online sale pays the merchant 100%. The 19% is not deducted
+       * per sale - it accrues to commissionDue at pickup. Before the model the
+       * wallet was credited 81% here, which the product owner rejected.
+       */
+      it('credits a pickup sale in full as pending - 100%, not 81%', async () => {
         await service.handleOrderWebhook(PAYMENT_REF);
 
         expect(walletTxModel.create).toHaveBeenCalledWith(
           [
             expect.objectContaining({
               type: 'SALE',
-              amount: 8.1, // 10.0 * 0.81
-              merchantAmount: 8.1,
-              platformFee: 1.9, // 10.0 * 0.19
+              amount: 10,
+              merchantAmount: 10,
+              platformFee: 0,
             }),
           ],
           expect.anything(),
         );
       });
 
-      it('should credit pendingBalance on merchant wallet', async () => {
+      it('should credit pendingBalance on merchant wallet with the full subtotal', async () => {
         await service.handleOrderWebhook(PAYMENT_REF);
 
         expect(walletModel.findOneAndUpdate).toHaveBeenCalledWith(
           { establishmentId: ESTABLISHMENT_ID },
           expect.objectContaining({
-            $inc: { pendingBalance: 8.1 },
+            $inc: { pendingBalance: 10 },
           }),
           expect.objectContaining({ upsert: true }),
         );
       });
 
-      it('should create NET_COMMISSION and DONATION platform transactions', async () => {
+      it('credits the merchant wallet nothing for a delivery - the driver pays them at pickup', async () => {
+        orderModel.findById.mockResolvedValue(
+          makeOrder({
+            deliveryMode: 'delivery',
+            pricing: { subtotal: 10, deliveryFee: 4, total: 14, currency: 'TND' },
+          }),
+        );
+
         await service.handleOrderWebhook(PAYMENT_REF);
 
-        const createCall = platformTxModel.create.mock.calls[0];
-        const records = createCall[0];
-        expect(records).toHaveLength(2);
-
-        const commission = records.find((r: { type: string }) => r.type === 'NET_COMMISSION');
-        const donation = records.find((r: { type: string }) => r.type === 'DONATION');
-
-        // platformFee = 1.9, donation = 5% of 1.9 = 0.095, netCommission = 1.9 - 0.095 = 1.805
-        expect(commission.amount).toBe(1.805);
-        expect(donation.amount).toBe(0.095);
+        const saleCalls = walletTxModel.create.mock.calls.filter(
+          (call: unknown[]) => (call[0] as { type?: string }[])[0]?.type === 'SALE',
+        );
+        expect(saleCalls).toHaveLength(0);
+        expect(walletModel.findOneAndUpdate).not.toHaveBeenCalled();
       });
 
-      it('should verify 81% + 19% = 100% and donation comes from commission', async () => {
-        const orderTotal = 10.0;
-        const merchantShare = parseFloat((orderTotal * 0.81).toFixed(3));
-        const platformFee = parseFloat((orderTotal * 0.19).toFixed(3));
-        const donation = parseFloat((platformFee * 0.05).toFixed(3));
-        const netCommission = parseFloat((platformFee - donation).toFixed(3));
+      it('writes no NET_COMMISSION or DONATION row for an online payment any more', async () => {
+        await service.handleOrderWebhook(PAYMENT_REF);
 
-        expect(merchantShare + platformFee).toBe(orderTotal);
-        expect(netCommission + donation).toBe(platformFee);
+        const types = platformTxModel.create.mock.calls.flatMap(([docs]: [unknown]) =>
+          (Array.isArray(docs) ? docs : [docs]).map(d => (d as { type?: string }).type),
+        );
+        expect(types).not.toContain('NET_COMMISSION');
+        expect(types).not.toContain('DONATION');
       });
     });
 
@@ -739,9 +731,10 @@ describe('KonnectOrderService', () => {
       walletModel.findOneAndUpdate.mockResolvedValue({});
       platformTxModel.create.mockResolvedValue({});
 
-      await expect(service.createRetrySession(order, user)).rejects.toThrow(
-        'Previous payment was actually successful',
-      );
+      // Asserts the code the client branches on, not the English copy.
+      await expect(service.createRetrySession(order, user)).rejects.toMatchObject({
+        response: { code: 'PAYMENT_ALREADY_SUCCEEDED' },
+      });
     });
 
     it('should expire old attempt and create new session when provider session expired', async () => {
@@ -806,39 +799,38 @@ describe('KonnectOrderService', () => {
   // processPickupConfirmation
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('processPickupConfirmation', () => {
-    it('should move funds from pending to available balance', async () => {
-      const order = makeOrder({ pricing: { subtotal: 10.0, deliveryFee: 0, total: 10.0 } });
-      establishmentModel.findById.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          lean: jest.fn().mockResolvedValue({ _id: ESTABLISHMENT_ID, ownerId: MERCHANT_ID }),
+  /** What the payment credited to pending for this order - the SALE row. */
+  const saleOf = (amount: number | null) => {
+    walletTxModel.findOne.mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        session: jest.fn().mockReturnValue({
+          lean: jest.fn().mockResolvedValue(amount === null ? null : { amount }),
         }),
-      });
+      }),
+    });
+  };
+
+  describe('processPickupConfirmation', () => {
+    it('moves the SALE amount out of pending and merchantAmount into available', async () => {
+      const order = makeOrder({ pricing: { subtotal: 10.0, deliveryFee: 0, total: 10.0 } });
+      saleOf(10);
       walletModel.findOneAndUpdate.mockResolvedValue({});
 
-      await service.processPickupConfirmation(order);
+      await service.processPickupConfirmation(order, 10);
 
       expect(walletModel.findOneAndUpdate).toHaveBeenCalledWith(
         { establishmentId: order.establishmentId },
-        {
-          $inc: {
-            pendingBalance: -8.1,
-            availableBalance: 8.1,
-          },
-        },
+        { $inc: { pendingBalance: -10, availableBalance: 10 } },
         expect.anything(),
       );
     });
 
-    it('should throw NotFoundException if establishment not found', async () => {
-      const order = makeOrder();
-      establishmentModel.findById.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          lean: jest.fn().mockResolvedValue(null),
-        }),
-      });
+    it('is a no-op when the payment never credited the wallet (a delivery)', async () => {
+      saleOf(null);
 
-      await expect(service.processPickupConfirmation(order)).rejects.toThrow(NotFoundException);
+      await service.processPickupConfirmation(makeOrder(), 10);
+
+      expect(walletModel.findOneAndUpdate).not.toHaveBeenCalled();
     });
   });
 
@@ -849,11 +841,56 @@ describe('KonnectOrderService', () => {
   describe('processRefundRequest', () => {
     const mockSession = {} as any;
 
+    /** The platform rows the payment booked for this order. */
+    const bookedAtPayment = (rows: Array<Record<string, unknown>>) => {
+      (platformTxModel as unknown as { find: jest.Mock }).find = jest.fn().mockReturnValue({
+        session: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue(rows) }),
+      });
+    };
+
+    /** What an online payment booked before revenue moved to completion. */
+    const legacyRows = (net: number, donation: number) => [
+      { type: 'NET_COMMISSION', amount: net, currency: 'TND', reference: 'COMMISSION-ORD-1' },
+      { type: 'DONATION', amount: donation, currency: 'TND', reference: 'DONATION-ORD-1' },
+    ];
+
     beforeEach(() => {
       walletModel.findOneAndUpdate.mockResolvedValue({});
       walletTxModel.create.mockResolvedValue({});
       platformTxModel.create.mockResolvedValue({});
       refundRequestModel.create.mockResolvedValue({});
+      saleOf(10); // a pickup sale made under the model: 100% credited
+      bookedAtPayment([]); // paid after the change: payment booked no revenue
+    });
+
+    it('books no negative revenue for an order whose payment booked none', async () => {
+      await service.processRefundRequest(makeOrder(), CUSTOMER_ID, 'consumer_cancel', mockSession);
+
+      // Recomputing a 19% reversal here would book revenue the sale never produced.
+      expect(platformTxModel.create).not.toHaveBeenCalled();
+    });
+
+    it('reverses the legacy payment-time rows by exactly what they booked', async () => {
+      bookedAtPayment(legacyRows(1.805, 0.095));
+
+      await service.processRefundRequest(makeOrder(), CUSTOMER_ID, 'consumer_cancel', mockSession);
+
+      expect(platformTxModel.create).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            type: 'NET_COMMISSION',
+            amount: -1.805,
+            reference: 'REFUND-COMMISSION-ORD-1',
+          }),
+          expect.objectContaining({
+            type: 'DONATION',
+            amount: -0.095,
+            reference: 'REFUND-DONATION-ORD-1',
+          }),
+        ],
+        // Several documents with a session: Mongoose requires ordered:true.
+        { session: mockSession, ordered: true },
+      );
     });
 
     it('should reverse wallet balance, create refund records', async () => {
@@ -864,10 +901,10 @@ describe('KonnectOrderService', () => {
 
       await service.processRefundRequest(order, CUSTOMER_ID, 'consumer_cancel', mockSession);
 
-      // Reverse pendingBalance
+      // Reverse exactly what the SALE credited to pending
       expect(walletModel.findOneAndUpdate).toHaveBeenCalledWith(
         { establishmentId: order.establishmentId },
-        { $inc: { pendingBalance: -8.1 } },
+        { $inc: { pendingBalance: -10 } },
         { session: mockSession },
       );
 
@@ -876,20 +913,11 @@ describe('KonnectOrderService', () => {
         [
           expect.objectContaining({
             type: 'REFUND',
-            amount: -8.1,
+            amount: -10,
           }),
         ],
         { session: mockSession },
       );
-
-      // Platform refund records (negative amounts)
-      const platformRecords = platformTxModel.create.mock.calls[0][0];
-      const commissionRefund = platformRecords.find(
-        (r: { type: string }) => r.type === 'NET_COMMISSION',
-      );
-      const donationRefund = platformRecords.find((r: { type: string }) => r.type === 'DONATION');
-      expect(commissionRefund.amount).toBe(-1.805);
-      expect(donationRefund.amount).toBe(-0.095);
 
       // Refund request record
       expect(refundRequestModel.create).toHaveBeenCalledWith(
@@ -916,15 +944,41 @@ describe('KonnectOrderService', () => {
       );
     });
 
+    it('reverses a sale paid under the old 81% rule by exactly what it credited', async () => {
+      saleOf(8.1);
+
+      await service.processRefundRequest(makeOrder(), CUSTOMER_ID, 'consumer_cancel', mockSession);
+
+      expect(walletModel.findOneAndUpdate).toHaveBeenCalledWith(
+        expect.anything(),
+        { $inc: { pendingBalance: -8.1 } },
+        expect.anything(),
+      );
+    });
+
+    it('touches no merchant wallet for a delivery, which was never credited', async () => {
+      saleOf(null);
+
+      await service.processRefundRequest(makeOrder(), CUSTOMER_ID, 'consumer_cancel', mockSession);
+
+      expect(walletModel.findOneAndUpdate).not.toHaveBeenCalled();
+      const refundRows = walletTxModel.create.mock.calls.filter(
+        (call: unknown[]) => (call[0] as { type?: string }[])[0]?.type === 'REFUND',
+      );
+      expect(refundRows).toHaveLength(0);
+      // The customer's refund itself is still requested.
+      expect(refundRequestModel.create).toHaveBeenCalled();
+    });
+
     it('should calculate correct amounts for non-round totals', async () => {
       const order = makeOrder({ pricing: { subtotal: 7.55, deliveryFee: 0, total: 7.55 } });
+      saleOf(7.55);
+      // What the old payment path booked for 7.55: 1.435 gross, 0.072 pledged.
+      bookedAtPayment(legacyRows(1.363, 0.072));
 
       await service.processRefundRequest(order, CUSTOMER_ID, 'consumer_cancel', mockSession);
 
-      const merchantAmount = parseFloat((7.55 * 0.81).toFixed(3)); // 6.116
-      const platformFee = parseFloat((7.55 * 0.19).toFixed(3)); // 1.435
-      const donation = parseFloat((platformFee * 0.05).toFixed(3)); // 0.072
-      const netCommission = parseFloat((platformFee - donation).toFixed(3)); // 1.363
+      const merchantAmount = 7.55; // what the SALE credited
 
       expect(walletModel.findOneAndUpdate).toHaveBeenCalledWith(
         expect.anything(),
@@ -933,8 +987,8 @@ describe('KonnectOrderService', () => {
       );
 
       const platformRecords = platformTxModel.create.mock.calls[0][0];
-      expect(platformRecords[0].amount).toBe(-netCommission);
-      expect(platformRecords[1].amount).toBe(-donation);
+      expect(platformRecords[0].amount).toBe(-1.363);
+      expect(platformRecords[1].amount).toBe(-0.072);
     });
   });
 });

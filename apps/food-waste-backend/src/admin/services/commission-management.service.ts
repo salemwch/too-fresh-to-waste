@@ -13,6 +13,7 @@ import {
   CommissionLedgerType,
 } from '../../payments/schemas/commission-ledger.schema';
 
+import { appError } from '../../common/errors';
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface CommissionMerchantRow {
@@ -115,14 +116,14 @@ export class CommissionManagementService {
     if (from) {
       const parsed = new Date(from);
       if (Number.isNaN(parsed.getTime())) {
-        throw new BadRequestException('Invalid "from" date');
+        throw new BadRequestException(appError('INVALID_DATE'));
       }
       createdAt.$gte = parsed;
     }
     if (to) {
       const parsed = new Date(to);
       if (Number.isNaN(parsed.getTime())) {
-        throw new BadRequestException('Invalid "to" date');
+        throw new BadRequestException(appError('INVALID_DATE'));
       }
       createdAt.$lte = parsed;
     }
@@ -485,7 +486,7 @@ export class CommissionManagementService {
     commissionDue: number;
   }> {
     if (!isValidObjectId(establishmentId)) {
-      throw new BadRequestException('Invalid establishment ID');
+      throw new BadRequestException(appError('INVALID_ID'));
     }
 
     const establishment = await this.establishmentModel
@@ -494,7 +495,7 @@ export class CommissionManagementService {
       .lean();
 
     if (!establishment) {
-      throw new NotFoundException('Establishment not found');
+      throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
     }
 
     const safeLimit = Math.min(Math.max(limit, 1), 200);

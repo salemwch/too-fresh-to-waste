@@ -4,6 +4,7 @@ import { TooManyRequestsException } from './to-many-request.exeptition';
 
 import type { Request } from 'express';
 
+import { appError } from '../errors';
 interface RequestRecord {
   count: number;
   expiresAt: number;
@@ -33,9 +34,7 @@ export class RateLimitGuard implements CanActivate {
 
     if (record.count >= this.maxRequests) {
       throw new TooManyRequestsException(
-        `Rate limit exceeded. Try again after ${Math.ceil(
-          (record.expiresAt - now) / 1000,
-        )} seconds`,
+        appError('RATE_LIMITED', { seconds: String(Math.ceil((record.expiresAt - now) / 1000)) }),
       );
     }
 

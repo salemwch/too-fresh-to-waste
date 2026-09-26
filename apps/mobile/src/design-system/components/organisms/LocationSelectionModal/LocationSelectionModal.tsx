@@ -155,10 +155,10 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       align='center'
                       style={styles.headerTitle}
                     >
-                      Where should we look for food?
+                      {t('location.whereToLook')}
                     </Text>
                     <Text variant='body' size='md' color='secondary' align='center'>
-                      Help us find the best deals near you
+                      {t('location.findDealsNearYou')}
                     </Text>
                   </View>
 
@@ -192,7 +192,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                           {t('location.a11yUseMyLocation')}
                         </Text>
                         <Text variant='body' size='sm' color='secondary'>
-                          Find the best deals near you
+                          {t('location.bestDealsNearYou')}
                         </Text>
                       </View>
                       <Icon name='chevron-forward' size={20} color={theme.colors.secondary} />
@@ -203,8 +203,14 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                       <View
                         style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]}
                       />
-                      <Text variant='body' size='sm' color='secondary' style={styles.dividerText}>
-                        OR
+                      <Text
+                        variant='body'
+                        size='sm'
+                        color='secondary'
+                        transform='uppercase'
+                        style={styles.dividerText}
+                      >
+                        {t('location.or')}
                       </Text>
                       <View
                         style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]}
@@ -228,7 +234,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                         color='secondary'
                         style={styles.searchPlaceholder}
                       >
-                        Search by city or area...
+                        {t('location.searchCityOrArea')}
                       </Text>
                     </Pressable>
                   </View>
@@ -238,7 +244,7 @@ export const LocationSelectionModal = memo<LocationSelectionModalProps>(
                     <View style={styles.loadingContainer}>
                       <ActivityIndicator size='large' color={theme.colors.primary} />
                       <Text variant='body' size='sm' color='secondary' style={styles.loadingText}>
-                        Getting your location...
+                        {t('location.gettingLocation')}
                       </Text>
                     </View>
                   )}

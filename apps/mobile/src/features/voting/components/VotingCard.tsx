@@ -15,6 +15,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Animated,
   Easing,
@@ -59,13 +60,14 @@ const VICTORY_LAP_DAYS = 7;
 
 // ── Helpers ──
 
-function getCountdown(ballotClosesAt: string | null): string {
+function getCountdown(ballotClosesAt: string | null, t: TFunction): string {
   if (!ballotClosesAt) return '';
   const diff = new Date(ballotClosesAt).getTime() - Date.now();
-  if (diff <= 0) return 'Closing soon…';
+  // NaN (unparseable date) must not render "NaNh NaNm left".
+  if (!Number.isFinite(diff) || diff <= 0) return t('voting.closingSoon');
   const hours = Math.floor(diff / 3_600_000);
   const minutes = Math.floor((diff % 3_600_000) / 60_000);
-  return `${hours}h ${minutes}m left`;
+  return t('voting.timeLeft', { hours, minutes });
 }
 
 function getDaysSinceAnnounced(announcedAt: string | null | undefined): number {
@@ -246,9 +248,10 @@ export const VotingCard: React.FC = () => {
           variant='body'
           size='xs'
           weight='semibold'
+          transform='uppercase'
           style={[styles.sectionLabel, { color: GOLD }]}
         >
-          COMMUNITY CHAMPION
+          {t('voting.sectionChampion')}
         </Text>
         <GlowCard variant='gold'>
           <View style={styles.confettiContainer} pointerEvents='none'>
@@ -265,11 +268,13 @@ export const VotingCard: React.FC = () => {
               weight='bold'
               style={[styles.headingText, { color: GOLD }]}
             >
-              The Community Has Spoken!
+              {t('voting.communityHasSpoken')}
             </Text>
           </View>
           <Text variant='body' size='sm' style={styles.subText}>
-            {cycle.winner?.name ?? 'Winner announced!'} won the Eco-Championship!
+            {cycle.winner?.name
+              ? t('voting.wonChampionship', { name: cycle.winner.name })
+              : t('voting.winnerAnnounced')}
           </Text>
 
           {isPrizeWinner && (
@@ -277,11 +282,11 @@ export const VotingCard: React.FC = () => {
               style={({ pressed }) => [styles.voteButton, pressed && styles.voteButtonPressed]}
               onPress={() => setShowPrizeModal(true)}
               accessibilityRole='button'
-              accessibilityLabel={prizeClaimed ? 'View Your Voucher' : 'Claim Your Prize'}
+              accessibilityLabel={prizeClaimed ? t('voting.viewVoucher') : t('voting.claimPrize')}
               accessibilityHint={t('common.a11yOpensDetailsHint')}
             >
               <Text variant='body' size='sm' weight='bold' style={styles.voteButtonText}>
-                {prizeClaimed ? 'View Your Voucher' : 'Claim Your Prize'}
+                {prizeClaimed ? t('voting.viewVoucher') : t('voting.claimPrize')}
               </Text>
             </Pressable>
           )}
@@ -318,9 +323,10 @@ export const VotingCard: React.FC = () => {
           variant='body'
           size='xs'
           weight='semibold'
+          transform='uppercase'
           style={[styles.sectionLabel, { color: GOLD }]}
         >
-          COMING SOON
+          {t('voting.sectionComingSoon')}
         </Text>
         <GlowCard variant='gold-slow'>
           <View style={styles.iconRow}>
@@ -331,11 +337,11 @@ export const VotingCard: React.FC = () => {
               weight='bold'
               style={[styles.headingText, { color: TEXT_PRIMARY }]}
             >
-              Next community championship vote coming soon
+              {t('voting.nextVoteSoon')}
             </Text>
           </View>
           <Text variant='body' size='xs' style={[styles.subtleText, { color: TEXT_SECONDARY }]}>
-            Keep your login streaks alive and save surplus boxes to maximize your voting power!
+            {t('voting.keepStreaks')}
           </Text>
         </GlowCard>
       </View>
@@ -344,11 +350,18 @@ export const VotingCard: React.FC = () => {
 
   // ── Ballot Open: Voted ──
   if (isBallotOpen && myVote) {
-    const votedPrizeName = cycle.prizes.find(p => p._id === myVote.prizeId)?.name ?? 'Your choice';
+    const votedPrizeName =
+      cycle.prizes.find(p => p._id === myVote.prizeId)?.name ?? t('voting.yourChoice');
     return (
       <View style={styles.container}>
-        <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
-          COMMUNITY VOTE
+        <Text
+          variant='body'
+          size='xs'
+          weight='semibold'
+          transform='uppercase'
+          style={styles.sectionLabel}
+        >
+          {t('voting.sectionVote')}
         </Text>
         <GlowCard variant='neon-slow'>
           <View style={styles.iconRow}>
@@ -359,14 +372,14 @@ export const VotingCard: React.FC = () => {
               weight='bold'
               style={[styles.headingText, { color: SUCCESS }]}
             >
-              You Voted!
+              {t('voting.youVoted')}
             </Text>
           </View>
           <Text variant='body' size='sm' style={styles.subText}>
             {votedPrizeName}
           </Text>
           <Text variant='body' size='xs' style={styles.subtleText}>
-            {getCountdown(cycle.ballotClosesAt)}
+            {getCountdown(cycle.ballotClosesAt, t)}
           </Text>
         </GlowCard>
       </View>
@@ -377,8 +390,14 @@ export const VotingCard: React.FC = () => {
   if (isBallotOpen && eligibility?.canVote) {
     return (
       <View style={styles.container}>
-        <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
-          COMMUNITY VOTE
+        <Text
+          variant='body'
+          size='xs'
+          weight='semibold'
+          transform='uppercase'
+          style={styles.sectionLabel}
+        >
+          {t('voting.sectionVote')}
         </Text>
         <GlowCard variant='neon'>
           <View style={styles.iconRow}>
@@ -389,11 +408,11 @@ export const VotingCard: React.FC = () => {
               weight='bold'
               style={[styles.headingText, { color: PRIMARY_500 }]}
             >
-              Voting is Live!
+              {t('voting.votingLive')}
             </Text>
           </View>
           <Text variant='body' size='xs' style={styles.subtleText}>
-            {getCountdown(cycle.ballotClosesAt)}
+            {getCountdown(cycle.ballotClosesAt, t)}
           </Text>
           <Pressable
             style={({ pressed }) => [styles.voteButton, pressed && styles.voteButtonPressed]}
@@ -426,8 +445,14 @@ export const VotingCard: React.FC = () => {
       (eligibility?.requiredBags ?? cycle.minimumBags) - (eligibility?.userBagsInCycle ?? 0);
     return (
       <View style={styles.container}>
-        <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
-          COMMUNITY VOTE
+        <Text
+          variant='body'
+          size='xs'
+          weight='semibold'
+          transform='uppercase'
+          style={styles.sectionLabel}
+        >
+          {t('voting.sectionVote')}
         </Text>
         <GlowCard variant='static'>
           <View style={styles.iconRow}>
@@ -438,14 +463,14 @@ export const VotingCard: React.FC = () => {
               weight='bold'
               style={[styles.headingText, { color: TEXT_SECONDARY }]}
             >
-              Voting is Live!
+              {t('voting.votingLive')}
             </Text>
           </View>
           <Text variant='body' size='sm' style={styles.subText}>
-            {`Save ${needed} more bag${needed !== 1 ? 's' : ''} to participate`}
+            {t('voting.saveToParticipate', { count: needed })}
           </Text>
           <Text variant='body' size='xs' style={styles.subtleText}>
-            {getCountdown(cycle.ballotClosesAt)}
+            {getCountdown(cycle.ballotClosesAt, t)}
           </Text>
         </GlowCard>
       </View>
@@ -455,27 +480,33 @@ export const VotingCard: React.FC = () => {
   // ── Tallying ──
   if (isTallying) {
     const votedPrizeName = myVote
-      ? (cycle.prizes.find(p => p._id === myVote.prizeId)?.name ?? 'Your choice')
+      ? (cycle.prizes.find(p => p._id === myVote.prizeId)?.name ?? t('voting.yourChoice'))
       : null;
     return (
       <View style={styles.container}>
-        <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
-          COMMUNITY VOTE
+        <Text
+          variant='body'
+          size='xs'
+          weight='semibold'
+          transform='uppercase'
+          style={styles.sectionLabel}
+        >
+          {t('voting.sectionVote')}
         </Text>
         <GlowCard variant='neon-slow'>
           <View style={styles.iconRow}>
             <Text style={styles.emoji}>⏳</Text>
             <Text variant='body' size='md' weight='bold' style={styles.headingText}>
-              Votes are being counted…
+              {t('voting.countingVotes')}
             </Text>
           </View>
           {votedPrizeName !== null && (
             <Text variant='body' size='sm' style={styles.subText}>
-              {`You voted for ${votedPrizeName}`}
+              {t('voting.youVotedFor', { prize: votedPrizeName })}
             </Text>
           )}
           <Text variant='body' size='xs' style={styles.subtleText}>
-            Results will be announced soon
+            {t('voting.resultsSoon')}
           </Text>
         </GlowCard>
       </View>
@@ -493,8 +524,14 @@ export const VotingCard: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text variant='body' size='xs' weight='semibold' style={styles.sectionLabel}>
-        COMMUNITY CHALLENGE
+      <Text
+        variant='body'
+        size='xs'
+        weight='semibold'
+        transform='uppercase'
+        style={styles.sectionLabel}
+      >
+        {t('voting.sectionChallenge')}
       </Text>
       <GlowCard variant='neon'>
         <View style={styles.iconRow}>
@@ -513,11 +550,15 @@ export const VotingCard: React.FC = () => {
           <View style={[styles.progressFill, { width: `${pct}%` }]} />
         </View>
         <Text variant='body' size='xs' style={styles.subtleText}>
-          {`${progress.toLocaleString()} / ${target.toLocaleString()} bags — ${pct}%`}
+          {t('voting.challengeProgress', {
+            progress: progress.toLocaleString(),
+            target: target.toLocaleString(),
+            pct,
+          })}
         </Text>
         {!isEligibleAlready && (
           <Text variant='body' size='xs' style={styles.eligibilityHint}>
-            {`Save ${requiredBags - userBags} more bag${requiredBags - userBags !== 1 ? 's' : ''} to unlock voting`}
+            {t('voting.saveToUnlock', { count: requiredBags - userBags })}
           </Text>
         )}
       </GlowCard>

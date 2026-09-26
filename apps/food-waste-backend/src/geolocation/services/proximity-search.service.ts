@@ -28,6 +28,7 @@ import {
 // distance shown to the user.
 import { DistanceCalculator } from '../utils/distance.util';
 
+import { appError } from '../../common/errors';
 export interface ProximitySearchOptions {
   includeEstablishments?: boolean | undefined;
   includeOffers?: boolean | undefined;
@@ -131,7 +132,7 @@ export class ProximitySearchService {
   ): Promise<ProximitySearchResult<EstablishmentGeoData>[]> {
     try {
       if (!DistanceCalculator.isValidCoordinate(searchDto.center)) {
-        throw new BadRequestException('Invalid search center coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       this.logger.log(
@@ -320,7 +321,7 @@ export class ProximitySearchService {
   ): Promise<ProximitySearchResult<OfferGeoData>[]> {
     try {
       if (!DistanceCalculator.isValidCoordinate(searchDto.center)) {
-        throw new BadRequestException('Invalid search center coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       this.logger.log(
@@ -603,13 +604,13 @@ export class ProximitySearchService {
       const [offer] = await this.offerModel.aggregate<OfferEstablishmentLookupResult>(pipeline);
 
       if (offer === undefined) {
-        throw new BadRequestException('Offer not found');
+        throw new BadRequestException(appError('OFFER_NOT_FOUND'));
       }
 
       const establishment = offer.establishmentId;
       const coordinates = establishment?.address?.coordinates?.coordinates;
       if (establishment === null || establishment === undefined || coordinates?.length !== 2) {
-        throw new BadRequestException('Establishment coordinates not found');
+        throw new BadRequestException(appError('ESTABLISHMENT_LOCATION_MISSING'));
       }
 
       const centerCoordinates: GeoCoordinate = {
@@ -667,7 +668,7 @@ export class ProximitySearchService {
   ): Promise<ProximitySearchResult<MapEstablishmentGeoData>[]> {
     try {
       if (!DistanceCalculator.isValidCoordinate(searchDto.center)) {
-        throw new BadRequestException('Invalid search center coordinates');
+        throw new BadRequestException(appError('INVALID_COORDINATES'));
       }
 
       this.logger.log(

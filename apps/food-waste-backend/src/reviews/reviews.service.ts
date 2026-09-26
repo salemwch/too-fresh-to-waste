@@ -48,6 +48,7 @@ import {
   SentimentType,
 } from './schemas/review.schema';
 
+import { appError } from '../common/errors';
 interface ReviewContentAnalysis {
   sentiment: SentimentType;
   confidence: number;
@@ -192,21 +193,21 @@ export class ReviewsService {
       await session.withTransaction(async () => {
         const reviewer = await this.userModel.findById(reviewerId).session(session);
         if (reviewer?.status !== 'active') {
-          throw new NotFoundException('Reviewer not found or inactive');
+          throw new NotFoundException(appError('REVIEWER_INACTIVE'));
         }
         // 2. Validate establishment exists and is active
         const establishment = await this.establishmentModel
           .findById(createReviewDto.establishmentId)
           .session(session);
         if (!establishment) {
-          throw new NotFoundException('Establishment not found');
+          throw new NotFoundException(appError('ESTABLISHMENT_NOT_FOUND'));
         }
         if (establishment.status !== 'active') {
-          throw new BadRequestException('Cannot review inactive establishment');
+          throw new BadRequestException(appError('REVIEW_ESTABLISHMENT_INACTIVE'));
         }
         // 3. Prevent self-review
         if (establishment.ownerId.toString() === reviewerId) {
-          throw new ForbiddenException('Cannot review your own establishment');
+          throw new ForbiddenException(appError('REVIEW_OWN_ESTABLISHMENT'));
         }
 
         // 4. Check for duplicate reviews
@@ -217,7 +218,7 @@ export class ReviewsService {
           session,
         );
         if (existingReview) {
-          throw new ConflictException('You have already reviewed this establishment/order');
+          throw new ConflictException(appError('REVIEW_ALREADY_EXISTS'));
         }
 
         // 5. Validate order if provided
@@ -226,17 +227,17 @@ export class ReviewsService {
           const order = await this.orderModel.findById(createReviewDto.orderId).session(session);
 
           if (!order) {
-            throw new NotFoundException('Order not found');
+            throw new NotFoundException(appError('ORDER_NOT_FOUND'));
           }
 
           if (order.customerId.toString() !== reviewerId) {
-            throw new ForbiddenException('Can only review your own orders');
+            throw new ForbiddenException(appError('REVIEW_ORDER_NOT_YOURS'));
           }
 
           if (
             ![OrderStatus.PICKED_UP, OrderStatus.COMPLETED].includes(order.status as OrderStatus)
           ) {
-            throw new BadRequestException('Can only review completed orders');
+            throw new BadRequestException(appError('REVIEW_ORDER_NOT_COMPLETED'));
           }
 
           isVerifiedPurchase = true;
@@ -247,11 +248,11 @@ export class ReviewsService {
           const offer = await this.offerModel.findById(createReviewDto.offerId).session(session);
 
           if (!offer) {
-            throw new NotFoundException('Offer not found');
+            throw new NotFoundException(appError('OFFER_NOT_FOUND'));
           }
 
           if (offer.establishmentId.toString() !== createReviewDto.establishmentId) {
-            throw new BadRequestException('Offer does not belong to the specified establishment');
+            throw new BadRequestException(appError('REVIEW_OFFER_MISMATCH'));
           }
         }
 
@@ -304,7 +305,7 @@ export class ReviewsService {
 
       const createdReview = review;
       if (createdReview === null) {
-        throw new InternalServerErrorException('Review creation failed');
+        throw new InternalServerErrorException(appError('REVIEW_FAILED'));
       }
       const createdReviewId = (createdReview as ReviewDocument)._id;
 
@@ -348,7 +349,7 @@ export class ReviewsService {
       const populatedReviews = await this.reviewModel.aggregate<ReviewDocument>(pipeline).exec();
       const [populated] = populatedReviews;
       if (!populated) {
-        throw new InternalServerErrorException('Failed to load created review');
+        throw new InternalServerErrorException(appError('REVIEWS_LOAD_FAILED'));
       }
 
       return populated;
@@ -362,7 +363,7 @@ export class ReviewsService {
       ) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to create review');
+      throw new InternalServerErrorException(appError('REVIEW_FAILED'));
     } finally {
       await session.endSession();
     }
@@ -445,14 +446,14 @@ export class ReviewsService {
       return { reviews, total, analytics };
     } catch (error) {
       this.logger.error('Failed to fetch reviews:', error);
-      throw new InternalServerErrorException('Failed to fetch reviews');
+      throw new InternalServerErrorException(appError('REVIEWS_LOAD_FAILED'));
     }
   }
 
   async findOne(id: string, userId?: string, userRole?: UserRole): Promise<ReviewDocument> {
     try {
       if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException('Invalid review ID');
+        throw new BadRequestException(appError('INVALID_ID'));
       }
 
       // ✅ PERFORMANCE: Single aggregation replaces findById + 4 populates (5 → 1 round-trip)
@@ -468,7 +469,7 @@ export class ReviewsService {
       const review = results[0] as ReviewDocument | undefined;
 
       if (!review) {
-        throw new NotFoundException('Review not found');
+        throw new NotFoundException(appError('REVIEW_NOT_FOUND'));
       }
 
       // Check access permissions
@@ -477,7 +478,7 @@ export class ReviewsService {
         if (effectiveUserRole !== UserRole.ADMIN) {
           const canAccess = await this.checkReviewAccess(review, userId, effectiveUserRole);
           if (!canAccess) {
-            throw new ForbiddenException('Access denied');
+            throw new ForbiddenException(appError('ACCESS_DENIED'));
           }
         }
       }
@@ -497,7 +498,7 @@ export class ReviewsService {
       ) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to fetch review');
+      throw new InternalServerErrorException(appError('REVIEWS_LOAD_FAILED'));
     }
   }
 
@@ -518,12 +519,12 @@ export class ReviewsService {
       await session.withTransaction(async () => {
         const review = await this.reviewModel.findById(id).session(session);
         if (!review) {
-          throw new NotFoundException('Review not found');
+          throw new NotFoundException(appError('REVIEW_NOT_FOUND'));
         }
 
         // Check permissions
         if (userRole !== UserRole.ADMIN && review.reviewerId.toString() !== userId) {
-          throw new ForbiddenException('Can only update your own reviews');
+          throw new ForbiddenException(appError('REVIEW_NOT_YOURS'));
         }
 
         // Check if review can be edited
@@ -532,7 +533,7 @@ export class ReviewsService {
         );
 
         if (daysSinceCreation > 30 && userRole !== UserRole.ADMIN) {
-          throw new BadRequestException('Cannot edit reviews older than 30 days');
+          throw new BadRequestException(appError('REVIEW_TOO_OLD'));
         }
 
         // Re-analyze content if comment changed
@@ -580,7 +581,7 @@ export class ReviewsService {
       });
 
       if (updatedReview === null) {
-        throw new InternalServerErrorException('Review update failed');
+        throw new InternalServerErrorException(appError('REVIEW_FAILED'));
       }
 
       // Emit update event
@@ -600,7 +601,7 @@ export class ReviewsService {
       ) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to update review');
+      throw new InternalServerErrorException(appError('REVIEW_FAILED'));
     } finally {
       await session.endSession();
     }
@@ -618,7 +619,7 @@ export class ReviewsService {
     try {
       const review = await this.reviewModel.findById(reviewId);
       if (!review) {
-        throw new NotFoundException('Review not found');
+        throw new NotFoundException(appError('REVIEW_NOT_FOUND'));
       }
 
       // Check permissions
@@ -628,10 +629,10 @@ export class ReviewsService {
         // Check if user owns the establishment
         const establishment = await this.establishmentModel.findById(review.establishmentId);
         if (establishment?.ownerId.toString() !== userId) {
-          throw new ForbiddenException('Can only respond to reviews of your establishments');
+          throw new ForbiddenException(appError('REVIEW_RESPONSE_NOT_ALLOWED'));
         }
       } else {
-        throw new ForbiddenException('Only establishment owners and admins can respond to reviews');
+        throw new ForbiddenException(appError('REVIEW_RESPONSE_NOT_ALLOWED'));
       }
 
       // Check if already responded
@@ -639,7 +640,7 @@ export class ReviewsService {
         response => response.respondedBy.toString() === userId,
       );
       if (existingResponse) {
-        throw new ConflictException('You have already responded to this review');
+        throw new ConflictException(appError('REVIEW_ALREADY_RESPONDED'));
       }
 
       // Add response
@@ -671,7 +672,7 @@ export class ReviewsService {
       ) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to add response');
+      throw new InternalServerErrorException(appError('REVIEW_FAILED'));
     }
   }
 
@@ -686,7 +687,7 @@ export class ReviewsService {
     try {
       const review = await this.reviewModel.findById(reviewId);
       if (!review) {
-        throw new NotFoundException('Review not found');
+        throw new NotFoundException(appError('REVIEW_NOT_FOUND'));
       }
 
       const userObjectId = new Types.ObjectId(userId);
@@ -721,7 +722,7 @@ export class ReviewsService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to handle interaction');
+      throw new InternalServerErrorException(appError('REVIEW_FAILED'));
     }
   }
 
@@ -733,11 +734,11 @@ export class ReviewsService {
     try {
       const review = await this.reviewModel.findById(reviewId);
       if (!review) {
-        throw new NotFoundException('Review not found');
+        throw new NotFoundException(appError('REVIEW_NOT_FOUND'));
       }
       const existingReport = review.reports.find(report => report.reportedBy.toString() === userId);
       if (existingReport) {
-        throw new ConflictException('You have already reported this review');
+        throw new ConflictException(appError('REVIEW_ALREADY_REPORTED'));
       }
       const report = {
         reportedBy: new Types.ObjectId(userId),
@@ -772,7 +773,7 @@ export class ReviewsService {
       if (error instanceof NotFoundException || error instanceof ConflictException) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to report review');
+      throw new InternalServerErrorException(appError('REVIEW_FAILED'));
     }
   }
 
@@ -784,7 +785,7 @@ export class ReviewsService {
     try {
       const review = await this.reviewModel.findById(reviewId);
       if (!review) {
-        throw new NotFoundException('Review not found');
+        throw new NotFoundException(appError('REVIEW_NOT_FOUND'));
       }
 
       const previousStatus = review.status;
@@ -821,7 +822,7 @@ export class ReviewsService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to moderate review');
+      throw new InternalServerErrorException(appError('REVIEW_FAILED'));
     }
   }
 
@@ -962,7 +963,7 @@ export class ReviewsService {
       };
     } catch (error) {
       this.logger.error('Failed to get review analytics:', error);
-      throw new InternalServerErrorException('Failed to get analytics');
+      throw new InternalServerErrorException(appError('REVIEWS_LOAD_FAILED'));
     }
   }
 
@@ -1013,12 +1014,12 @@ export class ReviewsService {
       await session.withTransaction(async () => {
         const review = await this.reviewModel.findById(id).session(session);
         if (!review) {
-          throw new NotFoundException('Review not found');
+          throw new NotFoundException(appError('REVIEW_NOT_FOUND'));
         }
 
         // Check permissions
         if (userRole !== UserRole.ADMIN && review.reviewerId.toString() !== userId) {
-          throw new ForbiddenException('Can only delete your own reviews');
+          throw new ForbiddenException(appError('REVIEW_NOT_YOURS'));
         }
 
         // Soft delete
@@ -1050,7 +1051,7 @@ export class ReviewsService {
       if (error instanceof NotFoundException || error instanceof ForbiddenException) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to delete review');
+      throw new InternalServerErrorException(appError('REVIEW_FAILED'));
     } finally {
       await session.endSession();
     }
@@ -1146,7 +1147,7 @@ export class ReviewsService {
       };
     } catch (error) {
       this.logger.error('Failed to get merchant reviews:', error);
-      throw new InternalServerErrorException('Failed to get merchant reviews');
+      throw new InternalServerErrorException(appError('REVIEWS_LOAD_FAILED'));
     }
   }
 
@@ -1267,7 +1268,7 @@ export class ReviewsService {
       };
     } catch (error) {
       this.logger.error('Failed to get establishment review summary:', error);
-      throw new InternalServerErrorException('Failed to get review summary');
+      throw new InternalServerErrorException(appError('REVIEWS_LOAD_FAILED'));
     }
   }
 
@@ -1347,7 +1348,7 @@ export class ReviewsService {
       };
     } catch (error) {
       this.logger.error('Failed to get user review stats:', error);
-      throw new InternalServerErrorException('Failed to get user stats');
+      throw new InternalServerErrorException(appError('REVIEWS_LOAD_FAILED'));
     }
   }
 

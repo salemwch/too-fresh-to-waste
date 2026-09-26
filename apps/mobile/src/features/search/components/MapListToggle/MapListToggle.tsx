@@ -111,7 +111,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
           lineHeight={20}
           style={styles.buttonText}
         >
-          Map
+          {t('search.mapToggle')}
         </Text>
       </Pressable>
 
@@ -138,7 +138,7 @@ export const MapListToggle: React.FC<MapListToggleProps> = ({ value, onChange, s
           lineHeight={20}
           style={styles.buttonText}
         >
-          List
+          {t('search.listToggle')}
         </Text>
       </Pressable>
     </View>

@@ -16,6 +16,7 @@ import type { CreateUserDto } from '../DTO/create-user.dto';
 import type { UserDocument } from '../schemas/user.schema';
 import type { TestingModule } from '@nestjs/testing';
 
+import { appError } from '../../common/errors';
 // Mock argon2 module
 jest.mock('argon2');
 const mockedArgon2 = argon2 as jest.Mocked<typeof argon2>;
@@ -288,7 +289,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty'),
+        new BadRequestException(appError('EMAIL_REQUIRED')),
       );
     });
 
@@ -299,7 +300,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto as CreateUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty'),
+        new BadRequestException(appError('EMAIL_REQUIRED')),
       );
     });
 
@@ -309,7 +310,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Password is required and cannot be empty'),
+        new BadRequestException(appError('PASSWORD_REQUIRED')),
       );
     });
 
@@ -319,7 +320,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('First name is required and cannot be empty'),
+        new BadRequestException(appError('FIRST_NAME_REQUIRED')),
       );
     });
 
@@ -329,7 +330,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Last name is required and cannot be empty'),
+        new BadRequestException(appError('LAST_NAME_REQUIRED')),
       );
     });
 
@@ -341,7 +342,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new ConflictException('User with this email already exists'),
+        new ConflictException(appError('EMAIL_ALREADY_REGISTERED')),
       );
     });
 
@@ -369,7 +370,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('Email is required and cannot be empty'),
+        new BadRequestException(appError('EMAIL_REQUIRED')),
       );
     });
 
@@ -464,7 +465,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error'),
+        new BadRequestException(appError('ACCOUNT_CREATE_FAILED')),
       );
       expect(errorSpy).toHaveBeenCalledWith(
         `User creation failed for email: ${createUserDto.email}`,
@@ -481,7 +482,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error'),
+        new BadRequestException(appError('ACCOUNT_CREATE_FAILED')),
       );
       expect(errorSpy).toHaveBeenCalledWith(
         `User creation failed for email: ${createUserDto.email}`,
@@ -647,7 +648,7 @@ describe('UsersService - create method', () => {
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
-        new BadRequestException('User creation failed due to system error'),
+        new BadRequestException(appError('ACCOUNT_CREATE_FAILED')),
       );
 
       // Verify sensitive data is not exposed

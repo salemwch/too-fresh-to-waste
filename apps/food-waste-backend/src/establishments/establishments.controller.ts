@@ -45,6 +45,7 @@ import { ParseFloatPipe } from './float/parse-float.pipe';
 import { EstablishmentStatus } from './schemas/establishment.schema';
 import { strictValidation } from '../common/pipes/validation-pipes';
 
+import { appError, toHttpException } from '../common/errors';
 @ApiTags('🏪 Establishments Management')
 @Controller('establishments')
 @UseGuards(JwtAuthGuard)
@@ -189,7 +190,9 @@ export class EstablishmentsController {
       };
     } catch (error) {
       logger.error('Failed to create establishment', (error as Error).stack ?? error);
-      throw new BadRequestException((error as Error).message || 'Failed to create establishment');
+      // Re-wrapping every error as a 400 lost the real code and status
+      // (LOCATION_ALREADY_REGISTERED, 403...) and sent internal text to the user.
+      throw toHttpException(error, 'ESTABLISHMENT_CREATE_FAILED');
     }
   }
 
@@ -280,7 +283,7 @@ export class EstablishmentsController {
     const establishment = await this.establishmentsService.findById(id);
 
     if (req.user.role !== UserRole.ADMIN && establishment.ownerId.toString() !== req.user.userId) {
-      throw new ForbiddenException('You can only access stats for your own establishment');
+      throw new ForbiddenException(appError('ESTABLISHMENT_NOT_YOURS'));
     }
 
     const stats = await this.establishmentsService.getStats(id);
@@ -467,17 +470,17 @@ export class EstablishmentsController {
     try {
       // Validate file exists
       if (file === null || file === undefined) {
-        throw new BadRequestException('No document file provided');
+        throw new BadRequestException(appError('DOCUMENT_REQUIRED'));
       }
 
       // Validate document type
       if (!Object.values(DocumentType).includes(documentType)) {
-        throw new BadRequestException('Invalid document type');
+        throw new BadRequestException(appError('DOCUMENT_TYPE_INVALID'));
       }
 
       // Validate file type (only PDFs for legal documents)
       if (file.mimetype !== 'application/pdf') {
-        throw new BadRequestException('Only PDF documents are allowed for legal documents');
+        throw new BadRequestException(appError('DOCUMENT_PDF_ONLY'));
       }
 
       logger.debug(`Uploading ${documentType} for establishment ${id}`);

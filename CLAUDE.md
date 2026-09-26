@@ -257,21 +257,28 @@ delivery: PENDING → CONFIRMED → DRIVER_ASSIGNED → OUT_FOR_DELIVERY → DEL
 
 ```
 Customer pays = subtotal + deliveryFee
-Food → merchant 81%, platform 19%    Delivery → driver 3.00 TND, platform 1.00 TND
+Food → merchant 81%, platform 19%    Delivery fee (distance bands) → driver 80%, platform 20%
 ```
 
 - Pickup: `deliveryFee` is 0. Settlement splits `pricing.subtotal`, never
   `total`.
 - Charity donation: `subtotal * 0.19 * 0.05` = 0.95% of subtotal (from platform
   margin).
-- `MAX_DELIVERY_KM` (default 5): hard gate, fails with `BadRequestException`.
+- The delivery split is `DELIVERY_DRIVER_SHARE` (default 0.8), via
+  `splitDeliveryFee` in `packages/shared`. The old flat 3.00 / 1.00 split and
+  the `MAX_DELIVERY_KM` hard gate are both gone.
+- The food 81/19 line is being replaced by the commission-settlement model - see
+  `.claude/work/commission-settlement-model.md`.
 
 **Geozones** carry their own `deliveryFee`, `minimumOrder`,
 `defaultSearchRadius`, `timezone`, currency, and boundary polygon.
 
 **Stale deliveries auto-release** via Bull queue
-(`auto-unassign-stale-delivery`). Every unassignment appends to an audit array
-with an `auto` flag.
+(`auto-unassign-stale-delivery`), but only **before pickup**
+(`DRIVER_ASSIGNED`). After pickup the driver holds the food and the cash, so the
+order is never released; it shows as `STALE_UNDELIVERED` on the admin
+driver-cash reconciliation. Every unassignment appends to an audit array with an
+`auto` flag.
 
 ### Establishment Population
 

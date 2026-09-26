@@ -6,6 +6,7 @@ import { OrderStatus, PaymentStatus } from '@foodwaste/shared';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 
+import { appError } from '../common/errors';
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
@@ -222,7 +223,7 @@ export class LeaderboardService {
       .findByIdAndUpdate(userId, { $set: { leaderboardAnonymous: anonymous } })
       .exec();
     if (!result) {
-      throw new NotFoundException(`User not found`);
+      throw new NotFoundException(appError('USER_NOT_FOUND'));
     }
   }
 }

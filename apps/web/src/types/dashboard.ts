@@ -62,6 +62,39 @@ export interface PaginationMeta {
 
 // ─── Order Stats ────────────────────────────────────────────────────────────
 
+/**
+ * GET /orders/merchant-today-sales - today (Africa/Tunis) across both ways a
+ * customer pays. Mirrors `TodaySalesSummary` in the backend's
+ * `orders/utils/today-sales.util.ts`; every money figure comes from each
+ * order's frozen commission decision, never a recomputed 19%.
+ */
+export interface TodaySalesChannel {
+  orders: number;
+  /** Food sold, delivery fee excluded. */
+  sales: number;
+}
+
+export interface TodaySales {
+  /** YYYY-MM-DD, the merchant's day in Africa/Tunis. */
+  date: string;
+  currency: string;
+  rate: number;
+  cash: TodaySalesChannel;
+  online: TodaySalesChannel;
+  total: TodaySalesChannel & {
+    /** Commission recorded today: 19% of today's NORMAL sales. */
+    commission: number;
+    /** Commission balance paid off today by SETTLEMENT sales. */
+    settled: number;
+    /** What the merchant was paid for today's sales. */
+    received: number;
+    /** received - commission: today's profit. */
+    kept: number;
+  };
+  /** Reserved today, not collected yet. */
+  toCollect: TodaySalesChannel;
+}
+
 export interface OrderStatsResponse {
   totalOrders: number;
   totalRevenue: number;
@@ -706,6 +739,16 @@ export interface PricingSuggestions {
 export interface MerchantCommissionStatement {
   /** Still to settle. The merchant owes this - it is not money they hold. */
   commissionDue: number;
+  /**
+   * The same balance per establishment, largest first, zeros omitted. Under
+   * "All locations" this is what keeps the total from hiding which location
+   * carries it.
+   */
+  dueByEstablishment: {
+    establishmentId: string;
+    name: string;
+    amount: number;
+  }[];
   sales: number;
   commission: number;
   received: number;

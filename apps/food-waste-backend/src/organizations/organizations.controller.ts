@@ -34,6 +34,7 @@ import { OrganizationsService } from './organizations.service';
 
 import { OrganizationStatus } from '@foodwaste/shared';
 
+import { appError } from '../common/errors';
 @ApiTags('🏢 Organizations')
 @Controller('organizations')
 @UseGuards(JwtAuthGuard)
@@ -136,7 +137,7 @@ export class OrganizationsController {
     @Request() req: AuthenticatedRequest,
   ) {
     if (!establishmentId) {
-      throw new BadRequestException('establishmentId query param is required');
+      throw new BadRequestException(appError('ESTABLISHMENT_REQUIRED'));
     }
 
     const org = await this.organizationsService.create(dto, req.user.userId, establishmentId);
@@ -155,7 +156,7 @@ export class OrganizationsController {
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const org = await this.organizationsService.findById(id);
     if (req.user.role !== UserRole.ADMIN && org.ownerId.toString() !== req.user.userId) {
-      throw new ForbiddenException('You can only view your own organization');
+      throw new ForbiddenException(appError('ORGANIZATION_NOT_YOURS'));
     }
     return {
       message: 'Organization retrieved successfully',
@@ -190,7 +191,9 @@ export class OrganizationsController {
   async updateStatus(@Param('id') id: string, @Body('status') status: OrganizationStatus) {
     if (!Object.values(OrganizationStatus).includes(status)) {
       throw new BadRequestException(
-        `Invalid status. Must be one of: ${Object.values(OrganizationStatus).join(', ')}`,
+        appError('INVALID_STATUS', {
+          allowed: String(Object.values(OrganizationStatus).join(', ')),
+        }),
       );
     }
 

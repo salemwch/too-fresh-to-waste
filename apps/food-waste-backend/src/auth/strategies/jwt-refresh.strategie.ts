@@ -5,6 +5,7 @@ import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { COOKIE_NAMES } from 'src/common/utils/cookie-security.util';
 
+import { appError } from '../../common/errors';
 interface JwtRefreshPayload {
   sub: string;
   email: string;
@@ -41,7 +42,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
         : undefined;
 
     if (refreshToken === null || refreshToken === undefined) {
-      throw new UnauthorizedException('Refresh token not found');
+      throw new UnauthorizedException(appError('SESSION_EXPIRED'));
     }
 
     return {
