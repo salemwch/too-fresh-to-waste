@@ -19,6 +19,8 @@ import { PLATFORM_FOOD_SHARE } from '../../orders/utils/order-pricing.util';
 import { requireMongoTestUri } from '../../../test/helpers/mongo-test-uri';
 import { MerchantSalesService } from '../merchant-sales.service';
 import type { SalesScope } from '../merchant-sales.scope';
+import type { EarningsRow, EarningsTab } from '../merchant-sales.types';
+import type { SalesPeriod } from '../merchant-sales.period';
 
 const T = (iso: string) => new Date(iso);
 const round3 = (n: number) => Math.round(n * 1000) / 1000;
@@ -437,5 +439,84 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
     const chart = await service.chart(merchantA, '7d', now);
     expect(chart.slots).toHaveLength(7);
     expect(chart.slots.every(s => typeof s.earned === 'number')).toBe(true);
+  });
+
+  // --- Task 8: the rows behind the Payments tabs ---
+
+  const allRows = async (tab: EarningsTab, period: SalesPeriod): Promise<EarningsRow[]> => {
+    const out: EarningsRow[] = [];
+    let after: string | undefined;
+    do {
+      const page = await service.rows(
+        merchantA,
+        period,
+        tab,
+        { ...(after ? { after } : {}), limit: 2 },
+        now,
+      );
+      out.push(...page.rows);
+      after = page.nextCursor;
+    } while (after);
+    return out;
+  };
+
+  it.each(['today', '7d', '30d', 'month', 'all'] as const)(
+    '%s: Earnings rows over every page sum to the total',
+    async period => {
+      const [summary, rows] = await Promise.all([
+        service.summary(merchantA, period, now),
+        allRows('earnings', period),
+      ]);
+      expect(rows.reduce((s, r) => s + Math.round(r.earned * 1000), 0)).toBe(
+        Math.round(summary.total.earned * 1000),
+      );
+      expect(rows).toHaveLength(summary.total.orders);
+    },
+  );
+
+  it('Refunded lists the refunded-after-completion sale only; Being verified lists case 3', async () => {
+    const refunded = await allRows('refunded', 'all');
+    const verifying = await allRows('verifying', 'all');
+    expect(refunded.every(r => r.status === 'refunded')).toBe(true);
+    expect(verifying.map(r => r.orderId)).toEqual([case3Id.toString()]);
+    expect(verifying[0]).toMatchObject({ kind: 'UNVERIFIED', earned: 0 });
+  });
+
+  it('pages never repeat or skip a row (ties on the same moment included)', async () => {
+    // Two Earnings orders sharing the exact same commission moment, seeded
+    // only in this test so Task 6/7's fixed totals over the shared table stay
+    // valid - the tie-break (`_id` in the sort and the cursor `$or`) is what
+    // is under test here, not the summary/chart totals. The moment is placed
+    // between order 5 (2026-09-14T10:00+01:00, the newest Earnings row in the
+    // shared table) and order 4 (2026-09-13T11:00+01:00) on purpose: with
+    // `limit: 2`, that puts exactly one row (order 5) ahead of the tied pair,
+    // so the tie itself straddles the page-1/page-2 boundary rather than
+    // landing wholly inside one page - the only placement that would let a
+    // missing tie-break go unnoticed.
+    const tiedMoment = T('2026-09-13T15:00:00+01:00');
+    await seed({
+      pricing: { subtotal: 3, discountAmount: 0, deliveryFee: 0, total: 3 },
+      pickedUpAt: tiedMoment,
+      commission: normalCommission(3, tiedMoment),
+    });
+    await seed({
+      pricing: { subtotal: 4, discountAmount: 0, deliveryFee: 0, total: 4 },
+      pickedUpAt: tiedMoment,
+      commission: normalCommission(4, tiedMoment),
+    });
+
+    const rows = await allRows('earnings', 'all');
+    expect(new Set(rows.map(r => r.orderId)).size).toBe(rows.length);
+    // Uniqueness alone would also pass if a tied row were silently dropped at
+    // the page boundary - "never skip" is only exercised by also pinning the
+    // count against the same total `summary` reconciles against.
+    const summary = await service.summary(merchantA, 'all', now);
+    expect(rows).toHaveLength(summary.total.orders);
+  });
+
+  it('a malformed cursor is a 400', async () => {
+    await expect(
+      service.rows(merchantA, 'all', 'earnings', { after: 'nope', limit: 2 }, now),
+    ).rejects.toThrow();
   });
 });

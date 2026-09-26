@@ -1,13 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PipelineStage } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 
+import { appError } from '../common/errors';
 import { SentryService } from '../common/services/sentry.service';
 import { parseCommissionCutoff } from '../config/commission-cutoff.util';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
 import { PLATFORM_FOOD_SHARE } from '../orders/utils/order-pricing.util';
-import { salesBaseStages } from './merchant-sales.expressions';
+import { salesBaseStages, type PaymentLine, type SalesCase } from './merchant-sales.expressions';
 import {
   resolveSalesPeriod,
   salesSlots,
@@ -18,6 +19,8 @@ import { scopeMatch, type SalesScope } from './merchant-sales.scope';
 import { summariseSalesGroups } from './merchant-sales.summarise';
 import {
   MERCHANT_EARNINGS_UNVERIFIED_ORDERS,
+  type EarningsRow,
+  type EarningsTab,
   type MerchantSalesChart,
   type MerchantSalesSummary,
   type SalesGroupRow,
@@ -116,6 +119,72 @@ export class MerchantSalesService {
     });
 
     return { period, granularity: range.granularity, slots };
+  }
+
+  /**
+   * The exact orders behind a Payments tab, newest first, paginated with a
+   * stable `${momentMs}.${orderId}` cursor so ties on the same moment are
+   * neither repeated nor skipped across pages (Task 8).
+   */
+  async rows(
+    scope: SalesScope,
+    period: SalesPeriod,
+    tab: EarningsTab,
+    page: { after?: string; limit: number },
+    now: Date = new Date(),
+  ): Promise<{ rows: EarningsRow[]; hasMore: boolean; nextCursor?: string }> {
+    const stages = this.baseStages(scope, resolveSalesPeriod(period, now));
+    if (!stages) {
+      return { rows: [], hasMore: false };
+    }
+    const cursor = page.after ? parseEarningsCursor(page.after) : null;
+    const docs = await this.orderModel.aggregate<RawEarningsRow>([
+      ...stages,
+      { $match: { _population: tab } },
+      ...(cursor
+        ? [
+            {
+              $match: {
+                $or: [
+                  { _moment: { $lt: cursor.moment } },
+                  { _moment: cursor.moment, _id: { $lt: cursor.id } },
+                ],
+              },
+            },
+          ]
+        : []),
+      { $sort: { _moment: -1, _id: -1 } },
+      { $limit: page.limit + 1 },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'customerId',
+          foreignField: '_id',
+          as: '_customer',
+          pipeline: [{ $project: { firstName: 1, lastName: 1 } }],
+        },
+      },
+      {
+        $lookup: {
+          from: 'establishments',
+          localField: 'establishmentId',
+          foreignField: '_id',
+          as: '_est',
+          pipeline: [{ $project: { name: 1 } }],
+        },
+      },
+    ]);
+
+    const hasMore = docs.length > page.limit;
+    const pageDocs = hasMore ? docs.slice(0, page.limit) : docs;
+    const last = pageDocs.at(-1);
+    return {
+      rows: pageDocs.map(toEarningsRow),
+      hasMore,
+      ...(hasMore && last
+        ? { nextCursor: `${last._moment.getTime()}.${last._id.toString()}` }
+        : {}),
+    };
   }
 
   private async compute(
@@ -219,4 +288,47 @@ export class MerchantSalesService {
       [MERCHANT_EARNINGS_UNVERIFIED_ORDERS],
     );
   }
+}
+
+interface RawEarningsRow {
+  _id: Types.ObjectId;
+  orderNumber: string;
+  status: string;
+  refundReason?: string;
+  pricing?: { subtotal?: number };
+  commission?: { kind: 'NORMAL' | 'SETTLEMENT' };
+  _moment: Date;
+  _case: SalesCase;
+  _line: PaymentLine;
+  _earnedMillimes: number;
+  _customer: Array<{ firstName?: string; lastName?: string }>;
+  _est: Array<{ name?: string }>;
+}
+
+const CURSOR_RE = /^(\d{1,15})\.([0-9a-f]{24})$/;
+
+function parseEarningsCursor(raw: string): { moment: Date; id: Types.ObjectId } {
+  const match = CURSOR_RE.exec(raw);
+  if (!match) {
+    throw new BadRequestException(appError('INVALID_CURSOR'));
+  }
+  return { moment: new Date(Number(match[1])), id: new Types.ObjectId(match[2]) };
+}
+
+function toEarningsRow(doc: RawEarningsRow): EarningsRow {
+  const customer = doc._customer[0];
+  const name = [customer?.firstName, customer?.lastName].filter(Boolean).join(' ');
+  return {
+    orderId: doc._id.toString(),
+    orderNumber: doc.orderNumber,
+    customerName: name || null,
+    establishmentName: doc._est[0]?.name ?? null,
+    line: doc._line,
+    subtotal: doc.pricing?.subtotal ?? 0,
+    earned: doc._earnedMillimes / 1000,
+    kind: doc._case === 'CURRENT' ? (doc.commission?.kind ?? 'NORMAL') : doc._case,
+    commissionMoment: doc._moment.toISOString(),
+    status: doc.status,
+    refundReason: doc.refundReason ?? null,
+  };
 }

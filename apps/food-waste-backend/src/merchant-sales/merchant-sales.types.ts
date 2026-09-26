@@ -35,3 +35,26 @@ export interface SalesGroupRow {
   originalMillimes: number;
   unverifiedIds: unknown[];
 }
+
+/**
+ * The three Payments tabs. Declared once here; the request DTO (Task 9)
+ * imports both rather than redeclaring them.
+ */
+export const EARNINGS_TABS = ['earnings', 'refunded', 'verifying'] as const;
+export type EarningsTab = (typeof EARNINGS_TABS)[number];
+
+/** One order behind a Payments row. Food only - never `deliveryFee`/`total`. */
+export interface EarningsRow {
+  orderId: string;
+  orderNumber: string;
+  customerName: string | null;
+  establishmentName: string | null;
+  line: PaymentLine;
+  subtotal: number;
+  /** 0 on the verifying tab. */
+  earned: number;
+  kind: 'NORMAL' | 'SETTLEMENT' | 'LEGACY' | 'UNVERIFIED';
+  commissionMoment: string;
+  status: string;
+  refundReason: string | null;
+}

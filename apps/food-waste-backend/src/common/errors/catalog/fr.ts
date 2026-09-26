@@ -247,6 +247,7 @@ export const FR: Readonly<Record<ErrorCode, string>> = {
   ORDER_CREATE_FAILED: 'Impossible de passer votre commande. Veuillez réessayer.',
   INVALID_GRANULARITY: 'Choisissez parmi : {allowed}.',
   INVALID_GRANULARITY_VALUE: 'Choisissez une valeur entre 1 et {max}.',
+  INVALID_CURSOR: "Ce lien de page n'est plus valide. Rechargez la liste.",
   PICKUP_CODE_INVALID: 'Ce code de retrait n’est pas valide.',
   PICKUP_QR_REQUIRED: 'Scannez le code QR du client pour confirmer le retrait.',
   PICKUP_EXTENSION_NOT_FOUND: 'Aucune demande de prolongation pour cette commande.',

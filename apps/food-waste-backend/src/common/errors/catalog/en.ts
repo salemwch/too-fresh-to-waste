@@ -245,6 +245,7 @@ export const EN = {
   ORDER_CREATE_FAILED: 'Could not place your order. Please try again.',
   INVALID_GRANULARITY: 'Choose one of: {allowed}.',
   INVALID_GRANULARITY_VALUE: 'Choose a value between 1 and {max}.',
+  INVALID_CURSOR: 'This page link is no longer valid. Reload the list.',
   PICKUP_CODE_INVALID: 'This pickup code is not valid.',
   PICKUP_QR_REQUIRED: 'Scan the customer’s QR code to confirm the pickup.',
   PICKUP_EXTENSION_NOT_FOUND: 'There is no extension request for this order.',

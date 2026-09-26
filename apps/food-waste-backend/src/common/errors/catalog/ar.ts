@@ -224,6 +224,7 @@ export const AR: Readonly<Record<ErrorCode, string>> = {
   ORDER_CREATE_FAILED: 'تعذّر إرسال طلبك. حاول مرة أخرى.',
   INVALID_GRANULARITY: 'اختر أحد الخيارات: {allowed}.',
   INVALID_GRANULARITY_VALUE: 'اختر قيمة بين 1 و{max}.',
+  INVALID_CURSOR: 'رابط الصفحة لم يعد صالحًا. أعد تحميل القائمة.',
   PICKUP_CODE_INVALID: 'رمز الاستلام هذا غير صالح.',
   PICKUP_QR_REQUIRED: 'امسح رمز QR الخاص بالعميل لتأكيد الاستلام.',
   PICKUP_EXTENSION_NOT_FOUND: 'لا يوجد طلب تمديد لهذا الطلب.',
