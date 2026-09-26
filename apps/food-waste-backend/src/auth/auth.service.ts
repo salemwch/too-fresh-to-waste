@@ -34,6 +34,7 @@ import { PasswordPolicyService } from './services/password-policy.service';
 import { TokenService, DeviceInfo } from './services/token.service';
 
 import { appError } from '../common/errors';
+import { maskEmail } from '../common/utils/mask-email';
 import { loginFailureReason, type LoginFailureReason } from './utils/login-failure';
 import {
   getDummyPasswordHash,
@@ -193,7 +194,7 @@ export class AuthService {
       await this.emailService.sendVerificationEmail(user, emailVerificationToken);
     } catch (error) {
       this.logger.warn('Failed to send verification email during registration', {
-        email: user.email,
+        userId: user._id.toString(),
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
@@ -329,7 +330,10 @@ export class AuthService {
     // 1. Explicit IP block list (set by previous suspicious-activity detection)
     const ipBlocked = await this.authSecurityService.isIpBlocked(ipAddress);
     if (ipBlocked) {
-      this.logger.warn('Login attempt from blocked IP', { ip: ipAddress, email: loginDto.email });
+      this.logger.warn('Login attempt from blocked IP', {
+        ip: ipAddress,
+        email: maskEmail(loginDto.email),
+      });
       throw new ForbiddenException(appError('ACCESS_BLOCKED_SUSPICIOUS'));
     }
 
@@ -354,7 +358,7 @@ export class AuthService {
     // for a registered email and an unknown one.
     if (!securityCheck.allowed) {
       this.logger.warn('Login blocked by attempt limit', {
-        email: loginDto.email,
+        email: maskEmail(loginDto.email),
         ip: ipAddress,
         blockedUntil: securityCheck.blockedUntil,
       });
@@ -474,7 +478,7 @@ export class AuthService {
       );
     }
 
-    this.logger.log('User login successful', { userId: user._id, email: user.email });
+    this.logger.log('User login successful', { userId: user._id });
 
     // MFA gate: if user has TOTP enabled, return a short-lived mfaToken
     // instead of full auth tokens. The client must call /mfa/verify next.
@@ -690,7 +694,7 @@ export class AuthService {
     // Never the password, a token or a hash.
     this.logger.warn('Login failed', {
       reason,
-      ...(context.userId ? { userId: context.userId } : { email: context.email }),
+      ...(context.userId ? { userId: context.userId } : { email: maskEmail(context.email) }),
       ip: context.ipAddress,
       attempts: attempt.currentAttempts,
       locked: attempt.isLocked,
@@ -746,7 +750,9 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
-      this.logger.warn('Password reset requested for non-existent email', { email });
+      this.logger.warn('Password reset requested for non-existent email', {
+        email: maskEmail(email),
+      });
       return {
         message: 'If an account with this email exists, you will receive a password reset link.',
       };
@@ -1115,28 +1121,6 @@ export class AuthService {
         requiresPasswordChange: false,
       },
     };
-  }
-
-  async validateUser(email: string, password: string): Promise<UserResponse | null> {
-    const user = await this.usersService.findByEmail(email);
-
-    if (user?.password && (await argon2.verify(user.password, password))) {
-      // SECURITY: Reject login for non-active accounts
-      if (user.status !== UserStatus.ACTIVE) {
-        throw new UnauthorizedException(appError('ACCOUNT_INACTIVE'));
-      }
-      const {
-        password: _password,
-        _id,
-        ...result
-      } = user.toObject() as UserResponse & {
-        _id: { toString(): string };
-        password: string;
-      };
-      return { ...result, userId: _id.toString() };
-    }
-
-    return null;
   }
 
   /**

@@ -110,6 +110,27 @@ Verification gaps:
   container env against the real schema, and by booting the new image with
   throwaway random JWT secrets.
 
+- 2026-09-26: security follow-up (login attempt limit and auth logs).
+  - Lockout keyed on (email, IP), not email alone: the email-only block let
+    anyone lock any account out with ten wrong passwords, repeatable every five
+    minutes. Model: Auth0 brute-force protection, OWASP Authentication Cheat
+    Sheet. The per-IP counter and the /auth/login route throttle (10 / 15 min /
+    IP) still bound one source. Rejected: keep the email-wide block at a higher
+    threshold (still a lockout lever), and CAPTCHA (disabled; no client sends a
+    token). Not covered: guessing spread over many IPs, bounded only by the
+    12-character policy and argon2 cost.
+  - The key is lower-cased and trimmed. The raw string made every change of
+    letter case a fresh budget of ten guesses.
+  - A failing Redis command now counts in the in-memory fallback instead of
+    reading as zero attempts; the fallback map is capped at 10,000 keys.
+  - Auth logs carry userId where the account is known and a masked email
+    (s***@domain) where it is not. The security-event payload keeps the email:
+    it is the audit record admins act on.
+  - Removed dead code with the old rules: AuthService.validateUser (no dummy
+    hash, no counter, distinct inactive error) and
+    AuthSecurityService.isCaptchaRequired (email-only key). Neither had a
+    caller.
+
 ## Not fixed (recorded, with reason)
 
 See the close-out report. Redis fail-open, no outbox for order events,
