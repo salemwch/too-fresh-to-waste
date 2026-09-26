@@ -41,7 +41,7 @@ import { EmailService } from '../../email/email.service';
 import { RedisService } from '../../redis/redis.service';
 import { UsersService } from '../../users/user.service';
 import { AuthService } from '../auth.service';
-import { AuthSecurityService } from '../services/auth-security.service';
+import { AuthSecurityService, pairAttemptKey } from '../services/auth-security.service';
 import { CaptchaService } from '../services/captcha.service';
 import { PasswordPolicyService } from '../services/password-policy.service';
 import { TokenService } from '../services/token.service';
@@ -67,13 +67,14 @@ const ipFor = (label: string) => `203.0.113.${label.length}-${run}`;
 describe('login attempt limit (real Redis)', () => {
   let module: TestingModule;
   let auth: AuthService;
+  let security: AuthSecurityService;
   let redis: Awaited<ReturnType<RedisService['getClient']>>;
   const users = new Map<string, Record<string, unknown>>();
   const touchedKeys: string[] = [];
 
   beforeAll(async () => {
     const passwordHash = await argon2.hash(PASSWORD, USER_PASSWORD_HASH_OPTIONS);
-    for (const label of ['registered', 'clears']) {
+    for (const label of ['registered', 'clears', 'owner']) {
       users.set(emailFor(label), {
         _id: new Types.ObjectId(),
         email: emailFor(label),
@@ -133,6 +134,7 @@ describe('login attempt limit (real Redis)', () => {
 
     await module.init(); // RedisService connects in onModuleInit
     auth = module.get(AuthService);
+    security = module.get(AuthSecurityService);
     const redisService = module.get(RedisService);
     expect(redisService.isConnected()).toBe(true);
     redis = await redisService.getClient();
@@ -147,7 +149,7 @@ describe('login attempt limit (real Redis)', () => {
 
   /** Registers the Redis keys an attempt writes, so afterAll removes them. */
   const track = (email: string, ip: string) => {
-    touchedKeys.push(`auth:attempts:email:${email}`, `auth:attempts:ip:${ip}`);
+    touchedKeys.push(`auth:attempts:${pairAttemptKey(email, ip)}`, `auth:attempts:ip:${ip}`);
   };
 
   async function attempt(email: string, ip: string, password: string): Promise<Outcome> {
@@ -207,11 +209,12 @@ describe('login attempt limit (real Redis)', () => {
   });
 
   it('keeps the counters in Redis, not in process memory', async () => {
-    const stored = await redis.get(`auth:attempts:email:${emailFor('nobody')}`);
+    const key = `auth:attempts:${pairAttemptKey(emailFor('nobody'), ipFor('bb'))}`;
+    const stored = await redis.get(key);
 
     expect(stored).not.toBeNull();
     expect(JSON.parse(String(stored))).toMatchObject({ count: MAX_LOGIN_ATTEMPTS });
-    expect(await redis.ttl(`auth:attempts:email:${emailFor('nobody')}`)).toBeGreaterThan(0);
+    expect(await redis.ttl(key)).toBeGreaterThan(0);
   });
 
   it('clears the counters on a successful login', async () => {
@@ -222,11 +225,67 @@ describe('login attempt limit (real Redis)', () => {
       expect(await attempt(email, ip, WRONG)).toEqual(invalid);
     }
     expect((await attempt(email, ip, PASSWORD)).status).toBe(200);
-    expect(await redis.get(`auth:attempts:email:${email}`)).toBeNull();
+    expect(await redis.get(`auth:attempts:${pairAttemptKey(email, ip)}`)).toBeNull();
     expect(await redis.get(`auth:attempts:ip:${ip}`)).toBeNull();
 
     // A fresh budget: one more failure is an ordinary 401, not the block the
     // uncleared count would have reached.
     expect(await attempt(email, ip, WRONG)).toEqual(invalid);
+  });
+
+  // Lockout abuse: keyed on the email alone, anyone could lock any account out
+  // by sending ten wrong passwords for it. On the email+IP pair the attacker
+  // blocks only their own address.
+  it('does not lock the owner out because of failures from another IP', async () => {
+    const email = emailFor('owner');
+    const attacker = ipFor('dddd');
+    const owner = ipFor('eeeee');
+
+    for (let i = 0; i < MAX_LOGIN_ATTEMPTS; i++) {
+      await attempt(email, attacker, WRONG);
+    }
+    expect(await attempt(email, attacker, PASSWORD)).toEqual(blocked);
+
+    expect((await attempt(email, owner, PASSWORD)).status).toBe(200);
+  });
+
+  // Before, the counter key was the raw string, so every change of case was a
+  // fresh budget of ten guesses for the same account.
+  it('counts a change of letter case against the same email', async () => {
+    const email = emailFor('case');
+    const ip = ipFor('ffffff');
+    const variants = [
+      email,
+      email.toUpperCase(),
+      `  ${email.charAt(0).toUpperCase()}${email.slice(1)} `,
+    ];
+
+    for (const variant of variants) {
+      expect(await attempt(variant, ip, WRONG)).toEqual(invalid);
+    }
+
+    // Read the email+IP counter itself: from one IP the per-IP counter would
+    // reach the limit either way, so a block alone would not prove the key.
+    const stored = await redis.get(`auth:attempts:${pairAttemptKey(email, ip)}`);
+    expect(JSON.parse(String(stored))).toMatchObject({ count: variants.length });
+  });
+
+  it('an admin unlock clears the email on every IP, and nothing else', async () => {
+    const email = emailFor('unlock');
+    const other = emailFor('bystander');
+    const [ipA, ipB] = [ipFor('ggggggg'), ipFor('hhhhhhhh')];
+    await attempt(email, ipA, WRONG);
+    await attempt(email, ipB, WRONG);
+    await attempt(other, ipA, WRONG);
+
+    await security.clearLoginAttempts('*', email);
+
+    const stored = async (e: string, ip: string) => {
+      const value = await redis.get(`auth:attempts:${pairAttemptKey(e, ip)}`);
+      return value;
+    };
+    expect(await stored(email, ipA)).toBeNull();
+    expect(await stored(email, ipB)).toBeNull();
+    expect(await stored(other, ipA)).not.toBeNull();
   });
 });

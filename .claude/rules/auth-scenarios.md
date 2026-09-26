@@ -102,3 +102,14 @@ If you cannot answer all five from the code, the implementation is incomplete.
 | Change password     | ✅                  | ❌ `updatePassword` throws — UI must hide this option for OAuth users                                        | same                                   | same                                |
 | Login with password | ✅                  | ❌ generic `INVALID_CREDENTIALS` (no hint - enumeration), counted as a failed attempt                        | same                                   | same                                |
 | Delete account      | ✅                  | ✅ (no password confirmation needed)                                                                         | ✅                                     | ✅                                  |
+
+### Login attempt limit (2026-09-26)
+
+Failures are counted per **(email, IP)** pair and per **IP**; 10 on either
+blocks with 429 `LOGIN_TEMPORARILY_BLOCKED`. There is no email-wide block: it
+would let anyone lock any account out. The email in the key is lower-cased and
+trimmed. A successful sign-in clears that pair and that IP; an admin unlock
+(`clearLoginAttempts('*', email)`) clears the email on every IP. If Redis
+commands fail, the in-memory fallback keeps counting. Covered by
+`auth/__tests__/login-attempt-limit.integration.spec.ts` (real Redis) and
+`auth/services/__tests__/auth-security.fallback.spec.ts`.

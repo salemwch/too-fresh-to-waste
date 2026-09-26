@@ -7,6 +7,7 @@ import {
   calculateLockoutDuration,
 } from '../../common/constants/lockout-policy.constant';
 import { EventBusService } from '../../common/services/event-bus/event-bus.service';
+import { maskEmail } from '../../common/utils/mask-email';
 import { deleteByPattern } from '../../common/utils/redis-scan.util';
 import { RedisService } from '../../redis/redis.service';
 import { SecurityEvent, SecurityEventType, SecuritySeverity } from '../events/security-events';
@@ -50,6 +51,36 @@ function isRequestData(obj: unknown): obj is RequestData {
     typeof (obj as RequestData).resetTime === 'string'
   );
 }
+
+/** Lower-cased and trimmed, so `Salem@x.tn` and `salem@x.tn` share one counter. */
+export function normalizeLoginEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/**
+ * The lockout key: failures for one email from one IP.
+ *
+ * Keying the block on the email alone let anyone lock any account out by
+ * sending ten wrong passwords for it, from anywhere, every five minutes. On the
+ * (email, IP) pair, the owner signing in from their own network is not blocked
+ * by someone else's failures - the model of Auth0's brute-force protection and
+ * the OWASP Authentication Cheat Sheet's lockout guidance. The per-IP counter
+ * and the route throttle still bound a single source.
+ */
+export function pairAttemptKey(email: string, ip: string): string {
+  return `pair:${normalizeLoginEmail(email)}|${ip}`;
+}
+
+/** SCAN MATCH treats these as wildcards; an email may legally contain them. */
+function escapeRedisGlob(value: string): string {
+  return value.replace(/[*?[\]\\]/g, ch => `\\${ch}`);
+}
+
+/**
+ * The in-memory fallback is only a stopgap while Redis fails, but a spray of
+ * distinct emails must not grow it without bound. Oldest entries go first.
+ */
+const MAX_FALLBACK_ATTEMPT_KEYS = 10_000;
 
 @Injectable()
 export class AuthSecurityService {
@@ -117,14 +148,13 @@ export class AuthSecurityService {
     captchaRequired?: boolean | undefined;
   }> {
     const ipKey = `ip:${ip}`;
-    const emailKey = `email:${email}`;
+    const pairKey = pairAttemptKey(email, ip);
 
     try {
       // Check IP-based attempts
       const ipAttempts = await this.getAttempts(ipKey);
 
-      // DEBUG: Log actual attempt counts and MAX value
-      this.logger.debug(`[LOGIN CHECK] IP: ${ip}, Email: ${email}`);
+      this.logger.debug(`[LOGIN CHECK] IP: ${ip}, Email: ${maskEmail(email)}`);
       this.logger.debug(`[LOGIN CHECK] MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS}`);
       this.logger.debug(
         `[LOGIN CHECK] IP attempts: ${ipAttempts.count}, blocked: ${ipAttempts.blocked}`,
@@ -145,39 +175,40 @@ export class AuthSecurityService {
         return { allowed: false, blockedUntil: ipAttempts.blockedUntil };
       }
 
-      // Check email-based attempts
-      const emailAttempts = await this.getAttempts(emailKey);
+      // Check attempts for this email from this IP
+      const pairAttempts = await this.getAttempts(pairKey);
       this.logger.debug(
-        `[LOGIN CHECK] Email attempts: ${emailAttempts.count}, blocked: ${emailAttempts.blocked}`,
+        `[LOGIN CHECK] Email+IP attempts: ${pairAttempts.count}, blocked: ${pairAttempts.blocked}`,
       );
 
-      if (emailAttempts.blocked) {
-        this.logger.warn(`Login blocked for email ${email} until ${emailAttempts.blockedUntil}`);
+      if (pairAttempts.blocked) {
+        this.logger.warn(
+          `Login blocked for ${maskEmail(email)} from IP ${ip} until ${pairAttempts.blockedUntil}`,
+        );
 
-        // Emit security event for account lockout (PRODUCTION-READY IMPROVEMENT)
         await this.emitSecurityEvent(
           SecurityEventType.ACCOUNT_LOCKED,
           SecuritySeverity.HIGH,
           ip,
-          { reason: 'Email-based lockout', attempts: emailAttempts.count },
+          { reason: 'Email+IP lockout', attempts: pairAttempts.count },
           email,
         );
 
-        return { allowed: false, blockedUntil: emailAttempts.blockedUntil };
+        return { allowed: false, blockedUntil: pairAttempts.blockedUntil };
       }
 
       const remainingAttempts = Math.min(
         MAX_LOGIN_ATTEMPTS - ipAttempts.count,
-        MAX_LOGIN_ATTEMPTS - emailAttempts.count,
+        MAX_LOGIN_ATTEMPTS - pairAttempts.count,
       );
 
       // Check if CAPTCHA is required (PRODUCTION-READY IMPROVEMENT)
-      const maxAttempts = Math.max(ipAttempts.count, emailAttempts.count);
+      const maxAttempts = Math.max(ipAttempts.count, pairAttempts.count);
       const captchaRequired = maxAttempts >= this.CAPTCHA_REQUIRED_AFTER_ATTEMPTS;
 
       if (captchaRequired && maxAttempts < MAX_LOGIN_ATTEMPTS) {
         this.logger.warn(
-          `CAPTCHA required for ${email} from IP ${ip} after ${maxAttempts} failed attempts`,
+          `CAPTCHA required for ${maskEmail(email)} from IP ${ip} after ${maxAttempts} failed attempts`,
         );
 
         // Emit security event for CAPTCHA requirement (PRODUCTION-READY IMPROVEMENT)
@@ -208,24 +239,24 @@ export class AuthSecurityService {
     blockedUntil?: Date | undefined;
   }> {
     const ipKey = `ip:${ip}`;
-    const emailKey = `email:${email}`;
+    const pairKey = pairAttemptKey(email, ip);
 
     try {
       await this.incrementAttempts(ipKey);
-      await this.incrementAttempts(emailKey);
+      await this.incrementAttempts(pairKey);
 
       // Get updated attempt counts after increment
       const ipAttempts = await this.getAttempts(ipKey);
-      const emailAttempts = await this.getAttempts(emailKey);
+      const pairAttempts = await this.getAttempts(pairKey);
 
-      // Use the higher count between IP and email for blocking decision
-      const maxCount = Math.max(ipAttempts.count, emailAttempts.count);
+      // Use the higher count between IP and email+IP for blocking decision
+      const maxCount = Math.max(ipAttempts.count, pairAttempts.count);
       const isLocked = maxCount >= MAX_LOGIN_ATTEMPTS;
-      const blockedUntil = ipAttempts.blockedUntil ?? emailAttempts.blockedUntil;
+      const blockedUntil = ipAttempts.blockedUntil ?? pairAttempts.blockedUntil;
 
-      this.logger.debug(`[RECORD ATTEMPT] IP: ${ip}, Email: ${email}`);
+      this.logger.debug(`[RECORD ATTEMPT] IP: ${ip}, Email: ${maskEmail(email)}`);
       this.logger.debug(
-        `[RECORD ATTEMPT] IP count: ${ipAttempts.count}, Email count: ${emailAttempts.count}`,
+        `[RECORD ATTEMPT] IP count: ${ipAttempts.count}, Email+IP count: ${pairAttempts.count}`,
       );
       this.logger.debug(
         `[RECORD ATTEMPT] MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS}, isLocked: ${isLocked}`,
@@ -288,30 +319,48 @@ export class AuthSecurityService {
     }
   }
 
+  /**
+   * `ip` is the address of a successful sign-in, which clears that pair and
+   * that IP; `'*'` is an admin unlock, which clears the email from every IP.
+   * The in-memory fallback is cleared too: it holds whatever was counted while
+   * Redis was failing.
+   */
   async clearLoginAttempts(ip: string, email: string): Promise<void> {
-    const emailKey = `email:${email}`;
+    const normalized = normalizeLoginEmail(email);
+    const pairPrefix = `pair:${normalized}|`;
+    // Written by releases before the email+IP key; expires on its own TTL.
+    const legacyEmailKey = `email:${email}`;
 
     try {
-      const redisClient = await this.getRedisClient();
-      if (redisClient) {
-        // Always clear email-based attempts
-        await redisClient.del(this.REDIS_KEYS.ATTEMPTS + emailKey);
-
-        // Clear IP-based attempts (unless wildcard '*')
-        if (ip !== '*') {
-          const ipKey = `ip:${ip}`;
-          await redisClient.del(this.REDIS_KEYS.ATTEMPTS + ipKey);
+      if (ip === '*') {
+        for (const key of [...this.fallbackAttempts.keys()]) {
+          if (key.startsWith(pairPrefix)) {
+            this.fallbackAttempts.delete(key);
+          }
         }
       } else {
-        // Fallback in-memory storage
-        this.fallbackAttempts.delete(emailKey);
-        if (ip !== '*') {
-          const ipKey = `ip:${ip}`;
-          this.fallbackAttempts.delete(ipKey);
+        this.fallbackAttempts.delete(pairAttemptKey(email, ip));
+        this.fallbackAttempts.delete(`ip:${ip}`);
+      }
+      this.fallbackAttempts.delete(legacyEmailKey);
+
+      const redisClient = await this.getRedisClient();
+      if (redisClient) {
+        await redisClient.del(this.REDIS_KEYS.ATTEMPTS + legacyEmailKey);
+        if (ip === '*') {
+          await deleteByPattern(
+            redisClient,
+            `${this.REDIS_KEYS.ATTEMPTS}${escapeRedisGlob(pairPrefix)}*`,
+          );
+        } else {
+          await redisClient.del([
+            this.REDIS_KEYS.ATTEMPTS + pairAttemptKey(email, ip),
+            `${this.REDIS_KEYS.ATTEMPTS}ip:${ip}`,
+          ]);
         }
       }
 
-      this.logger.debug(`Cleared login attempts for email: ${email}, IP: ${ip}`);
+      this.logger.debug(`Cleared login attempts for ${maskEmail(email)}, IP: ${ip}`);
     } catch (error) {
       this.logger.error('Error clearing login attempts:', error);
     }
@@ -401,6 +450,15 @@ export class AuthSecurityService {
     }
   }
 
+  /** A counter key for a log line: the email inside it is masked. */
+  private redactKey(key: string): string {
+    const pair = /^pair:(.*)\|([^|]*)$/.exec(key);
+    if (pair) {
+      return `pair:${maskEmail(pair[1])}|${pair[2] ?? ''}`;
+    }
+    return key.startsWith('email:') ? `email:${maskEmail(key.slice('email:'.length))}` : key;
+  }
+
   private async getAttempts(key: string): Promise<AttemptResult> {
     try {
       const redisClient = await this.getRedisClient();
@@ -409,8 +467,14 @@ export class AuthSecurityService {
       }
       return this.getInMemoryAttempts(key);
     } catch (error) {
-      this.logger.error(`Error getting attempts for key ${key}:`, error);
-      return this.createDefaultAttemptResult();
+      // A failing Redis command used to return "0 attempts, not blocked", which
+      // switched brute-force protection off exactly when Redis misbehaved. The
+      // in-memory counters are per worker, but they still count.
+      this.logger.error(
+        'Error getting login attempts from Redis; using the in-memory counters',
+        error,
+      );
+      return this.getInMemoryAttempts(key);
     }
   }
 
@@ -463,12 +527,12 @@ export class AuthSecurityService {
     try {
       const parsed: unknown = JSON.parse(attemptDataStr);
       if (!isAttemptData(parsed)) {
-        this.logger.warn(`Invalid attempt data format for key ${key}`);
+        this.logger.warn(`Invalid attempt data format for key ${this.redactKey(key)}`);
         return null;
       }
       return parsed;
     } catch (error) {
-      this.logger.warn(`Failed to parse attempt data for key ${key}:`, error);
+      this.logger.warn(`Failed to parse attempt data for key ${this.redactKey(key)}:`, error);
       return null;
     }
   }
@@ -678,7 +742,9 @@ export class AuthSecurityService {
         this.incrementInMemoryAttempts(key, now);
       }
     } catch (error) {
-      this.logger.error(`Error incrementing attempts for key ${key}:`, error);
+      // Same reason as getAttempts: a failure must still be counted somewhere.
+      this.logger.error('Error recording a login attempt in Redis; counting it in memory', error);
+      this.incrementInMemoryAttempts(key, new Date());
     }
   }
 
@@ -702,6 +768,13 @@ export class AuthSecurityService {
     const existingData = this.fallbackAttempts.get(key);
     const updatedData = this.calculateUpdatedInMemoryAttemptData(existingData, now);
 
+    if (!existingData && this.fallbackAttempts.size >= MAX_FALLBACK_ATTEMPT_KEYS) {
+      // Maps iterate in insertion order: the first key is the oldest.
+      const oldest = this.fallbackAttempts.keys().next().value;
+      if (oldest !== undefined) {
+        this.fallbackAttempts.delete(oldest);
+      }
+    }
     this.fallbackAttempts.set(key, updatedData);
   }
 
@@ -721,7 +794,7 @@ export class AuthSecurityService {
       const parsed: unknown = JSON.parse(attemptDataStr);
       return isAttemptData(parsed) ? parsed : null;
     } catch (error) {
-      this.logger.warn(`Failed to parse attempt data for key ${key}:`, error);
+      this.logger.warn(`Failed to parse attempt data for key ${this.redactKey(key)}:`, error);
       return null;
     }
   }
@@ -834,32 +907,10 @@ export class AuthSecurityService {
       this.logger.debug(`Security event emitted: ${type}`, {
         severity,
         ipAddress,
-        email,
+        ...(email !== undefined ? { email: maskEmail(email) } : {}),
       });
     } catch (error) {
       this.logger.error('Failed to emit security event:', error);
-    }
-  }
-
-  /**
-   * Check if CAPTCHA is required for the given IP/email combination
-   * (PRODUCTION-READY IMPROVEMENT)
-   */
-  async isCaptchaRequired(ip: string, email: string): Promise<boolean> {
-    const ipKey = `ip:${ip}`;
-    const emailKey = `email:${email}`;
-
-    try {
-      const [ipAttempts, emailAttempts] = await Promise.all([
-        this.getAttempts(ipKey),
-        this.getAttempts(emailKey),
-      ]);
-
-      const maxAttempts = Math.max(ipAttempts.count, emailAttempts.count);
-      return maxAttempts >= this.CAPTCHA_REQUIRED_AFTER_ATTEMPTS;
-    } catch (error) {
-      this.logger.error('Error checking CAPTCHA requirement:', error);
-      return false; // Fail open
     }
   }
 

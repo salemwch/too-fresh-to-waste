@@ -57,6 +57,7 @@ import { SessionManagementService } from './services/session-management.service'
 import { COOKIE_NAMES } from '../common/utils/cookie-security.util';
 
 import { appError, toHttpException } from '../common/errors';
+import { maskEmail } from '../common/utils/mask-email';
 /**
  * AUTHENTICATION CONTROLLER
  *
@@ -158,13 +159,13 @@ export class AuthController {
     },
   })
   async register(@Body() registerDto: RegisterDto): Promise<RegisterResponse> {
-    this.logger.log(`Registration attempt for email: ${registerDto.email}`);
+    this.logger.log(`Registration attempt for email: ${maskEmail(registerDto.email)}`);
 
     try {
       return await this.authService.register(registerDto);
     } catch (error) {
       this.logger.error(
-        `Registration failed for email: ${registerDto.email}`,
+        `Registration failed for email: ${maskEmail(registerDto.email)}`,
         (error as Error).stack,
       );
       // Re-throw the original exception to preserve status code (409 for ConflictException, 400 for BadRequestException)
