@@ -3790,23 +3790,23 @@
   },
   "apps/web/src/components/dashboard/merchant/impact-cards.tsx": {
     "A": {
-      "p:24": 3,
       "gap:16": 2,
-      "mb:16": 1,
+      "p:24": 5,
+      "mb:16": 2,
+      "mb:6": 2,
       "gap:4": 1,
-      "mb:6": 1,
       "gap:8": 1,
       "mt:8": 1
     },
     "B": {
-      "square:160": 1,
-      "square:36": 1
+      "square:36": 2,
+      "square:160": 1
     },
     "C": {
+      "h:36": 2,
+      "w:36": 2,
       "h:160": 1,
-      "w:160": 1,
-      "h:36": 1,
-      "w:36": 1
+      "w:160": 1
     },
     "D": {
       "top:48": 1,

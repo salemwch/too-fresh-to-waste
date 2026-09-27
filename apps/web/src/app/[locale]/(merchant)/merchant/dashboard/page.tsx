@@ -21,7 +21,7 @@ import {
   CommissionCard,
   PeriodBar,
 } from '@/components/dashboard/merchant';
-import { useOrderStats, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
+import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { useSalesChart } from '@/hooks/use-merchant-sales';
 import { useSalesPeriod } from '@/hooks/use-sales-period';
 import type { MerchantSalesChart } from '@/types/payments';
@@ -36,10 +36,6 @@ function MerchantDashboardContent() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [period, setPeriod] = useSalesPeriod();
 
-  // Shared with ImpactCards' own `useOrderStats(period)` call - same query
-  // key, so this is not a second request, just the value CampaignSidePanel
-  // also needs.
-  const orderStatsQuery = useOrderStats(period);
   const chartQuery = useSalesChart(period);
   const myEstablishmentQuery = useMyEstablishment();
 
@@ -87,7 +83,6 @@ function MerchantDashboardContent() {
           )}
         </div>
         <CampaignSidePanel
-          stats={orderStatsQuery.data}
           onLaunchCampaign={() => setPanelOpen(true)}
           isTrialSuspended={isTrialSuspended}
         />

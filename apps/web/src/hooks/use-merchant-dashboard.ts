@@ -109,11 +109,6 @@ interface MerchantOffersResult {
 // ─── Hooks ──────────────────────────────────────────────────────────────────
 
 /**
- * Order stats: totals, breakdown by status, revenue summary.
- * Scoped to the given startDate (undefined = all-time).
- * Backend: GET /orders/stats?startDate=
- */
-/**
  * Today's sales, cash and online together. The wallet card shows only money
  * TFTW holds; this is the day as the merchant lived it. Refetched every minute
  * while the dashboard is open - a sale lands the moment a pickup is confirmed.

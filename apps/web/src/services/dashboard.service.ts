@@ -44,11 +44,6 @@ const LEADERBOARD_BASE = '/leaderboard';
 const PAYMENTS_BASE = '/payments';
 
 export const dashboardService = {
-  /**
-   * GET /orders/stats?startDate=
-   * Merchant/Admin order statistics (totals, breakdown by status, revenue)
-   * Pass startDate to restrict results to a specific time window.
-   */
   /** GET /orders/merchant-today-sales?establishmentId= - cash and online together. */
   getTodaySales(establishmentId?: string) {
     return apiClient.get<BackendEnvelope<TodaySales>>(`${ORDERS_BASE}/merchant-today-sales`, {

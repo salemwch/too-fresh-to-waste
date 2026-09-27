@@ -2,24 +2,27 @@
 
 import { Megaphone, ArrowUpRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMerchantOffersFiltered } from '@/hooks/use-merchant-dashboard';
-import type { OrderStatsResponse } from '@/types/dashboard';
+import { useMerchantOffersFiltered, useOrderStats } from '@/hooks/use-merchant-dashboard';
 
 interface CampaignSidePanelProps {
-  stats: OrderStatsResponse | null | undefined;
   onLaunchCampaign: () => void;
   isTrialSuspended?: boolean;
 }
 
 const NEXT_MILESTONE = 500;
 
-export function CampaignSidePanel({
-  stats,
-  onLaunchCampaign,
-  isTrialSuspended,
-}: CampaignSidePanelProps) {
+/**
+ * "{remaining} more bags to reach Legendary status" is a lifetime tier, not a
+ * per-period figure - it must never follow the dashboard's period bar.
+ * `useOrderStats()` is called with no `period` on purpose (all-time), even
+ * though `ImpactCards` calls the same hook scoped to `period` elsewhere on
+ * the page: passing the page's period in here once made a merchant with 480
+ * lifetime bags see "497 more bags" while looking at "Today".
+ */
+export function CampaignSidePanel({ onLaunchCampaign, isTrialSuspended }: CampaignSidePanelProps) {
   const t = useTranslations('dashboard.campaign');
   const { data: offersData } = useMerchantOffersFiltered(1, 3, 'active');
+  const { data: stats } = useOrderStats();
   const bagsSaved = stats?.bagsSaved ?? 0;
   const remaining = Math.max(0, NEXT_MILESTONE - bagsSaved);
 

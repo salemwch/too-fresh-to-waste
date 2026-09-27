@@ -9,10 +9,12 @@ import type { MerchantSalesSummary } from '@/types/payments';
 const mockUseOrderStats = jest.fn();
 const mockUseCarbonMetrics = jest.fn();
 const mockUseSocialImpact = jest.fn();
+const mockUseMyEstablishment = jest.fn();
 jest.mock('@/hooks/use-merchant-dashboard', () => ({
   useOrderStats: (...args: unknown[]) => mockUseOrderStats(...args),
   useCarbonMetrics: (...args: unknown[]) => mockUseCarbonMetrics(...args),
   useSocialImpact: (...args: unknown[]) => mockUseSocialImpact(...args),
+  useMyEstablishment: (...args: unknown[]) => mockUseMyEstablishment(...args),
 }));
 
 const mockUseSalesSummary = jest.fn();
@@ -51,9 +53,14 @@ function summaryOf(overrides: Partial<MerchantSalesSummary['total']>): MerchantS
   };
 }
 
-const settled = (data: unknown) => ({ data, isLoading: false, isError: false });
-const loading = () => ({ data: undefined, isLoading: true, isError: false });
-const errored = () => ({ data: undefined, isLoading: false, isError: true });
+const settled = (data: unknown) => ({ data, isLoading: false, isError: false, error: null });
+const loading = () => ({ data: undefined, isLoading: true, isError: false, error: null });
+const errored = (code?: string) => ({
+  data: undefined,
+  isLoading: false,
+  isError: true,
+  error: code ? { response: { data: { code } } } : new Error('boom'),
+});
 
 /** Every query resolved, so a single test can override just the one it cares about. */
 function mockAllSettled(summary: MerchantSalesSummary, stats: OrderStatsResponse = baseStats) {
@@ -76,6 +83,8 @@ describe('ImpactCards', () => {
     mockUseSalesSummary.mockReset();
     mockUseCarbonMetrics.mockReset();
     mockUseSocialImpact.mockReset();
+    // No establishment -> SubscriptionModal never mounts; not under test here.
+    mockUseMyEstablishment.mockReset().mockReturnValue({ data: undefined });
   });
 
   it("shows the merchant's net earnings from the shared earnings summary, not the order-stats gross total", () => {
@@ -117,36 +126,87 @@ describe('ImpactCards', () => {
     expect(screen.getByText('~1 people served - Today.')).toBeTruthy();
   });
 
-  it.each([
-    ['stats', mockUseOrderStats],
-    ['summary', mockUseSalesSummary],
-    ['carbon', mockUseCarbonMetrics],
-    ['social', mockUseSocialImpact],
-  ])('shows a skeleton, not invented zeros, while %s is still loading', (_which, mock) => {
-    mockAllSettled(summaryOf({}));
-    (mock as jest.Mock).mockReturnValue(loading());
+  it('shows a skeleton for just the cards backed by the query that is still loading, not the whole grid', () => {
+    mockUseOrderStats.mockReturnValue(settled(baseStats));
+    mockUseSalesSummary.mockReturnValue(settled(summaryOf({ earned: 42 })));
+    mockUseCarbonMetrics.mockReturnValue(loading());
+    mockUseSocialImpact.mockReturnValue(settled({ mealsDistributed: 1, peopleServedEstimate: 1 }));
     renderCards();
 
-    expect(screen.queryByTestId('impact-cards-error')).toBeNull();
-    // None of the KPI copy (which would only be reachable past the loading
-    // guard) is on screen while any one of the four queries is still loading.
-    expect(screen.queryByText(/discount given/)).toBeNull();
-    expect(screen.queryByText(/completion rate/)).toBeNull();
+    // Summary-backed cards (rescued, revenue) render normally...
+    expect(screen.getByText('42')).toBeTruthy();
+    // ...while only the carbon-backed cards (carbon, water - 2 of them) show a skeleton.
+    expect(screen.getAllByTestId('impact-card-skeleton')).toHaveLength(2);
   });
 
-  it.each([
-    ['stats', mockUseOrderStats],
-    ['summary', mockUseSalesSummary],
-    ['carbon', mockUseCarbonMetrics],
-    ['social', mockUseSocialImpact],
-  ])('shows a translated error, not invented zeros, when %s fails to load', (_which, mock) => {
-    mockAllSettled(summaryOf({}));
-    (mock as jest.Mock).mockReturnValue(errored());
+  it('a failing query only errors the cards backed by it, leaving the others showing real values', () => {
+    mockUseOrderStats.mockReturnValue(settled(baseStats));
+    mockUseSalesSummary.mockReturnValue(
+      settled(summaryOf({ earned: 42, originalValue: 20, foodValue: 10 })),
+    );
+    mockUseCarbonMetrics.mockReturnValue(errored());
+    mockUseSocialImpact.mockReturnValue(settled({ mealsDistributed: 1, peopleServedEstimate: 1 }));
     renderCards();
 
-    expect(screen.getByTestId('impact-cards-error')).toHaveTextContent(
-      'Could not load your impact figures.',
+    expect(screen.getByText('42')).toBeTruthy();
+    expect(screen.getByText('50% discount given')).toBeTruthy();
+    expect(screen.getAllByTestId('impact-card-error')).toHaveLength(2); // carbon + water
+    expect(screen.queryByTestId('impact-card-locked')).toBeNull();
+  });
+
+  it('a background refetch failing keeps showing the values already on screen, for every card', () => {
+    mockUseOrderStats.mockReturnValue({ ...settled(baseStats), isError: true });
+    mockUseSalesSummary.mockReturnValue({
+      ...settled(summaryOf({ earned: 42, originalValue: 20, foodValue: 10 })),
+      isError: true,
+    });
+    mockUseCarbonMetrics.mockReturnValue({
+      ...settled({ carbonKgAvoided: 5, carKmEquivalent: 40, waterLitersAvoided: 100 }),
+      isError: true,
+    });
+    mockUseSocialImpact.mockReturnValue({
+      ...settled({ mealsDistributed: 1, peopleServedEstimate: 1 }),
+      isError: true,
+    });
+    renderCards();
+
+    expect(screen.getByText('42')).toBeTruthy();
+    expect(screen.getByText('50% discount given')).toBeTruthy();
+    expect(screen.getByText('5')).toBeTruthy(); // carbonKg
+    expect(screen.queryByTestId('impact-card-error')).toBeNull();
+    expect(screen.queryByTestId('impact-card-locked')).toBeNull();
+  });
+
+  it('a non-Pro merchant sees the three money/completion cards with real values and a locked state on the two Pro cards', () => {
+    mockUseOrderStats.mockReturnValue(settled(baseStats));
+    mockUseSalesSummary.mockReturnValue(
+      settled(summaryOf({ earned: 42, originalValue: 20, foodValue: 10 })),
     );
-    expect(screen.queryByText(/discount given/)).toBeNull();
+    mockUseCarbonMetrics.mockReturnValue(errored('PRO_PLAN_REQUIRED'));
+    mockUseSocialImpact.mockReturnValue(errored('PRO_PLAN_REQUIRED'));
+    renderCards();
+
+    // Rescued + earned revenue still show real values - never gated by carbon/social.
+    expect(screen.getByText('42')).toBeTruthy();
+    expect(screen.getByText('50% discount given')).toBeTruthy();
+    expect(screen.getByText('+80% completion rate')).toBeTruthy();
+
+    // Carbon + water (1 query) + social (1 query) = 3 locked cards, reusing
+    // the ProGate upsell copy, not a generic error.
+    expect(screen.getAllByTestId('impact-card-locked')).toHaveLength(3);
+    expect(screen.getAllByText('Pro Feature').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Upgrade to Pro').length).toBeGreaterThan(0);
+    expect(screen.queryByTestId('impact-card-error')).toBeNull();
+  });
+
+  it('hides the completion-rate delta rather than showing a fabricated "+0%" when order stats has no data', () => {
+    mockUseOrderStats.mockReturnValue(errored());
+    mockUseSalesSummary.mockReturnValue(settled(summaryOf({ earned: 42 })));
+    mockUseCarbonMetrics.mockReturnValue(settled(undefined));
+    mockUseSocialImpact.mockReturnValue(settled(undefined));
+    renderCards();
+
+    expect(screen.getByText('42')).toBeTruthy();
+    expect(screen.queryByText(/completion rate/)).toBeNull();
   });
 });
