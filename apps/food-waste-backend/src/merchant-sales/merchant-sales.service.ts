@@ -64,11 +64,20 @@ export class MerchantSalesService {
     return result;
   }
 
+  /**
+   * `diagnosticsPeriod` labels the integrity report only (never affects the
+   * calculation) - a caller that already resolved a named preset (Analytics,
+   * Task 14) passes it through so `MERCHANT_EARNINGS_UNVERIFIED_ORDERS` says
+   * e.g. `'month'` instead of always `'custom'`. Defaults to `'custom'`,
+   * correct for an actual custom range and for a synthetic window (e.g. the
+   * comparison period) that was never itself a named preset.
+   */
   async summaryForRange(
     scope: SalesScope,
     range: { from: Date | null; to: Date },
+    diagnosticsPeriod: MerchantSalesSummary['period'] = 'custom',
   ): Promise<MerchantSalesSummary> {
-    const result = await this.compute(scope, range, 'custom');
+    const result = await this.compute(scope, range, diagnosticsPeriod);
     return result;
   }
 

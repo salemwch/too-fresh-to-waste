@@ -275,9 +275,10 @@ export interface BusinessMetricsRequest {
 // ─── Quick Stats ────────────────────────────────────────────────────────────
 
 export interface QuickStatsResponse {
+  /** Merchant earnings (food only) - never the customer total. */
   revenue: number;
   orders: number;
-  averageOrderValue: number;
+  averageFoodValue: number;
   sustainability: {
     foodSaved: number;
     carbonReduced: number;

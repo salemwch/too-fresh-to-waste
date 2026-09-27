@@ -732,18 +732,6 @@
         "foodSaved": "الطعام المُنقَذ",
         "co2Avoided": "CO₂ المُتجنَّب"
       },
-      "revenueChart": {
-        "title": "اتجاه الأرباح",
-        "subtitle": "أرباحك عبر الزمن",
-        "tooltip": {
-          "revenue": "الأرباح",
-          "orders": "الطلبات"
-        }
-      },
-      "ordersChart": {
-        "title": "حجم الطلبات",
-        "subtitle": "الطلبات عبر الزمن"
-      },
       "customerLocations": {
         "title": "مواقع العملاء",
         "subtitle": "أهم المدن حسب عدد الطلبات",

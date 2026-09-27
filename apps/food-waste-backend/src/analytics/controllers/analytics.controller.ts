@@ -40,6 +40,7 @@ import {
   RealTimeMetrics,
   QuickStatsResponse,
   CacheStatistics,
+  ResolvedPeriodFlag,
 } from '../interfaces/analytics.interface';
 import { AnalyticsService } from '../services/analytics.service';
 import { strictValidation } from '../../common/pipes/validation-pipes';
@@ -150,7 +151,7 @@ export class AnalyticsController {
     }
 
     const periodResolved = this.resolvePeriod(request);
-    const scopedRequest: BusinessMetricsRequestDto = {
+    const scopedRequest: BusinessMetricsRequestDto & ResolvedPeriodFlag = {
       ...periodResolved,
       filters: { ...periodResolved.filters, establishmentIds: effectiveEstablishmentIds },
     };
@@ -164,13 +165,24 @@ export class AnalyticsController {
    * `filters.dateRange` - `custom` (no `period` sent) keeps the caller's own
    * dates, exactly as before.
    *
+   * The resolved range is marked `resolvedFromPeriod: true` - an internal
+   * flag on `BusinessMetricsRequestDto & ResolvedPeriodFlag`, never a DTO
+   * property, so a client can never set it itself. `all` resolves to
+   * `[epoch, now]`, which `AnalyticsUtil.validateAnalyticsFilters`'s 2-year
+   * cap would otherwise reject with 400 `INVALID_FILTERS` - a cap meant to
+   * bound caller-supplied custom ranges, not one the server itself produced.
+   * The flag tells that check to skip only this range, while a genuine custom
+   * `dateRange` over 2 years is still rejected.
+   *
    * `all` has no meaningful "previous period": comparing `[epoch, now]`
    * against an arbitrary pre-epoch window would produce a trend delta with no
    * real meaning, so comparisons are suppressed for it rather than fabricated
    * - every metric's `trend` then reports 'stable' with no `previousValue`
    * (`AnalyticsUtil.calculateMetricValue` with `previous === undefined`).
    */
-  private resolvePeriod(request: BusinessMetricsRequestDto): BusinessMetricsRequestDto {
+  private resolvePeriod(
+    request: BusinessMetricsRequestDto,
+  ): BusinessMetricsRequestDto & ResolvedPeriodFlag {
     if (!request.period) {
       return request;
     }
@@ -178,6 +190,7 @@ export class AnalyticsController {
     const range = resolveSalesPeriod(request.period, new Date());
     return {
       ...request,
+      resolvedFromPeriod: true,
       filters: {
         ...request.filters,
         dateRange: {

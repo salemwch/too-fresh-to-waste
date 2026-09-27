@@ -23,6 +23,18 @@ export interface TimeSeries {
 
 // ==================== Business Analytics Interfaces ====================
 
+/**
+ * Internal-only marker, intersected onto `BusinessMetricsRequestDto` by the
+ * controller - never a DTO property, so a client can never set it. Set when
+ * `filters.dateRange` was resolved server-side from a merchant-facing
+ * `period` (e.g. `all`, `[epoch, now]`) rather than supplied by the caller,
+ * so `AnalyticsUtil.validateAnalyticsFilters` can skip the 2-year cap for
+ * exactly that range and no other.
+ */
+export interface ResolvedPeriodFlag {
+  resolvedFromPeriod?: boolean;
+}
+
 export interface BusinessMetrics {
   totalEarnings: MetricValue;
   totalOrders: MetricValue;

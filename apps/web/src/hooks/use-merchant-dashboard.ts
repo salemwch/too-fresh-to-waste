@@ -8,9 +8,7 @@ import type {
   MerchantOrder,
   OrderStatus,
   MerchantOffer,
-  RevenueChartItem,
   PaginationMeta,
-  ChartGranularity,
   MyEstablishment,
   CreateSurpriseBagPayload,
   ReactivateOfferPayload,
@@ -54,8 +52,6 @@ export const dashboardKeys = {
     [...dashboardKeys.all, 'active-offer-count', estId ?? 'all'] as const,
   donationStats: () => [...dashboardKeys.all, 'donation-stats'] as const,
   monthlyBagGoal: () => [...dashboardKeys.all, 'community-goal'] as const,
-  revenueChart: (granularity: ChartGranularity, value: number, estId?: string) =>
-    [...dashboardKeys.all, 'revenue-chart', granularity, value, estId ?? 'all'] as const,
   myEstablishment: () => [...dashboardKeys.all, 'my-establishment'] as const,
   esgTier: (estId?: string) => [...dashboardKeys.all, 'esg-tier', estId ?? 'all'] as const,
   monthlyGoal: (estId?: string) => [...dashboardKeys.all, 'monthly-goal', estId ?? 'all'] as const,
@@ -142,28 +138,6 @@ export function useOrderStats(period?: SalesPeriod) {
       return response.data.data;
     },
     staleTime: 2 * 60 * 1000,
-  });
-}
-
-/**
- * Revenue chart data for day / week / month granularity.
- * `granularity` and `value` are derived from the selected DatePreset via PRESET_CONFIG.
- * Backend: GET /orders/merchant-revenue-chart?granularity=&value=
- */
-export function useRevenueChart(granularity: ChartGranularity, value: number) {
-  const estId = useAuthStore(s => s.activeEstablishmentId);
-  return useQuery({
-    queryKey: dashboardKeys.revenueChart(granularity, value, estId ?? undefined),
-    queryFn: async (): Promise<RevenueChartItem[]> => {
-      const response = await dashboardService.getRevenueChart(
-        granularity,
-        value,
-        estId ?? undefined,
-      );
-      return response.data.data;
-    },
-    staleTime: 30 * 1000,
-    refetchInterval: 30 * 1000,
   });
 }
 

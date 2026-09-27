@@ -15,6 +15,7 @@ import {
   Establishment,
   EstablishmentDocument,
 } from '../../establishments/schemas/establishment.schema';
+import type { SalesPeriod } from '../../merchant-sales/merchant-sales.period';
 import { MerchantSalesService } from '../../merchant-sales/merchant-sales.service';
 import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
 import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
@@ -42,6 +43,7 @@ import {
   AggregationOptions,
   CacheStatistics,
   MetricValue,
+  ResolvedPeriodFlag,
 } from '../interfaces/analytics.interface';
 import { CacheService } from '../../common/services/cache.service';
 import { AnalyticsCache, AnalyticsCacheDocument } from '../schemas/analytics-cache.schema';
@@ -242,7 +244,9 @@ export class AnalyticsService {
     };
   }
 
-  async getBusinessMetrics(request: BusinessMetricsRequestDto): Promise<BusinessMetrics> {
+  async getBusinessMetrics(
+    request: BusinessMetricsRequestDto & ResolvedPeriodFlag,
+  ): Promise<BusinessMetrics> {
     try {
       const cacheKey = this.generateCacheKey('business_metrics', this.serializeForCache(request));
 
@@ -258,9 +262,14 @@ export class AnalyticsService {
       this.logger.log('Computing business metrics');
       const startTime = Date.now();
 
-      // Convert and validate filters
+      // Convert and validate filters. `resolvedFromPeriod` is never a DTO
+      // field - only the controller can set it, on a range it resolved
+      // itself (see ResolvedPeriodFlag) - so the 2-year cap can never be
+      // bypassed by client input, only by the server's own `period` handling.
       const filters = this.convertFiltersToInterface(request.filters);
-      const validationErrors = AnalyticsUtil.validateAnalyticsFilters(filters);
+      const validationErrors = AnalyticsUtil.validateAnalyticsFilters(filters, {
+        skipMaxRangeCheck: request.resolvedFromPeriod === true,
+      });
       if (validationErrors.length > 0) {
         throw new BadRequestException(
           appError('INVALID_FILTERS', { details: String(validationErrors.join(', ')) }),
@@ -273,9 +282,12 @@ export class AnalyticsService {
           ? AnalyticsUtil.getComparisonDateRange(filters.dateRange, filters.granularity)
           : null;
 
-      // Parallel execution of metrics calculations
+      // Parallel execution of metrics calculations. The current period
+      // carries the real preset (when the caller resolved one) into the
+      // shared-earnings diagnostics; the comparison window is always a
+      // synthetic range, never a named preset, so it stays 'custom'.
       const [currentMetrics, previousMetrics, sustainabilityData] = await Promise.all([
-        this.calculateCurrentBusinessMetrics(filters),
+        this.calculateCurrentBusinessMetrics(filters, request.period),
         comparisonRange
           ? this.calculateCurrentBusinessMetrics({
               ...filters,
@@ -629,7 +641,18 @@ export class AnalyticsService {
 
   // ==================== Private Helper Methods ====================
 
-  private async calculateCurrentBusinessMetrics(filters: AnalyticsFilters) {
+  /**
+   * `diagnosticsPeriod` labels the integrity report (unverified/case-3
+   * orders) if this range has one - the real preset (e.g. `month`, `all`)
+   * for the current period, `'custom'` (the default) for a genuinely custom
+   * range or the synthetic comparison window, which is never itself a named
+   * preset. It affects nothing about the calculation - see
+   * `MerchantSalesService.reportUnverified`.
+   */
+  private async calculateCurrentBusinessMetrics(
+    filters: AnalyticsFilters,
+    diagnosticsPeriod?: SalesPeriod,
+  ) {
     const matchPipeline = AnalyticsUtil.createMatchPipeline(filters);
     const completedStatuses = [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED];
 
@@ -654,6 +677,7 @@ export class AnalyticsService {
       this.merchantSalesService.summaryForRange(
         { kind: 'establishments', establishmentIds: filters.establishmentIds ?? [] },
         { from: filters.dateRange.startDate, to: filters.dateRange.endDate },
+        diagnosticsPeriod,
       ),
     ]);
 

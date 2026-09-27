@@ -732,18 +732,6 @@
         "foodSaved": "Nourriture sauvée",
         "co2Avoided": "CO₂ évité"
       },
-      "revenueChart": {
-        "title": "Tendance des gains",
-        "subtitle": "Vos gains au fil du temps",
-        "tooltip": {
-          "revenue": "Gains",
-          "orders": "Commandes"
-        }
-      },
-      "ordersChart": {
-        "title": "Volume de commandes",
-        "subtitle": "Commandes au fil du temps"
-      },
       "customerLocations": {
         "title": "Localisation des clients",
         "subtitle": "Villes principales par nombre de commandes",

@@ -732,18 +732,6 @@
         "foodSaved": "Food Saved",
         "co2Avoided": "CO₂ Avoided"
       },
-      "revenueChart": {
-        "title": "Earnings Trend",
-        "subtitle": "Your earnings over time",
-        "tooltip": {
-          "revenue": "Earnings",
-          "orders": "Orders"
-        }
-      },
-      "ordersChart": {
-        "title": "Order Volume",
-        "subtitle": "Orders over time"
-      },
       "customerLocations": {
         "title": "Customer Locations",
         "subtitle": "Top cities by order count",
