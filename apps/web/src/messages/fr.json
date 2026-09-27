@@ -2057,30 +2057,32 @@
       "carbon": {
         "title": "Impact Carbone (Scope 3)",
         "unit": "kg CO₂",
-        "delta": "évités cette période",
+        "delta": "évités - {period}",
         "note": "Équivalent à {km} km parcourus en voiture."
       },
       "social": {
         "title": "Impact Social",
         "unit": "repas",
         "delta": "distribués",
-        "note": "~{people} personnes nourries ce mois-ci."
+        "note": "~{people} personnes nourries - {period}."
       },
       "water": {
         "title": "Eau économisée",
         "unit": "litres",
         "delta": "empreinte évitée",
         "note": "Eau qui aurait été consommée pour produire ces aliments."
-      }
+      },
+      "error": "Impossible de charger vos indicateurs d'impact."
     },
     "greeting": "Félicitations, {name}.",
     "impactStatement": "Votre impact aujourd'hui est équivalent à {trees} arbres plantés.",
     "trendChart": {
-      "subtitle": "Tendance hebdomadaire",
+      "subtitle": "Gains sur la période",
       "title": "Gains",
       "bagsUnit": "paniers",
       "peakLabel": "★ Performance maximale !",
-      "noData": "Aucune donnée disponible"
+      "noData": "Aucune donnée disponible",
+      "error": "Impossible de charger le graphique des gains."
     },
     "reportingBar": {
       "title": "Besoin de votre Bilan Carbone ?",

@@ -6,16 +6,25 @@ import { ImpactCards } from '../impact-cards';
 import type { OrderStatsResponse } from '@/types/dashboard';
 import type { MerchantSalesSummary } from '@/types/payments';
 
+const mockUseOrderStats = jest.fn();
+const mockUseCarbonMetrics = jest.fn();
+const mockUseSocialImpact = jest.fn();
 jest.mock('@/hooks/use-merchant-dashboard', () => ({
-  useCarbonMetrics: () => ({ data: undefined }),
-  useSocialImpact: () => ({ data: undefined }),
+  useOrderStats: (...args: unknown[]) => mockUseOrderStats(...args),
+  useCarbonMetrics: (...args: unknown[]) => mockUseCarbonMetrics(...args),
+  useSocialImpact: (...args: unknown[]) => mockUseSocialImpact(...args),
+}));
+
+const mockUseSalesSummary = jest.fn();
+jest.mock('@/hooks/use-merchant-sales', () => ({
+  useSalesSummary: (...args: unknown[]) => mockUseSalesSummary(...args),
 }));
 
 const baseStats: OrderStatsResponse = {
   totalOrders: 10,
-  totalRevenue: 240, // gross — no longer read by ImpactCards, kept for the type
-  totalEarnings: 162, // no longer read by ImpactCards either — summary.total.earned is
-  totalOriginalValue: 300, // no longer read by ImpactCards — summary.total.originalValue is
+  totalRevenue: 240, // gross - not read by ImpactCards any more
+  totalEarnings: 162, // not read either - summary.total.earned is, below
+  totalOriginalValue: 300, // not read either - summary.total.originalValue is
   pendingOrders: 0,
   confirmedOrders: 0,
   readyOrders: 0,
@@ -42,45 +51,102 @@ function summaryOf(overrides: Partial<MerchantSalesSummary['total']>): MerchantS
   };
 }
 
-const renderCards = (stats: OrderStatsResponse, summary: MerchantSalesSummary | undefined) =>
+const settled = (data: unknown) => ({ data, isLoading: false, isError: false });
+const loading = () => ({ data: undefined, isLoading: true, isError: false });
+const errored = () => ({ data: undefined, isLoading: false, isError: true });
+
+/** Every query resolved, so a single test can override just the one it cares about. */
+function mockAllSettled(summary: MerchantSalesSummary, stats: OrderStatsResponse = baseStats) {
+  mockUseOrderStats.mockReturnValue(settled(stats));
+  mockUseSalesSummary.mockReturnValue(settled(summary));
+  mockUseCarbonMetrics.mockReturnValue(settled(undefined));
+  mockUseSocialImpact.mockReturnValue(settled(undefined));
+}
+
+const renderCards = (period: 'today' | '7d' | '30d' | 'month' | 'all' = 'month') =>
   render(
     <NextIntlClientProvider locale='en' messages={en}>
-      <ImpactCards stats={stats} summary={summary} />
+      <ImpactCards period={period} />
     </NextIntlClientProvider>,
   );
 
 describe('ImpactCards', () => {
+  beforeEach(() => {
+    mockUseOrderStats.mockReset();
+    mockUseSalesSummary.mockReset();
+    mockUseCarbonMetrics.mockReset();
+    mockUseSocialImpact.mockReset();
+  });
+
   it("shows the merchant's net earnings from the shared earnings summary, not the order-stats gross total", () => {
-    const summary = summaryOf({ earned: 162, originalValue: 300, foodValue: 240 });
-    renderCards(baseStats, summary);
+    mockAllSettled(summaryOf({ earned: 162, originalValue: 300, foodValue: 240 }));
+    renderCards();
 
     expect(screen.getByText('162')).toBeTruthy();
-    // 240 was the old `totalRevenue` fixture value — must not leak in as a card value.
+    // 240 is `baseStats.totalRevenue` - must not leak in as a card value.
     expect(screen.queryByText('240')).toBeNull();
   });
 
   it('computes the discount percentage from food value vs original value, not gross revenue', () => {
     // originalValue 20, foodValue 10 -> (20 - 10) / 20 = 50%.
-    const summary = summaryOf({ earned: 8, originalValue: 20, foodValue: 10 });
-    renderCards(baseStats, summary);
+    mockAllSettled(summaryOf({ earned: 8, originalValue: 20, foodValue: 10 }));
+    renderCards();
 
     expect(screen.getByText('50% discount given')).toBeTruthy();
   });
 
-  it("a delivery order's fee cannot change the discount percentage - the summary carries no fee", () => {
-    // Same food economics as above (originalValue 20, foodValue 10 -> 50%), but
-    // this order also had a delivery fee. `summary.total` has no fee field at
-    // all, so there is nothing for a delivery order to inflate or shrink here.
-    const summary = summaryOf({ earned: 8, originalValue: 20, foodValue: 10 });
-    renderCards(baseStats, summary);
+  it('passes `period` to every one of its four queries', () => {
+    mockAllSettled(summaryOf({}));
+    renderCards('7d');
 
-    expect(screen.getByText('50% discount given')).toBeTruthy();
-    expect('deliveryFee' in summary.total).toBe(false);
+    expect(mockUseOrderStats).toHaveBeenCalledWith('7d');
+    expect(mockUseSalesSummary).toHaveBeenCalledWith('7d');
+    expect(mockUseCarbonMetrics).toHaveBeenCalledWith('7d');
+    expect(mockUseSocialImpact).toHaveBeenCalledWith('7d');
   });
 
-  it('renders zero-valued cards rather than throwing when the summary has not loaded yet', () => {
-    renderCards(baseStats, undefined);
+  it('interpolates the actual period into copy that used to always say "this period"/"this month"', () => {
+    mockUseOrderStats.mockReturnValue(settled(baseStats));
+    mockUseSalesSummary.mockReturnValue(settled(summaryOf({})));
+    mockUseCarbonMetrics.mockReturnValue(settled({ carbonKgAvoided: 5, carKmEquivalent: 40 }));
+    mockUseSocialImpact.mockReturnValue(settled({ mealsDistributed: 3, peopleServedEstimate: 1 }));
+    renderCards('today');
 
-    expect(screen.getByText('0% discount given')).toBeTruthy();
+    // en.json: "delta": "avoided - {period}" / "note": "~{people} people served - {period}."
+    expect(screen.getByText('avoided - Today')).toBeTruthy();
+    expect(screen.getByText('~1 people served - Today.')).toBeTruthy();
+  });
+
+  it.each([
+    ['stats', mockUseOrderStats],
+    ['summary', mockUseSalesSummary],
+    ['carbon', mockUseCarbonMetrics],
+    ['social', mockUseSocialImpact],
+  ])('shows a skeleton, not invented zeros, while %s is still loading', (_which, mock) => {
+    mockAllSettled(summaryOf({}));
+    (mock as jest.Mock).mockReturnValue(loading());
+    renderCards();
+
+    expect(screen.queryByTestId('impact-cards-error')).toBeNull();
+    // None of the KPI copy (which would only be reachable past the loading
+    // guard) is on screen while any one of the four queries is still loading.
+    expect(screen.queryByText(/discount given/)).toBeNull();
+    expect(screen.queryByText(/completion rate/)).toBeNull();
+  });
+
+  it.each([
+    ['stats', mockUseOrderStats],
+    ['summary', mockUseSalesSummary],
+    ['carbon', mockUseCarbonMetrics],
+    ['social', mockUseSocialImpact],
+  ])('shows a translated error, not invented zeros, when %s fails to load', (_which, mock) => {
+    mockAllSettled(summaryOf({}));
+    (mock as jest.Mock).mockReturnValue(errored());
+    renderCards();
+
+    expect(screen.getByTestId('impact-cards-error')).toHaveTextContent(
+      'Could not load your impact figures.',
+    );
+    expect(screen.queryByText(/discount given/)).toBeNull();
   });
 });

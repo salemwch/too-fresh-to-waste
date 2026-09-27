@@ -39,8 +39,8 @@ import type { SalesPeriod } from '@/types/payments';
 export const dashboardKeys = {
   all: ['merchant-dashboard'] as const,
   todaySales: (estId?: string) => [...dashboardKeys.all, 'today-sales', estId ?? 'all'] as const,
-  orderStats: (startDate?: string, estId?: string) =>
-    [...dashboardKeys.all, 'order-stats', startDate ?? 'all-time', estId ?? 'all'] as const,
+  orderStats: (period?: SalesPeriod, estId?: string) =>
+    [...dashboardKeys.all, 'order-stats', period ?? 'all-time', estId ?? 'all'] as const,
   recentOrders: (page: number, limit: number) =>
     [...dashboardKeys.all, 'recent-orders', page, limit] as const,
   merchantOrders: (page = 1, limit = 50) =>
@@ -59,10 +59,22 @@ export const dashboardKeys = {
   myEstablishment: () => [...dashboardKeys.all, 'my-establishment'] as const,
   esgTier: (estId?: string) => [...dashboardKeys.all, 'esg-tier', estId ?? 'all'] as const,
   monthlyGoal: (estId?: string) => [...dashboardKeys.all, 'monthly-goal', estId ?? 'all'] as const,
-  carbonMetrics: (since?: string, estId?: string) =>
-    [...dashboardKeys.all, 'carbon-metrics', since ?? 'all', estId ?? 'all'] as const,
-  socialImpact: (since?: string, estId?: string) =>
-    [...dashboardKeys.all, 'social-impact', since ?? 'all', estId ?? 'all'] as const,
+  carbonMetrics: (period?: SalesPeriod, since?: string, estId?: string) =>
+    [
+      ...dashboardKeys.all,
+      'carbon-metrics',
+      period ?? 'none',
+      since ?? 'all',
+      estId ?? 'all',
+    ] as const,
+  socialImpact: (period?: SalesPeriod, since?: string, estId?: string) =>
+    [
+      ...dashboardKeys.all,
+      'social-impact',
+      period ?? 'none',
+      since ?? 'all',
+      estId ?? 'all',
+    ] as const,
   leaderboard: (limit: number) => [...dashboardKeys.all, 'leaderboard', limit] as const,
   myRank: (estId?: string) => [...dashboardKeys.all, 'my-rank', estId ?? 'all'] as const,
   streak: () => [...dashboardKeys.all, 'streak'] as const,
@@ -119,12 +131,19 @@ export function useTodaySales() {
   });
 }
 
-export function useOrderStats(startDate?: Date) {
+/**
+ * Order stats: totals, breakdown by status, revenue summary.
+ *
+ * `period` is resolved server-side in Africa/Tunis, exactly like the earnings
+ * summary/chart, so the dashboard's KPI cards agree with the earnings card
+ * for the same period. Backend: `GET /orders/stats?period=`.
+ */
+export function useOrderStats(period?: SalesPeriod) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.orderStats(startDate?.toISOString(), estId ?? undefined),
+    queryKey: dashboardKeys.orderStats(period, estId ?? undefined),
     queryFn: async (): Promise<OrderStatsResponse> => {
-      const response = await dashboardService.getOrderStats(startDate, estId ?? undefined);
+      const response = await dashboardService.getOrderStats(period, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 2 * 60 * 1000,
@@ -400,24 +419,31 @@ export function useMonthlyGoal() {
   });
 }
 
-export function useCarbonMetrics(since?: string) {
+/**
+ * `period` is resolved server-side in Africa/Tunis, exactly like the earnings
+ * summary/chart. `since` is the older cutoff the ESG and Community pages
+ * still use (they call this with neither, i.e. all-time); when both are
+ * sent, the backend prefers `period`. Backend: `GET /sustainability/carbon-metrics`.
+ */
+export function useCarbonMetrics(period?: SalesPeriod, since?: string) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.carbonMetrics(since, estId ?? undefined),
+    queryKey: dashboardKeys.carbonMetrics(period, since, estId ?? undefined),
     queryFn: async (): Promise<CarbonMetricsResponse> => {
-      const response = await dashboardService.getCarbonMetrics(since, estId ?? undefined);
+      const response = await dashboardService.getCarbonMetrics(period, since, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
   });
 }
 
-export function useSocialImpact(since?: string) {
+/** See `useCarbonMetrics` - same `period`/`since` contract. */
+export function useSocialImpact(period?: SalesPeriod, since?: string) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.socialImpact(since, estId ?? undefined),
+    queryKey: dashboardKeys.socialImpact(period, since, estId ?? undefined),
     queryFn: async (): Promise<SocialImpactResponse> => {
-      const response = await dashboardService.getSocialImpact(since, estId ?? undefined);
+      const response = await dashboardService.getSocialImpact(period, since, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,

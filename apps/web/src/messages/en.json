@@ -2057,30 +2057,32 @@
       "carbon": {
         "title": "Carbon Impact (Scope 3)",
         "unit": "kg CO₂",
-        "delta": "avoided this period",
+        "delta": "avoided - {period}",
         "note": "Equivalent to {km} km driven by car."
       },
       "social": {
         "title": "Social Impact",
         "unit": "meals",
         "delta": "distributed",
-        "note": "~{people} people served this month."
+        "note": "~{people} people served - {period}."
       },
       "water": {
         "title": "Water Saved",
         "unit": "litres",
         "delta": "footprint avoided",
         "note": "Water that would have been spent producing this food."
-      }
+      },
+      "error": "Could not load your impact figures."
     },
     "greeting": "Congratulations, {name}.",
     "impactStatement": "Your impact today is equivalent to {trees} trees planted.",
     "trendChart": {
-      "subtitle": "Weekly trend",
+      "subtitle": "Earnings over the period",
       "title": "Earnings",
       "bagsUnit": "bags",
       "peakLabel": "★ Peak performance!",
-      "noData": "No data available"
+      "noData": "No data available",
+      "error": "Could not load the earnings chart."
     },
     "reportingBar": {
       "title": "Need your Carbon Report?",

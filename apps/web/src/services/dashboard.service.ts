@@ -78,10 +78,11 @@ export const dashboardService = {
     );
   },
 
-  getOrderStats(startDate?: Date, establishmentId?: string) {
+  /** GET /orders/stats?period= - resolved server-side in Africa/Tunis. */
+  getOrderStats(period?: SalesPeriod, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<OrderStatsResponse>>(`${ORDERS_BASE}/stats`, {
       params: {
-        ...(startDate ? { startDate: startDate.toISOString() } : {}),
+        ...(period ? { period } : {}),
         ...(establishmentId ? { establishmentId } : {}),
       },
     });
@@ -426,11 +427,13 @@ export const dashboardService = {
     );
   },
 
-  getCarbonMetrics(since?: string, establishmentId?: string) {
+  /** GET /sustainability/carbon-metrics?period=&since= - `period` wins when both are sent. */
+  getCarbonMetrics(period?: SalesPeriod, since?: string, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<CarbonMetricsResponse>>(
       `${SUSTAINABILITY_BASE}/carbon-metrics`,
       {
         params: {
+          ...(period ? { period } : {}),
           ...(since ? { since } : {}),
           ...(establishmentId ? { establishmentId } : {}),
         },
@@ -438,11 +441,13 @@ export const dashboardService = {
     );
   },
 
-  getSocialImpact(since?: string, establishmentId?: string) {
+  /** GET /sustainability/social-impact?period=&since= - `period` wins when both are sent. */
+  getSocialImpact(period?: SalesPeriod, since?: string, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<SocialImpactResponse>>(
       `${SUSTAINABILITY_BASE}/social-impact`,
       {
         params: {
+          ...(period ? { period } : {}),
           ...(since ? { since } : {}),
           ...(establishmentId ? { establishmentId } : {}),
         },

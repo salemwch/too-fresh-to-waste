@@ -43,7 +43,7 @@ import { perfLog, perfStart } from '../common/utils/perf-log.util';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
 import { MerchantSalesQueryDto } from '../merchant-sales/dto/merchant-sales-query.dto';
 import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
-import { SALES_PERIODS } from '../merchant-sales/merchant-sales.period';
+import { SALES_PERIODS, resolveSalesPeriod } from '../merchant-sales/merchant-sales.period';
 import { salesScopeFor, type SalesScope } from '../merchant-sales/merchant-sales.scope';
 import type {
   MerchantSalesChart,
@@ -58,6 +58,7 @@ import {
   CancelOrderDto,
   OrderQueryDto,
 } from './DTO/create-order.dto';
+import { OrderStatsQueryDto } from './DTO/order-stats-query.dto';
 import { ConsumerOrderResponseDto, MerchantOrderResponseDto } from './DTO/order-response.dto';
 import { OrderExceptionFilter } from './filters/order-exception.filter';
 import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
@@ -360,6 +361,14 @@ export class OrdersController {
     type: String,
     description: 'Filter stats to a specific establishment (merchants only)',
   })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    enum: SALES_PERIODS,
+    description:
+      'Resolved server-side in Africa/Tunis, same clock as the earnings summary/chart. ' +
+      "Wins over `startDate` when both are sent. Default: `startDate`'s own behaviour (or all-time).",
+  })
   @ApiResponse({ status: 200, description: 'Order statistics retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Admin or Merchant access required' })
   @Get('stats')
@@ -367,18 +376,26 @@ export class OrdersController {
   @Roles(UserRole.ADMIN, UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async getOrderStats(
     @Request() req: AuthenticatedRequest,
-    @Query('startDate') startDateStr?: string,
-    @Query('establishmentId') establishmentId?: string,
+    @Query(strictValidation()) query: OrderStatsQueryDto,
   ): Promise<{
     statusCode: number;
     message: string;
     data: OrderStatsResponse;
   }> {
-    const startDate = startDateStr ? new Date(startDateStr) : undefined;
+    // `period` wins over `startDate` when both are sent - resolved on the
+    // server, in Africa/Tunis, exactly like the earnings summary/chart, so
+    // the dashboard's KPI cards agree with its earnings figures for the same
+    // period. `startDate`'s own behaviour (including its all-time default)
+    // is unchanged when `period` is absent.
+    const startDate = query.period
+      ? (resolveSalesPeriod(query.period, new Date()).from ?? undefined)
+      : query.startDate
+        ? new Date(query.startDate)
+        : undefined;
     const effectiveEstablishmentId =
       req.user.role === UserRole.LOCATION_MANAGER
         ? req.user.assignedEstablishmentId
-        : establishmentId;
+        : query.establishmentId;
 
     const stats = await this.ordersService.getOrderStats(
       req.user.userId,

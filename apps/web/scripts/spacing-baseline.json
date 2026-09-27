@@ -3790,8 +3790,8 @@
   },
   "apps/web/src/components/dashboard/merchant/impact-cards.tsx": {
     "A": {
+      "p:24": 3,
       "gap:16": 2,
-      "p:24": 2,
       "mb:16": 1,
       "gap:4": 1,
       "mb:6": 1,

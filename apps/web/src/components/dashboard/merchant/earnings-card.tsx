@@ -36,7 +36,11 @@ export function EarningsCard({ period }: { period: SalesPeriod }) {
       />
     );
   }
-  if (summary.isError || !summary.data) {
+  // Checked by presence of data, not `summary.isError`: a background refetch
+  // failing (e.g. after a period change re-triggers it) must not blank out
+  // data already on screen. `isLoading` was handled above, so reaching here
+  // with no data means there is nothing safe to render either way.
+  if (!summary.data) {
     return (
       <div data-testid='earnings-error' className='glass rounded-2xl shadow-soft p-lg'>
         <p className='text-sm text-primary-500/65'>{t('error')}</p>
@@ -101,7 +105,7 @@ export function EarningsCard({ period }: { period: SalesPeriod }) {
           <Wallet size={14} aria-hidden='true' />
           {t('held.title')}
         </h3>
-        {wallet.isError || !wallet.data ? (
+        {!wallet.data ? (
           <p className='mt-sm text-sm text-primary-500/65'>
             {wallet.isLoading ? t('held.loading') : t('held.error')}
           </p>

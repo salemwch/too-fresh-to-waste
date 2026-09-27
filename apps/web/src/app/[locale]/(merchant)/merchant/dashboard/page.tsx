@@ -11,6 +11,7 @@ import {
   ImpactCardsSkeleton,
   TrendChart,
   TrendChartSkeleton,
+  TrendChartError,
   CampaignSidePanel,
   ReportingBar,
   StreakWidget,
@@ -21,8 +22,12 @@ import {
   PeriodBar,
 } from '@/components/dashboard/merchant';
 import { useOrderStats, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
-import { useSalesChart, useSalesSummary } from '@/hooks/use-merchant-sales';
+import { useSalesChart } from '@/hooks/use-merchant-sales';
 import { useSalesPeriod } from '@/hooks/use-sales-period';
+import type { MerchantSalesChart } from '@/types/payments';
+
+/** Stable identity - `chartQuery.data?.slots ?? []` would allocate a new array every render. */
+const EMPTY_SLOTS = Object.freeze([]) as unknown as MerchantSalesChart['slots'];
 
 function MerchantDashboardContent() {
   useAuthStore(state => state.user); // subscribe so re-renders on user change
@@ -31,8 +36,10 @@ function MerchantDashboardContent() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [period, setPeriod] = useSalesPeriod();
 
-  const orderStatsQuery = useOrderStats();
-  const summaryQuery = useSalesSummary(period);
+  // Shared with ImpactCards' own `useOrderStats(period)` call - same query
+  // key, so this is not a second request, just the value CampaignSidePanel
+  // also needs.
+  const orderStatsQuery = useOrderStats(period);
   const chartQuery = useSalesChart(period);
   const myEstablishmentQuery = useMyEstablishment();
 
@@ -58,12 +65,8 @@ function MerchantDashboardContent() {
         <CommissionCard />
       </div>
 
-      {/* ── Impact KPI cards ── */}
-      {orderStatsQuery.isLoading ? (
-        <ImpactCardsSkeleton />
-      ) : (
-        <ImpactCards stats={orderStatsQuery.data} summary={summaryQuery.data} />
-      )}
+      {/* ── Impact KPI cards - owns its own queries, all scoped to `period` ── */}
+      <ImpactCards period={period} />
 
       {/* ── Community fund ledger ── */}
       <FundLedgerCard />
@@ -73,9 +76,11 @@ function MerchantDashboardContent() {
         <div className='xl:col-span-2'>
           {chartQuery.isLoading ? (
             <TrendChartSkeleton />
+          ) : chartQuery.isError ? (
+            <TrendChartError />
           ) : (
             <TrendChart
-              slots={chartQuery.data?.slots ?? []}
+              slots={chartQuery.data?.slots ?? EMPTY_SLOTS}
               granularity={chartQuery.data?.granularity ?? 'day'}
               locale={locale}
             />

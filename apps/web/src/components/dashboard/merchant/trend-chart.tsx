@@ -37,7 +37,9 @@ const EMPTY_POINT: ChartPoint = Object.freeze({ label: '', earned: 0, bags: 0 })
 function formatSlotLabel(locale: string, start: string, granularity: Granularity): string {
   const options: Intl.DateTimeFormatOptions =
     granularity === 'hour'
-      ? { hour: '2-digit' }
+      ? // `hourCycle: 'h23'` is required: 'en' defaults `hour: '2-digit'` to
+        // 12-hour ("12 AM"), not the 24-hour "00" an hourly slot needs.
+        { hour: '2-digit', hourCycle: 'h23' }
       : granularity === 'day'
         ? { day: 'numeric', month: 'short' }
         : { month: 'short', year: '2-digit' };
@@ -171,5 +173,18 @@ export function TrendChart({ slots, granularity, locale }: TrendChartProps) {
 export function TrendChartSkeleton() {
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft h-[360px] animate-pulse bg-white/30' />
+  );
+}
+
+/** A failed `useSalesChart` - distinct from `noData`, which is a legitimately empty period. */
+export function TrendChartError() {
+  const t = useTranslations('dashboard.trendChart');
+  return (
+    <div
+      data-testid='trend-chart-error'
+      className='glass rounded-2xl p-[24px] shadow-soft h-[360px] flex items-center justify-center'
+    >
+      <p className='text-sm text-primary-500/65'>{t('error')}</p>
+    </div>
   );
 }

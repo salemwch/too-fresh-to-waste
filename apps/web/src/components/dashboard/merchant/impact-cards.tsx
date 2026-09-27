@@ -3,22 +3,59 @@
 import { Coins, Leaf, HeartHandshake, TrendingUp, ShieldCheck, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
-import { useCarbonMetrics, useSocialImpact } from '@/hooks/use-merchant-dashboard';
-import type { OrderStatsResponse } from '@/types/dashboard';
-import type { MerchantSalesSummary } from '@/types/payments';
+import { useCarbonMetrics, useOrderStats, useSocialImpact } from '@/hooks/use-merchant-dashboard';
+import { useSalesSummary } from '@/hooks/use-merchant-sales';
+import type { SalesPeriod } from '@/types/payments';
 import { useFormat } from '@/lib/use-format';
 
 interface ImpactCardsProps {
-  stats: OrderStatsResponse | null | undefined;
-  /** The shared earnings calculation for the selected period - food only. */
-  summary: MerchantSalesSummary | null | undefined;
+  /** Every card here follows the page's period, resolved on the server. */
+  period: SalesPeriod;
 }
 
-export function ImpactCards({ stats, summary }: ImpactCardsProps) {
+/**
+ * Five KPI cards, all scoped to `period`: two from the shared earnings
+ * summary (food only - see `EarningsCard`), two from carbon metrics, one from
+ * social impact, plus a completion rate from order stats. Each of those is
+ * its own query, so this owns all four and shows one skeleton while any of
+ * them loads, and one error message if any of them fails - never an invented
+ * zero standing in for data that hasn't arrived or couldn't load.
+ */
+export function ImpactCards({ period }: ImpactCardsProps) {
   const fmt = useFormat();
   const t = useTranslations('dashboard.impactCards');
-  const carbonQuery = useCarbonMetrics();
-  const socialQuery = useSocialImpact();
+  const tp = useTranslations('dashboard.period');
+  const statsQuery = useOrderStats(period);
+  const summaryQuery = useSalesSummary(period);
+  const carbonQuery = useCarbonMetrics(period);
+  const socialQuery = useSocialImpact(period);
+
+  const isLoading =
+    statsQuery.isLoading ||
+    summaryQuery.isLoading ||
+    carbonQuery.isLoading ||
+    socialQuery.isLoading;
+  if (isLoading) {
+    return <ImpactCardsSkeleton />;
+  }
+
+  const isError =
+    statsQuery.isError || summaryQuery.isError || carbonQuery.isError || socialQuery.isError;
+  if (isError) {
+    return (
+      <section
+        data-testid='impact-cards-error'
+        className='glass rounded-2xl shadow-soft p-lg'
+        aria-live='polite'
+      >
+        <p className='text-sm text-primary-500/65'>{t('error')}</p>
+      </section>
+    );
+  }
+
+  const stats = statsQuery.data;
+  const summary = summaryQuery.data;
+  const periodLabel = tp(period);
 
   const earnings = summary?.total.earned ?? 0; // net - what the merchant actually keeps
   const originalValue = summary?.total.originalValue ?? 0;
@@ -59,7 +96,7 @@ export function ImpactCards({ stats, summary }: ImpactCardsProps) {
       title: t('carbon.title'),
       value: carbonKg.toString(),
       unit: t('carbon.unit'),
-      delta: t('carbon.delta'),
+      delta: t('carbon.delta', { period: periodLabel }),
       icon: Leaf,
       note: t('carbon.note', { km: carKm }),
     },
@@ -77,7 +114,7 @@ export function ImpactCards({ stats, summary }: ImpactCardsProps) {
       unit: t('social.unit'),
       delta: t('social.delta'),
       icon: HeartHandshake,
-      note: t('social.note', { people }),
+      note: t('social.note', { people, period: periodLabel }),
     },
   ];
 
