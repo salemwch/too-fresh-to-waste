@@ -2167,6 +2167,14 @@
       "toastSuccess": "PDF report downloaded successfully.",
       "toastError": "Error generating the report. Please try again."
     },
+    "period": {
+      "label": "Period",
+      "today": "Today",
+      "7d": "7 Days",
+      "30d": "30 Days",
+      "month": "This Month",
+      "all": "All Time"
+    },
     "streak": {
       "days": "day streak",
       "record": "Record",

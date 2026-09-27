@@ -1,6 +1,8 @@
 export type PaymentStatus =
   'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'cancelled';
 
+export type SalesPeriod = 'today' | '7d' | '30d' | 'month' | 'all';
+
 type PaymentMethod = 'cash' | 'card' | 'smt_gateway' | 'wallet';
 
 export interface MerchantPayment {

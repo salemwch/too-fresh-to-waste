@@ -4075,6 +4075,16 @@
       "end:24": 1
     }
   },
+  "apps/web/src/components/dashboard/merchant/period-bar.tsx": {
+    "A": {
+      "gap:4": 1,
+      "p:2": 1,
+      "px:16": 1
+    },
+    "C": {
+      "min-h:44": 1
+    }
+  },
   "apps/web/src/components/dashboard/merchant/price-guidance.tsx": {
     "A": {
       "px:8": 1,

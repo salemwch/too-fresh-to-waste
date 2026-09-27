@@ -14,3 +14,4 @@ export { CommissionCard } from './commission-card';
 export { SmartPricingPanel } from './smart-pricing-panel';
 export { TodaySalesCard } from './today-sales-card';
 export { WalletBalanceCard } from './wallet-balance-card';
+export { PeriodBar } from './period-bar';
