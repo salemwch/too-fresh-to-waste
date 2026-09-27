@@ -133,11 +133,11 @@ export class MerchantSalesService {
     page: { after?: string; limit: number },
     now: Date = new Date(),
   ): Promise<{ rows: EarningsRow[]; hasMore: boolean; nextCursor?: string }> {
+    const cursor = page.after ? parseEarningsCursor(page.after) : null;
     const stages = this.baseStages(scope, resolveSalesPeriod(period, now));
     if (!stages) {
       return { rows: [], hasMore: false };
     }
-    const cursor = page.after ? parseEarningsCursor(page.after) : null;
     const docs = await this.orderModel.aggregate<RawEarningsRow>([
       ...stages,
       { $match: { _population: tab } },

@@ -14,6 +14,7 @@
 
 import mongoose, { Connection, Model, Types } from 'mongoose';
 
+import { hasErrorCode } from '../../common/errors';
 import { OrderSchema, OrderStatus, type OrderDocument } from '../../orders/schemas/order.schema';
 import { PLATFORM_FOOD_SHARE } from '../../orders/utils/order-pricing.util';
 import { requireMongoTestUri } from '../../../test/helpers/mongo-test-uri';
@@ -518,5 +519,92 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
     await expect(
       service.rows(merchantA, 'all', 'earnings', { after: 'nope', limit: 2 }, now),
     ).rejects.toThrow();
+  });
+
+  it('a malformed cursor is a 400 even when the scope resolves to no orders', async () => {
+    // baseStages() returns null for `{ kind: 'none' }`; the cursor must still
+    // be validated before that early return, or a garbage `after` on a scope
+    // with nothing to page through silently returns an empty 200 instead of
+    // the mandated 400.
+    let thrown: unknown;
+    try {
+      await service.rows({ kind: 'none' }, 'all', 'earnings', { after: 'nope', limit: 2 }, now);
+      fail('should have thrown');
+    } catch (err) {
+      thrown = err;
+    }
+    expect(hasErrorCode(thrown, 'INVALID_CURSOR')).toBe(true);
+  });
+
+  it('a valid cursor with a none scope still returns empty rows, not a match', async () => {
+    const validCursor = `${now.getTime()}.${new Types.ObjectId().toString()}`;
+    const page = await service.rows(
+      { kind: 'none' },
+      'all',
+      'earnings',
+      { after: validCursor, limit: 2 },
+      now,
+    );
+    expect(page).toEqual({ rows: [], hasMore: false });
+  });
+
+  it('joins the customer and establishment names, with the documented fallbacks', async () => {
+    // Neither collection is touched by the shared seed table (no order there
+    // sets customerId/establishmentId), so this is the only coverage of
+    // toEarningsRow's name join and its null/first-name-only fallbacks.
+    // Seeded and cleaned up entirely inside this test.
+    const fullCustomerId = new Types.ObjectId();
+    const firstNameOnlyId = new Types.ObjectId();
+    const establishmentId = new Types.ObjectId();
+    const moment = T('2026-09-17T10:00:00+01:00');
+
+    await orders.db.collection('users').insertMany([
+      { _id: fullCustomerId, firstName: 'Amel', lastName: 'Ben Salah' },
+      { _id: firstNameOnlyId, firstName: 'Amel' },
+    ] as never);
+    await orders.db
+      .collection('establishments')
+      .insertOne({ _id: establishmentId, name: 'Boulangerie Test' } as never);
+
+    const withFullCustomer = await seed({
+      customerId: fullCustomerId,
+      establishmentId,
+      pricing: { subtotal: 6, discountAmount: 0, deliveryFee: 0, total: 6 },
+      pickedUpAt: moment,
+      commission: normalCommission(6, moment),
+    });
+    const withFirstNameOnlyCustomer = await seed({
+      customerId: firstNameOnlyId,
+      pricing: { subtotal: 6, discountAmount: 0, deliveryFee: 0, total: 6 },
+      pickedUpAt: T('2026-09-17T11:00:00+01:00'),
+      commission: normalCommission(6, T('2026-09-17T11:00:00+01:00')),
+    });
+    const withNoCustomer = await seed({
+      pricing: { subtotal: 6, discountAmount: 0, deliveryFee: 0, total: 6 },
+      pickedUpAt: T('2026-09-17T12:00:00+01:00'),
+      commission: normalCommission(6, T('2026-09-17T12:00:00+01:00')),
+    });
+
+    try {
+      const rows = await allRows('earnings', 'all');
+      const byId = new Map(rows.map(r => [r.orderId, r]));
+      expect(byId.get(withFullCustomer.toString())).toMatchObject({
+        customerName: 'Amel Ben Salah',
+        establishmentName: 'Boulangerie Test',
+      });
+      expect(byId.get(withFirstNameOnlyCustomer.toString())).toMatchObject({
+        customerName: 'Amel',
+        establishmentName: null,
+      });
+      expect(byId.get(withNoCustomer.toString())).toMatchObject({
+        customerName: null,
+        establishmentName: null,
+      });
+    } finally {
+      await orders.db
+        .collection('users')
+        .deleteMany({ _id: { $in: [fullCustomerId, firstNameOnlyId] } });
+      await orders.db.collection('establishments').deleteOne({ _id: establishmentId });
+    }
   });
 });
