@@ -41,6 +41,13 @@ import { QueryComplexityGuard, QueryComplexity } from '../common/guards/query-co
 import { AppLoggerService } from '../common/services/logger.service';
 import { perfLog, perfStart } from '../common/utils/perf-log.util';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
+import { MerchantSalesQueryDto } from '../merchant-sales/dto/merchant-sales-query.dto';
+import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
+import { salesScopeFor, type SalesScope } from '../merchant-sales/merchant-sales.scope';
+import type {
+  MerchantSalesChart,
+  MerchantSalesSummary,
+} from '../merchant-sales/merchant-sales.types';
 import { KonnectOrderService } from '../payments/services/konnect-order.service';
 
 import {
@@ -89,6 +96,7 @@ export class OrdersController {
     private readonly logger: AppLoggerService,
     @Inject(forwardRef(() => KonnectOrderService))
     private readonly konnectOrderService: KonnectOrderService,
+    private readonly merchantSalesService: MerchantSalesService,
   ) {}
 
   @ApiOperation({
@@ -455,6 +463,47 @@ export class OrdersController {
       message: 'Revenue chart data retrieved successfully',
       data,
     };
+  }
+
+  @ApiOperation({ summary: 'Merchant earnings for a period, cash and online together' })
+  @ApiResponse({ status: 200, description: 'Earnings summary' })
+  @Get('merchant-sales-summary')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
+  async getMerchantSalesSummary(
+    @Request() req: AuthenticatedRequest,
+    @Query(strictValidation()) query: MerchantSalesQueryDto,
+  ): Promise<{ statusCode: number; message: string; data: MerchantSalesSummary }> {
+    const data = await this.merchantSalesService.summary(
+      this.salesScope(req, query),
+      query.period ?? 'month',
+    );
+    return { statusCode: HttpStatus.OK, message: 'Earnings summary retrieved successfully', data };
+  }
+
+  @ApiOperation({ summary: 'Merchant earnings per hour, day or month for a period' })
+  @ApiResponse({ status: 200, description: 'Earnings chart' })
+  @Get('merchant-sales-chart')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
+  async getMerchantSalesChart(
+    @Request() req: AuthenticatedRequest,
+    @Query(strictValidation()) query: MerchantSalesQueryDto,
+  ): Promise<{ statusCode: number; message: string; data: MerchantSalesChart }> {
+    const data = await this.merchantSalesService.chart(
+      this.salesScope(req, query),
+      query.period ?? 'month',
+    );
+    return { statusCode: HttpStatus.OK, message: 'Earnings chart retrieved successfully', data };
+  }
+
+  /** A location manager is pinned to their assignment, whatever they ask for. */
+  private salesScope(req: AuthenticatedRequest, query: MerchantSalesQueryDto): SalesScope {
+    const establishmentId =
+      req.user.role === UserRole.LOCATION_MANAGER
+        ? req.user.assignedEstablishmentId
+        : query.establishmentId;
+    return salesScopeFor(req.user.role, req.user.userId, establishmentId ?? undefined);
   }
 
   @ApiOperation({

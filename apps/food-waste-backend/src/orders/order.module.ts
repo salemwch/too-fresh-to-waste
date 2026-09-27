@@ -6,6 +6,7 @@ import { CommonModule } from '../common/common.module';
 import { QueryComplexityGuard } from '../common/guards/query-complexity.guard';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
+import { MerchantSalesModule } from '../merchant-sales/merchant-sales.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { PaymentModule } from '../payments/payments.module';
@@ -28,6 +29,7 @@ import { OrderExpiryTask } from './tasks/order-expiry.task';
     forwardRef(() => PaymentModule),
     forwardRef(() => WebSocketModule),
     forwardRef(() => NotificationsModule),
+    MerchantSalesModule,
     BullModule.registerQueue({
       name: 'pickup-reminders',
       /*
