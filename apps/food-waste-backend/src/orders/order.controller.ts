@@ -43,6 +43,7 @@ import { perfLog, perfStart } from '../common/utils/perf-log.util';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
 import { MerchantSalesQueryDto } from '../merchant-sales/dto/merchant-sales-query.dto';
 import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
+import { SALES_PERIODS } from '../merchant-sales/merchant-sales.period';
 import { salesScopeFor, type SalesScope } from '../merchant-sales/merchant-sales.scope';
 import type {
   MerchantSalesChart,
@@ -466,6 +467,13 @@ export class OrdersController {
   }
 
   @ApiOperation({ summary: 'Merchant earnings for a period, cash and online together' })
+  @ApiQuery({ name: 'period', required: false, enum: SALES_PERIODS, description: 'Default: month' })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description: 'Scope to one establishment (merchants only)',
+  })
   @ApiResponse({ status: 200, description: 'Earnings summary' })
   @Get('merchant-sales-summary')
   @UseGuards(RolesGuard)
@@ -482,6 +490,13 @@ export class OrdersController {
   }
 
   @ApiOperation({ summary: 'Merchant earnings per hour, day or month for a period' })
+  @ApiQuery({ name: 'period', required: false, enum: SALES_PERIODS, description: 'Default: month' })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description: 'Scope to one establishment (merchants only)',
+  })
   @ApiResponse({ status: 200, description: 'Earnings chart' })
   @Get('merchant-sales-chart')
   @UseGuards(RolesGuard)
