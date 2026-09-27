@@ -31,6 +31,7 @@ import type {
   TodaySales,
   FundLedgerResponse,
 } from '@/types/dashboard';
+import type { SalesPeriod } from '@/types/payments';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
 // startDate is serialised to ISO string so it becomes a stable cache key.
@@ -75,6 +76,10 @@ export const dashboardKeys = {
     [...dashboardKeys.all, 'fund-ledger', establishmentId ?? 'all'] as const,
   commissionStatement: (estId?: string) =>
     [...dashboardKeys.all, 'commission-statement', estId ?? 'all'] as const,
+  salesSummary: (period: SalesPeriod, estId?: string) =>
+    [...dashboardKeys.all, 'sales-summary', period, estId ?? 'all'] as const,
+  salesChart: (period: SalesPeriod, estId?: string) =>
+    [...dashboardKeys.all, 'sales-chart', period, estId ?? 'all'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────

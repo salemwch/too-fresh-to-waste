@@ -3722,6 +3722,20 @@
       "right:0": 1
     }
   },
+  "apps/web/src/components/dashboard/merchant/earnings-card.tsx": {
+    "A": {
+      "p:24": 2,
+      "space-y:24": 1,
+      "mt:8": 4,
+      "gap:8": 3,
+      "px:16": 1,
+      "py:8": 1,
+      "space-y:8": 1,
+      "pt:16": 1,
+      "gap:4": 1,
+      "gap:16": 2
+    }
+  },
   "apps/web/src/components/dashboard/merchant/edit-offer-modal.tsx": {
     "A": {
       "px:16": 2,
@@ -4396,38 +4410,13 @@
       "left:0": 1
     }
   },
-  "apps/web/src/components/dashboard/merchant/today-sales-card.tsx": {
-    "A": {
-      "p:24": 2,
-      "gap:8": 7,
-      "mb:16": 3,
-      "mt:2": 3,
-      "gap:2": 1,
-      "p:8": 2,
-      "gap:4": 2,
-      "space-y:8": 1,
-      "pt:8": 1,
-      "mt:16": 1
-    },
-    "B": {
-      "square:40": 1
-    },
-    "C": {
-      "min-w:0": 2,
-      "h:40": 1,
-      "w:40": 1,
-      "min-h:44": 1
-    }
-  },
   "apps/web/src/components/dashboard/merchant/trend-chart.tsx": {
     "A": {
       "py:16": 1,
+      "mt:2": 1,
       "mt:4": 1,
       "gap:16": 1,
       "mb:4": 1,
-      "gap:8": 1,
-      "px:16": 1,
-      "py:6": 1,
       "ms:8": 1
     },
     "C": {
@@ -4447,17 +4436,6 @@
     "B": {
       "size:14": 1,
       "size:20": 3
-    }
-  },
-  "apps/web/src/components/dashboard/merchant/wallet-balance-card.tsx": {
-    "A": {
-      "p:24": 3,
-      "mb:16": 1,
-      "gap:24": 1,
-      "gap:4": 2,
-      "mt:4": 4,
-      "mt:16": 1,
-      "pt:8": 1
     }
   },
   "apps/web/src/components/dashboard/mobile-nav.tsx": {

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
   Area,
   AreaChart,
@@ -10,41 +11,93 @@ import {
   ReferenceDot,
 } from 'recharts';
 import { useTranslations } from 'next-intl';
-import type { RevenueChartItem, DatePreset } from '@/types/dashboard';
+
+import { formatMoney } from '@/lib/format';
+import type { MerchantSalesChart } from '@/types/payments';
+
+type ChartSlot = MerchantSalesChart['slots'][number];
+type Granularity = MerchantSalesChart['granularity'];
 
 interface TrendChartProps {
-  data: RevenueChartItem[];
-  datePreset: DatePreset;
-  onDatePresetChange: (preset: DatePreset) => void;
+  slots: ChartSlot[];
+  granularity: Granularity;
+  locale: string;
 }
 
-function CustomTooltip({ active, payload, label, bagsUnit, peakLabel }: any) {
+interface ChartPoint {
+  label: string;
+  earned: number;
+  bags: number;
+}
+
+/** Reduce seed for an empty chart - never mutated, so it is a stable identity. */
+const EMPTY_POINT: ChartPoint = Object.freeze({ label: '', earned: 0, bags: 0 });
+
+/** X-axis label for one slot, in the merchant's own timezone regardless of the browser's. */
+function formatSlotLabel(locale: string, start: string, granularity: Granularity): string {
+  const options: Intl.DateTimeFormatOptions =
+    granularity === 'hour'
+      ? { hour: '2-digit' }
+      : granularity === 'day'
+        ? { day: 'numeric', month: 'short' }
+        : { month: 'short', year: '2-digit' };
+  return new Intl.DateTimeFormat(locale, { timeZone: 'Africa/Tunis', ...options }).format(
+    new Date(start),
+  );
+}
+
+function CustomTooltip({
+  active,
+  payload,
+  locale,
+  bagsUnit,
+  peakLabel,
+  isPeak,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: ChartPoint }>;
+  locale: string;
+  bagsUnit: string;
+  peakLabel: string;
+  isPeak: (point: ChartPoint) => boolean;
+}) {
   if (!active || !payload?.length) return null;
-  const v: number = payload[0].value;
-  const dataArr: { v: number }[] = payload[0].payload ? [{ v }] : [{ v }];
-  const isRecord = v === Math.max(...dataArr.map((d: { v: number }) => d.v));
+  const point = payload[0]?.payload;
+  if (!point) return null;
+
   return (
     <div className='glass rounded-xl px-[16px] py-md shadow-elegant'>
-      <div className='text-[10px] uppercase tracking-wider text-primary-500/60'>{label}</div>
+      <div className='text-[10px] uppercase tracking-wider text-primary-500/60'>{point.label}</div>
       <div className='font-display text-xl text-primary-500'>
-        {v} {bagsUnit}
+        {formatMoney(locale, point.earned, 'TND')}
       </div>
-      {isRecord && v > 0 && (
+      <div className='mt-xxs text-[11px] text-primary-500/60'>
+        {point.bags} {bagsUnit}
+      </div>
+      {isPeak(point) && point.earned > 0 && (
         <div className='mt-xs text-[11px] font-medium text-brand-green'>{peakLabel}</div>
       )}
     </div>
   );
 }
 
-const RANGE_KEYS: DatePreset[] = ['7d', '30d', '12m'];
-
-export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartProps) {
+export function TrendChart({ slots, granularity, locale }: TrendChartProps) {
   const t = useTranslations('dashboard.trendChart');
 
-  const chartData = data.map(item => ({ day: item.label, v: item.bagCount }));
-  const peak = chartData.reduce(
-    (max, d) => (d.v > max.v ? d : max),
-    chartData[0] ?? { day: '', v: 0 },
+  const chartData = useMemo<ChartPoint[]>(
+    () =>
+      slots.map(slot => ({
+        label: formatSlotLabel(locale, slot.start, granularity),
+        earned: slot.earned,
+        bags: slot.bags,
+      })),
+    [slots, granularity, locale],
+  );
+
+  const peak = useMemo(
+    () =>
+      chartData.reduce((max, d) => (d.earned > max.earned ? d : max), chartData[0] ?? EMPTY_POINT),
+    [chartData],
   );
 
   return (
@@ -55,21 +108,6 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
             {t('subtitle')}
           </div>
           <h3 className='font-display text-2xl text-primary-500'>{t('title')}</h3>
-        </div>
-        <div className='flex items-center gap-sm text-xs'>
-          {RANGE_KEYS.map(key => (
-            <button
-              key={key}
-              onClick={() => onDatePresetChange(key)}
-              className={`px-md py-1.5 rounded-full transition-colors ${
-                datePreset === key
-                  ? 'bg-primary-500 text-white'
-                  : 'text-primary-500/60 hover:text-primary-500'
-              }`}
-            >
-              {t(`periods.${key}`)}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -88,27 +126,34 @@ export function TrendChart({ data, datePreset, onDatePresetChange }: TrendChartP
                 </linearGradient>
               </defs>
               <XAxis
-                dataKey='day'
+                dataKey='label'
                 tickLine={false}
                 axisLine={false}
                 tick={{ fill: 'rgba(30,68,72,0.6)', fontSize: 12 }}
               />
               <YAxis hide />
               <Tooltip
-                content={<CustomTooltip bagsUnit={t('bagsUnit')} peakLabel={t('peakLabel')} />}
+                content={
+                  <CustomTooltip
+                    locale={locale}
+                    bagsUnit={t('bagsUnit')}
+                    peakLabel={t('peakLabel')}
+                    isPeak={point => point === peak}
+                  />
+                }
                 cursor={{ stroke: 'rgba(30,68,72,0.2)', strokeDasharray: '4 4' }}
               />
               <Area
                 type='monotone'
-                dataKey='v'
+                dataKey='earned'
                 stroke='#1E4448'
                 strokeWidth={2.5}
                 fill='url(#areaFill)'
               />
-              {peak.v > 0 && (
+              {peak.earned > 0 && (
                 <ReferenceDot
-                  x={peak.day}
-                  y={peak.v}
+                  x={peak.label}
+                  y={peak.earned}
                   r={6}
                   fill='#FF7973'
                   stroke='white'

@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useLocale } from 'next-intl';
+
 import { useAuthStore } from '@/lib/auth';
 import {
   SurpriseBagPanel,
@@ -13,37 +15,25 @@ import {
   ReportingBar,
   StreakWidget,
   SmartPricingPanel,
-  TodaySalesCard,
-  WalletBalanceCard,
+  EarningsCard,
   FundLedgerCard,
   CommissionCard,
+  PeriodBar,
 } from '@/components/dashboard/merchant';
-import { useOrderStats, useRevenueChart, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
-import { type DatePreset, PRESET_CONFIG } from '@/types/dashboard';
+import { useOrderStats, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
+import { useSalesChart, useSalesSummary } from '@/hooks/use-merchant-sales';
+import { useSalesPeriod } from '@/hooks/use-sales-period';
 
-export default function MerchantDashboardPage() {
+function MerchantDashboardContent() {
   useAuthStore(state => state.user); // subscribe so re-renders on user change
+  const locale = useLocale();
 
   const [panelOpen, setPanelOpen] = useState(false);
-  const [datePreset, setDatePreset] = useState<DatePreset>('7d');
+  const [period, setPeriod] = useSalesPeriod();
 
-  const { granularity, value } = PRESET_CONFIG[datePreset];
-
-  const startDate = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    if (granularity === 'month') {
-      d.setMonth(d.getMonth() - value);
-      d.setDate(1);
-    } else {
-      const days = granularity === 'week' ? value * 7 : value;
-      d.setDate(d.getDate() - days);
-    }
-    return d;
-  }, [granularity, value]);
-
-  const orderStatsQuery = useOrderStats(startDate);
-  const revenueQuery = useRevenueChart(granularity, value);
+  const orderStatsQuery = useOrderStats();
+  const summaryQuery = useSalesSummary(period);
+  const chartQuery = useSalesChart(period);
   const myEstablishmentQuery = useMyEstablishment();
 
   const isTrialSuspended = myEstablishmentQuery.data?.subscriptionStatus === 'suspended';
@@ -56,15 +46,15 @@ export default function MerchantDashboardPage() {
       {/* ── Welcome header: greeting + ESG badge + goal progress ── */}
       <DashboardWelcomeHeader establishment={myEstablishmentQuery.data} />
 
+      {/* ── One period bar; every period-based figure below follows it ── */}
+      <PeriodBar value={period} onChange={setPeriod} />
+
       {/* ── Daily listing streak ── */}
       <StreakWidget onListOffer={() => setPanelOpen(true)} disabled={isTrialSuspended} />
 
-      {/* ── Today: every sale, cash and online together ── */}
-      <TodaySalesCard />
-
-      {/* ── Payout balance + commission statement ── */}
+      {/* ── Earnings for the period + commission statement ── */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-[24px]'>
-        <WalletBalanceCard />
+        <EarningsCard period={period} />
         <CommissionCard />
       </div>
 
@@ -72,7 +62,7 @@ export default function MerchantDashboardPage() {
       {orderStatsQuery.isLoading ? (
         <ImpactCardsSkeleton />
       ) : (
-        <ImpactCards stats={orderStatsQuery.data} />
+        <ImpactCards stats={orderStatsQuery.data} summary={summaryQuery.data} />
       )}
 
       {/* ── Community fund ledger ── */}
@@ -81,13 +71,13 @@ export default function MerchantDashboardPage() {
       {/* ── Trend chart + Campaign side panel ── */}
       <div className='grid grid-cols-1 xl:grid-cols-3 gap-[24px]'>
         <div className='xl:col-span-2'>
-          {revenueQuery.isLoading ? (
+          {chartQuery.isLoading ? (
             <TrendChartSkeleton />
           ) : (
             <TrendChart
-              data={revenueQuery.data ?? []}
-              datePreset={datePreset}
-              onDatePresetChange={setDatePreset}
+              slots={chartQuery.data?.slots ?? []}
+              granularity={chartQuery.data?.granularity ?? 'day'}
+              locale={locale}
             />
           )}
         </div>
@@ -104,5 +94,28 @@ export default function MerchantDashboardPage() {
       {/* ── PDF carbon report bar ── */}
       <ReportingBar />
     </div>
+  );
+}
+
+function MerchantDashboardSkeleton() {
+  return (
+    <div className='space-y-[32px]'>
+      <div className='glass rounded-2xl shadow-soft h-[96px] animate-pulse bg-white/30' />
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-[24px]'>
+        <div className='glass rounded-2xl shadow-soft h-[320px] animate-pulse bg-white/30' />
+        <div className='glass rounded-2xl shadow-soft h-[320px] animate-pulse bg-white/30' />
+      </div>
+      <ImpactCardsSkeleton />
+      <TrendChartSkeleton />
+    </div>
+  );
+}
+
+// Suspense boundary: useSalesPeriod reads useSearchParams.
+export default function MerchantDashboardPage() {
+  return (
+    <Suspense fallback={<MerchantDashboardSkeleton />}>
+      <MerchantDashboardContent />
+    </Suspense>
   );
 }

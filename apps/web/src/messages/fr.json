@@ -2073,49 +2073,11 @@
         "note": "Eau qui aurait été consommée pour produire ces aliments."
       }
     },
-    "walletBalance": {
-      "title": "Paiements en ligne que nous gardons pour vous",
-      "available": "Disponible",
-      "pending": "En attente du retrait",
-      "availableNote": "Prêt pour votre prochain versement.",
-      "pendingNote": "Payé en ligne, pas encore récupéré.",
-      "availableInfoLabel": "Qu'est-ce que Disponible ?",
-      "availableInfo": "L'argent des commandes en ligne que vos clients ont déjà récupérées. Il vous est versé lors du prochain versement, en totalité - moins la commission réglée par une commande de règlement.",
-      "pendingInfoLabel": "Qu'est-ce qu'En attente du retrait ?",
-      "pendingInfo": "Les clients ont payé ces commandes en ligne mais ne les ont pas encore récupérées. L'argent passe en Disponible dès que vous confirmez le retrait. Si une commande est annulée, le client est remboursé.",
-      "cashNotHere": "Les commandes payées en espèces vous sont réglées directement : elles n'apparaissent pas ici.",
-      "error": "Impossible de charger vos paiements en ligne."
-    },
-    "todaySales": {
-      "title": "Ventes d'aujourd'hui",
-      "subtitle": "Espèces en magasin et paiements en ligne, ensemble",
-      "history": "Historique",
-      "orders": "{count, plural, one {# commande} other {# commandes}}",
-      "cash": "Espèces en magasin",
-      "online": "Payé en ligne",
-      "commission": "Commission enregistrée ({rate} %)",
-      "commissionInfoLabel": "Qu'est-ce que la commission enregistrée ?",
-      "commissionInfo": "{rate} % des ventes normales d'aujourd'hui sont ajoutés à votre solde de commission. Ce montant n'est jamais pris dans votre poche : il est réglé plus tard par des commandes de règlement.",
-      "settled": "Réglé par des commandes de règlement",
-      "settledInfoLabel": "Qu'est-ce que le montant réglé par des commandes de règlement ?",
-      "settledInfo": "Sur une commande de règlement, vous êtes payé moins que le prix, et la différence règle la commission des jours précédents. Aucune nouvelle commission n'y est enregistrée.",
-      "kept": "Vous gardez aujourd'hui",
-      "keptInfoLabel": "Qu'est-ce que Vous gardez aujourd'hui ?",
-      "keptInfo": "Ce que vous avez touché pour les ventes d'aujourd'hui, moins la commission enregistrée aujourd'hui.",
-      "toCollect": "{count, plural, one {# commande} other {# commandes}} encore à récupérer, pour {amount}",
-      "empty": "Aucune vente pour l'instant aujourd'hui. Chaque commande remise apparaît ici immédiatement.",
-      "error": "Impossible de charger les ventes d'aujourd'hui."
-    },
     "greeting": "Félicitations, {name}.",
     "impactStatement": "Votre impact aujourd'hui est équivalent à {trees} arbres plantés.",
     "trendChart": {
       "subtitle": "Tendance hebdomadaire",
-      "title": "Ressources Préservées",
-      "periods": {
-        "7d": "7J",
-        "30d": "30J",
-        "12m": "Année"
-      },
+      "title": "Gains",
       "bagsUnit": "paniers",
       "peakLabel": "★ Performance maximale !",
       "noData": "Aucune donnée disponible"
@@ -2278,11 +2240,27 @@
       "logoAlt": "Too Fresh To Waste"
     },
     "earnings": {
+      "title": "Vos gains - {period}",
+      "orders": "{count, plural, one {# commande} other {# commandes}}",
+      "empty": "Aucune vente sur cette période pour le moment.",
+      "unverified": "{count, plural, one {# vente est en cours de vérification et n'est pas encore comptée} other {# ventes sont en cours de vérification et ne sont pas encore comptées}}",
       "lines": {
         "cashStore": "Espèces encaissées en magasin",
         "cashDelivery": "Espèces encaissées via la livraison",
         "online": "Payé en ligne"
-      }
+      },
+      "held": {
+        "title": "Argent détenu actuellement par TFTW",
+        "available": "Disponible pour le versement",
+        "pending": "En attente de retrait",
+        "loading": "Chargement…",
+        "error": "Impossible de charger le solde détenu par TFTW."
+      },
+      "commission": {
+        "accrued": "Commission enregistrée ({rate} %)",
+        "settled": "Réglée par des commandes de règlement"
+      },
+      "error": "Impossible de charger vos gains."
     }
   },
   "merchantSignup": {

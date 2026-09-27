@@ -2073,49 +2073,11 @@
         "note": "Water that would have been spent producing this food."
       }
     },
-    "walletBalance": {
-      "title": "Online payments we hold for you",
-      "available": "Available",
-      "pending": "Awaiting pickup",
-      "availableNote": "Ready for your next payout.",
-      "pendingNote": "Paid online, not collected yet.",
-      "availableInfoLabel": "What is Available?",
-      "availableInfo": "Money from online orders your customers have already collected. It is paid to you in your next payout, in full - minus any commission paid off by a settlement order.",
-      "pendingInfoLabel": "What is Awaiting pickup?",
-      "pendingInfo": "Customers paid online for these orders but have not collected them yet. The money moves to Available as soon as you confirm the pickup. If an order is cancelled, the customer is refunded.",
-      "cashNotHere": "Cash orders are paid to you directly, so they do not appear here.",
-      "error": "Could not load your online payments."
-    },
-    "todaySales": {
-      "title": "Today's sales",
-      "subtitle": "Cash in store and online, together",
-      "history": "History",
-      "orders": "{count, plural, one {# order} other {# orders}}",
-      "cash": "Cash in store",
-      "online": "Paid online",
-      "commission": "Commission recorded ({rate}%)",
-      "commissionInfoLabel": "What is commission recorded?",
-      "commissionInfo": "{rate}% of today's normal sales is added to your commission balance. It is never taken from your pocket: it is paid off later by settlement orders.",
-      "settled": "Paid off by settlement orders",
-      "settledInfoLabel": "What is paid off by settlement orders?",
-      "settledInfo": "On a settlement order you are paid less than the price, and the difference pays off commission from earlier days. No new commission is recorded on it.",
-      "kept": "You keep today",
-      "keptInfoLabel": "What is You keep today?",
-      "keptInfo": "What you were paid for today's sales, minus the commission recorded today.",
-      "toCollect": "{count, plural, one {# order} other {# orders}} still to collect, worth {amount}",
-      "empty": "No sales yet today. Every order you hand over appears here straight away.",
-      "error": "Could not load today's sales."
-    },
     "greeting": "Congratulations, {name}.",
     "impactStatement": "Your impact today is equivalent to {trees} trees planted.",
     "trendChart": {
       "subtitle": "Weekly trend",
-      "title": "Resources Saved",
-      "periods": {
-        "7d": "7D",
-        "30d": "30D",
-        "12m": "Year"
-      },
+      "title": "Earnings",
       "bagsUnit": "bags",
       "peakLabel": "★ Peak performance!",
       "noData": "No data available"
@@ -2278,11 +2240,27 @@
       "logoAlt": "Too Fresh To Waste"
     },
     "earnings": {
+      "title": "Your earnings - {period}",
+      "orders": "{count, plural, one {# order} other {# orders}}",
+      "empty": "No sales in this period yet.",
+      "unverified": "{count, plural, one {# sale is being verified and is not included yet} other {# sales are being verified and are not included yet}}",
       "lines": {
         "cashStore": "Cash collected in store",
         "cashDelivery": "Cash collected via delivery",
         "online": "Paid online"
-      }
+      },
+      "held": {
+        "title": "Money TFTW currently holds",
+        "available": "Available for payout",
+        "pending": "Awaiting pickup",
+        "loading": "Loading…",
+        "error": "Could not load the balance TFTW holds."
+      },
+      "commission": {
+        "accrued": "Commission recorded ({rate}%)",
+        "settled": "Paid off by settlement orders"
+      },
+      "error": "Could not load your earnings."
     }
   },
   "merchantSignup": {

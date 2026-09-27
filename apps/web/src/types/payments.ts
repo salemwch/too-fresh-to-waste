@@ -54,3 +54,14 @@ export interface EarningsRowsPage {
   hasMore: boolean;
   nextCursor?: string;
 }
+
+/**
+ * Mirrors `MerchantSalesChart` in
+ * `apps/food-waste-backend/src/merchant-sales/merchant-sales.types.ts` field
+ * for field - hand-kept, no automated proof (registration-chains.md).
+ */
+export interface MerchantSalesChart {
+  period: SalesPeriod;
+  granularity: 'hour' | 'day' | 'month';
+  slots: Array<{ start: string; orders: number; bags: number; earned: number }>;
+}

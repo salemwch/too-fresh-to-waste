@@ -31,6 +31,7 @@ import type {
   TodaySales,
   FundLedgerResponse,
 } from '@/types/dashboard';
+import type { MerchantSalesChart, MerchantSalesSummary, SalesPeriod } from '@/types/payments';
 
 const ORDERS_BASE = '/orders';
 const OFFERS_BASE = '/offers';
@@ -55,6 +56,26 @@ export const dashboardService = {
         ...(establishmentId ? { establishmentId } : {}),
       },
     });
+  },
+
+  /** GET /orders/merchant-sales-summary?period=&establishmentId= */
+  getSalesSummary(period: SalesPeriod, establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<MerchantSalesSummary>>(
+      `${ORDERS_BASE}/merchant-sales-summary`,
+      {
+        params: { period, ...(establishmentId ? { establishmentId } : {}) },
+      },
+    );
+  },
+
+  /** GET /orders/merchant-sales-chart?period=&establishmentId= */
+  getSalesChart(period: SalesPeriod, establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<MerchantSalesChart>>(
+      `${ORDERS_BASE}/merchant-sales-chart`,
+      {
+        params: { period, ...(establishmentId ? { establishmentId } : {}) },
+      },
+    );
   },
 
   getOrderStats(startDate?: Date, establishmentId?: string) {

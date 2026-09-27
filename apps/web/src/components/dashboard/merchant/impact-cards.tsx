@@ -5,27 +5,32 @@ import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { useCarbonMetrics, useSocialImpact } from '@/hooks/use-merchant-dashboard';
 import type { OrderStatsResponse } from '@/types/dashboard';
+import type { MerchantSalesSummary } from '@/types/payments';
 import { useFormat } from '@/lib/use-format';
 
 interface ImpactCardsProps {
   stats: OrderStatsResponse | null | undefined;
+  /** The shared earnings calculation for the selected period - food only. */
+  summary: MerchantSalesSummary | null | undefined;
 }
 
-export function ImpactCards({ stats }: ImpactCardsProps) {
+export function ImpactCards({ stats, summary }: ImpactCardsProps) {
   const fmt = useFormat();
   const t = useTranslations('dashboard.impactCards');
   const carbonQuery = useCarbonMetrics();
   const socialQuery = useSocialImpact();
 
-  const revenue = stats?.totalRevenue ?? 0; // gross — used ONLY for savingsPercent below
-  const earnings = stats?.totalEarnings ?? 0; // net — what the merchant actually keeps
-  const originalValue = stats?.totalOriginalValue ?? 0;
+  const earnings = summary?.total.earned ?? 0; // net - what the merchant actually keeps
+  const originalValue = summary?.total.originalValue ?? 0;
+  const foodValue = summary?.total.foodValue ?? 0;
   const completionRate =
     stats && stats.totalOrders > 0
       ? Math.round((stats.completedOrders / stats.totalOrders) * 100)
       : 0;
+  // Food only: the old formula divided by pricing.total, which includes the
+  // delivery fee, and so understated the discount on every delivery order.
   const savingsPercent =
-    originalValue > 0 ? Math.round(((originalValue - revenue) / originalValue) * 100) : 0;
+    originalValue > 0 ? Math.round(((originalValue - foodValue) / originalValue) * 100) : 0;
 
   const carbonKg = carbonQuery.data?.carbonKgAvoided ?? 0;
   const carKm = carbonQuery.data?.carKmEquivalent ?? 0;
