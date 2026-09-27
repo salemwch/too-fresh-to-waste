@@ -78,8 +78,8 @@ export const dashboardKeys = {
   leaderboard: (limit: number) => [...dashboardKeys.all, 'leaderboard', limit] as const,
   myRank: (estId?: string) => [...dashboardKeys.all, 'my-rank', estId ?? 'all'] as const,
   streak: () => [...dashboardKeys.all, 'streak'] as const,
-  businessMetrics: (startDate: string, endDate: string, estId?: string) =>
-    [...dashboardKeys.all, 'business-metrics', startDate, endDate, estId ?? 'all'] as const,
+  businessMetrics: (period: SalesPeriod, estId?: string) =>
+    [...dashboardKeys.all, 'business-metrics', period, estId ?? 'all'] as const,
   customerLocations: (limit: number, estId?: string) =>
     [...dashboardKeys.all, 'customer-locations', limit, estId ?? 'all'] as const,
   pricingSuggestions: () => [...dashboardKeys.all, 'pricing-suggestions'] as const,
@@ -573,17 +573,28 @@ export function useUpdateLeaderboardPreference() {
 
 // ─── Analytics hooks ────────────────────────────────────────────────────────
 
-export function useBusinessMetrics(startDate: string, endDate: string) {
+/**
+ * `period` is resolved server-side in Africa/Tunis, exactly like the earnings
+ * summary/chart - the same five periods, so the Analytics KPI cards agree
+ * with the Dashboard and Payments for the same period. `filters.dateRange` is
+ * still sent (the backend DTO requires it) but is ignored once `period` is
+ * set; it is never used to compute the actual window client-side any more.
+ */
+export function useBusinessMetrics(period: SalesPeriod) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.businessMetrics(startDate, endDate, estId ?? undefined),
+    queryKey: dashboardKeys.businessMetrics(period, estId ?? undefined),
     queryFn: async (): Promise<BusinessMetrics> => {
+      const now = new Date().toISOString();
       const request: BusinessMetricsRequest = {
         filters: {
-          dateRange: { startDate, endDate },
+          // Placeholder, schema-valid dateRange - the backend overrides it
+          // from `period` before this is ever read.
+          dateRange: { startDate: now, endDate: now },
           granularity: { period: 'day' },
           ...(estId ? { establishmentIds: [estId] } : {}),
         },
+        period,
         includeSustainability: true,
         options: { includeComparisons: true },
       };

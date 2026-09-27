@@ -24,10 +24,16 @@ export interface TimeSeries {
 // ==================== Business Analytics Interfaces ====================
 
 export interface BusinessMetrics {
-  totalRevenue: MetricValue;
   totalEarnings: MetricValue;
   totalOrders: MetricValue;
-  averageOrderValue: MetricValue;
+  /**
+   * Food price after the offer discount, per completed order, over the
+   * Earnings population - `earnings.total.foodValue / earnings.total.orders`.
+   * Never `pricing.total`: a merchant never sees delivery money (spec
+   * Decisions). Replaces the old `averageOrderValue` (built from
+   * `pricing.total`, food plus delivery).
+   */
+  averageFoodValue: MetricValue;
   conversionRate: MetricValue;
   customerAcquisitionCost: MetricValue;
   customerLifetimeValue: MetricValue;
@@ -288,9 +294,10 @@ export interface AggregationOptions {
 // ==================== Controller Response Interfaces ====================
 
 export interface QuickStatsResponse {
+  /** Merchant earnings (food only) - never the customer total. */
   revenue: number;
   orders: number;
-  averageOrderValue: number;
+  averageFoodValue: number;
   sustainability: {
     foodSaved: number;
     carbonReduced: number;

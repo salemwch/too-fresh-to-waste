@@ -3,15 +3,14 @@ import { NextIntlClientProvider } from 'next-intl';
 
 import en from '../../../../../messages/en.json';
 import { AnalyticsPage } from '../analytics-page';
-import type { BusinessMetrics, RevenueChartItem } from '@/types/dashboard';
+import type { BusinessMetrics } from '@/types/dashboard';
 
 const metricValue = (value: number) => ({ value, trend: 'stable' as const });
 
 const metrics: BusinessMetrics = {
-  totalRevenue: metricValue(240),
   totalEarnings: metricValue(162),
   totalOrders: metricValue(10),
-  averageOrderValue: metricValue(24),
+  averageFoodValue: metricValue(20),
   conversionRate: metricValue(80),
   customerAcquisitionCost: metricValue(0),
   customerLifetimeValue: metricValue(0),
@@ -22,28 +21,49 @@ const metrics: BusinessMetrics = {
   energySaved: metricValue(10),
 };
 
-const chart: RevenueChartItem[] = [
-  {
-    label: '1 Jan',
-    year: 2026,
-    month: 1,
-    day: 1,
-    revenue: 240,
-    earnings: 162,
-    orderCount: 10,
-    bagCount: 10,
-  },
-];
+const mockUseBusinessMetrics = jest.fn();
+const mockUseSalesChart = jest.fn();
 
 jest.mock('@/hooks/use-merchant-dashboard', () => ({
-  useBusinessMetrics: () => ({ data: metrics, isLoading: false, isError: false }),
-  useRevenueChart: () => ({ data: chart, isLoading: false }),
+  useBusinessMetrics: (...args: unknown[]) => mockUseBusinessMetrics(...args),
   useCustomerLocations: () => ({ data: [], isLoading: false }),
   useMyEstablishments: () => ({ data: [] }),
 }));
 
+jest.mock('@/hooks/use-merchant-sales', () => ({
+  useSalesChart: (...args: unknown[]) => mockUseSalesChart(...args),
+}));
+
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(''),
+}));
+
+jest.mock('@/i18n/routing', () => ({
+  usePathname: () => '/en/merchant/analytics',
+  useRouter: () => ({ replace: jest.fn() }),
+}));
+
+jest.mock('@/components/dashboard/merchant', () => {
+  const actual = jest.requireActual('@/components/dashboard/merchant');
+  return {
+    ...actual,
+    TrendChart: () => null,
+    TrendChartSkeleton: () => null,
+    TrendChartError: () => null,
+  };
+});
+
 describe('AnalyticsPage', () => {
-  it('shows net earnings (162), not the gross total (240), on the Revenue KPI card', () => {
+  beforeEach(() => {
+    mockUseBusinessMetrics.mockReset().mockReturnValue({
+      data: metrics,
+      isLoading: false,
+      isError: false,
+    });
+    mockUseSalesChart.mockReset().mockReturnValue({ data: undefined, isLoading: false });
+  });
+
+  it('shows net earnings (162), not the gross customer total, on the Revenue KPI card', () => {
     render(
       <NextIntlClientProvider locale='en' messages={en}>
         <AnalyticsPage />
@@ -51,6 +71,27 @@ describe('AnalyticsPage', () => {
     );
 
     expect(screen.getByText('162.00')).toBeTruthy();
-    expect(screen.queryByText('240.00')).toBeNull();
+  });
+
+  it('reads averageFoodValue on the Avg. Food Value card - never averageOrderValue', () => {
+    render(
+      <NextIntlClientProvider locale='en' messages={en}>
+        <AnalyticsPage />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.getByText('20.00')).toBeTruthy();
+    expect(screen.getByText('Average food value per completed order')).toBeTruthy();
+  });
+
+  it('passes the URL period to both useBusinessMetrics and useSalesChart, defaulting to month', () => {
+    render(
+      <NextIntlClientProvider locale='en' messages={en}>
+        <AnalyticsPage />
+      </NextIntlClientProvider>,
+    );
+
+    expect(mockUseBusinessMetrics).toHaveBeenCalledWith('month');
+    expect(mockUseSalesChart).toHaveBeenCalledWith('month');
   });
 });

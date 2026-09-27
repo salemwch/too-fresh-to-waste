@@ -146,10 +146,10 @@ describe('AnalyticsService.emptyBusinessMetrics', () => {
 
     const result = service.emptyBusinessMetrics();
 
-    expect(result.totalRevenue).toEqual({ value: 0, trend: 'stable' });
     expect(result.totalEarnings).toEqual({ value: 0, trend: 'stable' });
     expect(result.totalOrders).toEqual({ value: 0, trend: 'stable' });
-    expect(result.averageOrderValue).toEqual({ value: 0, trend: 'stable' });
+    expect(result.averageFoodValue).toEqual({ value: 0, trend: 'stable' });
     expect(result.conversionRate).toEqual({ value: 0, trend: 'stable' });
+    expect(result).not.toHaveProperty('totalRevenue');
   });
 });

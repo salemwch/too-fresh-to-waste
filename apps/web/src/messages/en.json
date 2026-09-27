@@ -719,11 +719,6 @@
     "analytics": {
       "title": "Analytics",
       "subtitle": "Track your business performance",
-      "periodToday": "Today",
-      "period7d": "7 Days",
-      "period30d": "30 Days",
-      "period90d": "90 Days",
-      "periodCustom": "Custom",
       "tabs": {
         "overview": "Overview",
         "customers": "Customers",
@@ -732,7 +727,7 @@
       "kpi": {
         "revenue": "My Earnings",
         "totalOrders": "Total Orders",
-        "avgOrderValue": "Avg. Order Value",
+        "avgFoodValue": "Average food value per completed order",
         "conversionRate": "Conversion Rate",
         "foodSaved": "Food Saved",
         "co2Avoided": "CO₂ Avoided"

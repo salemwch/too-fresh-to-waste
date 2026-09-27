@@ -719,11 +719,6 @@
     "analytics": {
       "title": "Analytique",
       "subtitle": "Suivez la performance de votre commerce",
-      "periodToday": "Aujourd'hui",
-      "period7d": "7 Jours",
-      "period30d": "30 Jours",
-      "period90d": "90 Jours",
-      "periodCustom": "Personnalisé",
       "tabs": {
         "overview": "Aperçu",
         "customers": "Clients",
@@ -732,7 +727,7 @@
       "kpi": {
         "revenue": "Mes gains",
         "totalOrders": "Total des commandes",
-        "avgOrderValue": "Panier moyen",
+        "avgFoodValue": "Valeur alimentaire moyenne par commande terminée",
         "conversionRate": "Taux de conversion",
         "foodSaved": "Nourriture sauvée",
         "co2Avoided": "CO₂ évité"

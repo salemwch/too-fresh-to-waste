@@ -1,3 +1,5 @@
+import type { SalesPeriod } from '@/types/payments';
+
 // ─── Chart granularity ───────────────────────────────────────────────────────
 
 export type ChartGranularity = 'day' | 'week' | 'month';
@@ -225,10 +227,16 @@ interface MetricValue {
 }
 
 export interface BusinessMetrics {
-  totalRevenue: MetricValue;
   totalEarnings: MetricValue;
   totalOrders: MetricValue;
-  averageOrderValue: MetricValue;
+  /**
+   * Food price after the offer discount, per completed order, over the same
+   * Earnings population as `totalEarnings`. Never the customer total - a
+   * merchant never sees delivery money. Replaces the old `averageOrderValue`
+   * (built from `pricing.total`, food plus delivery) and `totalRevenue`,
+   * which are both gone from the response.
+   */
+  averageFoodValue: MetricValue;
   conversionRate: MetricValue;
   customerAcquisitionCost: MetricValue;
   customerLifetimeValue: MetricValue;
@@ -251,6 +259,13 @@ export interface BusinessMetricsRequest {
     categories?: string[];
     establishmentIds?: string[];
   };
+  /**
+   * The same five periods as the Dashboard and Payments, resolved
+   * server-side (Africa/Tunis) - overrides `filters.dateRange` when present.
+   * `filters.dateRange` stays required for backward compatibility, but is
+   * ignored once `period` is set.
+   */
+  period?: SalesPeriod;
   includeSustainability?: boolean;
   options?: {
     includeComparisons?: boolean;
@@ -652,10 +667,6 @@ export interface CustomerLocationItem {
   count: number;
   percentage?: number;
 }
-
-// ─── Analytics Period ────────────────────────────────────────────────────────
-
-export type AnalyticsPeriod = 'today' | '7d' | '30d' | '90d' | 'custom';
 
 // ─── Smart Pricing Suggestions ──────────────────────────────────────────────
 

@@ -719,11 +719,6 @@
     "analytics": {
       "title": "التحليلات",
       "subtitle": "تتبّع أداء عملك",
-      "periodToday": "اليوم",
-      "period7d": "٧ أيام",
-      "period30d": "٣٠ يوم",
-      "period90d": "٩٠ يوم",
-      "periodCustom": "مخصص",
       "tabs": {
         "overview": "نظرة عامة",
         "customers": "العملاء",
@@ -732,7 +727,7 @@
       "kpi": {
         "revenue": "أرباحي",
         "totalOrders": "إجمالي الطلبات",
-        "avgOrderValue": "متوسط قيمة الطلب",
+        "avgFoodValue": "متوسط قيمة الطعام لكل طلب مكتمل",
         "conversionRate": "معدل التحويل",
         "foodSaved": "الطعام المُنقَذ",
         "co2Avoided": "CO₂ المُتجنَّب"

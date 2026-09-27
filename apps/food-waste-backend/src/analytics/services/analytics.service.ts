@@ -15,9 +15,9 @@ import {
   Establishment,
   EstablishmentDocument,
 } from '../../establishments/schemas/establishment.schema';
+import { MerchantSalesService } from '../../merchant-sales/merchant-sales.service';
 import { Offer, OfferDocument } from '../../offers/schemas/offer.schema';
 import { Order, OrderDocument, OrderStatus } from '../../orders/schemas/order.schema';
-import { MERCHANT_EARNINGS_EXPR } from '../../orders/utils/order-pricing.util';
 import { Payment, PaymentDocument, PaymentStatus } from '../../payments/schemas/payment.schema';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import {
@@ -130,6 +130,7 @@ export class AnalyticsService {
     private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService,
     private readonly redisCache: CacheService,
+    private readonly merchantSalesService: MerchantSalesService,
   ) {
     this.cacheEnabled = this.configService.get<boolean>('ANALYTICS_CACHE_ENABLED', true);
     void this._convertAggregationToInterface;
@@ -187,10 +188,9 @@ export class AnalyticsService {
   emptyBusinessMetrics(): BusinessMetrics {
     const zero: MetricValue = { value: 0, trend: 'stable' };
     return {
-      totalRevenue: zero,
       totalEarnings: zero,
       totalOrders: zero,
-      averageOrderValue: zero,
+      averageFoodValue: zero,
       conversionRate: zero,
       customerAcquisitionCost: zero,
       customerLifetimeValue: zero,
@@ -289,10 +289,6 @@ export class AnalyticsService {
 
       // Build result
       const result: BusinessMetrics = {
-        totalRevenue: AnalyticsUtil.calculateMetricValue(
-          currentMetrics.totalRevenue,
-          previousMetrics?.totalRevenue,
-        ),
         totalEarnings: AnalyticsUtil.calculateMetricValue(
           currentMetrics.totalEarnings,
           previousMetrics?.totalEarnings,
@@ -301,9 +297,9 @@ export class AnalyticsService {
           currentMetrics.totalOrders,
           previousMetrics?.totalOrders,
         ),
-        averageOrderValue: AnalyticsUtil.calculateMetricValue(
-          currentMetrics.averageOrderValue,
-          previousMetrics?.averageOrderValue,
+        averageFoodValue: AnalyticsUtil.calculateMetricValue(
+          currentMetrics.averageFoodValue,
+          previousMetrics?.averageFoodValue,
         ),
         conversionRate: AnalyticsUtil.calculateMetricValue(
           currentMetrics.conversionRate,
@@ -637,10 +633,8 @@ export class AnalyticsService {
     const matchPipeline = AnalyticsUtil.createMatchPipeline(filters);
     const completedStatuses = [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED];
 
-    const [orderResult] = await Promise.all([
-      this.orderModel.aggregate<
-        OrderMetricsAggregationResult & { totalRevenue: number; totalEarnings: number }
-      >([
+    const [orderResult, earnings] = await Promise.all([
+      this.orderModel.aggregate<OrderMetricsAggregationResult>([
         ...matchPipeline,
         {
           $group: {
@@ -649,29 +643,32 @@ export class AnalyticsService {
             completedOrders: {
               $sum: { $cond: [{ $in: ['$status', completedStatuses] }, 1, 0] },
             },
-            totalRevenue: {
-              $sum: { $cond: [{ $in: ['$status', completedStatuses] }, '$pricing.total', 0] },
-            },
-            totalEarnings: {
-              $sum: {
-                $cond: [{ $in: ['$status', completedStatuses] }, MERCHANT_EARNINGS_EXPR, 0],
-              },
-            },
           },
         },
       ]),
+      // The single earnings calculation shared with the Dashboard and
+      // Payments (Analytics on the same periods and the same calculation) -
+      // food only, never `pricing.total`/`pricing.deliveryFee`. The caller's
+      // `establishmentIds` is already narrowed to what they own by the
+      // controller before this is ever reached.
+      this.merchantSalesService.summaryForRange(
+        { kind: 'establishments', establishmentIds: filters.establishmentIds ?? [] },
+        { from: filters.dateRange.startDate, to: filters.dateRange.endDate },
+      ),
     ]);
 
-    const totalRevenue = orderResult[0]?.totalRevenue ?? 0;
-    const totalEarnings = orderResult[0]?.totalEarnings ?? 0;
     const totalOrders = orderResult[0]?.totalOrders ?? 0;
     const completedOrders = orderResult[0]?.completedOrders ?? 0;
+    const totalEarnings = earnings.total.earned;
+    // Food price after the offer discount, per completed order, over the same
+    // Earnings population. Not earnings per order, not the customer total.
+    const averageFoodValue =
+      earnings.total.orders > 0 ? earnings.total.foodValue / earnings.total.orders : 0;
 
     return {
-      totalRevenue,
       totalEarnings,
       totalOrders,
-      averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+      averageFoodValue,
       conversionRate: totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0,
       customerAcquisitionCost: 0, // Would require marketing spend data
       customerLifetimeValue: 0, // Would require advanced calculation

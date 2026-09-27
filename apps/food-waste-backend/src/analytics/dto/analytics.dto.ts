@@ -18,6 +18,8 @@ import {
   ArrayMaxSize,
 } from 'class-validator';
 
+import { SALES_PERIODS, type SalesPeriod } from '../../merchant-sales/merchant-sales.period';
+
 // ==================== Base DTOs ====================
 
 class TimeRangeDto {
@@ -304,6 +306,21 @@ export class BusinessMetricsRequestDto {
   @ValidateNested()
   @Type(() => AnalyticsFiltersDto)
   filters!: AnalyticsFiltersDto;
+
+  /**
+   * When present, resolved server-side (Africa/Tunis) and overrides
+   * `filters.dateRange` - the same five periods and the same calculation as
+   * the Dashboard and Payments. `filters.dateRange` stays required for
+   * backward compatibility (callers that never send `period`, e.g. quick
+   * stats); it is ignored once `period` is set.
+   */
+  @ApiPropertyOptional({
+    description: 'Merchant-facing period; overrides filters.dateRange when present',
+    enum: SALES_PERIODS,
+  })
+  @IsOptional()
+  @IsIn(SALES_PERIODS)
+  period?: SalesPeriod;
 
   @ApiPropertyOptional({
     description: 'Aggregation options',
