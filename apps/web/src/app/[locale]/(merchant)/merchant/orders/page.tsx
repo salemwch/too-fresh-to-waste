@@ -202,8 +202,10 @@ interface OrderCardProps {
   t: (key: string, values?: Record<string, string | number>) => string;
 }
 
-function OrderCard({ order, onClick, t }: OrderCardProps) {
-  const total = order.pricing?.total ?? 0;
+export function OrderCard({ order, onClick, t }: OrderCardProps) {
+  // Food price only - a merchant never sees delivery money, and pickup-cash
+  // merchants collect exactly this amount in store.
+  const foodPrice = order.pricing?.subtotal ?? 0;
   const currency = order.pricing?.currency ?? 'TND';
   const customer = order.customerId;
   const pickupCode = order.pickupDetails?.pickupCode;
@@ -227,7 +229,7 @@ function OrderCard({ order, onClick, t }: OrderCardProps) {
           <span className='text-xs text-foreground truncate'>{getCustomerName(customer)}</span>
         </div>
         <span className='text-sm font-bold text-foreground shrink-0'>
-          {formatCurrency(total, currency)}
+          {formatCurrency(foodPrice, currency)}
         </span>
       </div>
 
@@ -610,7 +612,7 @@ function OrderDrawer({ orderId, open, onClose, t }: OrderDrawerProps) {
 
 // ─── Order Detail Content ────────────────────────────────────────────────────
 
-function OrderDetailContent({
+export function OrderDetailContent({
   order,
   t,
   onCancel,
@@ -713,41 +715,52 @@ function OrderDetailContent({
         </div>
       </section>
 
-      {/* Pricing breakdown */}
-      <section>
-        <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-sm'>
-          {t('pricing')}
-        </h3>
-        <div className='rounded-xl border border-border bg-card p-md space-y-1.5'>
-          {[
-            { label: t('subtotal'), value: order.pricing?.subtotal },
-            {
-              label: t('discount'),
-              value: order.pricing?.discountAmount ? -order.pricing.discountAmount : null,
-            },
-            { label: t('tax'), value: order.pricing?.taxAmount },
-            { label: t('deliveryFee'), value: order.pricing?.deliveryFee },
-          ]
-            .filter(r => r.value != null && r.value !== 0)
-            .map(row => (
-              <div
-                key={row.label}
-                className='flex items-center justify-between text-xs text-muted-foreground'
-              >
-                <span>{row.label}</span>
-                <span className={row.value! < 0 ? 'text-green-600' : ''}>
-                  {formatCurrency(row.value!, currency)}
+      {/* Pricing breakdown - food only. No tax row (taxAmount is always 0,
+          never an authoritative figure), no delivery-fee row, no total row: a
+          merchant never sees delivery money or the customer's total. */}
+      {order.pricing && (
+        <section>
+          <h3 className='text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-sm'>
+            {t('pricing')}
+          </h3>
+          <div className='rounded-xl border border-border bg-card p-md space-y-1.5'>
+            {typeof order.pricing.subtotal === 'number' &&
+              typeof order.pricing.discountAmount === 'number' && (
+                <div className='flex items-center justify-between text-xs text-muted-foreground'>
+                  <span>{t('originalValue')}</span>
+                  <span>
+                    {formatCurrency(
+                      order.pricing.subtotal + order.pricing.discountAmount,
+                      currency,
+                    )}
+                  </span>
+                </div>
+              )}
+            {!!order.pricing.discountAmount && (
+              <div className='flex items-center justify-between text-xs text-muted-foreground'>
+                <span>{t('discount')}</span>
+                <span className='text-green-600'>
+                  {formatCurrency(-order.pricing.discountAmount, currency)}
                 </span>
               </div>
-            ))}
-          <div className='pt-1.5 mt-xs border-t border-border flex items-center justify-between'>
-            <span className='text-sm font-bold text-foreground'>{t('total')}</span>
-            <span className='text-sm font-black text-foreground'>
-              {formatCurrency(order.pricing?.total ?? 0, currency)}
-            </span>
+            )}
+            <div className='pt-1.5 mt-xs border-t border-border flex items-center justify-between'>
+              <span className='text-sm font-bold text-foreground'>{t('foodPrice')}</span>
+              <span className='text-sm font-black text-foreground'>
+                {formatCurrency(order.pricing.subtotal, currency)}
+              </span>
+            </div>
+            {order.commission && (
+              <div className='flex items-center justify-between'>
+                <span className='text-xs font-semibold text-primary'>{t('yourEarnings')}</span>
+                <span className='text-sm font-black text-primary'>
+                  {formatCurrency(order.commission.merchantAmount, currency)}
+                </span>
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Pickup instructions */}
       {order.pickupDetails?.instructions && (

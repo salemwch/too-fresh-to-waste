@@ -40,21 +40,31 @@ const orderStatusPayloadSchema = z.object({
   timestamp: z.string().optional(),
 });
 
-const newOrderPayloadSchema = z.object({
+// Food price only - a merchant never sees delivery money. The backend
+// (`OrdersService.notifyMerchantNewOrder`) sends `pricing.subtotal`, never
+// `pricing.total` (food + delivery). This schema must not require a field
+// the backend deliberately never sends, or every `order:new` event fails
+// validation silently - see task-15-brief.md correction 3.
+const newOrderPricingSchema = z.object({ subtotal: z.number() }).optional();
+
+// Exported for `__tests__/use-merchant-orders-socket-schema.test.ts`, which
+// feeds the real (already-stripped) backend payload shape through this exact
+// schema - not a re-declared copy - per task-15-brief.md correction 3.
+export const newOrderPayloadSchema = z.object({
   event: z.string().optional(),
   data: z
     .object({
       orderId: z.string().min(1),
       orderNumber: z.string(),
       customerName: z.string().optional(),
-      pricing: z.object({ total: z.number() }).optional(),
+      pricing: newOrderPricingSchema,
     })
     .optional(),
   // Fallback — direct fields when payload arrives unwrapped
   orderId: z.string().optional(),
   orderNumber: z.string().optional(),
   customerName: z.string().optional(),
-  pricing: z.object({ total: z.number() }).optional(),
+  pricing: newOrderPricingSchema,
 });
 
 /**
@@ -163,7 +173,8 @@ export function useMerchantOrdersSocket() {
       const orderId = data.orderId ?? '';
       const orderNumber = data.orderNumber ?? '';
       const customerName = data.customerName ?? 'Customer';
-      const total = data.pricing?.total ?? 0;
+      // Food price only - never the customer's total (food + delivery).
+      const foodPrice = data.pricing?.subtotal ?? 0;
 
       // 1. Refresh the active orders list in TanStack Query cache.
       void queryClient.invalidateQueries({
@@ -176,7 +187,7 @@ export function useMerchantOrdersSocket() {
           id: orderId,
           orderNumber,
           customerName,
-          total,
+          foodPrice,
           createdAt: new Date().toISOString(),
         });
       }

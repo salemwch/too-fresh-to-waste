@@ -150,13 +150,16 @@ interface OrderItem {
   discountAmount: number;
 }
 
+/**
+ * A merchant never receives delivery money: the backend strips
+ * `deliveryFee` and `total` from every merchant/location-manager order
+ * response (`orders/utils/merchant-order-view.ts`). `subtotal` is the food
+ * price after the offer discount - the figure this app may show.
+ */
 interface OrderPricing {
   subtotal: number;
   discountAmount: number;
   taxAmount: number;
-  /** Delivery fee in TND. 0 for pickup. Included in `total`. */
-  deliveryFee: number;
-  total: number;
   currency: string;
 }
 
@@ -190,10 +193,19 @@ export type OrderStatus =
   | 'expired'
   | 'refunded';
 
+/** `amount` (what the customer paid, food + delivery) is stripped for merchant/LM. */
 interface OrderPaymentDetails {
   method: 'cash' | 'online' | 'pay_on_delivery';
-  amount: number;
   currency: string;
+}
+
+/**
+ * The merchant's own frozen commission decision. Absent until pickup is
+ * confirmed - `order.commission` is written by `CommissionService` at that
+ * point, never before. Never delivery money.
+ */
+export interface OrderCommission {
+  merchantAmount: number;
 }
 
 export interface MerchantOrder {
@@ -206,6 +218,8 @@ export interface MerchantOrder {
   establishmentId: PopulatedEstablishment | string;
   items: OrderItem[];
   pricing: OrderPricing;
+  /** Present only after pickup is confirmed. */
+  commission?: OrderCommission;
   pickupDetails: {
     timeSlot?: string;
     scheduledDate?: string;
