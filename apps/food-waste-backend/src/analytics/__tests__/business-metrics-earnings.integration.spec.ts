@@ -146,6 +146,12 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
     // `shared` (deliberately scoped to E only, right here in the test) stays
     // at 10, so the two diverge and the assertion fails.
     const F = new Types.ObjectId();
+    // Fix round 2, item 1: its own establishment, isolated from E/F above, so
+    // seeding an unverified order in the comparison window here cannot move
+    // any other test's totals - the current-period-labelled test above scopes
+    // to E only, and G is never included in that query.
+    const G = new Types.ObjectId();
+    const gMerchantId = new Types.ObjectId();
 
     beforeAll(async () => {
       // NORMAL online delivery: merchant earns exactly `commission.merchantAmount`
@@ -213,6 +219,40 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
           dueAfter: 0,
           appliedAt: new Date('2026-09-10T09:00:00Z'),
         },
+      } as never);
+
+      // Establishment G, current-period unverified order: no commission
+      // decision, moment (2026-09-05) inside [2026-09-02, 2026-09-20] and
+      // at/after the cutoff - reports with the current period's real preset.
+      await orderModel.collection.insertOne({
+        orderNumber: 'ORD-TASK14-CMP-CURRENT',
+        merchantId: gMerchantId,
+        establishmentId: G,
+        status: OrderStatus.PICKED_UP,
+        deliveryMode: 'pickup',
+        isDeleted: false,
+        pricing: { subtotal: 12, discountAmount: 0, deliveryFee: 0, total: 12 },
+        pickedUpAt: new Date('2026-09-05T09:00:00Z'),
+        createdAt: new Date('2026-09-05T09:00:00Z'),
+        pickupDetails: { pickupCode: '141406', qrCode: 'QR-ORD-TASK14-CMP-CURRENT' },
+      } as never);
+
+      // Establishment G, comparison-window unverified order: no commission
+      // decision, moment (2026-09-01) inside the synthetic comparison window
+      // for the query below ([2026-08-15, 2026-09-01T23:59:59.999Z] - 18-day
+      // duration ending 1ms before the current period's startDate) and
+      // at/after the cutoff - reports 'custom', never the current period's name.
+      await orderModel.collection.insertOne({
+        orderNumber: 'ORD-TASK14-CMP-PREVIOUS',
+        merchantId: gMerchantId,
+        establishmentId: G,
+        status: OrderStatus.PICKED_UP,
+        deliveryMode: 'pickup',
+        isDeleted: false,
+        pricing: { subtotal: 9, discountAmount: 0, deliveryFee: 0, total: 9 },
+        pickedUpAt: new Date('2026-09-01T10:00:00Z'),
+        createdAt: new Date('2026-09-01T10:00:00Z'),
+        pickupDetails: { pickupCode: '141407', qrCode: 'QR-ORD-TASK14-CMP-PREVIOUS' },
       } as never);
     });
 
@@ -285,7 +325,15 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
       );
     });
 
-    it("a synthetic comparison window is never labelled with the current period's name - it stays 'custom'", async () => {
+    // Fix round 2, item 1: the version of this test above was vacuous - E has
+    // no unverified order in the comparison window (2026-08-15..2026-09-01
+    // 23:59:59.999), and `reportUnverified` only fires when the unverified
+    // count is above 0 (merchant-sales.service.ts). So it never reported for
+    // either call, and would have kept passing even if `request.period` were
+    // (wrongly) threaded into the comparison call too. Replaced with a
+    // dedicated establishment G carrying one unverified order in each window,
+    // so both calls actually report and the labels can be told apart.
+    it("labels the current period's report with the real preset and the comparison window's report 'custom' - never the same label for both", async () => {
       salesSentry.captureMessage.mockClear();
       const from = new Date('2026-09-02T00:00:00Z');
       const to = new Date('2026-09-20T00:00:00Z');
@@ -293,26 +341,23 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
       await service.getBusinessMetrics({
         filters: {
           dateRange: { startDate: from.toISOString(), endDate: to.toISOString() },
-          establishmentIds: [E.toString()],
+          establishmentIds: [G.toString()],
           granularity: { period: 'day' },
         },
         period: 'month',
         options: { includeComparisons: true },
       } as unknown as BusinessMetricsRequestDto);
 
-      // The comparison window (2026-08-15..2026-09-02, no decisions in it)
-      // reports nothing here; only the current-period call's report (period
-      // 'month') fires. Asserting there is exactly one call, still labelled
-      // 'month', proves the comparison call was never mislabelled 'month' by
-      // accident - if it had reported at all, `toHaveBeenCalledTimes(1)`
-      // would fail, not silently pass with two differently-labelled calls.
-      expect(salesSentry.captureMessage).toHaveBeenCalledTimes(1);
-      expect(salesSentry.captureMessage).toHaveBeenCalledWith(
-        expect.anything(),
-        'error',
-        expect.objectContaining({ merchantEarnings: expect.objectContaining({ period: 'month' }) }),
-        expect.anything(),
+      // Two reports: the current period's (real preset) and the comparison
+      // window's (always 'custom', a synthetic range that was never itself a
+      // named preset). Asserting the exact pair, not just "was called with
+      // 'month' at least once", is what a comparison call mislabelled 'month'
+      // would actually break.
+      expect(salesSentry.captureMessage).toHaveBeenCalledTimes(2);
+      const periods = salesSentry.captureMessage.mock.calls.map(
+        call => (call[2] as { merchantEarnings: { period: string } }).merchantEarnings.period,
       );
+      expect(periods.sort()).toEqual(['custom', 'month']);
     });
 
     // --- Fix round 1, item 2(c): `all` must succeed through real validation ---
