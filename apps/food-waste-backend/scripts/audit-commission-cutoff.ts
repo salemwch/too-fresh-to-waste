@@ -27,6 +27,7 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 import * as mongoose from 'mongoose';
 
+import { COMMISSION_MOMENT_EXPR } from '../src/merchant-sales/merchant-sales.expressions';
 import { parseCommissionCutoff } from '../src/config/commission-cutoff.util';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -65,17 +66,7 @@ async function run(): Promise<void> {
     .collection('orders')
     .aggregate<Bucket>([
       { $match: { status: { $in: COMPLETED }, isDeleted: { $ne: true } } },
-      {
-        $addFields: {
-          _moment: {
-            $cond: [
-              { $eq: ['$deliveryMode', 'delivery'] },
-              '$driverPickedUpAt',
-              { $ifNull: ['$pickedUpAt', '$pickupDetails.actualPickupTime'] },
-            ],
-          },
-        },
-      },
+      { $addFields: { _moment: COMMISSION_MOMENT_EXPR } },
       {
         $group: {
           _id: {
