@@ -931,60 +931,20 @@
       "title": "سجل المدفوعات",
       "subtitle": "تتبّع ومطابقة المدفوعات النقدية",
       "stats": {
-        "todayRevenue": "إيرادات اليوم",
-        "totalCollected": "إجمالي المحصّل",
-        "pendingCollection": "قيد التحصيل",
-        "completedOrders": "الطلبات المكتملة",
-        "totalRevenue": "إجمالي الإيرادات",
-        "totalTransactions": "المعاملات",
-        "avgOrderValue": "متوسط قيمة الطلب",
-        "completed": "مكتملة",
-        "pending": "قيد الانتظار",
-        "failed": "فاشلة"
+        "totalEarned": "إجمالي الأرباح",
+        "orders": "الطلبات"
       },
-      "filters": {
-        "allStatuses": "جميع الحالات",
-        "collected": "محصّل",
-        "pending": "قيد الانتظار",
-        "refunded": "مُسترد",
-        "failed": "فاشل",
-        "dateRange": "الفترة",
-        "today": "اليوم",
-        "thisWeek": "هذا الأسبوع",
-        "thisMonth": "هذا الشهر",
-        "completed": "مكتملة",
-        "fromDate": "من",
-        "toDate": "إلى"
+      "tabs": {
+        "earnings": "الأرباح",
+        "refunded": "مستردّة",
+        "verifying": "قيد التحقق"
       },
-      "table": {
-        "customer": "العميل",
-        "amount": "المبلغ",
-        "method": "الطريقة",
-        "status": "الحالة",
-        "date": "التاريخ",
-        "order": "الطلب"
-      },
-      "methods": {
-        "cash": "نقدي",
-        "cash_on_pickup": "نقدي عند الاستلام",
-        "card": "بطاقة",
-        "smt_gateway": "عبر الإنترنت",
-        "wallet": "محفظة"
-      },
-      "status": {
-        "completed": "مكتمل",
-        "pending": "قيد الانتظار",
-        "processing": "قيد المعالجة",
-        "refunded": "مُسترد",
-        "failed": "فاشل",
-        "cancelled": "ملغى"
-      },
+      "verifyingNote": "هذه البيعة قيد التحقق ولم تُحتسب بعد.",
       "empty": {
         "title": "لا توجد مدفوعات",
         "description": "ستظهر مدفوعات طلباتك هنا."
       },
       "error": "فشل تحميل المدفوعات. يرجى المحاولة مرة أخرى.",
-      "tndCurrency": "د.ت",
       "loadMore": "تحميل المزيد"
     },
     "loyalty": {
@@ -2315,6 +2275,13 @@
       "toggleNav": "تبديل التنقل",
       "adminNav": "تنقل المسؤول",
       "logoAlt": "Too Fresh To Waste"
+    },
+    "earnings": {
+      "lines": {
+        "cashStore": "نقدًا في المتجر",
+        "cashDelivery": "نقدًا عبر التوصيل",
+        "online": "مدفوع عبر الإنترنت"
+      }
     }
   },
   "merchantSignup": {

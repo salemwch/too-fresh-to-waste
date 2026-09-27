@@ -1,54 +1,56 @@
-export type PaymentStatus =
-  'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'cancelled';
-
 export type SalesPeriod = 'today' | '7d' | '30d' | 'month' | 'all';
 
-type PaymentMethod = 'cash' | 'card' | 'smt_gateway' | 'wallet';
+export type EarningsTab = 'earnings' | 'refunded' | 'verifying';
 
-export interface MerchantPayment {
-  id: string;
-  orderId: string;
-  orderNumber?: string;
-  customerId: string;
-  customerName?: string;
-  merchantId: string;
-  establishmentId: string;
-  establishmentName?: string;
-  amount: number;
-  currency: string;
-  paymentMethod: PaymentMethod;
-  status: PaymentStatus;
-  description?: string;
-  transactionId?: string;
-  createdAt: string;
-  updatedAt: string;
+/** The three Payments tabs, in display order. */
+export const EARNINGS_TABS: readonly EarningsTab[] = Object.freeze([
+  'earnings',
+  'refunded',
+  'verifying',
+]);
+
+/** Merchants never see delivery money - these are the only three lines shown. */
+export type PaymentLine = 'cashStore' | 'cashDelivery' | 'online';
+
+export interface LineTotals {
+  orders: number;
+  earned: number;
 }
 
-export interface PaymentListResponse {
-  payments: MerchantPayment[];
+/**
+ * Mirrors `MerchantSalesSummary` in
+ * `apps/food-waste-backend/src/merchant-sales/merchant-sales.types.ts` field
+ * for field - hand-kept, no automated proof (registration-chains.md).
+ */
+export interface MerchantSalesSummary {
+  period: SalesPeriod | 'custom';
+  from: string | null;
+  to: string;
+  currency: 'TND';
+  total: LineTotals & { foodValue: number; originalValue: number };
+  channels: Record<PaymentLine, LineTotals>;
+  commission: { rate: number; accrued: number; settled: number };
+  unverifiedOrders: number;
+}
+
+/** Mirrors `EarningsRow` in the same backend file. Food only - never `deliveryFee`/`total`. */
+export interface EarningsRow {
+  orderId: string;
+  orderNumber: string;
+  customerName: string | null;
+  establishmentName: string | null;
+  line: PaymentLine;
+  subtotal: number;
+  /** 0 on the verifying tab. */
+  earned: number;
+  kind: 'NORMAL' | 'SETTLEMENT' | 'LEGACY' | 'UNVERIFIED';
+  commissionMoment: string;
+  status: string;
+  refundReason: string | null;
+}
+
+export interface EarningsRowsPage {
+  rows: EarningsRow[];
   hasMore: boolean;
   nextCursor?: string;
-}
-
-export interface PaymentQueryFilters {
-  status?: PaymentStatus;
-  after?: string;
-  limit?: number;
-  fromDate?: string;
-  toDate?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface PaymentStats {
-  totalRevenue: number;
-  totalTransactions: number;
-  averageOrderValue: number;
-  currency: string;
-  completedPayments: number;
-  pendingPayments: number;
-  failedPayments: number;
-  refundedPayments: number;
 }

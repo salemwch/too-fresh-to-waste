@@ -3,7 +3,6 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
 import { RegexSecurityUtil } from 'src/common/utils/regex-security.util';
-import { Order } from '../orders/schemas/order.schema';
 
 import { MerchantWallet } from './schemas/merchant-wallet.schema';
 import { Payment } from './schemas/payment.schema';
@@ -25,7 +24,6 @@ describe('PaymentService.getMyWallet', () => {
       providers: [
         PaymentService,
         { provide: getModelToken(Payment.name), useValue: {} },
-        { provide: getModelToken(Order.name), useValue: {} },
         { provide: getModelToken(MerchantWallet.name), useValue: walletModel },
         { provide: RegexSecurityUtil, useValue: {} },
       ],

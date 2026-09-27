@@ -1,35 +1,47 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { paymentsService } from '@/services/payments.service';
-import type { PaymentListResponse, PaymentQueryFilters, PaymentStats } from '@/types/payments';
+import type {
+  EarningsRowsPage,
+  EarningsTab,
+  MerchantSalesSummary,
+  SalesPeriod,
+} from '@/types/payments';
 
 const paymentKeys = {
   all: ['payments'] as const,
-  list: (filters: string) => [...paymentKeys.all, 'list', filters] as const,
-  stats: () => [...paymentKeys.all, 'stats'] as const,
+  stats: (period: SalesPeriod) => [...paymentKeys.all, 'stats', period] as const,
+  rows: (period: SalesPeriod, tab: EarningsTab) =>
+    [...paymentKeys.all, 'rows', period, tab] as const,
 };
 
-export function useMerchantPayments(filters: PaymentQueryFilters) {
-  const filterKey = JSON.stringify(filters);
+/** The stats card - the same earnings calculation as the Dashboard. */
+export function usePaymentStats(period: SalesPeriod) {
   return useQuery({
-    queryKey: paymentKeys.list(filterKey),
-    queryFn: async (): Promise<PaymentListResponse> => {
-      const response = await paymentsService.getMerchantPayments(filters);
+    queryKey: paymentKeys.stats(period),
+    queryFn: async (): Promise<MerchantSalesSummary> => {
+      const response = await paymentsService.getStats(period);
       return response.data.data;
     },
     staleTime: 60 * 1000,
-    placeholderData: prev => prev,
   });
 }
 
-export function usePaymentStats() {
-  return useQuery({
-    queryKey: paymentKeys.stats(),
-    queryFn: async (): Promise<PaymentStats> => {
-      const response = await paymentsService.getStats();
+/** The exact orders behind one Payments tab, paginated with the backend's opaque cursor. */
+export function useMerchantEarningsRows(period: SalesPeriod, tab: EarningsTab) {
+  return useInfiniteQuery({
+    queryKey: paymentKeys.rows(period, tab),
+    queryFn: async ({ pageParam }): Promise<EarningsRowsPage> => {
+      const response = await paymentsService.getMyPayments({
+        period,
+        tab,
+        ...(pageParam ? { after: pageParam } : {}),
+      });
       return response.data.data;
     },
-    staleTime: 5 * 60 * 1000,
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: lastPage => (lastPage.hasMore ? lastPage.nextCursor : undefined),
+    staleTime: 60 * 1000,
   });
 }

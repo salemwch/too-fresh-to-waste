@@ -28,6 +28,13 @@ import { AuthenticatedRequest } from 'src/common/decorators/get-user.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
+import {
+  MerchantEarningsRowsQueryDto,
+  MerchantSalesQueryDto,
+} from '../merchant-sales/dto/merchant-sales-query.dto';
+import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
+import { salesScopeFor } from '../merchant-sales/merchant-sales.scope';
+
 import { PaymentQueryDto } from './dto/payment-query.dto';
 import { PaymentService } from './payments.service';
 import { MerchantCommissionService } from './services/merchant-commission.service';
@@ -59,6 +66,7 @@ export class PaymentController {
     private readonly paymentService: PaymentService,
     private readonly merchantCommissionService: MerchantCommissionService,
     private readonly konnectOrderService: KonnectOrderService,
+    private readonly merchantSalesService: MerchantSalesService,
   ) {}
 
   @ApiOperation({
@@ -104,13 +112,17 @@ export class PaymentController {
 
   @ApiOperation({
     summary: 'Get merchant payments',
-    description: 'Retrieve paginated list of payments for the authenticated merchant',
+    description:
+      'The exact orders behind a Payments tab (earnings, refunded, being verified) for the ' +
+      'authenticated merchant, from the same calculation as the Dashboard and the stats card.',
   })
+  @ApiQuery({ name: 'period', required: false, enum: ['today', '7d', '30d', 'month', 'all'] })
+  @ApiQuery({ name: 'tab', required: false, enum: ['earnings', 'refunded', 'verifying'] })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
-    description: 'Results per page (max: 10)',
+    description: 'Results per page (max: 50)',
   })
   @ApiQuery({ name: 'after', required: false, type: String, description: 'Cursor for pagination' })
   @ApiResponse({ status: 200, description: 'Payments retrieved successfully' })
@@ -120,21 +132,19 @@ export class PaymentController {
   @Roles(UserRole.MERCHANT)
   async getMyPayments(
     @Request() req: AuthenticatedRequest,
-    @Query(strictValidation()) filters: PaymentQueryDto,
+    @Query(strictValidation()) query: MerchantEarningsRowsQueryDto,
   ) {
-    const result = await this.paymentService.findMerchantPaymentsFromOrders(
-      req.user.userId,
-      filters ?? {},
+    const data = await this.merchantSalesService.rows(
+      salesScopeFor(UserRole.MERCHANT, req.user.userId, query.establishmentId),
+      query.period ?? 'month',
+      query.tab ?? 'earnings',
+      { ...(query.after ? { after: query.after } : {}), limit: query.limit ?? 20 },
     );
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Your payments retrieved successfully',
-      data: {
-        payments: result.payments,
-        hasMore: result.hasMore,
-        ...(result.nextCursor ? { nextCursor: result.nextCursor } : {}),
-      },
+      data,
     };
   }
 
@@ -279,19 +289,30 @@ export class PaymentController {
 
   @ApiOperation({
     summary: 'Get payment statistics',
-    description: 'Retrieve payment statistics and analytics for the authenticated user',
+    description:
+      'Retrieve payment statistics and analytics for the authenticated user. For a merchant, ' +
+      'this is the same earnings calculation as the Dashboard and the Payments tab, scoped by ' +
+      '`period` (default month).',
   })
+  @ApiQuery({ name: 'period', required: false, enum: ['today', '7d', '30d', 'month', 'all'] })
   @ApiResponse({ status: 200, description: 'Payment statistics retrieved successfully' })
   @ApiResponse({ status: 500, description: 'Unable to retrieve statistics' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.CONSUMER, UserRole.MERCHANT, UserRole.ADMIN)
-  async getPaymentStats(@Request() req: AuthenticatedRequest, @Res() res: Response) {
+  async getPaymentStats(
+    @Request() req: AuthenticatedRequest,
+    @Res() res: Response,
+    @Query(strictValidation()) query: MerchantSalesQueryDto,
+  ) {
     try {
       const stats =
         req.user.role === UserRole.MERCHANT
-          ? await this.paymentService.getMerchantPaymentStatsFromOrders(req.user.userId)
+          ? await this.merchantSalesService.summary(
+              salesScopeFor(UserRole.MERCHANT, req.user.userId),
+              query.period ?? 'month',
+            )
           : await this.paymentService.getPaymentStats(req.user.userId, req.user.role);
 
       return res.status(HttpStatus.OK).json({

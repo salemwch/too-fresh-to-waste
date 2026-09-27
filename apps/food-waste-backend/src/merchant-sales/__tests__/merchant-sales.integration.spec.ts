@@ -12,11 +12,13 @@
  *   bash .superpowers/sdd/2026-09-26-merchant-earnings/testdb.sh merchant-sales
  */
 
+import { UserRole } from '@foodwaste/shared';
 import mongoose, { Connection, Model, Types } from 'mongoose';
 
 import { hasErrorCode } from '../../common/errors';
 import { OrderSchema, OrderStatus, type OrderDocument } from '../../orders/schemas/order.schema';
 import { PLATFORM_FOOD_SHARE } from '../../orders/utils/order-pricing.util';
+import { PaymentController } from '../../payments/payments.controller';
 import { requireMongoTestUri } from '../../../test/helpers/mongo-test-uri';
 import { MerchantSalesService } from '../merchant-sales.service';
 import type { SalesScope } from '../merchant-sales.scope';
@@ -606,5 +608,52 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
         .deleteMany({ _id: { $in: [fullCustomerId, firstNameOnlyId] } });
       await orders.db.collection('establishments').deleteOne({ _id: establishmentId });
     }
+  });
+
+  // --- Task 11: /payments/stats for a merchant is the shared summary, byte for byte ---
+
+  describe('PaymentController.getPaymentStats (merchant)', () => {
+    it('returns exactly what MerchantSalesService.summary returns for the same instant', async () => {
+      // Both calls must see the same clock: the controller reads `new Date()`
+      // internally (it is never given `now`), so only `Date` is frozen here -
+      // every other timer stays real, or the MongoDB driver's own socket and
+      // server-selection timers would never fire against the real replica set.
+      jest.useFakeTimers({
+        now,
+        doNotFake: [
+          'setTimeout',
+          'clearTimeout',
+          'setInterval',
+          'clearInterval',
+          'setImmediate',
+          'clearImmediate',
+          'nextTick',
+          'hrtime',
+          'performance',
+          'queueMicrotask',
+        ],
+      });
+      try {
+        const controller = Object.create(PaymentController.prototype) as PaymentController;
+        Object.assign(controller, { merchantSalesService: service, paymentService: {} });
+
+        let body: { data?: unknown } = {};
+        const res = {
+          status: () => ({
+            json: (payload: { data?: unknown }) => {
+              body = payload;
+              return payload;
+            },
+          }),
+        };
+        const req = { user: { userId: merchantAId.toString(), role: UserRole.MERCHANT } };
+
+        await controller.getPaymentStats(req as never, res as never, { period: 'month' } as never);
+
+        expect(body.data).toEqual(await service.summary(merchantA, 'month'));
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 });

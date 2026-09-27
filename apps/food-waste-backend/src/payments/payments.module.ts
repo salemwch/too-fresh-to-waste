@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { CommonModule } from '../common/common.module';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
+import { MerchantSalesModule } from '../merchant-sales/merchant-sales.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { SubscriptionModule } from '../subscription/subscription.module';
@@ -42,6 +43,7 @@ import { PayoutTask } from './tasks/payout.task';
     ConfigModule,
     CommonModule,
     SubscriptionModule,
+    MerchantSalesModule,
     MongooseModule.forFeature([
       { name: Payment.name, schema: PaymentSchema },
       { name: PaymentWebhook.name, schema: PaymentWebhookSchema },

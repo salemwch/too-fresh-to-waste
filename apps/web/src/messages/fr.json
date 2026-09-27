@@ -931,60 +931,20 @@
       "title": "Historique des paiements",
       "subtitle": "Suivez et conciliez les paiements en espèces",
       "stats": {
-        "todayRevenue": "Revenu du jour",
-        "totalCollected": "Total encaissé",
-        "pendingCollection": "En attente d'encaissement",
-        "completedOrders": "Commandes complétées",
-        "totalRevenue": "Chiffre d'affaires total",
-        "totalTransactions": "Transactions",
-        "avgOrderValue": "Panier moyen",
-        "completed": "Terminés",
-        "pending": "En attente",
-        "failed": "Échoués"
+        "totalEarned": "Total gagné",
+        "orders": "Commandes"
       },
-      "filters": {
-        "allStatuses": "Tous les statuts",
-        "collected": "Encaissé",
-        "pending": "En attente",
-        "refunded": "Remboursé",
-        "failed": "Échoué",
-        "dateRange": "Période",
-        "today": "Aujourd'hui",
-        "thisWeek": "Cette semaine",
-        "thisMonth": "Ce mois",
-        "completed": "Terminés",
-        "fromDate": "Du",
-        "toDate": "Au"
+      "tabs": {
+        "earnings": "Revenus",
+        "refunded": "Remboursées",
+        "verifying": "En vérification"
       },
-      "table": {
-        "customer": "Client",
-        "amount": "Montant",
-        "method": "Méthode",
-        "status": "Statut",
-        "date": "Date",
-        "order": "Commande"
-      },
-      "methods": {
-        "cash": "Espèces",
-        "cash_on_pickup": "Espèces au retrait",
-        "card": "Carte",
-        "smt_gateway": "En ligne",
-        "wallet": "Portefeuille"
-      },
-      "status": {
-        "completed": "Complété",
-        "pending": "En attente",
-        "processing": "En cours",
-        "refunded": "Remboursé",
-        "failed": "Échoué",
-        "cancelled": "Annulé"
-      },
+      "verifyingNote": "Cette vente est en cours de vérification et n'est pas encore comptée.",
       "empty": {
         "title": "Aucun paiement",
         "description": "Les paiements de vos commandes apparaîtront ici."
       },
       "error": "Échec du chargement des paiements. Veuillez réessayer.",
-      "tndCurrency": "TND",
       "loadMore": "Charger plus"
     },
     "loyalty": {
@@ -2315,6 +2275,13 @@
       "toggleNav": "Basculer la navigation",
       "adminNav": "Navigation administrateur",
       "logoAlt": "Too Fresh To Waste"
+    },
+    "earnings": {
+      "lines": {
+        "cashStore": "Espèces encaissées en magasin",
+        "cashDelivery": "Espèces encaissées via la livraison",
+        "online": "Payé en ligne"
+      }
     }
   },
   "merchantSignup": {
