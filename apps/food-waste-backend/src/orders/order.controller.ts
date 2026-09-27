@@ -70,6 +70,7 @@ import {
   type ChartGranularity,
 } from './order.service';
 import type { TodaySalesSummary } from './utils/today-sales.util';
+import { toMerchantOrderView } from './utils/merchant-order-view';
 
 import { strictValidation } from '../common/pipes/validation-pipes';
 
@@ -100,6 +101,18 @@ export class OrdersController {
     private readonly konnectOrderService: KonnectOrderService,
     private readonly merchantSalesService: MerchantSalesService,
   ) {}
+
+  /**
+   * MERCHANT and LOCATION_MANAGER get the delivery-money-stripped view;
+   * ADMIN and the customer keep the full object. Several routes below return
+   * a raw order/receipt object with no DTO in between, so the strip has to
+   * happen at this layer rather than relying on `MerchantOrderResponseDto`.
+   */
+  private forRole<T extends object>(role: UserRole, order: T): T {
+    return role === UserRole.MERCHANT || role === UserRole.LOCATION_MANAGER
+      ? (toMerchantOrderView(order) as T)
+      : order;
+  }
 
   @ApiOperation({
     summary: 'Create a new order',
@@ -209,13 +222,22 @@ export class OrdersController {
       req.user.role,
     );
 
+    // This route has no @Roles guard - any authenticated caller reaches it,
+    // including MERCHANT and LOCATION_MANAGER (scoped to their own orders by
+    // buildQuery). It returns raw lean orders with no DTO in between, so the
+    // delivery-money strip must happen here.
+    const data =
+      req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
+        ? result.orders.map(o => toMerchantOrderView(o as unknown as Record<string, unknown>))
+        : result.orders;
+
     return {
       statusCode: HttpStatus.OK,
       message:
         result.orders.length > 0
           ? 'Orders retrieved successfully'
           : 'No orders found matching the criteria',
-      data: result.orders,
+      data,
       meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
     };
   }
@@ -338,8 +360,14 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Your merchant orders retrieved successfully',
+      // This route serves MERCHANT and LOCATION_MANAGER only (never ADMIN),
+      // so the money view applies unconditionally.
       data: result.orders.map(o =>
-        plainToInstance(MerchantOrderResponseDto, toPlain(o), { excludeExtraneousValues: true }),
+        plainToInstance(
+          MerchantOrderResponseDto,
+          toMerchantOrderView(toPlain(o) as Record<string, unknown>),
+          { excludeExtraneousValues: true },
+        ),
       ),
       meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
     };
@@ -693,17 +721,24 @@ export class OrdersController {
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const order = await this.ordersService.findById(id, req.user.userId, req.user.role);
 
-    const DtoClass =
+    const isMerchantSide =
       req.user.role === UserRole.MERCHANT ||
       req.user.role === UserRole.ADMIN ||
-      req.user.role === UserRole.LOCATION_MANAGER
-        ? MerchantOrderResponseDto
-        : ConsumerOrderResponseDto;
+      req.user.role === UserRole.LOCATION_MANAGER;
+    const DtoClass = isMerchantSide ? MerchantOrderResponseDto : ConsumerOrderResponseDto;
+
+    // Shared route: MERCHANT/LOCATION_MANAGER get the money-stripped view;
+    // ADMIN and the customer keep the full order.
+    const plain = toPlain(order) as Record<string, unknown>;
+    const view =
+      req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
+        ? toMerchantOrderView(plain)
+        : plain;
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Order retrieved successfully',
-      data: plainToInstance(DtoClass, toPlain(order), { excludeExtraneousValues: true }),
+      data: plainToInstance(DtoClass, view, { excludeExtraneousValues: true }),
     };
   }
 
@@ -737,7 +772,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order status updated successfully',
-      data: updatedOrder,
+      data: this.forRole(req.user.role, updatedOrder),
     };
   }
 
@@ -782,7 +817,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order pickup confirmed successfully',
-      data: updatedOrder,
+      data: this.forRole(req.user.role, updatedOrder),
     };
   }
 
@@ -811,7 +846,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order cancelled successfully',
-      data: cancelledOrder,
+      data: this.forRole(req.user.role, cancelledOrder),
     };
   }
 
@@ -889,7 +924,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order receipt retrieved successfully',
-      data: receipt,
+      data: this.forRole(req.user.role, receipt),
     };
   }
 
@@ -995,7 +1030,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order pickup unlocked successfully',
-      data: order,
+      data: this.forRole(req.user.role, order),
     };
   }
 }

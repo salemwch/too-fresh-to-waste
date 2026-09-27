@@ -384,6 +384,104 @@ in the held-money query key.
     is gitignored), review between task groups; Docker Desktop started before
     the database tasks.
 
+- 2026-09-28 (Task 15 - merchants never receive delivery money, senior review
+  before implementation):
+
+  **Full `OrderSchema` money/payment classification** (KEEP or STRIP from a
+  MERCHANT/LOCATION_MANAGER order view; the schema-driven test in
+  `orders/utils/__tests__/merchant-order-view-schema-coverage.spec.ts` enforces
+  this list stays exhaustive):
+
+  | Path                                                               | KEEP/STRIP       | Reason                                                                                                                     |
+  | ------------------------------------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
+  | `deliveryFee` (top-level)                                          | STRIP            | The driver's/platform's delivery fee                                                                                       |
+  | `driverEarnings`                                                   | STRIP            | The driver's share of the delivery fee                                                                                     |
+  | `platformDeliveryCommission`                                       | STRIP            | The platform's share of the delivery fee                                                                                   |
+  | `pricing.deliveryFee`                                              | STRIP            | Same as above, denormalised onto pricing                                                                                   |
+  | `pricing.total`                                                    | STRIP            | Customer-paid total = food + delivery                                                                                      |
+  | `pricing.subtotal`                                                 | KEEP             | Food price after discount - the merchant's own                                                                             |
+  | `pricing.discountAmount`                                           | KEEP             | Informational, never subtracted                                                                                            |
+  | `pricing.taxAmount`                                                | KEEP             | Always 0; kept in data, never shown (no Tax row)                                                                           |
+  | `pricing.merchantAmount`                                           | KEEP             | What this order paid the merchant                                                                                          |
+  | `pricing.commissionSettled`                                        | KEEP             | Outstanding commission taken against balance, food-side accounting                                                         |
+  | `paymentDetails.amount`                                            | STRIP            | What the customer paid (food + delivery)                                                                                   |
+  | `paymentDetails.processingFee`                                     | STRIP            | Gateway cost, platform money                                                                                               |
+  | `paymentDetails.stripePaymentIntentId`                             | STRIP            | Gateway reference, not the merchant's                                                                                      |
+  | `paymentDetails.transactionId`                                     | STRIP            | Gateway reference, not the merchant's                                                                                      |
+  | `paymentDetails.method`/`.currency`                                | KEEP             | Not money-bearing                                                                                                          |
+  | `paymentSession` (whole object)                                    | STRIP            | Customer's payment link + gateway reference - data minimisation                                                            |
+  | `commission` (whole object)                                        | KEEP             | The merchant's own frozen commission decision, never delivery money                                                        |
+  | `driverInstruction.payMerchant`                                    | KEEP             | Verified food-only: `buildMerchantPickupCash` sets it to `commission.merchantAmount` (`drivers/utils/driver-cash.util.ts`) |
+  | `driverInstruction.frozenAt`                                       | KEEP             | Timestamp, not money                                                                                                       |
+  | `driverInstruction.collectFromCustomer`                            | STRIP            | `expectedCash` = `pricing.total` for COD - food + delivery                                                                 |
+  | `driverInstruction.driverKeeps`                                    | STRIP            | The driver's delivery-fee share                                                                                            |
+  | `paymentControl.collector`                                         | KEEP             | Actor enum (MERCHANT/DRIVER/PAYMENT_GATEWAY), not an amount                                                                |
+  | `items.unitPrice`/`.totalPrice`/`.originalPrice`/`.discountAmount` | KEEP             | Food prices, always the merchant's own                                                                                     |
+  | `donationAmount`                                                   | KEEP             | From platform margin, not delivery - out of scope, noted                                                                   |
+  | `collectionStartTime`/`collectionEndTime`                          | KEEP             | Driver-pool query timestamps; match the classifier regex only via the substring "collect" in "collection"                  |
+  | `estimatedDistanceKm`                                              | KEEP (not money) | Distance, not money; does not match the classifier regex                                                                   |
+
+  **Route/emit surface enumerated** (every MERCHANT/LOCATION_MANAGER-reachable
+  handler that returns an order, orders, or a receipt, plus every socket emit
+  found by
+  `grep -rn "sendToUser\|emitTo\|server.to(" apps/food-waste-backend/src`):
+
+  | Route/emit                                                                                                                                                                            | Action                                                                                                                                                                                                                                               |
+  | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `GET /orders`                                                                                                                                                                         | STRIP for MERCHANT/LOCATION_MANAGER. No `@Roles` guard at all - any authenticated caller reaches it (buildQuery scopes MERCHANT to their own orders); returns raw `OrderLean[]` with no DTO. Found during Step 1, not named in the plan's file list. |
+  | `GET /orders/merchant-orders`                                                                                                                                                         | STRIP unconditionally (MERCHANT/LOCATION_MANAGER only, never ADMIN)                                                                                                                                                                                  |
+  | `GET /orders/:id`                                                                                                                                                                     | Branch on `req.user.role`: STRIP for MERCHANT/LOCATION_MANAGER, keep for ADMIN and the customer                                                                                                                                                      |
+  | `PATCH /orders/:id/status`                                                                                                                                                            | Branch on role (returns the raw order, no DTO)                                                                                                                                                                                                       |
+  | `PATCH /orders/:id/confirm-pickup`                                                                                                                                                    | Branch on role (no `@Roles` guard at all on this route)                                                                                                                                                                                              |
+  | `PATCH /orders/:id/cancel`                                                                                                                                                            | Branch on role (no `@Roles` guard at all on this route)                                                                                                                                                                                              |
+  | `PATCH /orders/:id/unlock-pickup`                                                                                                                                                     | Branch on role                                                                                                                                                                                                                                       |
+  | `GET /orders/:id/receipt`                                                                                                                                                             | Branch on role; the hand-built `receipt` object embeds the full `order.pricing`                                                                                                                                                                      |
+  | `GET /orders/:id/qr-code`                                                                                                                                                             | Excluded - no money field in the response                                                                                                                                                                                                            |
+  | `PATCH /orders/approve-expiration`                                                                                                                                                    | Excluded - returns a Mongo `UpdateResult`                                                                                                                                                                                                            |
+  | `PATCH /orders/:id/approve-pickup-extension`                                                                                                                                          | Excluded - returns `{ message }`                                                                                                                                                                                                                     |
+  | `GET /orders/merchant-customer-locations`                                                                                                                                             | Excluded - returns `{ city, count }`                                                                                                                                                                                                                 |
+  | `GET /orders/stats`, `/merchant-revenue-chart`, `/merchant-today-sales`                                                                                                               | Excluded - Task 16 removes these; out of scope here                                                                                                                                                                                                  |
+  | `GET /orders/merchant-sales-summary`, `/merchant-sales-chart`, `GET /payments/my-merchant-payments`, `/my-commission`, `/my-commission/:id`, `/my-wallet`, `/stats` (merchant branch) | Excluded - confirmed food-only: grepped `apps/food-waste-backend/src/merchant-sales` and `payments`, no reference to `pricing.total`/`pricing.deliveryFee`                                                                                           |
+  | `DELETE /orders/:id`, `POST /orders/update-expired`, `GET /orders/admin/pending`                                                                                                      | Excluded - ADMIN only; the domain rule restricts MERCHANT/LOCATION_MANAGER only                                                                                                                                                                      |
+  | Order export (CSV/PDF)                                                                                                                                                                | Excluded - no such endpoint exists in this codebase                                                                                                                                                                                                  |
+  | `order.service.ts` `notifyMerchantNewOrder` (`sendToUser(..., 'order:new', ...)`)                                                                                                     | Fixed: payload sent `pricing: { total: order.pricing.total }` (customer total, live path) → now `pricing: { subtotal: order.pricing.subtotal }`                                                                                                      |
+  | `websocket/gateways/order.gateway.ts` `notifyNewOrder`/`notifyOrderStatusChange`                                                                                                      | Not wired to any call site today (grepped: no reference outside the file). Fixed anyway for defence in depth - `notifyNewOrder`'s `total` param and message text removed.                                                                            |
+  | Notification templates (`order_confirmed`, `queueNotification` in `notifyMerchantNewOrder`)                                                                                           | Excluded - grepped, no money placeholder interpolated                                                                                                                                                                                                |
+
+  **Backend additions beyond stripping** (both required for the web order
+  detail's "Your earnings" row to work at all - `order.commission` was never
+  reaching a merchant before this task):
+  - `common/utils/query-optimization.util.ts` `ORDER_DETAIL_FIELDS`: added
+    `'commission'` to the projection (`findById` never returned it before).
+  - `orders/DTO/order-response.dto.ts`: added `CommissionResponseDto` and an
+    optional `commission` field to `MerchantOrderResponseDto` only (never on
+    `ConsumerOrderResponseDto` - a customer has no use for it).
+
+  **Web consumers grepped and fixed** (`grep -rn` for `pricing.total`,
+  `pricing.deliveryFee`, `paymentDetails.amount`, `deliveryFee`,
+  `driverEarnings`, `platformDeliveryCommission`, `driverInstruction`,
+  `paymentSession` under `apps/web/src`, excluding `/admin/` and `/driver`):
+  - `merchant/orders/page.tsx`: list row (`OrderCard`) showed `pricing.total` →
+    `pricing.subtotal`; detail money block rebuilt per plan Step 6 (Original
+    value / Discount / Food price / Your earnings, no Tax/delivery-fee/total
+    rows, no invented `?? 0`).
+  - `types/dashboard.ts`: `OrderPricing` no longer declares `deliveryFee`/
+    `total`; `OrderPaymentDetails` no longer declares `amount`; `MerchantOrder`
+    gained an optional `commission?: { merchantAmount: number }`.
+  - `hooks/use-merchant-orders-socket.ts`: the `order:new` Zod schema required
+    `pricing.total` - since the backend now sends only `pricing.subtotal`, every
+    event would have failed validation silently. Schema updated to
+    `pricing: { subtotal }`; a dedicated test
+    (`hooks/__tests__/use-merchant-orders-socket-schema.test.ts`) feeds both
+    shapes through the real exported schema.
+  - `lib/notification-store.ts` + `components/dashboard/notification-panel.tsx`:
+    found, not named in the plan - the merchant notification bell rendered
+    `€{n.total.toFixed(2)}` (the customer's delivery-inclusive total, wrong
+    currency symbol too). Renamed the field to `foodPrice`, fed from
+    `pricing.subtotal`, rendered with `formatCurrency(..., 'TND')`.
+  - Admin types (`types/admin.ts`) and admin pages: untouched, per the domain
+    rule (ADMIN keeps the full order).
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile

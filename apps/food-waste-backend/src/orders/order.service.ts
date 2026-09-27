@@ -720,7 +720,10 @@ export class OrdersService {
         pickupCode: order.pickupDetails.pickupCode,
       },
       customerName,
-      pricing: { total: order.pricing.total },
+      // Food price only - a merchant never sees delivery money (see
+      // orders/utils/merchant-order-view.ts). `pricing.total` includes the
+      // delivery fee and must never reach this payload.
+      pricing: { subtotal: order.pricing.subtotal },
     };
 
     // Build the full set of user IDs that should receive this notification.

@@ -199,6 +199,9 @@ export const ORDER_DETAIL_FIELDS = [
   'expiresAt',
   'createdAt',
   'updatedAt',
+  // The merchant's frozen commission decision - "Your earnings" on the order
+  // detail page. Never delivery money (orders/utils/merchant-order-view.ts).
+  'commission',
 ].join(' ');
 
 /**

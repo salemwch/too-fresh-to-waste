@@ -38,6 +38,25 @@ class PaymentDetailsResponseDto implements PaymentDetailsResponse {
   @Expose() currency!: string;
 }
 
+/**
+ * The merchant's own frozen commission decision - never delivery money (see
+ * `orders/utils/merchant-order-view.ts`). Exposed on `MerchantOrderResponseDto`
+ * only: a customer has no use for it, and it is absent until pickup is
+ * confirmed (`order.commission` is written by `CommissionService` at that
+ * point, never before).
+ */
+class CommissionResponseDto {
+  @Expose() model!: 'LEGACY' | 'V2';
+  @Expose() kind!: 'NORMAL' | 'SETTLEMENT';
+  @Expose() controlledBy?: 'TFTW' | 'MERCHANT' | undefined;
+  @Expose() accrued!: number;
+  @Expose() settled!: number;
+  @Expose() merchantAmount!: number;
+  @Expose() dueBefore!: number;
+  @Expose() dueAfter!: number;
+  @Expose() appliedAt!: string;
+}
+
 class EstablishmentAddressResponseDto {
   @Expose() street!: string;
   @Expose() city!: string;
@@ -152,4 +171,10 @@ export class MerchantOrderResponseDto extends ConsumerOrderResponseDto {
   @Expose()
   @Type(() => MerchantPickupDetailsDto)
   declare pickupDetails: MerchantPickupDetailsDto;
+
+  // The merchant's own commission decision - see CommissionResponseDto above.
+  // Absent from ConsumerOrderResponseDto: a customer never sees it.
+  @Expose()
+  @Type(() => CommissionResponseDto)
+  commission?: CommissionResponseDto | undefined;
 }
