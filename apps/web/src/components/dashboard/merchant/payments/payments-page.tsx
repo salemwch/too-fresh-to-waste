@@ -16,12 +16,19 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PeriodBar } from '@/components/dashboard/merchant/period-bar';
 import { useSalesPeriod } from '@/hooks/use-sales-period';
 import { usePaymentStats, useMerchantEarningsRows } from '@/hooks/use-payments';
 import { useFormat, MISSING_COUNT } from '@/lib/use-format';
 import { EARNINGS_TABS } from '@/types/payments';
-import type { EarningsRow, EarningsTab, MerchantSalesSummary, PaymentLine } from '@/types/payments';
+import type {
+  EarningsRow,
+  EarningsTab,
+  MerchantSalesSummary,
+  PaymentLine,
+  SalesPeriod,
+} from '@/types/payments';
 
 const LINE_ICONS: Record<PaymentLine, typeof Banknote> = {
   cashStore: Banknote,
@@ -81,13 +88,12 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
   );
 }
 
-function EmptyState({ title, description }: { title: string; description: string }) {
+function EmptyState({ title }: { title: string }) {
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
       <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
         <Wallet className='size-12 text-muted-foreground' />
         <h3 className='text-md font-semibold'>{title}</h3>
-        <p className='text-sm text-muted-foreground max-w-xs'>{description}</p>
       </div>
     </div>
   );
@@ -150,42 +156,6 @@ function PaymentStatsCards({ summary }: { summary: MerchantSalesSummary }) {
     <div className='grid grid-cols-2 gap-md lg:grid-cols-5'>
       {cards.map((card, i) => (
         <StatsCard key={card.label} {...card} delay={0.1 + i * 0.06} />
-      ))}
-    </div>
-  );
-}
-
-// ─── Tabs ───────────────────────────────────────────────────────────────────
-
-function EarningsTabs({
-  value,
-  onChange,
-}: {
-  value: EarningsTab;
-  onChange: (t: EarningsTab) => void;
-}) {
-  const t = useTranslations('dashboard.payments');
-  return (
-    <div
-      role='tablist'
-      aria-label={t('title')}
-      className='inline-flex flex-wrap gap-xs rounded-full bg-primary-500/[0.06] p-xxs'
-    >
-      {EARNINGS_TABS.map(tab => (
-        <button
-          key={tab}
-          type='button'
-          role='tab'
-          aria-selected={value === tab}
-          onClick={() => onChange(tab)}
-          className={`min-h-11 rounded-full px-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-            value === tab
-              ? 'bg-primary-500 text-white'
-              : 'text-primary-500/70 hover:text-primary-500'
-          }`}
-        >
-          {t(`tabs.${tab}`)}
-        </button>
       ))}
     </div>
   );
@@ -262,6 +232,52 @@ function EarningsRowCard({ row, tab }: { row: EarningsRow; tab: EarningsTab }) {
   );
 }
 
+// ─── One tab's row list (mounted only while its TabsContent is active,  ────
+// ─── so only the active tab's query ever runs) ─────────────────────────────
+
+function EarningsRowsSection({ period, tab }: { period: SalesPeriod; tab: EarningsTab }) {
+  const t = useTranslations('dashboard.payments');
+  const rowsQuery = useMerchantEarningsRows(period, tab);
+  const rows = rowsQuery.data?.pages.flatMap(page => page.rows) ?? [];
+
+  return (
+    <div className='space-y-md'>
+      {tab === 'verifying' && (
+        <div className='flex items-center gap-sm rounded-lg border border-border/60 bg-muted/30 px-md py-sm text-xs text-muted-foreground'>
+          <AlertCircle className='size-4 shrink-0' />
+          <span>{t('verifyingNote')}</span>
+        </div>
+      )}
+
+      {rowsQuery.isLoading ? (
+        <PaymentListSkeleton />
+      ) : rowsQuery.isError ? (
+        <ErrorState message={t('error')} onRetry={() => void rowsQuery.refetch()} />
+      ) : rows.length === 0 ? (
+        <EmptyState title={t(`empty.${tab}`)} />
+      ) : (
+        <div className='space-y-md'>
+          {rows.map(row => (
+            <EarningsRowCard key={row.orderId} row={row} tab={tab} />
+          ))}
+        </div>
+      )}
+
+      {rowsQuery.hasNextPage && (
+        <div className='flex justify-center pt-sm'>
+          <Button
+            variant='outline'
+            disabled={rowsQuery.isFetchingNextPage}
+            onClick={() => void rowsQuery.fetchNextPage()}
+          >
+            {t('loadMore')}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Content (reads useSearchParams via useSalesPeriod) ────────────────────
 
 function PaymentsPageContent() {
@@ -270,9 +286,6 @@ function PaymentsPageContent() {
   const [activeTab, setActiveTab] = useState<EarningsTab>('earnings');
 
   const stats = usePaymentStats(period);
-  const rowsQuery = useMerchantEarningsRows(period, activeTab);
-
-  const rows = rowsQuery.data?.pages.flatMap(page => page.rows) ?? [];
 
   return (
     <div className='space-y-2xl'>
@@ -301,44 +314,27 @@ function PaymentsPageContent() {
         <PaymentStatsCards summary={stats.data} />
       ) : null}
 
-      {/* Tabs */}
-      <EarningsTabs value={activeTab} onChange={setActiveTab} />
-
-      {/* Verifying note */}
-      {activeTab === 'verifying' && rows.length > 0 && (
-        <div className='flex items-center gap-sm rounded-lg border border-border/60 bg-muted/30 px-md py-sm text-xs text-muted-foreground'>
-          <AlertCircle className='size-4 shrink-0' />
-          <span>{t('verifyingNote')}</span>
+      {/* Tabs — DESIGN.md §13.8: real role="tablist" with arrow-key nav and
+          roving tabindex (Radix), 40px, active bg-background + shadow-sm
+          (base TabsTrigger already matches, so no override classes here).
+          Horizontal scroll rather than wrapping to a second row. */}
+      <Tabs value={activeTab} onValueChange={v => setActiveTab(v as EarningsTab)}>
+        <div className='overflow-x-auto'>
+          <TabsList>
+            {EARNINGS_TABS.map(tab => (
+              <TabsTrigger key={tab} value={tab}>
+                {t(`tabs.${tab}`)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </div>
-      )}
 
-      {/* Row list */}
-      {rowsQuery.isLoading ? (
-        <PaymentListSkeleton />
-      ) : rowsQuery.isError ? (
-        <ErrorState message={t('error')} onRetry={() => void rowsQuery.refetch()} />
-      ) : rows.length === 0 ? (
-        <EmptyState title={t('empty.title')} description={t('empty.description')} />
-      ) : (
-        <div className='space-y-md'>
-          {rows.map(row => (
-            <EarningsRowCard key={row.orderId} row={row} tab={activeTab} />
-          ))}
-        </div>
-      )}
-
-      {/* Load more */}
-      {rowsQuery.hasNextPage && (
-        <div className='flex justify-center pt-sm'>
-          <Button
-            variant='outline'
-            disabled={rowsQuery.isFetchingNextPage}
-            onClick={() => void rowsQuery.fetchNextPage()}
-          >
-            {t('loadMore')}
-          </Button>
-        </div>
-      )}
+        {EARNINGS_TABS.map(tab => (
+          <TabsContent key={tab} value={tab} className='mt-lg'>
+            <EarningsRowsSection period={period} tab={tab} />
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }

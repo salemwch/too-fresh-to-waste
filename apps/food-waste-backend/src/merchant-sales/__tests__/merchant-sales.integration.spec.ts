@@ -655,5 +655,50 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
         jest.useRealTimers();
       }
     });
+
+    it('threads a non-default period through - a controller that ignored `query.period` would fail here', async () => {
+      // The shared seed table has nothing on/after 2026-09-20, so 7d (which
+      // starts 2026-09-20 for `now` = 2026-09-26) is genuinely empty - a
+      // controller that always resolved 'month' regardless of the query would
+      // still return month's non-zero total here and this would fail.
+      jest.useFakeTimers({
+        now,
+        doNotFake: [
+          'setTimeout',
+          'clearTimeout',
+          'setInterval',
+          'clearInterval',
+          'setImmediate',
+          'clearImmediate',
+          'nextTick',
+          'hrtime',
+          'performance',
+          'queueMicrotask',
+        ],
+      });
+      try {
+        const controller = Object.create(PaymentController.prototype) as PaymentController;
+        Object.assign(controller, { merchantSalesService: service, paymentService: {} });
+
+        let body: { data?: unknown } = {};
+        const res = {
+          status: () => ({
+            json: (payload: { data?: unknown }) => {
+              body = payload;
+              return payload;
+            },
+          }),
+        };
+        const req = { user: { userId: merchantAId.toString(), role: UserRole.MERCHANT } };
+
+        await controller.getPaymentStats(req as never, res as never, { period: '7d' } as never);
+
+        const direct = await service.summary(merchantA, '7d');
+        expect(direct.total).toEqual({ orders: 0, earned: 0, foodValue: 0, originalValue: 0 });
+        expect(body.data).toEqual(direct);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 });

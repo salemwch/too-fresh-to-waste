@@ -941,8 +941,9 @@
       },
       "verifyingNote": "Cette vente est en cours de vérification et n'est pas encore comptée.",
       "empty": {
-        "title": "Aucun paiement",
-        "description": "Les paiements de vos commandes apparaîtront ici."
+        "earnings": "Aucune vente sur cette période pour le moment.",
+        "refunded": "Aucune vente remboursée sur cette période.",
+        "verifying": "Aucune vente en cours de vérification."
       },
       "error": "Échec du chargement des paiements. Veuillez réessayer.",
       "loadMore": "Charger plus"

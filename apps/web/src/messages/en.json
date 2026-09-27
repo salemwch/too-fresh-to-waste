@@ -941,8 +941,9 @@
       },
       "verifyingNote": "This sale is being verified and is not included yet.",
       "empty": {
-        "title": "No payments yet",
-        "description": "Payment records will appear here as orders are completed."
+        "earnings": "No sales in this period yet.",
+        "refunded": "No refunded sales in this period.",
+        "verifying": "No sales are being verified."
       },
       "error": "Failed to load payments. Please try again.",
       "loadMore": "Load more"
