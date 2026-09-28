@@ -482,6 +482,26 @@ in the held-money query key.
   - Admin types (`types/admin.ts`) and admin pages: untouched, per the domain
     rule (ADMIN keeps the full order).
 
+- 2026-09-28 (Task 15b, user decision - moving the held balance off the
+  Dashboard): the user asked to remove the online balance from the merchant
+  Dashboard. Asked "remove entirely, or move to Payments", the user chose: move
+  "Money TFTW currently holds" (Available for payout / Awaiting pickup) to the
+  top of the Payments page, and remove it from the Dashboard. Food-only
+  re-verified before the move: `payments/services/konnect-order.service.ts`
+  credits `pendingBalance` with `pricing.subtotal` for PICKUP online orders only
+  (delivery orders never touch the wallet), and `processPickupConfirmation`
+  moves it to `availableBalance` as `merchantAmount` - so the figures carry no
+  delivery money and "Awaiting pickup" stays an accurate label. `useMyWallet()`
+  and `dashboardKeys.myWallet` are unchanged and still live in
+  `use-merchant-dashboard.ts` (smallest blast radius) - only where the balance
+  renders moved, as its own `HeldBalanceCard` at the top of `payments-page.tsx`.
+  This supersedes the "## Web" section above, which still describes "Money TFTW
+  currently holds" as living on the Dashboard inside `EarningsCard` - that text
+  is intentionally left as written, this entry is the current truth.
+  `EarningsCard` is now purely the period figure: total earned, order count, the
+  three payment-method lines, the unverified-orders notice, and commission - no
+  live balance on it any more.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile
