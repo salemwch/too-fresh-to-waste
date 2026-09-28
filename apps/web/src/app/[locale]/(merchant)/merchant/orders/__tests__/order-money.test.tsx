@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 
-import { OrderDetailContent, OrderCard } from '../page';
+import { OrderDetailContent, OrderCard } from '@/components/dashboard/merchant/orders/orders-page';
 import type { MerchantOrder } from '@/types/dashboard';
 
 /**
