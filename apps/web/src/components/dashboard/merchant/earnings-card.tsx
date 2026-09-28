@@ -1,9 +1,8 @@
 'use client';
 
-import { Banknote, CreditCard, Truck, Wallet } from 'lucide-react';
+import { Banknote, CreditCard, Truck } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { useMyWallet } from '@/hooks/use-merchant-dashboard';
 import { useSalesSummary } from '@/hooks/use-merchant-sales';
 import { formatMoney } from '@/lib/format';
 import type { PaymentLine, SalesPeriod } from '@/types/payments';
@@ -16,17 +15,20 @@ const LINES: ReadonlyArray<{ line: PaymentLine; icon: typeof Banknote }> = [
 
 /**
  * Everything the merchant's food earned in the period, cash and online
- * together, from the backend's single earnings calculation. Below it,
- * visually separate, what TFTW holds right now: a live balance from the
- * wallet, whose query key has no period, so changing the period cannot
- * change it.
+ * together, from the backend's single earnings calculation: the total, the
+ * order count, then the three payment-method lines.
+ *
+ * The live "Money TFTW currently holds" balance used to render here, below
+ * the lines - task-15b moved it to its own card at the top of the Payments
+ * page (product decision: a live, period-independent balance does not belong
+ * next to a period figure) and removed it from this card entirely. This card
+ * no longer reads the wallet at all.
  */
 export function EarningsCard({ period }: { period: SalesPeriod }) {
   const t = useTranslations('dashboard.earnings');
   const tp = useTranslations('dashboard.period');
   const locale = useLocale();
   const summary = useSalesSummary(period);
-  const wallet = useMyWallet();
 
   if (summary.isLoading) {
     return (
@@ -96,36 +98,6 @@ export function EarningsCard({ period }: { period: SalesPeriod }) {
           </li>
         ))}
       </ul>
-
-      <section aria-labelledby='held-title' className='border-t border-border pt-md'>
-        <h3
-          id='held-title'
-          className='flex items-center gap-xs text-xs uppercase tracking-wider text-primary-500/60'
-        >
-          <Wallet size={14} aria-hidden='true' />
-          {t('held.title')}
-        </h3>
-        {!wallet.data ? (
-          <p className='mt-sm text-sm text-primary-500/65'>
-            {wallet.isLoading ? t('held.loading') : t('held.error')}
-          </p>
-        ) : (
-          <dl className='mt-sm grid grid-cols-2 gap-md'>
-            <div>
-              <dt className='text-xs text-primary-500/60'>{t('held.available')}</dt>
-              <dd className='font-mono tabular-nums text-primary-500'>
-                {formatMoney(locale, wallet.data.availableBalance, wallet.data.currency)}
-              </dd>
-            </div>
-            <div>
-              <dt className='text-xs text-primary-500/60'>{t('held.pending')}</dt>
-              <dd className='font-mono tabular-nums text-primary-500'>
-                {formatMoney(locale, wallet.data.pendingBalance, wallet.data.currency)}
-              </dd>
-            </div>
-          </dl>
-        )}
-      </section>
 
       <dl className='grid grid-cols-2 gap-md text-xs text-primary-500/65'>
         <div>

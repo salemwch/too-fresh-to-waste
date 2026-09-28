@@ -913,6 +913,13 @@
     "payments": {
       "title": "Payments",
       "subtitle": "Track revenue and payment status",
+      "held": {
+        "title": "Money TFTW currently holds",
+        "available": "Available for payout",
+        "pending": "Awaiting pickup",
+        "note": "Your balance right now. It does not change with the period above.",
+        "error": "Could not load the balance TFTW holds."
+      },
       "stats": {
         "totalEarned": "Total earned",
         "orders": "Orders"
@@ -2232,13 +2239,6 @@
         "cashStore": "Cash collected in store",
         "cashDelivery": "Cash collected via delivery",
         "online": "Paid online"
-      },
-      "held": {
-        "title": "Money TFTW currently holds",
-        "available": "Available for payout",
-        "pending": "Awaiting pickup",
-        "loading": "Loading…",
-        "error": "Could not load the balance TFTW holds."
       },
       "commission": {
         "accrued": "Commission recorded ({rate}%)",

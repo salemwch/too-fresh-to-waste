@@ -1,9 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 
+import ar from '../../../../../messages/ar.json';
 import en from '../../../../../messages/en.json';
+import fr from '../../../../../messages/fr.json';
+import { dashboardKeys } from '@/hooks/use-merchant-dashboard';
 import { formatMoney } from '@/lib/format';
+import { dashboardService } from '@/services/dashboard.service';
 import { paymentsService } from '@/services/payments.service';
 import { PaymentsPage } from '../payments-page';
 import type {
@@ -12,6 +16,7 @@ import type {
   EarningsTab,
   MerchantSalesSummary,
 } from '@/types/payments';
+import type { MerchantWallet } from '@/types/dashboard';
 
 /**
  * The Payments tab reads two things from the shared earnings calculation:
@@ -57,11 +62,22 @@ jest.mock('@/services/payments.service', () => ({
   paymentsService: { getStats: jest.fn(), getMyPayments: jest.fn() },
 }));
 
+// `HeldBalanceCard` reads `useMyWallet()`, which calls this service directly -
+// mocked here (not the hook) for the same reason as `paymentsService` above:
+// the real `useQuery` must actually run, so a wrong query key or a period
+// leaking into it would be caught rather than hidden by a hook-level mock.
+jest.mock('@/services/dashboard.service', () => ({
+  dashboardService: { getMyWallet: jest.fn() },
+}));
+
 const mockGetStats = paymentsService.getStats as jest.MockedFunction<
   typeof paymentsService.getStats
 >;
 const mockGetMyPayments = paymentsService.getMyPayments as jest.MockedFunction<
   typeof paymentsService.getMyPayments
+>;
+const mockGetMyWallet = dashboardService.getMyWallet as jest.MockedFunction<
+  typeof dashboardService.getMyWallet
 >;
 
 // `formatMoney` renders with a non-breaking space (`TND 21.600`).
@@ -77,6 +93,11 @@ function statsEnvelope(data: MerchantSalesSummary) {
 function rowsEnvelope(data: EarningsRowsPage) {
   return { data: { data } } as unknown as Awaited<ReturnType<typeof paymentsService.getMyPayments>>;
 }
+function walletEnvelope(data: MerchantWallet) {
+  return { data: { data } } as unknown as Awaited<ReturnType<typeof dashboardService.getMyWallet>>;
+}
+
+const mockWallet: MerchantWallet = { availableBalance: 310, pendingBalance: 96, currency: 'TND' };
 
 // Deliberately subtotal !== earned everywhere, and total.foodValue !== total.earned,
 // so rendering the wrong field fails instead of passing by coincidence.
@@ -175,15 +196,18 @@ const rowsByTab: Record<EarningsTab, EarningsRowsPage> = {
   verifying: { rows: verifyingRows, hasMore: false },
 };
 
-function renderPage() {
+const MESSAGES = { en, fr, ar } as const;
+
+function renderPage(locale: keyof typeof MESSAGES = 'en') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
-  return render(
+  const result = render(
     <QueryClientProvider client={queryClient}>
-      <NextIntlClientProvider locale='en' messages={en}>
+      <NextIntlClientProvider locale={locale} messages={MESSAGES[locale]}>
         <PaymentsPage />
       </NextIntlClientProvider>
     </QueryClientProvider>,
   );
+  return { ...result, queryClient };
 }
 
 describe('PaymentsPage', () => {
@@ -194,6 +218,7 @@ describe('PaymentsPage', () => {
     mockGetMyPayments.mockImplementation(params =>
       Promise.resolve(rowsEnvelope(rowsByTab[params.tab])),
     );
+    mockGetMyWallet.mockResolvedValue(walletEnvelope(mockWallet));
   });
 
   it('shows the stats card totals from the shared summary - the real earned amount, never the subtotal or foodValue', async () => {
@@ -352,6 +377,107 @@ describe('PaymentsPage', () => {
       expect(mockGetMyPayments).toHaveBeenCalledWith(
         expect.objectContaining({ period: 'month', tab: 'earnings', after: 'cursor-1' }),
       );
+    });
+  });
+
+  // ─── HeldBalanceCard (task-15b: the live balance moved here from the
+  // Dashboard) - service-layer mocked exactly like the rest of this suite, so
+  // the real `useMyWallet()` query actually runs. ────────────────────────────
+
+  describe('the held balance at the top of the page', () => {
+    it('renders both figures, formatted with the wallet currency', async () => {
+      renderPage();
+
+      const heading = await screen.findByText('Money TFTW currently holds');
+      const card = heading.closest('.glass') as HTMLElement;
+      expect(within(card).getByText(money(310))).toBeTruthy();
+      expect(within(card).getByText(money(96))).toBeTruthy();
+      expect(within(card).getByText('Available for payout')).toBeTruthy();
+      expect(within(card).getByText('Awaiting pickup')).toBeTruthy();
+    });
+
+    it('shows a skeleton, not a loading text, while the wallet is loading', () => {
+      mockGetMyWallet.mockImplementation(() => new Promise(() => undefined));
+      renderPage();
+
+      expect(screen.getByTestId('held-balance-skeleton')).toBeInTheDocument();
+      expect(screen.queryByText('Money TFTW currently holds')).toBeNull();
+    });
+
+    it('shows the error message with a Retry that calls the service again', async () => {
+      mockGetMyWallet.mockRejectedValue(new Error('wallet failed'));
+      renderPage();
+
+      const retry = await screen.findByRole('button', { name: 'Retry' });
+      expect(screen.getByText('Could not load the balance TFTW holds.')).toBeInTheDocument();
+      expect(mockGetMyWallet).toHaveBeenCalledTimes(1);
+
+      mockGetMyWallet.mockResolvedValue(walletEnvelope(mockWallet));
+      fireEvent.click(retry);
+
+      await waitFor(() => expect(mockGetMyWallet).toHaveBeenCalledTimes(2));
+      expect(await screen.findByText(money(310))).toBeTruthy();
+    });
+
+    it('keeps the balance already on screen when a background refetch fails', async () => {
+      const { queryClient } = renderPage();
+      await screen.findByText(money(310));
+
+      // A period change never refetches the wallet (covered separately below),
+      // so the background refetch has to be forced directly - the same
+      // TanStack mechanism a focus/reconnect refetch would trigger for real.
+      mockGetMyWallet.mockRejectedValueOnce(new Error('background refetch failed'));
+      await act(async () => {
+        await queryClient.refetchQueries({ queryKey: dashboardKeys.myWallet(undefined) });
+      });
+
+      expect(screen.getByText(money(310))).toBeInTheDocument();
+      expect(screen.queryByText('Could not load the balance TFTW holds.')).toBeNull();
+    });
+
+    it('never refetches the wallet on a period change, while the stats do', async () => {
+      renderPage();
+      await screen.findByText(money(310));
+      expect(mockGetMyWallet).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(screen.getByRole('button', { name: '7 Days' }));
+      await waitFor(() => expect(mockGetStats).toHaveBeenLastCalledWith('7d'));
+
+      fireEvent.click(screen.getByRole('button', { name: '30 Days' }));
+      await waitFor(() => expect(mockGetStats).toHaveBeenLastCalledWith('30d'));
+
+      expect(mockGetMyWallet).toHaveBeenCalledTimes(1);
+      expect(mockGetMyWallet).toHaveBeenCalledWith(undefined);
+    });
+
+    it('renders a real zero balance as 0.000, not a dash or a blank figure', async () => {
+      mockGetMyWallet.mockResolvedValue(
+        walletEnvelope({ availableBalance: 0, pendingBalance: 0, currency: 'TND' }),
+      );
+      renderPage();
+
+      const heading = await screen.findByText('Money TFTW currently holds');
+      const card = heading.closest('.glass') as HTMLElement;
+      const zeroFigures = within(card).getAllByText(money(0));
+      expect(zeroFigures).toHaveLength(2);
+    });
+
+    it.each(['fr', 'ar'] as const)('renders the translated title and note in %s', async locale => {
+      renderPage(locale);
+
+      const expected = {
+        fr: {
+          title: 'Argent détenu actuellement par TFTW',
+          note: 'Votre solde à cet instant. Il ne dépend pas de la période choisie.',
+        },
+        ar: {
+          title: 'الأموال التي تحتفظ بها TFTW حاليًا',
+          note: 'رصيدك في هذه اللحظة. لا يتغيّر بتغيّر الفترة المختارة.',
+        },
+      }[locale];
+
+      expect(await screen.findByText(expected.title)).toBeInTheDocument();
+      expect(screen.getByText(expected.note)).toBeInTheDocument();
     });
   });
 });

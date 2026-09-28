@@ -10,6 +10,10 @@ jest.mock('@/hooks/use-merchant-sales', () => ({
   useSalesSummary: (...args: unknown[]) => mockUseSalesSummary(...args),
 }));
 
+// The card must never call the wallet hook at all any more (task-15b moved
+// "Money TFTW currently holds" to the top of the Payments page) - mocking the
+// module and asserting zero calls means a regression that re-adds the import
+// fails here, not just visually.
 const mockUseMyWallet = jest.fn();
 jest.mock('@/hooks/use-merchant-dashboard', () => ({
   useMyWallet: (...args: unknown[]) => mockUseMyWallet(...args),
@@ -29,7 +33,6 @@ const summary = {
   commission: { rate: 0.19, accrued: 198.3, settled: 45 },
   unverifiedOrders: 0,
 };
-const wallet = { availableBalance: 310, pendingBalance: 96, currency: 'TND' };
 
 const renderCard = (period: SalesPeriod = 'month') =>
   render(
@@ -42,7 +45,6 @@ describe('EarningsCard', () => {
   beforeEach(() => {
     mockUseSalesSummary.mockReset();
     mockUseMyWallet.mockReset();
-    mockUseMyWallet.mockReturnValue({ data: wallet, isLoading: false, isError: false });
   });
 
   it('shows the total, then the three lines, which add up to it', () => {
@@ -54,12 +56,18 @@ describe('EarningsCard', () => {
     expect(screen.getByText('Paid online')).toBeInTheDocument();
   });
 
-  it('shows what TFTW holds right now, from the wallet, separately', () => {
+  // task-15b: the held balance moved to the top of the Payments page and was
+  // removed from the Dashboard entirely - not hidden, not moved to a
+  // collapsed section, gone. Both halves are asserted: nothing that used to
+  // identify the section is on screen, AND the hook that fed it is never
+  // called, so a regression that re-adds either the markup or the call fails.
+  it('never renders the held-balance section and never calls the wallet hook', () => {
     mockUseSalesSummary.mockReturnValue({ data: summary, isLoading: false, isError: false });
     renderCard();
-    expect(screen.getByRole('region', { name: 'Money TFTW currently holds' })).toHaveTextContent(
-      '310.000',
-    );
+    expect(screen.queryByText('Money TFTW currently holds')).toBeNull();
+    expect(screen.queryByText('Available for payout')).toBeNull();
+    expect(screen.queryByText('Awaiting pickup')).toBeNull();
+    expect(mockUseMyWallet).not.toHaveBeenCalled();
   });
 
   it('shows the verification notice when sales are left out', () => {
@@ -105,25 +113,9 @@ describe('EarningsCard', () => {
     expect(screen.getByTestId('earnings-total')).toHaveTextContent('1,284.500');
   });
 
-  it('keeps showing the held balance already on screen when its background refetch fails', () => {
-    mockUseSalesSummary.mockReturnValue({ data: summary, isLoading: false, isError: false });
-    mockUseMyWallet.mockReturnValue({ data: wallet, isLoading: false, isError: true });
-    renderCard();
-
-    expect(screen.getByRole('region', { name: 'Money TFTW currently holds' })).toHaveTextContent(
-      '310.000',
-    );
-    expect(screen.queryByText('Could not load the balance TFTW holds.')).toBeNull();
-  });
-
-  // Mutation-check (task-13-brief Step 8): the wallet's query key has no
-  // period (CLAUDE.md - "never put the viewer's id in a cache key" applies
-  // the same way here - the held balance is not scoped by whatever period the
-  // merchant happens to be looking at). The mock forwards every argument the
-  // component actually passes, so if `EarningsCard` ever starts threading
-  // `period` into `useMyWallet(...)`, the recorded call gains an argument and
-  // this fails.
-  it('never passes the period into the wallet query, across period changes', () => {
+  // task-15b: a period change re-renders the card, and the wallet hook must
+  // still never be called - the card no longer reads it under any period.
+  it('never calls the wallet hook across period changes either', () => {
     mockUseSalesSummary.mockReturnValue({ data: summary, isLoading: false, isError: false });
 
     const { rerender } = render(
@@ -137,9 +129,6 @@ describe('EarningsCard', () => {
       </NextIntlClientProvider>,
     );
 
-    expect(mockUseMyWallet).toHaveBeenCalledTimes(2);
-    for (const call of mockUseMyWallet.mock.calls) {
-      expect(call).toEqual([]);
-    }
+    expect(mockUseMyWallet).not.toHaveBeenCalled();
   });
 });

@@ -3627,14 +3627,12 @@
     "A": {
       "p:24": 2,
       "space-y:24": 1,
-      "mt:8": 4,
+      "mt:8": 2,
       "gap:8": 3,
       "px:16": 1,
       "py:8": 1,
       "space-y:8": 1,
-      "pt:16": 1,
-      "gap:4": 1,
-      "gap:16": 2
+      "gap:16": 1
     }
   },
   "apps/web/src/components/dashboard/merchant/edit-offer-modal.tsx": {
@@ -4034,6 +4032,21 @@
       "start:16": 1,
       "top:4": 1,
       "translate-y:4": 1
+    }
+  },
+  "apps/web/src/components/dashboard/merchant/payments/held-balance-card.tsx": {
+    "A": {
+      "p:24": 3,
+      "space-y:16": 1,
+      "gap:16": 3,
+      "gap:4": 1,
+      "mt:2": 1,
+      "mt:16": 1
+    },
+    "C": {
+      "h:16": 1,
+      "w:160": 1,
+      "h:48": 2
     }
   },
   "apps/web/src/components/dashboard/merchant/payments/payments-page.tsx": {

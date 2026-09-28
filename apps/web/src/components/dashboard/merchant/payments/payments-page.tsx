@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PeriodBar } from '@/components/dashboard/merchant/period-bar';
+import { HeldBalanceCard } from './held-balance-card';
 import { useSalesPeriod } from '@/hooks/use-sales-period';
 import { usePaymentStats, useMerchantEarningsRows } from '@/hooks/use-payments';
 import { useFormat, MISSING_COUNT } from '@/lib/use-format';
@@ -305,6 +306,10 @@ function PaymentsPageContent() {
         <PeriodBar value={period} onChange={setPeriod} />
       </motion.div>
 
+      {/* Live balance TFTW currently holds - period-independent, see
+          held-balance-card.tsx for why it sits above the period-scoped stats. */}
+      <HeldBalanceCard />
+
       {/* Stats */}
       {stats.isLoading ? (
         <StatsCardsSkeleton />
@@ -347,6 +352,7 @@ export function PaymentsPage() {
       fallback={
         <div className='space-y-2xl'>
           <Skeleton className='h-12 w-64' />
+          <Skeleton className='h-[104px] w-full rounded-xl' />
           <StatsCardsSkeleton />
           <PaymentListSkeleton />
         </div>

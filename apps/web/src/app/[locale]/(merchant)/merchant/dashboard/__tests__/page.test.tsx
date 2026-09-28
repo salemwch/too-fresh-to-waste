@@ -8,15 +8,16 @@ import MerchantDashboardPage from '../page';
  * The Dashboard reads `period` from the URL (`useSalesPeriod`, real - not
  * mocked here, see use-sales-period.test.tsx for that hook's own coverage)
  * and must thread it into every period-based query: the earnings summary and
- * chart, and the three impact-card queries (order stats, carbon, social). The
- * held-money balance is the one deliberate exception - `useMyWallet`'s query
- * key carries no period (CLAUDE.md: never put the viewer's id in a cache
- * key; the same applies to the period here), so it must be called with no
- * arguments regardless of what the URL says. `CampaignSidePanel`'s own
- * `useOrderStats()` call is a second, separate exception - its bag milestone
- * is a lifetime figure, not a period one, so it must ALSO be called with no
- * arguments even while `ImpactCards`' call to the very same hook carries the
- * period (fix-round item A: this used to leak the period into the panel too).
+ * chart, and the three impact-card queries (order stats, carbon, social).
+ * `CampaignSidePanel`'s own `useOrderStats()` call is a deliberate exception -
+ * its bag milestone is a lifetime figure, not a period one, so it must be
+ * called with no arguments even while `ImpactCards`' call to the very same
+ * hook carries the period (fix-round item A: this used to leak the period
+ * into the panel too).
+ *
+ * task-15b moved "Money TFTW currently holds" off the Dashboard entirely (to
+ * the top of the Payments page) - `useMyWallet` is mocked here only because
+ * it is still one of the module's exports; the Dashboard must never call it.
  *
  * Every other dashboard component is mocked to a no-op: this suite tests
  * period wiring, not each card's own rendering (each has its own test file).
@@ -111,11 +112,13 @@ describe('MerchantDashboardPage - period wiring', () => {
     expect(mockUseSocialImpact).toHaveBeenCalledWith('7d');
   });
 
-  it('never passes the period to useMyWallet', () => {
+  it('never renders the held balance on the Dashboard at all', () => {
     renderPage();
 
-    expect(mockUseMyWallet).toHaveBeenCalled();
-    mockUseMyWallet.mock.calls.forEach(call => expect(call).toEqual([]));
+    expect(mockUseMyWallet).not.toHaveBeenCalled();
+    expect(screen.queryByText('Money TFTW currently holds')).toBeNull();
+    expect(screen.queryByText('Available for payout')).toBeNull();
+    expect(screen.queryByText('Awaiting pickup')).toBeNull();
   });
 
   it("calls useOrderStats twice - once with the period (ImpactCards), once with none (CampaignSidePanel's lifetime milestone)", () => {
