@@ -1,47 +1,5 @@
 import type { SalesPeriod } from '@/types/payments';
 
-// ─── Chart granularity ───────────────────────────────────────────────────────
-
-export type ChartGranularity = 'day' | 'week' | 'month';
-
-// ─── Date filter ────────────────────────────────────────────────────────────
-
-/** All available time-window presets for the dashboard date filter. */
-export type DatePreset =
-  | '7d'
-  | '14d'
-  | '30d' // daily granularity
-  | '4w'
-  | '8w'
-  | '12w' // weekly granularity
-  | '3m'
-  | '6m'
-  | '9m'
-  | '12m'; // monthly granularity
-
-interface PresetConfig {
-  /** Aggregation granularity sent to the backend. */
-  granularity: ChartGranularity;
-  /** Number of slots (days / weeks / months). */
-  value: number;
-  /** Short label shown on the filter button. */
-  label: string;
-}
-
-/** Single source of truth for all preset metadata. */
-export const PRESET_CONFIG: Record<DatePreset, PresetConfig> = {
-  '7d': { granularity: 'day', value: 7, label: '7D' },
-  '14d': { granularity: 'day', value: 14, label: '14D' },
-  '30d': { granularity: 'day', value: 30, label: '30D' },
-  '4w': { granularity: 'week', value: 4, label: '4W' },
-  '8w': { granularity: 'week', value: 8, label: '8W' },
-  '12w': { granularity: 'week', value: 12, label: '12W' },
-  '3m': { granularity: 'month', value: 3, label: '3M' },
-  '6m': { granularity: 'month', value: 6, label: '6M' },
-  '9m': { granularity: 'month', value: 9, label: '9M' },
-  '12m': { granularity: 'month', value: 12, label: '1Y' },
-};
-
 // ─── Backend response envelope ──────────────────────────────────────────────
 // The TransformInterceptor wraps all responses in { status, message?, data, meta?, timestamp }
 
@@ -65,44 +23,15 @@ export interface PaginationMeta {
 // ─── Order Stats ────────────────────────────────────────────────────────────
 
 /**
- * GET /orders/merchant-today-sales - today (Africa/Tunis) across both ways a
- * customer pays. Mirrors `TodaySalesSummary` in the backend's
- * `orders/utils/today-sales.util.ts`; every money figure comes from each
- * order's frozen commission decision, never a recomputed 19%.
+ * Mirrors `OrdersService.getOrderStats`'s `OrderStatsResponse` (backend).
+ * `totalRevenue` (summed `pricing.total`, food plus delivery - which a
+ * merchant never receives), `totalEarnings` (duplicated the shared earnings
+ * calculation) and `totalOriginalValue` (no reader left) were removed from
+ * the backend response in Task 16 - see
+ * `.superpowers/sdd/2026-09-26-merchant-earnings/task-16-report.md`.
  */
-export interface TodaySalesChannel {
-  orders: number;
-  /** Food sold, delivery fee excluded. */
-  sales: number;
-}
-
-export interface TodaySales {
-  /** YYYY-MM-DD, the merchant's day in Africa/Tunis. */
-  date: string;
-  currency: string;
-  rate: number;
-  cash: TodaySalesChannel;
-  online: TodaySalesChannel;
-  total: TodaySalesChannel & {
-    /** Commission recorded today: 19% of today's NORMAL sales. */
-    commission: number;
-    /** Commission balance paid off today by SETTLEMENT sales. */
-    settled: number;
-    /** What the merchant was paid for today's sales. */
-    received: number;
-    /** received - commission: today's profit. */
-    kept: number;
-  };
-  /** Reserved today, not collected yet. */
-  toCollect: TodaySalesChannel;
-}
-
 export interface OrderStatsResponse {
   totalOrders: number;
-  totalRevenue: number;
-  totalEarnings: number;
-  /** Retail value of food rescued (sum of originalPrice * quantity for completed orders) */
-  totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
   readyOrders: number;
@@ -299,22 +228,6 @@ export interface QuickStatsResponse {
   };
   period: string;
   generatedAt: string;
-}
-
-// ─── Revenue Chart ───────────────────────────────────────────────────────────
-
-export interface RevenueChartItem {
-  label: string;
-  year: number;
-  month: number;
-  /** ISO week number — only present when granularity is 'week'. */
-  week?: number;
-  /** Day of month — only present when granularity is 'day'. */
-  day?: number;
-  revenue: number;
-  earnings: number;
-  orderCount: number;
-  bagCount: number;
 }
 
 // ─── Merchant Wallet ──────────────────────────────────────────────────────

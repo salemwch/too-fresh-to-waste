@@ -7,8 +7,6 @@ import type {
   BusinessMetricsRequest,
   QuickStatsResponse,
   MerchantOffer,
-  RevenueChartItem,
-  ChartGranularity,
   MyEstablishment,
   CreateSurpriseBagPayload,
   CreatedOfferResponse,
@@ -28,7 +26,6 @@ import type {
   PricingSuggestions,
   MerchantWallet,
   MerchantCommissionStatement,
-  TodaySales,
   FundLedgerResponse,
 } from '@/types/dashboard';
 import type { MerchantSalesChart, MerchantSalesSummary, SalesPeriod } from '@/types/payments';
@@ -44,15 +41,6 @@ const LEADERBOARD_BASE = '/leaderboard';
 const PAYMENTS_BASE = '/payments';
 
 export const dashboardService = {
-  /** GET /orders/merchant-today-sales?establishmentId= - cash and online together. */
-  getTodaySales(establishmentId?: string) {
-    return apiClient.get<BackendEnvelope<TodaySales>>(`${ORDERS_BASE}/merchant-today-sales`, {
-      params: {
-        ...(establishmentId ? { establishmentId } : {}),
-      },
-    });
-  },
-
   /** GET /orders/merchant-sales-summary?period=&establishmentId= */
   getSalesSummary(period: SalesPeriod, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<MerchantSalesSummary>>(
@@ -149,23 +137,6 @@ export const dashboardService = {
     return apiClient.get<BackendEnvelope<QuickStatsResponse>>(`${ANALYTICS_BASE}/quick-stats`, {
       params: { period },
     });
-  },
-
-  /**
-   * GET /orders/merchant-revenue-chart?granularity=&value=
-   * Revenue breakdown per day / week / month for the merchant chart.
-   */
-  getRevenueChart(granularity: ChartGranularity, value: number, establishmentId?: string) {
-    return apiClient.get<BackendEnvelope<RevenueChartItem[]>>(
-      `${ORDERS_BASE}/merchant-revenue-chart`,
-      {
-        params: {
-          granularity,
-          value,
-          ...(establishmentId ? { establishmentId } : {}),
-        },
-      },
-    );
   },
 
   /**

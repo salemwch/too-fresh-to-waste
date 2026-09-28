@@ -26,7 +26,6 @@ import type {
   CustomerLocationItem,
   MerchantWallet,
   MerchantCommissionStatement,
-  TodaySales,
   FundLedgerResponse,
 } from '@/types/dashboard';
 import type { SalesPeriod } from '@/types/payments';
@@ -36,7 +35,6 @@ import type { SalesPeriod } from '@/types/payments';
 
 export const dashboardKeys = {
   all: ['merchant-dashboard'] as const,
-  todaySales: (estId?: string) => [...dashboardKeys.all, 'today-sales', estId ?? 'all'] as const,
   orderStats: (period?: SalesPeriod, estId?: string) =>
     [...dashboardKeys.all, 'order-stats', period ?? 'all-time', estId ?? 'all'] as const,
   recentOrders: (page: number, limit: number) =>
@@ -103,24 +101,6 @@ interface MerchantOffersResult {
 }
 
 // ─── Hooks ──────────────────────────────────────────────────────────────────
-
-/**
- * Today's sales, cash and online together. The wallet card shows only money
- * TFTW holds; this is the day as the merchant lived it. Refetched every minute
- * while the dashboard is open - a sale lands the moment a pickup is confirmed.
- */
-export function useTodaySales() {
-  const estId = useAuthStore(s => s.activeEstablishmentId) ?? undefined;
-  return useQuery({
-    queryKey: dashboardKeys.todaySales(estId),
-    queryFn: async (): Promise<TodaySales> => {
-      const response = await dashboardService.getTodaySales(estId);
-      return response.data.data;
-    },
-    staleTime: 60 * 1000,
-    refetchInterval: 60 * 1000,
-  });
-}
 
 /**
  * Order stats: totals, breakdown by status, revenue summary.

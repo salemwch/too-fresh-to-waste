@@ -217,33 +217,6 @@ export class OrderGateway {
   }
 
   /**
-   * Notify merchant of new order.
-   *
-   * Not currently wired to any call site (verified: no other file references
-   * `notifyNewOrder`) - `order.service.ts`'s `notifyMerchantNewOrder` is the
-   * live path. Fixed anyway: a merchant never sees delivery money (see
-   * `orders/utils/merchant-order-view.ts`), and the customer's paid total is
-   * delivery money whenever the order includes a delivery fee, so it must
-   * never reach this payload if this method is ever wired up.
-   */
-  notifyNewOrder(orderId: string, merchantId: string, customerName: string): void {
-    const message = {
-      orderId,
-      title: 'New Order Received! 🎉',
-      message: `You have a new order from ${customerName}`,
-      actionRequired: true,
-      action: 'view_order',
-      metadata: {
-        customerName,
-      },
-    };
-
-    this.webSocketService.sendToUser(merchantId, 'order:new', message);
-
-    this.logger.log(`New order notification sent to merchant ${merchantId}`);
-  }
-
-  /**
    * Batch notify multiple orders (useful for system updates)
    */
   batchNotifyOrderUpdates(updates: OrderStatusUpdate[]): void {

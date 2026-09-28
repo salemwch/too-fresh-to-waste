@@ -11,8 +11,11 @@
  * and KEEP/STRIP reasoning: `.claude/work/merchant-earnings.md` (Decisions).
  *
  * Excluded from the table, with why:
- * - `GET /orders/stats`, `GET /orders/merchant-revenue-chart`,
- *   `GET /orders/merchant-today-sales` - Task 16 removes these; out of scope here.
+ * - `GET /orders/stats` - returns counts and an average; no delivery-money
+ *   field exists on the response to leak (Task 16 removed the last one,
+ *   `totalEarnings`/`totalRevenue`/`totalOriginalValue`).
+ * - `GET /orders/merchant-revenue-chart`, `GET /orders/merchant-today-sales` -
+ *   removed by Task 16; the shared `merchant-sales` module replaced both.
  * - `GET /orders/merchant-sales-summary`, `GET /orders/merchant-sales-chart`,
  *   `GET /payments/my-merchant-payments`, `/my-commission`, `/my-wallet`,
  *   `/stats` - built on the shared `merchant-sales` module, which never reads

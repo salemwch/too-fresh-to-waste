@@ -24,9 +24,6 @@ jest.mock('@/hooks/use-merchant-sales', () => ({
 
 const baseStats: OrderStatsResponse = {
   totalOrders: 10,
-  totalRevenue: 240, // gross - not read by ImpactCards any more
-  totalEarnings: 162, // not read either - summary.total.earned is, below
-  totalOriginalValue: 300, // not read either - summary.total.originalValue is
   pendingOrders: 0,
   confirmedOrders: 0,
   readyOrders: 0,
@@ -92,7 +89,10 @@ describe('ImpactCards', () => {
     renderCards();
 
     expect(screen.getByText('162')).toBeTruthy();
-    // 240 is `baseStats.totalRevenue` - must not leak in as a card value.
+    // 240 is the summary's `foodValue`, not `earned` - must not leak in as
+    // the revenue card's value (Task 16 removed the old `totalRevenue` gross
+    // figure from `OrderStatsResponse` entirely, so this now proves the same
+    // thing against the shared earnings summary instead).
     expect(screen.queryByText('240')).toBeNull();
   });
 

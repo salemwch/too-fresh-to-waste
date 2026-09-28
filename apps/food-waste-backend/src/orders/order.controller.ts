@@ -62,24 +62,12 @@ import { OrderStatsQueryDto } from './DTO/order-stats-query.dto';
 import { ConsumerOrderResponseDto, MerchantOrderResponseDto } from './DTO/order-response.dto';
 import { OrderExceptionFilter } from './filters/order-exception.filter';
 import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
-import {
-  OrdersService,
-  OrderStatsResponse,
-  RevenueChartResponse,
-  CustomerLocationResponse,
-  type ChartGranularity,
-} from './order.service';
-import type { TodaySalesSummary } from './utils/today-sales.util';
+import { OrdersService, OrderStatsResponse, CustomerLocationResponse } from './order.service';
 import { toMerchantOrderView } from './utils/merchant-order-view';
 
 import { strictValidation } from '../common/pipes/validation-pipes';
 
 import { appError } from '../common/errors';
-/** Allowed granularity values — validated at the controller boundary. */
-const VALID_GRANULARITIES = new Set<ChartGranularity>(['day', 'week', 'month']);
-
-/** Maximum `value` allowed per granularity to prevent runaway aggregations. */
-const CHART_LIMITS: Record<ChartGranularity, number> = { day: 90, week: 52, month: 24 };
 
 /** Converts a Mongoose document to a primitive-only plain object.
  *  plainToInstance (class-transformer) constructs new instances for any class-typed
@@ -454,78 +442,6 @@ export class OrdersController {
     };
   }
 
-  @ApiOperation({
-    summary: 'Get revenue chart data',
-    description:
-      'Returns revenue per slot (day / week / month) for the last N slots. ' +
-      'Limits: day ≤ 90, week ≤ 52, month ≤ 24.',
-  })
-  @ApiQuery({
-    name: 'granularity',
-    required: false,
-    enum: ['day', 'week', 'month'],
-    description: 'Aggregation granularity (default: month)',
-  })
-  @ApiQuery({
-    name: 'value',
-    required: false,
-    type: Number,
-    description: 'Number of slots to return (default: 9)',
-  })
-  @ApiQuery({
-    name: 'establishmentId',
-    required: false,
-    type: String,
-    description: 'Filter revenue chart to a specific establishment (merchants only)',
-  })
-  @ApiResponse({ status: 200, description: 'Revenue chart data retrieved successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid granularity or value out of range' })
-  @ApiResponse({ status: 401, description: 'Unauthorized — merchant or admin access required' })
-  @Get('merchant-revenue-chart')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
-  async getMerchantRevenueChart(
-    @Request() req: AuthenticatedRequest,
-    @Query('granularity') rawGranularity = 'month',
-    @Query('value', new DefaultValuePipe(9), ParseIntPipe) value: number,
-    @Query('establishmentId') establishmentId?: string,
-  ): Promise<{
-    statusCode: number;
-    message: string;
-    data: RevenueChartResponse[];
-  }> {
-    if (!VALID_GRANULARITIES.has(rawGranularity as ChartGranularity)) {
-      throw new BadRequestException(
-        appError('INVALID_GRANULARITY', { allowed: String([...VALID_GRANULARITIES].join(', ')) }),
-      );
-    }
-    const granularity = rawGranularity as ChartGranularity;
-
-    const limit = CHART_LIMITS[granularity];
-    if (value < 1 || value > limit) {
-      throw new BadRequestException(appError('INVALID_GRANULARITY_VALUE', { max: limit }));
-    }
-
-    const effectiveEstablishmentId =
-      req.user.role === UserRole.LOCATION_MANAGER
-        ? req.user.assignedEstablishmentId
-        : establishmentId;
-
-    const data = await this.ordersService.getRevenueChart(
-      req.user.userId,
-      req.user.role,
-      granularity,
-      value,
-      effectiveEstablishmentId,
-    );
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Revenue chart data retrieved successfully',
-      data,
-    };
-  }
-
   @ApiOperation({ summary: 'Merchant earnings for a period, cash and online together' })
   @ApiQuery({ name: 'period', required: false, enum: SALES_PERIODS, description: 'Default: month' })
   @ApiQuery({
@@ -579,46 +495,6 @@ export class OrdersController {
         ? req.user.assignedEstablishmentId
         : query.establishmentId;
     return salesScopeFor(req.user.role, req.user.userId, establishmentId ?? undefined);
-  }
-
-  @ApiOperation({
-    summary: "Today's sales, cash and online together",
-    description:
-      'Orders created today (Africa/Tunis) split by how they were paid. Cash orders never ' +
-      'pass through the platform wallet, so this is the only place they appear as money.',
-  })
-  @ApiQuery({
-    name: 'establishmentId',
-    required: false,
-    type: String,
-    description: 'Scope to one establishment (merchants only)',
-  })
-  @ApiResponse({ status: 200, description: "Today's sales retrieved successfully" })
-  @ApiResponse({ status: 401, description: 'Unauthorized — merchant access required' })
-  @Get('merchant-today-sales')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
-  async getMerchantTodaySales(
-    @Request() req: AuthenticatedRequest,
-    @Query('establishmentId') establishmentId?: string,
-  ): Promise<{ statusCode: number; message: string; data: TodaySalesSummary }> {
-    // A location manager is pinned to their assignment, whatever they ask for.
-    const effectiveEstablishmentId =
-      req.user.role === UserRole.LOCATION_MANAGER
-        ? req.user.assignedEstablishmentId
-        : establishmentId;
-
-    const data = await this.ordersService.getTodaySales(
-      req.user.userId,
-      req.user.role,
-      effectiveEstablishmentId,
-    );
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: "Today's sales retrieved successfully",
-      data,
-    };
   }
 
   @ApiOperation({
