@@ -11,9 +11,11 @@
  * and KEEP/STRIP reasoning: `.claude/work/merchant-earnings.md` (Decisions).
  *
  * Excluded from the table, with why:
- * - `GET /orders/stats` - returns counts and an average; no delivery-money
- *   field exists on the response to leak (Task 16 removed the last one,
- *   `totalEarnings`/`totalRevenue`/`totalOriginalValue`).
+ * - `GET /orders/stats` - returns counts only; no delivery-money field exists
+ *   on the response to leak (Task 16 removed
+ *   `totalEarnings`/`totalRevenue`/`totalOriginalValue`, and its fix round 1
+ *   removed `averageOrderValue` too - it was also `$avg: '$pricing.total'`,
+ *   the same customer-total figure the others were).
  * - `GET /orders/merchant-revenue-chart`, `GET /orders/merchant-today-sales` -
  *   removed by Task 16; the shared `merchant-sales` module replaced both.
  * - `GET /orders/merchant-sales-summary`, `GET /orders/merchant-sales-chart`,
@@ -37,7 +39,11 @@ import { OrdersController } from '../../src/orders/order.controller';
 import { OrdersService } from '../../src/orders/order.service';
 import type { AuthenticatedRequest } from '../../src/common/decorators/get-user.decorator';
 import { ROLES_KEY } from '../../src/common/decorators/roles.decorator';
-import { UpdateOrderStatusDto, ConfirmPickupDto, CancelOrderDto } from '../../src/orders/DTO/create-order.dto';
+import {
+  UpdateOrderStatusDto,
+  ConfirmPickupDto,
+  CancelOrderDto,
+} from '../../src/orders/DTO/create-order.dto';
 
 const DELIVERY_FEE = 7.777;
 const CUSTOMER_TOTAL = 17.777;
@@ -374,19 +380,15 @@ describe('route guard reachability - CONSUMER', () => {
     '%s has no @Roles guard - a CONSUMER reaches it in production',
     method => {
       const roles = Reflect.getMetadata(ROLES_KEY, OrdersController.prototype[method]) as
-        | UserRole[]
-        | undefined;
+        UserRole[] | undefined;
       expect(roles).toBeUndefined();
     },
   );
 
-  it.each(['updateStatus', 'unlockPickup'] as const)(
-    '%s is guarded away from CONSUMER',
-    method => {
-      const roles = Reflect.getMetadata(ROLES_KEY, OrdersController.prototype[method]) as UserRole[];
-      expect(roles).not.toContain(UserRole.CONSUMER);
-    },
-  );
+  it.each(['updateStatus', 'unlockPickup'] as const)('%s is guarded away from CONSUMER', method => {
+    const roles = Reflect.getMetadata(ROLES_KEY, OrdersController.prototype[method]) as UserRole[];
+    expect(roles).not.toContain(UserRole.CONSUMER);
+  });
 });
 
 describe('GET /orders/:id - commission opt-in wiring', () => {
@@ -454,12 +456,16 @@ describe('socket: order.service.ts notifyMerchantNewOrder', () => {
     service['notificationService'] = { queueNotification: jest.fn().mockResolvedValue(undefined) };
 
     const order = buildOrder();
-    await (service as { notifyMerchantNewOrder: (o: unknown) => Promise<void> }).notifyMerchantNewOrder(
-      order,
-    );
+    await (
+      service as { notifyMerchantNewOrder: (o: unknown) => Promise<void> }
+    ).notifyMerchantNewOrder(order);
 
     expect(sendToUser).toHaveBeenCalledTimes(1);
-    const [, event, payload] = sendToUser.mock.calls[0] as [string, string, Record<string, unknown>];
+    const [, event, payload] = sendToUser.mock.calls[0] as [
+      string,
+      string,
+      Record<string, unknown>,
+    ];
     expect(event).toBe('order:new');
     const json = JSON.stringify(payload);
     expect(json).not.toContain(String(DELIVERY_FEE));

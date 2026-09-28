@@ -138,7 +138,6 @@ interface OrderStatsResult {
   readyOrders: number;
   completedOrders: number;
   cancelledOrders: number;
-  averageOrderValue: number;
   bagsSaved: number;
 }
 
@@ -154,7 +153,6 @@ export interface OrderStatsResponse {
   readyOrders: number;
   completedOrders: number;
   cancelledOrders: number;
-  averageOrderValue: number;
   /** Sum of items[].quantity for picked_up orders (actual bag count, not order count) */
   bagsSaved: number;
 }
@@ -229,8 +227,6 @@ export class OrdersService {
     await Promise.all([
       this.cacheService.delByPrefix(`orders:stats:${merchantId}`),
       this.cacheService.delByPrefix(`orders:stats:${customerId}`),
-      this.cacheService.delByPrefix(`orders:chart:${merchantId}`),
-      this.cacheService.delByPrefix(`orders:chart:${customerId}`),
     ]);
   }
   async create(createOrderDto: CreateOrderDto, customerId: string): Promise<OrderDocument> {
@@ -1804,7 +1800,6 @@ export class OrdersService {
               cancelledOrders: {
                 $sum: { $cond: [{ $eq: ['$status', OrderStatus.CANCELLED] }, 1, 0] },
               },
-              averageOrderValue: { $avg: '$pricing.total' },
               bagsSaved: {
                 $sum: {
                   $cond: [
@@ -1832,7 +1827,6 @@ export class OrdersService {
             readyOrders: 0,
             completedOrders: 0,
             cancelledOrders: 0,
-            averageOrderValue: 0,
             bagsSaved: 0,
           }
         );
@@ -2505,13 +2499,11 @@ export class OrdersService {
       // Redis outage is logged rather than swallowed by the global
       // unhandledRejection handler in main.ts.
       Promise.all(
-        [
-          `orders:stats:${userId}`,
-          `orders:chart:${userId}`,
-          ...merchantIds.flatMap(mid => [`orders:stats:${mid}`, `orders:chart:${mid}`]),
-        ].map(async prefix => {
-          await this.cacheService.delByPrefix(prefix);
-        }),
+        [`orders:stats:${userId}`, ...merchantIds.map(mid => `orders:stats:${mid}`)].map(
+          async prefix => {
+            await this.cacheService.delByPrefix(prefix);
+          },
+        ),
       ).catch((err: unknown) => {
         this.appLogger.error(
           `Cache invalidation failed after cancelling orders for user ${userId}: ${String(err)}`,

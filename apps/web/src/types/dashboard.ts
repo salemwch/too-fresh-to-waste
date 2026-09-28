@@ -27,8 +27,10 @@ export interface PaginationMeta {
  * `totalRevenue` (summed `pricing.total`, food plus delivery - which a
  * merchant never receives), `totalEarnings` (duplicated the shared earnings
  * calculation) and `totalOriginalValue` (no reader left) were removed from
- * the backend response in Task 16 - see
- * `.superpowers/sdd/2026-09-26-merchant-earnings/task-16-report.md`.
+ * the backend response in Task 16; `averageOrderValue` (also
+ * `$avg: 'pricing.total'`, the same customer-total figure) was removed in
+ * Task 16's fix round 1. See `.claude/work/merchant-earnings.md` for the
+ * decision record.
  */
 export interface OrderStatsResponse {
   totalOrders: number;
@@ -37,7 +39,6 @@ export interface OrderStatsResponse {
   readyOrders: number;
   completedOrders: number;
   cancelledOrders: number;
-  averageOrderValue: number;
   /** Sum of items[].quantity for picked_up orders (actual bag count) */
   bagsSaved: number;
 }

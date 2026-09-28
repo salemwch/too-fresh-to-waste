@@ -4,10 +4,12 @@
  * (food plus delivery, which a merchant never receives), `totalEarnings`
  * duplicated the shared earnings calculation now owned by
  * `merchant-sales.expressions.ts`, and `totalOriginalValue` had no reader left
- * in web or mobile (grepped in the Task 16 report).
+ * in web or mobile. Task 16's fix round 1 removed `averageOrderValue` too -
+ * it was also `$avg: '$pricing.total'`, the same customer-total figure. See
+ * `.claude/work/merchant-earnings.md` for the Task 16 decision record.
  *
  * This proves the real aggregation - not a mock - never emits any of the
- * three fields again, for every role that can reach `GET /orders/stats`
+ * four fields again, for every role that can reach `GET /orders/stats`
  * (MERCHANT, LOCATION_MANAGER, ADMIN - see `OrdersController.getOrderStats`'s
  * `@Roles`). No role keeps them, so there is no privileged-role contrast case
  * here the way `merchant-order-money.spec.ts` has one for delivery money.
@@ -27,7 +29,7 @@ import { requireMongoTestUri } from '../../../test/helpers/mongo-test-uri';
 
 const MONGO_URI = requireMongoTestUri();
 
-const REMOVED_FIELDS = ['totalRevenue', 'totalEarnings', 'totalOriginalValue'];
+const REMOVED_FIELDS = ['totalRevenue', 'totalEarnings', 'totalOriginalValue', 'averageOrderValue'];
 
 describe('OrdersService.getOrderStats - removed money fields stay gone (real MongoDB)', () => {
   let connection: Connection;
@@ -85,7 +87,7 @@ describe('OrdersService.getOrderStats - removed money fields stay gone (real Mon
     // proves something.
     [UserRole.ADMIN, merchantId.toString(), undefined, 0],
   ] as const)(
-    'contains none of totalRevenue, totalEarnings, totalOriginalValue for %s',
+    'contains none of totalRevenue, totalEarnings, totalOriginalValue, averageOrderValue for %s',
     async (role, userId, establishmentIdArg, expectedTotalOrders) => {
       const stats = await service.getOrderStats(userId, role, undefined, establishmentIdArg);
       const json = JSON.stringify(stats);

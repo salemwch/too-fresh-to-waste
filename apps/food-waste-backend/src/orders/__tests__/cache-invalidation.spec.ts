@@ -46,16 +46,16 @@ describe('OrdersService — order cache invalidation', () => {
     process.off('unhandledRejection', unhandled);
   });
 
-  it('purges both stats and chart caches for merchant and customer', async () => {
+  it('purges the stats cache for merchant and customer, and nothing else', async () => {
     const { cacheService, invalidate } = buildService();
 
     await invalidate('merchant-1', 'customer-1');
 
     expect(cacheService.delByPrefix).toHaveBeenCalledWith('orders:stats:merchant-1');
     expect(cacheService.delByPrefix).toHaveBeenCalledWith('orders:stats:customer-1');
-    expect(cacheService.delByPrefix).toHaveBeenCalledWith('orders:chart:merchant-1');
-    expect(cacheService.delByPrefix).toHaveBeenCalledWith('orders:chart:customer-1');
-    expect(cacheService.delByPrefix).toHaveBeenCalledTimes(4);
+    // No `orders:chart:*` purge - fix round 1 removed the chart cache along
+    // with the deleted `getRevenueChart` that was its only writer.
+    expect(cacheService.delByPrefix).toHaveBeenCalledTimes(2);
   });
 
   it('rejects when Redis is down, so the caller must catch', async () => {
@@ -94,11 +94,11 @@ describe('OrdersService — order cache invalidation', () => {
     expect(unhandled).not.toHaveBeenCalled();
   });
 
-  it('issues all four purges concurrently', async () => {
+  it('issues both purges concurrently', async () => {
     const { cacheService, invalidate } = buildService();
     const resolveAll: Array<() => void> = [];
     cacheService.delByPrefix.mockImplementation(async () => {
-      // Stays pending until the test releases it, so all four calls are
+      // Stays pending until the test releases it, so both calls are
       // observably in flight at once.
       const settled = await new Promise<number>(res => {
         resolveAll.push(() => res(0));
@@ -109,8 +109,8 @@ describe('OrdersService — order cache invalidation', () => {
     const pending = invalidate('m', 'c');
     await flush();
 
-    // All four in flight before any resolves — Promise.all, not sequential awaits.
-    expect(cacheService.delByPrefix).toHaveBeenCalledTimes(4);
+    // Both in flight before either resolves - Promise.all, not sequential awaits.
+    expect(cacheService.delByPrefix).toHaveBeenCalledTimes(2);
     resolveAll.forEach(r => r());
     await pending;
   });
@@ -122,7 +122,7 @@ describe('OrdersService — order cache invalidation', () => {
 
     await invalidate('same-id', 'same-id');
 
-    expect(cacheService.delByPrefix).toHaveBeenCalledTimes(4);
+    expect(cacheService.delByPrefix).toHaveBeenCalledTimes(2);
   });
 
   it('survives a non-Error rejection value', async () => {

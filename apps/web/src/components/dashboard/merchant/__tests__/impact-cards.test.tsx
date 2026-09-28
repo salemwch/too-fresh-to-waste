@@ -29,7 +29,6 @@ const baseStats: OrderStatsResponse = {
   readyOrders: 0,
   completedOrders: 8,
   cancelledOrders: 0,
-  averageOrderValue: 24,
   bagsSaved: 10,
 };
 
