@@ -104,14 +104,29 @@ export class OrdersController {
 
   /**
    * MERCHANT and LOCATION_MANAGER get the delivery-money-stripped view;
-   * ADMIN and the customer keep the full object. Several routes below return
-   * a raw order/receipt object with no DTO in between, so the strip has to
-   * happen at this layer rather than relying on `MerchantOrderResponseDto`.
+   * ADMIN keeps the full object. Several routes below return a raw
+   * order/receipt object with no DTO in between (no `MerchantOrderResponseDto`
+   * / `ConsumerOrderResponseDto` to fall back on for the exclusion), so the
+   * strip has to happen at this layer.
+   *
+   * Defence in depth: `order.commission` is the merchant's private commission
+   * ledger (global constraint - never reaches a CONSUMER or DRIVER). Every
+   * role that is not MERCHANT, LOCATION_MANAGER or ADMIN has it removed here
+   * even though today's callers only ever opt it into the projection for
+   * those three roles (`OrdersService.findById`'s `includeCommission`) - so a
+   * future opt-in mistake on the read side still cannot leak it on the way
+   * out.
    */
   private forRole<T extends object>(role: UserRole, order: T): T {
-    return role === UserRole.MERCHANT || role === UserRole.LOCATION_MANAGER
-      ? (toMerchantOrderView(order) as T)
-      : order;
+    if (role === UserRole.MERCHANT || role === UserRole.LOCATION_MANAGER) {
+      return toMerchantOrderView(order) as T;
+    }
+    if (role === UserRole.ADMIN) {
+      return order;
+    }
+    const view = { ...(order as Record<string, unknown>) };
+    delete view['commission'];
+    return view as T;
   }
 
   @ApiOperation({
@@ -719,12 +734,16 @@ export class OrdersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    const order = await this.ordersService.findById(id, req.user.userId, req.user.role);
-
     const isMerchantSide =
       req.user.role === UserRole.MERCHANT ||
       req.user.role === UserRole.ADMIN ||
       req.user.role === UserRole.LOCATION_MANAGER;
+    // `commission` is loaded only for MERCHANT / LOCATION_MANAGER / ADMIN -
+    // never as part of the default projection every role's read shares.
+    const order = await this.ordersService.findById(id, req.user.userId, req.user.role, {
+      includeCommission: isMerchantSide,
+    });
+
     const DtoClass = isMerchantSide ? MerchantOrderResponseDto : ConsumerOrderResponseDto;
 
     // Shared route: MERCHANT/LOCATION_MANAGER get the money-stripped view;
@@ -1025,7 +1044,7 @@ export class OrdersController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
   async unlockPickup(@Param('id') orderId: string, @Request() req: AuthenticatedRequest) {
-    const order = await this.ordersService.unlockPickup(orderId, req.user.userId);
+    const order = await this.ordersService.unlockPickup(orderId, req.user.userId, req.user.role);
 
     return {
       statusCode: HttpStatus.OK,

@@ -20,6 +20,8 @@
  * nor in `KEEP_PATHS`.
  */
 
+import { OrderSchema } from '../schemas/order.schema';
+
 /** Dotted schema paths removed from a merchant/location-manager order view. */
 export const STRIP_PATHS: ReadonlySet<string> = new Set([
   // Top-level delivery financials - the driver's and the platform's, never the merchant's.
@@ -103,6 +105,53 @@ if (overlap.length > 0) {
   );
 }
 
+/**
+ * Validates that every `STRIP_PATHS` entry can actually be removed by
+ * `toMerchantOrderView`'s two-pass deletion below, which only understands two
+ * shapes: a bare top-level key, or one level of nesting inside an object
+ * whose parent otherwise stays (`pricing.total`). Two shapes it silently gets
+ * wrong instead of erroring:
+ *
+ * - **Depth > 2.** `'a.b.c'` resolves to `head = 'a'`, `rest = 'b.c'`, and the
+ *   deletion does `delete view.a['b.c']` - not a real key, so nothing is
+ *   removed and the field ships.
+ * - **An array-typed head** (e.g. a future `'items.serviceFee'`). `items` is
+ *   an array of subdocuments; `{ ...order.items }` spreads it into a plain
+ *   `{0: {...}, 1: {...}}` object (losing `Array.isArray`), and the later
+ *   `delete` looks for a `serviceFee` key that was never there on the array
+ *   itself either.
+ *
+ * Exported so both this file's own import-time call and a test can drive it
+ * with a synthetic bad entry - the check the brief asked for, not a comment.
+ */
+export function assertStripPathsHandleable(
+  paths: ReadonlySet<string>,
+  schema: typeof OrderSchema = OrderSchema,
+): void {
+  for (const dotted of paths) {
+    const segments = dotted.split('.');
+    if (segments.length > 2) {
+      throw new Error(
+        `merchant-order-view: STRIP_PATHS entry '${dotted}' is ${segments.length} levels ` +
+          'deep - toMerchantOrderView only handles a top-level key or one level of nesting. ' +
+          'Extend the helper to handle this shape before adding the path.',
+      );
+    }
+
+    const head = segments[0] as string;
+    const headSchemaType = schema.path(head);
+    if (headSchemaType?.instance === 'Array') {
+      throw new Error(
+        `merchant-order-view: STRIP_PATHS entry '${dotted}' is nested under array path ` +
+          `'${head}' - toMerchantOrderView's shallow-clone strip does not handle array ` +
+          'subdocuments. Extend the helper to handle this shape before adding the path.',
+      );
+    }
+  }
+}
+
+assertStripPathsHandleable(STRIP_PATHS);
+
 /** Top-level keys this view always removes - the return type below. */
 export type MerchantOrderView<T> = Omit<
   T,
@@ -110,17 +159,35 @@ export type MerchantOrderView<T> = Omit<
 >;
 
 /**
+ * A hydrated Mongoose document keeps its raw backing store on `_doc` as an
+ * own enumerable property, alongside `$__` and friends. `{ ...doc }` copies
+ * that reference as-is: the top-level fields on the spread result look
+ * stripped, but `view._doc.pricing.total` is still the original object,
+ * untouched, and reachable by `JSON.stringify`. Converting through
+ * `toObject()` first (Mongoose's own plain-object export, which recurses
+ * into subdocuments) removes `_doc`/`$__` entirely before the strip logic
+ * ever runs, and does not mutate `order` - `toObject()` returns a new object.
+ */
+function toPlainIfHydrated<T extends object>(order: T): T {
+  const maybeDoc = order as { toObject?: () => unknown };
+  if (typeof maybeDoc.toObject === 'function') {
+    return maybeDoc.toObject() as T;
+  }
+  return order;
+}
+
+/**
  * Returns a copy of `order` with every delivery-money field removed, per
  * `STRIP_PATHS`. Never mutates `order` or any of its nested objects - every
  * touched nested object (`pricing`, `paymentDetails`, `paymentSession`,
  * `driverInstruction`) is shallow-cloned before a key is deleted from it.
  *
- * Works on any plain object shape: a full order, a list element, or a
- * hand-built object that merely has a `pricing` key (e.g. the receipt
- * endpoint) - only the paths present are touched.
+ * Works on any plain object shape: a full order, a list element, a hydrated
+ * Mongoose document, or a hand-built object that merely has a `pricing` key
+ * (e.g. the receipt endpoint) - only the paths present are touched.
  */
 export function toMerchantOrderView<T extends object>(order: T): MerchantOrderView<T> {
-  const source = order as Record<string, unknown>;
+  const source = toPlainIfHydrated(order) as Record<string, unknown>;
   const view: Record<string, unknown> = { ...source };
 
   // Pass 1: whole-object removals (e.g. `paymentSession`). Done first so pass

@@ -50,7 +50,11 @@ import {
   assertPaymentMatchesFulfilment,
   resolvePaymentControl,
 } from './utils/payment-control.util';
-import { ORDER_LIST_FIELDS, ORDER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
+import {
+  ORDER_LIST_FIELDS,
+  ORDER_DETAIL_FIELDS,
+  ORDER_COMMISSION_FIELD,
+} from '../common/utils/query-optimization.util';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import {
   DELIVERY_ORDER_CREATED,
@@ -97,6 +101,30 @@ import { appError } from '../common/errors';
 export type OrderLean = FlattenMaps<Order> & { _id: unknown };
 
 // Core business interfaces for type safety
+/** Options for `OrdersService.findById`. */
+interface FindByIdOptions {
+  /**
+   * Loads `commission` (the merchant's frozen commission decision) alongside
+   * the default projection. Pass `true` only when the caller already knows
+   * the requester is MERCHANT, LOCATION_MANAGER or ADMIN - see
+   * `ORDER_COMMISSION_FIELD` and `canSeeCommission` below.
+   */
+  includeCommission?: boolean;
+}
+
+/**
+ * Whether `role` may see `order.commission` - the merchant's own commission
+ * ledger. MERCHANT and LOCATION_MANAGER see their own establishment's
+ * earnings; ADMIN sees everything. CONSUMER and DRIVER never do (global
+ * constraint: a customer or driver must never receive the merchant's private
+ * commission ledger).
+ */
+function canSeeCommission(role: UserRole | undefined): boolean {
+  return (
+    role === UserRole.MERCHANT || role === UserRole.LOCATION_MANAGER || role === UserRole.ADMIN
+  );
+}
+
 interface OrderQueryFilter {
   customerId?: Types.ObjectId;
   merchantId?: Types.ObjectId;
@@ -832,9 +860,19 @@ export class OrdersService {
     );
   }
 
-  async findById(orderId: string, userId?: string, userRole?: UserRole): Promise<OrderDocument> {
+  async findById(
+    orderId: string,
+    userId?: string,
+    userRole?: UserRole,
+    options?: FindByIdOptions,
+  ): Promise<OrderDocument> {
     // ✅ PERFORMANCE: Single aggregation replaces findById + 4 populates (5 → 1 round-trip)
-    const detailFields = ORDER_DETAIL_FIELDS.split(' ');
+    // `commission` is never part of the shared projection - see
+    // ORDER_COMMISSION_FIELD. Only a caller that already knows the requester
+    // is MERCHANT, LOCATION_MANAGER or ADMIN may opt in.
+    const detailFields = options?.includeCommission
+      ? [...ORDER_DETAIL_FIELDS.split(' '), ORDER_COMMISSION_FIELD]
+      : ORDER_DETAIL_FIELDS.split(' ');
     const projectStage: Record<string, 1> = {};
     for (const field of detailFields) {
       projectStage[field] = 1;
@@ -1146,7 +1184,9 @@ export class OrdersService {
       order.customerId._id.toString(),
     );
 
-    return this.findById(updatedOrder._id.toString());
+    return this.findById(updatedOrder._id.toString(), undefined, undefined, {
+      includeCommission: canSeeCommission(userRole),
+    });
   }
 
   /** The only statuses `updateStatus` may write - the ones that move no money. */
@@ -1480,7 +1520,9 @@ export class OrdersService {
         );
       }
 
-      return this.findById(orderId);
+      return this.findById(orderId, undefined, undefined, {
+        includeCommission: canSeeCommission(userRole),
+      });
     } catch (error) {
       this.appLogger.error(
         `Failed to confirm pickup for order ${orderId}: ${(error as Error).message}`,
@@ -1565,7 +1607,9 @@ export class OrdersService {
           );
         });
         void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
-        return this.findById(orderId);
+        return this.findById(orderId, undefined, undefined, {
+          includeCommission: canSeeCommission(userRole),
+        });
       } finally {
         await session.endSession();
       }
@@ -1607,7 +1651,9 @@ export class OrdersService {
           );
         });
         void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
-        return this.findById(orderId);
+        return this.findById(orderId, undefined, undefined, {
+          includeCommission: canSeeCommission(userRole),
+        });
       } finally {
         await session.endSession();
       }
@@ -1686,7 +1732,9 @@ export class OrdersService {
         });
 
         void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
-        return this.findById(orderId);
+        return this.findById(orderId, undefined, undefined, {
+          includeCommission: canSeeCommission(userRole),
+        });
       } finally {
         await session.endSession();
       }
@@ -1718,7 +1766,9 @@ export class OrdersService {
     await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[]);
 
     void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
-    return this.findById(orderId);
+    return this.findById(orderId, undefined, undefined, {
+      includeCommission: canSeeCommission(userRole),
+    });
   }
 
   /**
@@ -2742,9 +2792,16 @@ export class OrdersService {
    *
    * @param orderId - Order ID to unlock
    * @param unlockedBy - User ID of admin/merchant unlocking
+   * @param unlockerRole - Role of the caller, used only to decide whether the
+   *   re-read order includes `commission` (see `canSeeCommission`). The
+   *   route itself is already guarded to MERCHANT / ADMIN / LOCATION_MANAGER.
    * @returns Updated order
    */
-  async unlockPickup(orderId: string, unlockedBy: string): Promise<OrderDocument> {
+  async unlockPickup(
+    orderId: string,
+    unlockedBy: string,
+    unlockerRole?: UserRole,
+  ): Promise<OrderDocument> {
     const order = await this.orderModel.findById(orderId);
 
     if (!order) {
@@ -2778,7 +2835,9 @@ export class OrdersService {
       'OrderService.PickupSecurity',
     );
 
-    return this.findById(orderId);
+    return this.findById(orderId, undefined, undefined, {
+      includeCommission: canSeeCommission(unlockerRole),
+    });
   }
 
   // =============================================================================
