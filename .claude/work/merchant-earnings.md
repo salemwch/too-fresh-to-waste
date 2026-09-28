@@ -1,5 +1,5 @@
 ---
-status: ready-for-dev
+status: in-progress
 scope: cross-app
 gate:
   pnpm --filter @foodwaste/backend check:ts && backend jest + test:db && pnpm
