@@ -116,6 +116,11 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
       },
       sentry,
       logger,
+      // This file's tests are about the report's content (ids, count, label),
+      // not the cross-request dedupe (A4) - that is its own dedicated suite,
+      // merchant-sales-report-dedupe.integration.spec.ts, against real Redis.
+      // Every call here is allowed to report.
+      cache: { acquireOnce: jest.fn().mockResolvedValue(true) },
     });
   }, 60_000);
 

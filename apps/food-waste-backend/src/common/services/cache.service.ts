@@ -50,6 +50,28 @@ export class CacheService {
   }
 
   /**
+   * Atomic "has this already happened in this window" check, for dedupe
+   * across PM2 workers (one process per core - a non-atomic get-then-set lets
+   * two workers both see "not yet" and both act). Returns `true` only for the
+   * caller that actually set the key (the one allowed to proceed), `false`
+   * for every other caller within `ttlSeconds`.
+   *
+   * Fails open (`true`) when Redis is unreachable: this guards reporting a
+   * real data-integrity failure, and a Redis outage must never silently
+   * suppress that report.
+   */
+  async acquireOnce(key: string, ttlSeconds: number): Promise<boolean> {
+    try {
+      const client = await this.redisService.getClient();
+      const reply = await client.set(key, '1', { NX: true, EX: ttlSeconds });
+      return reply !== null;
+    } catch (err) {
+      this.logger.warn(`Cache ACQUIRE_ONCE failed for "${key}": ${(err as Error).message}`);
+      return true;
+    }
+  }
+
+  /**
    * Delete all keys matching a prefix using SCAN (non-blocking, cursor-based).
    * Never use KEYS in production — it blocks the Redis event loop.
    *

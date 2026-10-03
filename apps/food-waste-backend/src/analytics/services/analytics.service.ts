@@ -285,14 +285,16 @@ export class AnalyticsService {
       // Parallel execution of metrics calculations. The current period
       // carries the real preset (when the caller resolved one) into the
       // shared-earnings diagnostics; the comparison window is always a
-      // synthetic range, never a named preset, so it stays 'custom'.
+      // synthetic range, never a named preset, so it stays 'custom', and
+      // never reports (A4) - the merchant cannot see this window at all.
       const [currentMetrics, previousMetrics, sustainabilityData] = await Promise.all([
         this.calculateCurrentBusinessMetrics(filters, request.period),
         comparisonRange
-          ? this.calculateCurrentBusinessMetrics({
-              ...filters,
-              dateRange: comparisonRange,
-            })
+          ? this.calculateCurrentBusinessMetrics(
+              { ...filters, dateRange: comparisonRange },
+              undefined,
+              false,
+            )
           : Promise.resolve(null),
         request.includeSustainability === true
           ? this.calculateSustainabilityMetrics(filters)
@@ -648,10 +650,16 @@ export class AnalyticsService {
    * range or the synthetic comparison window, which is never itself a named
    * preset. It affects nothing about the calculation - see
    * `MerchantSalesService.reportUnverified`.
+   *
+   * `report` (default `true`) is `false` only for the comparison window
+   * (Task 17, A4): a verifying order the merchant never sees on screen (it is
+   * outside their selected period) must not page anyone a second time for the
+   * same underlying order the current-period call already reported.
    */
   private async calculateCurrentBusinessMetrics(
     filters: AnalyticsFilters,
     diagnosticsPeriod?: SalesPeriod,
+    report = true,
   ) {
     const matchPipeline = AnalyticsUtil.createMatchPipeline(filters);
     const completedStatuses = [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED];
@@ -678,6 +686,7 @@ export class AnalyticsService {
         { kind: 'establishments', establishmentIds: filters.establishmentIds ?? [] },
         { from: filters.dateRange.startDate, to: filters.dateRange.endDate },
         diagnosticsPeriod,
+        { report },
       ),
     ]);
 

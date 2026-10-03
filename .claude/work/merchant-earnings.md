@@ -576,6 +576,50 @@ in the held-money query key.
     unconditional `salesScopeFor(UserRole.MERCHANT, ...)` call turned all three
     new tests red; reapplying the fix turned them green again.
 
+- 2026-10-03 (Task 17 fix wave, A4 - integrity report once per scope per window,
+  not per request): two fixes, both touching
+  `MerchantSalesService.reportUnverified`:
+  - The Analytics comparison window never reports. `summaryForRange` gained an
+    `options?: { report?: boolean }` (default `true`); `getBusinessMetrics`
+    passes `report: false` only for the comparison-window call - a verifying
+    order the merchant cannot even see (it is outside their selected period)
+    must not page anyone a second time for the same underlying order the
+    current-period call already reported.
+  - Reports are deduped per `(scope, period)` for a fixed one-hour window
+    (`REPORT_DEDUPE_TTL_SECONDS`), agreed across every PM2 worker via a new
+    `CacheService.acquireOnce(key, ttlSeconds)` (`SET key val NX EX ttl` -
+    atomic, so exactly one caller within the window wins; fails open on a Redis
+    outage rather than silently swallowing a real integrity failure). The dedupe
+    key is `merchant-sales:unverified-report:<scope>:<period>`; the figure
+    itself (`unverifiedOrders`) is never suppressed, only the Sentry/ logger
+    report.
+  - Before this fix, every Dashboard summary fetch, every Payments stats fetch,
+    and both Analytics windows independently sent a Sentry `captureMessage` +
+    `logger.error` for the same unverified orders.
+  - Tests: `merchant-sales-report-dedupe.integration.spec.ts` (new, against real
+    Redis, the same pattern as
+    `auth/__tests__/login-attempt-limit.integration.spec.ts`) - two calls for
+    the same scope/period produce one report; a different scope or period
+    reports independently. `business-metrics-earnings.integration.spec.ts`'s
+    existing "two reports" test is corrected to assert exactly one (the current
+    period's, labelled with the real preset) - the comparison window never
+    reports. `cache.service.acquire-once.spec.ts` (new, unit) covers
+    `acquireOnce` itself: wins when free, loses when held, fails open on a Redis
+    error.
+  - Mutation-checked: disabling the dedupe check (always `shouldReport = true`,
+    calling `acquireOnce` only for its side effect) turned the "two calls -> one
+    report" test red; reverting restored it. Reverting the comparison-window
+    `report: false` back to the default turned the "comparison window never
+    reports" test red; reapplying it restored it. Both reverted cleanly
+    afterward.
+  - The other integration suites that construct `MerchantSalesService` manually
+    (`merchant-sales.integration.spec.ts`,
+    `business-metrics-earnings.integration.spec.ts`) now pass a
+    `cache: { acquireOnce: jest.fn().mockResolvedValue(true) }` stub so their
+    existing per-call report assertions (ids, count, label) are unaffected by
+    the new dedupe - the dedupe itself is proven only by the dedicated suite
+    against real Redis.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile

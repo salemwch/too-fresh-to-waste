@@ -62,6 +62,10 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
       },
       sentry: salesSentry,
       logger: { error: jest.fn() },
+      // This file's own tests are about which window reports, not about the
+      // cross-worker dedupe (that is merchant-sales.integration.spec.ts) - so
+      // every call is allowed to report, every time.
+      cache: { acquireOnce: jest.fn().mockResolvedValue(true) },
     });
 
     service = Object.create(AnalyticsService.prototype) as AnalyticsService;
@@ -331,9 +335,14 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
     // count is above 0 (merchant-sales.service.ts). So it never reported for
     // either call, and would have kept passing even if `request.period` were
     // (wrongly) threaded into the comparison call too. Replaced with a
-    // dedicated establishment G carrying one unverified order in each window,
-    // so both calls actually report and the labels can be told apart.
-    it("labels the current period's report with the real preset and the comparison window's report 'custom' - never the same label for both", async () => {
+    // dedicated establishment G carrying one unverified order in each window.
+    //
+    // Task 17 (A4): the comparison window must never report at all - a
+    // verifying order the merchant cannot even see on screen (it is outside
+    // their selected period) must not page anyone. Updated from this test's
+    // earlier version, which asserted exactly two reports (one per window);
+    // the corrected rule is one report, for the current period only.
+    it("labels the current period's report with the real preset; the comparison window never reports", async () => {
       salesSentry.captureMessage.mockClear();
       const from = new Date('2026-09-02T00:00:00Z');
       const to = new Date('2026-09-20T00:00:00Z');
@@ -348,16 +357,13 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
         options: { includeComparisons: true },
       } as unknown as BusinessMetricsRequestDto);
 
-      // Two reports: the current period's (real preset) and the comparison
-      // window's (always 'custom', a synthetic range that was never itself a
-      // named preset). Asserting the exact pair, not just "was called with
-      // 'month' at least once", is what a comparison call mislabelled 'month'
-      // would actually break.
-      expect(salesSentry.captureMessage).toHaveBeenCalledTimes(2);
-      const periods = salesSentry.captureMessage.mock.calls.map(
-        call => (call[2] as { merchantEarnings: { period: string } }).merchantEarnings.period,
+      expect(salesSentry.captureMessage).toHaveBeenCalledTimes(1);
+      expect(salesSentry.captureMessage).toHaveBeenCalledWith(
+        expect.stringContaining('MERCHANT_EARNINGS_UNVERIFIED_ORDERS'),
+        'error',
+        expect.objectContaining({ merchantEarnings: expect.objectContaining({ period: 'month' }) }),
+        ['MERCHANT_EARNINGS_UNVERIFIED_ORDERS'],
       );
-      expect(periods.sort()).toEqual(['custom', 'month']);
     });
 
     // --- Fix round 1, item 2(c): `all` must succeed through real validation ---

@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage, Types } from 'mongoose';
 
 import { appError } from '../common/errors';
+import { CacheService } from '../common/services/cache.service';
 import { SentryService } from '../common/services/sentry.service';
 import { parseCommissionCutoff } from '../config/commission-cutoff.util';
 import { Order, OrderDocument } from '../orders/schemas/order.schema';
@@ -29,6 +30,15 @@ import {
 const MAX_REPORTED_IDS = 20;
 
 /**
+ * One report per scope per period within this window, so a PM2 worker pool
+ * agrees via Redis instead of each core reporting its own request (A4). An
+ * hour is long enough to collapse a burst of Dashboard/Payments/Analytics
+ * calls for the same merchant, short enough that a restored decision's next
+ * request can report again if the underlying failure recurs.
+ */
+const REPORT_DEDUPE_TTL_SECONDS = 60 * 60;
+
+/**
  * The single computation behind every merchant earnings figure - Dashboard,
  * Payments and Analytics all read this. See .claude/work/merchant-earnings.md.
  */
@@ -40,6 +50,7 @@ export class MerchantSalesService {
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
     private readonly configService: ConfigService,
     private readonly sentry: SentryService,
+    private readonly cache: CacheService,
   ) {}
 
   /** Null in development when unset: the model is inactive, nothing is case 3. */
@@ -60,7 +71,7 @@ export class MerchantSalesService {
     now: Date = new Date(),
   ): Promise<MerchantSalesSummary> {
     const range = resolveSalesPeriod(period, now);
-    const result = await this.compute(scope, range, period);
+    const result = await this.compute(scope, range, period, true);
     return result;
   }
 
@@ -71,13 +82,19 @@ export class MerchantSalesService {
    * e.g. `'month'` instead of always `'custom'`. Defaults to `'custom'`,
    * correct for an actual custom range and for a synthetic window (e.g. the
    * comparison period) that was never itself a named preset.
+   *
+   * `report` (default `true`) lets a caller suppress the integrity report
+   * entirely for a window the merchant never actually sees - Analytics'
+   * comparison window (A4): a verifying order outside the merchant's selected
+   * period must not page anyone a second time for the same underlying order.
    */
   async summaryForRange(
     scope: SalesScope,
     range: { from: Date | null; to: Date },
     diagnosticsPeriod: MerchantSalesSummary['period'] = 'custom',
+    options?: { report?: boolean },
   ): Promise<MerchantSalesSummary> {
-    const result = await this.compute(scope, range, diagnosticsPeriod);
+    const result = await this.compute(scope, range, diagnosticsPeriod, options?.report ?? true);
     return result;
   }
 
@@ -200,6 +217,7 @@ export class MerchantSalesService {
     scope: SalesScope,
     range: { from: Date | null; to: Date },
     period: MerchantSalesSummary['period'],
+    shouldReport: boolean,
   ): Promise<MerchantSalesSummary> {
     const stages = this.baseStages(scope, range);
     const groups = stages
@@ -261,8 +279,13 @@ export class MerchantSalesService {
       : [];
 
     const summarised = summariseSalesGroups(groups);
-    if (summarised.unverifiedOrders > 0) {
-      this.reportUnverified(scope, period, summarised.unverifiedOrders, summarised.unverifiedIds);
+    if (shouldReport && summarised.unverifiedOrders > 0) {
+      await this.reportUnverified(
+        scope,
+        period,
+        summarised.unverifiedOrders,
+        summarised.unverifiedIds,
+      );
     }
 
     return {
@@ -277,8 +300,36 @@ export class MerchantSalesService {
     };
   }
 
-  /** One report per request, never one per order. */
-  private reportUnverified(scope: SalesScope, period: string, count: number, ids: string[]): void {
+  /** The scope half of the dedupe key - stable regardless of id ordering. */
+  private scopeKey(scope: SalesScope): string {
+    switch (scope.kind) {
+      case 'merchant':
+        return `merchant:${scope.merchantId}${scope.establishmentId ? `:${scope.establishmentId}` : ''}`;
+      case 'establishments':
+        return `establishments:${[...scope.establishmentIds].sort().join(',')}`;
+      case 'none':
+        return 'none';
+    }
+  }
+
+  /**
+   * One report per (scope, period) per `REPORT_DEDUPE_TTL_SECONDS`, agreed
+   * across every PM2 worker via Redis (A4) - never one per order, and never
+   * one per request either: a burst of Dashboard + Payments + Analytics
+   * calls for the same merchant and period collapses into a single report.
+   */
+  private async reportUnverified(
+    scope: SalesScope,
+    period: string,
+    count: number,
+    ids: string[],
+  ): Promise<void> {
+    const dedupeKey = `merchant-sales:unverified-report:${this.scopeKey(scope)}:${period}`;
+    const shouldReport = await this.cache.acquireOnce(dedupeKey, REPORT_DEDUPE_TTL_SECONDS);
+    if (!shouldReport) {
+      return;
+    }
+
     const details = {
       code: MERCHANT_EARNINGS_UNVERIFIED_ORDERS,
       scope: scope.kind === 'merchant' ? { merchantId: scope.merchantId } : scope,
