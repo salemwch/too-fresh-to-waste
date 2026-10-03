@@ -336,11 +336,12 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
     }
 
     const s = await service.summary(merchantA, 'month', now);
-    expect(s.unverifiedOrders).toBe(22);
+    expect(s.unverifiedOrders).toBe(22); // the count is never capped, only the id list (A5)
     expect(sentry.captureMessage).toHaveBeenCalledTimes(1);
     const sentryOrderIds: string[] =
       sentry.captureMessage.mock.calls[0][2].merchantEarnings.orderIds;
-    expect(sentryOrderIds.length).toBeLessThanOrEqual(20);
+    expect(sentryOrderIds).toHaveLength(20);
+    expect(new Set(sentryOrderIds).size).toBe(20); // no duplicates
   });
 
   it('restoring the decision brings the order back with its persisted amount', async () => {

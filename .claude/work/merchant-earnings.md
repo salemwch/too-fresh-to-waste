@@ -620,6 +620,23 @@ in the held-money query key.
     the new dedupe - the dedupe itself is proven only by the dedicated suite
     against real Redis.
 
+- 2026-10-03 (Task 17 fix wave, A5 - cap the verifying id accumulator): the
+  `$group` stage in `MerchantSalesService.compute` no longer `$push`es every
+  verifying order id into one accumulator document (unbounded for `period=all`
+  - a merchant's whole history). `SalesGroupRow`/`summariseSalesGroups` no
+    longer carry ids at all, only the count (`unverifiedOrders`). When that
+    count is above 0 and the request is allowed to report (A4), a second, cheap
+    query
+    (`$match: { _population: 'verifying' } -> $project: { _id: 1 } -> $limit: 20`)
+    fetches at most `MAX_REPORTED_IDS` ids - no MongoDB 5.2+ `$firstN` needed.
+    `reportUnverified`'s own `.slice(0, MAX_REPORTED_IDS)` stays as defense in
+    depth.
+  - Test: the existing "caps orderIds at 20" integration test is strengthened to
+    assert exactly 20 (not merely `<= 20`) with no duplicates. Mutation-
+    checked: widening the new query's `$limit` to 1000 and replacing
+    `reportUnverified`'s own slice with the raw (uncapped) id list turned this
+    test red (22 ids returned); reverting restored it green.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile

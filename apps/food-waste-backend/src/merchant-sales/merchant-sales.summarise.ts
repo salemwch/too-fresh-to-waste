@@ -10,7 +10,6 @@ export function summariseSalesGroups(rows: readonly SalesGroupRow[]): {
   channels: Record<PaymentLine, LineTotals>;
   commission: { accrued: number; settled: number };
   unverifiedOrders: number;
-  unverifiedIds: string[];
 } {
   const millimes: Record<PaymentLine, { orders: number; earned: number }> = {
     cashStore: { orders: 0, earned: 0 },
@@ -22,12 +21,10 @@ export function summariseSalesGroups(rows: readonly SalesGroupRow[]): {
   let food = 0;
   let original = 0;
   let unverifiedOrders = 0;
-  const unverifiedIds: string[] = [];
 
   for (const row of rows) {
     if (row._id.population === 'verifying') {
       unverifiedOrders += row.orders;
-      unverifiedIds.push(...row.unverifiedIds.map(String));
       continue;
     }
     if (row._id.population !== 'earnings') {
@@ -59,6 +56,5 @@ export function summariseSalesGroups(rows: readonly SalesGroupRow[]): {
     channels,
     commission: { accrued: tnd(accrued), settled: tnd(settled) },
     unverifiedOrders,
-    unverifiedIds,
   };
 }

@@ -21,7 +21,6 @@ const g = (
   settledMillimes,
   foodMillimes,
   originalMillimes,
-  unverifiedIds: [],
 });
 
 describe('summariseSalesGroups', () => {
@@ -68,5 +67,10 @@ describe('summariseSalesGroups', () => {
     const s = summariseSalesGroups([]);
     expect(s.total).toEqual({ orders: 0, earned: 0, foodValue: 0, originalValue: 0 });
     expect(Object.keys(s.channels).sort()).toEqual(['cashDelivery', 'cashStore', 'online']);
+  });
+
+  it("does not carry the verifying orders' own ids - A5 moved that to a capped, separate query", () => {
+    const s = summariseSalesGroups([g('verifying', 'online', 2, 0)]);
+    expect(s).not.toHaveProperty('unverifiedIds');
   });
 });

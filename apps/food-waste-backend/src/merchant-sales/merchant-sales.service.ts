@@ -270,9 +270,6 @@ export class MerchantSalesService {
                   },
                 },
               },
-              unverifiedIds: {
-                $push: { $cond: [{ $eq: ['$_population', 'verifying'] }, '$_id', '$$REMOVE'] },
-              },
             },
           },
         ])
@@ -280,12 +277,20 @@ export class MerchantSalesService {
 
     const summarised = summariseSalesGroups(groups);
     if (shouldReport && summarised.unverifiedOrders > 0) {
-      await this.reportUnverified(
-        scope,
-        period,
-        summarised.unverifiedOrders,
-        summarised.unverifiedIds,
-      );
+      // A5: never accumulate every verifying id in the $group above (unbounded
+      // for `all` - a merchant's whole history). Fetch at most MAX_REPORTED_IDS
+      // with a separate, cheap query, only when there is something to report.
+      const unverifiedIds = stages
+        ? (
+            await this.orderModel.aggregate<{ _id: Types.ObjectId }>([
+              ...stages,
+              { $match: { _population: 'verifying' } },
+              { $project: { _id: 1 } },
+              { $limit: MAX_REPORTED_IDS },
+            ])
+          ).map(doc => doc._id.toString())
+        : [];
+      await this.reportUnverified(scope, period, summarised.unverifiedOrders, unverifiedIds);
     }
 
     return {

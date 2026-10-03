@@ -33,7 +33,6 @@ export interface SalesGroupRow {
   settledMillimes: number;
   foodMillimes: number;
   originalMillimes: number;
-  unverifiedIds: unknown[];
 }
 
 /**
