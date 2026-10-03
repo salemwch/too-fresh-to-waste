@@ -610,6 +610,125 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
     }
   });
 
+  // --- Task 17 (A1): delivery earnings count at driver pickup, not DELIVERED ---
+
+  describe('delivery earnings count at driver pickup', () => {
+    it('OUT_FOR_DELIVERY with a decision counts in the summary, the chart and the rows', async () => {
+      const id = await seed({
+        deliveryMode: 'delivery',
+        status: OrderStatus.OUT_FOR_DELIVERY,
+        pricing: { subtotal: 6, discountAmount: 0, deliveryFee: 3, total: 9 },
+        driverPickedUpAt: T('2026-09-20T10:00:00+01:00'),
+        commission: normalCommission(6, T('2026-09-20T10:00:00+01:00')),
+      });
+      const [summary, chart, rows] = await Promise.all([
+        service.summary(merchantA, 'month', now),
+        service.chart(merchantA, 'month', now),
+        allRows('earnings', 'month'),
+      ]);
+      expect(millimes(summary.total.earned)).toBe(54_345 + 6_000);
+      expect(rows.some(r => r.orderId === id.toString())).toBe(true);
+      const chartSum = chart.slots.reduce((s, sl) => s + Math.round(sl.earned * 1000), 0);
+      expect(chartSum).toBe(Math.round(summary.total.earned * 1000));
+    });
+
+    it('CANCELLED after driver pickup with a decision counts the same way, whatever the recovery', async () => {
+      const id = await seed({
+        deliveryMode: 'delivery',
+        status: OrderStatus.CANCELLED,
+        pricing: { subtotal: 6, discountAmount: 0, deliveryFee: 3, total: 9 },
+        driverPickedUpAt: T('2026-09-20T11:00:00+01:00'),
+        commission: normalCommission(6, T('2026-09-20T11:00:00+01:00')),
+      });
+      const summary = await service.summary(merchantA, 'month', now);
+      expect(millimes(summary.total.earned)).toBe(54_345 + 6_000);
+      const rows = await allRows('earnings', 'month');
+      expect(
+        rows.some(r => r.orderId === id.toString() && r.status === OrderStatus.CANCELLED),
+      ).toBe(true);
+    });
+
+    it('CANCELLED before driver pickup (no decision, no moment) never appears and never changes the total', async () => {
+      await seed({ deliveryMode: 'delivery', status: OrderStatus.CANCELLED });
+      const summary = await service.summary(merchantA, 'month', now);
+      expect(millimes(summary.total.earned)).toBe(54_345);
+    });
+
+    it('a pickup at 23:50/00:10 Tunis lands in the day-26 slot both before and after delivery', async () => {
+      // 2026-09-25T23:10:00Z = 2026-09-26T00:10 Tunis - the same boundary as
+      // the existing "today" pickup test above, exercised here while still
+      // OUT_FOR_DELIVERY (the commission is already applied at pickup) and
+      // again once DELIVERED - the figure must not move once the status
+      // catches up.
+      const moment = T('2026-09-25T23:10:00Z');
+      const id = await seed({
+        deliveryMode: 'delivery',
+        status: OrderStatus.OUT_FOR_DELIVERY,
+        pricing: { subtotal: 8, discountAmount: 0, deliveryFee: 3, total: 11 },
+        driverPickedUpAt: moment,
+        commission: normalCommission(8, moment),
+      });
+
+      const whileOutForDelivery = await service.chart(merchantA, 'today', now);
+      expect(whileOutForDelivery.slots[0]).toMatchObject({
+        start: '2026-09-25T23:00:00.000Z',
+        orders: 1,
+        earned: 8,
+      });
+
+      await orders.collection.updateOne(
+        { _id: id },
+        { $set: { status: OrderStatus.DELIVERED, deliveredAt: T('2026-09-26T05:00:00Z') } },
+      );
+      const afterDelivery = await service.chart(merchantA, 'today', now);
+      expect(afterDelivery.slots[0]).toMatchObject({
+        start: '2026-09-25T23:00:00.000Z',
+        orders: 1,
+        earned: 8,
+      });
+      const summary = await service.summary(merchantA, 'today', now);
+      expect(millimes(summary.total.earned)).toBe(8_000);
+    });
+
+    it('invariants still hold once OUT_FOR_DELIVERY and CANCELLED-after-pickup rows are mixed in', async () => {
+      const outForDeliveryMoment = T('2026-09-20T10:00:00+01:00');
+      const cancelledMoment = T('2026-09-21T10:00:00+01:00');
+      await seed({
+        deliveryMode: 'delivery',
+        status: OrderStatus.OUT_FOR_DELIVERY,
+        pricing: { subtotal: 6, discountAmount: 0, deliveryFee: 3, total: 9 },
+        driverPickedUpAt: outForDeliveryMoment,
+        commission: normalCommission(6, outForDeliveryMoment),
+      });
+      await seed({
+        deliveryMode: 'delivery',
+        status: OrderStatus.CANCELLED,
+        pricing: { subtotal: 4, discountAmount: 0, deliveryFee: 2, total: 6 },
+        driverPickedUpAt: cancelledMoment,
+        commission: normalCommission(4, cancelledMoment),
+      });
+
+      const [summary, chart, rows] = await Promise.all([
+        service.summary(merchantA, 'month', now),
+        service.chart(merchantA, 'month', now),
+        allRows('earnings', 'month'),
+      ]);
+
+      expect(millimes(summary.total.earned)).toBe(54_345 + 6_000 + 4_000);
+      const lineSum =
+        summary.channels.cashStore.earned +
+        summary.channels.cashDelivery.earned +
+        summary.channels.online.earned;
+      expect(millimes(lineSum)).toBe(millimes(summary.total.earned));
+      const chartSum = chart.slots.reduce((s, sl) => s + Math.round(sl.earned * 1000), 0);
+      expect(chartSum).toBe(Math.round(summary.total.earned * 1000));
+      expect(rows.reduce((s, r) => s + Math.round(r.earned * 1000), 0)).toBe(
+        Math.round(summary.total.earned * 1000),
+      );
+      expect(rows).toHaveLength(summary.total.orders);
+    });
+  });
+
   // --- Task 11: /payments/stats for a merchant is the shared summary, byte for byte ---
 
   describe('PaymentController.getPaymentStats (merchant)', () => {

@@ -10,11 +10,26 @@ import { MERCHANT_FOOD_SHARE } from '../orders/utils/order-pricing.util';
  * its own copy.
  */
 
-/** The customer has the food: a sale for commission purposes. */
+/**
+ * Statuses that can carry a commission decision worth counting: the customer
+ * has the food (PICKED_UP/COMPLETED/DELIVERED), or - for a delivery - the
+ * driver has already collected it from the merchant and paid them from the
+ * float, whether still en route (OUT_FOR_DELIVERY) or failed afterwards
+ * (CANCELLED). `CommissionService.reverseForOrder` (the only path that undoes
+ * a decision) adjusts the establishment balance and the ledger, never
+ * `order.commission` itself (`drivers/services/driver-cash.service.ts`
+ * `undoSale`), so a CANCELLED delivery counts the same regardless of recovery
+ * - only REFUNDED (a distinct status, written by the admin refund flow)
+ * removes an order from earnings. A delivery CANCELLED *before* driver
+ * pickup has no commission moment (`driverPickedUpAt` unset) and is filtered
+ * out by the moment check below, never by status.
+ */
 export const COMMISSION_COMPLETED_STATUSES: readonly OrderStatus[] = Object.freeze([
   OrderStatus.PICKED_UP,
   OrderStatus.COMPLETED,
   OrderStatus.DELIVERED,
+  OrderStatus.OUT_FOR_DELIVERY,
+  OrderStatus.CANCELLED,
 ]);
 
 /**

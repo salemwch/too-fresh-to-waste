@@ -502,6 +502,40 @@ in the held-money query key.
   three payment-method lines, the unverified-orders notice, and commission - no
   live balance on it any more.
 
+- 2026-10-03 (Task 17 fix wave, A1 - user decision, delivery earnings count at
+  driver pickup): a delivery order counts as earned at its commission moment
+  (`driverPickedUpAt`, when the commission is recorded and the merchant is paid
+  by the driver), not at `DELIVERED`. It stays counted when the delivery later
+  fails (`OUT_FOR_DELIVERY -> CANCELLED` with a commission decision) or is stuck
+  in `OUT_FOR_DELIVERY` (the `STALE_UNDELIVERED` case); it leaves the earnings
+  population only when the status is `REFUNDED`. Figures never change after the
+  fact because inclusion no longer waits for `DELIVERED` - a 23:50 Tunis pickup
+  delivered at 00:10 the next day lands in, and stays in, the pickup day's slot.
+  - Investigated as asked: does `CommissionService.reverseForOrder` (called by
+    `driver-cash.service.ts` `undoSale` for `RETURNED_TO_MERCHANT`) take the
+    order out of earnings? No - it only adjusts the establishment's
+    `commissionDue` balance and writes a ledger `REVERSAL` row; it never touches
+    `order.commission` on the order document itself, which is the only thing
+    `merchant-sales.expressions.ts` reads. So a `CANCELLED` delivery counts the
+    same regardless of recovery (`RETURNED_TO_MERCHANT`, `UNRECOVERABLE` or
+    `RECOVERABLE_PENDING`) - nothing distinguishes them in the earnings
+    calculation. This is pre-existing `CommissionService` behaviour, not
+    something this task changes; it is recorded here because extending the
+    populations to `CANCELLED` surfaces it for the first time.
+  - Code: `COMMISSION_COMPLETED_STATUSES` in `merchant-sales.expressions.ts` now
+    also includes `OUT_FOR_DELIVERY` and `CANCELLED`. A delivery `CANCELLED`
+    before driver pickup has no `driverPickedUpAt`, so it has no commission
+    moment and is filtered out by the moment check regardless of being in this
+    list - confirmed by `order.service.ts`'s own transition table, which never
+    allows a pickup order to go `PICKED_UP -> CANCELLED` (only `-> REFUNDED`),
+    so the newly-included `CANCELLED` status is reachable only through the
+    delivery driver-cash failure path.
+  - Tests: `merchant-sales.expressions.integration.spec.ts` (population-level:
+    `OUT_FOR_DELIVERY` counts, `CANCELLED` after pickup counts, `CANCELLED`
+    before pickup stays out) and `merchant-sales.integration.spec.ts`
+    (summary/chart/rows-level: same three cases, the 23:50/00:10 boundary, and
+    the four invariants with these rows mixed in).
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile

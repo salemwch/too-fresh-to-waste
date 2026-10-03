@@ -186,11 +186,54 @@ describe('merchant-sales expressions (real MongoDB)', () => {
     expect(out.has(before.toString())).toBe(false);
   });
 
-  it.each([OrderStatus.PENDING, OrderStatus.CANCELLED, OrderStatus.EXPIRED, OrderStatus.RESERVED])(
+  it.each([OrderStatus.PENDING, OrderStatus.EXPIRED, OrderStatus.RESERVED])(
     '%s is in no population',
     async status => {
       const id = await seed({ status, pickedUpAt: T('2026-09-10T10:00:00Z') });
       expect((await run()).has(id.toString())).toBe(false);
+    },
+  );
+
+  // --- Task 17 (A1): delivery earnings count at driver pickup, not DELIVERED ---
+
+  it('a delivery OUT_FOR_DELIVERY (driver has picked up, not yet delivered) counts as earnings', async () => {
+    const id = await seed({
+      deliveryMode: 'delivery',
+      status: OrderStatus.OUT_FOR_DELIVERY,
+      driverPickedUpAt: T('2026-09-10T10:00:00Z'),
+      commission: { kind: 'NORMAL', merchantAmount: 10, accrued: 1.9, settled: 0 },
+    });
+    const row = (await run()).get(id.toString());
+    expect(row).toMatchObject({
+      _case: 'CURRENT',
+      _population: 'earnings',
+      _earnedMillimes: 10_000,
+    });
+  });
+
+  it('a delivery CANCELLED before driver pickup (no moment, no decision) is in no population', async () => {
+    const id = await seed({ deliveryMode: 'delivery', status: OrderStatus.CANCELLED });
+    expect((await run()).has(id.toString())).toBe(false);
+  });
+
+  it(
+    'a delivery CANCELLED after driver pickup still counts, with its frozen decision - ' +
+      'CommissionService.reverseForOrder (called for RETURNED_TO_MERCHANT) only adjusts the ' +
+      "establishment balance and ledger rows, it never clears order.commission, so the order's " +
+      'own earned figure is unaffected by the delivery failure or its recovery',
+    async () => {
+      const id = await seed({
+        deliveryMode: 'delivery',
+        status: OrderStatus.CANCELLED,
+        driverPickedUpAt: T('2026-09-10T10:00:00Z'),
+        commission: { kind: 'NORMAL', merchantAmount: 10, accrued: 1.9, settled: 0 },
+      });
+      const row = (await run()).get(id.toString());
+      expect(row).toMatchObject({
+        _case: 'CURRENT',
+        _population: 'earnings',
+        _earnedMillimes: 10_000,
+      });
     },
   );
 
