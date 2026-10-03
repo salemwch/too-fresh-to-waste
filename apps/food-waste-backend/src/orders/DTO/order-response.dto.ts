@@ -39,6 +39,28 @@ class PaymentDetailsResponseDto implements PaymentDetailsResponse {
 }
 
 /**
+ * A7: `pricing.deliveryFee`/`pricing.total` and `paymentDetails.amount` are in
+ * `STRIP_PATHS` (`orders/utils/merchant-order-view.ts`) - removed from every
+ * real merchant/location-manager response before it reaches this DTO. The
+ * consumer-shaped sub-DTOs above declared them as always-present `!` fields
+ * anyway, which a future call site could trust and leak. These two mirror the
+ * same STRIP_PATHS classification so the DTO's own shape cannot lie about it,
+ * with a schema-coverage test (`merchant-order-response-dto-money.spec.ts`)
+ * tying them together.
+ */
+class MerchantPricingResponseDto implements Omit<PricingResponse, 'deliveryFee' | 'total'> {
+  @Expose() subtotal!: number;
+  @Expose() discountAmount!: number;
+  @Expose() taxAmount!: number;
+  @Expose() currency!: string;
+}
+
+class MerchantPaymentDetailsResponseDto implements Omit<PaymentDetailsResponse, 'amount'> {
+  @Expose() method!: string;
+  @Expose() currency!: string;
+}
+
+/**
  * The merchant's own frozen commission decision - never delivery money (see
  * `orders/utils/merchant-order-view.ts`). Exposed on `MerchantOrderResponseDto`
  * only: a customer has no use for it, and it is absent until pickup is
@@ -117,7 +139,16 @@ class MerchantPickupDetailsDto extends ConsumerPickupDetailsDto {
 // Top-level order response DTOs
 // ---------------------------------------------------------------------------
 
-export class ConsumerOrderResponseDto {
+/**
+ * Everything a consumer and a merchant/location-manager order view share.
+ * `pricing`, `paymentDetails`, `paymentSession` and `pickupDetails` are
+ * declared separately on each subclass below rather than here: the merchant
+ * shape removes required fields from each (STRIP_PATHS), which is not a valid
+ * subtype of the consumer shape - declaring them on a shared base and letting
+ * each side narrow independently, instead of one extending the other for
+ * these fields, is what makes that honest (A7).
+ */
+class BaseOrderResponseDto {
   @Expose() _id!: string;
   @Expose() orderNumber!: string;
   @Expose() status!: string;
@@ -140,18 +171,6 @@ export class ConsumerOrderResponseDto {
   items!: OrderItemResponseDto[];
 
   @Expose()
-  @Type(() => ConsumerPickupDetailsDto)
-  pickupDetails!: ConsumerPickupDetailsDto;
-
-  @Expose()
-  @Type(() => PaymentDetailsResponseDto)
-  paymentDetails!: PaymentDetailsResponseDto;
-
-  @Expose()
-  @Type(() => PricingResponseDto)
-  pricing!: PricingResponseDto;
-
-  @Expose()
   @Type(() => EstablishmentAddressResponseDto)
   establishmentAddress!: EstablishmentAddressResponseDto;
 
@@ -166,23 +185,49 @@ export class ConsumerOrderResponseDto {
 
   @Expose() paymentProvider!: string;
   @Expose() paymentExpiresAt!: string;
-  @Expose() paymentSession!: {
-    provider: string;
-    reference: string;
-    payUrl: string;
-    expiresAt: string;
-  };
   @Expose() completedAt!: string;
   @Expose() pendingPaymentAt!: string;
   @Expose() deliveryMode!: string;
   @Expose() payUrl?: string;
 }
 
-export class MerchantOrderResponseDto extends ConsumerOrderResponseDto {
-  // Override pickupDetails type to include the code
+export class ConsumerOrderResponseDto extends BaseOrderResponseDto {
+  @Expose()
+  @Type(() => ConsumerPickupDetailsDto)
+  pickupDetails!: ConsumerPickupDetailsDto;
+
+  @Expose()
+  @Type(() => PaymentDetailsResponseDto)
+  paymentDetails!: PaymentDetailsResponseDto;
+
+  @Expose()
+  @Type(() => PricingResponseDto)
+  pricing!: PricingResponseDto;
+
+  @Expose() paymentSession!: {
+    provider: string;
+    reference: string;
+    payUrl: string;
+    expiresAt: string;
+  };
+}
+
+export class MerchantOrderResponseDto extends BaseOrderResponseDto {
   @Expose()
   @Type(() => MerchantPickupDetailsDto)
-  declare pickupDetails: MerchantPickupDetailsDto;
+  pickupDetails!: MerchantPickupDetailsDto;
+
+  // A7: the STRIP_PATHS-true shape - no deliveryFee/total/amount, no
+  // paymentSession at all (`STRIP_PATHS` has it as a bare top-level key).
+  @Expose()
+  @Type(() => MerchantPricingResponseDto)
+  pricing!: MerchantPricingResponseDto;
+
+  @Expose()
+  @Type(() => MerchantPaymentDetailsResponseDto)
+  paymentDetails!: MerchantPaymentDetailsResponseDto;
+
+  // paymentSession is deliberately absent - never @Expose()'d here.
 
   // The merchant's own commission decision - see CommissionResponseDto above.
   // Absent from ConsumerOrderResponseDto: a customer never sees it.

@@ -617,8 +617,6 @@ export class OrdersController {
       includeCommission: isMerchantSide,
     });
 
-    const DtoClass = isMerchantSide ? MerchantOrderResponseDto : ConsumerOrderResponseDto;
-
     // Shared route: MERCHANT/LOCATION_MANAGER get the money-stripped view;
     // ADMIN and the customer keep the full order.
     const plain = toPlain(order) as Record<string, unknown>;
@@ -638,10 +636,29 @@ export class OrdersController {
       : undefined;
     const viewWithEarnings = earnings ? { ...view, earnings } : view;
 
+    // Three branches, not two: MERCHANT/LOCATION_MANAGER get the honestly
+    // stripped MerchantOrderResponseDto (A7); ADMIN keeps the full order
+    // (bypassing every DTO, like `forRole`'s ADMIN branch elsewhere in this
+    // controller) rather than being routed through the merchant shape, which
+    // would now also strip delivery money from ADMIN - a regression A7's own
+    // fix would otherwise have introduced, caught by
+    // `test/security/merchant-order-money.spec.ts`'s "still sends the
+    // delivery fee to ADMIN" row; CONSUMER gets ConsumerOrderResponseDto.
+    const data =
+      req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
+        ? plainToInstance(MerchantOrderResponseDto, viewWithEarnings, {
+            excludeExtraneousValues: true,
+          })
+        : req.user.role === UserRole.ADMIN
+          ? viewWithEarnings
+          : plainToInstance(ConsumerOrderResponseDto, viewWithEarnings, {
+              excludeExtraneousValues: true,
+            });
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Order retrieved successfully',
-      data: plainToInstance(DtoClass, viewWithEarnings, { excludeExtraneousValues: true }),
+      data,
     };
   }
 

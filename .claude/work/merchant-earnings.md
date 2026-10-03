@@ -658,6 +658,47 @@ in the held-money query key.
     Mutation-checked: removing the new `allowZeroWidthRange` flag from the call
     site turned the acceptance test red; restoring it turned it green.
 
+- 2026-10-03 (Task 17 fix wave, A7 - MerchantOrderResponseDto declares stripped
+  fields as present): `MerchantOrderResponseDto` inherited
+  `ConsumerOrderResponseDto`'s `pricing` (with `deliveryFee`/`total`),
+  `paymentDetails` (with `amount`) and `paymentSession` unchanged, even though
+  `toMerchantOrderView`'s `STRIP_PATHS` removes exactly those fields from every
+  real merchant/location-manager response before it reaches the DTO - the DTO's
+  own declared shape lied about what it actually carries.
+  - `MerchantOrderResponseDto` could not simply override `pricing`/
+    `paymentDetails` with a narrower type while still extending
+    `ConsumerOrderResponseDto` for them - TypeScript correctly refuses a
+    subclass that removes required fields from an inherited property (that is
+    not a valid subtype). Restructured: a new `BaseOrderResponseDto` carries
+    everything the two shapes share; `ConsumerOrderResponseDto` and
+    `MerchantOrderResponseDto` both extend it directly and declare
+    `pricing`/`paymentDetails`/`paymentSession`/`pickupDetails` independently as
+    siblings, not one narrowing the other. `MerchantPricingResponseDto` (no
+    `deliveryFee`/`total`) and `MerchantPaymentDetailsResponseDto` (no `amount`)
+    mirror `STRIP_PATHS`; `paymentSession` is simply never `@Expose()`'d on the
+    merchant side (`STRIP_PATHS` has it as a bare top-level key).
+  - Found during this fix, not asked for: `OrdersController.findOne` already had
+    a latent bug this change exposed rather than introduced. `isMerchantSide`
+    (`MERCHANT || LOCATION_MANAGER || ADMIN`) picked `MerchantOrderResponseDto`
+    for ADMIN too, while the `view` for ADMIN was left un-stripped (full
+    order) - before this fix the two DTOs happened to expose the same pricing
+    fields, so ADMIN got the full data anyway; after the honest strip, ADMIN
+    would have lost `deliveryFee`/`total` through the same DTO a merchant uses.
+    Fixed in the same commit: ADMIN now bypasses every order DTO on this route
+    entirely (returns the plain, un-stripped view plus `earnings`), matching
+    `forRole`'s existing ADMIN branch elsewhere in this controller. Caught
+    immediately by the existing `test/security/merchant-order-money.spec.ts` row
+    "still sends the delivery fee to ADMIN", which went red the moment the DTO
+    was corrected.
+  - Test: `merchant-order-response-dto-money.spec.ts` (new) runs
+    `MerchantOrderResponseDto` directly against a full, un-stripped order
+    fixture (no `toMerchantOrderView` in between) - the DTO's own declaration is
+    what is under test, not the upstream strip. Asserts none of the four
+    `STRIP_PATHS` fields appear, every food-only field still does, and
+    `ConsumerOrderResponseDto` is untouched (still gets everything). A sanity
+    assertion ties the fixture's four fields to `STRIP_PATHS` itself, so the
+    test and the source of truth cannot silently diverge.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile
