@@ -37,6 +37,31 @@ export function salesScopeFor(
   return { kind: 'none' };
 }
 
+/** The requester fields every sales/payments endpoint reads off `req.user`. */
+export interface SalesScopeRequester {
+  role: UserRole;
+  userId: string;
+  assignedEstablishmentId?: string;
+}
+
+/**
+ * The one place a LOCATION_MANAGER is pinned to their own assignment,
+ * whatever `establishmentId` the query string carries - used by
+ * `OrdersController.salesScope` (summary/chart) and
+ * `PaymentController.getPaymentStats`/`getMyPayments`, so the pin cannot
+ * drift between endpoints (A3, A12).
+ */
+export function salesScopeForRequest(
+  user: SalesScopeRequester,
+  requestedEstablishmentId?: string,
+): SalesScope {
+  const establishmentId =
+    user.role === UserRole.LOCATION_MANAGER
+      ? user.assignedEstablishmentId
+      : requestedEstablishmentId;
+  return salesScopeFor(user.role, user.userId, establishmentId ?? undefined);
+}
+
 export function scopeMatch(scope: SalesScope): Record<string, unknown> | null {
   switch (scope.kind) {
     case 'merchant':

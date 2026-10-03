@@ -3,7 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Types } from 'mongoose';
 
 import { hasErrorCode } from '../../common/errors';
-import { salesScopeFor, scopeMatch } from '../merchant-sales.scope';
+import { salesScopeFor, salesScopeForRequest, scopeMatch } from '../merchant-sales.scope';
 
 const merchant = new Types.ObjectId().toString();
 const est = new Types.ObjectId().toString();
@@ -56,5 +56,36 @@ describe('salesScopeFor / scopeMatch', () => {
       establishmentId: { $in: [new Types.ObjectId(est)] },
     });
     expect(scopeMatch({ kind: 'establishments', establishmentIds: [] })).toBeNull();
+  });
+});
+
+describe('salesScopeForRequest (A3/A12: the one place every sales/payments endpoint pins a LOCATION_MANAGER)', () => {
+  const otherEst = new Types.ObjectId().toString();
+
+  it('a location manager is pinned to their assignment, whatever establishmentId they send', () => {
+    const user = { role: UserRole.LOCATION_MANAGER, userId: 'u', assignedEstablishmentId: est };
+    expect(scopeMatch(salesScopeForRequest(user, otherEst))).toEqual({
+      establishmentId: { $in: [new Types.ObjectId(est)] },
+    });
+  });
+
+  it('a location manager with no assignment sees nothing, even if they send an establishmentId', () => {
+    const user = { role: UserRole.LOCATION_MANAGER, userId: 'u' };
+    expect(scopeMatch(salesScopeForRequest(user, otherEst))).toBeNull();
+  });
+
+  it('a merchant is scoped to whatever establishmentId they send', () => {
+    const user = { role: UserRole.MERCHANT, userId: merchant };
+    expect(scopeMatch(salesScopeForRequest(user, est))).toEqual({
+      merchantId: new Types.ObjectId(merchant),
+      establishmentId: new Types.ObjectId(est),
+    });
+  });
+
+  it('a merchant with no establishmentId sees every establishment they own', () => {
+    const user = { role: UserRole.MERCHANT, userId: merchant };
+    expect(scopeMatch(salesScopeForRequest(user))).toEqual({
+      merchantId: new Types.ObjectId(merchant),
+    });
   });
 });

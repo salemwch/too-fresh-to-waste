@@ -555,6 +555,27 @@ in the held-money query key.
     plus REFUNDED, no-moment-yet, and a CANCELLED-after-pickup delivery (A1
     parity).
 
+- 2026-10-03 (Task 17 fix wave, A3 - Payments establishment scope):
+  `GET /payments/stats` now honours `establishmentId` exactly like
+  `merchant-sales-summary`/`-chart` and `my-merchant-payments`, and a
+  LOCATION_MANAGER can call it too, pinned to `assignedEstablishmentId` whatever
+  `establishmentId` they send. Extracted the pin into one function,
+  `salesScopeForRequest` (`merchant-sales.scope.ts`), used by both
+  `OrdersController.salesScope` and `PaymentController.getPaymentStats` - the LM
+  pin now has exactly one definition instead of two that could drift (also sets
+  up A12's controller-seam tests).
+  - Before this fix, `GET /payments/stats` built its scope with
+    `salesScopeFor(UserRole.MERCHANT, req.user.userId)` unconditionally - it
+    silently dropped an explicit `?establishmentId=`, and a LOCATION_MANAGER
+    could not call it at all (`@Roles` excluded the role entirely).
+  - Test: `merchant-sales.integration.spec.ts` drives `PaymentController`
+    directly and asserts stats equal the summary for a merchant scoped to one
+    establishment, and for a LOCATION_MANAGER pinned to their assignment
+    (ignoring a different id they send) and with no assignment at all (zero,
+    never every merchant). Mutation-checked: reverting the controller to the old
+    unconditional `salesScopeFor(UserRole.MERCHANT, ...)` call turned all three
+    new tests red; reapplying the fix turned them green again.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile

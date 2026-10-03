@@ -819,5 +819,121 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
         jest.useRealTimers();
       }
     });
+
+    // --- Task 17 (A3): /payments/stats honours establishmentId exactly like
+    // the summary and rows endpoints, LM pinned to assignment ---
+
+    // `PaymentController.getPaymentStats` reads `new Date()` internally (it is
+    // never given `now`), so every caller here fakes the clock - the same
+    // reason the two tests above do. `service.summary` is called directly
+    // with the explicit `now` for the comparison side, so it is never subject
+    // to the fake-timer dance at all.
+    const callGetPaymentStats = async (
+      req: { user: { userId: string; role: UserRole; assignedEstablishmentId?: string } },
+      query: { period?: SalesPeriod; establishmentId?: string },
+    ): Promise<{ data?: unknown }> => {
+      jest.useFakeTimers({
+        now,
+        doNotFake: [
+          'setTimeout',
+          'clearTimeout',
+          'setInterval',
+          'clearInterval',
+          'setImmediate',
+          'clearImmediate',
+          'nextTick',
+          'hrtime',
+          'performance',
+          'queueMicrotask',
+        ],
+      });
+      try {
+        const controller = Object.create(PaymentController.prototype) as PaymentController;
+        Object.assign(controller, { merchantSalesService: service, paymentService: {} });
+        let body: { data?: unknown } = {};
+        const res = {
+          status: () => ({
+            json: (payload: { data?: unknown }) => {
+              body = payload;
+              return payload;
+            },
+          }),
+        };
+        await controller.getPaymentStats(req as never, res as never, query as never);
+        return body;
+      } finally {
+        jest.useRealTimers();
+      }
+    };
+
+    it('honours establishmentId exactly like merchant-sales-summary', async () => {
+      const establishmentId = new Types.ObjectId();
+      await seed({
+        establishmentId,
+        pricing: { subtotal: 7, discountAmount: 0, deliveryFee: 0, total: 7 },
+        pickedUpAt: T('2026-09-18T10:00:00+01:00'),
+        commission: normalCommission(7, T('2026-09-18T10:00:00+01:00')),
+      });
+
+      const body = await callGetPaymentStats(
+        { user: { userId: merchantAId.toString(), role: UserRole.MERCHANT } },
+        { period: 'month', establishmentId: establishmentId.toString() },
+      );
+
+      const direct = await service.summary(
+        {
+          kind: 'merchant',
+          merchantId: merchantAId.toString(),
+          establishmentId: establishmentId.toString(),
+        },
+        'month',
+        now,
+      );
+      expect(millimes(direct.total.earned)).toBe(7_000); // isolates to the one seeded row
+      expect(body.data).toEqual(direct);
+    });
+
+    it('pins a LOCATION_MANAGER to their own assignment, ignoring a different establishmentId they send', async () => {
+      const establishmentId = new Types.ObjectId();
+      const otherEstablishmentId = new Types.ObjectId();
+      await seed({
+        establishmentId,
+        pricing: { subtotal: 9, discountAmount: 0, deliveryFee: 0, total: 9 },
+        pickedUpAt: T('2026-09-18T11:00:00+01:00'),
+        commission: normalCommission(9, T('2026-09-18T11:00:00+01:00')),
+      });
+
+      const body = await callGetPaymentStats(
+        {
+          user: {
+            userId: merchantAId.toString(),
+            role: UserRole.LOCATION_MANAGER,
+            assignedEstablishmentId: establishmentId.toString(),
+          },
+        },
+        { period: 'month', establishmentId: otherEstablishmentId.toString() },
+      );
+
+      const direct = await service.summary(
+        { kind: 'establishments', establishmentIds: [establishmentId.toString()] },
+        'month',
+        now,
+      );
+      expect(millimes(direct.total.earned)).toBe(9_000); // isolates to the one seeded row
+      expect(body.data).toEqual(direct);
+    });
+
+    it('a location manager with no assignment gets zero, never every merchant', async () => {
+      const body = await callGetPaymentStats(
+        { user: { userId: merchantAId.toString(), role: UserRole.LOCATION_MANAGER } },
+        { period: 'month' },
+      );
+      expect((body.data as { total: { earned: number } }).total).toEqual({
+        orders: 0,
+        earned: 0,
+        foodValue: 0,
+        originalValue: 0,
+      });
+    });
   });
 });

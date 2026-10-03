@@ -45,7 +45,7 @@ import { MerchantSalesQueryDto } from '../merchant-sales/dto/merchant-sales-quer
 import { orderEarningsFor } from '../merchant-sales/merchant-sales.expressions';
 import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
 import { SALES_PERIODS, resolveSalesPeriod } from '../merchant-sales/merchant-sales.period';
-import { salesScopeFor, type SalesScope } from '../merchant-sales/merchant-sales.scope';
+import { salesScopeForRequest } from '../merchant-sales/merchant-sales.scope';
 import type {
   MerchantSalesChart,
   MerchantSalesSummary,
@@ -490,12 +490,8 @@ export class OrdersController {
   }
 
   /** A location manager is pinned to their assignment, whatever they ask for. */
-  private salesScope(req: AuthenticatedRequest, query: MerchantSalesQueryDto): SalesScope {
-    const establishmentId =
-      req.user.role === UserRole.LOCATION_MANAGER
-        ? req.user.assignedEstablishmentId
-        : query.establishmentId;
-    return salesScopeFor(req.user.role, req.user.userId, establishmentId ?? undefined);
+  private salesScope(req: AuthenticatedRequest, query: MerchantSalesQueryDto) {
+    return salesScopeForRequest(req.user, query.establishmentId);
   }
 
   @ApiOperation({

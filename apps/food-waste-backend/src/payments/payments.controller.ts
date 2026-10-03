@@ -33,7 +33,7 @@ import {
   MerchantSalesQueryDto,
 } from '../merchant-sales/dto/merchant-sales-query.dto';
 import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
-import { salesScopeFor } from '../merchant-sales/merchant-sales.scope';
+import { salesScopeFor, salesScopeForRequest } from '../merchant-sales/merchant-sales.scope';
 
 import { PaymentQueryDto } from './dto/payment-query.dto';
 import { PaymentService } from './payments.service';
@@ -290,17 +290,24 @@ export class PaymentController {
   @ApiOperation({
     summary: 'Get payment statistics',
     description:
-      'Retrieve payment statistics and analytics for the authenticated user. For a merchant, ' +
-      'this is the same earnings calculation as the Dashboard and the Payments tab, scoped by ' +
-      '`period` (default month).',
+      'Retrieve payment statistics and analytics for the authenticated user. For a merchant or ' +
+      'location manager, this is the same earnings calculation as the Dashboard and the Payments ' +
+      'tab, scoped by `period` (default month) and `establishmentId` (a location manager is ' +
+      'pinned to their own assignment, whatever they send).',
   })
   @ApiQuery({ name: 'period', required: false, enum: ['today', '7d', '30d', 'month', 'all'] })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description: 'Scope to one establishment (merchants only)',
+  })
   @ApiResponse({ status: 200, description: 'Payment statistics retrieved successfully' })
   @ApiResponse({ status: 500, description: 'Unable to retrieve statistics' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.CONSUMER, UserRole.MERCHANT, UserRole.ADMIN)
+  @Roles(UserRole.CONSUMER, UserRole.MERCHANT, UserRole.LOCATION_MANAGER, UserRole.ADMIN)
   async getPaymentStats(
     @Request() req: AuthenticatedRequest,
     @Res() res: Response,
@@ -308,9 +315,9 @@ export class PaymentController {
   ) {
     try {
       const stats =
-        req.user.role === UserRole.MERCHANT
+        req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
           ? await this.merchantSalesService.summary(
-              salesScopeFor(UserRole.MERCHANT, req.user.userId),
+              salesScopeForRequest(req.user, query.establishmentId),
               query.period ?? 'month',
             )
           : await this.paymentService.getPaymentStats(req.user.userId, req.user.role);
