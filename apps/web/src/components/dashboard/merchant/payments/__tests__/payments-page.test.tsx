@@ -6,6 +6,7 @@ import ar from '../../../../../messages/ar.json';
 import en from '../../../../../messages/en.json';
 import fr from '../../../../../messages/fr.json';
 import { dashboardKeys } from '@/hooks/use-merchant-dashboard';
+import { paymentKeys } from '@/hooks/use-payments';
 import { formatMoney } from '@/lib/format';
 import { dashboardService } from '@/services/dashboard.service';
 import { paymentsService } from '@/services/payments.service';
@@ -16,7 +17,7 @@ import type {
   EarningsTab,
   MerchantSalesSummary,
 } from '@/types/payments';
-import type { MerchantWallet } from '@/types/dashboard';
+import type { MerchantCommissionStatement, MerchantWallet } from '@/types/dashboard';
 
 /**
  * The Payments tab reads two things from the shared earnings calculation:
@@ -62,12 +63,13 @@ jest.mock('@/services/payments.service', () => ({
   paymentsService: { getStats: jest.fn(), getMyPayments: jest.fn() },
 }));
 
-// `HeldBalanceCard` reads `useMyWallet()`, which calls this service directly -
-// mocked here (not the hook) for the same reason as `paymentsService` above:
-// the real `useQuery` must actually run, so a wrong query key or a period
-// leaking into it would be caught rather than hidden by a hook-level mock.
+// `HeldBalanceCard` reads `useMyWallet()` and `SettlementBalanceCard` reads
+// `useCommissionStatement()` - both call this service directly, mocked here
+// (not the hooks) for the same reason as `paymentsService` above: the real
+// `useQuery` must actually run, so a wrong query key or a period leaking into
+// it would be caught rather than hidden by a hook-level mock.
 jest.mock('@/services/dashboard.service', () => ({
-  dashboardService: { getMyWallet: jest.fn() },
+  dashboardService: { getMyWallet: jest.fn(), getMyCommission: jest.fn() },
 }));
 
 const mockGetStats = paymentsService.getStats as jest.MockedFunction<
@@ -78,6 +80,9 @@ const mockGetMyPayments = paymentsService.getMyPayments as jest.MockedFunction<
 >;
 const mockGetMyWallet = dashboardService.getMyWallet as jest.MockedFunction<
   typeof dashboardService.getMyWallet
+>;
+const mockGetMyCommission = dashboardService.getMyCommission as jest.MockedFunction<
+  typeof dashboardService.getMyCommission
 >;
 
 // `formatMoney` renders with a non-breaking space (`TND 21.600`).
@@ -96,8 +101,26 @@ function rowsEnvelope(data: EarningsRowsPage) {
 function walletEnvelope(data: MerchantWallet) {
   return { data: { data } } as unknown as Awaited<ReturnType<typeof dashboardService.getMyWallet>>;
 }
+function statementEnvelope(data: MerchantCommissionStatement) {
+  return { data: { data } } as unknown as Awaited<
+    ReturnType<typeof dashboardService.getMyCommission>
+  >;
+}
 
 const mockWallet: MerchantWallet = { availableBalance: 310, pendingBalance: 96, currency: 'TND' };
+
+const mockStatement: MerchantCommissionStatement = {
+  commissionDue: 4.75,
+  dueByEstablishment: [],
+  sales: 35,
+  commission: 6.65,
+  received: 28.35,
+  rate: 0.19,
+  fullPriceOrders: 0,
+  settledOrders: 0,
+  currency: 'TND',
+  recentSettlements: [],
+};
 
 // Deliberately subtotal !== earned everywhere, and total.foodValue !== total.earned,
 // so rendering the wrong field fails instead of passing by coincidence.
@@ -219,6 +242,7 @@ describe('PaymentsPage', () => {
       Promise.resolve(rowsEnvelope(rowsByTab[params.tab])),
     );
     mockGetMyWallet.mockResolvedValue(walletEnvelope(mockWallet));
+    mockGetMyCommission.mockResolvedValue(statementEnvelope(mockStatement));
   });
 
   it('shows the stats card totals from the shared summary - the real earned amount, never the subtotal or foodValue', async () => {
@@ -242,7 +266,7 @@ describe('PaymentsPage', () => {
     expect(screen.queryByText(money(36))).toBeNull();
     expect(screen.queryByText(money(38))).toBeNull();
 
-    expect(mockGetStats).toHaveBeenCalledWith('month');
+    expect(mockGetStats).toHaveBeenCalledWith('month', undefined);
   });
 
   it('lists exactly the mocked Earnings rows, showing `earned` (never `subtotal`) per row', async () => {
@@ -310,7 +334,7 @@ describe('PaymentsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '7 Days' }));
 
     await waitFor(() => {
-      expect(mockGetStats).toHaveBeenLastCalledWith('7d');
+      expect(mockGetStats).toHaveBeenLastCalledWith('7d', undefined);
     });
     await waitFor(() => {
       expect(mockGetMyPayments).toHaveBeenLastCalledWith(
@@ -349,6 +373,33 @@ describe('PaymentsPage', () => {
 
     await waitFor(() => expect(mockGetStats).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(mockGetMyPayments).toHaveBeenCalledTimes(1));
+  });
+
+  it('keeps the stats cards on screen, with an inline error banner, when a background refetch fails', async () => {
+    const { queryClient } = renderPage();
+    await screen.findByText(money(21.6));
+
+    mockGetStats.mockRejectedValueOnce(new Error('background refetch failed'));
+    void queryClient.refetchQueries({ queryKey: paymentKeys.stats('month', undefined) });
+
+    expect(await screen.findByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    // The totals already on screen stay - not replaced by the full ErrorState.
+    expect(screen.getByText(money(21.6))).toBeInTheDocument();
+    expect(screen.getByText('Total earned')).toBeInTheDocument();
+  });
+
+  it('keeps the row list on screen, with an inline error banner, when a background refetch fails', async () => {
+    const { queryClient } = renderPage();
+    await screen.findByText(`#${earningsRows[0]?.orderNumber}`);
+
+    mockGetMyPayments.mockRejectedValueOnce(new Error('background refetch failed'));
+    void queryClient.refetchQueries({
+      queryKey: paymentKeys.rows('month', 'earnings', undefined),
+    });
+
+    expect(await screen.findByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    // The rows already on screen stay - not replaced by the full ErrorState.
+    expect(screen.getByText(`#${earningsRows[0]?.orderNumber}`)).toBeInTheDocument();
   });
 
   it('renders a tab-specific empty state when a tab has no rows', async () => {
@@ -441,10 +492,10 @@ describe('PaymentsPage', () => {
       expect(mockGetMyWallet).toHaveBeenCalledTimes(1);
 
       fireEvent.click(screen.getByRole('button', { name: '7 Days' }));
-      await waitFor(() => expect(mockGetStats).toHaveBeenLastCalledWith('7d'));
+      await waitFor(() => expect(mockGetStats).toHaveBeenLastCalledWith('7d', undefined));
 
       fireEvent.click(screen.getByRole('button', { name: '30 Days' }));
-      await waitFor(() => expect(mockGetStats).toHaveBeenLastCalledWith('30d'));
+      await waitFor(() => expect(mockGetStats).toHaveBeenLastCalledWith('30d', undefined));
 
       expect(mockGetMyWallet).toHaveBeenCalledTimes(1);
       expect(mockGetMyWallet).toHaveBeenCalledWith(undefined);
@@ -478,6 +529,97 @@ describe('PaymentsPage', () => {
 
       expect(await screen.findByText(expected.title)).toBeInTheDocument();
       expect(screen.getByText(expected.note)).toBeInTheDocument();
+    });
+  });
+
+  // ─── SettlementBalanceCard (task-17 B1: replaces the Dashboard's
+  // CommissionCard) - service-layer mocked exactly like HeldBalanceCard above,
+  // so the real `useCommissionStatement()` query actually runs. ─────────────
+
+  describe('the settlement balance card', () => {
+    it('renders the title, body and the commission due amount', async () => {
+      renderPage();
+
+      const heading = await screen.findByText('Covered by your next orders');
+      const card = heading.closest('.glass') as HTMLElement;
+      expect(
+        within(card).getByText(
+          "TFTW's share from your completed sales. It is taken from upcoming eligible orders - you never pay us directly.",
+        ),
+      ).toBeTruthy();
+      expect(within(card).getByText(money(4.75))).toBeTruthy();
+    });
+
+    it('shows a skeleton, not a loading text, while the statement is loading', () => {
+      mockGetMyCommission.mockImplementation(() => new Promise(() => undefined));
+      renderPage();
+
+      expect(screen.getByTestId('settlement-balance-skeleton')).toBeInTheDocument();
+      expect(screen.queryByText('Covered by your next orders')).toBeNull();
+    });
+
+    it('shows the error message with a Retry that calls the service again', async () => {
+      mockGetMyCommission.mockRejectedValue(new Error('statement failed'));
+      renderPage();
+
+      const errorMessage = await screen.findByText('Could not load your settlement balance.');
+      const retry = errorMessage.closest('.glass')?.querySelector('button') as HTMLElement;
+      expect(mockGetMyCommission).toHaveBeenCalledTimes(1);
+
+      mockGetMyCommission.mockResolvedValue(statementEnvelope(mockStatement));
+      fireEvent.click(retry);
+
+      await waitFor(() => expect(mockGetMyCommission).toHaveBeenCalledTimes(2));
+      expect(await screen.findByText(money(4.75))).toBeTruthy();
+    });
+
+    it('keeps the balance already on screen when a background refetch fails', async () => {
+      const { queryClient } = renderPage();
+      await screen.findByText(money(4.75));
+
+      // Period change never refetches the statement (it carries no period in
+      // its query key, same as the wallet), so the background refetch has to
+      // be forced directly - the same TanStack mechanism a focus/reconnect
+      // refetch would trigger for real.
+      mockGetMyCommission.mockRejectedValueOnce(new Error('background refetch failed'));
+      await act(async () => {
+        await queryClient.refetchQueries({
+          queryKey: dashboardKeys.commissionStatement(undefined),
+        });
+      });
+
+      expect(screen.getByText(money(4.75))).toBeInTheDocument();
+      expect(screen.queryByText('Could not load your settlement balance.')).toBeNull();
+    });
+
+    it('names each location carrying a balance under "All locations"', async () => {
+      mockGetMyCommission.mockResolvedValue(
+        statementEnvelope({
+          ...mockStatement,
+          dueByEstablishment: [
+            { establishmentId: 'a', name: 'Pâtisserie Lac', amount: 3.8 },
+            { establishmentId: 'b', name: 'Pâtisserie Marsa', amount: 0.95 },
+          ],
+        }),
+      );
+      renderPage();
+
+      const breakdown = await screen.findByLabelText('By location');
+      expect(breakdown.textContent).toContain('Pâtisserie Lac');
+      expect(breakdown.textContent).toContain('Pâtisserie Marsa');
+    });
+
+    it('shows no breakdown for a single location - it would only repeat the total', async () => {
+      mockGetMyCommission.mockResolvedValue(
+        statementEnvelope({
+          ...mockStatement,
+          dueByEstablishment: [{ establishmentId: 'a', name: 'Only', amount: 1.9 }],
+        }),
+      );
+      renderPage();
+
+      await screen.findByText(money(4.75));
+      expect(screen.queryByLabelText('By location')).toBeNull();
     });
   });
 });

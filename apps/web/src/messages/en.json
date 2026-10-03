@@ -920,6 +920,12 @@
         "note": "Your balance right now. It does not change with the period above.",
         "error": "Could not load the balance TFTW holds."
       },
+      "settlement": {
+        "title": "Covered by your next orders",
+        "body": "TFTW's share from your completed sales. It is taken from upcoming eligible orders - you never pay us directly.",
+        "byLocation": "By location",
+        "error": "Could not load your settlement balance."
+      },
       "stats": {
         "totalEarned": "Total earned",
         "orders": "Orders"
@@ -1927,6 +1933,7 @@
       "discount": "Discount",
       "foodPrice": "Food price",
       "yourEarnings": "Your earnings",
+      "yourEarningsVerifying": "Being verified",
       "pickupCode": "Pickup Code",
       "pickupCodeHint": "Write this code on the physical bag",
       "waitingPickup": "Waiting for customer to confirm on their app...",
@@ -2234,6 +2241,7 @@
       "title": "Your earnings - {period}",
       "orders": "{count, plural, one {# order} other {# orders}}",
       "empty": "No sales in this period yet.",
+      "allUnverified": "All sales in this period are being verified",
       "unverified": "{count, plural, one {# sale is being verified and is not included yet} other {# sales are being verified and are not included yet}}",
       "lines": {
         "cashStore": "Cash collected in store",

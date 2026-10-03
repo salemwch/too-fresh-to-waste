@@ -18,7 +18,6 @@ import {
   SmartPricingPanel,
   EarningsCard,
   FundLedgerCard,
-  CommissionCard,
   PeriodBar,
 } from '@/components/dashboard/merchant';
 import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
@@ -55,11 +54,10 @@ function MerchantDashboardContent() {
       {/* ── Daily listing streak ── */}
       <StreakWidget onListOffer={() => setPanelOpen(true)} disabled={isTrialSuspended} />
 
-      {/* ── Earnings for the period + commission statement ── */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-[24px]'>
-        <EarningsCard period={period} />
-        <CommissionCard />
-      </div>
+      {/* ── Earnings for the period. The commission statement moved to the
+          Payments page as a live settlement-balance card - task-17 B1
+          (.claude/work/merchant-earnings.md Decisions, 2026-09-26). ── */}
+      <EarningsCard period={period} />
 
       {/* ── Impact KPI cards - owns its own queries, all scoped to `period` ── */}
       <ImpactCards period={period} />
@@ -101,10 +99,7 @@ function MerchantDashboardSkeleton() {
   return (
     <div className='space-y-[32px]'>
       <div className='glass rounded-2xl shadow-soft h-[96px] animate-pulse bg-white/30' />
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-[24px]'>
-        <div className='glass rounded-2xl shadow-soft h-[320px] animate-pulse bg-white/30' />
-        <div className='glass rounded-2xl shadow-soft h-[320px] animate-pulse bg-white/30' />
-      </div>
+      <div className='glass rounded-2xl shadow-soft h-[320px] animate-pulse bg-white/30' />
       <ImpactCardsSkeleton />
       <TrendChartSkeleton />
     </div>

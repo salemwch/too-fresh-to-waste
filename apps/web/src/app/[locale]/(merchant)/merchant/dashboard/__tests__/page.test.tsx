@@ -68,7 +68,6 @@ jest.mock('@/components/dashboard/merchant', () => {
     FundLedgerCard: () => null,
     SmartPricingPanel: () => null,
     ReportingBar: () => null,
-    CommissionCard: () => null,
     TrendChart: () => null,
     TrendChartSkeleton: () => null,
     PeriodBar: () => null,

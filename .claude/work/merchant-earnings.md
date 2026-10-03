@@ -754,7 +754,59 @@ in the held-money query key.
     to their own orders by buildQuery". The LM branch of `buildQuery` adds no
     scope filter today. Comment corrected; tracked in orders-authz.
 
+- 2026-10-03 (Task 17 fix wave, A13 + Part B):
+  - A13: `SalesPeriod`/`SALES_PERIODS`/`SalesGranularity`/`PaymentLine`/
+    `LineTotals`/`MerchantSalesSummary`/`MerchantSalesChart`/`EarningsRow`/
+    `EarningsTab`/`EARNINGS_TABS`/`EarningsRowsPage` moved to
+    `packages/shared/src/types/merchant-sales.types.ts`. Backend's
+    `merchant-sales.types.ts`/`merchant-sales.period.ts` now import from
+    `@foodwaste/shared` and re-export, so no existing backend import site needed
+    to change. `apps/web/src/types/payments.ts` is now a re-export of the same
+    module - closes the "Backend type <-> frontend type" gap this file's own
+    `registration-chains.md` entry named as having no automated proof for this
+    pair.
+  - B1: `CommissionCard` removed from the Dashboard page and the merchant barrel
+    export (file and its test kept, per instruction, for a possible future use -
+    nothing currently imports it). A new `SettlementBalanceCard`
+    (`apps/web/src/components/dashboard/merchant/payments/settlement-balance-card.tsx`)
+    renders the same `useCommissionStatement()` data on the Payments page, above
+    the period-scoped stats, period-independent like `HeldBalanceCard` (same
+    reasoning: a live balance does not belong next to a period figure - this is
+    the same product decision as the 2026-09-28 entry above, now applied to the
+    commission statement too, not only the wallet). Copy: "Covered by your next
+    orders" / "TFTW's share from your completed sales. It is taken from upcoming
+    eligible orders - you never pay us directly."
+  - B2: `usePaymentStats`/`useMerchantEarningsRows` now read
+    `activeEstablishmentId` from `useAuthStore` and pass it through
+    (`paymentsService.getStats`/`getMyPayments` gained an optional
+    `establishmentId` param) - the backend route already accepted it
+    (`MerchantSalesQueryDto.establishmentId`); only the web side was not sending
+    it.
+  - B3: order-detail "Your earnings" now reads `order.earnings` (A2's
+    `{ amount, verifying }`) instead of deriving from `order.commission`, which
+    could not distinguish "not yet decided" (verifying) from "nothing owed"
+    (refunded). New key `merchantOrders.yourEarningsVerifying`.
+  - B4: trend-chart empty state now checks every slot for zero activity (the
+    `slots.length === 0` branch was unreachable - `salesSlots` always returns >=
+    1 slot); RTL reverses the slot order for `ar`; the notification bell hides
+    the food price entirely for `null`/`0` instead of fabricating "0.000 TND"
+    and now passes the viewer's locale to `formatCurrency`; `formatDateShort`
+    (used by Payments row dates) is pinned to `Africa/Tunis`; Payments
+    stats/rows keep last-good data with an inline error banner on a background
+    refetch failure instead of blanking the screen; the "Rescued" KPI delta is
+    hidden (not "0%") when `originalValue` is 0; `EarningsCard` distinguishes
+    "no sales" from "all sales unverified" (new key `earnings.allUnverified`);
+    the order-status socket handler now invalidates sales summary/chart, order
+    stats, business metrics and payment stats/rows by key prefix, since a status
+    change can create/settle/reverse a commission decision; `EarningsCard`
+    gained a divider before the commission `dl`, restoring the separator the old
+    `CommissionCard` had.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile
   screen reads these endpoints today.
+- Non-blocking (2026-10-03): `commission-card.tsx` and its test are now unused
+  dead code (nothing imports `CommissionCard` after B1). Left in place per the
+  task instruction rather than deleted; a future pass should either delete both
+  or find it a new home.

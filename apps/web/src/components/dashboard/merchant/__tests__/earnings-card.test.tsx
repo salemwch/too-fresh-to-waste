@@ -101,6 +101,23 @@ describe('EarningsCard', () => {
     expect(screen.getByText('No sales in this period yet.')).toBeInTheDocument();
   });
 
+  // Task-17 B4 #7: zero confirmed orders with unverified sales in flight is a
+  // different situation from a genuinely empty period, and must say so.
+  it('says sales are being verified, not "no sales", when every order this period is unverified', () => {
+    mockUseSalesSummary.mockReturnValue({
+      data: {
+        ...summary,
+        total: { ...summary.total, orders: 0, earned: 0 },
+        unverifiedOrders: 3,
+      },
+      isLoading: false,
+      isError: false,
+    });
+    renderCard();
+    expect(screen.getByText('All sales in this period are being verified')).toBeInTheDocument();
+    expect(screen.queryByText('No sales in this period yet.')).toBeNull();
+  });
+
   // Fix-round item 8: a background refetch failing (e.g. the query refires
   // after a period change) must not blank out data already on screen -
   // TanStack keeps `data` populated with the last good result while

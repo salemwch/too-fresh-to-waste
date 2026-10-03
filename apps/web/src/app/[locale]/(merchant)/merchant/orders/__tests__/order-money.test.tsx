@@ -19,6 +19,7 @@ const LABELS = {
     discount: 'Discount',
     foodPrice: 'Food price',
     yourEarnings: 'Your earnings',
+    yourEarningsVerifying: 'Being verified',
     customer: 'Customer',
     items: 'Items',
     paymentStatus: 'Payment',
@@ -138,17 +139,29 @@ describe('OrderDetailContent - a merchant never sees delivery money', () => {
     expect(screen.getAllByText('TND 10.000')).toHaveLength(2);
   });
 
-  it('does not show "Your earnings" when commission is absent', () => {
+  it('does not show "Your earnings" when earnings is absent (order not yet completed)', () => {
     const order = baseOrder();
     render(<OrderDetailContent order={order} t={makeT('en')} onCancel={jest.fn()} />);
 
     expect(screen.queryByText('Your earnings')).not.toBeInTheDocument();
   });
 
-  it('shows "Your earnings" with the settlement merchantAmount, not the food price, when commission is present', () => {
+  // Task-17 B3: the detail page reads `order.earnings` (A2's
+  // `{ amount, verifying }`), never `order.commission.merchantAmount` -
+  // `commission` alone cannot distinguish "not yet decided" from "nothing
+  // owed". A stray `commission` with no `earnings` must render nothing.
+  it('does not show "Your earnings" from a stray `commission` field with no `earnings`', () => {
+    const order = baseOrder({ commission: { merchantAmount: 4 } });
+    render(<OrderDetailContent order={order} t={makeT('en')} onCancel={jest.fn()} />);
+
+    expect(screen.queryByText('Your earnings')).not.toBeInTheDocument();
+    expect(screen.queryByText('TND 4.000')).not.toBeInTheDocument();
+  });
+
+  it('shows "Your earnings" with `earnings.amount`, not the food price, when decided', () => {
     const order = baseOrder({
       pricing: { subtotal: 10, discountAmount: 5, taxAmount: 0, currency: 'TND' },
-      commission: { merchantAmount: 4 },
+      earnings: { amount: 4, verifying: false },
     });
     render(<OrderDetailContent order={order} t={makeT('en')} onCancel={jest.fn()} />);
 
@@ -158,8 +171,23 @@ describe('OrderDetailContent - a merchant never sees delivery money', () => {
     expect(screen.getByText('TND 10.000')).toBeInTheDocument();
   });
 
+  it('shows a "being verified" note, not a figure, when earnings.verifying is true', () => {
+    const order = baseOrder({ earnings: { amount: null, verifying: true } });
+    render(<OrderDetailContent order={order} t={makeT('en')} onCancel={jest.fn()} />);
+
+    expect(screen.getByText('Your earnings')).toBeInTheDocument();
+    expect(screen.getByText('Being verified')).toBeInTheDocument();
+  });
+
+  it('shows nothing for a refunded order (earnings.amount null, not verifying)', () => {
+    const order = baseOrder({ status: 'refunded', earnings: { amount: null, verifying: false } });
+    render(<OrderDetailContent order={order} t={makeT('en')} onCancel={jest.fn()} />);
+
+    expect(screen.queryByText('Your earnings')).not.toBeInTheDocument();
+  });
+
   it('renders the French labels', () => {
-    const order = baseOrder({ commission: { merchantAmount: 4 } });
+    const order = baseOrder({ earnings: { amount: 4, verifying: false } });
     render(<OrderDetailContent order={order} t={makeT('fr')} onCancel={jest.fn()} />);
 
     expect(screen.getByText("Valeur d'origine")).toBeInTheDocument();
@@ -168,7 +196,7 @@ describe('OrderDetailContent - a merchant never sees delivery money', () => {
   });
 
   it('renders the Arabic labels', () => {
-    const order = baseOrder({ commission: { merchantAmount: 4 } });
+    const order = baseOrder({ earnings: { amount: 4, verifying: false } });
     render(<OrderDetailContent order={order} t={makeT('ar')} onCancel={jest.fn()} />);
 
     expect(screen.getByText('القيمة الأصلية')).toBeInTheDocument();

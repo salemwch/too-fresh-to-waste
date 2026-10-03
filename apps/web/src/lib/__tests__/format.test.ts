@@ -154,6 +154,27 @@ describe('the locale is actually honoured', () => {
   });
 });
 
+describe('formatDateShort: pinned to Africa/Tunis', () => {
+  // 23:30 UTC on the 11th is already the 12th in Africa/Tunis (UTC+1, no
+  // DST) - a Payments row this close to midnight must land on the day the
+  // backend's own clock (and the merchant's) says it did, not the viewer's.
+  const NEAR_MIDNIGHT_UTC = '2026-03-11T23:30:00.000Z';
+
+  it("renders the Tunis day, not the viewer's UTC day, right across midnight", () => {
+    expect(formatDateShort(EN, NEAR_MIDNIGHT_UTC)).toBe('Mar 12');
+  });
+
+  it('matches a directly-constructed Intl formatter with the Tunis timezone', () => {
+    const expected = new Intl.DateTimeFormat(EN, {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'Africa/Tunis',
+    }).format(new Date(NEAR_MIDNIGHT_UTC));
+
+    expect(formatDateShort(EN, NEAR_MIDNIGHT_UTC)).toBe(expected);
+  });
+});
+
 describe('formatCount', () => {
   it.each([
     ['null', null],

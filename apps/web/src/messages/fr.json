@@ -920,6 +920,12 @@
         "note": "Votre solde à cet instant. Il ne dépend pas de la période choisie.",
         "error": "Impossible de charger le solde détenu par TFTW."
       },
+      "settlement": {
+        "title": "Couvert par vos prochaines commandes",
+        "body": "La part de TFTW sur vos ventes finalisées. Elle est prélevée sur vos prochaines commandes éligibles - vous ne nous payez jamais directement.",
+        "byLocation": "Par établissement",
+        "error": "Impossible de charger votre solde à régler."
+      },
       "stats": {
         "totalEarned": "Total gagné",
         "orders": "Commandes"
@@ -1927,6 +1933,7 @@
       "discount": "Remise",
       "foodPrice": "Prix de la nourriture",
       "yourEarnings": "Vos gains",
+      "yourEarningsVerifying": "Vérification en cours",
       "pickupCode": "Code de retrait",
       "pickupCodeHint": "Écrivez ce code sur le sac physique",
       "waitingPickup": "En attente de confirmation du client sur son application...",
@@ -2234,6 +2241,7 @@
       "title": "Vos gains - {period}",
       "orders": "{count, plural, one {# commande} other {# commandes}}",
       "empty": "Aucune vente sur cette période pour le moment.",
+      "allUnverified": "Toutes les ventes de cette période sont en cours de vérification",
       "unverified": "{count, plural, one {# vente est en cours de vérification et n'est pas encore comptée} other {# ventes sont en cours de vérification et ne sont pas encore comptées}}",
       "lines": {
         "cashStore": "Espèces encaissées en magasin",

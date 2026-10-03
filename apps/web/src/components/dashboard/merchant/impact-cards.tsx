@@ -93,8 +93,10 @@ export function ImpactCards({ period }: ImpactCardsProps) {
   const earnings = summary?.total.earned ?? 0;
   // Food only: the old formula divided by pricing.total, which includes the
   // delivery fee, and so understated the discount on every delivery order.
+  // `null` (never a fabricated `0`) when there is nothing to divide by - no
+  // sales in the period is a different statement from "0% saved".
   const savingsPercent =
-    originalValue > 0 ? Math.round(((originalValue - foodValue) / originalValue) * 100) : 0;
+    originalValue > 0 ? Math.round(((originalValue - foodValue) / originalValue) * 100) : null;
   // `undefined` when order stats has no data (loading or failed) - a "+0%
   // completion rate" badge would be exactly the invented figure this fix
   // round removes elsewhere, so the badge is hidden instead of fabricated.
@@ -119,7 +121,7 @@ export function ImpactCards({ period }: ImpactCardsProps) {
       status: summaryStatus,
       value: fmt.compact(originalValue),
       unit: t('rescued.unit'),
-      delta: t('rescued.delta', { percent: savingsPercent }),
+      delta: savingsPercent === null ? null : t('rescued.delta', { percent: savingsPercent }),
       note: t('rescued.note'),
     },
     {

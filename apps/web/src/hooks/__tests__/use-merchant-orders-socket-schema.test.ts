@@ -29,17 +29,19 @@ describe('newOrderPayloadSchema - accepts the stripped backend payload', () => {
     expect(newOrderPayloadSchema.safeParse(payload).success).toBe(true);
   });
 
-  it('rejects a payload whose pricing carries the old `total` shape without `subtotal`', () => {
-    // Guards the other direction: if the backend ever regresses back to
-    // sending `{ total }` only, this documents that it would now fail to
-    // validate `subtotal` (which is undefined) - not silently accept stale data.
+  it('accepts a payload whose pricing carries the old `total` shape without `subtotal`, but never surfaces `total` as the price', () => {
+    // `subtotal` is optional on `pricing` (task-17 B4 #3) for deploy skew with
+    // a backend that has not shipped the field yet - the event must not fail
+    // validation outright. The hook reads `data.pricing?.subtotal ?? null`,
+    // so a payload that only carries `total` must resolve to `undefined`
+    // here (and therefore `null` foodPrice downstream), never `17.777`.
     const payload = {
       data: { orderId: 'order-1', orderNumber: 'ORD-1', pricing: { total: 17.777 } },
     };
 
     const result = newOrderPayloadSchema.safeParse(payload);
-    // `subtotal` is required once `pricing` is present; `total` alone does not satisfy it.
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    expect(result.success && result.data.data?.pricing?.subtotal).toBeUndefined();
   });
 
   it('still rejects a payload missing the required orderId', () => {

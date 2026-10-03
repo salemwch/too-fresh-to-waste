@@ -63,7 +63,9 @@ export function EarningsCard({ period }: { period: SalesPeriod }) {
           {t('title', { period: tp(period) })}
         </h2>
         {data.total.orders === 0 ? (
-          <p className='mt-sm text-sm text-primary-500/65'>{t('empty')}</p>
+          <p className='mt-sm text-sm text-primary-500/65'>
+            {data.unverifiedOrders > 0 ? t('allUnverified') : t('empty')}
+          </p>
         ) : (
           <div className='mt-sm flex items-baseline gap-sm'>
             <span
@@ -99,7 +101,7 @@ export function EarningsCard({ period }: { period: SalesPeriod }) {
         ))}
       </ul>
 
-      <dl className='grid grid-cols-2 gap-md text-xs text-primary-500/65'>
+      <dl className='border-t border-border pt-md grid grid-cols-2 gap-md text-xs text-primary-500/65'>
         <div>
           <dt>{t('commission.accrued', { rate: Math.round(data.commission.rate * 100) })}</dt>
           <dd className='font-mono tabular-nums'>{money(data.commission.accrued)}</dd>

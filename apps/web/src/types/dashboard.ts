@@ -150,6 +150,17 @@ export interface MerchantOrder {
   pricing: OrderPricing;
   /** Present only after pickup is confirmed. */
   commission?: OrderCommission;
+  /**
+   * "Your earnings" (A2) - the same three-case calculation as the
+   * Dashboard/Payments, built server-side by `orderEarningsFor`. Absent
+   * entirely until the order has a commission moment (not yet picked up /
+   * collected). `amount` is `null` for a REFUNDED order or a post-cutoff
+   * order still awaiting its decision (`verifying: true`). Prefer this over
+   * `commission.merchantAmount` for the order-detail "Your earnings" row -
+   * `commission` alone cannot distinguish "not yet decided" from "nothing
+   * owed".
+   */
+  earnings?: { amount: number | null; verifying: boolean };
   pickupDetails: {
     timeSlot?: string;
     scheduledDate?: string;

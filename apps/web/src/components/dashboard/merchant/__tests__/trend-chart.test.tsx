@@ -70,4 +70,41 @@ describe('TrendChart', () => {
     expect(screen.getByText('No data available')).toBeInTheDocument();
     expect(screen.queryByTestId('area-chart')).toBeNull();
   });
+
+  it('shows the empty-period message when every slot is zero, not a flat-zero chart', () => {
+    renderChart([
+      { start: '2026-09-01T10:00:00.000Z', orders: 0, bags: 0, earned: 0 },
+      { start: '2026-09-02T10:00:00.000Z', orders: 0, bags: 0, earned: 0 },
+    ]);
+
+    expect(screen.getByText('No data available')).toBeInTheDocument();
+    expect(screen.queryByTestId('area-chart')).toBeNull();
+  });
+
+  it('renders the chart (not the empty state) when at least one slot has activity', () => {
+    renderChart([
+      { start: '2026-09-01T10:00:00.000Z', orders: 0, bags: 0, earned: 0 },
+      { start: '2026-09-02T10:00:00.000Z', orders: 1, bags: 1, earned: 5 },
+    ]);
+
+    expect(screen.queryByText('No data available')).toBeNull();
+    expect(screen.getByTestId('area-chart')).toBeInTheDocument();
+  });
+
+  it('reverses the slot order for Arabic (RTL), not for English', () => {
+    const slots: Slot[] = [
+      { start: '2026-09-01T10:00:00.000Z', orders: 1, bags: 1, earned: 1 },
+      { start: '2026-09-02T10:00:00.000Z', orders: 1, bags: 1, earned: 2 },
+      { start: '2026-09-03T10:00:00.000Z', orders: 1, bags: 1, earned: 3 },
+    ];
+
+    const { unmount } = renderChart(slots, 'day', 'en');
+    const enPoints = JSON.parse(screen.getByTestId('area-chart').getAttribute('data-points')!);
+    expect(enPoints.map((p: { earned: number }) => p.earned)).toEqual([1, 2, 3]);
+    unmount();
+
+    renderChart(slots, 'day', 'ar');
+    const arPoints = JSON.parse(screen.getByTestId('area-chart').getAttribute('data-points')!);
+    expect(arPoints.map((p: { earned: number }) => p.earned)).toEqual([3, 2, 1]);
+  });
 });

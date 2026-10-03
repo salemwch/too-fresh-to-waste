@@ -208,4 +208,22 @@ describe('ImpactCards', () => {
     expect(screen.getByText('42')).toBeTruthy();
     expect(screen.queryByText(/completion rate/)).toBeNull();
   });
+
+  it('hides the "Rescued" delta rather than showing a fabricated "0% discount given" when there is no original value', () => {
+    // originalValue 0 -> dividing by it to get a discount percentage is
+    // meaningless (no sales this period), not "0% discount".
+    mockAllSettled(summaryOf({ earned: 0, originalValue: 0, foodValue: 0 }));
+    renderCards();
+
+    expect(screen.queryByText(/discount given/)).toBeNull();
+  });
+
+  it('shows the real "0% discount given" when sales happened at full price (originalValue === foodValue, both > 0)', () => {
+    mockAllSettled(summaryOf({ earned: 20, originalValue: 20, foodValue: 20 }));
+    renderCards();
+
+    // Distinct from the no-sales case above: here there genuinely was no
+    // discount, which is a real 0%, not an absent one.
+    expect(screen.getByText('0% discount given')).toBeTruthy();
+  });
 });

@@ -3632,6 +3632,7 @@
       "px:16": 1,
       "py:8": 1,
       "space-y:8": 1,
+      "pt:16": 1,
       "gap:16": 1
     }
   },
@@ -4054,17 +4055,17 @@
       "gap:16": 8,
       "p:24": 4,
       "mb:16": 1,
-      "space-y:16": 3,
+      "space-y:16": 4,
       "space-y:8": 1,
       "py:96": 2,
+      "gap:8": 2,
+      "px:16": 2,
+      "py:8": 2,
+      "gap:4": 5,
       "mb:8": 1,
       "mt:2": 2,
-      "gap:4": 4,
       "ms:24": 1,
       "gap:2": 1,
-      "gap:8": 1,
-      "px:16": 1,
-      "py:8": 1,
       "pt:8": 1,
       "space-y:40": 2,
       "mt:4": 1,
@@ -4074,7 +4075,7 @@
       "square:64": 1,
       "square:32": 1,
       "size:48": 2,
-      "size:16": 2,
+      "size:16": 3,
       "size:40": 1,
       "size:20": 1,
       "size:12": 2,
@@ -4099,6 +4100,25 @@
     "D": {
       "top:24": 1,
       "end:24": 1
+    }
+  },
+  "apps/web/src/components/dashboard/merchant/payments/settlement-balance-card.tsx": {
+    "A": {
+      "p:24": 3,
+      "space-y:16": 1,
+      "gap:16": 1,
+      "gap:4": 1,
+      "mt:2": 1,
+      "mt:16": 1,
+      "mt:8": 1,
+      "space-y:2": 1,
+      "gap:8": 1
+    },
+    "C": {
+      "h:16": 1,
+      "w:192": 1,
+      "h:40": 1,
+      "w:128": 1
     }
   },
   "apps/web/src/components/dashboard/merchant/period-bar.tsx": {

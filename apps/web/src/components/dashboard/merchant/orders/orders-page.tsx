@@ -750,12 +750,18 @@ export function OrderDetailContent({
                 {formatCurrency(order.pricing.subtotal, currency)}
               </span>
             </div>
-            {order.commission && (
+            {order.earnings && (order.earnings.verifying || order.earnings.amount !== null) && (
               <div className='flex items-center justify-between'>
                 <span className='text-xs font-semibold text-primary'>{t('yourEarnings')}</span>
-                <span className='text-sm font-black text-primary'>
-                  {formatCurrency(order.commission.merchantAmount, currency)}
-                </span>
+                {order.earnings.verifying ? (
+                  <span className='text-xs font-medium text-muted-foreground'>
+                    {t('yourEarningsVerifying')}
+                  </span>
+                ) : (
+                  <span className='text-sm font-black text-primary'>
+                    {formatCurrency(order.earnings.amount as number, currency)}
+                  </span>
+                )}
               </div>
             )}
           </div>

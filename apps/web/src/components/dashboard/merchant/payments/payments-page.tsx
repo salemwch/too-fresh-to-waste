@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PeriodBar } from '@/components/dashboard/merchant/period-bar';
 import { HeldBalanceCard } from './held-balance-card';
+import { SettlementBalanceCard } from './settlement-balance-card';
 import { useSalesPeriod } from '@/hooks/use-sales-period';
 import { usePaymentStats, useMerchantEarningsRows } from '@/hooks/use-payments';
 import { useFormat, MISSING_COUNT } from '@/lib/use-format';
@@ -85,6 +86,28 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
           </Button>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * A background refetch failing must not blank out data already on screen -
+ * the same rule `HeldBalanceCard`/`EarningsCard` follow for a single value.
+ * Here the stats cards and the row list keep rendering their last-good data
+ * underneath this banner, with its own retry, rather than being replaced by
+ * a full-screen `ErrorState`.
+ */
+function InlineErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const tCommon = useTranslations('common');
+  return (
+    <div className='flex flex-wrap items-center justify-between gap-sm rounded-lg border border-destructive/30 bg-destructive/10 px-md py-sm text-xs text-destructive'>
+      <span className='flex items-center gap-xs'>
+        <AlertCircle className='size-4 shrink-0' />
+        {message}
+      </span>
+      <Button variant='outline' size='sm' onClick={onRetry}>
+        {tCommon('retry')}
+      </Button>
     </div>
   );
 }
@@ -240,6 +263,7 @@ function EarningsRowsSection({ period, tab }: { period: SalesPeriod; tab: Earnin
   const t = useTranslations('dashboard.payments');
   const rowsQuery = useMerchantEarningsRows(period, tab);
   const rows = rowsQuery.data?.pages.flatMap(page => page.rows) ?? [];
+  const hasRows = rows.length > 0;
 
   return (
     <div className='space-y-md'>
@@ -252,16 +276,23 @@ function EarningsRowsSection({ period, tab }: { period: SalesPeriod; tab: Earnin
 
       {rowsQuery.isLoading ? (
         <PaymentListSkeleton />
-      ) : rowsQuery.isError ? (
+      ) : rowsQuery.isError && !hasRows ? (
         <ErrorState message={t('error')} onRetry={() => void rowsQuery.refetch()} />
-      ) : rows.length === 0 ? (
-        <EmptyState title={t(`empty.${tab}`)} />
       ) : (
-        <div className='space-y-md'>
-          {rows.map(row => (
-            <EarningsRowCard key={row.orderId} row={row} tab={tab} />
-          ))}
-        </div>
+        <>
+          {rowsQuery.isError && (
+            <InlineErrorBanner message={t('error')} onRetry={() => void rowsQuery.refetch()} />
+          )}
+          {hasRows ? (
+            <div className='space-y-md'>
+              {rows.map(row => (
+                <EarningsRowCard key={row.orderId} row={row} tab={tab} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState title={t(`empty.${tab}`)} />
+          )}
+        </>
       )}
 
       {rowsQuery.hasNextPage && (
@@ -310,13 +341,23 @@ function PaymentsPageContent() {
           held-balance-card.tsx for why it sits above the period-scoped stats. */}
       <HeldBalanceCard />
 
+      {/* Live settlement balance - what TFTW is still owed from completed
+          sales, taken from upcoming orders. Moved here from the Dashboard's
+          CommissionCard (task-17 B1). Period-independent like HeldBalanceCard. */}
+      <SettlementBalanceCard />
+
       {/* Stats */}
       {stats.isLoading ? (
         <StatsCardsSkeleton />
+      ) : stats.data ? (
+        <div className='space-y-md'>
+          {stats.isError && (
+            <InlineErrorBanner message={t('error')} onRetry={() => void stats.refetch()} />
+          )}
+          <PaymentStatsCards summary={stats.data} />
+        </div>
       ) : stats.isError ? (
         <ErrorState message={t('error')} onRetry={() => void stats.refetch()} />
-      ) : stats.data ? (
-        <PaymentStatsCards summary={stats.data} />
       ) : null}
 
       {/* Tabs — DESIGN.md §13.8: real role="tablist" with arrow-key nav and
@@ -353,6 +394,7 @@ export function PaymentsPage() {
         <div className='space-y-2xl'>
           <Skeleton className='h-12 w-64' />
           <Skeleton className='h-[104px] w-full rounded-xl' />
+          <Skeleton className='h-[88px] w-full rounded-xl' />
           <StatsCardsSkeleton />
           <PaymentListSkeleton />
         </div>

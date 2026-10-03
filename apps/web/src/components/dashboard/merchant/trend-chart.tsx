@@ -86,15 +86,28 @@ function CustomTooltip({
 export function TrendChart({ slots, granularity, locale }: TrendChartProps) {
   const t = useTranslations('dashboard.trendChart');
 
+  // Arabic reads right-to-left; Recharts does not mirror the x-axis on its
+  // own, so the slots are reversed for `ar` alone - earliest slot still
+  // reads first for the direction the locale is read in.
+  const orderedSlots = useMemo(
+    () => (locale === 'ar' ? [...slots].reverse() : slots),
+    [slots, locale],
+  );
+
   const chartData = useMemo<ChartPoint[]>(
     () =>
-      slots.map(slot => ({
+      orderedSlots.map(slot => ({
         label: formatSlotLabel(locale, slot.start, granularity),
         earned: slot.earned,
         bags: slot.bags,
       })),
-    [slots, granularity, locale],
+    [orderedSlots, granularity, locale],
   );
+
+  // `salesSlots` (backend) always returns at least one slot, so
+  // `chartData.length === 0` can never actually happen - the real "nothing to
+  // show" signal is every slot sitting at zero.
+  const isEmpty = chartData.every(point => point.earned === 0 && point.bags === 0);
 
   const peak = useMemo(
     () =>
@@ -113,7 +126,7 @@ export function TrendChart({ slots, granularity, locale }: TrendChartProps) {
         </div>
       </div>
 
-      {chartData.length === 0 ? (
+      {isEmpty ? (
         <div className='h-64 flex items-center justify-center text-primary-500/40 text-sm'>
           {t('noData')}
         </div>
