@@ -33,7 +33,7 @@ import {
   MerchantSalesQueryDto,
 } from '../merchant-sales/dto/merchant-sales-query.dto';
 import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
-import { salesScopeFor, salesScopeForRequest } from '../merchant-sales/merchant-sales.scope';
+import { salesScopeForRequest } from '../merchant-sales/merchant-sales.scope';
 
 import { PaymentQueryDto } from './dto/payment-query.dto';
 import { PaymentService } from './payments.service';
@@ -114,7 +114,9 @@ export class PaymentController {
     summary: 'Get merchant payments',
     description:
       'The exact orders behind a Payments tab (earnings, refunded, being verified) for the ' +
-      'authenticated merchant, from the same calculation as the Dashboard and the stats card.',
+      'authenticated merchant or location manager, from the same calculation as the Dashboard ' +
+      'and the stats card. A location manager is pinned to their own assignment, whatever ' +
+      'establishmentId they send.',
   })
   @ApiQuery({ name: 'period', required: false, enum: ['today', '7d', '30d', 'month', 'all'] })
   @ApiQuery({ name: 'tab', required: false, enum: ['earnings', 'refunded', 'verifying'] })
@@ -129,13 +131,13 @@ export class PaymentController {
   @ApiResponse({ status: 401, description: 'Unauthorized - Merchant access required' })
   @Get('my-merchant-payments')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.MERCHANT)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async getMyPayments(
     @Request() req: AuthenticatedRequest,
     @Query(strictValidation()) query: MerchantEarningsRowsQueryDto,
   ) {
     const data = await this.merchantSalesService.rows(
-      salesScopeFor(UserRole.MERCHANT, req.user.userId, query.establishmentId),
+      salesScopeForRequest(req.user, query.establishmentId),
       query.period ?? 'month',
       query.tab ?? 'earnings',
       { ...(query.after ? { after: query.after } : {}), limit: query.limit ?? 20 },
