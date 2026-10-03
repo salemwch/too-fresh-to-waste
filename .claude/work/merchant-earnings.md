@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 scope: cross-app
 gate:
   pnpm --filter @foodwaste/backend check:ts && backend jest + test:db && pnpm
@@ -753,6 +753,23 @@ in the held-money query key.
   - L3 #10: `order.controller.ts:230` comment said LOCATION_MANAGER was "scoped
     to their own orders by buildQuery". The LM branch of `buildQuery` adds no
     scope filter today. Comment corrected; tracked in orders-authz.
+
+- 2026-10-04 (Task 17 review fix - A1/A2 pre-moment refund parity):
+  `orderEarningsFor()` checked `REFUNDED` before checking for a commission
+  moment, returning `{ amount: null, verifying: false }` for a REFUNDED order
+  with no `pickedUpAt`/`driverPickedUpAt`. The pipeline filters those orders out
+  entirely at the `$match: { _moment: { $type: 'date' } }` stage - they are not
+  sales and appear in no tab. The JS mirror now checks the moment first and
+  returns `undefined` (same as any other pre-completion order) when there is
+  none. Reachable in production via admin refund of a pre-pickup online order
+  (`adminIssueRefund` gates on `paymentStatus`, not `status`). Added parity test
+  (REFUNDED + no moment through both real pipeline and `orderEarningsFor`).
+
+- 2026-10-04 (Task 17 review fix - A3/A12 getPaymentStats LM pin test):
+  `PaymentController.getPaymentStats` received the same `salesScopeForRequest`
+  fix as `getMyPayments` but had no controller-level test pinning it. Added
+  three tests: LM pinned to assignment (ignoring a different id), merchant
+  scoped to query id, and period defaults to month.
 
 - 2026-10-03 (Task 17 fix wave, A13 + Part B):
   - A13: `SalesPeriod`/`SALES_PERIODS`/`SalesGranularity`/`PaymentLine`/
