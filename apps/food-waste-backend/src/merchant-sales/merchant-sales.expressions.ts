@@ -217,12 +217,12 @@ export function orderEarningsFor(
   order: OrderEarningsFields,
   cutoff: Date | null,
 ): OrderEarnings | undefined {
-  if (order.status === OrderStatus.REFUNDED) {
-    return { amount: null, verifying: false };
-  }
   const moment = commissionMomentOf(order);
   if (!moment) {
     return undefined;
+  }
+  if (order.status === OrderStatus.REFUNDED) {
+    return { amount: null, verifying: false };
   }
   if (order.commission) {
     return { amount: round3(order.commission.merchantAmount), verifying: false };

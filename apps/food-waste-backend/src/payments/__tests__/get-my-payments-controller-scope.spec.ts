@@ -16,7 +16,10 @@ import { Types } from 'mongoose';
 import { PaymentController } from '../payments.controller';
 
 import type { AuthenticatedRequest } from '../../common/decorators/get-user.decorator';
-import type { MerchantEarningsRowsQueryDto } from '../../merchant-sales/dto/merchant-sales-query.dto';
+import type {
+  MerchantEarningsRowsQueryDto,
+  MerchantSalesQueryDto,
+} from '../../merchant-sales/dto/merchant-sales-query.dto';
 
 const MERCHANT_ID = new Types.ObjectId().toString();
 const ASSIGNED_ESTABLISHMENT_ID = new Types.ObjectId().toString();
@@ -113,5 +116,51 @@ describe('PaymentController.getMyPayments (A12)', () => {
       after: 'cursor-1',
       limit: 20,
     });
+  });
+});
+
+function buildStatsController() {
+  const merchantSalesService = { summary: jest.fn().mockResolvedValue({}) };
+  const paymentService = { getPaymentStats: jest.fn().mockResolvedValue({}) };
+  const controller = Object.create(PaymentController.prototype) as PaymentController;
+  Object.assign(controller, { merchantSalesService, paymentService, logger: { error: jest.fn() } });
+  const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() } as never;
+  return { controller, merchantSalesService, res };
+}
+
+describe('PaymentController.getPaymentStats (A12)', () => {
+  it('a location manager is pinned to their own assignment, ignoring a different establishmentId', async () => {
+    const { controller, merchantSalesService, res } = buildStatsController();
+
+    await controller.getPaymentStats(lmReq(), res, {
+      establishmentId: OTHER_ESTABLISHMENT_ID,
+    } as MerchantSalesQueryDto);
+
+    expect(merchantSalesService.summary).toHaveBeenCalledWith(
+      { kind: 'establishments', establishmentIds: [ASSIGNED_ESTABLISHMENT_ID] },
+      'month',
+    );
+  });
+
+  it('a merchant is scoped to the establishmentId they send', async () => {
+    const { controller, merchantSalesService, res } = buildStatsController();
+
+    await controller.getPaymentStats(merchantReq(), res, {
+      period: '7d',
+      establishmentId: OTHER_ESTABLISHMENT_ID,
+    } as MerchantSalesQueryDto);
+
+    expect(merchantSalesService.summary).toHaveBeenCalledWith(
+      { kind: 'merchant', merchantId: MERCHANT_ID, establishmentId: OTHER_ESTABLISHMENT_ID },
+      '7d',
+    );
+  });
+
+  it('defaults period to month when omitted', async () => {
+    const { controller, merchantSalesService, res } = buildStatsController();
+
+    await controller.getPaymentStats(merchantReq(), res, {} as MerchantSalesQueryDto);
+
+    expect(merchantSalesService.summary).toHaveBeenCalledWith(expect.anything(), 'month');
   });
 });

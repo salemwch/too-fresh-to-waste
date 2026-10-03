@@ -144,6 +144,20 @@ describe('order-detail earnings matches the merchant-sales amount (A2, real Mong
     expect(orderEarningsFor(order as never, CUTOFF)).toBeUndefined();
   });
 
+  it('REFUNDED before completion (no moment): undefined, same as the pipeline which filters it out entirely', async () => {
+    const id = await seed({
+      status: OrderStatus.REFUNDED,
+      paymentProvider: 'konnect',
+      pricing: { subtotal: 8, discountAmount: 0, deliveryFee: 0, total: 8 },
+    });
+    const [aggregated, order] = await Promise.all([
+      aggregatedEarned(id),
+      orders.findById(id).lean(),
+    ]);
+    expect(aggregated).toBeNull();
+    expect(orderEarningsFor(order as never, CUTOFF)).toBeUndefined();
+  });
+
   it('a CANCELLED delivery after driver pickup still has an earnings line (A1 parity)', async () => {
     const id = await seed({
       deliveryMode: 'delivery',
