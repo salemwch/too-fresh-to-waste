@@ -63,6 +63,26 @@ describe('summariseSalesGroups', () => {
     expect(s.commission).toEqual({ accrued: 1.9, settled: 6 });
   });
 
+  it(
+    'accrued and settled are summed across every Earnings row regardless of kind (A8) - ' +
+      "a LEGACY SETTLEMENT row contributes both, unlike the V2 model's SETTLEMENT (accrued 0 by construction)",
+    () => {
+      // The pre-cutoff engine (`calculateCommissionSettlement`,
+      // order-pricing.util.ts) accrues 19% on every order, settlement or not -
+      // kind='SETTLEMENT' there only means "also recovered balance this
+      // order". The V2 model's `decideCommission` is different: a SETTLEMENT
+      // accrues exactly 0 by construction, an accrual never happens twice on
+      // the same order. `summariseSalesGroups` never filters by kind - it
+      // sums whatever `commission.accrued`/`commission.settled` each row was
+      // frozen with, which is why both shapes reconcile correctly without any
+      // special case here.
+      const legacySettlement = g('earnings', 'cashStore', 1, 4_000, 1_900, 6_000);
+      const v2Normal = g('earnings', 'online', 1, 10_000, 1_900, 0);
+      const s = summariseSalesGroups([legacySettlement, v2Normal]);
+      expect(s.commission).toEqual({ accrued: 3.8, settled: 6 });
+    },
+  );
+
   it('empty input is a zero summary, not undefined lines', () => {
     const s = summariseSalesGroups([]);
     expect(s.total).toEqual({ orders: 0, earned: 0, foodValue: 0, originalValue: 0 });

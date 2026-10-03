@@ -699,6 +699,38 @@ in the held-money query key.
     assertion ties the fixture's four fields to `STRIP_PATHS` itself, so the
     test and the source of truth cannot silently diverge.
 
+- 2026-10-03 (Task 17 fix wave, A8 - commission accrued semantics, investigated
+  per the brief): can a SETTLEMENT decision carry `accrued > 0`? Yes, for the
+  pre-cutoff (LEGACY) engine - checked against the code, not assumed.
+  `calculateCommissionSettlement` (`order-pricing.util.ts`) accrues 19% on
+  **every** order regardless of whether it also settles; `kind` becomes
+  `'SETTLEMENT'` purely because `settled > 0`, independent of `accrued`. The V2
+  model's `decideCommission` (`commission-model.util.ts`) is different by
+  construction: a SETTLEMENT there accrues exactly 0, a NORMAL settles exactly
+  0 - mutually exclusive. `MerchantSalesService`'s
+  `accruedMillimes`/`settledMillimes` were already correct as written: an
+  unfiltered sum of `commission.accrued`/`commission.settled` across every
+  Earnings row, with no kind filter - that is what "Commission recorded" and
+  "paid off" must mean to reconcile to the truth regardless of which engine
+  produced the decision. The defect was only in how this was described:
+  - **Definitions (above, left as originally written per this spec's own
+    convention of never rewriting a shipped section - see the 2026-09-28 Task
+    15b entry for the precedent)**: "`commission.accrued` (NORMAL) and
+    `commission.settled` (SETTLEMENT)" reads as if the two are kind-exclusive
+    contributions. They are only exclusive for the V2 model; a LEGACY SETTLEMENT
+    row contributes to both. The correct description: both figures are the
+    unfiltered sum of `commission.accrued`/`commission.settled` over every
+    Earnings row, for whichever engine or kind produced the decision.
+  - The integration test titled "commission sums the NORMAL rows only" was
+    renamed to say what the code does (sums across every row, not by kind), and
+    its comment now says explicitly why its own SETTLEMENT fixture shows 0
+    accrued (the V2 model's own construction, not a filter in the aggregation).
+  - Added `merchant-sales.summarise.spec.ts`: "a LEGACY SETTLEMENT row
+    contributes both its own accrual and its settlement" with a realistic seed
+    (`accrued: 1.9, settled: 6` on the same row) - the case lens3 found missing,
+    proving the unfiltered-sum behavior directly rather than only by coincidence
+    of an all-V2 fixture table.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile

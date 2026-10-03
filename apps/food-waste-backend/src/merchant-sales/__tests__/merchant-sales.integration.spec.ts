@@ -259,16 +259,22 @@ describe('MerchantSalesService.summary (real MongoDB)', () => {
     expect(millimes(s.total.foodValue)).toBe(63_241);
   });
 
-  it('originalValue adds back the one seeded discount; commission sums the NORMAL rows only', async () => {
+  it('originalValue adds back the one seeded discount; commission sums accrued/settled across every Earnings row, not by kind', async () => {
     const s = await service.summary(merchantA, 'month', now);
     // discountAmount 5 lives only on the cash-in-store row (subtotal 10);
     // foodValue reads `pricing.subtotal` only, so it is unaffected (63.241,
     // asserted above) - originalValue is exactly foodValue + 5.
     expect(millimes(s.total.originalValue)).toBe(millimes(s.total.foodValue) + millimes(5));
     expect(millimes(s.total.originalValue)).toBe(68_241);
-    // accrued sums the four NORMAL rows' 19%: 10*0.19 + 7*0.19 + 12*0.19 + 9*0.19
-    // = 1.9 + 1.33 + 2.28 + 1.71 = 7.22. The settlement row is 0 accrued / 6
-    // settled; the legacy row has no decision, so 0 accrued and 0 settled.
+    // accrued is the unfiltered sum of `commission.accrued` across every
+    // Earnings row (A8 - the code never filters by kind): the four NORMAL
+    // rows' 19% (10*0.19 + 7*0.19 + 12*0.19 + 9*0.19 = 7.22) plus the
+    // settlement row's own accrued, which is 0 here only because this fixture
+    // uses the V2 model's `decideCommission` (a V2 SETTLEMENT accrues exactly
+    // 0 by construction) - not because SETTLEMENT rows are excluded. A LEGACY
+    // SETTLEMENT row would contribute its own nonzero accrued too; see
+    // `merchant-sales.summarise.spec.ts` for that case directly. The legacy
+    // (case 2) row here has no decision at all, so 0 accrued/settled.
     expect(s.commission).toEqual({ rate: PLATFORM_FOOD_SHARE, accrued: 7.22, settled: 6 });
   });
 
