@@ -2,6 +2,7 @@ import type { PipelineStage } from 'mongoose';
 
 import { OrderStatus } from '../orders/schemas/order.schema';
 import { MERCHANT_FOOD_SHARE } from '../orders/utils/order-pricing.util';
+import type { PaymentLine } from './merchant-sales.types';
 
 /**
  * The only definition of merchant earnings. Spec:
@@ -53,7 +54,7 @@ export const COMMISSION_MOMENT_EXPR = Object.freeze({
 const LEGACY_PRE_CUTOFF_MERCHANT_SHARE = MERCHANT_FOOD_SHARE;
 
 export type SalesCase = 'CURRENT' | 'LEGACY' | 'UNVERIFIED';
-export type PaymentLine = 'cashStore' | 'cashDelivery' | 'online';
+export type { PaymentLine };
 
 /** Cash orders carry no `paymentProvider`, so "not Konnect" is the cash test. */
 const PAYMENT_LINE_EXPR = Object.freeze({

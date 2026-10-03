@@ -1,13 +1,18 @@
 import { DateTime } from 'luxon';
 
+import { SALES_PERIODS, type SalesGranularity, type SalesPeriod } from '@foodwaste/shared';
+
 /**
  * The merchant-facing periods, resolved on the server in Tunisian time so a
  * merchant whose computer clock or timezone is wrong still sees correct
  * figures. Tunisia has no DST; Luxon handles it anyway.
+ *
+ * `SalesPeriod`/`SalesGranularity`/`SALES_PERIODS` moved to
+ * `@foodwaste/shared` (Task 17 A13) so the web app imports the same contract
+ * instead of hand-copying it. Re-exported here so every existing backend
+ * import site keeps working unchanged.
  */
-export const SALES_PERIODS = ['today', '7d', '30d', 'month', 'all'] as const;
-export type SalesPeriod = (typeof SALES_PERIODS)[number];
-export type SalesGranularity = 'hour' | 'day' | 'month';
+export { SALES_PERIODS, type SalesGranularity, type SalesPeriod };
 export const SALES_TIMEZONE = 'Africa/Tunis';
 
 export interface SalesRange {
