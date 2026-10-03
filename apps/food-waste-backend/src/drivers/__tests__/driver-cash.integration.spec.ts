@@ -21,6 +21,7 @@ import {
   EstablishmentSchema,
   type EstablishmentDocument,
 } from '../../establishments/schemas/establishment.schema';
+import { COMMISSION_MOMENT_EXPR } from '../../merchant-sales/merchant-sales.expressions';
 import { OrderSchema, OrderStatus, type OrderDocument } from '../../orders/schemas/order.schema';
 import {
   CommissionLedgerSchema,
@@ -218,6 +219,21 @@ describe('DriverCashService — against a real MongoDB replica set', () => {
           orderId.toString(),
           driverId.toString(),
         );
+
+        /*
+         * CommissionService.isModelActiveAt(appliedAt) decides which engine an
+         * order gets. If appliedAt and the earnings' own COMMISSION_MOMENT_EXPR
+         * ever drifted, an order could be decided on the legacy engine while
+         * the earnings treat it as post-cutoff (a false "being verified"). The
+         * earnings never read `appliedAt` as the source of truth - only this
+         * assertion holds the two to the same instant, for the delivery call
+         * site (driverPickedUpAt).
+         */
+        const [stored] = await orderModel.aggregate<{ applied: Date; moment: Date }>([
+          { $match: { _id: orderId } },
+          { $project: { applied: '$commission.appliedAt', moment: COMMISSION_MOMENT_EXPR } },
+        ]);
+        expect(stored?.applied?.getTime()).toBe(stored?.moment?.getTime());
 
         // 1. The frozen instruction the driver follows.
         expect(instruction).toMatchObject({

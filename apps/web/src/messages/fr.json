@@ -719,11 +719,6 @@
     "analytics": {
       "title": "Analytique",
       "subtitle": "Suivez la performance de votre commerce",
-      "periodToday": "Aujourd'hui",
-      "period7d": "7 Jours",
-      "period30d": "30 Jours",
-      "period90d": "90 Jours",
-      "periodCustom": "Personnalisé",
       "tabs": {
         "overview": "Aperçu",
         "customers": "Clients",
@@ -732,22 +727,10 @@
       "kpi": {
         "revenue": "Mes gains",
         "totalOrders": "Total des commandes",
-        "avgOrderValue": "Panier moyen",
+        "avgFoodValue": "Valeur alimentaire moyenne par commande terminée",
         "conversionRate": "Taux de conversion",
         "foodSaved": "Nourriture sauvée",
         "co2Avoided": "CO₂ évité"
-      },
-      "revenueChart": {
-        "title": "Tendance des gains",
-        "subtitle": "Vos gains au fil du temps",
-        "tooltip": {
-          "revenue": "Gains",
-          "orders": "Commandes"
-        }
-      },
-      "ordersChart": {
-        "title": "Volume de commandes",
-        "subtitle": "Commandes au fil du temps"
       },
       "customerLocations": {
         "title": "Localisation des clients",
@@ -930,61 +913,35 @@
     "payments": {
       "title": "Historique des paiements",
       "subtitle": "Suivez et conciliez les paiements en espèces",
+      "held": {
+        "title": "Argent détenu actuellement par TFTW",
+        "available": "Disponible pour le versement",
+        "pending": "En attente de retrait",
+        "note": "Votre solde à cet instant. Il ne dépend pas de la période choisie.",
+        "error": "Impossible de charger le solde détenu par TFTW."
+      },
+      "settlement": {
+        "title": "Couvert par vos prochaines commandes",
+        "body": "La part de TFTW sur vos ventes finalisées. Elle est prélevée sur vos prochaines commandes éligibles - vous ne nous payez jamais directement.",
+        "byLocation": "Par établissement",
+        "error": "Impossible de charger votre solde à régler."
+      },
       "stats": {
-        "todayRevenue": "Revenu du jour",
-        "totalCollected": "Total encaissé",
-        "pendingCollection": "En attente d'encaissement",
-        "completedOrders": "Commandes complétées",
-        "totalRevenue": "Chiffre d'affaires total",
-        "totalTransactions": "Transactions",
-        "avgOrderValue": "Panier moyen",
-        "completed": "Terminés",
-        "pending": "En attente",
-        "failed": "Échoués"
+        "totalEarned": "Total gagné",
+        "orders": "Commandes"
       },
-      "filters": {
-        "allStatuses": "Tous les statuts",
-        "collected": "Encaissé",
-        "pending": "En attente",
-        "refunded": "Remboursé",
-        "failed": "Échoué",
-        "dateRange": "Période",
-        "today": "Aujourd'hui",
-        "thisWeek": "Cette semaine",
-        "thisMonth": "Ce mois",
-        "completed": "Terminés",
-        "fromDate": "Du",
-        "toDate": "Au"
+      "tabs": {
+        "earnings": "Revenus",
+        "refunded": "Remboursées",
+        "verifying": "En vérification"
       },
-      "table": {
-        "customer": "Client",
-        "amount": "Montant",
-        "method": "Méthode",
-        "status": "Statut",
-        "date": "Date",
-        "order": "Commande"
-      },
-      "methods": {
-        "cash": "Espèces",
-        "cash_on_pickup": "Espèces au retrait",
-        "card": "Carte",
-        "smt_gateway": "En ligne",
-        "wallet": "Portefeuille"
-      },
-      "status": {
-        "completed": "Complété",
-        "pending": "En attente",
-        "processing": "En cours",
-        "refunded": "Remboursé",
-        "failed": "Échoué",
-        "cancelled": "Annulé"
-      },
+      "verifyingNote": "Cette vente est en cours de vérification et n'est pas encore comptée.",
       "empty": {
-        "title": "Aucun paiement",
-        "description": "Les paiements de vos commandes apparaîtront ici."
+        "earnings": "Aucune vente sur cette période pour le moment.",
+        "refunded": "Aucune vente remboursée sur cette période.",
+        "verifying": "Aucune vente en cours de vérification."
       },
       "error": "Échec du chargement des paiements. Veuillez réessayer.",
-      "tndCurrency": "TND",
       "loadMore": "Charger plus"
     },
     "loyalty": {
@@ -1972,11 +1929,11 @@
       "customer": "Client",
       "items": "Articles",
       "quantity": "{count}x",
-      "subtotal": "Sous-total",
+      "originalValue": "Valeur d'origine",
       "discount": "Remise",
-      "tax": "Taxe",
-      "deliveryFee": "Frais de livraison",
-      "total": "Total",
+      "foodPrice": "Prix de la nourriture",
+      "yourEarnings": "Vos gains",
+      "yourEarningsVerifying": "Vérification en cours",
       "pickupCode": "Code de retrait",
       "pickupCodeHint": "Écrivez ce code sur le sac physique",
       "waitingPickup": "En attente de confirmation du client sur son application...",
@@ -2096,68 +2053,32 @@
       "carbon": {
         "title": "Impact Carbone (Scope 3)",
         "unit": "kg CO₂",
-        "delta": "évités cette période",
+        "delta": "évités - {period}",
         "note": "Équivalent à {km} km parcourus en voiture."
       },
       "social": {
         "title": "Impact Social",
         "unit": "repas",
         "delta": "distribués",
-        "note": "~{people} personnes nourries ce mois-ci."
+        "note": "~{people} personnes nourries - {period}."
       },
       "water": {
         "title": "Eau économisée",
         "unit": "litres",
         "delta": "empreinte évitée",
         "note": "Eau qui aurait été consommée pour produire ces aliments."
-      }
-    },
-    "walletBalance": {
-      "title": "Paiements en ligne que nous gardons pour vous",
-      "available": "Disponible",
-      "pending": "En attente du retrait",
-      "availableNote": "Prêt pour votre prochain versement.",
-      "pendingNote": "Payé en ligne, pas encore récupéré.",
-      "availableInfoLabel": "Qu'est-ce que Disponible ?",
-      "availableInfo": "L'argent des commandes en ligne que vos clients ont déjà récupérées. Il vous est versé lors du prochain versement, en totalité - moins la commission réglée par une commande de règlement.",
-      "pendingInfoLabel": "Qu'est-ce qu'En attente du retrait ?",
-      "pendingInfo": "Les clients ont payé ces commandes en ligne mais ne les ont pas encore récupérées. L'argent passe en Disponible dès que vous confirmez le retrait. Si une commande est annulée, le client est remboursé.",
-      "cashNotHere": "Les commandes payées en espèces vous sont réglées directement : elles n'apparaissent pas ici.",
-      "error": "Impossible de charger vos paiements en ligne."
-    },
-    "todaySales": {
-      "title": "Ventes d'aujourd'hui",
-      "subtitle": "Espèces en magasin et paiements en ligne, ensemble",
-      "history": "Historique",
-      "orders": "{count, plural, one {# commande} other {# commandes}}",
-      "cash": "Espèces en magasin",
-      "online": "Payé en ligne",
-      "commission": "Commission enregistrée ({rate} %)",
-      "commissionInfoLabel": "Qu'est-ce que la commission enregistrée ?",
-      "commissionInfo": "{rate} % des ventes normales d'aujourd'hui sont ajoutés à votre solde de commission. Ce montant n'est jamais pris dans votre poche : il est réglé plus tard par des commandes de règlement.",
-      "settled": "Réglé par des commandes de règlement",
-      "settledInfoLabel": "Qu'est-ce que le montant réglé par des commandes de règlement ?",
-      "settledInfo": "Sur une commande de règlement, vous êtes payé moins que le prix, et la différence règle la commission des jours précédents. Aucune nouvelle commission n'y est enregistrée.",
-      "kept": "Vous gardez aujourd'hui",
-      "keptInfoLabel": "Qu'est-ce que Vous gardez aujourd'hui ?",
-      "keptInfo": "Ce que vous avez touché pour les ventes d'aujourd'hui, moins la commission enregistrée aujourd'hui.",
-      "toCollect": "{count, plural, one {# commande} other {# commandes}} encore à récupérer, pour {amount}",
-      "empty": "Aucune vente pour l'instant aujourd'hui. Chaque commande remise apparaît ici immédiatement.",
-      "error": "Impossible de charger les ventes d'aujourd'hui."
+      },
+      "error": "Impossible de charger vos indicateurs d'impact."
     },
     "greeting": "Félicitations, {name}.",
     "impactStatement": "Votre impact aujourd'hui est équivalent à {trees} arbres plantés.",
     "trendChart": {
-      "subtitle": "Tendance hebdomadaire",
-      "title": "Ressources Préservées",
-      "periods": {
-        "7d": "7J",
-        "30d": "30J",
-        "12m": "Année"
-      },
+      "subtitle": "Gains sur la période",
+      "title": "Gains",
       "bagsUnit": "paniers",
       "peakLabel": "★ Performance maximale !",
-      "noData": "Aucune donnée disponible"
+      "noData": "Aucune donnée disponible",
+      "error": "Impossible de charger le graphique des gains."
     },
     "reportingBar": {
       "title": "Besoin de votre Bilan Carbone ?",
@@ -2166,6 +2087,14 @@
       "generating": "Génération…",
       "toastSuccess": "Rapport PDF téléchargé avec succès.",
       "toastError": "Erreur lors de la génération du rapport. Veuillez réessayer."
+    },
+    "period": {
+      "label": "Période",
+      "today": "Aujourd'hui",
+      "7d": "7 jours",
+      "30d": "30 jours",
+      "month": "Ce mois-ci",
+      "all": "Depuis le début"
     },
     "streak": {
       "days": "j. de suite",
@@ -2307,6 +2236,23 @@
       "toggleNav": "Basculer la navigation",
       "adminNav": "Navigation administrateur",
       "logoAlt": "Too Fresh To Waste"
+    },
+    "earnings": {
+      "title": "Vos gains - {period}",
+      "orders": "{count, plural, one {# commande} other {# commandes}}",
+      "empty": "Aucune vente sur cette période pour le moment.",
+      "allUnverified": "Toutes les ventes de cette période sont en cours de vérification",
+      "unverified": "{count, plural, one {# vente est en cours de vérification et n'est pas encore comptée} other {# ventes sont en cours de vérification et ne sont pas encore comptées}}",
+      "lines": {
+        "cashStore": "Espèces encaissées en magasin",
+        "cashDelivery": "Espèces encaissées via la livraison",
+        "online": "Payé en ligne"
+      },
+      "commission": {
+        "accrued": "Commission enregistrée ({rate} %)",
+        "settled": "Réglée par des commandes de règlement"
+      },
+      "error": "Impossible de charger vos gains."
     }
   },
   "merchantSignup": {

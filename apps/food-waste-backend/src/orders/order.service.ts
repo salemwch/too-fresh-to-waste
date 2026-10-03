@@ -17,7 +17,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Queue } from 'bull';
-import { Model, Types, ClientSession, FlattenMaps, PipelineStage, isValidObjectId } from 'mongoose';
+import { Model, Types, ClientSession, FlattenMaps, PipelineStage } from 'mongoose';
 
 import { buildOrderCompletedEvent } from './utils/order-completed-event.util';
 import { EventBusService } from '../common/services/event-bus/event-bus.service';
@@ -28,29 +28,19 @@ import { perfLog, perfStart } from '../common/utils/perf-log.util';
 
 import {
   DEFAULT_DRIVER_SHARE,
-  MERCHANT_EARNINGS_EXPR,
   calculateDeliveryEconomics,
   calculateFoodRevenueSplit,
   calculateOrderPricing,
 } from './utils/order-pricing.util';
 import {
-  ORDER_ACCRUED_EXPR,
-  ORDER_MERCHANT_AMOUNT_EXPR,
-  ORDER_SETTLED_EXPR,
-  SALES_BUCKET_EXPR,
-  SALES_CHANNEL_EXPR,
-  TODAY_SOLD_STATUSES,
-  TODAY_TO_COLLECT_STATUSES,
-  summariseTodaySales,
-  type TodaySalesGroupRow,
-  type TodaySalesSummary,
-} from './utils/today-sales.util';
-import { TimezoneUtil } from '../common/utils/timezone.util';
-import {
   assertPaymentMatchesFulfilment,
   resolvePaymentControl,
 } from './utils/payment-control.util';
-import { ORDER_LIST_FIELDS, ORDER_DETAIL_FIELDS } from '../common/utils/query-optimization.util';
+import {
+  ORDER_LIST_FIELDS,
+  ORDER_DETAIL_FIELDS,
+  ORDER_COMMISSION_FIELD,
+} from '../common/utils/query-optimization.util';
 import { RegexSecurityUtil } from '../common/utils/regex-security.util';
 import {
   DELIVERY_ORDER_CREATED,
@@ -97,6 +87,30 @@ import { appError } from '../common/errors';
 export type OrderLean = FlattenMaps<Order> & { _id: unknown };
 
 // Core business interfaces for type safety
+/** Options for `OrdersService.findById`. */
+interface FindByIdOptions {
+  /**
+   * Loads `commission` (the merchant's frozen commission decision) alongside
+   * the default projection. Pass `true` only when the caller already knows
+   * the requester is MERCHANT, LOCATION_MANAGER or ADMIN - see
+   * `ORDER_COMMISSION_FIELD` and `canSeeCommission` below.
+   */
+  includeCommission?: boolean;
+}
+
+/**
+ * Whether `role` may see `order.commission` - the merchant's own commission
+ * ledger. MERCHANT and LOCATION_MANAGER see their own establishment's
+ * earnings; ADMIN sees everything. CONSUMER and DRIVER never do (global
+ * constraint: a customer or driver must never receive the merchant's private
+ * commission ledger).
+ */
+function canSeeCommission(role: UserRole | undefined): boolean {
+  return (
+    role === UserRole.MERCHANT || role === UserRole.LOCATION_MANAGER || role === UserRole.ADMIN
+  );
+}
+
 interface OrderQueryFilter {
   customerId?: Types.ObjectId;
   merchantId?: Types.ObjectId;
@@ -119,52 +133,13 @@ interface OrderSort {
 interface OrderStatsResult {
   _id: null;
   totalOrders: number;
-  totalRevenue: number;
-  totalEarnings: number;
-  totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
   readyOrders: number;
   completedOrders: number;
   cancelledOrders: number;
-  averageOrderValue: number;
   bagsSaved: number;
 }
-
-export type ChartGranularity = 'day' | 'week' | 'month';
-
-/** Module-level constant — shared by service methods (no heap allocation per call). */
-const CHART_MONTH_NAMES = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-] as const;
-
-export interface RevenueChartResponse {
-  label: string;
-  year: number;
-  month: number;
-  /** ISO week number — only set when granularity is 'week'. */
-  week?: number;
-  /** Day of month — only set when granularity is 'day'. */
-  day?: number;
-  revenue: number;
-  earnings: number;
-  orderCount: number;
-  bagCount: number;
-}
-
-/** @deprecated Renamed to RevenueChartResponse. Kept for import compatibility. */
-export type MonthlyRevenueResponse = RevenueChartResponse;
 
 export interface CustomerLocationResponse {
   city: string;
@@ -173,16 +148,11 @@ export interface CustomerLocationResponse {
 
 export interface OrderStatsResponse {
   totalOrders: number;
-  totalRevenue: number;
-  totalEarnings: number;
-  /** Retail value of food rescued (sum of items[].originalPrice * quantity for completed orders) */
-  totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
   readyOrders: number;
   completedOrders: number;
   cancelledOrders: number;
-  averageOrderValue: number;
   /** Sum of items[].quantity for picked_up orders (actual bag count, not order count) */
   bagsSaved: number;
 }
@@ -257,8 +227,6 @@ export class OrdersService {
     await Promise.all([
       this.cacheService.delByPrefix(`orders:stats:${merchantId}`),
       this.cacheService.delByPrefix(`orders:stats:${customerId}`),
-      this.cacheService.delByPrefix(`orders:chart:${merchantId}`),
-      this.cacheService.delByPrefix(`orders:chart:${customerId}`),
     ]);
   }
   async create(createOrderDto: CreateOrderDto, customerId: string): Promise<OrderDocument> {
@@ -720,7 +688,10 @@ export class OrdersService {
         pickupCode: order.pickupDetails.pickupCode,
       },
       customerName,
-      pricing: { total: order.pricing.total },
+      // Food price only - a merchant never sees delivery money (see
+      // orders/utils/merchant-order-view.ts). `pricing.total` includes the
+      // delivery fee and must never reach this payload.
+      pricing: { subtotal: order.pricing.subtotal },
     };
 
     // Build the full set of user IDs that should receive this notification.
@@ -829,9 +800,19 @@ export class OrdersService {
     );
   }
 
-  async findById(orderId: string, userId?: string, userRole?: UserRole): Promise<OrderDocument> {
+  async findById(
+    orderId: string,
+    userId?: string,
+    userRole?: UserRole,
+    options?: FindByIdOptions,
+  ): Promise<OrderDocument> {
     // ✅ PERFORMANCE: Single aggregation replaces findById + 4 populates (5 → 1 round-trip)
-    const detailFields = ORDER_DETAIL_FIELDS.split(' ');
+    // `commission` is never part of the shared projection - see
+    // ORDER_COMMISSION_FIELD. Only a caller that already knows the requester
+    // is MERCHANT, LOCATION_MANAGER or ADMIN may opt in.
+    const detailFields = options?.includeCommission
+      ? [...ORDER_DETAIL_FIELDS.split(' '), ORDER_COMMISSION_FIELD]
+      : ORDER_DETAIL_FIELDS.split(' ');
     const projectStage: Record<string, 1> = {};
     for (const field of detailFields) {
       projectStage[field] = 1;
@@ -1143,7 +1124,9 @@ export class OrdersService {
       order.customerId._id.toString(),
     );
 
-    return this.findById(updatedOrder._id.toString());
+    return this.findById(updatedOrder._id.toString(), undefined, undefined, {
+      includeCommission: canSeeCommission(userRole),
+    });
   }
 
   /** The only statuses `updateStatus` may write - the ones that move no money. */
@@ -1477,7 +1460,9 @@ export class OrdersService {
         );
       }
 
-      return this.findById(orderId);
+      return this.findById(orderId, undefined, undefined, {
+        includeCommission: canSeeCommission(userRole),
+      });
     } catch (error) {
       this.appLogger.error(
         `Failed to confirm pickup for order ${orderId}: ${(error as Error).message}`,
@@ -1562,7 +1547,9 @@ export class OrdersService {
           );
         });
         void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
-        return this.findById(orderId);
+        return this.findById(orderId, undefined, undefined, {
+          includeCommission: canSeeCommission(userRole),
+        });
       } finally {
         await session.endSession();
       }
@@ -1604,7 +1591,9 @@ export class OrdersService {
           );
         });
         void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
-        return this.findById(orderId);
+        return this.findById(orderId, undefined, undefined, {
+          includeCommission: canSeeCommission(userRole),
+        });
       } finally {
         await session.endSession();
       }
@@ -1683,7 +1672,9 @@ export class OrdersService {
         });
 
         void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
-        return this.findById(orderId);
+        return this.findById(orderId, undefined, undefined, {
+          includeCommission: canSeeCommission(userRole),
+        });
       } finally {
         await session.endSession();
       }
@@ -1715,7 +1706,9 @@ export class OrdersService {
     await this.autoUpdateOfferSoldOutStatus(releasedOffers as OfferDocument[]);
 
     void this.invalidateOrderCaches(cancelMerchantId, cancelCustomerId);
-    return this.findById(orderId);
+    return this.findById(orderId, undefined, undefined, {
+      includeCommission: canSeeCommission(userRole),
+    });
   }
 
   /**
@@ -1781,59 +1774,6 @@ export class OrdersService {
             $group: {
               _id: null,
               totalOrders: { $sum: 1 },
-              totalRevenue: {
-                $sum: {
-                  $cond: [
-                    {
-                      $in: [
-                        '$status',
-                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
-                      ],
-                    },
-                    '$pricing.total',
-                    0,
-                  ],
-                },
-              },
-              totalEarnings: {
-                $sum: {
-                  $cond: [
-                    {
-                      $in: [
-                        '$status',
-                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
-                      ],
-                    },
-                    MERCHANT_EARNINGS_EXPR,
-                    0,
-                  ],
-                },
-              },
-              totalOriginalValue: {
-                $sum: {
-                  $cond: [
-                    {
-                      $in: [
-                        '$status',
-                        [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
-                      ],
-                    },
-                    {
-                      $reduce: {
-                        input: '$items',
-                        initialValue: 0,
-                        in: {
-                          $add: [
-                            '$$value',
-                            { $multiply: ['$$this.originalPrice', '$$this.quantity'] },
-                          ],
-                        },
-                      },
-                    },
-                    0,
-                  ],
-                },
-              },
               pendingOrders: {
                 $sum: { $cond: [{ $eq: ['$status', OrderStatus.PENDING] }, 1, 0] },
               },
@@ -1860,7 +1800,6 @@ export class OrdersService {
               cancelledOrders: {
                 $sum: { $cond: [{ $eq: ['$status', OrderStatus.CANCELLED] }, 1, 0] },
               },
-              averageOrderValue: { $avg: '$pricing.total' },
               bagsSaved: {
                 $sum: {
                   $cond: [
@@ -1883,15 +1822,11 @@ export class OrdersService {
         return (
           result[0] ?? {
             totalOrders: 0,
-            totalRevenue: 0,
-            totalEarnings: 0,
-            totalOriginalValue: 0,
             pendingOrders: 0,
             confirmedOrders: 0,
             readyOrders: 0,
             completedOrders: 0,
             cancelledOrders: 0,
-            averageOrderValue: 0,
             bagsSaved: 0,
           }
         );
@@ -1899,292 +1834,6 @@ export class OrdersService {
       120,
     );
     return cached;
-  }
-
-  /**
-   * Today's sales for the merchant dashboard: cash and online together.
-   *
-   * "Today" is the merchant's calendar day in Africa/Tunis, by order creation.
-   * Offers are same-day and an order expires 30 minutes after its offer, so an
-   * order created today is sold, collected or lost today.
-   *
-   * Scoping mirrors `getOrderStats`: a merchant sees their own orders, narrowed
-   * to one establishment when given; a location manager sees only the
-   * establishment they are assigned to (resolved by the controller).
-   */
-  async getTodaySales(
-    userId: string,
-    userRole: UserRole,
-    establishmentId?: string,
-    now: Date = new Date(),
-  ): Promise<TodaySalesSummary> {
-    const date = now.toLocaleDateString('en-CA', { timeZone: 'Africa/Tunis' });
-
-    const match: Record<string, unknown> = {
-      createdAt: { $gte: TimezoneUtil.getStartOfDay(now), $lte: now },
-      status: { $in: [...TODAY_SOLD_STATUSES, ...TODAY_TO_COLLECT_STATUSES] },
-      isDeleted: { $ne: true },
-    };
-
-    if (userRole === UserRole.LOCATION_MANAGER) {
-      // No assignment means nothing to show - never fall through to "all".
-      if (!establishmentId || !isValidObjectId(establishmentId)) {
-        return summariseTodaySales([], date);
-      }
-      match['establishmentId'] = new Types.ObjectId(establishmentId);
-    } else {
-      match['merchantId'] = new Types.ObjectId(userId);
-      if (establishmentId) {
-        if (!isValidObjectId(establishmentId)) {
-          throw new BadRequestException(appError('INVALID_ID'));
-        }
-        match['establishmentId'] = new Types.ObjectId(establishmentId);
-      }
-    }
-
-    const rows = await this.orderModel.aggregate<TodaySalesGroupRow>([
-      { $match: match },
-      {
-        $group: {
-          _id: { bucket: SALES_BUCKET_EXPR, channel: SALES_CHANNEL_EXPR },
-          orders: { $sum: 1 },
-          sales: { $sum: { $ifNull: ['$pricing.subtotal', 0] } },
-          accrued: { $sum: ORDER_ACCRUED_EXPR },
-          settled: { $sum: ORDER_SETTLED_EXPR },
-          merchantAmount: { $sum: ORDER_MERCHANT_AMOUNT_EXPR },
-        },
-      },
-    ]);
-
-    return summariseTodaySales(rows, date);
-  }
-
-  /**
-   * Revenue chart aggregation for the merchant dashboard.
-   *
-   * Supports three granularities:
-   *  - 'day'   → `value` = number of days  (max 90)
-   *  - 'week'  → `value` = number of weeks (max 52)
-   *  - 'month' → `value` = number of months (max 24)
-   *
-   * Every slot in the returned array is guaranteed to be present, even if
-   * revenue is 0 (gap-filled), so the chart always shows a complete axis.
-   */
-  async getRevenueChart(
-    userId: string,
-    userRole: UserRole,
-    granularity: ChartGranularity,
-    value: number,
-    establishmentId?: string,
-  ): Promise<RevenueChartResponse[]> {
-    let matchCondition: Record<string, unknown>;
-
-    if (userRole === UserRole.MERCHANT) {
-      matchCondition = { merchantId: new Types.ObjectId(userId) };
-      if (establishmentId) {
-        matchCondition['establishmentId'] = new Types.ObjectId(establishmentId);
-      }
-    } else if (userRole === UserRole.LOCATION_MANAGER && establishmentId) {
-      matchCondition = { establishmentId: new Types.ObjectId(establishmentId) };
-    } else {
-      matchCondition = {};
-    }
-
-    const now = new Date();
-    let startDate: Date;
-    let groupId: Record<string, unknown>;
-    let sortStage: Record<string, 1 | -1>;
-
-    switch (granularity) {
-      case 'day': {
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - (value - 1));
-        startDate.setHours(0, 0, 0, 0);
-        groupId = {
-          year: { $year: '$createdAt' },
-          month: { $month: '$createdAt' },
-          day: { $dayOfMonth: '$createdAt' },
-        };
-        sortStage = { '_id.year': 1, '_id.month': 1, '_id.day': 1 };
-        break;
-      }
-      case 'week': {
-        // Align to the Monday of the current week, then go back (value-1) weeks.
-        const dow = now.getDay() || 7; // 1 = Mon … 7 = Sun
-        const thisMonday = new Date(now);
-        thisMonday.setDate(now.getDate() - dow + 1);
-        thisMonday.setHours(0, 0, 0, 0);
-        startDate = new Date(thisMonday);
-        startDate.setDate(thisMonday.getDate() - (value - 1) * 7);
-        groupId = {
-          isoWeekYear: { $isoWeekYear: '$createdAt' },
-          week: { $isoWeek: '$createdAt' },
-        };
-        sortStage = { '_id.isoWeekYear': 1, '_id.week': 1 };
-        break;
-      }
-      case 'month':
-      default: {
-        startDate = new Date(now);
-        startDate.setMonth(now.getMonth() - (value - 1));
-        startDate.setDate(1);
-        startDate.setHours(0, 0, 0, 0);
-        groupId = {
-          year: { $year: '$createdAt' },
-          month: { $month: '$createdAt' },
-        };
-        sortStage = { '_id.year': 1, '_id.month': 1 };
-        break;
-      }
-    }
-
-    const cacheKey = `orders:chart:${userId}:${granularity}:${value}:${establishmentId ?? 'all'}`;
-
-    const cached = await this.cacheService.getOrSet<RevenueChartResponse[]>(
-      cacheKey,
-      async () => {
-        const pipeline: PipelineStage[] = [
-          {
-            $match: {
-              ...matchCondition,
-              status: {
-                $in: [OrderStatus.PICKED_UP, OrderStatus.COMPLETED, OrderStatus.DELIVERED],
-              },
-              createdAt: { $gte: startDate },
-            },
-          },
-          {
-            $group: {
-              _id: groupId,
-              revenue: { $sum: '$pricing.total' },
-              earnings: { $sum: MERCHANT_EARNINGS_EXPR },
-              orderCount: { $sum: 1 },
-              bagCount: { $sum: { $sum: '$items.quantity' } },
-            },
-          },
-          { $sort: sortStage },
-        ];
-
-        const results = await this.orderModel.aggregate<{
-          _id: Record<string, number>;
-          revenue: number;
-          earnings: number;
-          orderCount: number;
-          bagCount: number;
-        }>(pipeline);
-
-        return this.fillChartGaps(granularity, value, now, results);
-      },
-      120,
-    );
-    return cached;
-  }
-
-  /**
-   * Returns ISO week number and year (ISO 8601) for the given date.
-   * The ISO week containing January 4th is always week 1 of the year.
-   */
-  private getIsoWeek(d: Date): { isoWeekYear: number; isoWeek: number } {
-    const utc = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    const dow = utc.getUTCDay() || 7; // 1 = Mon … 7 = Sun
-    utc.setUTCDate(utc.getUTCDate() + 4 - dow); // move to Thursday (defines ISO week year)
-    const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
-    const isoWeek = Math.ceil(((utc.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
-    return { isoWeekYear: utc.getUTCFullYear(), isoWeek };
-  }
-
-  /**
-   * Builds a fully-gapless array of `RevenueChartResponse` entries.
-   * Missing slots (no orders in that period) are emitted with revenue = 0.
-   */
-  private fillChartGaps(
-    granularity: ChartGranularity,
-    value: number,
-    now: Date,
-    results: Array<{
-      _id: Record<string, number>;
-      revenue: number;
-      earnings: number;
-      orderCount: number;
-      bagCount: number;
-    }>,
-  ): RevenueChartResponse[] {
-    const output: RevenueChartResponse[] = [];
-
-    switch (granularity) {
-      case 'day': {
-        for (let i = value - 1; i >= 0; i--) {
-          const d = new Date(now);
-          d.setDate(now.getDate() - i);
-          const year = d.getFullYear();
-          const month = d.getMonth() + 1; // 1-indexed
-          const day = d.getDate();
-          const found = results.find(
-            r => r._id['year'] === year && r._id['month'] === month && r._id['day'] === day,
-          );
-          output.push({
-            label: `${day} ${CHART_MONTH_NAMES[month - 1]}`,
-            year,
-            month,
-            day,
-            revenue: found?.revenue ?? 0,
-            earnings: found?.earnings ?? 0,
-            orderCount: found?.orderCount ?? 0,
-            bagCount: found?.bagCount ?? 0,
-          });
-        }
-        break;
-      }
-      case 'week': {
-        const dow = now.getDay() || 7;
-        const thisMonday = new Date(now);
-        thisMonday.setDate(now.getDate() - dow + 1);
-        thisMonday.setHours(0, 0, 0, 0);
-
-        for (let i = value - 1; i >= 0; i--) {
-          const monday = new Date(thisMonday);
-          monday.setDate(thisMonday.getDate() - i * 7);
-          const { isoWeekYear, isoWeek } = this.getIsoWeek(monday);
-          const month = monday.getMonth() + 1;
-          const found = results.find(
-            r => r._id['isoWeekYear'] === isoWeekYear && r._id['week'] === isoWeek,
-          );
-          output.push({
-            // Label = Monday's date — e.g. "17 Feb"
-            label: `${monday.getDate()} ${CHART_MONTH_NAMES[monday.getMonth()]}`,
-            year: isoWeekYear,
-            month,
-            week: isoWeek,
-            revenue: found?.revenue ?? 0,
-            earnings: found?.earnings ?? 0,
-            orderCount: found?.orderCount ?? 0,
-            bagCount: found?.bagCount ?? 0,
-          });
-        }
-        break;
-      }
-      case 'month':
-      default: {
-        for (let i = value - 1; i >= 0; i--) {
-          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          const year = d.getFullYear();
-          const month = d.getMonth() + 1;
-          const found = results.find(r => r._id['year'] === year && r._id['month'] === month);
-          output.push({
-            label: CHART_MONTH_NAMES[month - 1] ?? d.toLocaleString('en-US', { month: 'short' }),
-            year,
-            month,
-            revenue: found?.revenue ?? 0,
-            earnings: found?.earnings ?? 0,
-            orderCount: found?.orderCount ?? 0,
-            bagCount: found?.bagCount ?? 0,
-          });
-        }
-        break;
-      }
-    }
-
-    return output;
   }
 
   /**
@@ -2739,9 +2388,16 @@ export class OrdersService {
    *
    * @param orderId - Order ID to unlock
    * @param unlockedBy - User ID of admin/merchant unlocking
+   * @param unlockerRole - Role of the caller, used only to decide whether the
+   *   re-read order includes `commission` (see `canSeeCommission`). The
+   *   route itself is already guarded to MERCHANT / ADMIN / LOCATION_MANAGER.
    * @returns Updated order
    */
-  async unlockPickup(orderId: string, unlockedBy: string): Promise<OrderDocument> {
+  async unlockPickup(
+    orderId: string,
+    unlockedBy: string,
+    unlockerRole?: UserRole,
+  ): Promise<OrderDocument> {
     const order = await this.orderModel.findById(orderId);
 
     if (!order) {
@@ -2775,7 +2431,9 @@ export class OrdersService {
       'OrderService.PickupSecurity',
     );
 
-    return this.findById(orderId);
+    return this.findById(orderId, undefined, undefined, {
+      includeCommission: canSeeCommission(unlockerRole),
+    });
   }
 
   // =============================================================================
@@ -2841,13 +2499,11 @@ export class OrdersService {
       // Redis outage is logged rather than swallowed by the global
       // unhandledRejection handler in main.ts.
       Promise.all(
-        [
-          `orders:stats:${userId}`,
-          `orders:chart:${userId}`,
-          ...merchantIds.flatMap(mid => [`orders:stats:${mid}`, `orders:chart:${mid}`]),
-        ].map(async prefix => {
-          await this.cacheService.delByPrefix(prefix);
-        }),
+        [`orders:stats:${userId}`, ...merchantIds.map(mid => `orders:stats:${mid}`)].map(
+          async prefix => {
+            await this.cacheService.delByPrefix(prefix);
+          },
+        ),
       ).catch((err: unknown) => {
         this.appLogger.error(
           `Cache invalidation failed after cancelling orders for user ${userId}: ${String(err)}`,

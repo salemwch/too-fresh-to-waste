@@ -7,8 +7,6 @@ import type {
   BusinessMetricsRequest,
   QuickStatsResponse,
   MerchantOffer,
-  RevenueChartItem,
-  ChartGranularity,
   MyEstablishment,
   CreateSurpriseBagPayload,
   CreatedOfferResponse,
@@ -28,9 +26,9 @@ import type {
   PricingSuggestions,
   MerchantWallet,
   MerchantCommissionStatement,
-  TodaySales,
   FundLedgerResponse,
 } from '@/types/dashboard';
+import type { MerchantSalesChart, MerchantSalesSummary, SalesPeriod } from '@/types/payments';
 
 const ORDERS_BASE = '/orders';
 const OFFERS_BASE = '/offers';
@@ -43,24 +41,31 @@ const LEADERBOARD_BASE = '/leaderboard';
 const PAYMENTS_BASE = '/payments';
 
 export const dashboardService = {
-  /**
-   * GET /orders/stats?startDate=
-   * Merchant/Admin order statistics (totals, breakdown by status, revenue)
-   * Pass startDate to restrict results to a specific time window.
-   */
-  /** GET /orders/merchant-today-sales?establishmentId= - cash and online together. */
-  getTodaySales(establishmentId?: string) {
-    return apiClient.get<BackendEnvelope<TodaySales>>(`${ORDERS_BASE}/merchant-today-sales`, {
-      params: {
-        ...(establishmentId ? { establishmentId } : {}),
+  /** GET /orders/merchant-sales-summary?period=&establishmentId= */
+  getSalesSummary(period: SalesPeriod, establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<MerchantSalesSummary>>(
+      `${ORDERS_BASE}/merchant-sales-summary`,
+      {
+        params: { period, ...(establishmentId ? { establishmentId } : {}) },
       },
-    });
+    );
   },
 
-  getOrderStats(startDate?: Date, establishmentId?: string) {
+  /** GET /orders/merchant-sales-chart?period=&establishmentId= */
+  getSalesChart(period: SalesPeriod, establishmentId?: string) {
+    return apiClient.get<BackendEnvelope<MerchantSalesChart>>(
+      `${ORDERS_BASE}/merchant-sales-chart`,
+      {
+        params: { period, ...(establishmentId ? { establishmentId } : {}) },
+      },
+    );
+  },
+
+  /** GET /orders/stats?period= - resolved server-side in Africa/Tunis. */
+  getOrderStats(period?: SalesPeriod, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<OrderStatsResponse>>(`${ORDERS_BASE}/stats`, {
       params: {
-        ...(startDate ? { startDate: startDate.toISOString() } : {}),
+        ...(period ? { period } : {}),
         ...(establishmentId ? { establishmentId } : {}),
       },
     });
@@ -132,23 +137,6 @@ export const dashboardService = {
     return apiClient.get<BackendEnvelope<QuickStatsResponse>>(`${ANALYTICS_BASE}/quick-stats`, {
       params: { period },
     });
-  },
-
-  /**
-   * GET /orders/merchant-revenue-chart?granularity=&value=
-   * Revenue breakdown per day / week / month for the merchant chart.
-   */
-  getRevenueChart(granularity: ChartGranularity, value: number, establishmentId?: string) {
-    return apiClient.get<BackendEnvelope<RevenueChartItem[]>>(
-      `${ORDERS_BASE}/merchant-revenue-chart`,
-      {
-        params: {
-          granularity,
-          value,
-          ...(establishmentId ? { establishmentId } : {}),
-        },
-      },
-    );
   },
 
   /**
@@ -405,11 +393,13 @@ export const dashboardService = {
     );
   },
 
-  getCarbonMetrics(since?: string, establishmentId?: string) {
+  /** GET /sustainability/carbon-metrics?period=&since= - `period` wins when both are sent. */
+  getCarbonMetrics(period?: SalesPeriod, since?: string, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<CarbonMetricsResponse>>(
       `${SUSTAINABILITY_BASE}/carbon-metrics`,
       {
         params: {
+          ...(period ? { period } : {}),
           ...(since ? { since } : {}),
           ...(establishmentId ? { establishmentId } : {}),
         },
@@ -417,11 +407,13 @@ export const dashboardService = {
     );
   },
 
-  getSocialImpact(since?: string, establishmentId?: string) {
+  /** GET /sustainability/social-impact?period=&since= - `period` wins when both are sent. */
+  getSocialImpact(period?: SalesPeriod, since?: string, establishmentId?: string) {
     return apiClient.get<BackendEnvelope<SocialImpactResponse>>(
       `${SUSTAINABILITY_BASE}/social-impact`,
       {
         params: {
+          ...(period ? { period } : {}),
           ...(since ? { since } : {}),
           ...(establishmentId ? { establishmentId } : {}),
         },

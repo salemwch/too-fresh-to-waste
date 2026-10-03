@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useLocale } from 'next-intl';
+
 import { useAuthStore } from '@/lib/auth';
 import {
   SurpriseBagPanel,
@@ -9,41 +11,31 @@ import {
   ImpactCardsSkeleton,
   TrendChart,
   TrendChartSkeleton,
+  TrendChartError,
   CampaignSidePanel,
   ReportingBar,
   StreakWidget,
   SmartPricingPanel,
-  TodaySalesCard,
-  WalletBalanceCard,
+  EarningsCard,
   FundLedgerCard,
-  CommissionCard,
+  PeriodBar,
 } from '@/components/dashboard/merchant';
-import { useOrderStats, useRevenueChart, useMyEstablishment } from '@/hooks/use-merchant-dashboard';
-import { type DatePreset, PRESET_CONFIG } from '@/types/dashboard';
+import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
+import { useSalesChart } from '@/hooks/use-merchant-sales';
+import { useSalesPeriod } from '@/hooks/use-sales-period';
+import type { MerchantSalesChart } from '@/types/payments';
 
-export default function MerchantDashboardPage() {
+/** Stable identity - `chartQuery.data?.slots ?? []` would allocate a new array every render. */
+const EMPTY_SLOTS = Object.freeze([]) as unknown as MerchantSalesChart['slots'];
+
+function MerchantDashboardContent() {
   useAuthStore(state => state.user); // subscribe so re-renders on user change
+  const locale = useLocale();
 
   const [panelOpen, setPanelOpen] = useState(false);
-  const [datePreset, setDatePreset] = useState<DatePreset>('7d');
+  const [period, setPeriod] = useSalesPeriod();
 
-  const { granularity, value } = PRESET_CONFIG[datePreset];
-
-  const startDate = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    if (granularity === 'month') {
-      d.setMonth(d.getMonth() - value);
-      d.setDate(1);
-    } else {
-      const days = granularity === 'week' ? value * 7 : value;
-      d.setDate(d.getDate() - days);
-    }
-    return d;
-  }, [granularity, value]);
-
-  const orderStatsQuery = useOrderStats(startDate);
-  const revenueQuery = useRevenueChart(granularity, value);
+  const chartQuery = useSalesChart(period);
   const myEstablishmentQuery = useMyEstablishment();
 
   const isTrialSuspended = myEstablishmentQuery.data?.subscriptionStatus === 'suspended';
@@ -56,24 +48,19 @@ export default function MerchantDashboardPage() {
       {/* ── Welcome header: greeting + ESG badge + goal progress ── */}
       <DashboardWelcomeHeader establishment={myEstablishmentQuery.data} />
 
+      {/* ── One period bar; every period-based figure below follows it ── */}
+      <PeriodBar value={period} onChange={setPeriod} />
+
       {/* ── Daily listing streak ── */}
       <StreakWidget onListOffer={() => setPanelOpen(true)} disabled={isTrialSuspended} />
 
-      {/* ── Today: every sale, cash and online together ── */}
-      <TodaySalesCard />
+      {/* ── Earnings for the period. The commission statement moved to the
+          Payments page as a live settlement-balance card - task-17 B1
+          (.claude/work/merchant-earnings.md Decisions, 2026-09-26). ── */}
+      <EarningsCard period={period} />
 
-      {/* ── Payout balance + commission statement ── */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-[24px]'>
-        <WalletBalanceCard />
-        <CommissionCard />
-      </div>
-
-      {/* ── Impact KPI cards ── */}
-      {orderStatsQuery.isLoading ? (
-        <ImpactCardsSkeleton />
-      ) : (
-        <ImpactCards stats={orderStatsQuery.data} />
-      )}
+      {/* ── Impact KPI cards - owns its own queries, all scoped to `period` ── */}
+      <ImpactCards period={period} />
 
       {/* ── Community fund ledger ── */}
       <FundLedgerCard />
@@ -81,18 +68,19 @@ export default function MerchantDashboardPage() {
       {/* ── Trend chart + Campaign side panel ── */}
       <div className='grid grid-cols-1 xl:grid-cols-3 gap-[24px]'>
         <div className='xl:col-span-2'>
-          {revenueQuery.isLoading ? (
+          {chartQuery.isLoading ? (
             <TrendChartSkeleton />
+          ) : chartQuery.isError ? (
+            <TrendChartError />
           ) : (
             <TrendChart
-              data={revenueQuery.data ?? []}
-              datePreset={datePreset}
-              onDatePresetChange={setDatePreset}
+              slots={chartQuery.data?.slots ?? EMPTY_SLOTS}
+              granularity={chartQuery.data?.granularity ?? 'day'}
+              locale={locale}
             />
           )}
         </div>
         <CampaignSidePanel
-          stats={orderStatsQuery.data}
           onLaunchCampaign={() => setPanelOpen(true)}
           isTrialSuspended={isTrialSuspended}
         />
@@ -104,5 +92,25 @@ export default function MerchantDashboardPage() {
       {/* ── PDF carbon report bar ── */}
       <ReportingBar />
     </div>
+  );
+}
+
+function MerchantDashboardSkeleton() {
+  return (
+    <div className='space-y-[32px]'>
+      <div className='glass rounded-2xl shadow-soft h-[96px] animate-pulse bg-white/30' />
+      <div className='glass rounded-2xl shadow-soft h-[320px] animate-pulse bg-white/30' />
+      <ImpactCardsSkeleton />
+      <TrendChartSkeleton />
+    </div>
+  );
+}
+
+// Suspense boundary: useSalesPeriod reads useSearchParams.
+export default function MerchantDashboardPage() {
+  return (
+    <Suspense fallback={<MerchantDashboardSkeleton />}>
+      <MerchantDashboardContent />
+    </Suspense>
   );
 }

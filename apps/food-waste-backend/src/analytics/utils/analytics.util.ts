@@ -163,7 +163,14 @@ export class AnalyticsUtil {
   }
 
   /**
-   * Generate date range for comparison period
+   * Generate date range for comparison period.
+   *
+   * Half-open at the shared boundary: the current period's match is inclusive
+   * at both ends (`$gte`/`$lte` in `merchant-sales.expressions.ts`), so ending
+   * the comparison window at exactly `start` let an order at that instant
+   * satisfy both windows' `$lte`/`$gte` and be counted in both the current and
+   * the previous period's earnings. Ending it 1ms earlier makes the two
+   * windows disjoint.
    */
   static getComparisonDateRange(dateRange: TimeRange, _granularity: DateGranularity): TimeRange {
     const start = new Date(dateRange.startDate);
@@ -172,7 +179,7 @@ export class AnalyticsUtil {
 
     return {
       startDate: new Date(start.getTime() - duration),
-      endDate: new Date(start.getTime()),
+      endDate: new Date(start.getTime() - 1),
     };
   }
 
@@ -515,9 +522,24 @@ export class AnalyticsUtil {
   }
 
   /**
-   * Validate analytics filters
+   * Validate analytics filters.
+   *
+   * `skipMaxRangeCheck` and `allowZeroWidthRange` both exist for exactly one
+   * caller: a `dateRange` the *server* resolved from a merchant-facing
+   * `period` (e.g. `all`, which spans `[epoch, now]`; `today` requested at
+   * exactly Tunis midnight, where `from` and `to` are the same instant)
+   * rather than one the client supplied directly. Neither check is meant to
+   * reject a range the server itself produced. Both flags are carried on an
+   * internal request shape (`resolvedFromPeriod` on
+   * `BusinessMetricsRequestDto & ResolvedPeriodFlag`, never a DTO field), so a
+   * client can never set them - every other check, including both for an
+   * actual custom `dateRange` (over 2 years, or genuinely reversed/zero-width
+   * dates the client typed), still applies.
    */
-  static validateAnalyticsFilters(filters: Partial<AnalyticsFilters>): string[] {
+  static validateAnalyticsFilters(
+    filters: Partial<AnalyticsFilters>,
+    options: { skipMaxRangeCheck?: boolean; allowZeroWidthRange?: boolean } = {},
+  ): string[] {
     const errors: string[] = [];
 
     if (!filters.dateRange) {
@@ -525,14 +547,16 @@ export class AnalyticsUtil {
     } else {
       const start = new Date(filters.dateRange.startDate);
       const end = new Date(filters.dateRange.endDate);
+      const isReversed = start.getTime() > end.getTime();
+      const isZeroWidth = start.getTime() === end.getTime();
 
-      if (start >= end) {
+      if (isReversed || (isZeroWidth && !options.allowZeroWidthRange)) {
         errors.push('Start date must be before end date');
       }
 
-      // Limit to 2 years max
+      // Limit to 2 years max - skipped only for a server-resolved period.
       const maxRange = 2 * 365 * 24 * 60 * 60 * 1000; // 2 years in ms
-      if (end.getTime() - start.getTime() > maxRange) {
+      if (!options.skipMaxRangeCheck && end.getTime() - start.getTime() > maxRange) {
         errors.push('Date range cannot exceed 2 years');
       }
     }

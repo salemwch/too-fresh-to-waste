@@ -1,44 +1,4 @@
-// ─── Chart granularity ───────────────────────────────────────────────────────
-
-export type ChartGranularity = 'day' | 'week' | 'month';
-
-// ─── Date filter ────────────────────────────────────────────────────────────
-
-/** All available time-window presets for the dashboard date filter. */
-export type DatePreset =
-  | '7d'
-  | '14d'
-  | '30d' // daily granularity
-  | '4w'
-  | '8w'
-  | '12w' // weekly granularity
-  | '3m'
-  | '6m'
-  | '9m'
-  | '12m'; // monthly granularity
-
-interface PresetConfig {
-  /** Aggregation granularity sent to the backend. */
-  granularity: ChartGranularity;
-  /** Number of slots (days / weeks / months). */
-  value: number;
-  /** Short label shown on the filter button. */
-  label: string;
-}
-
-/** Single source of truth for all preset metadata. */
-export const PRESET_CONFIG: Record<DatePreset, PresetConfig> = {
-  '7d': { granularity: 'day', value: 7, label: '7D' },
-  '14d': { granularity: 'day', value: 14, label: '14D' },
-  '30d': { granularity: 'day', value: 30, label: '30D' },
-  '4w': { granularity: 'week', value: 4, label: '4W' },
-  '8w': { granularity: 'week', value: 8, label: '8W' },
-  '12w': { granularity: 'week', value: 12, label: '12W' },
-  '3m': { granularity: 'month', value: 3, label: '3M' },
-  '6m': { granularity: 'month', value: 6, label: '6M' },
-  '9m': { granularity: 'month', value: 9, label: '9M' },
-  '12m': { granularity: 'month', value: 12, label: '1Y' },
-};
+import type { SalesPeriod } from '@/types/payments';
 
 // ─── Backend response envelope ──────────────────────────────────────────────
 // The TransformInterceptor wraps all responses in { status, message?, data, meta?, timestamp }
@@ -63,50 +23,22 @@ export interface PaginationMeta {
 // ─── Order Stats ────────────────────────────────────────────────────────────
 
 /**
- * GET /orders/merchant-today-sales - today (Africa/Tunis) across both ways a
- * customer pays. Mirrors `TodaySalesSummary` in the backend's
- * `orders/utils/today-sales.util.ts`; every money figure comes from each
- * order's frozen commission decision, never a recomputed 19%.
+ * Mirrors `OrdersService.getOrderStats`'s `OrderStatsResponse` (backend).
+ * `totalRevenue` (summed `pricing.total`, food plus delivery - which a
+ * merchant never receives), `totalEarnings` (duplicated the shared earnings
+ * calculation) and `totalOriginalValue` (no reader left) were removed from
+ * the backend response in Task 16; `averageOrderValue` (also
+ * `$avg: 'pricing.total'`, the same customer-total figure) was removed in
+ * Task 16's fix round 1. See `.claude/work/merchant-earnings.md` for the
+ * decision record.
  */
-export interface TodaySalesChannel {
-  orders: number;
-  /** Food sold, delivery fee excluded. */
-  sales: number;
-}
-
-export interface TodaySales {
-  /** YYYY-MM-DD, the merchant's day in Africa/Tunis. */
-  date: string;
-  currency: string;
-  rate: number;
-  cash: TodaySalesChannel;
-  online: TodaySalesChannel;
-  total: TodaySalesChannel & {
-    /** Commission recorded today: 19% of today's NORMAL sales. */
-    commission: number;
-    /** Commission balance paid off today by SETTLEMENT sales. */
-    settled: number;
-    /** What the merchant was paid for today's sales. */
-    received: number;
-    /** received - commission: today's profit. */
-    kept: number;
-  };
-  /** Reserved today, not collected yet. */
-  toCollect: TodaySalesChannel;
-}
-
 export interface OrderStatsResponse {
   totalOrders: number;
-  totalRevenue: number;
-  totalEarnings: number;
-  /** Retail value of food rescued (sum of originalPrice * quantity for completed orders) */
-  totalOriginalValue: number;
   pendingOrders: number;
   confirmedOrders: number;
   readyOrders: number;
   completedOrders: number;
   cancelledOrders: number;
-  averageOrderValue: number;
   /** Sum of items[].quantity for picked_up orders (actual bag count) */
   bagsSaved: number;
 }
@@ -148,13 +80,16 @@ interface OrderItem {
   discountAmount: number;
 }
 
+/**
+ * A merchant never receives delivery money: the backend strips
+ * `deliveryFee` and `total` from every merchant/location-manager order
+ * response (`orders/utils/merchant-order-view.ts`). `subtotal` is the food
+ * price after the offer discount - the figure this app may show.
+ */
 interface OrderPricing {
   subtotal: number;
   discountAmount: number;
   taxAmount: number;
-  /** Delivery fee in TND. 0 for pickup. Included in `total`. */
-  deliveryFee: number;
-  total: number;
   currency: string;
 }
 
@@ -188,10 +123,19 @@ export type OrderStatus =
   | 'expired'
   | 'refunded';
 
+/** `amount` (what the customer paid, food + delivery) is stripped for merchant/LM. */
 interface OrderPaymentDetails {
   method: 'cash' | 'online' | 'pay_on_delivery';
-  amount: number;
   currency: string;
+}
+
+/**
+ * The merchant's own frozen commission decision. Absent until pickup is
+ * confirmed - `order.commission` is written by `CommissionService` at that
+ * point, never before. Never delivery money.
+ */
+export interface OrderCommission {
+  merchantAmount: number;
 }
 
 export interface MerchantOrder {
@@ -204,6 +148,19 @@ export interface MerchantOrder {
   establishmentId: PopulatedEstablishment | string;
   items: OrderItem[];
   pricing: OrderPricing;
+  /** Present only after pickup is confirmed. */
+  commission?: OrderCommission;
+  /**
+   * "Your earnings" (A2) - the same three-case calculation as the
+   * Dashboard/Payments, built server-side by `orderEarningsFor`. Absent
+   * entirely until the order has a commission moment (not yet picked up /
+   * collected). `amount` is `null` for a REFUNDED order or a post-cutoff
+   * order still awaiting its decision (`verifying: true`). Prefer this over
+   * `commission.merchantAmount` for the order-detail "Your earnings" row -
+   * `commission` alone cannot distinguish "not yet decided" from "nothing
+   * owed".
+   */
+  earnings?: { amount: number | null; verifying: boolean };
   pickupDetails: {
     timeSlot?: string;
     scheduledDate?: string;
@@ -225,10 +182,16 @@ interface MetricValue {
 }
 
 export interface BusinessMetrics {
-  totalRevenue: MetricValue;
   totalEarnings: MetricValue;
   totalOrders: MetricValue;
-  averageOrderValue: MetricValue;
+  /**
+   * Food price after the offer discount, per completed order, over the same
+   * Earnings population as `totalEarnings`. Never the customer total - a
+   * merchant never sees delivery money. Replaces the old `averageOrderValue`
+   * (built from `pricing.total`, food plus delivery) and `totalRevenue`,
+   * which are both gone from the response.
+   */
+  averageFoodValue: MetricValue;
   conversionRate: MetricValue;
   customerAcquisitionCost: MetricValue;
   customerLifetimeValue: MetricValue;
@@ -251,6 +214,13 @@ export interface BusinessMetricsRequest {
     categories?: string[];
     establishmentIds?: string[];
   };
+  /**
+   * The same five periods as the Dashboard and Payments, resolved
+   * server-side (Africa/Tunis) - overrides `filters.dateRange` when present.
+   * `filters.dateRange` stays required for backward compatibility, but is
+   * ignored once `period` is set.
+   */
+  period?: SalesPeriod;
   includeSustainability?: boolean;
   options?: {
     includeComparisons?: boolean;
@@ -260,31 +230,16 @@ export interface BusinessMetricsRequest {
 // ─── Quick Stats ────────────────────────────────────────────────────────────
 
 export interface QuickStatsResponse {
+  /** Merchant earnings (food only) - never the customer total. */
   revenue: number;
   orders: number;
-  averageOrderValue: number;
+  averageFoodValue: number;
   sustainability: {
     foodSaved: number;
     carbonReduced: number;
   };
   period: string;
   generatedAt: string;
-}
-
-// ─── Revenue Chart ───────────────────────────────────────────────────────────
-
-export interface RevenueChartItem {
-  label: string;
-  year: number;
-  month: number;
-  /** ISO week number — only present when granularity is 'week'. */
-  week?: number;
-  /** Day of month — only present when granularity is 'day'. */
-  day?: number;
-  revenue: number;
-  earnings: number;
-  orderCount: number;
-  bagCount: number;
 }
 
 // ─── Merchant Wallet ──────────────────────────────────────────────────────
@@ -652,10 +607,6 @@ export interface CustomerLocationItem {
   count: number;
   percentage?: number;
 }
-
-// ─── Analytics Period ────────────────────────────────────────────────────────
-
-export type AnalyticsPeriod = 'today' | '7d' | '30d' | '90d' | 'custom';
 
 // ─── Smart Pricing Suggestions ──────────────────────────────────────────────
 

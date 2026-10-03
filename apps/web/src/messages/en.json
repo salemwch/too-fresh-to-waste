@@ -719,11 +719,6 @@
     "analytics": {
       "title": "Analytics",
       "subtitle": "Track your business performance",
-      "periodToday": "Today",
-      "period7d": "7 Days",
-      "period30d": "30 Days",
-      "period90d": "90 Days",
-      "periodCustom": "Custom",
       "tabs": {
         "overview": "Overview",
         "customers": "Customers",
@@ -732,22 +727,10 @@
       "kpi": {
         "revenue": "My Earnings",
         "totalOrders": "Total Orders",
-        "avgOrderValue": "Avg. Order Value",
+        "avgFoodValue": "Average food value per completed order",
         "conversionRate": "Conversion Rate",
         "foodSaved": "Food Saved",
         "co2Avoided": "CO₂ Avoided"
-      },
-      "revenueChart": {
-        "title": "Earnings Trend",
-        "subtitle": "Your earnings over time",
-        "tooltip": {
-          "revenue": "Earnings",
-          "orders": "Orders"
-        }
-      },
-      "ordersChart": {
-        "title": "Order Volume",
-        "subtitle": "Orders over time"
       },
       "customerLocations": {
         "title": "Customer Locations",
@@ -930,59 +913,33 @@
     "payments": {
       "title": "Payments",
       "subtitle": "Track revenue and payment status",
-      "tndCurrency": "TND",
+      "held": {
+        "title": "Money TFTW currently holds",
+        "available": "Available for payout",
+        "pending": "Awaiting pickup",
+        "note": "Your balance right now. It does not change with the period above.",
+        "error": "Could not load the balance TFTW holds."
+      },
+      "settlement": {
+        "title": "Covered by your next orders",
+        "body": "TFTW's share from your completed sales. It is taken from upcoming eligible orders - you never pay us directly.",
+        "byLocation": "By location",
+        "error": "Could not load your settlement balance."
+      },
       "stats": {
-        "totalCollected": "Total Collected",
-        "completedOrders": "Completed",
-        "pendingCollection": "Pending",
-        "todayRevenue": "Avg / Order",
-        "totalRevenue": "Total Revenue",
-        "totalTransactions": "Transactions",
-        "avgOrderValue": "Avg. Order Value",
-        "completed": "Completed",
-        "pending": "Pending",
-        "failed": "Failed"
+        "totalEarned": "Total earned",
+        "orders": "Orders"
       },
-      "filters": {
-        "allStatuses": "All Statuses",
-        "collected": "Collected",
-        "completed": "Completed",
-        "pending": "Pending",
-        "failed": "Failed",
+      "tabs": {
+        "earnings": "Earnings",
         "refunded": "Refunded",
-        "dateRange": "Date Range",
-        "today": "Today",
-        "thisWeek": "This Week",
-        "thisMonth": "This Month",
-        "fromDate": "From",
-        "toDate": "To"
+        "verifying": "Being verified"
       },
-      "status": {
-        "completed": "Completed",
-        "pending": "Pending",
-        "processing": "Processing",
-        "failed": "Failed",
-        "refunded": "Refunded",
-        "cancelled": "Cancelled"
-      },
-      "table": {
-        "order": "Order",
-        "customer": "Customer",
-        "amount": "Amount",
-        "method": "Method",
-        "status": "Status",
-        "date": "Date"
-      },
-      "methods": {
-        "cash": "Cash",
-        "cash_on_pickup": "Cash on Pickup",
-        "card": "Card",
-        "smt_gateway": "Online",
-        "wallet": "Wallet"
-      },
+      "verifyingNote": "This sale is being verified and is not included yet.",
       "empty": {
-        "title": "No payments yet",
-        "description": "Payment records will appear here as orders are completed."
+        "earnings": "No sales in this period yet.",
+        "refunded": "No refunded sales in this period.",
+        "verifying": "No sales are being verified."
       },
       "error": "Failed to load payments. Please try again.",
       "loadMore": "Load more"
@@ -1972,11 +1929,11 @@
       "customer": "Customer",
       "items": "Items",
       "quantity": "{count}x",
-      "subtotal": "Subtotal",
+      "originalValue": "Original value",
       "discount": "Discount",
-      "tax": "Tax",
-      "deliveryFee": "Delivery Fee",
-      "total": "Total",
+      "foodPrice": "Food price",
+      "yourEarnings": "Your earnings",
+      "yourEarningsVerifying": "Being verified",
       "pickupCode": "Pickup Code",
       "pickupCodeHint": "Write this code on the physical bag",
       "waitingPickup": "Waiting for customer to confirm on their app...",
@@ -2096,68 +2053,32 @@
       "carbon": {
         "title": "Carbon Impact (Scope 3)",
         "unit": "kg CO₂",
-        "delta": "avoided this period",
+        "delta": "avoided - {period}",
         "note": "Equivalent to {km} km driven by car."
       },
       "social": {
         "title": "Social Impact",
         "unit": "meals",
         "delta": "distributed",
-        "note": "~{people} people served this month."
+        "note": "~{people} people served - {period}."
       },
       "water": {
         "title": "Water Saved",
         "unit": "litres",
         "delta": "footprint avoided",
         "note": "Water that would have been spent producing this food."
-      }
-    },
-    "walletBalance": {
-      "title": "Online payments we hold for you",
-      "available": "Available",
-      "pending": "Awaiting pickup",
-      "availableNote": "Ready for your next payout.",
-      "pendingNote": "Paid online, not collected yet.",
-      "availableInfoLabel": "What is Available?",
-      "availableInfo": "Money from online orders your customers have already collected. It is paid to you in your next payout, in full - minus any commission paid off by a settlement order.",
-      "pendingInfoLabel": "What is Awaiting pickup?",
-      "pendingInfo": "Customers paid online for these orders but have not collected them yet. The money moves to Available as soon as you confirm the pickup. If an order is cancelled, the customer is refunded.",
-      "cashNotHere": "Cash orders are paid to you directly, so they do not appear here.",
-      "error": "Could not load your online payments."
-    },
-    "todaySales": {
-      "title": "Today's sales",
-      "subtitle": "Cash in store and online, together",
-      "history": "History",
-      "orders": "{count, plural, one {# order} other {# orders}}",
-      "cash": "Cash in store",
-      "online": "Paid online",
-      "commission": "Commission recorded ({rate}%)",
-      "commissionInfoLabel": "What is commission recorded?",
-      "commissionInfo": "{rate}% of today's normal sales is added to your commission balance. It is never taken from your pocket: it is paid off later by settlement orders.",
-      "settled": "Paid off by settlement orders",
-      "settledInfoLabel": "What is paid off by settlement orders?",
-      "settledInfo": "On a settlement order you are paid less than the price, and the difference pays off commission from earlier days. No new commission is recorded on it.",
-      "kept": "You keep today",
-      "keptInfoLabel": "What is You keep today?",
-      "keptInfo": "What you were paid for today's sales, minus the commission recorded today.",
-      "toCollect": "{count, plural, one {# order} other {# orders}} still to collect, worth {amount}",
-      "empty": "No sales yet today. Every order you hand over appears here straight away.",
-      "error": "Could not load today's sales."
+      },
+      "error": "Could not load your impact figures."
     },
     "greeting": "Congratulations, {name}.",
     "impactStatement": "Your impact today is equivalent to {trees} trees planted.",
     "trendChart": {
-      "subtitle": "Weekly trend",
-      "title": "Resources Saved",
-      "periods": {
-        "7d": "7D",
-        "30d": "30D",
-        "12m": "Year"
-      },
+      "subtitle": "Earnings over the period",
+      "title": "Earnings",
       "bagsUnit": "bags",
       "peakLabel": "★ Peak performance!",
-      "noData": "No data available"
+      "noData": "No data available",
+      "error": "Could not load the earnings chart."
     },
     "reportingBar": {
       "title": "Need your Carbon Report?",
@@ -2166,6 +2087,14 @@
       "generating": "Generating…",
       "toastSuccess": "PDF report downloaded successfully.",
       "toastError": "Error generating the report. Please try again."
+    },
+    "period": {
+      "label": "Period",
+      "today": "Today",
+      "7d": "7 Days",
+      "30d": "30 Days",
+      "month": "This Month",
+      "all": "All Time"
     },
     "streak": {
       "days": "day streak",
@@ -2307,6 +2236,23 @@
       "toggleNav": "Toggle navigation",
       "adminNav": "Admin navigation",
       "logoAlt": "Too Fresh To Waste"
+    },
+    "earnings": {
+      "title": "Your earnings - {period}",
+      "orders": "{count, plural, one {# order} other {# orders}}",
+      "empty": "No sales in this period yet.",
+      "allUnverified": "All sales in this period are being verified",
+      "unverified": "{count, plural, one {# sale is being verified and is not included yet} other {# sales are being verified and are not included yet}}",
+      "lines": {
+        "cashStore": "Cash collected in store",
+        "cashDelivery": "Cash collected via delivery",
+        "online": "Paid online"
+      },
+      "commission": {
+        "accrued": "Commission recorded ({rate}%)",
+        "settled": "Paid off by settlement orders"
+      },
+      "error": "Could not load your earnings."
     }
   },
   "merchantSignup": {

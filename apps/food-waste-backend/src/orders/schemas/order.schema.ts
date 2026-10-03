@@ -168,8 +168,9 @@ export class Order {
       currency: { type: String, required: true, default: DEFAULT_CURRENCY },
       // Written at pickup confirmation by CommissionService. Deliberately NOT
       // defaulted: `undefined` is meaningful here and marks an order that
-      // predates the commission-wallet model, which MERCHANT_EARNINGS_EXPR
-      // falls back to the flat 81% for. A default of 0 would silently report
+      // predates the commission-wallet model - the shared earnings
+      // calculation (merchant-sales.expressions.ts) falls back to the flat
+      // 81% (case LEGACY) for those. A default of 0 would silently report
       // every historical order as having earned the merchant nothing.
       merchantAmount: { type: Number, min: 0 },
       commissionSettled: { type: Number, min: 0 },

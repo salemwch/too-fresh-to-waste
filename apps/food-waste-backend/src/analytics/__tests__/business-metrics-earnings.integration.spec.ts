@@ -4,7 +4,13 @@
  * cash order (no Payment document) must now be counted, where the old
  * Payment-based aggregation silently dropped it.
  *
- * Requires the local stack:
+ * Task 14: `totalEarnings` is no longer computed inline here - it is the
+ * shared `MerchantSalesService.summaryForRange` calculation (food only, the
+ * same three amount cases as the Dashboard and Payments). This file now also
+ * proves that parity, and that `totalRevenue`/`averageOrderValue` (built from
+ * `pricing.total`, food plus delivery) are gone from the response - a
+ * merchant never sees delivery money.
+ *
  *   docker compose up -d mongodb
  *   pnpm --filter @foodwaste/backend test:db
  */
@@ -12,10 +18,13 @@
 import mongoose, { Connection, Model, Types } from 'mongoose';
 
 import { AnalyticsService } from '../services/analytics.service';
+import { MerchantSalesService } from '../../merchant-sales/merchant-sales.service';
 import { OrderSchema, OrderStatus, type OrderDocument } from '../../orders/schemas/order.schema';
 import { requireMongoTestUri } from '../../../test/helpers/mongo-test-uri';
+import type { BusinessMetricsRequestDto } from '../dto/analytics.dto';
 
 const MONGO_URI = requireMongoTestUri();
+const CUTOFF = '2026-09-01T00:00:00+01:00';
 
 const FOOD = 20;
 const DELIVERY_FEE = 4;
@@ -25,6 +34,11 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
   let connection: Connection;
   let orderModel: Model<OrderDocument>;
   let service: AnalyticsService;
+  let merchantSalesService: MerchantSalesService;
+  // Named so tests can assert on it directly (fix round 1, item 5) - it is
+  // shared across every test in this file, so any assertion on it clears it
+  // first rather than assuming call count 0 at the start.
+  const salesSentry = { captureMessage: jest.fn() };
 
   const establishmentId = new Types.ObjectId();
   const merchantId = new Types.ObjectId();
@@ -38,17 +52,47 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
     await connection.asPromise();
     orderModel = connection.model('Order', OrderSchema) as unknown as Model<OrderDocument>;
 
-    service = Object.create(AnalyticsService.prototype) as AnalyticsService;
-    Object.assign(service, { orderModel });
+    // Built exactly as Task 6's merchant-sales.integration.spec.ts: a real
+    // instance with a fixed cutoff, no mocked earnings logic.
+    merchantSalesService = Object.create(MerchantSalesService.prototype) as MerchantSalesService;
+    Object.assign(merchantSalesService, {
+      orderModel,
+      configService: {
+        get: (k: string) => (k === 'COMMISSION_MODEL_EFFECTIVE_AT' ? CUTOFF : undefined),
+      },
+      sentry: salesSentry,
+      logger: { error: jest.fn() },
+      // This file's own tests are about which window reports, not about the
+      // cross-worker dedupe (that is merchant-sales.integration.spec.ts) - so
+      // every call is allowed to report, every time.
+      cache: { acquireOnce: jest.fn().mockResolvedValue(true) },
+    });
 
-    // Cash order: no Payment document exists for it anywhere. Must still count.
+    service = Object.create(AnalyticsService.prototype) as AnalyticsService;
+    Object.assign(service, {
+      orderModel,
+      merchantSalesService,
+      cacheEnabled: false,
+      logger: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() },
+      eventEmitter: { emit: jest.fn() },
+    });
+
+    // Cash order: no Payment document exists for it anywhere. Must still
+    // count - a delivery order's commission moment is `driverPickedUpAt`.
     await orderModel.collection.insertOne({
+      orderNumber: 'ORD-CASH-DELIVERY',
       merchantId,
       establishmentId,
       customerId,
       status: OrderStatus.COMPLETED,
       deliveryMode: 'delivery',
       paymentDetails: { method: 'cash_on_pickup' },
+      // Fixed, well before CUTOFF (2026-09-01) - no commission decision and a
+      // moment before the cutoff is LEGACY (81%), never UNVERIFIED. A moment
+      // pinned to `new Date()` would drift past the cutoff and silently
+      // become case 3 (0 earned) instead.
+      driverPickedUpAt: new Date('2026-08-20T10:00:00Z'),
+      isDeleted: false,
       items: [{ offerId: new Types.ObjectId(), quantity: 1, originalPrice: FOOD }],
       pricing: {
         subtotal: FOOD,
@@ -57,7 +101,11 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
         deliveryFee: DELIVERY_FEE,
         total: FOOD + DELIVERY_FEE,
       },
-      createdAt: new Date(),
+      // orderNumber and pickupDetails.qrCode both carry a real unique
+      // (non-sparse) index - every seeded order needs its own value or two
+      // docs missing it collide as `null`. See merchant-sales.integration.spec.ts.
+      pickupDetails: { pickupCode: '000001', qrCode: 'QR-ORD-CASH-DELIVERY' },
+      createdAt: new Date('2026-08-20T10:00:00Z'),
     });
   });
 
@@ -70,7 +118,7 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
     const calculate = (
       service as unknown as {
         calculateCurrentBusinessMetrics: (filters: {
-          dateRange: { startDate: string; endDate: string };
+          dateRange: { startDate: Date; endDate: Date };
           establishmentIds?: string[];
           granularity: { period: string };
         }) => Promise<{ totalEarnings: number }>;
@@ -79,13 +127,326 @@ describe('AnalyticsService.calculateCurrentBusinessMetrics — earnings against 
 
     const result = await calculate({
       dateRange: {
-        startDate: new Date(Date.now() - 86_400_000).toISOString(),
-        endDate: new Date(Date.now() + 86_400_000).toISOString(),
+        startDate: new Date('2026-08-01T00:00:00Z'),
+        endDate: new Date('2026-08-31T23:59:59Z'),
       },
       establishmentIds: [establishmentId.toString()],
       granularity: { period: 'day' },
     });
 
     expect(result.totalEarnings).toBe(EXPECTED_EARNINGS);
+  });
+
+  describe('parity with MerchantSalesService.summaryForRange (Task 14)', () => {
+    const E = new Types.ObjectId();
+    const otherMerchantId = new Types.ObjectId();
+    // A different establishment, seeded INSIDE the same Sept 2-20 window as
+    // E's data below. Fix round 1, item 6: the original version of this
+    // describe block only ever seeded E, so a dropped establishment scope in
+    // `calculateCurrentBusinessMetrics` would have gone unnoticed - both the
+    // system-under-test and the "shared" comparison would silently agree on
+    // whatever the (wrong) unscoped total was. With F's 50 TND sale in the
+    // window, a dropped scope inflates `metrics.totalEarnings` to 60 while
+    // `shared` (deliberately scoped to E only, right here in the test) stays
+    // at 10, so the two diverge and the assertion fails.
+    const F = new Types.ObjectId();
+    // Fix round 2, item 1: its own establishment, isolated from E/F above, so
+    // seeding an unverified order in the comparison window here cannot move
+    // any other test's totals - the current-period-labelled test above scopes
+    // to E only, and G is never included in that query.
+    const G = new Types.ObjectId();
+    const gMerchantId = new Types.ObjectId();
+
+    beforeAll(async () => {
+      // NORMAL online delivery: merchant earns exactly `commission.merchantAmount`
+      // (10); the 6 TND delivery fee must never enter earnings.
+      await orderModel.collection.insertOne({
+        orderNumber: 'ORD-TASK14-NORMAL',
+        merchantId: otherMerchantId,
+        establishmentId: E,
+        status: OrderStatus.DELIVERED,
+        deliveryMode: 'delivery',
+        paymentProvider: 'konnect',
+        isDeleted: false,
+        pricing: { subtotal: 10, discountAmount: 0, deliveryFee: 6, total: 16 },
+        driverPickedUpAt: new Date('2026-09-05T10:00:00Z'),
+        createdAt: new Date('2026-09-05T10:00:00Z'),
+        pickupDetails: { pickupCode: '141401', qrCode: 'QR-ORD-TASK14-NORMAL' },
+        commission: {
+          model: 'V2',
+          kind: 'NORMAL',
+          accrued: 1.9,
+          settled: 0,
+          merchantAmount: 10,
+          dueBefore: 0,
+          dueAfter: 0,
+          appliedAt: new Date('2026-09-05T10:00:00Z'),
+        },
+      } as never);
+
+      // Case 3: no commission decision, moment (2026-09-05, pickup) is at/after
+      // the 2026-09-01 cutoff — an integrity failure, never counted at 81%,
+      // never earned at all.
+      await orderModel.collection.insertOne({
+        orderNumber: 'ORD-TASK14-CASE3',
+        merchantId: otherMerchantId,
+        establishmentId: E,
+        status: OrderStatus.PICKED_UP,
+        deliveryMode: 'pickup',
+        isDeleted: false,
+        pricing: { subtotal: 15.241, discountAmount: 0, deliveryFee: 0, total: 15.241 },
+        pickedUpAt: new Date('2026-09-05T11:00:00Z'),
+        createdAt: new Date('2026-09-05T11:00:00Z'),
+        pickupDetails: { pickupCode: '141400', qrCode: 'QR-ORD-TASK14-CASE3' },
+      } as never);
+
+      // Foreign establishment F: a NORMAL sale of 50, inside the same window,
+      // that must never leak into E's totals (item 6, see comment above).
+      await orderModel.collection.insertOne({
+        orderNumber: 'ORD-TASK14-FOREIGN',
+        merchantId: new Types.ObjectId(),
+        establishmentId: F,
+        status: OrderStatus.PICKED_UP,
+        deliveryMode: 'pickup',
+        isDeleted: false,
+        pricing: { subtotal: 50, discountAmount: 0, deliveryFee: 0, total: 50 },
+        pickedUpAt: new Date('2026-09-10T09:00:00Z'),
+        createdAt: new Date('2026-09-10T09:00:00Z'),
+        pickupDetails: { pickupCode: '141403', qrCode: 'QR-ORD-TASK14-FOREIGN' },
+        commission: {
+          model: 'V2',
+          kind: 'NORMAL',
+          accrued: 9.5,
+          settled: 0,
+          merchantAmount: 50,
+          dueBefore: 0,
+          dueAfter: 0,
+          appliedAt: new Date('2026-09-10T09:00:00Z'),
+        },
+      } as never);
+
+      // Establishment G, current-period unverified order: no commission
+      // decision, moment (2026-09-05) inside [2026-09-02, 2026-09-20] and
+      // at/after the cutoff - reports with the current period's real preset.
+      await orderModel.collection.insertOne({
+        orderNumber: 'ORD-TASK14-CMP-CURRENT',
+        merchantId: gMerchantId,
+        establishmentId: G,
+        status: OrderStatus.PICKED_UP,
+        deliveryMode: 'pickup',
+        isDeleted: false,
+        pricing: { subtotal: 12, discountAmount: 0, deliveryFee: 0, total: 12 },
+        pickedUpAt: new Date('2026-09-05T09:00:00Z'),
+        createdAt: new Date('2026-09-05T09:00:00Z'),
+        pickupDetails: { pickupCode: '141406', qrCode: 'QR-ORD-TASK14-CMP-CURRENT' },
+      } as never);
+
+      // Establishment G, comparison-window unverified order: no commission
+      // decision, moment (2026-09-01) inside the synthetic comparison window
+      // for the query below ([2026-08-15, 2026-09-01T23:59:59.999Z] - 18-day
+      // duration ending 1ms before the current period's startDate) and
+      // at/after the cutoff - reports 'custom', never the current period's name.
+      await orderModel.collection.insertOne({
+        orderNumber: 'ORD-TASK14-CMP-PREVIOUS',
+        merchantId: gMerchantId,
+        establishmentId: G,
+        status: OrderStatus.PICKED_UP,
+        deliveryMode: 'pickup',
+        isDeleted: false,
+        pricing: { subtotal: 9, discountAmount: 0, deliveryFee: 0, total: 9 },
+        pickedUpAt: new Date('2026-09-01T10:00:00Z'),
+        createdAt: new Date('2026-09-01T10:00:00Z'),
+        pickupDetails: { pickupCode: '141407', qrCode: 'QR-ORD-TASK14-CMP-PREVIOUS' },
+      } as never);
+    });
+
+    it('totalEarnings is the shared calculation: food only, case 3 excluded, foreign establishment F excluded', async () => {
+      const from = new Date('2026-09-02T00:00:00Z');
+      const to = new Date('2026-09-20T00:00:00Z');
+
+      const metrics = await service.getBusinessMetrics({
+        filters: {
+          dateRange: { startDate: from.toISOString(), endDate: to.toISOString() },
+          establishmentIds: [E.toString()],
+          granularity: { period: 'day' },
+        },
+      } as unknown as BusinessMetricsRequestDto);
+      const shared = await merchantSalesService.summaryForRange(
+        { kind: 'establishments', establishmentIds: [E.toString()] },
+        { from, to },
+      );
+
+      expect(metrics.totalEarnings.value).toBe(shared.total.earned);
+      // 10, never 60 (which would include F's 50) and never 12.345 (case 3).
+      expect(metrics.totalEarnings.value).toBe(10);
+    });
+
+    it('averageFoodValue is foodValue/orders over the same Earnings population, and totalRevenue is gone', async () => {
+      const from = new Date('2026-09-02T00:00:00Z');
+      const to = new Date('2026-09-20T00:00:00Z');
+
+      const metrics = await service.getBusinessMetrics({
+        filters: {
+          dateRange: { startDate: from.toISOString(), endDate: to.toISOString() },
+          establishmentIds: [E.toString()],
+          granularity: { period: 'day' },
+        },
+      } as unknown as BusinessMetricsRequestDto);
+      const shared = await merchantSalesService.summaryForRange(
+        { kind: 'establishments', establishmentIds: [E.toString()] },
+        { from, to },
+      );
+
+      expect(metrics.averageFoodValue.value).toBe(shared.total.foodValue / shared.total.orders);
+      expect(metrics.averageFoodValue.value).toBe(10);
+      expect(metrics).not.toHaveProperty('totalRevenue');
+      expect(metrics).not.toHaveProperty('averageOrderValue');
+    });
+
+    // --- Fix round 1, item 5: the integrity report carries the real preset ---
+
+    it("labels the integrity report with the real preset ('month'), not always 'custom'", async () => {
+      salesSentry.captureMessage.mockClear();
+      const from = new Date('2026-09-02T00:00:00Z');
+      const to = new Date('2026-09-20T00:00:00Z');
+
+      await service.getBusinessMetrics({
+        filters: {
+          dateRange: { startDate: from.toISOString(), endDate: to.toISOString() },
+          establishmentIds: [E.toString()],
+          granularity: { period: 'day' },
+        },
+        period: 'month',
+      } as unknown as BusinessMetricsRequestDto);
+
+      expect(salesSentry.captureMessage).toHaveBeenCalledWith(
+        expect.stringContaining('MERCHANT_EARNINGS_UNVERIFIED_ORDERS'),
+        'error',
+        expect.objectContaining({
+          merchantEarnings: expect.objectContaining({ period: 'month' }),
+        }),
+        ['MERCHANT_EARNINGS_UNVERIFIED_ORDERS'],
+      );
+    });
+
+    // Fix round 2, item 1: the version of this test above was vacuous - E has
+    // no unverified order in the comparison window (2026-08-15..2026-09-01
+    // 23:59:59.999), and `reportUnverified` only fires when the unverified
+    // count is above 0 (merchant-sales.service.ts). So it never reported for
+    // either call, and would have kept passing even if `request.period` were
+    // (wrongly) threaded into the comparison call too. Replaced with a
+    // dedicated establishment G carrying one unverified order in each window.
+    //
+    // Task 17 (A4): the comparison window must never report at all - a
+    // verifying order the merchant cannot even see on screen (it is outside
+    // their selected period) must not page anyone. Updated from this test's
+    // earlier version, which asserted exactly two reports (one per window);
+    // the corrected rule is one report, for the current period only.
+    it("labels the current period's report with the real preset; the comparison window never reports", async () => {
+      salesSentry.captureMessage.mockClear();
+      const from = new Date('2026-09-02T00:00:00Z');
+      const to = new Date('2026-09-20T00:00:00Z');
+
+      await service.getBusinessMetrics({
+        filters: {
+          dateRange: { startDate: from.toISOString(), endDate: to.toISOString() },
+          establishmentIds: [G.toString()],
+          granularity: { period: 'day' },
+        },
+        period: 'month',
+        options: { includeComparisons: true },
+      } as unknown as BusinessMetricsRequestDto);
+
+      expect(salesSentry.captureMessage).toHaveBeenCalledTimes(1);
+      expect(salesSentry.captureMessage).toHaveBeenCalledWith(
+        expect.stringContaining('MERCHANT_EARNINGS_UNVERIFIED_ORDERS'),
+        'error',
+        expect.objectContaining({ merchantEarnings: expect.objectContaining({ period: 'month' }) }),
+        ['MERCHANT_EARNINGS_UNVERIFIED_ORDERS'],
+      );
+    });
+
+    // --- Fix round 1, item 2(c): `all` must succeed through real validation ---
+
+    it("period 'all' succeeds through the real validateAnalyticsFilters (no mock) and matches the all-time totalEarnings", async () => {
+      const to = new Date();
+
+      const metrics = await service.getBusinessMetrics({
+        filters: {
+          // Exactly what AnalyticsController.resolvePeriod would send for
+          // 'all': epoch to now - a ~56-year span that the 2-year cap would
+          // reject with 400 INVALID_FILTERS if `resolvedFromPeriod` did not
+          // suppress it (the bug this fix round closes).
+          dateRange: { startDate: new Date(0).toISOString(), endDate: to.toISOString() },
+          establishmentIds: [E.toString()],
+          granularity: { period: 'day' },
+        },
+        period: 'all',
+        resolvedFromPeriod: true,
+        options: { includeComparisons: false },
+      } as unknown as BusinessMetricsRequestDto);
+
+      const shared = await merchantSalesService.summaryForRange(
+        { kind: 'establishments', establishmentIds: [E.toString()] },
+        { from: null, to },
+      );
+
+      expect(metrics.totalEarnings.value).toBe(shared.total.earned);
+      expect(metrics.totalEarnings.value).toBe(10);
+    });
+  });
+
+  // --- Fix round 1, item 4: the comparison window is half-open ---
+
+  describe('comparison window does not double-count a sale at the boundary instant', () => {
+    const B = new Types.ObjectId();
+    const boundaryMerchantId = new Types.ObjectId();
+    const boundary = new Date('2026-09-10T00:00:00Z');
+
+    beforeAll(async () => {
+      await orderModel.collection.insertOne({
+        orderNumber: 'ORD-TASK14-BOUNDARY',
+        merchantId: boundaryMerchantId,
+        establishmentId: B,
+        status: OrderStatus.PICKED_UP,
+        deliveryMode: 'pickup',
+        isDeleted: false,
+        pricing: { subtotal: 8, discountAmount: 0, deliveryFee: 0, total: 8 },
+        pickedUpAt: boundary,
+        createdAt: boundary,
+        pickupDetails: { pickupCode: '141404', qrCode: 'QR-ORD-TASK14-BOUNDARY' },
+        commission: {
+          model: 'V2',
+          kind: 'NORMAL',
+          accrued: 1.52,
+          settled: 0,
+          merchantAmount: 8,
+          dueBefore: 0,
+          dueAfter: 0,
+          appliedAt: boundary,
+        },
+      } as never);
+    });
+
+    it("a sale exactly at the current period's startDate counts once - in the current period, never also in the comparison period", async () => {
+      const from = boundary;
+      const to = new Date('2026-09-20T00:00:00Z');
+
+      const metrics = await service.getBusinessMetrics({
+        filters: {
+          dateRange: { startDate: from.toISOString(), endDate: to.toISOString() },
+          establishmentIds: [B.toString()],
+          granularity: { period: 'day' },
+        },
+        options: { includeComparisons: true },
+      } as unknown as BusinessMetricsRequestDto);
+
+      // Current period: the boundary sale is `_moment >= from`, included.
+      expect(metrics.totalEarnings.value).toBe(8);
+      // Comparison period (same duration, ending 1ms before `from`): the old
+      // inclusive-inclusive window ended exactly at `from` and double-counted
+      // this same sale here too - it must now be 0.
+      expect(metrics.totalEarnings.previousValue).toBe(0);
+    });
   });
 });

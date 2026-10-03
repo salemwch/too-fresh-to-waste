@@ -371,9 +371,11 @@ export const envValidationSchema = Joi.object({
   // must stop a production boot rather than mean "now" or "never". The date is
   // chosen by the product owner at release; see commission-cutoff.util.ts for
   // the accepted format and .claude/work/commission-settlement-model.md.
-  // Outside production it may be absent, which leaves the new model inactive.
+  // Staging must behave like production: unset would silently run the legacy
+  // model there (engineering review, 2026-09-26).
+  // Outside production and staging it may be absent, which leaves the new model inactive.
   COMMISSION_MODEL_EFFECTIVE_AT: Joi.when('NODE_ENV', {
-    is: 'production',
+    is: Joi.valid('production', 'staging'),
     then: Joi.string().required(),
     // Empty is what .env.example ships with: inactive, not an error.
     otherwise: Joi.string().allow('').optional(),
@@ -383,7 +385,7 @@ export const envValidationSchema = Joi.object({
     )
     .messages({
       'any.required':
-        'COMMISSION_MODEL_EFFECTIVE_AT is required in production: the instant the commission model starts, as YYYY-MM-DDTHH:mm:ss+01:00.',
+        'COMMISSION_MODEL_EFFECTIVE_AT is required in production and staging: the instant the commission model starts, as YYYY-MM-DDTHH:mm:ss+01:00.',
       'any.invalid':
         'COMMISSION_MODEL_EFFECTIVE_AT must be an ISO date-time with an explicit offset (Z or +01:00), and a real calendar instant.',
       'string.empty': 'COMMISSION_MODEL_EFFECTIVE_AT must not be empty.',

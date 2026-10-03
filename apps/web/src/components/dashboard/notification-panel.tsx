@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bell, ShoppingBag, CheckCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { formatCurrency } from '@foodwaste/shared';
 import { cn } from '@foodwaste/ui';
 import { useNotificationStore, type NewOrderNotification } from '@/lib/notification-store';
 
@@ -117,7 +118,8 @@ export function NotificationBell() {
                       {!n.read && <span className='w-1.5 h-1.5 rounded-full bg-red-500 shrink-0' />}
                     </div>
                     <p className='text-[11px] text-slate-500 mt-xxs'>
-                      {n.customerName} &middot; &euro;{n.total.toFixed(2)}
+                      {n.customerName}
+                      {!!n.foodPrice && <> &middot; {formatCurrency(n.foodPrice, 'TND', locale)}</>}
                     </p>
                     <p className='text-[10px] text-slate-400 mt-xxs'>
                       {formatRelativeTime(n.createdAt)}

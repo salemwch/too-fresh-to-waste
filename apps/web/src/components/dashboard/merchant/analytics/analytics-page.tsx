@@ -1,18 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  ReferenceDot,
-} from 'recharts';
-import { useTranslations } from 'next-intl';
+import { Suspense } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -32,104 +21,31 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LocationSwitcher } from '@/components/dashboard/organization/location-switcher';
+import {
+  PeriodBar,
+  TrendChart,
+  TrendChartSkeleton,
+  TrendChartError,
+} from '@/components/dashboard/merchant';
 import { useFormat } from '@/lib/use-format';
 import {
   useBusinessMetrics,
-  useRevenueChart,
   useCustomerLocations,
   useMyEstablishments,
 } from '@/hooks/use-merchant-dashboard';
-import type {
-  AnalyticsPeriod,
-  BusinessMetrics,
-  RevenueChartItem,
-  CustomerLocationItem,
-} from '@/types/dashboard';
+import { useSalesChart } from '@/hooks/use-merchant-sales';
+import { useSalesPeriod } from '@/hooks/use-sales-period';
+import type { BusinessMetrics, CustomerLocationItem } from '@/types/dashboard';
+import type { MerchantSalesChart } from '@/types/payments';
 
-// ─── Date period utilities ──────────────────────────────────────────────────
-
-function getChartParams(period: AnalyticsPeriod) {
-  switch (period) {
-    case 'today':
-      return { granularity: 'day' as const, value: 1 };
-    case '7d':
-      return { granularity: 'day' as const, value: 7 };
-    case '30d':
-      return { granularity: 'day' as const, value: 30 };
-    case '90d':
-      return { granularity: 'week' as const, value: 12 };
-    default:
-      return { granularity: 'day' as const, value: 30 };
-  }
-}
-
-function getPeriodDates(period: AnalyticsPeriod): { startDate: string; endDate: string } {
-  const end = new Date();
-  const start = new Date();
-  switch (period) {
-    case 'today':
-      start.setHours(0, 0, 0, 0);
-      break;
-    case '7d':
-      start.setDate(end.getDate() - 7);
-      break;
-    case '30d':
-      start.setDate(end.getDate() - 30);
-      break;
-    case '90d':
-      start.setDate(end.getDate() - 90);
-      break;
-    default:
-      start.setDate(end.getDate() - 30);
-  }
-  return { startDate: start.toISOString(), endDate: end.toISOString() };
-}
+/** Stable identity - `chartQuery.data?.slots ?? []` would allocate a new array every render. */
+const EMPTY_SLOTS = Object.freeze([]) as unknown as MerchantSalesChart['slots'];
 
 function formatCurrency(v: number | undefined): string {
   const n = v ?? 0;
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return n.toFixed(2);
-}
-
-// ─── Period Filter ──────────────────────────────────────────────────────────
-
-const PERIODS: AnalyticsPeriod[] = ['today', '7d', '30d', '90d'];
-
-function PeriodFilter({
-  active,
-  onChange,
-  t,
-}: {
-  active: AnalyticsPeriod;
-  onChange: (p: AnalyticsPeriod) => void;
-  t: ReturnType<typeof useTranslations>;
-}) {
-  const labels: Record<AnalyticsPeriod, string> = {
-    today: t('periodToday'),
-    '7d': t('period7d'),
-    '30d': t('period30d'),
-    '90d': t('period90d'),
-    custom: t('periodCustom'),
-  };
-
-  return (
-    <div className='flex items-center gap-sm text-xs'>
-      {PERIODS.map(p => (
-        <button
-          key={p}
-          onClick={() => onChange(p)}
-          className={`px-md py-1.5 rounded-full transition-colors ${
-            active === p
-              ? 'bg-primary-500 text-white'
-              : 'text-primary-500/60 hover:text-primary-500'
-          }`}
-        >
-          {labels[p]}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
@@ -215,11 +131,11 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
       icon: ShoppingBag,
     },
     {
-      title: t('kpi.avgOrderValue'),
-      value: formatCurrency(data.averageOrderValue?.value),
+      title: t('kpi.avgFoodValue'),
+      value: formatCurrency(data.averageFoodValue?.value),
       unit: 'TND',
-      trend: data.averageOrderValue?.trend,
-      changePercent: data.averageOrderValue?.changePercentage,
+      trend: data.averageFoodValue?.trend,
+      changePercent: data.averageFoodValue?.changePercentage,
       icon: BarChart3,
     },
     {
@@ -253,166 +169,6 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
         <KpiCard key={card.title} {...card} index={i} />
       ))}
     </div>
-  );
-}
-
-// ─── Revenue Chart ──────────────────────────────────────────────────────────
-
-function RevenueTooltip({ active, payload, label, t }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className='glass rounded-xl px-[16px] py-md shadow-elegant'>
-      <div className='text-[10px] uppercase tracking-wider text-primary-500/60'>{label}</div>
-      <div className='font-display text-xl text-primary-500'>
-        {(payload[0].value ?? 0).toFixed(2)} TND
-      </div>
-      {payload[0].payload?.orderCount !== undefined && (
-        <div className='text-[11px] font-medium text-brand-green mt-xs'>
-          {t('revenueChart.tooltip.orders')}: {payload[0].payload.orderCount}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RevenueChart({
-  data,
-  t,
-}: {
-  data: RevenueChartItem[];
-  t: ReturnType<typeof useTranslations>;
-}) {
-  const peak = data.reduce(
-    (max, d) => (d.earnings > max.earnings ? d : max),
-    data[0] ?? { label: '', earnings: 0 },
-  );
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5, duration: 0.5, ease: 'easeOut' }}
-      className='glass rounded-2xl p-[24px] shadow-soft'
-    >
-      <div className='mb-[24px]'>
-        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-xs'>
-          {t('revenueChart.subtitle')}
-        </div>
-        <h3 className='font-display text-2xl text-primary-500'>{t('revenueChart.title')}</h3>
-      </div>
-
-      {data.length === 0 ? (
-        <div className='h-64 flex items-center justify-center text-primary-500/40 text-sm'>
-          {t('noData')}
-        </div>
-      ) : (
-        <div className='h-64 -ms-sm'>
-          <ResponsiveContainer width='100%' height='100%' minWidth={0} minHeight={0}>
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id='revenueGradient' x1='0' y1='0' x2='0' y2='1'>
-                  <stop offset='0%' stopColor='#1E4448' stopOpacity={0.45} />
-                  <stop offset='100%' stopColor='#1E4448' stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis
-                dataKey='label'
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: 'rgba(30,68,72,0.6)', fontSize: 12 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: 'rgba(30,68,72,0.6)', fontSize: 11 }}
-                tickFormatter={v => formatCurrency(v)}
-              />
-              <Tooltip
-                content={<RevenueTooltip t={t} />}
-                cursor={{ stroke: 'rgba(30,68,72,0.2)', strokeDasharray: '4 4' }}
-              />
-              <Area
-                type='monotone'
-                dataKey='earnings'
-                stroke='#1E4448'
-                strokeWidth={2.5}
-                fill='url(#revenueGradient)'
-              />
-              {peak.earnings > 0 && (
-                <ReferenceDot
-                  x={peak.label}
-                  y={peak.earnings}
-                  r={6}
-                  fill='#FF7973'
-                  stroke='white'
-                  strokeWidth={2}
-                />
-              )}
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </motion.div>
-  );
-}
-
-// ─── Orders Chart ───────────────────────────────────────────────────────────
-
-function OrdersChart({
-  data,
-  t,
-}: {
-  data: RevenueChartItem[];
-  t: ReturnType<typeof useTranslations>;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.6, duration: 0.5, ease: 'easeOut' }}
-      className='glass rounded-2xl p-[24px] shadow-soft'
-    >
-      <div className='mb-[24px]'>
-        <div className='text-xs uppercase tracking-wider text-primary-500/60 mb-xs'>
-          {t('ordersChart.subtitle')}
-        </div>
-        <h3 className='font-display text-2xl text-primary-500'>{t('ordersChart.title')}</h3>
-      </div>
-
-      {data.length === 0 ? (
-        <div className='h-64 flex items-center justify-center text-primary-500/40 text-sm'>
-          {t('noData')}
-        </div>
-      ) : (
-        <div className='h-64 -ms-sm'>
-          <ResponsiveContainer width='100%' height='100%' minWidth={0} minHeight={0}>
-            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <XAxis
-                dataKey='label'
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: 'rgba(30,68,72,0.6)', fontSize: 12 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: 'rgba(30,68,72,0.6)', fontSize: 11 }}
-              />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: 'rgba(255,255,255,0.85)',
-                  backdropFilter: 'blur(12px)',
-                  boxShadow: '0 8px 32px rgba(30,68,72,0.08)',
-                }}
-              />
-              <Bar dataKey='orderCount' fill='#1E4448' radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </motion.div>
   );
 }
 
@@ -615,25 +371,17 @@ function ErrorState({ message }: { message: string }) {
   );
 }
 
-// ─── Chart Skeleton ─────────────────────────────────────────────────────────
-
-function ChartSkeleton() {
-  return (
-    <div className='glass rounded-2xl p-[24px] shadow-soft h-[360px] animate-pulse bg-white/30' />
-  );
-}
-
 // ─── Main Analytics Page ────────────────────────────────────────────────────
+// Reads `period` from the URL (`useSalesPeriod`) - the same five periods and
+// the same earnings calculation as the Dashboard and Payments.
 
-export function AnalyticsPage() {
+function AnalyticsPageContent() {
   const t = useTranslations('dashboard.analytics');
-  const [period, setPeriod] = useState<AnalyticsPeriod>('30d');
+  const locale = useLocale();
+  const [period, setPeriod] = useSalesPeriod();
 
-  const { startDate, endDate } = useMemo(() => getPeriodDates(period), [period]);
-  const chartParams = useMemo(() => getChartParams(period), [period]);
-
-  const metricsQuery = useBusinessMetrics(startDate, endDate);
-  const chartQuery = useRevenueChart(chartParams.granularity, chartParams.value);
+  const metricsQuery = useBusinessMetrics(period);
+  const chartQuery = useSalesChart(period);
   const locationsQuery = useCustomerLocations(5);
   const establishmentsQuery = useMyEstablishments();
 
@@ -651,7 +399,7 @@ export function AnalyticsPage() {
         </div>
         <div className='flex items-center gap-md flex-wrap'>
           {showLocationSwitcher && <LocationSwitcher />}
-          <PeriodFilter active={period} onChange={setPeriod} t={t} />
+          <PeriodBar value={period} onChange={setPeriod} />
         </div>
       </div>
 
@@ -673,24 +421,17 @@ export function AnalyticsPage() {
             <KpiCards data={metricsQuery.data} t={t} />
           ) : null}
 
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-[20px]'>
-            {chartQuery.isLoading ? (
-              <>
-                <ChartSkeleton />
-                <ChartSkeleton />
-              </>
-            ) : chartQuery.data ? (
-              <>
-                <RevenueChart data={chartQuery.data} t={t} />
-                <OrdersChart data={chartQuery.data} t={t} />
-              </>
-            ) : (
-              <>
-                <RevenueChart data={[]} t={t} />
-                <OrdersChart data={[]} t={t} />
-              </>
-            )}
-          </div>
+          {chartQuery.isLoading ? (
+            <TrendChartSkeleton />
+          ) : chartQuery.isError ? (
+            <TrendChartError />
+          ) : (
+            <TrendChart
+              slots={chartQuery.data?.slots ?? EMPTY_SLOTS}
+              granularity={chartQuery.data?.granularity ?? 'day'}
+              locale={locale}
+            />
+          )}
         </TabsContent>
 
         {/* Customers Tab */}
@@ -708,5 +449,24 @@ export function AnalyticsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function AnalyticsPageSkeleton() {
+  return (
+    <div className='flex flex-col gap-[24px] p-[24px]'>
+      <div className='glass rounded-2xl shadow-soft h-[64px] animate-pulse bg-white/30' />
+      <KpiCardsSkeleton />
+      <TrendChartSkeleton />
+    </div>
+  );
+}
+
+// Suspense boundary: useSalesPeriod reads useSearchParams.
+export function AnalyticsPage() {
+  return (
+    <Suspense fallback={<AnalyticsPageSkeleton />}>
+      <AnalyticsPageContent />
+    </Suspense>
   );
 }

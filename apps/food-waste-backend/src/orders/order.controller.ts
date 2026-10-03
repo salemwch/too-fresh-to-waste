@@ -41,6 +41,15 @@ import { QueryComplexityGuard, QueryComplexity } from '../common/guards/query-co
 import { AppLoggerService } from '../common/services/logger.service';
 import { perfLog, perfStart } from '../common/utils/perf-log.util';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
+import { MerchantSalesQueryDto } from '../merchant-sales/dto/merchant-sales-query.dto';
+import { orderEarningsFor } from '../merchant-sales/merchant-sales.expressions';
+import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
+import { SALES_PERIODS, resolveSalesPeriod } from '../merchant-sales/merchant-sales.period';
+import { salesScopeForRequest } from '../merchant-sales/merchant-sales.scope';
+import type {
+  MerchantSalesChart,
+  MerchantSalesSummary,
+} from '../merchant-sales/merchant-sales.types';
 import { KonnectOrderService } from '../payments/services/konnect-order.service';
 
 import {
@@ -50,26 +59,16 @@ import {
   CancelOrderDto,
   OrderQueryDto,
 } from './DTO/create-order.dto';
+import { OrderStatsQueryDto } from './DTO/order-stats-query.dto';
 import { ConsumerOrderResponseDto, MerchantOrderResponseDto } from './DTO/order-response.dto';
 import { OrderExceptionFilter } from './filters/order-exception.filter';
 import { PickupThrottlerGuard } from './guards/pickup-throttler.guard';
-import {
-  OrdersService,
-  OrderStatsResponse,
-  RevenueChartResponse,
-  CustomerLocationResponse,
-  type ChartGranularity,
-} from './order.service';
-import type { TodaySalesSummary } from './utils/today-sales.util';
+import { OrdersService, OrderStatsResponse, CustomerLocationResponse } from './order.service';
+import { toMerchantOrderView } from './utils/merchant-order-view';
 
 import { strictValidation } from '../common/pipes/validation-pipes';
 
 import { appError } from '../common/errors';
-/** Allowed granularity values — validated at the controller boundary. */
-const VALID_GRANULARITIES = new Set<ChartGranularity>(['day', 'week', 'month']);
-
-/** Maximum `value` allowed per granularity to prevent runaway aggregations. */
-const CHART_LIMITS: Record<ChartGranularity, number> = { day: 90, week: 52, month: 24 };
 
 /** Converts a Mongoose document to a primitive-only plain object.
  *  plainToInstance (class-transformer) constructs new instances for any class-typed
@@ -89,7 +88,35 @@ export class OrdersController {
     private readonly logger: AppLoggerService,
     @Inject(forwardRef(() => KonnectOrderService))
     private readonly konnectOrderService: KonnectOrderService,
+    private readonly merchantSalesService: MerchantSalesService,
   ) {}
+
+  /**
+   * MERCHANT and LOCATION_MANAGER get the delivery-money-stripped view;
+   * ADMIN keeps the full object. Several routes below return a raw
+   * order/receipt object with no DTO in between (no `MerchantOrderResponseDto`
+   * / `ConsumerOrderResponseDto` to fall back on for the exclusion), so the
+   * strip has to happen at this layer.
+   *
+   * Defence in depth: `order.commission` is the merchant's private commission
+   * ledger (global constraint - never reaches a CONSUMER or DRIVER). Every
+   * role that is not MERCHANT, LOCATION_MANAGER or ADMIN has it removed here
+   * even though today's callers only ever opt it into the projection for
+   * those three roles (`OrdersService.findById`'s `includeCommission`) - so a
+   * future opt-in mistake on the read side still cannot leak it on the way
+   * out.
+   */
+  private forRole<T extends object>(role: UserRole, order: T): T {
+    if (role === UserRole.MERCHANT || role === UserRole.LOCATION_MANAGER) {
+      return toMerchantOrderView(order) as T;
+    }
+    if (role === UserRole.ADMIN) {
+      return order;
+    }
+    const view = { ...(order as Record<string, unknown>) };
+    delete view['commission'];
+    return view as T;
+  }
 
   @ApiOperation({
     summary: 'Create a new order',
@@ -199,13 +226,23 @@ export class OrdersController {
       req.user.role,
     );
 
+    // This route has no @Roles guard - any authenticated caller reaches it,
+    // including MERCHANT (scoped to their own orders by buildQuery) and
+    // LOCATION_MANAGER (buildQuery adds no scope filter for LM today -
+    // tracked in orders-authz). Returns raw lean orders with no DTO, so the
+    // delivery-money strip must happen here.
+    const data =
+      req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
+        ? result.orders.map(o => toMerchantOrderView(o as unknown as Record<string, unknown>))
+        : result.orders;
+
     return {
       statusCode: HttpStatus.OK,
       message:
         result.orders.length > 0
           ? 'Orders retrieved successfully'
           : 'No orders found matching the criteria',
-      data: result.orders,
+      data,
       meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
     };
   }
@@ -328,8 +365,14 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Your merchant orders retrieved successfully',
+      // This route serves MERCHANT and LOCATION_MANAGER only (never ADMIN),
+      // so the money view applies unconditionally.
       data: result.orders.map(o =>
-        plainToInstance(MerchantOrderResponseDto, toPlain(o), { excludeExtraneousValues: true }),
+        plainToInstance(
+          MerchantOrderResponseDto,
+          toMerchantOrderView(toPlain(o) as Record<string, unknown>),
+          { excludeExtraneousValues: true },
+        ),
       ),
       meta: QueryOptimizer.getPaginationMeta(result.total, page, limit),
     };
@@ -351,6 +394,14 @@ export class OrdersController {
     type: String,
     description: 'Filter stats to a specific establishment (merchants only)',
   })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    enum: SALES_PERIODS,
+    description:
+      'Resolved server-side in Africa/Tunis, same clock as the earnings summary/chart. ' +
+      "Wins over `startDate` when both are sent. Default: `startDate`'s own behaviour (or all-time).",
+  })
   @ApiResponse({ status: 200, description: 'Order statistics retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Admin or Merchant access required' })
   @Get('stats')
@@ -358,18 +409,27 @@ export class OrdersController {
   @Roles(UserRole.ADMIN, UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
   async getOrderStats(
     @Request() req: AuthenticatedRequest,
-    @Query('startDate') startDateStr?: string,
-    @Query('establishmentId') establishmentId?: string,
+    @Query(strictValidation()) query: OrderStatsQueryDto,
   ): Promise<{
     statusCode: number;
     message: string;
     data: OrderStatsResponse;
   }> {
-    const startDate = startDateStr ? new Date(startDateStr) : undefined;
+    // `period` wins over `startDate` when both are sent - resolved on the
+    // server, in Africa/Tunis, via the same `resolveSalesPeriod` as the
+    // earnings summary/chart. The KPI cards filter by `createdAt`, not by
+    // the commission moment; the two populations overlap but are not equal.
+    // `startDate`'s own behaviour (including its all-time default) is
+    // unchanged when `period` is absent.
+    const startDate = query.period
+      ? (resolveSalesPeriod(query.period, new Date()).from ?? undefined)
+      : query.startDate
+        ? new Date(query.startDate)
+        : undefined;
     const effectiveEstablishmentId =
       req.user.role === UserRole.LOCATION_MANAGER
         ? req.user.assignedEstablishmentId
-        : establishmentId;
+        : query.establishmentId;
 
     const stats = await this.ordersService.getOrderStats(
       req.user.userId,
@@ -385,116 +445,55 @@ export class OrdersController {
     };
   }
 
-  @ApiOperation({
-    summary: 'Get revenue chart data',
-    description:
-      'Returns revenue per slot (day / week / month) for the last N slots. ' +
-      'Limits: day ≤ 90, week ≤ 52, month ≤ 24.',
-  })
-  @ApiQuery({
-    name: 'granularity',
-    required: false,
-    enum: ['day', 'week', 'month'],
-    description: 'Aggregation granularity (default: month)',
-  })
-  @ApiQuery({
-    name: 'value',
-    required: false,
-    type: Number,
-    description: 'Number of slots to return (default: 9)',
-  })
-  @ApiQuery({
-    name: 'establishmentId',
-    required: false,
-    type: String,
-    description: 'Filter revenue chart to a specific establishment (merchants only)',
-  })
-  @ApiResponse({ status: 200, description: 'Revenue chart data retrieved successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid granularity or value out of range' })
-  @ApiResponse({ status: 401, description: 'Unauthorized — merchant or admin access required' })
-  @Get('merchant-revenue-chart')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
-  async getMerchantRevenueChart(
-    @Request() req: AuthenticatedRequest,
-    @Query('granularity') rawGranularity = 'month',
-    @Query('value', new DefaultValuePipe(9), ParseIntPipe) value: number,
-    @Query('establishmentId') establishmentId?: string,
-  ): Promise<{
-    statusCode: number;
-    message: string;
-    data: RevenueChartResponse[];
-  }> {
-    if (!VALID_GRANULARITIES.has(rawGranularity as ChartGranularity)) {
-      throw new BadRequestException(
-        appError('INVALID_GRANULARITY', { allowed: String([...VALID_GRANULARITIES].join(', ')) }),
-      );
-    }
-    const granularity = rawGranularity as ChartGranularity;
-
-    const limit = CHART_LIMITS[granularity];
-    if (value < 1 || value > limit) {
-      throw new BadRequestException(appError('INVALID_GRANULARITY_VALUE', { max: limit }));
-    }
-
-    const effectiveEstablishmentId =
-      req.user.role === UserRole.LOCATION_MANAGER
-        ? req.user.assignedEstablishmentId
-        : establishmentId;
-
-    const data = await this.ordersService.getRevenueChart(
-      req.user.userId,
-      req.user.role,
-      granularity,
-      value,
-      effectiveEstablishmentId,
-    );
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Revenue chart data retrieved successfully',
-      data,
-    };
-  }
-
-  @ApiOperation({
-    summary: "Today's sales, cash and online together",
-    description:
-      'Orders created today (Africa/Tunis) split by how they were paid. Cash orders never ' +
-      'pass through the platform wallet, so this is the only place they appear as money.',
-  })
+  @ApiOperation({ summary: 'Merchant earnings for a period, cash and online together' })
+  @ApiQuery({ name: 'period', required: false, enum: SALES_PERIODS, description: 'Default: month' })
   @ApiQuery({
     name: 'establishmentId',
     required: false,
     type: String,
     description: 'Scope to one establishment (merchants only)',
   })
-  @ApiResponse({ status: 200, description: "Today's sales retrieved successfully" })
-  @ApiResponse({ status: 401, description: 'Unauthorized — merchant access required' })
-  @Get('merchant-today-sales')
+  @ApiResponse({ status: 200, description: 'Earnings summary' })
+  @Get('merchant-sales-summary')
   @UseGuards(RolesGuard)
   @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
-  async getMerchantTodaySales(
+  async getMerchantSalesSummary(
     @Request() req: AuthenticatedRequest,
-    @Query('establishmentId') establishmentId?: string,
-  ): Promise<{ statusCode: number; message: string; data: TodaySalesSummary }> {
-    // A location manager is pinned to their assignment, whatever they ask for.
-    const effectiveEstablishmentId =
-      req.user.role === UserRole.LOCATION_MANAGER
-        ? req.user.assignedEstablishmentId
-        : establishmentId;
-
-    const data = await this.ordersService.getTodaySales(
-      req.user.userId,
-      req.user.role,
-      effectiveEstablishmentId,
+    @Query(strictValidation()) query: MerchantSalesQueryDto,
+  ): Promise<{ statusCode: number; message: string; data: MerchantSalesSummary }> {
+    const data = await this.merchantSalesService.summary(
+      this.salesScope(req, query),
+      query.period ?? 'month',
     );
+    return { statusCode: HttpStatus.OK, message: 'Earnings summary retrieved successfully', data };
+  }
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: "Today's sales retrieved successfully",
-      data,
-    };
+  @ApiOperation({ summary: 'Merchant earnings per hour, day or month for a period' })
+  @ApiQuery({ name: 'period', required: false, enum: SALES_PERIODS, description: 'Default: month' })
+  @ApiQuery({
+    name: 'establishmentId',
+    required: false,
+    type: String,
+    description: 'Scope to one establishment (merchants only)',
+  })
+  @ApiResponse({ status: 200, description: 'Earnings chart' })
+  @Get('merchant-sales-chart')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.MERCHANT, UserRole.LOCATION_MANAGER)
+  async getMerchantSalesChart(
+    @Request() req: AuthenticatedRequest,
+    @Query(strictValidation()) query: MerchantSalesQueryDto,
+  ): Promise<{ statusCode: number; message: string; data: MerchantSalesChart }> {
+    const data = await this.merchantSalesService.chart(
+      this.salesScope(req, query),
+      query.period ?? 'month',
+    );
+    return { statusCode: HttpStatus.OK, message: 'Earnings chart retrieved successfully', data };
+  }
+
+  /** A location manager is pinned to their assignment, whatever they ask for. */
+  private salesScope(req: AuthenticatedRequest, query: MerchantSalesQueryDto) {
+    return salesScopeForRequest(req.user, query.establishmentId);
   }
 
   @ApiOperation({
@@ -610,19 +609,58 @@ export class OrdersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    const order = await this.ordersService.findById(id, req.user.userId, req.user.role);
-
-    const DtoClass =
+    const isMerchantSide =
       req.user.role === UserRole.MERCHANT ||
       req.user.role === UserRole.ADMIN ||
-      req.user.role === UserRole.LOCATION_MANAGER
-        ? MerchantOrderResponseDto
-        : ConsumerOrderResponseDto;
+      req.user.role === UserRole.LOCATION_MANAGER;
+    // `commission` is loaded only for MERCHANT / LOCATION_MANAGER / ADMIN -
+    // never as part of the default projection every role's read shares.
+    const order = await this.ordersService.findById(id, req.user.userId, req.user.role, {
+      includeCommission: isMerchantSide,
+    });
+
+    // Shared route: MERCHANT/LOCATION_MANAGER get the money-stripped view;
+    // ADMIN and the customer keep the full order.
+    const plain = toPlain(order) as Record<string, unknown>;
+    const view =
+      req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
+        ? toMerchantOrderView(plain)
+        : plain;
+
+    // "Your earnings" (A2) - same gate as `commission` (isMerchantSide), same
+    // case logic as merchant-sales via `orderEarningsFor`, never a second
+    // formula. Absent entirely when the order has no commission moment yet.
+    const earnings = isMerchantSide
+      ? orderEarningsFor(
+          view as unknown as Parameters<typeof orderEarningsFor>[0],
+          this.merchantSalesService.cutoff(),
+        )
+      : undefined;
+    const viewWithEarnings = earnings ? { ...view, earnings } : view;
+
+    // Three branches, not two: MERCHANT/LOCATION_MANAGER get the honestly
+    // stripped MerchantOrderResponseDto (A7); ADMIN keeps the full order
+    // (bypassing every DTO, like `forRole`'s ADMIN branch elsewhere in this
+    // controller) rather than being routed through the merchant shape, which
+    // would now also strip delivery money from ADMIN - a regression A7's own
+    // fix would otherwise have introduced, caught by
+    // `test/security/merchant-order-money.spec.ts`'s "still sends the
+    // delivery fee to ADMIN" row; CONSUMER gets ConsumerOrderResponseDto.
+    const data =
+      req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
+        ? plainToInstance(MerchantOrderResponseDto, viewWithEarnings, {
+            excludeExtraneousValues: true,
+          })
+        : req.user.role === UserRole.ADMIN
+          ? viewWithEarnings
+          : plainToInstance(ConsumerOrderResponseDto, viewWithEarnings, {
+              excludeExtraneousValues: true,
+            });
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Order retrieved successfully',
-      data: plainToInstance(DtoClass, toPlain(order), { excludeExtraneousValues: true }),
+      data,
     };
   }
 
@@ -656,7 +694,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order status updated successfully',
-      data: updatedOrder,
+      data: this.forRole(req.user.role, updatedOrder),
     };
   }
 
@@ -701,7 +739,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order pickup confirmed successfully',
-      data: updatedOrder,
+      data: this.forRole(req.user.role, updatedOrder),
     };
   }
 
@@ -730,7 +768,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order cancelled successfully',
-      data: cancelledOrder,
+      data: this.forRole(req.user.role, cancelledOrder),
     };
   }
 
@@ -808,7 +846,7 @@ export class OrdersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Order receipt retrieved successfully',
-      data: receipt,
+      data: this.forRole(req.user.role, receipt),
     };
   }
 
@@ -909,12 +947,12 @@ export class OrdersController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.MERCHANT, UserRole.ADMIN, UserRole.LOCATION_MANAGER)
   async unlockPickup(@Param('id') orderId: string, @Request() req: AuthenticatedRequest) {
-    const order = await this.ordersService.unlockPickup(orderId, req.user.userId);
+    const order = await this.ordersService.unlockPickup(orderId, req.user.userId, req.user.role);
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Order pickup unlocked successfully',
-      data: order,
+      data: this.forRole(req.user.role, order),
     };
   }
 }

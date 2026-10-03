@@ -236,8 +236,9 @@ export class CommissionService {
 
   /**
    * `order.commission` plus the two denormalised pricing fields every
-   * earnings aggregation reads (MERCHANT_EARNINGS_EXPR). Conditional on no
-   * decision being there yet, so it can never overwrite a frozen one.
+   * earnings aggregation reads (the shared calculation in
+   * merchant-sales.expressions.ts). Conditional on no decision being there
+   * yet, so it can never overwrite a frozen one.
    */
   private async freezeOntoOrder(
     input: ApplyCommissionInput,

@@ -11,6 +11,7 @@ export * from './favorite.types';
 export * from './donation.types';
 export * from './leaderboard.types';
 export * from './geo.types';
+export * from './merchant-sales.types';
 
 export type {
   OrganizationType,

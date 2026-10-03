@@ -23,6 +23,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { ProSubscriptionGuard } from '../../common/guards/pro-subscription.guard';
 import { SkipProGuard } from '../../common/decorators/skip-pro-guard.decorator';
 import { UpdateMonthlyGoalDto } from '../dto/sustainability.dto';
+import { SustainabilityMetricsQueryDto } from '../dto/sustainability-metrics-query.dto';
 import type {
   CarbonMetricsResponse,
   EsgTierResponse,
@@ -36,6 +37,7 @@ import { PdfReportService } from '../services/pdf-report.service';
 import { StreakService } from '../services/streak.service';
 import { SustainabilityService } from '../services/sustainability.service';
 import { strictValidation } from '../../common/pipes/validation-pipes';
+import { SALES_PERIODS, resolveSalesPeriod } from '../../merchant-sales/merchant-sales.period';
 
 import { appError } from '../../common/errors';
 @ApiTags('Sustainability')
@@ -122,16 +124,27 @@ export class SustainabilityController {
     description: 'ISO date string filter (e.g. 2025-01-01)',
   })
   @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    enum: SALES_PERIODS,
+    description:
+      'Resolved server-side in Africa/Tunis, same clock as the earnings summary/chart. ' +
+      "Wins over `since` when both are sent. Default: `since`'s own behaviour (or all-time).",
+  })
   async getCarbonMetrics(
     @Request() req: AuthenticatedRequest,
-    @Query('since') since?: string,
-    @Query('establishmentId') establishmentId?: string,
+    @Query(strictValidation()) query: SustainabilityMetricsQueryDto,
   ): Promise<{ message: string; data: CarbonMetricsResponse }> {
-    const startDate = since ? new Date(since) : undefined;
+    const startDate = query.period
+      ? (resolveSalesPeriod(query.period, new Date()).from ?? undefined)
+      : query.since
+        ? new Date(query.since)
+        : undefined;
     const effectiveEstablishmentId =
       req.user.role === UserRole.LOCATION_MANAGER
         ? req.user.assignedEstablishmentId
-        : establishmentId;
+        : query.establishmentId;
     const data = await this.sustainabilityService.getCarbonMetrics(
       req.user.userId,
       startDate,
@@ -145,16 +158,27 @@ export class SustainabilityController {
   @ApiOperation({ summary: 'Get social impact (meals distributed, people served)' })
   @ApiQuery({ name: 'since', required: false, description: 'ISO date string filter' })
   @ApiQuery({ name: 'establishmentId', required: false, description: 'Filter by establishment' })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    enum: SALES_PERIODS,
+    description:
+      'Resolved server-side in Africa/Tunis, same clock as the earnings summary/chart. ' +
+      "Wins over `since` when both are sent. Default: `since`'s own behaviour (or all-time).",
+  })
   async getSocialImpact(
     @Request() req: AuthenticatedRequest,
-    @Query('since') since?: string,
-    @Query('establishmentId') establishmentId?: string,
+    @Query(strictValidation()) query: SustainabilityMetricsQueryDto,
   ): Promise<{ message: string; data: SocialImpactResponse }> {
-    const startDate = since ? new Date(since) : undefined;
+    const startDate = query.period
+      ? (resolveSalesPeriod(query.period, new Date()).from ?? undefined)
+      : query.since
+        ? new Date(query.since)
+        : undefined;
     const effectiveEstablishmentId =
       req.user.role === UserRole.LOCATION_MANAGER
         ? req.user.assignedEstablishmentId
-        : establishmentId;
+        : query.establishmentId;
     const data = await this.sustainabilityService.getSocialImpact(
       req.user.userId,
       startDate,

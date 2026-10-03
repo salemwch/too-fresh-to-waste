@@ -202,6 +202,18 @@ export const ORDER_DETAIL_FIELDS = [
 ].join(' ');
 
 /**
+ * The merchant's frozen commission decision - "Your earnings" on the order
+ * detail page (never delivery money, see orders/utils/merchant-order-view.ts).
+ *
+ * Deliberately NOT part of `ORDER_DETAIL_FIELDS`: that projection is shared by
+ * every caller of `OrdersService.findById`, including paths a CONSUMER can
+ * reach (confirm-pickup, cancel). Loaded only via `findById`'s
+ * `includeCommission` opt-in, passed by callers that already know the
+ * requester is MERCHANT, LOCATION_MANAGER or ADMIN.
+ */
+export const ORDER_COMMISSION_FIELD = 'commission';
+
+/**
  * Minimal structural interface for Mongoose query builder methods.
  * Avoids deep generic coupling to Mongoose internals while preserving type safety.
  */

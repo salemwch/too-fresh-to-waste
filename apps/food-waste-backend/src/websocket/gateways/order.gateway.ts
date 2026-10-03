@@ -217,27 +217,6 @@ export class OrderGateway {
   }
 
   /**
-   * Notify merchant of new order
-   */
-  notifyNewOrder(orderId: string, merchantId: string, customerName: string, total: number): void {
-    const message = {
-      orderId,
-      title: 'New Order Received! 🎉',
-      message: `You have a new order from ${customerName} worth $${total.toFixed(2)}`,
-      actionRequired: true,
-      action: 'view_order',
-      metadata: {
-        customerName,
-        total,
-      },
-    };
-
-    this.webSocketService.sendToUser(merchantId, 'order:new', message);
-
-    this.logger.log(`New order notification sent to merchant ${merchantId}`);
-  }
-
-  /**
    * Batch notify multiple orders (useful for system updates)
    */
   batchNotifyOrderUpdates(updates: OrderStatusUpdate[]): void {

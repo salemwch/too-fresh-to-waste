@@ -168,6 +168,34 @@ jobs:
           JWT_SECRET: test-jwt-secret-for-ci-only
           JWT_REFRESH_SECRET: test-jwt-refresh-secret-for-ci-only
 
+      # ── test:db (integration specs against a replica-set Mongo) ──
+      # The GHA `services` Mongo is standalone (no --replSet), which is fine for
+      # test:ci but not for test:db (needs withTransaction). Start a second
+      # container with --replSet, initiate, then run the suites against it.
+      - name: Start replica-set MongoDB for test:db
+        run: |
+          docker run -d --name mongo-rs \
+            -p 27018:27017 \
+            mongo:7.0 mongod --replSet rs0
+          until docker exec mongo-rs mongosh --quiet --eval 'db.runCommand("ping").ok' 2>/dev/null; do
+            sleep 1
+          done
+          docker exec mongo-rs mongosh --quiet --eval 'rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "localhost:27017" }] })'
+          until docker exec mongo-rs mongosh --quiet --eval 'rs.status().myState === 1' 2>/dev/null; do
+            sleep 1
+          done
+
+      - name: Run test:db (integration specs)
+        run: pnpm --filter @foodwaste/backend test:db
+        env:
+          NODE_ENV: test
+          MONGO_TEST_URI: mongodb://localhost:27018/test_integration?replicaSet=rs0&directConnection=true
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+          JWT_SECRET: test-jwt-secret-for-ci-only
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret-for-ci-only
+
       # Indexes are declared on the Mongoose schemas but `autoIndex` is off in
       # production, so nothing creates them there except db:create-indexes. These
       # two steps prove, against a throwaway MongoDB, that every declared index is
@@ -175,7 +203,7 @@ jobs:
       #
       # This catches a class of bug that no other check can see: an index MongoDB
       # rejects outright never gets built, in any environment, silently. One had
-      # been broken for months — users.address.coordinates set both `sparse` and
+      # been broken for months - users.address.coordinates set both `sparse` and
       # `partialFilterExpression`, which MongoDB refuses.
       - name: Create indexes from schemas
         run: pnpm --filter @foodwaste/backend db:create-indexes

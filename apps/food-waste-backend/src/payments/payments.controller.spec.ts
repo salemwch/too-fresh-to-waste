@@ -6,6 +6,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AppVersionGuard } from 'src/common/guards/app-version.guard';
 
+import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
+
 import { PaymentService } from './payments.service';
 import { KonnectOrderService } from './services/konnect-order.service';
 import { MerchantCommissionService } from './services/merchant-commission.service';
@@ -39,6 +41,9 @@ describe('PaymentController — Konnect webhooks', () => {
         // Required by the controller's constructor since the commission
         // statement endpoint was added. Unused by these webhook tests.
         { provide: MerchantCommissionService, useValue: { getStatement: jest.fn() } },
+        // Required since the Payments tab moved to the shared earnings
+        // calculation (Task 11). Unused by these webhook tests.
+        { provide: MerchantSalesService, useValue: { summary: jest.fn(), rows: jest.fn() } },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: Reflector, useValue: new Reflector() },
       ],

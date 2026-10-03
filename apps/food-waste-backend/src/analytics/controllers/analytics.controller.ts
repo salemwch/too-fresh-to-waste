@@ -28,6 +28,7 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { AuthenticatedRequest, GetUser } from '../../common/decorators/get-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ProSubscriptionGuard } from '../../common/guards/pro-subscription.guard';
+import { resolveSalesPeriod } from '../../merchant-sales/merchant-sales.period';
 import {
   BusinessMetricsRequestDto,
   UserAnalyticsRequestDto,
@@ -39,6 +40,7 @@ import {
   RealTimeMetrics,
   QuickStatsResponse,
   CacheStatistics,
+  ResolvedPeriodFlag,
 } from '../interfaces/analytics.interface';
 import { AnalyticsService } from '../services/analytics.service';
 import { strictValidation } from '../../common/pipes/validation-pipes';
@@ -73,7 +75,7 @@ export class AnalyticsController {
     schema: {
       type: 'object',
       properties: {
-        totalRevenue: {
+        totalEarnings: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 125000.5 },
@@ -91,7 +93,7 @@ export class AnalyticsController {
             trend: { type: 'string', enum: ['up', 'down', 'stable'], example: 'up' },
           },
         },
-        averageOrderValue: {
+        averageFoodValue: {
           type: 'object',
           properties: {
             value: { type: 'number', example: 15.25 },
@@ -148,12 +150,58 @@ export class AnalyticsController {
       return this.analyticsService.emptyBusinessMetrics();
     }
 
-    const scopedRequest: BusinessMetricsRequestDto = {
-      ...request,
-      filters: { ...request.filters, establishmentIds: effectiveEstablishmentIds },
+    const periodResolved = this.resolvePeriod(request);
+    const scopedRequest: BusinessMetricsRequestDto & ResolvedPeriodFlag = {
+      ...periodResolved,
+      filters: { ...periodResolved.filters, establishmentIds: effectiveEstablishmentIds },
     };
 
     return this.analyticsService.getBusinessMetrics(scopedRequest);
+  }
+
+  /**
+   * When the body carries `period` (the same five periods as the Dashboard
+   * and Payments), resolve it server-side in Africa/Tunis and let it override
+   * `filters.dateRange` - `custom` (no `period` sent) keeps the caller's own
+   * dates, exactly as before.
+   *
+   * The resolved range is marked `resolvedFromPeriod: true` - an internal
+   * flag on `BusinessMetricsRequestDto & ResolvedPeriodFlag`, never a DTO
+   * property, so a client can never set it itself. `all` resolves to
+   * `[epoch, now]`, which `AnalyticsUtil.validateAnalyticsFilters`'s 2-year
+   * cap would otherwise reject with 400 `INVALID_FILTERS` - a cap meant to
+   * bound caller-supplied custom ranges, not one the server itself produced.
+   * The flag tells that check to skip only this range, while a genuine custom
+   * `dateRange` over 2 years is still rejected.
+   *
+   * `all` has no meaningful "previous period": comparing `[epoch, now]`
+   * against an arbitrary pre-epoch window would produce a trend delta with no
+   * real meaning, so comparisons are suppressed for it rather than fabricated
+   * - every metric's `trend` then reports 'stable' with no `previousValue`
+   * (`AnalyticsUtil.calculateMetricValue` with `previous === undefined`).
+   */
+  private resolvePeriod(
+    request: BusinessMetricsRequestDto,
+  ): BusinessMetricsRequestDto & ResolvedPeriodFlag {
+    if (!request.period) {
+      return request;
+    }
+
+    const range = resolveSalesPeriod(request.period, new Date());
+    return {
+      ...request,
+      resolvedFromPeriod: true,
+      filters: {
+        ...request.filters,
+        dateRange: {
+          startDate: (range.from ?? new Date(0)).toISOString(),
+          endDate: range.to.toISOString(),
+        },
+      },
+      ...(request.period === 'all'
+        ? { options: { ...request.options, includeComparisons: false } }
+        : {}),
+    };
   }
 
   // ==================== User Analytics ====================
@@ -375,9 +423,12 @@ export class AnalyticsController {
     const metrics = await this.analyticsService.getBusinessMetrics(request);
 
     return {
-      revenue: metrics.totalRevenue.value,
+      // Merchant earnings (food only) - `totalRevenue` (built from
+      // `pricing.total`, food plus delivery) no longer exists: a merchant
+      // never sees delivery money (spec Decisions).
+      revenue: metrics.totalEarnings.value,
       orders: metrics.totalOrders.value,
-      averageOrderValue: metrics.averageOrderValue.value,
+      averageFoodValue: metrics.averageFoodValue.value,
       sustainability: {
         foodSaved: metrics.foodWasteSaved.value,
         carbonReduced: metrics.carbonFootprintReduced.value,

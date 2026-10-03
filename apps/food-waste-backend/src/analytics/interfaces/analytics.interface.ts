@@ -23,11 +23,29 @@ export interface TimeSeries {
 
 // ==================== Business Analytics Interfaces ====================
 
+/**
+ * Internal-only marker, intersected onto `BusinessMetricsRequestDto` by the
+ * controller - never a DTO property, so a client can never set it. Set when
+ * `filters.dateRange` was resolved server-side from a merchant-facing
+ * `period` (e.g. `all`, `[epoch, now]`) rather than supplied by the caller,
+ * so `AnalyticsUtil.validateAnalyticsFilters` can skip the 2-year cap for
+ * exactly that range and no other.
+ */
+export interface ResolvedPeriodFlag {
+  resolvedFromPeriod?: boolean;
+}
+
 export interface BusinessMetrics {
-  totalRevenue: MetricValue;
   totalEarnings: MetricValue;
   totalOrders: MetricValue;
-  averageOrderValue: MetricValue;
+  /**
+   * Food price after the offer discount, per completed order, over the
+   * Earnings population - `earnings.total.foodValue / earnings.total.orders`.
+   * Never `pricing.total`: a merchant never sees delivery money (spec
+   * Decisions). Replaces the old `averageOrderValue` (built from
+   * `pricing.total`, food plus delivery).
+   */
+  averageFoodValue: MetricValue;
   conversionRate: MetricValue;
   customerAcquisitionCost: MetricValue;
   customerLifetimeValue: MetricValue;
@@ -288,9 +306,10 @@ export interface AggregationOptions {
 // ==================== Controller Response Interfaces ====================
 
 export interface QuickStatsResponse {
+  /** Merchant earnings (food only) - never the customer total. */
   revenue: number;
   orders: number;
-  averageOrderValue: number;
+  averageFoodValue: number;
   sustainability: {
     foodSaved: number;
     carbonReduced: number;

@@ -1,52 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import {
   Wallet,
   DollarSign,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  ArrowDownToLine,
-  Banknote,
-  TrendingUp,
   ShoppingBag,
+  AlertCircle,
+  RotateCcw,
+  ShieldAlert,
+  Banknote,
+  Store,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useMerchantPayments, usePaymentStats } from '@/hooks/use-payments';
-import type { PaymentStatus, PaymentQueryFilters, MerchantPayment } from '@/types/payments';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PeriodBar } from '@/components/dashboard/merchant/period-bar';
+import { HeldBalanceCard } from './held-balance-card';
+import { SettlementBalanceCard } from './settlement-balance-card';
+import { useSalesPeriod } from '@/hooks/use-sales-period';
+import { usePaymentStats, useMerchantEarningsRows } from '@/hooks/use-payments';
 import { useFormat, MISSING_COUNT } from '@/lib/use-format';
+import { EARNINGS_TABS } from '@/types/payments';
+import type {
+  EarningsRow,
+  EarningsTab,
+  MerchantSalesSummary,
+  PaymentLine,
+  SalesPeriod,
+} from '@/types/payments';
 
-// ─── Status badge config ────────────────────────────────────────────────────
-
-const PAYMENT_STATUS_STYLES: Record<string, { bg: string; icon: typeof CheckCircle2 }> = {
-  completed: { bg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200', icon: CheckCircle2 },
-  pending: { bg: 'bg-amber-500/10 text-amber-600 border-amber-200', icon: Clock },
-  processing: { bg: 'bg-blue-500/10 text-blue-600 border-blue-200', icon: Clock },
-  failed: { bg: 'bg-destructive/10 text-destructive border-destructive/20', icon: XCircle },
-  refunded: { bg: 'bg-violet-500/10 text-violet-600 border-violet-200', icon: ArrowDownToLine },
-  cancelled: { bg: 'bg-muted text-muted-foreground border-border', icon: XCircle },
+const LINE_ICONS: Record<PaymentLine, typeof Banknote> = {
+  cashStore: Banknote,
+  cashDelivery: Banknote,
+  online: Globe,
 };
 
 // ─── Skeletons ──────────────────────────────────────────────────────────────
 
 function StatsCardsSkeleton() {
   return (
-    <div className='grid grid-cols-2 lg:grid-cols-4 gap-lg'>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className='glass rounded-2xl p-[24px] shadow-soft'>
+    <div className='grid grid-cols-2 gap-md lg:grid-cols-5'>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className='glass rounded-xl p-lg shadow-soft'>
           <Skeleton className='h-4 w-24 mb-md' />
           <Skeleton className='h-8 w-20' />
         </div>
@@ -73,9 +71,10 @@ function PaymentListSkeleton() {
   );
 }
 
-// ─── Error state ────────────────────────────────────────────────────────────
+// ─── Error / empty states ───────────────────────────────────────────────────
 
 function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const tCommon = useTranslations('common');
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
       <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
@@ -83,7 +82,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
         <p className='text-sm text-muted-foreground'>{message}</p>
         {onRetry && (
           <Button variant='outline' size='sm' onClick={onRetry}>
-            Retry
+            {tCommon('retry')}
           </Button>
         )}
       </div>
@@ -91,77 +90,108 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
   );
 }
 
-// ─── Stats Cards ────────────────────────────────────────────────────────────
-
-function PaymentStatsCards() {
-  const t = useTranslations('dashboard.payments');
-  const { data: stats, isLoading, isError, refetch } = usePaymentStats();
-
-  if (isLoading) return <StatsCardsSkeleton />;
-  if (isError) return <ErrorState message={t('error')} onRetry={() => void refetch()} />;
-  if (!stats) return null;
-
-  const cards = [
-    {
-      label: t('stats.totalCollected'),
-      value: `${(stats.totalRevenue ?? 0).toFixed(2)} ${t('tndCurrency')}`,
-      icon: DollarSign,
-    },
-    {
-      label: t('stats.completedOrders'),
-      value: stats.completedPayments,
-      icon: CheckCircle2,
-    },
-    {
-      label: t('stats.pendingCollection'),
-      value: stats.pendingPayments,
-      icon: Clock,
-    },
-    {
-      label: t('stats.todayRevenue'),
-      value: `${(stats.averageOrderValue ?? 0).toFixed(2)} ${t('tndCurrency')}`,
-      icon: TrendingUp,
-      subtitle: 'avg/order',
-    },
-  ];
-
+/**
+ * A background refetch failing must not blank out data already on screen -
+ * the same rule `HeldBalanceCard`/`EarningsCard` follow for a single value.
+ * Here the stats cards and the row list keep rendering their last-good data
+ * underneath this banner, with its own retry, rather than being replaced by
+ * a full-screen `ErrorState`.
+ */
+function InlineErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const tCommon = useTranslations('common');
   return (
-    <div className='grid grid-cols-2 lg:grid-cols-4 gap-md'>
-      {cards.map((card, i) => {
-        const Icon = card.icon;
-        return (
-          <motion.div
-            key={card.label}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + i * 0.08, duration: 0.3 }}
-            className='glass rounded-xl p-lg shadow-soft relative overflow-hidden'
-          >
-            <div className='absolute -top-lg -end-lg w-16 h-16 rounded-full bg-brand-coral/10 blur-2xl' />
-            <div className='relative'>
-              <div className='h-8 w-8 rounded-lg bg-primary-500/[0.08] flex items-center justify-center mb-sm'>
-                <Icon className='size-4 text-primary-500' />
-              </div>
-              <p className='text-[11px] text-muted-foreground'>{card.label}</p>
-              <p className='font-display text-lg text-primary-500 font-bold mt-xxs'>{card.value}</p>
-              {card.subtitle && (
-                <p className='text-[11px] text-muted-foreground'>{card.subtitle}</p>
-              )}
-            </div>
-          </motion.div>
-        );
-      })}
+    <div className='flex flex-wrap items-center justify-between gap-sm rounded-lg border border-destructive/30 bg-destructive/10 px-md py-sm text-xs text-destructive'>
+      <span className='flex items-center gap-xs'>
+        <AlertCircle className='size-4 shrink-0' />
+        {message}
+      </span>
+      <Button variant='outline' size='sm' onClick={onRetry}>
+        {tCommon('retry')}
+      </Button>
     </div>
   );
 }
 
-// ─── Payment Row ────────────────────────────────────────────────────────────
+function EmptyState({ title }: { title: string }) {
+  return (
+    <div className='glass rounded-2xl p-[24px] shadow-soft'>
+      <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
+        <Wallet className='size-12 text-muted-foreground' />
+        <h3 className='text-md font-semibold'>{title}</h3>
+      </div>
+    </div>
+  );
+}
 
-function PaymentRow({ payment }: { payment: MerchantPayment }) {
-  const fmt = useFormat();
+// ─── Stats cards ────────────────────────────────────────────────────────────
+
+function StatsCard({
+  label,
+  value,
+  icon: Icon,
+  delay,
+}: {
+  label: string;
+  value: string | number;
+  icon: typeof DollarSign;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.3 }}
+      className='glass rounded-xl p-lg shadow-soft relative overflow-hidden'
+    >
+      <div className='absolute -top-lg -end-lg w-16 h-16 rounded-full bg-brand-coral/10 blur-2xl' />
+      <div className='relative'>
+        <div className='h-8 w-8 rounded-lg bg-primary-500/[0.08] flex items-center justify-center mb-sm'>
+          <Icon className='size-4 text-primary-500' />
+        </div>
+        <p className='text-[11px] text-muted-foreground'>{label}</p>
+        <p className='font-display text-lg text-primary-500 font-bold mt-xxs'>{value}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function PaymentStatsCards({ summary }: { summary: MerchantSalesSummary }) {
   const t = useTranslations('dashboard.payments');
-  const statusConfig = PAYMENT_STATUS_STYLES[payment.status] || PAYMENT_STATUS_STYLES.pending;
-  const StatusIcon = statusConfig.icon;
+  const tLines = useTranslations('dashboard.earnings.lines');
+  const fmt = useFormat();
+
+  const cards: Array<{ label: string; value: string | number; icon: typeof DollarSign }> = [
+    { label: t('stats.totalEarned'), value: fmt.money(summary.total.earned), icon: DollarSign },
+    { label: t('stats.orders'), value: fmt.count(summary.total.orders), icon: ShoppingBag },
+    {
+      label: tLines('cashStore'),
+      value: fmt.money(summary.channels.cashStore.earned),
+      icon: Banknote,
+    },
+    {
+      label: tLines('cashDelivery'),
+      value: fmt.money(summary.channels.cashDelivery.earned),
+      icon: Banknote,
+    },
+    { label: tLines('online'), value: fmt.money(summary.channels.online.earned), icon: Globe },
+  ];
+
+  return (
+    <div className='grid grid-cols-2 gap-md lg:grid-cols-5'>
+      {cards.map((card, i) => (
+        <StatsCard key={card.label} {...card} delay={0.1 + i * 0.06} />
+      ))}
+    </div>
+  );
+}
+
+// ─── Row ────────────────────────────────────────────────────────────────────
+
+function EarningsRowCard({ row, tab }: { row: EarningsRow; tab: EarningsTab }) {
+  const t = useTranslations('dashboard.payments');
+  const tLines = useTranslations('dashboard.earnings.lines');
+  const fmt = useFormat();
+  const LineIcon = LINE_ICONS[row.line];
 
   return (
     <motion.div
@@ -169,85 +199,125 @@ function PaymentRow({ payment }: { payment: MerchantPayment }) {
       animate={{ opacity: 1, y: 0 }}
       className='glass rounded-xl p-lg shadow-soft hover:shadow-md transition-shadow'
     >
-      <div className='flex items-center justify-between'>
+      <div className='flex items-center justify-between gap-md'>
         <div className='flex items-center gap-md flex-1 min-w-0'>
           <div className='size-10 rounded-lg bg-primary-500/[0.08] flex items-center justify-center shrink-0'>
-            <Banknote className='size-5 text-primary-500' />
+            <LineIcon className='size-5 text-primary-500' />
           </div>
           <div className='min-w-0'>
-            <div className='flex items-center gap-sm'>
-              <p className='text-sm font-semibold truncate'>
-                {payment.orderNumber ? `#${payment.orderNumber}` : `#${payment.orderId.slice(-8)}`}
-              </p>
-              <Badge variant='outline' className={`text-xs shrink-0 ${statusConfig.bg}`}>
-                <StatusIcon className='size-3 me-xs' />
-                {t(`status.${payment.status}`)}
-              </Badge>
-            </div>
-            <div className='flex items-center gap-md text-xs text-muted-foreground mt-xxs'>
-              {payment.customerName && (
+            <p className='text-sm font-semibold truncate'>#{row.orderNumber}</p>
+            <div className='flex flex-wrap items-center gap-md text-xs text-muted-foreground mt-xxs'>
+              {row.customerName && (
                 <span className='flex items-center gap-xs'>
                   <ShoppingBag className='size-3' />
-                  {payment.customerName}
+                  {row.customerName}
                 </span>
               )}
-              <span>{t(`methods.${payment.paymentMethod}`)}</span>
-              <span>{fmt.date(payment.createdAt) ?? MISSING_COUNT}</span>
+              {row.establishmentName && (
+                <span className='flex items-center gap-xs'>
+                  <Store className='size-3' />
+                  {row.establishmentName}
+                </span>
+              )}
+              <span>{tLines(row.line)}</span>
+              <span>{fmt.dateShort(row.commissionMoment) ?? MISSING_COUNT}</span>
             </div>
           </div>
         </div>
-        <p className='font-display text-lg font-bold text-primary-500 shrink-0 ms-lg'>
-          {(payment.amount ?? 0).toFixed(2)}{' '}
-          <span className='text-xs font-normal'>{t('tndCurrency')}</span>
-        </p>
+
+        <div className='text-end shrink-0 ms-lg'>
+          {tab === 'earnings' && (
+            <p className='font-display text-lg font-bold text-primary-500'>
+              {fmt.money(row.earned)}
+            </p>
+          )}
+          {tab === 'refunded' && (
+            <div className='flex flex-col items-end gap-xxs'>
+              <span className='inline-flex items-center gap-xs text-xs font-semibold text-destructive'>
+                <RotateCcw className='size-3.5' />
+                {t('tabs.refunded')}
+              </span>
+              {row.refundReason && (
+                <p className='text-[11px] text-muted-foreground max-w-[180px] truncate'>
+                  {row.refundReason}
+                </p>
+              )}
+            </div>
+          )}
+          {tab === 'verifying' && (
+            <span className='inline-flex items-center gap-xs text-xs font-semibold text-muted-foreground'>
+              <ShieldAlert className='size-3.5' />
+              {t('tabs.verifying')}
+            </span>
+          )}
+        </div>
       </div>
     </motion.div>
   );
 }
 
-// ─── Main Page ──────────────────────────────────────────────────────────────
+// ─── One tab's row list (mounted only while its TabsContent is active,  ────
+// ─── so only the active tab's query ever runs) ─────────────────────────────
 
-export function PaymentsPage() {
+function EarningsRowsSection({ period, tab }: { period: SalesPeriod; tab: EarningsTab }) {
   const t = useTranslations('dashboard.payments');
-  const [filters, setFilters] = useState<PaymentQueryFilters>({ limit: 20 });
-  const { data, isLoading, isError, refetch } = useMerchantPayments(filters);
+  const rowsQuery = useMerchantEarningsRows(period, tab);
+  const rows = rowsQuery.data?.pages.flatMap(page => page.rows) ?? [];
+  const hasRows = rows.length > 0;
 
-  function handleStatusFilter(value: string) {
-    setFilters(prev => {
-      if (value === 'all') {
-        const { status: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, status: value as PaymentStatus };
-    });
-  }
+  return (
+    <div className='space-y-md'>
+      {tab === 'verifying' && (
+        <div className='flex items-center gap-sm rounded-lg border border-border/60 bg-muted/30 px-md py-sm text-xs text-muted-foreground'>
+          <AlertCircle className='size-4 shrink-0' />
+          <span>{t('verifyingNote')}</span>
+        </div>
+      )}
 
-  function handleDateFilter(value: string) {
-    const now = new Date();
-    let fromDate: string | undefined;
+      {rowsQuery.isLoading ? (
+        <PaymentListSkeleton />
+      ) : rowsQuery.isError && !hasRows ? (
+        <ErrorState message={t('error')} onRetry={() => void rowsQuery.refetch()} />
+      ) : (
+        <>
+          {rowsQuery.isError && (
+            <InlineErrorBanner message={t('error')} onRetry={() => void rowsQuery.refetch()} />
+          )}
+          {hasRows ? (
+            <div className='space-y-md'>
+              {rows.map(row => (
+                <EarningsRowCard key={row.orderId} row={row} tab={tab} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState title={t(`empty.${tab}`)} />
+          )}
+        </>
+      )}
 
-    if (value === 'today') {
-      fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    } else if (value === 'thisWeek') {
-      const dayOfWeek = now.getDay();
-      const monday = new Date(now);
-      monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-      monday.setHours(0, 0, 0, 0);
-      fromDate = monday.toISOString();
-    } else if (value === 'thisMonth') {
-      fromDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    }
+      {rowsQuery.hasNextPage && (
+        <div className='flex justify-center pt-sm'>
+          <Button
+            variant='outline'
+            disabled={rowsQuery.isFetchingNextPage}
+            onClick={() => void rowsQuery.fetchNextPage()}
+          >
+            {t('loadMore')}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
 
-    setFilters(prev => {
-      if (value === 'all') {
-        const { fromDate: _, toDate: __, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, ...(fromDate ? { fromDate } : {}) };
-    });
-  }
+// ─── Content (reads useSearchParams via useSalesPeriod) ────────────────────
 
-  const payments = data?.payments || [];
+function PaymentsPageContent() {
+  const t = useTranslations('dashboard.payments');
+  const [period, setPeriod] = useSalesPeriod();
+  const [activeTab, setActiveTab] = useState<EarningsTab>('earnings');
+
+  const stats = usePaymentStats(period);
 
   return (
     <div className='space-y-2xl'>
@@ -256,81 +326,81 @@ export function PaymentsPage() {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+        className='flex flex-wrap items-start justify-between gap-md'
       >
-        <h1 className='font-display text-3xl md:text-4xl text-primary-500 font-bold'>
-          {t('title')}
-        </h1>
-        <p className='text-sm text-muted-foreground mt-xs'>{t('subtitle')}</p>
+        <div>
+          <h1 className='font-display text-3xl md:text-4xl text-primary-500 font-bold'>
+            {t('title')}
+          </h1>
+          <p className='text-sm text-muted-foreground mt-xs'>{t('subtitle')}</p>
+        </div>
+        <PeriodBar value={period} onChange={setPeriod} />
       </motion.div>
 
+      {/* Live balance TFTW currently holds - period-independent, see
+          held-balance-card.tsx for why it sits above the period-scoped stats. */}
+      <HeldBalanceCard />
+
+      {/* Live settlement balance - what TFTW is still owed from completed
+          sales, taken from upcoming orders. Moved here from the Dashboard's
+          CommissionCard (task-17 B1). Period-independent like HeldBalanceCard. */}
+      <SettlementBalanceCard />
+
       {/* Stats */}
-      <PaymentStatsCards />
-
-      {/* Filters */}
-      <div className='flex flex-wrap gap-sm'>
-        <Select value={filters.status || 'all'} onValueChange={handleStatusFilter}>
-          <SelectTrigger className='h-8 w-auto min-w-[120px] text-xs'>
-            <SelectValue placeholder={t('filters.allStatuses')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>{t('filters.allStatuses')}</SelectItem>
-            <SelectItem value='completed'>{t('filters.collected')}</SelectItem>
-            <SelectItem value='pending'>{t('filters.pending')}</SelectItem>
-            <SelectItem value='refunded'>{t('filters.refunded')}</SelectItem>
-            <SelectItem value='failed'>{t('filters.failed')}</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select defaultValue='all' onValueChange={handleDateFilter}>
-          <SelectTrigger className='h-8 w-auto min-w-[120px] text-xs'>
-            <SelectValue placeholder={t('filters.dateRange')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>{t('filters.dateRange')}</SelectItem>
-            <SelectItem value='today'>{t('filters.today')}</SelectItem>
-            <SelectItem value='thisWeek'>{t('filters.thisWeek')}</SelectItem>
-            <SelectItem value='thisMonth'>{t('filters.thisMonth')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Payment list */}
-      {isLoading ? (
-        <PaymentListSkeleton />
-      ) : isError ? (
-        <ErrorState message={t('error')} onRetry={() => void refetch()} />
-      ) : payments.length === 0 ? (
-        <div className='glass rounded-2xl p-[24px] shadow-soft'>
-          <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
-            <Wallet className='size-12 text-muted-foreground' />
-            <h3 className='text-md font-semibold'>{t('empty.title')}</h3>
-            <p className='text-sm text-muted-foreground max-w-xs'>{t('empty.description')}</p>
-          </div>
-        </div>
-      ) : (
+      {stats.isLoading ? (
+        <StatsCardsSkeleton />
+      ) : stats.data ? (
         <div className='space-y-md'>
-          {payments.map(payment => (
-            <PaymentRow key={payment.id} payment={payment} />
-          ))}
+          {stats.isError && (
+            <InlineErrorBanner message={t('error')} onRetry={() => void stats.refetch()} />
+          )}
+          <PaymentStatsCards summary={stats.data} />
         </div>
-      )}
+      ) : stats.isError ? (
+        <ErrorState message={t('error')} onRetry={() => void stats.refetch()} />
+      ) : null}
 
-      {/* Load more */}
-      {data?.hasMore && (
-        <div className='flex justify-center pt-sm'>
-          <Button
-            variant='outline'
-            onClick={() =>
-              setFilters(prev => ({
-                ...prev,
-                ...(data.nextCursor ? { after: data.nextCursor } : {}),
-              }))
-            }
-          >
-            Load More
-          </Button>
+      {/* Tabs — DESIGN.md §13.8: real role="tablist" with arrow-key nav and
+          roving tabindex (Radix), 40px, active bg-background + shadow-sm
+          (base TabsTrigger already matches, so no override classes here).
+          Horizontal scroll rather than wrapping to a second row. */}
+      <Tabs value={activeTab} onValueChange={v => setActiveTab(v as EarningsTab)}>
+        <div className='overflow-x-auto'>
+          <TabsList>
+            {EARNINGS_TABS.map(tab => (
+              <TabsTrigger key={tab} value={tab}>
+                {t(`tabs.${tab}`)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </div>
-      )}
+
+        {EARNINGS_TABS.map(tab => (
+          <TabsContent key={tab} value={tab} className='mt-lg'>
+            <EarningsRowsSection period={period} tab={tab} />
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
+  );
+}
+
+// ─── Page (Suspense boundary — useSalesPeriod reads useSearchParams) ────────
+
+export function PaymentsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='space-y-2xl'>
+          <Skeleton className='h-12 w-64' />
+          <Skeleton className='h-[104px] w-full rounded-xl' />
+          <Skeleton className='h-[88px] w-full rounded-xl' />
+          <StatsCardsSkeleton />
+          <PaymentListSkeleton />
+        </div>
+      }
+    >
+      <PaymentsPageContent />
+    </Suspense>
   );
 }

@@ -41,6 +41,7 @@ describe('OrdersController — retryPayment', () => {
   let ordersService: { findById: jest.Mock };
   let konnectOrderService: { createRetrySession: jest.Mock };
   let logger: Record<string, jest.Mock>;
+  let merchantSalesService: { summary: jest.Mock; chart: jest.Mock };
 
   beforeEach(() => {
     ordersService = { findById: jest.fn() };
@@ -52,11 +53,13 @@ describe('OrdersController — retryPayment', () => {
       debug: jest.fn(),
       setContext: jest.fn(),
     };
+    merchantSalesService = { summary: jest.fn(), chart: jest.fn() };
 
     controller = new OrdersController(
       ordersService as any,
       logger as any,
       konnectOrderService as any,
+      merchantSalesService as any,
     );
   });
 

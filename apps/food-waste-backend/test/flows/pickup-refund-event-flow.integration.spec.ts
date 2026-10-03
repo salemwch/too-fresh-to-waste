@@ -70,6 +70,7 @@ import {
   type RefundRequestDocument,
 } from '../../src/payments/schemas/refund-request.schema';
 import { CommissionService } from '../../src/payments/services/commission.service';
+import { COMMISSION_MOMENT_EXPR } from '../../src/merchant-sales/merchant-sales.expressions';
 import { requireMongoTestUri } from '../helpers/mongo-test-uri';
 import { OrdersService } from '../../src/orders/order.service';
 import {
@@ -517,6 +518,25 @@ describe('Pickup and admin refund - events, commission and charity against a rea
 
       await expect(pickUp(orderId, customerId)).rejects.toThrow(/ready/i);
       expect(emitted).toEqual([]);
+    });
+
+    /*
+     * CommissionService.isModelActiveAt(appliedAt) decides which engine an
+     * order gets. If appliedAt and the earnings' own COMMISSION_MOMENT_EXPR
+     * ever drifted, an order could be decided on the legacy engine while the
+     * earnings treat it as post-cutoff (a false "being verified"). The
+     * earnings never read `appliedAt` as the source of truth - only this test
+     * holds the two to the same instant.
+     */
+    it('commission.appliedAt equals the commission moment the earnings read', async () => {
+      const { orderId, customerId } = await readyOrder('cash');
+      await pickUp(orderId, customerId);
+
+      const [stored] = await orderModel.aggregate<{ applied: Date; moment: Date }>([
+        { $match: { _id: orderId } },
+        { $project: { applied: '$commission.appliedAt', moment: COMMISSION_MOMENT_EXPR } },
+      ]);
+      expect(stored?.applied?.getTime()).toBe(stored?.moment?.getTime());
     });
   });
 

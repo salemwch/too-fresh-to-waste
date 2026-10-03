@@ -8,9 +8,7 @@ import type {
   MerchantOrder,
   OrderStatus,
   MerchantOffer,
-  RevenueChartItem,
   PaginationMeta,
-  ChartGranularity,
   MyEstablishment,
   CreateSurpriseBagPayload,
   ReactivateOfferPayload,
@@ -28,18 +26,17 @@ import type {
   CustomerLocationItem,
   MerchantWallet,
   MerchantCommissionStatement,
-  TodaySales,
   FundLedgerResponse,
 } from '@/types/dashboard';
+import type { SalesPeriod } from '@/types/payments';
 
 // ─── Query keys (central, predictable) ─────────────────────────────────────
 // startDate is serialised to ISO string so it becomes a stable cache key.
 
 export const dashboardKeys = {
   all: ['merchant-dashboard'] as const,
-  todaySales: (estId?: string) => [...dashboardKeys.all, 'today-sales', estId ?? 'all'] as const,
-  orderStats: (startDate?: string, estId?: string) =>
-    [...dashboardKeys.all, 'order-stats', startDate ?? 'all-time', estId ?? 'all'] as const,
+  orderStats: (period?: SalesPeriod, estId?: string) =>
+    [...dashboardKeys.all, 'order-stats', period ?? 'all-time', estId ?? 'all'] as const,
   recentOrders: (page: number, limit: number) =>
     [...dashboardKeys.all, 'recent-orders', page, limit] as const,
   merchantOrders: (page = 1, limit = 50) =>
@@ -53,20 +50,30 @@ export const dashboardKeys = {
     [...dashboardKeys.all, 'active-offer-count', estId ?? 'all'] as const,
   donationStats: () => [...dashboardKeys.all, 'donation-stats'] as const,
   monthlyBagGoal: () => [...dashboardKeys.all, 'community-goal'] as const,
-  revenueChart: (granularity: ChartGranularity, value: number, estId?: string) =>
-    [...dashboardKeys.all, 'revenue-chart', granularity, value, estId ?? 'all'] as const,
   myEstablishment: () => [...dashboardKeys.all, 'my-establishment'] as const,
   esgTier: (estId?: string) => [...dashboardKeys.all, 'esg-tier', estId ?? 'all'] as const,
   monthlyGoal: (estId?: string) => [...dashboardKeys.all, 'monthly-goal', estId ?? 'all'] as const,
-  carbonMetrics: (since?: string, estId?: string) =>
-    [...dashboardKeys.all, 'carbon-metrics', since ?? 'all', estId ?? 'all'] as const,
-  socialImpact: (since?: string, estId?: string) =>
-    [...dashboardKeys.all, 'social-impact', since ?? 'all', estId ?? 'all'] as const,
+  carbonMetrics: (period?: SalesPeriod, since?: string, estId?: string) =>
+    [
+      ...dashboardKeys.all,
+      'carbon-metrics',
+      period ?? 'none',
+      since ?? 'all',
+      estId ?? 'all',
+    ] as const,
+  socialImpact: (period?: SalesPeriod, since?: string, estId?: string) =>
+    [
+      ...dashboardKeys.all,
+      'social-impact',
+      period ?? 'none',
+      since ?? 'all',
+      estId ?? 'all',
+    ] as const,
   leaderboard: (limit: number) => [...dashboardKeys.all, 'leaderboard', limit] as const,
   myRank: (estId?: string) => [...dashboardKeys.all, 'my-rank', estId ?? 'all'] as const,
   streak: () => [...dashboardKeys.all, 'streak'] as const,
-  businessMetrics: (startDate: string, endDate: string, estId?: string) =>
-    [...dashboardKeys.all, 'business-metrics', startDate, endDate, estId ?? 'all'] as const,
+  businessMetrics: (period: SalesPeriod, estId?: string) =>
+    [...dashboardKeys.all, 'business-metrics', period, estId ?? 'all'] as const,
   customerLocations: (limit: number, estId?: string) =>
     [...dashboardKeys.all, 'customer-locations', limit, estId ?? 'all'] as const,
   pricingSuggestions: () => [...dashboardKeys.all, 'pricing-suggestions'] as const,
@@ -75,6 +82,10 @@ export const dashboardKeys = {
     [...dashboardKeys.all, 'fund-ledger', establishmentId ?? 'all'] as const,
   commissionStatement: (estId?: string) =>
     [...dashboardKeys.all, 'commission-statement', estId ?? 'all'] as const,
+  salesSummary: (period: SalesPeriod, estId?: string) =>
+    [...dashboardKeys.all, 'sales-summary', period, estId ?? 'all'] as const,
+  salesChart: (period: SalesPeriod, estId?: string) =>
+    [...dashboardKeys.all, 'sales-chart', period, estId ?? 'all'] as const,
 };
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -93,58 +104,21 @@ interface MerchantOffersResult {
 
 /**
  * Order stats: totals, breakdown by status, revenue summary.
- * Scoped to the given startDate (undefined = all-time).
- * Backend: GET /orders/stats?startDate=
+ *
+ * `period` is resolved server-side in Africa/Tunis via `resolveSalesPeriod`,
+ * the same clock as the earnings summary/chart. The KPI cards filter by
+ * `createdAt`, not by the commission moment, so the two populations overlap
+ * but are not equal. Backend: `GET /orders/stats?period=`.
  */
-/**
- * Today's sales, cash and online together. The wallet card shows only money
- * TFTW holds; this is the day as the merchant lived it. Refetched every minute
- * while the dashboard is open - a sale lands the moment a pickup is confirmed.
- */
-export function useTodaySales() {
-  const estId = useAuthStore(s => s.activeEstablishmentId) ?? undefined;
-  return useQuery({
-    queryKey: dashboardKeys.todaySales(estId),
-    queryFn: async (): Promise<TodaySales> => {
-      const response = await dashboardService.getTodaySales(estId);
-      return response.data.data;
-    },
-    staleTime: 60 * 1000,
-    refetchInterval: 60 * 1000,
-  });
-}
-
-export function useOrderStats(startDate?: Date) {
+export function useOrderStats(period?: SalesPeriod) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.orderStats(startDate?.toISOString(), estId ?? undefined),
+    queryKey: dashboardKeys.orderStats(period, estId ?? undefined),
     queryFn: async (): Promise<OrderStatsResponse> => {
-      const response = await dashboardService.getOrderStats(startDate, estId ?? undefined);
+      const response = await dashboardService.getOrderStats(period, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 2 * 60 * 1000,
-  });
-}
-
-/**
- * Revenue chart data for day / week / month granularity.
- * `granularity` and `value` are derived from the selected DatePreset via PRESET_CONFIG.
- * Backend: GET /orders/merchant-revenue-chart?granularity=&value=
- */
-export function useRevenueChart(granularity: ChartGranularity, value: number) {
-  const estId = useAuthStore(s => s.activeEstablishmentId);
-  return useQuery({
-    queryKey: dashboardKeys.revenueChart(granularity, value, estId ?? undefined),
-    queryFn: async (): Promise<RevenueChartItem[]> => {
-      const response = await dashboardService.getRevenueChart(
-        granularity,
-        value,
-        estId ?? undefined,
-      );
-      return response.data.data;
-    },
-    staleTime: 30 * 1000,
-    refetchInterval: 30 * 1000,
   });
 }
 
@@ -395,24 +369,31 @@ export function useMonthlyGoal() {
   });
 }
 
-export function useCarbonMetrics(since?: string) {
+/**
+ * `period` is resolved server-side in Africa/Tunis, exactly like the earnings
+ * summary/chart. `since` is the older cutoff the ESG and Community pages
+ * still use (they call this with neither, i.e. all-time); when both are
+ * sent, the backend prefers `period`. Backend: `GET /sustainability/carbon-metrics`.
+ */
+export function useCarbonMetrics(period?: SalesPeriod, since?: string) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.carbonMetrics(since, estId ?? undefined),
+    queryKey: dashboardKeys.carbonMetrics(period, since, estId ?? undefined),
     queryFn: async (): Promise<CarbonMetricsResponse> => {
-      const response = await dashboardService.getCarbonMetrics(since, estId ?? undefined);
+      const response = await dashboardService.getCarbonMetrics(period, since, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
   });
 }
 
-export function useSocialImpact(since?: string) {
+/** See `useCarbonMetrics` - same `period`/`since` contract. */
+export function useSocialImpact(period?: SalesPeriod, since?: string) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.socialImpact(since, estId ?? undefined),
+    queryKey: dashboardKeys.socialImpact(period, since, estId ?? undefined),
     queryFn: async (): Promise<SocialImpactResponse> => {
-      const response = await dashboardService.getSocialImpact(since, estId ?? undefined);
+      const response = await dashboardService.getSocialImpact(period, since, estId ?? undefined);
       return response.data.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -547,17 +528,29 @@ export function useUpdateLeaderboardPreference() {
 
 // ─── Analytics hooks ────────────────────────────────────────────────────────
 
-export function useBusinessMetrics(startDate: string, endDate: string) {
+/**
+ * `period` is resolved server-side in Africa/Tunis via `resolveSalesPeriod`,
+ * the same clock as the earnings summary/chart. The Analytics KPI cards
+ * filter by `createdAt`, not by the commission moment, so the two populations
+ * overlap but are not equal. `filters.dateRange` is still sent (the backend
+ * DTO requires it) but is ignored once `period` is set; it is never used to
+ * compute the actual window client-side any more.
+ */
+export function useBusinessMetrics(period: SalesPeriod) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
   return useQuery({
-    queryKey: dashboardKeys.businessMetrics(startDate, endDate, estId ?? undefined),
+    queryKey: dashboardKeys.businessMetrics(period, estId ?? undefined),
     queryFn: async (): Promise<BusinessMetrics> => {
+      const now = new Date().toISOString();
       const request: BusinessMetricsRequest = {
         filters: {
-          dateRange: { startDate, endDate },
+          // Placeholder, schema-valid dateRange - the backend overrides it
+          // from `period` before this is ever read.
+          dateRange: { startDate: now, endDate: now },
           granularity: { period: 'day' },
           ...(estId ? { establishmentIds: [estId] } : {}),
         },
+        period,
         includeSustainability: true,
         options: { includeComparisons: true },
       };

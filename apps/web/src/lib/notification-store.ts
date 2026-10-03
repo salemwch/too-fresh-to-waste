@@ -4,7 +4,8 @@ export interface NewOrderNotification {
   id: string; // orderId — used as unique key
   orderNumber: string;
   customerName: string;
-  total: number;
+  /** Food price only - a merchant never sees delivery money. `null` when the backend omitted it - never faked as 0. */
+  foodPrice: number | null;
   createdAt: string; // ISO string
   read: boolean;
 }

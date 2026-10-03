@@ -225,6 +225,11 @@ const dateShortFormatters = new Map<string, Intl.DateTimeFormat>();
  * For chart axes and dense rows inside a period the reader already knows. Use
  * `formatDate` anywhere the year could be ambiguous; a date with no year in a
  * list spanning a year boundary is a genuine misreading, not just terse.
+ *
+ * Pinned to `Africa/Tunis`, the same clock the backend resolves every sales
+ * period and commission moment in - a Payments row dated "near midnight"
+ * must land on the same day the merchant's own clock (and the backend's)
+ * says it did, regardless of the viewer's device timezone.
  */
 export function formatDateShort(locale: string, iso: DateInput): string | null {
   const date = toDate(iso);
@@ -232,7 +237,11 @@ export function formatDateShort(locale: string, iso: DateInput): string | null {
 
   let formatter = dateShortFormatters.get(locale);
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
+    formatter = new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'Africa/Tunis',
+    });
     dateShortFormatters.set(locale, formatter);
   }
   return formatter.format(date);

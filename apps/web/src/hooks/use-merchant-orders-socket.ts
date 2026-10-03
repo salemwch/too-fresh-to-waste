@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { WebSocketEvents } from '@foodwaste/shared';
 import { useAuthStore } from '@/lib/auth';
 import { dashboardKeys } from './use-merchant-dashboard';
+import { paymentKeys } from './use-payments';
 import { useNotificationStore } from '@/lib/notification-store';
 import type { MerchantOrder } from '@/types/dashboard';
 
@@ -40,21 +41,33 @@ const orderStatusPayloadSchema = z.object({
   timestamp: z.string().optional(),
 });
 
-const newOrderPayloadSchema = z.object({
+// Food price only - a merchant never sees delivery money. The backend
+// (`OrdersService.notifyMerchantNewOrder`) sends `pricing.subtotal`, never
+// `pricing.total` (food + delivery). `subtotal` is optional on the object
+// itself, for deploy skew with a backend that has not shipped the field yet -
+// this schema must not require a field the backend deliberately never sends,
+// or every `order:new` event fails validation silently - see
+// task-15-brief.md correction 3.
+const newOrderPricingSchema = z.object({ subtotal: z.number().optional() }).optional();
+
+// Exported for `__tests__/use-merchant-orders-socket-schema.test.ts`, which
+// feeds the real (already-stripped) backend payload shape through this exact
+// schema - not a re-declared copy - per task-15-brief.md correction 3.
+export const newOrderPayloadSchema = z.object({
   event: z.string().optional(),
   data: z
     .object({
       orderId: z.string().min(1),
       orderNumber: z.string(),
       customerName: z.string().optional(),
-      pricing: z.object({ total: z.number() }).optional(),
+      pricing: newOrderPricingSchema,
     })
     .optional(),
   // Fallback — direct fields when payload arrives unwrapped
   orderId: z.string().optional(),
   orderNumber: z.string().optional(),
   customerName: z.string().optional(),
-  pricing: z.object({ total: z.number() }).optional(),
+  pricing: newOrderPricingSchema,
 });
 
 /**
@@ -149,6 +162,34 @@ export function useMerchantOrdersSocket() {
       void queryClient.invalidateQueries({
         queryKey: [...dashboardKeys.all, 'order', orderId],
       });
+
+      // A status change moves money: the status that just landed may be the
+      // one that creates, settles or reverses a commission decision (see
+      // `COMMISSION_COMPLETED_STATUSES` on the backend). Every figure derived
+      // from that - the Dashboard's earnings summary/chart and KPI cards, and
+      // the Payments stats/rows - must refresh rather than go stale until the
+      // merchant happens to refocus the tab. The exact period/establishment
+      // in each query key is unknown here, so these invalidate by prefix
+      // (TanStack's default partial match), catching every period/scope at
+      // once rather than guessing which one is active.
+      void queryClient.invalidateQueries({
+        queryKey: [...dashboardKeys.all, 'sales-summary'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: [...dashboardKeys.all, 'sales-chart'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: [...dashboardKeys.all, 'order-stats'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: [...dashboardKeys.all, 'business-metrics'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: [...paymentKeys.all, 'stats'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: [...paymentKeys.all, 'rows'],
+      });
     });
 
     socket.on(WebSocketEvents.ORDER_NEW, (raw: unknown) => {
@@ -163,7 +204,10 @@ export function useMerchantOrdersSocket() {
       const orderId = data.orderId ?? '';
       const orderNumber = data.orderNumber ?? '';
       const customerName = data.customerName ?? 'Customer';
-      const total = data.pricing?.total ?? 0;
+      // Food price only - never the customer's total (food + delivery).
+      // `null`, not `0`, when the field is absent - a `0` here would render
+      // as a fabricated "0.000 TND" price on the notification bell.
+      const foodPrice = data.pricing?.subtotal ?? null;
 
       // 1. Refresh the active orders list in TanStack Query cache.
       void queryClient.invalidateQueries({
@@ -176,7 +220,7 @@ export function useMerchantOrdersSocket() {
           id: orderId,
           orderNumber,
           customerName,
-          total,
+          foodPrice,
           createdAt: new Date().toISOString(),
         });
       }

@@ -8,6 +8,7 @@ import { CommonModule } from '../common/common.module';
 import { ProSubscriptionGuard } from '../common/guards/pro-subscription.guard';
 import { AppLoggerService } from '../common/services/logger.service';
 import { Establishment, EstablishmentSchema } from '../establishments/schemas/establishment.schema';
+import { MerchantSalesModule } from '../merchant-sales/merchant-sales.module';
 import { Offer, OfferSchema } from '../offers/schemas/offer.schema';
 import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { Payment, PaymentSchema } from '../payments/schemas/payment.schema';
@@ -26,6 +27,7 @@ import { DashboardService } from './services/dashboard.service';
     CommonModule,
     ConfigModule,
     EventEmitterModule,
+    MerchantSalesModule,
     MongooseModule.forFeature([
       // External schemas (for analytics queries)
       { name: User.name, schema: UserSchema },
