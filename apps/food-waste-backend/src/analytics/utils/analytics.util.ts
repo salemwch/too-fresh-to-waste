@@ -524,19 +524,21 @@ export class AnalyticsUtil {
   /**
    * Validate analytics filters.
    *
-   * `skipMaxRangeCheck` exists for exactly one caller: a `dateRange` the
-   * *server* resolved from a merchant-facing `period` (e.g. `all`, which
-   * spans `[epoch, now]`) rather than one the client supplied directly. The
-   * 2-year cap exists to bound caller-supplied custom ranges; it must not
-   * reject a range the server itself produced. This flag is carried on an
+   * `skipMaxRangeCheck` and `allowZeroWidthRange` both exist for exactly one
+   * caller: a `dateRange` the *server* resolved from a merchant-facing
+   * `period` (e.g. `all`, which spans `[epoch, now]`; `today` requested at
+   * exactly Tunis midnight, where `from` and `to` are the same instant)
+   * rather than one the client supplied directly. Neither check is meant to
+   * reject a range the server itself produced. Both flags are carried on an
    * internal request shape (`resolvedFromPeriod` on
-   * `BusinessMetricsRequestDto & ResolvedPeriodFlag`, never a DTO field), so
-   * a client can never set it - every other check, including the cap for an
-   * actual custom `dateRange`, still applies.
+   * `BusinessMetricsRequestDto & ResolvedPeriodFlag`, never a DTO field), so a
+   * client can never set them - every other check, including both for an
+   * actual custom `dateRange` (over 2 years, or genuinely reversed/zero-width
+   * dates the client typed), still applies.
    */
   static validateAnalyticsFilters(
     filters: Partial<AnalyticsFilters>,
-    options: { skipMaxRangeCheck?: boolean } = {},
+    options: { skipMaxRangeCheck?: boolean; allowZeroWidthRange?: boolean } = {},
   ): string[] {
     const errors: string[] = [];
 
@@ -545,8 +547,10 @@ export class AnalyticsUtil {
     } else {
       const start = new Date(filters.dateRange.startDate);
       const end = new Date(filters.dateRange.endDate);
+      const isReversed = start.getTime() > end.getTime();
+      const isZeroWidth = start.getTime() === end.getTime();
 
-      if (start >= end) {
+      if (isReversed || (isZeroWidth && !options.allowZeroWidthRange)) {
         errors.push('Start date must be before end date');
       }
 

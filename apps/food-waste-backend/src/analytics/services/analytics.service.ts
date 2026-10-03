@@ -264,11 +264,14 @@ export class AnalyticsService {
 
       // Convert and validate filters. `resolvedFromPeriod` is never a DTO
       // field - only the controller can set it, on a range it resolved
-      // itself (see ResolvedPeriodFlag) - so the 2-year cap can never be
-      // bypassed by client input, only by the server's own `period` handling.
+      // itself (see ResolvedPeriodFlag) - so neither check can be bypassed by
+      // client input, only by the server's own `period` handling. A
+      // server-resolved `today` at exactly Tunis midnight has `from === to`;
+      // that zero-width instant must not fail "start before end" (A6).
       const filters = this.convertFiltersToInterface(request.filters);
       const validationErrors = AnalyticsUtil.validateAnalyticsFilters(filters, {
         skipMaxRangeCheck: request.resolvedFromPeriod === true,
+        allowZeroWidthRange: request.resolvedFromPeriod === true,
       });
       if (validationErrors.length > 0) {
         throw new BadRequestException(

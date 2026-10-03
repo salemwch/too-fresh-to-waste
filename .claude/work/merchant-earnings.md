@@ -637,6 +637,27 @@ in the held-money query key.
     `reportUnverified`'s own slice with the raw (uncapped) id list turned this
     test red (22 ids returned); reverting restored it green.
 
+- 2026-10-03 (Task 17 fix wave, A6 - period=today at exact Tunis midnight ->
+  400): `AnalyticsUtil.validateAnalyticsFilters` rejected `start >= end`
+  unconditionally, so a server-resolved `today` range at exactly Tunis midnight
+  (`resolveSalesPeriod` returns `from === to === now`) failed its own "start
+  before end" check with 400 `INVALID_FILTERS` - the existing
+  `resolvedFromPeriod` flag only ever skipped the 2-year cap, never this one.
+  Added a second flag, `allowZeroWidthRange`, set alongside `skipMaxRangeCheck`
+  whenever `resolvedFromPeriod === true`; a genuinely reversed range
+  (`start > end`) is still always rejected, and a client-supplied custom
+  `dateRange` with `start === end` is still rejected too - only the server's own
+  zero-width instant is allowed through.
+  - Test: `business-metrics-zero-width-range.spec.ts` (same harness as
+    `business-metrics-period-cap.spec.ts` - no DB touched, so a service missing
+    `orderModel` is enough; getting `InternalServerErrorException` instead of
+    `BadRequestException` proves validation passed rather than merely not
+    throwing). Covers: a genuine client-supplied zero-width range still 400s;
+    the identical range is accepted once `resolvedFromPeriod` is set; a
+    server-resolved but reversed range is still rejected (defensive).
+    Mutation-checked: removing the new `allowZeroWidthRange` flag from the call
+    site turned the acceptance test red; restoring it turned it green.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile
