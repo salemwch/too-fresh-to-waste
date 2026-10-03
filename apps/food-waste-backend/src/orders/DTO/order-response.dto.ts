@@ -57,6 +57,18 @@ class CommissionResponseDto {
   @Expose() appliedAt!: string;
 }
 
+/**
+ * "Your earnings" - built by `orderEarningsFor` (merchant-sales.expressions.ts)
+ * from the same three cases as the Dashboard/Payments calculation, never a
+ * second formula (A2). Absent entirely until the order has a commission
+ * moment (not yet picked up / collected); `amount` is null for a REFUNDED
+ * order or a post-cutoff order still awaiting its decision (`verifying`).
+ */
+class OrderEarningsResponseDto {
+  @Expose() amount!: number | null;
+  @Expose() verifying!: boolean;
+}
+
 class EstablishmentAddressResponseDto {
   @Expose() street!: string;
   @Expose() city!: string;
@@ -177,4 +189,10 @@ export class MerchantOrderResponseDto extends ConsumerOrderResponseDto {
   @Expose()
   @Type(() => CommissionResponseDto)
   commission?: CommissionResponseDto | undefined;
+
+  // "Your earnings" - see OrderEarningsResponseDto above. Same gate as
+  // `commission` (MERCHANT / LOCATION_MANAGER / ADMIN only).
+  @Expose()
+  @Type(() => OrderEarningsResponseDto)
+  earnings?: OrderEarningsResponseDto | undefined;
 }

@@ -145,6 +145,14 @@ function reqAs(role: UserRole): AuthenticatedRequest {
 
 const noop = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
 
+/**
+ * `OrdersController.findOne` calls `merchantSalesService.cutoff()` to build
+ * the "Your earnings" row (A2). `null` (the development/unset behaviour) so
+ * it never turns a fixture order into an UNVERIFIED one by accident - these
+ * rows test the delivery-money strip, not the earnings cases.
+ */
+const merchantSalesStub = { cutoff: () => null } as never;
+
 /** One row per Step-1-enumerated route. `run` drives the controller and
  * returns the JSON-serialised response for the given role. */
 interface Row {
@@ -171,7 +179,7 @@ const rows: Row[] = [
         { findAll: jest.fn().mockResolvedValue({ orders: [order], total: 1 }) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       ),
     run: async (controller, role) => {
       const response = await controller.findAll({} as never, reqAs(role));
@@ -187,7 +195,7 @@ const rows: Row[] = [
         { findByMerchant: jest.fn().mockResolvedValue({ orders: [order], total: 1 }) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       ),
     run: async (controller, role) => {
       const response = await controller.getMerchantOrders(reqAs(role), 1, 10);
@@ -204,7 +212,7 @@ const rows: Row[] = [
         { findById: jest.fn().mockResolvedValue(order) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       ),
     run: async (controller, role) => {
       const response = await controller.findOne('order-1', reqAs(role));
@@ -224,7 +232,7 @@ const rows: Row[] = [
         { updateStatus: jest.fn().mockResolvedValue(order) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       ),
     run: async (controller, role) => {
       const response = await controller.updateStatus(
@@ -244,7 +252,7 @@ const rows: Row[] = [
         { confirmPickup: jest.fn().mockResolvedValue(order) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       ),
     run: async (controller, role) => {
       const response = await controller.confirmPickup(
@@ -266,7 +274,7 @@ const rows: Row[] = [
         { cancel: jest.fn().mockResolvedValue(order) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       ),
     run: async (controller, role) => {
       const response = await controller.cancel(
@@ -288,7 +296,7 @@ const rows: Row[] = [
         { unlockPickup: jest.fn().mockResolvedValue(order) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       ),
     run: async (controller, role) => {
       const response = await controller.unlockPickup('order-1', reqAs(role));
@@ -304,7 +312,7 @@ const rows: Row[] = [
         { findById: jest.fn().mockResolvedValue(order) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       ),
     run: async (controller, role) => {
       const response = await controller.getOrderReceipt('order-1', reqAs(role));
@@ -407,7 +415,7 @@ describe('GET /orders/:id - commission opt-in wiring', () => {
       { findById } as never,
       noop as never,
       {} as never,
-      {} as never,
+      merchantSalesStub,
     );
 
     await controller.findOne('order-1', reqAs(role));
@@ -427,7 +435,7 @@ describe('GET /orders/:id - commission opt-in wiring', () => {
         { findById: jest.fn().mockResolvedValue(buildOrder()) } as never,
         noop as never,
         {} as never,
-        {} as never,
+        merchantSalesStub,
       );
       const response = await controller.findOne('order-1', reqAs(role));
       const json = JSON.stringify(response);

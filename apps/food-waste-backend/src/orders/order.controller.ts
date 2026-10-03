@@ -42,6 +42,7 @@ import { AppLoggerService } from '../common/services/logger.service';
 import { perfLog, perfStart } from '../common/utils/perf-log.util';
 import { QueryOptimizer } from '../common/utils/query-optimization.util';
 import { MerchantSalesQueryDto } from '../merchant-sales/dto/merchant-sales-query.dto';
+import { orderEarningsFor } from '../merchant-sales/merchant-sales.expressions';
 import { MerchantSalesService } from '../merchant-sales/merchant-sales.service';
 import { SALES_PERIODS, resolveSalesPeriod } from '../merchant-sales/merchant-sales.period';
 import { salesScopeFor, type SalesScope } from '../merchant-sales/merchant-sales.scope';
@@ -630,10 +631,21 @@ export class OrdersController {
         ? toMerchantOrderView(plain)
         : plain;
 
+    // "Your earnings" (A2) - same gate as `commission` (isMerchantSide), same
+    // case logic as merchant-sales via `orderEarningsFor`, never a second
+    // formula. Absent entirely when the order has no commission moment yet.
+    const earnings = isMerchantSide
+      ? orderEarningsFor(
+          view as unknown as Parameters<typeof orderEarningsFor>[0],
+          this.merchantSalesService.cutoff(),
+        )
+      : undefined;
+    const viewWithEarnings = earnings ? { ...view, earnings } : view;
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Order retrieved successfully',
-      data: plainToInstance(DtoClass, view, { excludeExtraneousValues: true }),
+      data: plainToInstance(DtoClass, viewWithEarnings, { excludeExtraneousValues: true }),
     };
   }
 

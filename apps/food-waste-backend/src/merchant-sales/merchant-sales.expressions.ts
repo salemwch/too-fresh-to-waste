@@ -156,3 +156,82 @@ export function salesBaseStages(args: {
     { $addFields: { _population: POPULATION_EXPR, _earnedMillimes: EARNED_MILLIMES_EXPR } },
   ];
 }
+
+// ---------------------------------------------------------------------------
+// A2: order-detail "Your earnings" - a plain-JS mirror of the two expressions
+// above (COMMISSION_MOMENT_EXPR, salesCaseExpr/EARNED_MILLIMES_EXPR) for the
+// single-document call site in OrdersController.findOne, which has no
+// aggregation pipeline to run. Both must agree, so a shared describe.each
+// table in merchant-order-earnings.spec.ts drives the real Mongo pipeline
+// (salesBaseStages) and this function from the same fixtures and asserts
+// equal results - the two can never be independently edited without the test
+// catching the drift (testing.md rule 6).
+// ---------------------------------------------------------------------------
+
+interface OrderMomentFields {
+  deliveryMode?: string | null;
+  driverPickedUpAt?: Date | string | null;
+  pickedUpAt?: Date | string | null;
+  pickupDetails?: { actualPickupTime?: Date | string | null } | null;
+}
+
+const toDateOrNull = (value: Date | string | null | undefined): Date | null => {
+  if (!value) {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+/** JS mirror of `COMMISSION_MOMENT_EXPR`. */
+export function commissionMomentOf(order: OrderMomentFields): Date | null {
+  const raw =
+    order.deliveryMode === 'delivery'
+      ? order.driverPickedUpAt
+      : (order.pickedUpAt ?? order.pickupDetails?.actualPickupTime);
+  return toDateOrNull(raw);
+}
+
+const round3 = (value: number): number => parseFloat(value.toFixed(3));
+
+export interface OrderEarnings {
+  /** null when nothing is owed (REFUNDED) or not decided yet (UNVERIFIED). */
+  amount: number | null;
+  /** true only for case 3 (UNVERIFIED): post-cutoff, no decision yet. */
+  verifying: boolean;
+}
+
+interface OrderEarningsFields extends OrderMomentFields {
+  status: string;
+  commission?: { merchantAmount: number } | null;
+  pricing?: { subtotal?: number | null; merchantAmount?: number | null } | null;
+}
+
+/**
+ * The order-detail "Your earnings" row: the same three cases as
+ * `salesCaseExpr`/`EARNED_MILLIMES_EXPR`, for one hydrated order instead of an
+ * aggregation pipeline. `undefined` when the order has no commission moment
+ * yet (nothing to show - pending, or not yet picked up/collected).
+ */
+export function orderEarningsFor(
+  order: OrderEarningsFields,
+  cutoff: Date | null,
+): OrderEarnings | undefined {
+  if (order.status === OrderStatus.REFUNDED) {
+    return { amount: null, verifying: false };
+  }
+  const moment = commissionMomentOf(order);
+  if (!moment) {
+    return undefined;
+  }
+  if (order.commission) {
+    return { amount: round3(order.commission.merchantAmount), verifying: false };
+  }
+  if (cutoff && moment.getTime() >= cutoff.getTime()) {
+    return { amount: null, verifying: true };
+  }
+  const subtotal = order.pricing?.subtotal ?? 0;
+  const amount =
+    order.pricing?.merchantAmount ?? round3(subtotal * LEGACY_PRE_CUTOFF_MERCHANT_SHARE);
+  return { amount, verifying: false };
+}

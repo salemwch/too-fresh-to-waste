@@ -536,6 +536,25 @@ in the held-money query key.
     (summary/chart/rows-level: same three cases, the 23:50/00:10 boundary, and
     the four invariants with these rows mixed in).
 
+- 2026-10-03 (Task 17 fix wave, A2 - user decision, order detail "Your earnings"
+  matches Payments exactly): `GET /orders/:id` now exposes an
+  `earnings: { amount, verifying }` block on `MerchantOrderResponseDto`, built
+  by a new `orderEarningsFor()` in `merchant-sales.expressions.ts` - a plain-JS
+  mirror of the same three cases `salesCaseExpr`/`EARNED_MILLIMES_EXPR` use in
+  the Mongo pipeline (CURRENT = `commission.merchantAmount`; LEGACY =
+  `pricing.merchantAmount` else `round3(subtotal * 0.81)`; UNVERIFIED = no
+  amount, `verifying: true`), never a second formula. REFUNDED is
+  `{ amount: null, verifying: false }`. The field is entirely absent when the
+  order has no commission moment yet (not picked up / not collected from the
+  merchant). Gated identically to `commission` (MERCHANT / LOCATION_MANAGER /
+  ADMIN - `isMerchantSide` in `OrdersController.findOne`).
+  - Test (testing.md rule 6, one table drives both sides so they cannot drift):
+    `merchant-order-earnings.integration.spec.ts` runs a `describe.each` table
+    of orders through the real Mongo aggregation (`salesBaseStages`) and through
+    `orderEarningsFor` and asserts the same amount from both, for every case
+    plus REFUNDED, no-moment-yet, and a CANCELLED-after-pickup delivery (A1
+    parity).
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile
