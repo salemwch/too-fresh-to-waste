@@ -18,7 +18,7 @@ import type { SalesPeriod } from '@/types/payments';
 import { useFormat } from '@/lib/use-format';
 
 interface ImpactCardsProps {
-  /** Every card here follows the page's period, resolved on the server. */
+  /** Period resolved server-side; cards filter by createdAt, not commission moment. */
   period: SalesPeriod;
 }
 

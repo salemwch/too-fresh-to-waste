@@ -24,7 +24,7 @@ import { MERCHANT_FOOD_SHARE } from '../orders/utils/order-pricing.util';
  * pickup has no commission moment (`driverPickedUpAt` unset) and is filtered
  * out by the moment check below, never by status.
  */
-export const COMMISSION_COMPLETED_STATUSES: readonly OrderStatus[] = Object.freeze([
+const COMMISSION_COMPLETED_STATUSES: readonly OrderStatus[] = Object.freeze([
   OrderStatus.PICKED_UP,
   OrderStatus.COMPLETED,
   OrderStatus.DELIVERED,
@@ -50,14 +50,13 @@ export const COMMISSION_MOMENT_EXPR = Object.freeze({
  * carrying no decision was split 81/19 under the old model. Never used for an
  * order at or after the cutoff - that is case 3, an integrity failure.
  */
-export const LEGACY_PRE_CUTOFF_MERCHANT_SHARE = MERCHANT_FOOD_SHARE;
+const LEGACY_PRE_CUTOFF_MERCHANT_SHARE = MERCHANT_FOOD_SHARE;
 
 export type SalesCase = 'CURRENT' | 'LEGACY' | 'UNVERIFIED';
-export type SalesPopulation = 'earnings' | 'refunded' | 'verifying';
 export type PaymentLine = 'cashStore' | 'cashDelivery' | 'online';
 
 /** Cash orders carry no `paymentProvider`, so "not Konnect" is the cash test. */
-export const PAYMENT_LINE_EXPR = Object.freeze({
+const PAYMENT_LINE_EXPR = Object.freeze({
   $cond: [
     { $eq: ['$paymentProvider', 'konnect'] },
     'online',

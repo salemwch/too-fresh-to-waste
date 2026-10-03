@@ -105,9 +105,10 @@ interface MerchantOffersResult {
 /**
  * Order stats: totals, breakdown by status, revenue summary.
  *
- * `period` is resolved server-side in Africa/Tunis, exactly like the earnings
- * summary/chart, so the dashboard's KPI cards agree with the earnings card
- * for the same period. Backend: `GET /orders/stats?period=`.
+ * `period` is resolved server-side in Africa/Tunis via `resolveSalesPeriod`,
+ * the same clock as the earnings summary/chart. The KPI cards filter by
+ * `createdAt`, not by the commission moment, so the two populations overlap
+ * but are not equal. Backend: `GET /orders/stats?period=`.
  */
 export function useOrderStats(period?: SalesPeriod) {
   const estId = useAuthStore(s => s.activeEstablishmentId);
@@ -528,11 +529,12 @@ export function useUpdateLeaderboardPreference() {
 // ─── Analytics hooks ────────────────────────────────────────────────────────
 
 /**
- * `period` is resolved server-side in Africa/Tunis, exactly like the earnings
- * summary/chart - the same five periods, so the Analytics KPI cards agree
- * with the Dashboard and Payments for the same period. `filters.dateRange` is
- * still sent (the backend DTO requires it) but is ignored once `period` is
- * set; it is never used to compute the actual window client-side any more.
+ * `period` is resolved server-side in Africa/Tunis via `resolveSalesPeriod`,
+ * the same clock as the earnings summary/chart. The Analytics KPI cards
+ * filter by `createdAt`, not by the commission moment, so the two populations
+ * overlap but are not equal. `filters.dateRange` is still sent (the backend
+ * DTO requires it) but is ignored once `period` is set; it is never used to
+ * compute the actual window client-side any more.
  */
 export function useBusinessMetrics(period: SalesPeriod) {
   const estId = useAuthStore(s => s.activeEstablishmentId);

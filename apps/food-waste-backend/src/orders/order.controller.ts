@@ -227,8 +227,9 @@ export class OrdersController {
     );
 
     // This route has no @Roles guard - any authenticated caller reaches it,
-    // including MERCHANT and LOCATION_MANAGER (scoped to their own orders by
-    // buildQuery). It returns raw lean orders with no DTO in between, so the
+    // including MERCHANT (scoped to their own orders by buildQuery) and
+    // LOCATION_MANAGER (buildQuery adds no scope filter for LM today -
+    // tracked in orders-authz). Returns raw lean orders with no DTO, so the
     // delivery-money strip must happen here.
     const data =
       req.user.role === UserRole.MERCHANT || req.user.role === UserRole.LOCATION_MANAGER
@@ -415,10 +416,11 @@ export class OrdersController {
     data: OrderStatsResponse;
   }> {
     // `period` wins over `startDate` when both are sent - resolved on the
-    // server, in Africa/Tunis, exactly like the earnings summary/chart, so
-    // the dashboard's KPI cards agree with its earnings figures for the same
-    // period. `startDate`'s own behaviour (including its all-time default)
-    // is unchanged when `period` is absent.
+    // server, in Africa/Tunis, via the same `resolveSalesPeriod` as the
+    // earnings summary/chart. The KPI cards filter by `createdAt`, not by
+    // the commission moment; the two populations overlap but are not equal.
+    // `startDate`'s own behaviour (including its all-time default) is
+    // unchanged when `period` is absent.
     const startDate = query.period
       ? (resolveSalesPeriod(query.period, new Date()).from ?? undefined)
       : query.startDate

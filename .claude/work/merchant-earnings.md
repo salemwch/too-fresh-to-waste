@@ -731,6 +731,29 @@ in the held-money query key.
     proving the unfiltered-sum behavior directly rather than only by coincidence
     of an all-V2 fixture table.
 
+- 2026-10-03 (Task 17 fix wave, A9 - spec corrections, append-only):
+  - L3 #3: Spec `:182-184` claims `getOrderStats` and `getRevenueChart` "read
+    the shared population and amount". `getRevenueChart` was deleted in Task 16;
+    `getOrderStats` reads no earnings at all - only status counts and bags by
+    `createdAt`. These endpoints were never migrated to `merchant-sales`.
+  - L3 #4: Spec `:454-455` (Task 15 decision) says "`ORDER_DETAIL_FIELDS`: added
+    `'commission'` to the projection". This was reversed in the Task 15 fix
+    round after review found it leaked the commission ledger to consumers.
+    `commission` is loaded through a separate `ORDER_COMMISSION_FIELD` via
+    `findById`'s `includeCommission` opt-in. Same entry: `notifyNewOrder`
+    (`:448`) was described as "fixed anyway"; Task 16 removed it entirely.
+  - L3 #5: Spec `:80-81` says an unknown period returns 400 `INVALID_PERIOD`.
+    The actual code returns the generic `VALIDATION_ENUM` code from
+    `strictValidation()` / `@IsIn(SALES_PERIODS)`. `INVALID_PERIOD` is used only
+    by `admin-analytics.controller.ts`.
+  - L3 #6: Spec `:151-154` says the integrity report carries
+    `{ code, merchantId, count, period, orderIds }`. There is no top-level
+    `merchantId`; the actual shape is
+    `{ code, scope: { merchantId } | { kind, establishmentIds }, count, period, orderIds }`.
+  - L3 #10: `order.controller.ts:230` comment said LOCATION_MANAGER was "scoped
+    to their own orders by buildQuery". The LM branch of `buildQuery` adds no
+    scope filter today. Comment corrected; tracked in orders-authz.
+
 ## Open questions
 
 - None blocking. Non-blocking: whether mobile needs any of this - no mobile
