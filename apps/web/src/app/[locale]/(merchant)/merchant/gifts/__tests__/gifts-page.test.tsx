@@ -7,6 +7,21 @@ import fr from '@/messages/fr.json';
 
 import MerchantGiftsPage from '../page';
 
+const mockReplace = jest.fn();
+
+jest.mock('@/i18n/routing', () => ({
+  useRouter: () => ({ replace: mockReplace }),
+}));
+
+let mockEstablishmentStatus = 'active';
+
+jest.mock('@/hooks/use-merchant-dashboard', () => ({
+  useMyEstablishment: () => ({
+    data: { status: mockEstablishmentStatus },
+    isLoading: false,
+  }),
+}));
+
 /**
  * The Gifts page, in every locale. Rendered per locale so a missing key fails
  * here instead of showing its path in French or Arabic (registration-chains).
@@ -28,6 +43,11 @@ const PERK_IDS = [
 
 describe.each(LOCALES)('MerchantGiftsPage (%s)', (locale, messages) => {
   const g = messages.merchantGifts;
+
+  beforeEach(() => {
+    mockEstablishmentStatus = 'active';
+    mockReplace.mockClear();
+  });
 
   const renderPage = () =>
     render(
@@ -64,5 +84,49 @@ describe.each(LOCALES)('MerchantGiftsPage (%s)', (locale, messages) => {
     const { container } = renderPage();
 
     expect(container.textContent).not.toMatch(/%|TND|DT\b|\d+[.,]\d/u);
+  });
+});
+
+describe('MerchantGiftsPage - establishment gate', () => {
+  beforeEach(() => {
+    mockReplace.mockClear();
+  });
+
+  it('redirects to dashboard when establishment is pending', () => {
+    mockEstablishmentStatus = 'pending';
+
+    render(
+      <NextIntlClientProvider locale='en' messages={en}>
+        <MerchantGiftsPage />
+      </NextIntlClientProvider>,
+    );
+
+    expect(mockReplace).toHaveBeenCalledWith('/merchant/dashboard');
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+  });
+
+  it('redirects to dashboard when establishment is rejected', () => {
+    mockEstablishmentStatus = 'rejected';
+
+    render(
+      <NextIntlClientProvider locale='en' messages={en}>
+        <MerchantGiftsPage />
+      </NextIntlClientProvider>,
+    );
+
+    expect(mockReplace).toHaveBeenCalledWith('/merchant/dashboard');
+  });
+
+  it('renders content when establishment is active', () => {
+    mockEstablishmentStatus = 'active';
+
+    render(
+      <NextIntlClientProvider locale='en' messages={en}>
+        <MerchantGiftsPage />
+      </NextIntlClientProvider>,
+    );
+
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', { level: 1, name: en.merchantGifts.title })).toBeTruthy();
   });
 });

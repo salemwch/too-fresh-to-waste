@@ -1,8 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Gift, Package, Refrigerator, ShieldCheck, ShoppingBasket, Tag, Wheat } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useRouter } from '@/i18n/routing';
+import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
+import { EstablishmentStatus } from '@foodwaste/shared';
 
 /**
  * Merchant gifts - announcement only, for now.
@@ -78,6 +82,18 @@ const STEPS = Object.freeze(['group', 'negotiate', 'order'] as const);
 
 export default function MerchantGiftsPage() {
   const t = useTranslations('merchantGifts');
+  const router = useRouter();
+  const { data: establishment, isLoading } = useMyEstablishment();
+
+  useEffect(() => {
+    if (!isLoading && establishment?.status !== EstablishmentStatus.ACTIVE) {
+      router.replace('/merchant/dashboard');
+    }
+  }, [isLoading, establishment?.status, router]);
+
+  if (isLoading || establishment?.status !== EstablishmentStatus.ACTIVE) {
+    return null;
+  }
 
   return (
     <div className='flex flex-col gap-lg'>

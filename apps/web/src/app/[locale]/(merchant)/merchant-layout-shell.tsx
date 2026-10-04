@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { AuthGuard } from '@/components/guards/auth-guard';
 import { RoleGuard } from '@/components/guards/role-guard';
 import { Sidebar } from '@/components/dashboard/sidebar';
@@ -9,14 +10,27 @@ import { NotificationBell } from '@/components/dashboard/notification-panel';
 import { UserNav } from '@/components/dashboard/user-nav';
 import { merchantNavItems } from '@/config/navigation.config';
 import { useMerchantOrdersSocket } from '@/hooks/use-merchant-orders-socket';
+import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { useAuthStore } from '@/lib/auth';
-import { UserRole } from '@foodwaste/shared';
+import { UserRole, EstablishmentStatus } from '@foodwaste/shared';
+
+const ACTIVE_ESTABLISHMENT_ONLY_KEYS = new Set(['gifts']);
 
 export function MerchantLayoutShell({ children }: { children: React.ReactNode }) {
   useMerchantOrdersSocket();
   const userRole = useAuthStore(s => s.user?.role as UserRole | undefined);
-  const visibleNavItems = merchantNavItems.filter(item =>
-    userRole ? item.roles.includes(userRole) : false,
+  const { data: establishment } = useMyEstablishment();
+  const isEstablishmentActive = establishment?.status === EstablishmentStatus.ACTIVE;
+
+  const visibleNavItems = useMemo(
+    () =>
+      merchantNavItems.filter(item => {
+        if (!userRole || !item.roles.includes(userRole)) return false;
+        if (ACTIVE_ESTABLISHMENT_ONLY_KEYS.has(item.titleKey) && !isEstablishmentActive)
+          return false;
+        return true;
+      }),
+    [userRole, isEstablishmentActive],
   );
 
   return (
