@@ -94,9 +94,13 @@
 
   html {
     @apply scroll-smooth;
-    /* Prevent horizontal overscroll bounce */
+    /* Clip scroll-reveal transforms (sr-left/sr-right shift elements 60px
+       off-screen before the IntersectionObserver fires) so they cannot widen
+       the document and create a horizontal scrollbar on mobile. `clip` rather
+       than `hidden`: it does not create a scroll container, so position:sticky
+       and overscroll-behavior keep working. */
+    overflow-x: clip;
     overscroll-behavior-x: none;
-    /* Improve text rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
