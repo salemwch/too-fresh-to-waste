@@ -7,15 +7,16 @@ import android.os.Build
 import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 class MainActivity : ReactActivity() {
 
   override fun getMainComponentName(): String = "FoodWasteApp"
 
+  // The (activity, name, fabricEnabled) constructor is deprecated in RN 0.87 and
+  // ignores the flag - the New Architecture is always on since 0.82.
   override fun createReactActivityDelegate(): ReactActivityDelegate =
-      DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+      DefaultReactActivityDelegate(this, mainComponentName)
 
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)

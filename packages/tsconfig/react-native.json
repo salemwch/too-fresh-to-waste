@@ -1,19 +1,28 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  // React Native 0.81 — CommonJS, node resolution, react-native JSX.
-  // Metro handles bundling; TypeScript is used for type-checking only.
+  // React Native 0.87 - Metro handles bundling; TypeScript is used for
+  // type-checking only.
   "extends": "./base.json",
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "commonjs",
-    "moduleResolution": "node",
     "jsx": "react-native",
     "isolatedModules": true,
 
-    // Metro bundles from source — no emit needed from tsc
-    "noEmit": false,
-    "declaration": true,
-    "sourceMap": true
+    // Module resolution - matches @react-native/typescript-config 0.87.1.
+    // RN 0.87 publishes its types only through package.json "exports" (the
+    // Strict TypeScript API is the default), which "node" resolution ignores.
+    // "bundler" reads "exports" the way Metro does, and the "react-native"
+    // condition selects the React Native entry of packages that ship one.
+    // Source: https://reactnative.dev/blog/2026/08/11/react-native-0.87
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "customConditions": ["react-native"],
+
+    // Metro bundles from source, so tsc only type-checks - as in
+    // @react-native/typescript-config. An app emits no declarations: nothing
+    // consumes them, and under RN 0.87's Strict API, generating them fails
+    // (TS2742) for any export whose inferred type uses RN-internal types.
+    "noEmit": true
   }
 }

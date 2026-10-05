@@ -5,6 +5,22 @@
  * in the test environment. Add mocks here as needed.
  */
 
+/*
+ * requestIdleCallback / cancelIdleCallback.
+ *
+ * At runtime React Native installs both as globals (Libraries/Core/setUpTimers.js,
+ * backed by the NativeIdleCallbacksCxx TurboModule). @react-native/jest-preset
+ * does not, so any component using src/utils/runWhenIdle would throw a
+ * ReferenceError in Jest. Mirror the contract on a macrotask: the callback runs
+ * after the current synchronous work with an IdleDeadline, and is cancellable.
+ * Built on setTimeout so suites using fake timers control it like any timer.
+ */
+if (typeof global.requestIdleCallback !== 'function') {
+  global.requestIdleCallback = callback =>
+    setTimeout(() => callback({ didTimeout: false, timeRemaining: () => 0 }), 0);
+  global.cancelIdleCallback = handle => clearTimeout(handle);
+}
+
 // AsyncStorage mock
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),

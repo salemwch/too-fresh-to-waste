@@ -4,7 +4,7 @@
  * Handles token expiration and role-based access control
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useEffectEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 
@@ -61,7 +61,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return requiredRoles.includes(user.role);
   };
 
-  // useEffectEvent polyfill: stable identity, always reads latest closure values.
+  // Effect Events (React 19.2): called only from the effects and timers below,
+  // they always read the latest committed props and state, and are not effect
+  // dependencies - so the effects re-run only when isAuthenticated or
+  // sessionExpiresAt change, and the minute interval is created once.
   //
   // IMPORTANT: Route refresh through `refreshTokenSafe`, NOT a direct
   // `dispatch(refreshTokenAsync())`. The session middleware and axios 401
@@ -70,8 +73,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // send a STALE refresh token right after the middleware has already
   // rotated it on the backend — producing the "Token has been revoked"
   // loop seen on app resume after long background periods.
-  const checkAndRefreshTokenLatest = useRef(() => {});
-  checkAndRefreshTokenLatest.current = () => {
+  const checkAndRefreshToken = useEffectEvent(() => {
     if (!isAuthenticated || !sessionExpiresAt) return;
 
     const expiresAt = new Date(sessionExpiresAt).getTime();
@@ -98,26 +100,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         new Error(result.error ?? 'Unknown error'),
       );
     });
-  };
-  const checkAndRefreshToken = useCallback(() => checkAndRefreshTokenLatest.current(), []);
+  });
 
-  const triggerSessionLogoutLatest = useRef(() => {});
-  triggerSessionLogoutLatest.current = () => {
+  const triggerSessionLogout = useEffectEvent(() => {
     setIsSessionLogoutPending(true);
     void dispatch(logoutAsync({})).finally(() => {
       setIsSessionLogoutPending(false);
     });
-  };
-  const triggerSessionLogout = useCallback(() => triggerSessionLogoutLatest.current(), []);
+  });
 
-  // checkAndRefreshToken and triggerSessionLogout are useEffectEvent-style:
-  // useCallback over a latest-ref with an empty dep array, so their identity
-  // never changes. Listing them is therefore free — no extra effect runs, and no
-  // eslint-disable needed to keep the linter honest about what these effects
-  // actually close over.
   useEffect(() => {
     checkAndRefreshToken();
-  }, [isAuthenticated, sessionExpiresAt, checkAndRefreshToken]);
+  }, [isAuthenticated, sessionExpiresAt]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -125,7 +119,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, [checkAndRefreshToken]);
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated || !sessionExpiresAt) {
@@ -148,7 +142,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }, remainingMs);
 
     return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, sessionExpiresAt, triggerSessionLogout]);
+  }, [isAuthenticated, sessionExpiresAt]);
 
   const renderUnauthorized = () => {
     if (hasRenderableNode(fallback)) return fallback;

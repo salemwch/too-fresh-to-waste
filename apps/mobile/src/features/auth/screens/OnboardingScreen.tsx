@@ -20,7 +20,14 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import {
+  BackHandler,
+  ScrollView,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+  type ScrollViewInstance,
+} from 'react-native';
 
 import { colorTokens } from '@/design-system/tokens/colors';
 import { isAppRTL } from '@/i18n/direction';
@@ -46,7 +53,7 @@ interface OnboardingScreenProps {
 
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
   const { width } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const [page, setPage] = useState(0);
 
   /*

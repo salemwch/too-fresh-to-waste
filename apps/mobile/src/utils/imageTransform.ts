@@ -9,7 +9,26 @@ export interface ImageTransformOptions {
 const SUPABASE_PUBLIC_PATH = '/storage/v1/object/public/';
 const SUPABASE_RENDER_PATH = '/storage/v1/render/image/public/';
 
-export function getOptimizedImageUrl(
+/**
+ * Supabase Image Transformations are a paid-plan feature, and the project is on
+ * the Free plan (confirmed 2026-10-05). On Free every `/render/image/` request
+ * fails, which cost twice: OfferCard made the failing request and then
+ * re-downloaded the original, and Avatar fell back to initials with no retry,
+ * so profile photos never showed.
+ *
+ * Nothing is lost by serving the stored file: the backend already resizes on
+ * upload (offers 800x600, profile images 400x400) and Glide downsamples to the
+ * view size before decoding.
+ *
+ * Flip to `true` only after Image Transformations is enabled on the project.
+ */
+export const SUPABASE_IMAGE_TRANSFORMS_ENABLED = false;
+
+/**
+ * Rewrites a Supabase public object URL to its on-the-fly transform URL.
+ * Pure: it does not consult `SUPABASE_IMAGE_TRANSFORMS_ENABLED`.
+ */
+export function buildSupabaseRenderUrl(
   url: string | null | undefined,
   options: ImageTransformOptions,
 ): string | undefined {
@@ -20,12 +39,25 @@ export function getOptimizedImageUrl(
   const params = new URLSearchParams();
   if (options.width) params.set('width', String(options.width));
   if (options.height) params.set('height', String(options.height));
-  if (options.quality) params.set('quality', String(options.quality ?? 80));
+  if (options.quality) params.set('quality', String(options.quality));
   if (options.format) params.set('format', options.format);
   if (options.resize) params.set('resize', options.resize);
 
   const qs = params.toString();
   return qs ? `${transformed}?${qs}` : transformed;
+}
+
+/**
+ * The URL to load for an image. Returns the stored URL unchanged while
+ * transforms are unavailable; see `SUPABASE_IMAGE_TRANSFORMS_ENABLED`.
+ */
+export function getOptimizedImageUrl(
+  url: string | null | undefined,
+  options: ImageTransformOptions,
+): string | undefined {
+  if (!url) return undefined;
+  if (!SUPABASE_IMAGE_TRANSFORMS_ENABLED) return url;
+  return buildSupabaseRenderUrl(url, options);
 }
 
 export const IMAGE_PRESETS = {

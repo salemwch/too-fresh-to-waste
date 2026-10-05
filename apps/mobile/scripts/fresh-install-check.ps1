@@ -113,7 +113,28 @@ adb shell am force-stop $Package | Out-Null
 
 # pm clear wipes MMKV, AsyncStorage and the Keychain entry together, which is
 # what makes flowState start at INITIALIZING again rather than rehydrating.
-adb shell pm clear $Package | Out-Null
+#
+# Its output is checked, not discarded: Android prints "Success" only when the
+# data was actually wiped. Some OEM builds refuse the call from adb - ColorOS
+# (OPPO) throws SecurityException CLEAR_APP_USER_DATA - and this gate used to
+# print "OK" anyway, then validate a warm app as if it were a fresh install.
+# stderr handling mirrors the pm revoke loop below.
+$clearOutput = & {
+    $ErrorActionPreference = 'Continue'
+    adb shell pm clear $Package 2>&1 | Out-String
+}
+if ($clearOutput -notmatch '\bSuccess\b') {
+    Write-Bad 'pm clear did not wipe the app data, so this would not be a first run.'
+    # The device's own lines, not PowerShell's NativeCommandError wrapper text.
+    $reason = ($clearOutput -split "`n" |
+        Where-Object { $_.Trim() -match '^(java\.lang\.\w+Exception|Failure)' } |
+        Select-Object -First 1)
+    if (-not $reason) { $reason = ($clearOutput -split "`n")[0] }
+    Write-Host "    device said: $($reason.Trim())" -ForegroundColor DarkGray
+    Write-Host '    Fix: uninstall and reinstall the build (adb uninstall, then adb install),' -ForegroundColor DarkGray
+    Write-Host '    or on ColorOS enable Developer options > "Disable permission monitoring".' -ForegroundColor DarkGray
+    exit 1
+}
 Write-Ok 'app data cleared (MMKV, AsyncStorage, Keychain)'
 
 foreach ($permission in $RuntimePermissions) {

@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
    * content showing through the gap above the shape.
    */
   row: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
    * silhouette underneath, and this disc only has to be filled.
    */
   activeCircle: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: TAB_CIRCLE_SIZE / 2,
     backgroundColor: COLORS.active,
   },

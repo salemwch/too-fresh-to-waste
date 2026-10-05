@@ -62,6 +62,64 @@ const isDev = process.env.NODE_ENV !== 'production';
 const isProd = process.env.NODE_ENV === 'production';
 
 // ============================================================================
+// ONE @sentry/core IN THE BUNDLE
+// ============================================================================
+
+/**
+ * pnpm (node-linker=hoisted) puts ONE @sentry/core at the workspace root - the
+ * version web and backend use - and gives every mobile Sentry package that needs
+ * a different version its own nested copy. Metro bundles each copy separately:
+ * the RN 0.87 production bundle carried FOUR identical @sentry/core 10.73.0
+ * copies (under @sentry/react-native, react, browser and feedback), ~1.3 MiB of
+ * duplication - more than all of the app's own source.
+ *
+ * Every @sentry/core import is therefore resolved from the copy
+ * @sentry/react-native depends on. That is only correct while the copies are
+ * the same release, so each request first resolves normally and the build FAILS
+ * if that copy's version differs: two different @sentry/core versions must never
+ * be merged silently. Guarded by src/__tests__/metroSentryCoreDedupe.test.ts.
+ */
+const SENTRY_CORE = '@sentry/core';
+const sentryReactNativeDir = path.dirname(
+  require.resolve('@sentry/react-native/package.json', { paths: [projectRoot] }),
+);
+const canonicalSentryCoreDir = path.dirname(
+  require.resolve(`${SENTRY_CORE}/package.json`, { paths: [sentryReactNativeDir] }),
+);
+const sentryCoreVersionOf = dir => JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).version;
+const canonicalSentryCoreVersion = sentryCoreVersionOf(canonicalSentryCoreDir);
+
+/** The @sentry/core package directory that contains `filePath`. */
+const sentryCoreDirOf = filePath => {
+  const marker = `${path.sep}node_modules${path.sep}@sentry${path.sep}core${path.sep}`;
+  const at = path.normalize(filePath).lastIndexOf(marker);
+  return at < 0 ? null : path.normalize(filePath).slice(0, at + marker.length - 1);
+};
+
+const isSentryCoreRequest = moduleName =>
+  moduleName === SENTRY_CORE || moduleName.startsWith(`${SENTRY_CORE}/`);
+
+function resolveSingleSentryCore(context, moduleName, platform) {
+  const normal = context.resolveRequest(context, moduleName, platform);
+  const normalDir = normal.type === 'sourceFile' ? sentryCoreDirOf(normal.filePath) : null;
+  if (normalDir === null || normalDir === canonicalSentryCoreDir) return normal;
+
+  const version = sentryCoreVersionOf(normalDir);
+  if (version !== canonicalSentryCoreVersion) {
+    throw new Error(
+      `[metro.config] ${context.originModulePath} would bundle @sentry/core ${version}, ` +
+        `but @sentry/react-native uses ${canonicalSentryCoreVersion}. Refusing to merge two ` +
+        'different @sentry/core versions into one bundle - align the Sentry packages instead.',
+    );
+  }
+  return context.resolveRequest(
+    { ...context, originModulePath: path.join(sentryReactNativeDir, 'package.json') },
+    moduleName,
+    platform,
+  );
+}
+
+// ============================================================================
 // METRO CONFIGURATION
 // ============================================================================
 
@@ -217,6 +275,9 @@ const config = {
         context.originModulePath.includes('@react-native-vector-icons')
       ) {
         return { type: 'empty' };
+      }
+      if (isSentryCoreRequest(moduleName)) {
+        return resolveSingleSentryCore(context, moduleName, platform);
       }
       return context.resolveRequest(context, moduleName, platform);
     },
@@ -520,7 +581,12 @@ if (isDev && process.env.METRO_DEBUG) {
  * exclusively through Sentry.mobileReplayIntegration(), the native
  * implementation. The SDK defaults this option to true, so it must stay
  * explicit. Guarded by src/__tests__/metroSentryResolver.test.ts.
+ *
+ * `includeWebFeedback: false` does the same for @sentry-internal/feedback, the
+ * DOM user-feedback widget. The app never calls Sentry's feedback APIs; native
+ * crash and error reporting are unaffected.
  */
 module.exports = withSentryConfig(mergeConfig(getDefaultConfig(__dirname), config), {
   includeWebReplay: false,
+  includeWebFeedback: false,
 });

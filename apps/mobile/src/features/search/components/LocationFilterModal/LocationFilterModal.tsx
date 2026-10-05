@@ -422,7 +422,7 @@ export const LocationFilterModal: React.FC<LocationFilterModalProps> = ({
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: BACKDROP,
   },
   modalContainer: {

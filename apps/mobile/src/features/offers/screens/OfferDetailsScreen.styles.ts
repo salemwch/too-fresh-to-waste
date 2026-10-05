@@ -38,8 +38,9 @@ export const styles = StyleSheet.create({
   retryButton: { marginTop: sp[5] },
   scrollContent: { paddingBottom: 0 },
   headerContainer: { height: 280, width: '100%', position: 'relative' },
-  headerImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  gradientOverlay: { ...StyleSheet.absoluteFillObject },
+  // resizeMode is a FastImage prop, not a style - see OfferDetailsScreen.
+  headerImage: { width: '100%', height: '100%' },
+  gradientOverlay: { ...StyleSheet.absoluteFill },
   topNav: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 50 : 30,
@@ -184,12 +185,12 @@ export const styles = StyleSheet.create({
   // ✅ BEST PRACTICE: Custom overlay (not Modal) - naturally respects navigation boundaries
   // Renders within screen container, backdrop starts from screen content (below header)
   modalOverlay: {
-    ...StyleSheet.absoluteFillObject, // Covers entire screen content
+    ...StyleSheet.absoluteFill, // Covers entire screen content
     justifyContent: 'flex-end',
     zIndex: 1000,
   },
   modalBackdrop: {
-    ...StyleSheet.absoluteFillObject, // Covers entire screen content area
+    ...StyleSheet.absoluteFill, // Covers entire screen content area
     backgroundColor: BACKDROP,
   },
   modalContent: {

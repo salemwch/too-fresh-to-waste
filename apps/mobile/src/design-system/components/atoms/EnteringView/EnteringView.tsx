@@ -91,7 +91,7 @@ export const EnteringView: React.FC<EnteringViewProps> = ({
 
   // Built inline rather than memoised: interpolate() returns a new node either
   // way, and these views mount once and are never re-rendered by this component.
-  const animatedStyle: Animated.WithAnimatedObject<ViewStyle> =
+  const animatedStyle: Animated.WithAnimatedValue<ViewStyle> =
     animation === 'zoomIn'
       ? { transform: [{ scale: progress }] }
       : animation === 'fadeIn'

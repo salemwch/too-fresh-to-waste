@@ -23,7 +23,12 @@
 
 import { I18nManager } from 'react-native';
 
-import { isAppRTL, resetAppDirectionForTests, setAppDirection } from '../direction';
+import {
+  isAppRTL,
+  persistNativeDirection,
+  resetAppDirectionForTests,
+  setAppDirection,
+} from '../direction';
 
 /** The platform flag, forced to the WRONG value so a fallback is detectable. */
 const withPlatformFlag = (isRTL: boolean, run: () => void): void => {
@@ -93,7 +98,84 @@ describe('isAppRTL', () => {
   });
 });
 
+describe('persistNativeDirection', () => {
+  /*
+   * The native side must hold an EXPLICIT direction. Left at React Native's
+   * defaults (allowRTL true, forceRTL false), native `isRTL` falls through to
+   * a device-locale check that RN 0.82-0.87 implements with
+   * `Locale.getAvailableLocales()` - every ICU locale built on the main thread
+   * inside MainActivity.onCreate, measured at +37 ms per cold start on a real
+   * device. allowRTL(false) short-circuits it; forceRTL(true) does for RTL.
+   */
+  let forceRTL: jest.SpyInstance;
+  let allowRTL: jest.SpyInstance;
+
+  beforeEach(() => {
+    forceRTL = jest.spyOn(I18nManager, 'forceRTL').mockImplementation(() => undefined);
+    allowRTL = jest.spyOn(I18nManager, 'allowRTL').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    forceRTL.mockRestore();
+    allowRTL.mockRestore();
+  });
+
+  it.each([
+    ['ltr' as const, false],
+    ['rtl' as const, true],
+  ])('persists %s as both native flags', (direction, rtl) => {
+    persistNativeDirection(direction);
+
+    expect(forceRTL).toHaveBeenCalledWith(rtl);
+    expect(allowRTL).toHaveBeenCalledWith(rtl);
+  });
+
+  it.each([
+    ['an LTR app on an LTR platform flag', false],
+    ['an LTR app on an RTL platform flag', true],
+  ])('writes even when the platform flag already agrees: %s', (_label, platformFlag) => {
+    // The shipped gap: agreement used to mean "write nothing", which left
+    // allowRTL at its default and the expensive device-locale check running.
+    withPlatformFlag(platformFlag, () => {
+      persistNativeDirection('ltr');
+    });
+
+    expect(allowRTL).toHaveBeenCalledWith(false);
+    expect(forceRTL).toHaveBeenCalledWith(false);
+  });
+
+  it('leaves the JS-side direction alone', () => {
+    // Native flags apply on the next start; JS must not run ahead of the
+    // layout (see the "Later" button in SettingsScreen).
+    setAppDirection('ltr');
+
+    persistNativeDirection('rtl');
+
+    expect(isAppRTL()).toBe(false);
+  });
+});
+
 describe('the i18n bootstrap publishes the direction', () => {
+  it('persists the resolved direction to native even when it already agrees', () => {
+    jest.isolateModules(() => {
+      // The isolated registry has its own react-native, so the spies and the
+      // platform flag must be set on THAT instance, before @/i18n evaluates.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { I18nManager: isolated } = require('react-native') as typeof import('react-native');
+      const forceRTL = jest.spyOn(isolated, 'forceRTL').mockImplementation(() => undefined);
+      const allowRTL = jest.spyOn(isolated, 'allowRTL').mockImplementation(() => undefined);
+      // English resolves LTR and the platform flag is LTR: they agree, which is
+      // exactly the launch that used to leave allowRTL at its default.
+      Object.defineProperty(isolated, 'isRTL', { value: false, configurable: true });
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('../index');
+
+      expect(allowRTL).toHaveBeenCalledWith(false);
+      expect(forceRTL).toHaveBeenCalledWith(false);
+    });
+  });
+
   /*
    * Asserts the wiring, not the module's internals: importing `@/i18n` must
    * leave `isAppRTL()` answering for the resolved language. Without this, the

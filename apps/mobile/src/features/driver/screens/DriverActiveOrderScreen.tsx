@@ -796,7 +796,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       ...CARD_SHADOW,
     },
     liveMap: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     navButtonFloating: {
       position: 'absolute',

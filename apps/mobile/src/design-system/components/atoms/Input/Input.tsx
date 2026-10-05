@@ -5,7 +5,7 @@
 
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { forwardRef, useState, useCallback } from 'react';
-import { View, TextInput, Pressable } from 'react-native';
+import { View, TextInput, Pressable, type TextInputInstance } from 'react-native';
 
 import { useTheme } from '../../../providers';
 import { Text } from '../Text';
@@ -22,7 +22,7 @@ const hasRenderableNode = (
 ): value is Exclude<React.ReactNode | string, null | undefined | false> =>
   value !== null && value !== undefined && value !== false;
 
-export const Input = forwardRef<TextInput, InputProps>(
+export const Input = forwardRef<TextInputInstance, InputProps>(
   (
     {
       variant = 'default',

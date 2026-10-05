@@ -538,7 +538,7 @@ const useStyles = createThemedStyles((c: ThemePalette) =>
       overflow: 'hidden',
     },
     map: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
 
     // ── Info row ──

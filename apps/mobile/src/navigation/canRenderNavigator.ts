@@ -10,7 +10,7 @@ import { AuthFlowState } from '@/features/auth/types';
  *
  * That was the fresh-install crash. On a clean install nothing is persisted, so
  * Redux starts at INITIALIZING; `setIsAppReady(true)` runs synchronously in the
- * mount effect while auth validation is deferred behind InteractionManager; and
+ * mount effect while auth validation is deferred behind runWhenIdle; and
  * `isNavigationReady` is seeded `!__DEV__`, so a release build has it true on
  * the very first render. Every readiness flag was therefore true while
  * flowState was still INITIALIZING, and the navigator mounted empty.

@@ -1,11 +1,10 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { I18nManager } from 'react-native';
 import { getLocales } from 'react-native-localize';
 import 'intl-pluralrules';
 
 import { mmkvStorage } from '@/storage/mmkv';
-import { setAppDirection } from './direction';
+import { persistNativeDirection, setAppDirection } from './direction';
 import en from './locales/en.json';
 import fr from './locales/fr.json';
 import ar from './locales/ar.json';
@@ -64,10 +63,9 @@ const shouldBeRTL = initialLanguage === 'ar';
  */
 setAppDirection(shouldBeRTL ? 'rtl' : 'ltr');
 
-if (I18nManager.isRTL !== shouldBeRTL) {
-  I18nManager.forceRTL(shouldBeRTL);
-  I18nManager.allowRTL(shouldBeRTL);
-}
+// Unconditional, not only when `I18nManager.isRTL` disagrees: see
+// `persistNativeDirection` for the startup cost the defaults carry.
+persistNativeDirection(shouldBeRTL ? 'rtl' : 'ltr');
 
 i18next.use(initReactI18next).init({
   resources: {

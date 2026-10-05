@@ -51,6 +51,7 @@ import {
 import { AuthFlowState } from '@/features/auth/types';
 import { refreshTokenSafe } from '@/services/authRefresh';
 import { KeychainLockedError, SecureStorage } from '@/services/SecureStorage';
+import { readAppState } from '@/utils/appState';
 import { Logger } from '@/utils/logger';
 import { offlineManager } from '@/utils/offlineManager';
 import { SafeAnalytics } from '@/utils/safeAnalytics';
@@ -117,7 +118,9 @@ interface SessionManagerState {
   isRefreshing: boolean;
   lastCheckTime: number;
   appStateSubscription: ReturnType<typeof AppState.addEventListener> | null;
-  lastAppState: AppStateStatus;
+  // null until React Native reports a state: AppState.currentState is typed
+  // `?string` (RN 0.87) and is null before the native module has reported.
+  lastAppState: AppStateStatus | null;
   jitterTimeoutId: TimerId | null;
 
   // Logout single-flight (refresh single-flight now lives in
@@ -142,7 +145,7 @@ const sessionManagerState: SessionManagerState = {
   isRefreshing: false,
   lastCheckTime: 0,
   appStateSubscription: null,
-  lastAppState: AppState.currentState,
+  lastAppState: readAppState(),
   jitterTimeoutId: null,
   logoutLock: null,
   isManagerRunning: false,
@@ -246,7 +249,7 @@ const handleAppStateChange = (
   }
 
   // Detect background → active transition (user returned to app)
-  if (lastAppState.match(/inactive|background/) && nextAppState === 'active') {
+  if (lastAppState?.match(/inactive|background/) && nextAppState === 'active') {
     // Clear any existing jitter timeout to prevent duplicate checks
     // This handles rapid background/foreground transitions
     if (sessionManagerState.jitterTimeoutId !== null) {
@@ -438,7 +441,7 @@ const stopSessionManager = (): void => {
 
   // Reset state
   sessionManagerState.isRefreshing = false;
-  sessionManagerState.lastAppState = AppState.currentState;
+  sessionManagerState.lastAppState = readAppState();
   sessionManagerState.isManagerRunning = false;
   sessionManagerState.refreshRetryCount = 0;
   hasPerformedInitialSync = false;

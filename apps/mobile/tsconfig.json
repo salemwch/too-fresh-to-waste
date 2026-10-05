@@ -1,5 +1,5 @@
 {
-  // React Native 0.81 mobile app — extends @foodwaste/tsconfig/react-native preset.
+  // React Native 0.87 mobile app — extends @foodwaste/tsconfig/react-native preset.
   // Only app-specific paths, types, and includes live here.
   "extends": "@foodwaste/tsconfig/react-native",
   "compilerOptions": {
@@ -17,8 +17,10 @@
       "@/config/*": ["./src/config/*"],
       "@/assets/*": ["./src/assets/*"]
     },
-    // RN global types + Jest + Node (for NodeJS.Timeout etc.)
-    "types": ["react-native", "jest", "node"]
+    // Jest + Node (for NodeJS.Timeout etc.). "react-native" is not listed: since
+    // 0.87 its types are reached through package.json "exports" when imported,
+    // and there is no top-level types entry for a global include to find.
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*", "index.js", "**/*.d.ts"],
   "exclude": ["node_modules", "android", "ios"]

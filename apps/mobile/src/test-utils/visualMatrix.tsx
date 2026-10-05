@@ -284,10 +284,8 @@ function applyCase(c: MatrixCase): () => void {
 
   jest
     .spyOn(Dimensions, 'get')
-    .mockImplementation((dim: 'window' | 'screen') =>
-      dim === 'window' || dim === 'screen'
-        ? { ...size, scale: 2, fontScale: 1 }
-        : realGet(dim as never),
+    .mockImplementation((dim: string) =>
+      dim === 'window' || dim === 'screen' ? { ...size, scale: 2, fontScale: 1 } : realGet(dim),
     );
 
   // RN reads isRTL synchronously; the app itself flips it via forceRTL + restart.

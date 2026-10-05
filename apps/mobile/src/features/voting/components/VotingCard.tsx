@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
   },
   // Confetti
   confettiContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: 'hidden',
   },
   confetti: {

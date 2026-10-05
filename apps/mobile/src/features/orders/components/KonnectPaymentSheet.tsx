@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     top: 60,
     alignItems: 'center',
     justifyContent: 'center',

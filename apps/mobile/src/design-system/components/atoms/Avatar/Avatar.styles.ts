@@ -96,7 +96,7 @@ export const createAvatarStyles = (
       alignItems: 'center',
     },
     loadingOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: colors.overlay.dark,
       justifyContent: 'center',
       alignItems: 'center',

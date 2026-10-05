@@ -25,7 +25,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  InteractionManager,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -44,6 +43,7 @@ import { useAppDispatch } from '@/hooks/redux';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { SecureStorage } from '@/services/SecureStorage';
 import { Logger } from '@/utils/logger';
+import { runWhenIdle } from '@/utils/runWhenIdle';
 import { showSuccessToast } from '@/utils/toast';
 import { nameRule } from '@/utils/validation/schemas';
 
@@ -333,7 +333,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation
       setIsSaving(true);
 
       // Wait for the skeleton to render, then start async work
-      InteractionManager.runAfterInteractions(() => {
+      runWhenIdle(() => {
         const savedData = pendingDataRef.current;
         pendingDataRef.current = null;
         if (savedData != null) {

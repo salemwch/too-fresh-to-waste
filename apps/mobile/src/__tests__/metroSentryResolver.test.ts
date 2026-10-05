@@ -88,6 +88,17 @@ describe('metro.config.js Sentry web-replay exclusion', () => {
     }
   });
 
+  // includeWebFeedback: false - the DOM user-feedback widget, never used here.
+  it.each(['@sentry-internal/feedback', '@sentry/feedback'])(
+    'resolves %s to an empty module on android without consulting node_modules',
+    moduleName => {
+      const { context, spy } = makeContext();
+      const result = resolveRequest?.(context, moduleName, 'android');
+      expect(result).toEqual({ type: 'empty' });
+      expect(spy).not.toHaveBeenCalled();
+    },
+  );
+
   it('carries no @sentry entries in extraNodeModules (the mechanism that never worked)', () => {
     const keys = Object.keys(metroConfig.resolver?.extraNodeModules ?? {});
     expect(keys.filter(k => k.startsWith('@sentry'))).toEqual([]);

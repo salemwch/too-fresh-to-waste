@@ -1149,8 +1149,7 @@ exports[`DriverOrdersListScreen offline offline large-light-en 1`] = `
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -1214,8 +1213,7 @@ exports[`DriverOrdersListScreen offline offline small-dark-en 1`] = `
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -1279,8 +1277,7 @@ exports[`DriverOrdersListScreen offline offline small-light-en 1`] = `
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -1344,8 +1341,7 @@ exports[`DriverOrdersListScreen offline offline standard-dark-ar 1`] = `
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -1409,8 +1405,7 @@ exports[`DriverOrdersListScreen offline offline standard-dark-en 1`] = `
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -1474,8 +1469,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-ar 1`] = `
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -1539,8 +1533,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-en 1`] = `
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -1604,8 +1597,7 @@ exports[`DriverOrdersListScreen offline offline standard-light-fr 1`] = `
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -1669,8 +1661,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix large-light-en 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -1734,8 +1725,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix small-dark-en 1
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -1799,8 +1789,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix small-light-en 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -1864,8 +1853,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-dark-a
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -1929,8 +1917,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-dark-e
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -1994,8 +1981,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -2059,8 +2045,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -2124,8 +2109,7 @@ exports[`DriverOrdersListScreen online but no GPS fix no-gps-fix standard-light-
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -2317,8 +2301,7 @@ exports[`DriverOrdersListScreen online, orders available populated large-light-e
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -2512,8 +2495,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-dark-en
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -2707,8 +2689,7 @@ exports[`DriverOrdersListScreen online, orders available populated small-light-e
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -2902,8 +2883,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-dark
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -3097,8 +3077,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-dark
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -3292,8 +3271,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -3487,8 +3465,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -3682,8 +3659,7 @@ exports[`DriverOrdersListScreen online, orders available populated standard-ligh
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -3770,8 +3746,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool large-light-en 1`]
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -3858,8 +3833,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool small-dark-en 1`] 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -3946,8 +3920,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool small-light-en 1`]
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -4034,8 +4007,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-dark-ar 1
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -4122,8 +4094,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-dark-en 1
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -4210,8 +4181,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-ar 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -4298,8 +4268,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-en 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -4386,8 +4355,7 @@ exports[`DriverOrdersListScreen online, pool empty empty-pool standard-light-fr 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -4453,8 +4421,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -4532,8 +4499,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -4611,8 +4577,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -4690,8 +4655,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -4769,8 +4733,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#616161",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#EEEEEE",
@@ -4848,8 +4811,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -4927,8 +4889,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",
@@ -5006,8 +4967,7 @@ exports[`DriverOrdersListScreen resuming an active delivery active-order-banner 
   },
   "View[0]/View[0]/RCTSwitch[2]": {
     "@tintColor": "#E0E0E0",
-    "height": 31,
-    "width": 51,
+    "alignSelf": "flex-start",
   },
   "View[0]/View[0]/Text[1]": {
     "color": "#424242",

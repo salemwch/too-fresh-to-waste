@@ -19,14 +19,7 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  InteractionManager,
-  View,
-  ActivityIndicator,
-  StyleSheet,
-  Alert,
-  Linking,
-} from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Alert, Linking } from 'react-native';
 
 import { OfflineBanner } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
@@ -43,6 +36,8 @@ import { Logger } from '@/utils/logger';
 
 import type { Translate } from '@/i18n/translate';
 import { networkErrorBus } from '@/utils/networkErrorBus';
+import { runWhenIdle } from '@/utils/runWhenIdle';
+import { startupTelemetry } from '@/services/performance/startupTelemetry';
 
 import { UserRole } from '@foodwaste/shared';
 
@@ -223,7 +218,7 @@ export const RootNavigator: React.FC = () => {
     setIsAppReady(true);
 
     // Validate auth from Keychain after the first frame
-    const handle = InteractionManager.runAfterInteractions(() => {
+    const cancelValidation = runWhenIdle(() => {
       const validateAuth = async () => {
         try {
           Logger.info('[RootNavigator] Validating auth from Keychain');
@@ -235,6 +230,7 @@ export const RootNavigator: React.FC = () => {
           }
 
           Logger.info('[RootNavigator] Auth validated — session middleware will refresh');
+          startupTelemetry.markPhase('auth_ready');
 
           // Biometric check after auth is confirmed
           const { SecureStorage } = await import('@/services/SecureStorage');
@@ -278,7 +274,7 @@ export const RootNavigator: React.FC = () => {
       void validateAuth();
     });
 
-    return () => handle.cancel();
+    return cancelValidation;
   }, [dispatch]);
 
   /**
@@ -380,6 +376,8 @@ export const RootNavigator: React.FC = () => {
    * - Screen view tracking
    */
   const handleNavigationReady = () => {
+    // First useful JS-driven render: the navigator and its first screen are mounted.
+    startupTelemetry.markPhase('first_render');
     routeNameRef.current = navigationRef.getCurrentRoute()?.name;
     Logger.info('[RootNavigator] Navigation ready', { initialRoute: routeNameRef.current });
 
@@ -432,7 +430,7 @@ export const RootNavigator: React.FC = () => {
    * flowState was missing from this guard, and that is what crashed every
    * fresh install. On a clean install nothing is persisted, so Redux starts at
    * INITIALIZING; `setIsAppReady(true)` runs synchronously in the mount effect
-   * while auth validation is deferred behind InteractionManager; and
+   * while auth validation is deferred behind runWhenIdle; and
    * isNavigationReady is seeded `!__DEV__`, so in a release build it is already
    * true on the first render. All three conditions passed while flowState was
    * still INITIALIZING, renderNavigator returned null, and React Navigation

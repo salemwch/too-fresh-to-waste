@@ -157,7 +157,9 @@ export default function ForceChangePasswordScreen() {
           <TouchableOpacity
             accessibilityRole='button'
             style={[styles.button, isSubmitting && styles.buttonDisabled]}
-            onPress={handleSubmit(onSubmit)}
+            onPress={() => {
+              void handleSubmit(onSubmit)();
+            }}
             disabled={isSubmitting}
             activeOpacity={0.8}
             testID='submit-button'

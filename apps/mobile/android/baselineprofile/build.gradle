@@ -1,0 +1,99 @@
+/*
+ * Baseline Profile + Startup Profile generator, and the startup benchmark that
+ * proves the profile pays for itself.
+ *
+ * Source: https://developer.android.com/topic/performance/baselineprofiles/create-baselineprofile
+ *         https://developer.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+ *
+ * Generate (writes app/src/productionRelease/generated/baselineProfiles/ -
+ * commit both .txt files):
+ *   ENVFILE=.env.production ./gradlew :app:generateProductionReleaseBaselineProfile \
+ *     -PreactNativeArchitectures=x86_64
+ *
+ * Measure (cold start, no profile vs. profile):
+ *   ENVFILE=.env.production ./gradlew \
+ *     :baselineprofile:connectedProductionBenchmarkReleaseAndroidTest \
+ *     -PreactNativeArchitectures=x86_64 \
+ *     -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=Macrobenchmark
+ *
+ * ENVFILE is not optional. react-native-config infers the flavor from the first
+ * task name and does not match every task this module adds, in which case it
+ * silently builds with `.env`. Setting it removes the guess.
+ *
+ * -PreactNativeArchitectures=x86_64 is for an x86_64 emulator only. Profiles
+ * record DEX methods, which are ABI-independent, so a profile generated there
+ * applies unchanged to the arm64-v8a release. Never pass it to a release build.
+ *
+ * Versions: 1.4.1, matching the plugin pinned in the root build.gradle, which
+ * explains why 1.5.0 is not used (it breaks the nonMinifiedRelease Kotlin source
+ * set under android.newDsl=false). 1.4.1 asks for kotlin-stdlib 2.0.21; the root
+ * build forces 2.2.10 for React Native 0.87, which is newer, so the force is safe.
+ */
+plugins {
+    id("com.android.test")
+    id("org.jetbrains.kotlin.android")
+    id("androidx.baselineprofile")
+}
+
+android {
+    namespace "com.toofreshtowaste.baselineprofile"
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        // Baseline Profile generation needs API 28+ (API 33+ without root).
+        minSdk 28
+        targetSdk rootProject.ext.targetSdkVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Emulators are fine for generating a profile and for an A/B
+        // comparison on the same machine; absolute timings are not
+        // representative of a device.
+        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] = "EMULATOR"
+    }
+
+    // A com.android.test module must declare the tested app's flavor
+    // dimensions to resolve its variants.
+    flavorDimensions "environment"
+    productFlavors {
+        dev { dimension "environment" }
+        staging { dimension "environment" }
+        production { dimension "environment" }
+    }
+
+    targetProjectPath = ":app"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+baselineProfile {
+    // Uses whatever emulator or device `adb devices` lists.
+    useConnectedDevices = true
+}
+
+dependencies {
+    implementation "androidx.test.ext:junit:1.2.1"
+    implementation "androidx.test.uiautomator:uiautomator:2.3.0"
+    implementation "androidx.benchmark:benchmark-macro-junit4:1.4.1"
+}
+
+// Pass the tested app's real applicationId (it differs per flavor: `.dev`,
+// `.staging`) to the tests, so no package name is hardcoded.
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        def loader = variant.artifacts.getBuiltArtifactsLoader()
+        variant.instrumentationRunnerArguments.put(
+            "targetAppId",
+            variant.testedApks.map { loader.load(it)?.applicationId }
+        )
+    }
+}

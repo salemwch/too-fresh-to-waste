@@ -22,6 +22,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
+  type TextInputInstance,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -115,7 +116,7 @@ export const DiscountClaimModal: React.FC<DiscountClaimModalProps> = ({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInputInstance>(null);
 
   const debouncedSearch = useDebouncedValue(searchText, 300);
 

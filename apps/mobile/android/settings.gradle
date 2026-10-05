@@ -1,15 +1,62 @@
 // ============================================================================
-// React Native 0.81 Android Settings - PNPM Monorepo Configuration
+// React Native 0.87 Android Settings - pnpm monorepo
 // ============================================================================
-// Source: https://github.com/react-native-community/template/blob/0.77-stable/template/android/settings.gradle
+// Template: https://github.com/react-native-community/rn-diff-purge/blob/release/0.87.1/RnDiffApp/android/settings.gradle
 // Monorepo: apps/mobile/android/settings.gradle
-//
-// PNPM uses node-linker=hoisted: all packages at workspace root node_modules/
-// Autolink powered by @react-native-community/cli config command
 
-// pluginManagement MUST be the first block in settings.gradle (Gradle requirement)
+// pluginManagement MUST be the first block in settings.gradle (Gradle requirement).
 pluginManagement {
-    includeBuild("../../../node_modules/@react-native/gradle-plugin")
+    /*
+     * npm package locations, resolved by Node itself.
+     *
+     * The template hard-codes `../node_modules/...`, which only holds when the app
+     * owns its node_modules. In this monorepo pnpm decides the layout (hoisted to
+     * the workspace root today), so a fixed path breaks the moment the layout,
+     * the lockfile or the package manager changes. `require.resolve` is the same
+     * mechanism the iOS Podfile and RN's autolinking use, and it follows pnpm's
+     * symlinks to the real package directory.
+     *
+     * react-native is resolved from the app (its declared dependency); the
+     * gradle plugin, codegen and hermes-compiler are resolved FROM react-native,
+     * because they are react-native's dependencies - under pnpm's isolated
+     * layout they are not reachable from the app at all.
+     *
+     * Results are published on `gradle.ext` and read by app/build.gradle.
+     */
+    def appRoot = settings.settingsDir.parentFile // apps/mobile - where package.json lives
+    def resolverScript = '''
+        const path = require('path');
+        const [appRoot] = process.argv.slice(1);
+        const dirOf = (pkg, from) =>
+          path.dirname(require.resolve(`${pkg}/package.json`, { paths: [from] }));
+        const reactNative = dirOf('react-native', appRoot);
+        console.log(JSON.stringify({
+          reactNative,
+          gradlePlugin: dirOf('@react-native/gradle-plugin', reactNative),
+          codegen: dirOf('@react-native/codegen', reactNative),
+          hermesCompiler: dirOf('hermes-compiler', reactNative),
+          nitroModules: dirOf('react-native-nitro-modules', appRoot),
+          mmkv: dirOf('react-native-mmkv', appRoot),
+        }));
+    '''
+    def resolverOutput = settings.providers.exec {
+        workingDir = appRoot
+        commandLine('node', '--eval', resolverScript, appRoot.absolutePath)
+    }.standardOutput.asText.get()
+    def resolved = new groovy.json.JsonSlurper().parseText(resolverOutput)
+    resolved.each { name, dir ->
+        if (!new File(dir as String).isDirectory()) {
+            throw new GradleException("npm package '${name}' resolved to '${dir}', which is not a directory. Run `pnpm install`.")
+        }
+    }
+    gradle.ext.npmPackageDirs = resolved.collectEntries { name, dir -> [(name): new File(dir as String)] }
+
+    // `.path`, not the File: PluginManagementSpec.includeBuild only takes a String.
+    // Given a File, Groovy's closure delegation silently falls through to
+    // Settings.includeBuild(Object) - a regular included build, which Gradle
+    // never searches for settings plugins, so com.facebook.react.settings
+    // would not be found.
+    includeBuild(gradle.ext.npmPackageDirs.gradlePlugin.path)
     repositories {
         google()
         mavenCentral()
@@ -25,13 +72,12 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { reactSettings 
     reactSettings.autolinkLibrariesFromCommand()
 }
 
-// Single source of truth for node_modules path in settings.gradle scope.
-// From apps/mobile/android/ → 3 levels up to monorepo root node_modules/
-def nodeModulesDir = "$rootDir/../../../node_modules"
-
 rootProject.name = 'FoodWasteApp'
 
 include ':app'
+
+// Baseline Profile generator + startup benchmark (com.android.test, never shipped)
+include ':baselineprofile'
 
 // ============================================================================
 // Manual includes for Nitro-based libraries
@@ -40,9 +86,11 @@ include ':app'
 // Source: https://nitro.margelo.com/docs/minimum-requirements
 // ============================================================================
 include ':react-native-nitro-modules'
-project(':react-native-nitro-modules').projectDir = new File("${nodeModulesDir}/react-native-nitro-modules/android")
+project(':react-native-nitro-modules').projectDir = new File(gradle.ext.npmPackageDirs.nitroModules, 'android')
 
 include ':react-native-mmkv'
-project(':react-native-mmkv').projectDir = new File("${nodeModulesDir}/react-native-mmkv/android")
+project(':react-native-mmkv').projectDir = new File(gradle.ext.npmPackageDirs.mmkv, 'android')
 
-includeBuild("${nodeModulesDir}/@react-native/gradle-plugin")
+// Template: the RN gradle plugin is also included as a regular build, so its
+// artifacts substitute dependency coordinates.
+includeBuild(gradle.ext.npmPackageDirs.gradlePlugin)

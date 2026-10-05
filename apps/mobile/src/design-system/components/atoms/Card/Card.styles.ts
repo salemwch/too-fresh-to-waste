@@ -64,12 +64,10 @@ export const createCardStyles = (
     ...(Platform.OS !== 'android' ? { overflow: 'hidden' as const } : {}),
     ...sizeStyles[size],
     ...variantStyles[variant],
+    // Disabled state - last, so it overrides any variant opacity. Spread rather
+    // than assigned afterwards: RN 0.87 types style objects as read-only.
+    ...(disabled ? { opacity: 0.6 } : {}),
   };
-
-  // Disabled state adjustments
-  if (disabled) {
-    baseCard.opacity = 0.6;
-  }
 
   // Platform-specific adjustments
   const platformStyles = Platform.select({
@@ -92,7 +90,7 @@ export const createCardStyles = (
       ...platformStyles,
     },
     loadingOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: colors.overlay.light,
       justifyContent: 'center',
       alignItems: 'center',

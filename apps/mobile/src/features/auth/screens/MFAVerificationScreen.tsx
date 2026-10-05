@@ -11,8 +11,8 @@ import {
   ScrollView,
   TextInput,
   Pressable,
-  type NativeSyntheticEvent,
-  type TextInputKeyPressEventData,
+  type TextInputInstance,
+  type TextInputKeyPressEvent,
 } from 'react-native';
 
 import { Button, Text, Card, Icon } from '@/design-system/components/atoms';
@@ -54,7 +54,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
   const [focusedIndex, setFocusedIndex] = useState(0);
 
   // Refs for input fields
-  const inputRefs = useRef<(TextInput | null)[]>([]);
+  const inputRefs = useRef<(TextInputInstance | null)[]>([]);
 
   /**
    * Auto-focus first input on mount
@@ -131,7 +131,7 @@ export const MFAVerificationScreen: React.FC<MFAVerificationScreenProps> = ({
    * Handle backspace
    */
   const handleKeyPress = useCallback(
-    (e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
+    (e: TextInputKeyPressEvent, index: number) => {
       if (e.nativeEvent.key === 'Backspace' && code[index] === '' && index > 0) {
         inputRefs.current[index - 1]?.focus();
       }
