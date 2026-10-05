@@ -6,6 +6,9 @@ apply plugin: "com.android.application"
 apply plugin: "com.google.gms.google-services"
 // Firebase Crashlytics removed — using Sentry for crash reporting
 apply plugin: "kotlin-android"
+// Baseline + Startup Profiles. Adds the nonMinifiedRelease / benchmarkRelease
+// build types the :baselineprofile module drives. See baselineprofile/build.gradle.
+apply plugin: "androidx.baselineprofile"
 
 // React Native Config - MUST be applied AFTER react plugins
 // Loads environment variables from .env file at build time
@@ -95,6 +98,24 @@ android.applicationVariants.all { variant ->
 
     variant.preBuildProvider.configure {
         doFirst { validateEnvFile(envFileName) }
+    }
+
+    // The shipped variant must carry its Baseline + Startup Profiles. Without
+    // them the build still succeeds and simply loses the startup DEX layout and
+    // AOT compilation - silently. See the baselineProfile block below.
+    if (variant.flavorName == "production") {
+        variant.preBuildProvider.configure {
+            doFirst {
+                def dir = file("src/productionRelease/generated/baselineProfiles")
+                ["baseline-prof.txt", "startup-prof.txt"].each { name ->
+                    if (!new File(dir, name).exists()) {
+                        throw new GradleException(
+                            "Missing ${dir}/${name}. Regenerate it - the command is in " +
+                            "baselineprofile/build.gradle - and commit it.")
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -380,6 +401,38 @@ dependencies {
     // Source: https://developers.google.com/android/guides/setup
     implementation 'com.google.android.gms:play-services-location:21.3.0'
 
+    // Installs the Baseline Profile on sideloaded and non-Play installs, and
+    // reports compilation status. Play applies the profile itself at install.
+    // Source: https://developer.android.com/jetpack/androidx/releases/profileinstaller
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
+
+    baselineProfile project(':baselineprofile')
+}
+
+// ============================================================================
+// BASELINE + STARTUP PROFILES
+// ============================================================================
+// Release 89's r8.json recorded no startup DEX ("startup": false) and the AAB
+// carried only the 2 KB of profile rules that ship inside AndroidX, so app and
+// React Native startup code ran interpreted/JIT on every cold start until the
+// device's background dexopt caught up.
+//
+// The profiles are generated on demand (never during a normal build - it needs
+// a running emulator) and committed under
+// src/productionRelease/generated/baselineProfiles/. Regenerate after any change
+// to what runs at startup.
+// Source: https://developer.android.com/topic/performance/baselineprofiles/configure-baselineprofiles
+baselineProfile {
+    automaticGenerationDuringBuild = false
+    saveInSrc = true
+    // Per variant, so `generateProductionReleaseBaselineProfile` exists. Merging
+    // into main leaves only the aggregate task, which also generates for dev
+    // (pointed at a localhost API) and staging - three runs to ship one profile.
+    // Only productionRelease reaches users.
+    mergeIntoMain = false
+    // Lay out the primary DEX from the Startup Profile.
+    // Source: https://developer.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+    dexLayoutOptimization = true
 }
 
 // ============================================================================

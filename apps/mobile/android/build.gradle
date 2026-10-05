@@ -106,6 +106,11 @@ buildscript {
         // Source: https://kotlinlang.org/docs/gradle.html
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("com.facebook.react:react-native-gradle-plugin")
+
+        // Baseline Profile plugin, applied to :app and :baselineprofile. Pinned
+        // to 1.4.1 to match the benchmark libraries - see baselineprofile/build.gradle.
+        // Source: https://developer.android.com/jetpack/androidx/releases/benchmark
+        classpath("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:1.4.1")
         // Note: React Native Gradle Plugin is loaded via includeBuild() in settings.gradle
         // It's applied in app/build.gradle using: plugins { id("com.facebook.react") }
     }

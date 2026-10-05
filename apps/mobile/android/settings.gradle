@@ -33,6 +33,9 @@ rootProject.name = 'FoodWasteApp'
 
 include ':app'
 
+// Baseline Profile generator + startup benchmark (com.android.test, never shipped)
+include ':baselineprofile'
+
 // ============================================================================
 // Manual includes for Nitro-based libraries
 // These libraries use Nitro Modules which require manual project inclusion
