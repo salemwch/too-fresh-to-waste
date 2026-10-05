@@ -2,6 +2,7 @@ import React from 'react';
 import { isAppRTL } from '@/i18n/direction';
 import { useTranslation } from 'react-i18next';
 import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
 import { colorTokens } from '@/design-system/tokens/colors';
@@ -35,6 +36,7 @@ export const OnboardingPageThree: React.FC<OnboardingPageThreeProps> = ({
   isLeaving,
 }) => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
@@ -72,7 +74,8 @@ export const OnboardingPageThree: React.FC<OnboardingPageThreeProps> = ({
       />
 
       {/* Bottom: back arrow + create account + dots */}
-      <View style={styles.bottom}>
+      {/* Clear the system navigation bar, as page 1 does. */}
+      <View style={[styles.bottom, { paddingBottom: insets.bottom + sh(38) }]}>
         <Pressable
           style={({ pressed }) => [
             styles.btnCreate,
@@ -188,7 +191,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: sw(24),
-    paddingBottom: sh(38),
     zIndex: 20,
     alignItems: 'center',
   },

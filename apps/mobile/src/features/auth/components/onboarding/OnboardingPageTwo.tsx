@@ -2,6 +2,7 @@ import React from 'react';
 import { isAppRTL } from '@/i18n/direction';
 import { useTranslation } from 'react-i18next';
 import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Icon from '@react-native-vector-icons/ionicons';
 import ShapesIcon from '@/assets/images/shapes.svg';
@@ -41,6 +42,7 @@ export const OnboardingPageTwo: React.FC<OnboardingPageTwoProps> = ({
   isLeaving,
 }) => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
@@ -118,7 +120,9 @@ export const OnboardingPageTwo: React.FC<OnboardingPageTwoProps> = ({
       </View>
 
       {/* ── Bottom: nav ── */}
-      <View style={styles.bottom}>
+      {/* Clear the system navigation bar, as page 1 does: without the inset the
+          arrow buttons sat under a 3-button nav bar and looked cut off. */}
+      <View style={[styles.bottom, { paddingBottom: insets.bottom + sh(42) }]}>
         <View style={styles.navRow}>
           <Pressable
             style={({ pressed }) => [styles.navBtn, pressed && { opacity: 0.8 }]}
@@ -234,7 +238,6 @@ const styles = StyleSheet.create({
   // ── Bottom ──
   bottom: {
     paddingHorizontal: sw(24),
-    paddingBottom: sh(42),
   },
   navRow: {
     flexDirection: 'row',
