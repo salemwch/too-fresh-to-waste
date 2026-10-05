@@ -1,7 +1,7 @@
 // TOP-LEVEL BUILD FILE - Food Waste Mobile App
 
 // ============================================================================
-// React Native 0.81.0 + Android Gradle Plugin 8.13.2
+// React Native 0.87.1 + Android Gradle Plugin 9.2.1 (version supplied by the RN gradle plugin)
 // Source: https://reactnative.dev/docs/environment-setup
 //
 // PROPERTY RESOLUTION PATTERN:
@@ -17,14 +17,10 @@
 // - AGP 8.8+ and React Native Kotlin DSL check rootProject.properties[]
 // - Legacy native modules (reanimated, maps) use rootProject.ext.*
 // - This ensures both access patterns work correctly
-
-// ============================================================================
-// PNPM MONOREPO: NODE_MODULES PATH (Single Source of Truth)
-// ============================================================================
-// With node-linker=hoisted (.npmrc), all packages are at the workspace root.
-// Define once here; reference as rootProject.ext.nodeModulesDir everywhere.
-// From apps/mobile/android/ → 3 levels up to C:\WFA\node_modules
-ext.nodeModulesDir = "$rootDir/../../../node_modules"
+//
+// npm package locations (react-native, codegen, hermes-compiler, ...) are
+// resolved by Node in settings.gradle and published as gradle.ext.npmPackageDirs.
+// Nothing in the Gradle build assumes where pnpm puts node_modules.
 
 buildscript {
     ext {
@@ -35,15 +31,13 @@ buildscript {
         // Source of truth is gradle.properties - these fallbacks are safety nets only.
         // Source: https://developer.android.com/studio/projects/configure-agp-ndk
 
-        // SDK Versions - React Native 0.81 requirements
-        buildToolsVersion = findProperty('buildToolsVersion') ?: "36.0.0"
+        // SDK Versions - React Native 0.87.1 template
+        buildToolsVersion = findProperty('buildToolsVersion') ?: "37.0.0"
         minSdkVersion = findProperty('minSdkVersion')?.toInteger() ?: 24
-        compileSdkVersion = findProperty('compileSdkVersion')?.toInteger() ?: 36
+        compileSdkVersion = findProperty('compileSdkVersion')?.toInteger() ?: 37
         targetSdkVersion = findProperty('targetSdkVersion')?.toInteger() ?: 36
 
-        // NDK Version - Critical for native builds
-        // Must be defined in gradle.properties for AGP 8.8+ compatibility
-        // AGP default (27.0.12077973) differs from RN 0.81 requirement (27.1.12297006)
+        // NDK Version - React Native 0.87.1 template (unchanged since 0.81)
         ndkVersion = findProperty('ndkVersion') ?: "27.1.12297006"
 
         /*
@@ -81,7 +75,7 @@ buildscript {
         // DEPENDENCY VERSIONS
         // ====================================================================
         // Kotlin and Firebase versions for native module compilation
-        kotlinVersion = findProperty('kotlinVersion') ?: "2.0.21"
+        kotlinVersion = findProperty('kotlinVersion') ?: "2.2.0"
         googleServicesVersion = "4.4.2"
         firebaseBomVersion = "33.16.0"
     }
@@ -92,23 +86,32 @@ buildscript {
     }
 
     dependencies {
-        // Android Gradle Plugin 8.13.2
-        // Source: https://developer.android.com/build/releases/gradle-plugin
-        // Note: AGP 8.8+ defaults to NDK 27.0.12077973, override via gradle.properties
-        classpath('com.android.tools.build:gradle:8.13.2')
+        // AGP and the Kotlin Gradle plugin carry no version here, exactly as in
+        // the React Native 0.87.1 template: the RN gradle plugin (included from
+        // node_modules in settings.gradle) depends on AGP 9.2.1 and KGP 2.2.0,
+        // so React Native is the single source of truth for both and they can
+        // never drift from the versions RN was built and tested against.
+        // Source: react-native-gradle-plugin 0.87.1 gradle/libs.versions.toml
+        classpath("com.android.tools.build:gradle")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("com.facebook.react:react-native-gradle-plugin")
 
         // Google Services plugin for Firebase
         classpath("com.google.gms:google-services:$googleServicesVersion")
 
         // Firebase Crashlytics removed — using Sentry for crash reporting
 
-        // Kotlin plugin - version from gradle.properties via ext.kotlinVersion
-        // Source: https://kotlinlang.org/docs/gradle.html
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-
-        // Baseline Profile plugin, applied to :app and :baselineprofile. Pinned
-        // to 1.4.1 to match the benchmark libraries - see baselineprofile/build.gradle.
+        // Baseline Profile plugin, applied to :app and :baselineprofile; must match
+        // the benchmark libraries in baselineprofile/build.gradle.
+        //
+        // 1.4.1, NOT 1.5.0 (latest stable, 2026-10-05). With android.newDsl=false -
+        // which RN 0.87 requires - 1.5.0 copies the release Kotlin source set into
+        // nonMinifiedRelease/benchmarkRelease as the literal path "app/provider(?)"
+        // (a Provider stringified), and compileProductionNonMinifiedReleaseKotlin
+        // fails with InvalidPathException. Same build, plugin swapped to 1.4.1: the
+        // copied set is the correct src/release/kotlin. 1.4.1 prints "tested with
+        // versions below" this AGP; that warning is left visible on purpose.
+        // Revisit with a 1.5.x patch or once newDsl=false can be dropped.
         // Source: https://developer.android.com/jetpack/androidx/releases/benchmark
         classpath("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:1.4.1")
         // Note: React Native Gradle Plugin is loaded via includeBuild() in settings.gradle
@@ -117,37 +120,25 @@ buildscript {
 }
 
 allprojects {
+    // React Native artifacts come from Maven Central. The former local
+    // repositories (node_modules/jsc-android/dist, node_modules/react-native/android)
+    // no longer exist in either package and are absent from the RN template.
     repositories {
         google()
         mavenCentral()
-
-        // JSC (JavaScriptCore) repository - not used, Hermes enabled
-        // Kept for reference if JSC needed in future
-        maven {
-            url("${rootProject.ext.nodeModulesDir}/jsc-android/dist")
-        }
-
-        // React Native local Maven repository
-        // Required for libraries that use com.facebook.react:react-native:+ dependency
-        // Source: https://reactnative.dev/docs/integration-with-existing-apps
-        maven {
-            url("${rootProject.ext.nodeModulesDir}/react-native/android")
-        }
     }
 
-    // Force React Native version for libraries using com.facebook.react:react-native:+
-    // Required for jail-monkey and other libraries that don't specify exact versions
-    // Source: https://stackoverflow.com/questions/74430295
+    // react-android / hermes-android versions and the `react-native` ->
+    // `react-android` substitution are NOT declared here: the RN gradle plugin's
+    // DependencyUtils.configureDependencies applies both forces and the
+    // substitution to rootProject.allprojects, reading the versions from the
+    // resolved react-native package. Hand-written copies could only drift.
     configurations.all {
         resolutionStrategy {
-            force("com.facebook.react:react-android:0.81.0")
-            force("com.facebook.react:hermes-android:0.81.0")
-
-            // Force AndroidX Core 1.13.1 - compatible with AGP 8.5.2
-            // Version 1.16.0+ requires AGP 8.6.0+ which has Windows stability issues
-            // Source: https://developer.android.com/jetpack/androidx/releases/core
-            force("androidx.core:core:1.13.1")
-            force("androidx.core:core-ktx:1.13.1")
+            // androidx.core is no longer forced. The old force held it at 1.13.1
+            // because 1.16+ needed AGP 8.6+; the build is on AGP 9.2.1, so the
+            // reason is gone and a downgrade force could only cause runtime
+            // NoSuchMethodErrors in libraries built against a newer core.
 
             // Force Google Play Services versions for compatibility
             // Firebase BOM 33.7.0 requires GMS 18.5.0+ / 21.3.0+
@@ -177,15 +168,6 @@ allprojects {
             force("com.google.android.gms:play-services-basement:18.11.0")
             force("com.google.android.gms:play-services-tasks:18.4.1")
 
-            // Substitute old react-native artifact with react-android for React Native 0.81+
-            // Libraries like jail-monkey use com.facebook.react:react-native:+ which no longer exists
-            // Source: React Native 0.70+ migration guide
-            dependencySubstitution {
-                substitute(module("com.facebook.react:react-native"))
-                    .using(module("com.facebook.react:react-android:0.81.0"))
-                    .because("React Native 0.70+ renamed react-native to react-android")
-            }
-
             // ================================================================
             // SECURITY: Force vulnerable transitive dependencies to patched versions
             // Fixes Snyk-flagged io.netty, protobuf, and junit vulnerabilities
@@ -201,11 +183,37 @@ allprojects {
             force("io.netty:netty-transport-native-unix-common:4.2.18.Final")
             force("io.netty:netty-buffer:4.2.18.Final")
             force("io.netty:netty-resolver:4.2.18.Final")
-            force("com.google.protobuf:protobuf-java:3.25.5")
+            // protobuf-java: a security FLOOR per major line, not a force.
+            // GHSA-735f-pc8j-v9w8 (CVE-2024-7254) is patched in 3.25.5, 4.27.5 and
+            // 4.28.2. A blanket force("...:3.25.5") also DOWNGRADED the Unified Test
+            // Platform of AGP 9.2, which needs protobuf 4.28.x, and every connected
+            // test died with NoClassDefFoundError com/google/protobuf/RuntimeVersion.
+            // This raises vulnerable versions within their own line and never
+            // lowers a newer one. Source: https://github.com/advisories/GHSA-735f-pc8j-v9w8
+            eachDependency { details ->
+                def req = details.requested
+                if (req.group != "com.google.protobuf" || req.name != "protobuf-java" || !req.version) return
+                def parts = (req.version.split("[.-]") as List) + ["0", "0", "0"]
+                def (major, minor, patch) = parts.take(3).collect { part ->
+                    def digits = (part =~ /^\d+/)
+                    digits.find() ? digits.group() as int : 0
+                }
+                def floor = null
+                if (major == 3 && (minor < 25 || (minor == 25 && patch < 5))) floor = "3.25.5"
+                else if (major == 4 && (minor < 27 || (minor == 27 && patch < 5))) floor = "4.27.5"
+                else if (major == 4 && minor == 28 && patch < 2) floor = "4.28.2"
+                if (floor) {
+                    details.useVersion(floor)
+                    details.because("GHSA-735f-pc8j-v9w8: patched version within the requested major line")
+                }
+            }
             force("junit:junit:4.13.2")
-            force("org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
-            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21")
-            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.21")
+            // 2.2.10: react-android 0.87.1's POM requires kotlin-stdlib 2.2.10.
+            // Forcing anything lower would run RN against an older stdlib than
+            // it was compiled for.
+            force("org.jetbrains.kotlin:kotlin-stdlib:2.2.10")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.10")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.10")
         }
 
         // Exclude deprecated Firebase Instance ID (firebase-iid)
@@ -303,3 +311,13 @@ subprojects {
         }
     }
 }
+
+// ============================================================================
+// REACT NATIVE ROOT PROJECT PLUGIN (React Native 0.87.1 template)
+// ============================================================================
+// Makes every library evaluate after :app (which configures their namespaces
+// and JVM toolchains), sets newArchEnabled=true on every subproject, and makes
+// :app:preBuild depend on every library's preBuild so all codegen output exists
+// before CMake configures. Without it native builds can race codegen.
+// Source: react-native-gradle-plugin 0.87.1 ReactRootProjectPlugin.kt
+apply plugin: "com.facebook.react.rootproject"

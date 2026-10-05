@@ -1,0 +1,5 @@
+# Gradle wrapper line endings - the rules `gradle init` generates.
+# https://docs.gradle.org/current/userguide/gradle_wrapper.html
+/gradlew        text eol=lf
+*.bat           text eol=crlf
+*.jar           binary

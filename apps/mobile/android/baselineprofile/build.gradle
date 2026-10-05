@@ -24,10 +24,10 @@
  * record DEX methods, which are ABI-independent, so a profile generated there
  * applies unchanged to the arm64-v8a release. Never pass it to a release build.
  *
- * Versions: 1.4.1, not 1.5.0. 1.5.0 needs kotlin-stdlib 2.1.20, and the root
- * build.gradle forces kotlin-stdlib 2.0.21 on every configuration, so the test
- * APK would run against an older stdlib than it was compiled for. 1.4.1 asks
- * for exactly 2.0.21.
+ * Versions: 1.4.1, matching the plugin pinned in the root build.gradle, which
+ * explains why 1.5.0 is not used (it breaks the nonMinifiedRelease Kotlin source
+ * set under android.newDsl=false). 1.4.1 asks for kotlin-stdlib 2.0.21; the root
+ * build forces 2.2.10 for React Native 0.87, which is newer, so the force is safe.
  */
 plugins {
     id("com.android.test")

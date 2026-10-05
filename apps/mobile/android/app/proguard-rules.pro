@@ -229,3 +229,30 @@
 
 # react-native-sms-retriever references GMS Credentials API not in our deps
 -dontwarn com.google.android.gms.auth.api.credentials.**
+
+# ============================================================================
+# AGP 9: STRICT FULL MODE FOR KEEP RULES
+# ============================================================================
+# AGP 9 sets android.r8.strictFullModeForKeepRules=true: `-keep class A` no
+# longer implies `-keep class A { <init>(); }`. Some library consumer rules
+# relied on that implicit constructor. The first build on AGP 9.2.1 / R8 9.2.14
+# crashed at launch - androidx.startup could not create WorkManager's Room
+# database because WorkDatabase_Impl had no constructor left (verified with
+# dexdump), and Firebase could not instantiate its component registrars.
+#
+# Each line restores the constructor ONLY where the library creates the class by
+# reflection through its no-arg constructor - Google's documented migration -
+# rather than setting the global opt-out, which would give back AGP 9's
+# shrinking everywhere. Guarded by `pnpm --filter @foodwaste/mobile
+# check:r8-keep-rules` (scripts/check-r8-keep-rules.js): it fails on any new,
+# unreviewed member-less library rule and on a missing restoration below.
+# Source: https://developer.android.com/build/releases/agp-9-0-0-release-notes
+#
+# Room: <Database>_Impl is created with Class.newInstance() (room-runtime 2.5.0).
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+# Firebase: ComponentDiscovery instantiates every registrar reflectively.
+-keep class * implements com.google.firebase.components.ComponentRegistrar { <init>(); }
+# WorkManager: input mergers are stored by class name and created reflectively.
+-keep class * extends androidx.work.InputMerger { <init>(); }
+# Glide: manifest-declared GlideModules are created reflectively by ManifestParser.
+-keep public class * implements com.bumptech.glide.module.GlideModule { <init>(); }

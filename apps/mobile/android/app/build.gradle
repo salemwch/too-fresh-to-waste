@@ -349,13 +349,19 @@ kotlin {
 // Automatically links native dependencies discovered by autolinking
 // Adds implementation project(':module-name') dependencies for all React Native modules
 react {
-    // Paths derived from centralized nodeModulesDir (defined in root build.gradle).
-    // Required for pnpm node-linker=hoisted monorepo where all packages are at
-    // the workspace root node_modules/, not apps/mobile/node_modules/.
-    reactNativeDir = file("${rootProject.ext.nodeModulesDir}/react-native")
-    codegenDir = file("${rootProject.ext.nodeModulesDir}/@react-native/codegen")
-    // Explicit hermesc path — Gradle plugin can't resolve %OS-BIN% in pnpm monorepo
-    hermesCommand = "${rootProject.ext.nodeModulesDir}/react-native/sdks/hermesc/win64-bin/hermesc.exe"
+    // The plugin's defaults look under <root>/node_modules (root = apps/mobile).
+    // In this pnpm monorepo that directory is not where the packages live, so the
+    // template's documented overrides are set from the directories Node resolved
+    // in settings.gradle (gradle.ext.npmPackageDirs) - no path is assumed.
+    def npm = gradle.ext.npmPackageDirs
+    reactNativeDir = npm.reactNative
+    codegenDir = npm.codegen
+    // Same layout the plugin's own default uses (PathUtils.HERMES_COMPILER_NPM_DIR),
+    // anchored at the resolved hermes-compiler package instead of <root>/node_modules.
+    // The plugin substitutes %OS-BIN% (win64-bin / linux64-bin / osx-bin) and runs
+    // the command through `cmd /c` on Windows, which resolves hermesc.exe.
+    // Source: react-native-gradle-plugin 0.87.1 PathUtils.kt, TaskUtils.kt
+    hermesCommand = "${npm.hermesCompiler}/hermesc/%OS-BIN%/hermesc"
     autolinkLibrariesWithApp()
 }
 
@@ -369,11 +375,11 @@ react {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
-    // React Native core dependencies - Explicit versions for monorepo setup
-    // Autolinking handles native modules, but core RN deps are explicit
-    // Source: React Native 0.81 requirements
-    implementation("com.facebook.react:react-android:0.81.0")
-    implementation("com.facebook.react:hermes-android:0.81.0")
+    // React Native core - versionless, as in the React Native 0.87.1 template.
+    // The RN gradle plugin forces both to the version of the resolved
+    // react-native package (hermes-android is redirected to com.facebook.hermes).
+    implementation("com.facebook.react:react-android")
+    implementation("com.facebook.react:hermes-android")
 
     // Nitro-based libraries require manual linking because CMake autolinking is disabled
     // Their Java/Kotlin code is autolinked, but we need explicit project dependencies
