@@ -7,7 +7,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
-  I18nManager,
   Linking,
   View,
   StyleSheet,
@@ -18,7 +17,7 @@ import {
 } from 'react-native';
 import RNRestart from 'react-native-restart';
 
-import { setAppDirection } from '@/i18n/direction';
+import { persistNativeDirection, setAppDirection } from '@/i18n/direction';
 import { Text, Card } from '@/design-system/components/atoms';
 import { SUPPORTED_LANGUAGES, setStoredLanguage, getCurrentLanguage } from '@/i18n';
 import type { AppLanguage } from '@/i18n';
@@ -98,8 +97,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
 
       if (directionChanges) {
         // Save the RTL preference so it applies on the next launch
-        I18nManager.forceRTL(willBeRTL);
-        I18nManager.allowRTL(willBeRTL);
+        persistNativeDirection(willBeRTL ? 'rtl' : 'ltr');
 
         // Android requires Activity recreation for layout direction to take effect.
         // Prompt the user to restart now — on relaunch the correct RTL/LTR layout loads.

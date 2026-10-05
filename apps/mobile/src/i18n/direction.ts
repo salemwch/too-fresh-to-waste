@@ -71,6 +71,33 @@ export const setAppDirection = (direction: AppDirection): void => {
 export const isAppRTL = (): boolean =>
   appDirection === undefined ? I18nManager.isRTL : appDirection === 'rtl';
 
+/**
+ * Tells the native side which direction the app chose, so that the next
+ * process start lays out in it. Takes effect on the next start (React Native
+ * persists both flags), never in the running session - publishing to JS is
+ * `setAppDirection`'s job, kept separate on purpose.
+ *
+ * Always write both flags, even when `I18nManager.isRTL` already agrees.
+ * Per React Native's documented `isRTL` logic, forceRTL(true) makes it true and
+ * allowRTL(false) makes it false; only when NEITHER is set does native fall
+ * through to reading the device language. In React Native 0.82-0.87 that
+ * fallthrough is `Locale.getAvailableLocales()[0]` (react/react-native#53417):
+ * it builds every ICU locale on the main thread inside MainActivity.onCreate,
+ * on every cold start. Measured on an OPPO CPH1937: ActivityOnCreate 82.7 ms on
+ * RN 0.81, 119.9 ms on 0.87.1. It also answers from an arbitrary locale (`af`)
+ * rather than the user's, fixed upstream in 0.88 (#57635). The old bootstrap
+ * wrote only on disagreement, which left an LTR user on the defaults - on that
+ * path - for the life of the install.
+ *
+ * Writing an unchanged value costs no disk I/O: SharedPreferences skips the
+ * write when nothing changed.
+ */
+export const persistNativeDirection = (direction: AppDirection): void => {
+  const rtl = direction === 'rtl';
+  I18nManager.forceRTL(rtl);
+  I18nManager.allowRTL(rtl);
+};
+
 /** Test seam. Resets to "not yet bootstrapped", never used by app code. */
 export const resetAppDirectionForTests = (): void => {
   appDirection = undefined;
