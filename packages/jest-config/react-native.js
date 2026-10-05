@@ -1,5 +1,5 @@
 /**
- * React Native Jest config — react-native preset, ESM transform allowlist.
+ * React Native Jest config — @react-native/jest-preset, ESM transform allowlist.
  *
  * Usage in apps/mobile/jest.config.js:
  *   const base = require('@foodwaste/jest-config/react-native');
@@ -42,7 +42,9 @@ const RN_ESM_PACKAGES = [
 /** @type {import('jest').Config} */
 module.exports = {
   ...base,
-  preset: 'react-native',
+  // React Native 0.85 moved the preset out of the react-native package.
+  // Source: https://reactnative.dev/blog/2026/04/07/react-native-0.85
+  preset: '@react-native/jest-preset',
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',

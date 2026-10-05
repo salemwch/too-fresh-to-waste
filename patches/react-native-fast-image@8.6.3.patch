@@ -1,0 +1,27 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index 5abb7c98b767cd0709b53f5ab2dd50c752a9377b..f78fc493baaeadd0997c4e5120e88b18926282b3 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -1,5 +1,5 @@
+ import React from 'react';
+-import { FlexStyle, LayoutChangeEvent, ShadowStyleIOS, StyleProp, TransformsStyle, ImageRequireSource, AccessibilityProps, ViewProps, ColorValue } from 'react-native';
++import { ImageStyle as RNImageStyle, LayoutChangeEvent, StyleProp, ImageRequireSource, AccessibilityProps, ViewProps, ColorValue } from 'react-native';
+ export declare type ResizeMode = 'contain' | 'cover' | 'stretch' | 'center';
+ declare const resizeMode: {
+     readonly contain: "contain";
+@@ -39,7 +39,14 @@ export interface OnProgressEvent {
+         total: number;
+     };
+ }
+-export interface ImageStyle extends FlexStyle, TransformsStyle, ShadowStyleIOS {
++/**
++ * Patched (pnpm patch, see root package.json): React Native 0.87 no longer exports
++ * FlexStyle or ShadowStyleIOS from its public (Strict) TypeScript API, so the
++ * original `extends FlexStyle, TransformsStyle, ShadowStyleIOS` lost every
++ * layout property. RN's ImageStyle already contains flex, transform and shadow
++ * properties - it is the style the native image view consumes.
++ */
++export interface ImageStyle extends RNImageStyle {
+     backfaceVisibility?: 'visible' | 'hidden';
+     borderBottomLeftRadius?: number;
+     borderBottomRightRadius?: number;

@@ -17,10 +17,14 @@
   },
   "peerDependencies": {
     "jest": ">=29",
-    "ts-jest": ">=29"
+    "ts-jest": ">=29",
+    "@react-native/jest-preset": ">=0.85.0"
   },
   "peerDependenciesMeta": {
     "ts-jest": {
+      "optional": true
+    },
+    "@react-native/jest-preset": {
       "optional": true
     }
   }
