@@ -333,3 +333,40 @@ tests / 430 snapshots pass (including `linking.test.ts`).
 **Remove these overrides when** React Native moves to a Metro line that already
 ships without `image-size` (0.84+ does); leaving `metro@^0.83` selectors behind
 then does nothing, but they would hold a future 0.83 back.
+
+## The 45-alert sweep, and two advisories nothing can bump (2026-10-06)
+
+45 Dependabot alerts on `master` came down to 16 packages; all but two fixed
+inside the major already in use. The work record is
+`.claude/work/dependabot-alerts-2026-10.md`. Two things are worth keeping.
+
+**A dependency nothing runs is removed, not bumped.** `nodemailer` carried 10 of
+the alerts, and none of its 5 advisories has a fix on the 9 line (9.1.1 is the
+last 9.x), so the bump would have crossed a major. Reading the consumer settled
+it: the backend only does `import type Mail from 'nodemailer/lib/mailer'` for
+`Mail.Attachment`, which `@types/nodemailer` supplies, and email goes out
+through axios to an HTTP API. Nothing loads `nodemailer` at runtime, so it left
+`dependencies` along with its `">=9.1.1 <10.0.0"` override. Read the consumer
+before deciding how much verification a bump needs - here it decided that no
+bump was needed at all.
+
+**Open-ended overrides were bounded.** `">=x"` values (`multer`, `engine.io`,
+`ip-address`, `fast-uri`, `@grpc/grpc-js`) are now `"^x"`: the 2026-09-09
+nodemailer jump to 10.0.1 came from exactly that shape.
+
+**`braces` GHSA-vfj7-8cjw-p6xm: accepted, no patched release exists**
+(`Patched versions <0.0.0`). It is not one of the 45 and predates this change
+(`braces@3.0.3` is identical on `master`). Verified per app with `-P`:
+
+- **backend production - not present.** Dev only, via `@types/jest`.
+- **web** - `tailwindcss 3.4 > chokidar | fast-glob | micromatch > braces`.
+  Tailwind runs at build time to emit CSS; it is not in the Next.js server or
+  browser bundle.
+- **mobile** -
+  `react-native 0.87 > @react-native/community-cli-plugin > @react-native-community/cli > fast-glob > micromatch > braces`.
+  Build-time tooling, like the `minimatch 3` paths above; it never enters the
+  APK.
+
+Every path expands glob patterns written in this repo, never attacker input.
+Recorded in `pnpm.auditConfig.ignoreGhsas`. Re-check when a fixed `braces`
+ships, or when Tailwind 4 / a React Native CLI release drops `micromatch 4`.
