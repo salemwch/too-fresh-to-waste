@@ -368,6 +368,32 @@ proven by build + Jest + emulator runtime.
   check impossible here (arm64-only build; SoLoader looks in lib/x86_64 under
   translation - the 0.81 build fails the same way). Needs a real device switched
   to Arabic.
+- 2026-10-05 (FALSIFIES the entry above): checked on the OPPO switched to Arabic
+  (system `ar-EG`, then en-GB, fr-FR). Uninstall, install from device-matched
+  split APKs, then two launches each for 0.81, 0.87.1, 0.87.1 + fix. All six
+  screens are RTL from the first launch (the onboarding top bar is a plain
+  `flexDirection: 'row'`, so this is native mirroring, not `isAppRTL()`), with 0
+  FATAL / ANR / JS errors. A probe run through `app_process` on the same phone
+  shows the premise held: `getDefault()` = `ar-EG` (RTL),
+  `getAvailableLocales()[0]` = `af` (LTR) of 755; the first call costs 15.9-17.4
+  ms, later calls ~0. Why the session is still RTL:
+  `ReactSurfaceImpl.updateLayoutSpecs` (and Fabric's `updateRootLayoutSpecs`)
+  read `I18nUtil.isRTL` again on every layout-spec update. Our bootstrap has
+  already written `forceRTL(true)` by then, so the next layout pass is RTL
+  before any content draws. That relies on a layout-spec update after the
+  bootstrap, which is what happened here; no product change needed.
+- 2026-10-05: Arabic control (same phone, same harness, wake key between
+  launches; battery 16-17%, 38.5-39.5 C). In Arabic the bootstrap sets
+  forceRTL(true), so no build should reach the scan. The ICU signature appears
+  in 0/6 traces for each build, and ActivityOnCreate is level (81.3 / 74.4 /
+  82.7 ms for 0.81 / 0.87.1 / fix). Plain medians: r3 572 / 604 / 595, r7 0.87.1
+  595 vs fix 587. 0.87.1 and the fix match when the scan is not reached, which
+  confirms the scan is the cause. A separate residual remains versus 0.81 on
+  this path, roughly 15-25 ms: the first frame +9 ms (main- thread `traversal`
+  self time 32.5 -> 39.6 ms) and before bindApplication +3-11 ms
+  (`ActivityThreadMain`, untraced). It is RN 0.87 / framework work, not ours,
+  and inside noise at n=6-12. Attributing it to methods needs a profileable 0.81
+  build to compare with simpleperf. Not pursued.
 
 ## Open questions
 
