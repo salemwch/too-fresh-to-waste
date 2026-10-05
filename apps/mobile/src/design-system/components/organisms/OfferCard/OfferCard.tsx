@@ -376,7 +376,10 @@ const OfferCardComponent: React.FC<OfferCardProps> = ({
         accessibilityIgnoresInvertColors
         onLoad={() => setIsImageLoaded(true)}
         onError={() => {
-          if (!useRawUrl && offer.image) {
+          // Fall back only when there is a different URL to fall back to. With
+          // transforms off the "optimized" URL is the raw one, and retrying it
+          // would request the same broken image twice.
+          if (!useRawUrl && offer.image && imageSource.uri !== offer.image) {
             setUseRawUrl(true);
           } else {
             setIsImageLoaded(true);
