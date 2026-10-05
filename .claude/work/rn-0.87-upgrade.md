@@ -160,7 +160,19 @@ proven by build + Jest + emulator runtime.
 - [x] 10. Adversarial review: deletion check clean; verification gap closed with
       utils/appState tests + check:r8-keep-rules (both mutation-checked).
 - [ ] 11. iOS build on a Mac (pbxproj must be regenerated first)
-- [ ] 12. Real-device pass + `check:fresh-install` on the release build
+- [ ] 12. Real-device pass + `check:fresh-install` on the release build. PARTIAL
+      (OPPO CPH1937, Android 11, arm64, production release APK): fresh install
+      (uninstall + install; ColorOS blocks `pm clear`), 40 interleaved cold
+      starts 0 FATAL / signal / ANR / JS error, onboarding, login (keyboard
+      open), register, back navigation, Sentry native + NDK + ANR integrations
+      start. NOT done: authenticated customer / merchant / driver flows, FCM
+      delivery, location chooser (Home, behind sign-in) - need an owner session
+      or test accounts.
+- [x] 13. Post-upgrade size work: single `@sentry/core` in the bundle, web
+      feedback widget excluded. JS 7,129,706 -> 5,742,745 B; Sentry 2,659 ->
+      1,301 KiB; AAB 23,980,993 -> 23,702,701 B.
+- [x] 14. `useEffectEvent` in ProtectedRoute; startup telemetry (Web Performance
+      APIs) -> one sampled Sentry transaction per cold start.
 
 ## Decisions
 
@@ -277,6 +289,54 @@ proven by build + Jest + emulator runtime.
   (3.25.5 / 4.27.5 / 4.28.2, GHSA-735f-pc8j-v9w8). The force downgraded AGP 9.2
   UTP (needs 4.28.x) -> NoClassDefFoundError RuntimeVersion. App runtime ships
   no protobuf.
+
+- 2026-10-05: Removing the `@sentry/core` override (above) let pnpm give each
+  mobile Sentry package its own nested 10.73.0, and Metro bundled all four
+  (1,779 KiB of core). Fixed in metro.config.js: every `@sentry/core` request
+  resolves from the copy `@sentry/react-native` uses, only when the version is
+  identical; a different version fails the build (merging two versions is
+  unsafe). Rejected: re-adding the root override (forces web/backend onto the
+  mobile version) and a hard-coded path alias. Guarded by
+  metroSentryCoreDedupe.test.ts. Measured alone: AAB -245,617 B.
+- 2026-10-05: `includeWebFeedback: false` - the feedback widget is not used.
+  Measured alone: AAB -34,662 B. `@sentry/conventions` (306 KiB) and the core AI
+  integrations are kept: stubbing SDK internals is not safe without upgrading.
+- 2026-10-05: AAB target (<= 21 MB) not reached, by design. Of 23.70 MB, 9.84 MB
+  is BUNDLE-METADATA Play keeps and never ships (native debug symbols 5.9 MB +
+  R8 mapping 3.9 MB). Real download for the OPPO (bundletool get-size, arm64):
+  0.81 11,797,229 B -> 0.87 12,815,105 B (+1.02 MB: RN / Hermes V1 native libs,
+  JS). The only lever to <= 21 MB is `debugSymbolLevel` none, which loses
+  symbolicated native crashes in Play Console - owner decision, recommendation
+  is to keep the symbols.
+- 2026-10-05: `useEffectEvent` (React 19.2) for ProtectedRoute's
+  checkAndRefreshToken / triggerSessionLogout: they are called only from effects
+  and must read the latest state without restarting the timers. The interval now
+  runs once per mount instead of restarting on each auth change. Covered by
+  ProtectedRoute.sessionTimers.test.tsx (9 cases).
+- 2026-10-05: `<Activity>` NOT adopted. Hidden mode runs effect cleanups, which
+  would stop the timers, sockets and location watches screens rely on staying
+  alive; React Navigation 7.21 only carries compatibility code for it. No screen
+  here has a "pre-render hidden, keep state, pause effects" need.
+- 2026-10-05: Startup telemetry via performance.mark / measure,
+  PerformanceObserver('longtask') and performance.rnStartupTiming. One Sentry
+  transaction per cold start (inherits tracesSampleRate), numbers only, observer
+  disconnected after the report, all APIs feature-detected. Native first-frame
+  metric unchanged.
+- 2026-10-05: Onboarding pages 2 and 3 add `insets.bottom` to the arrow buttons'
+  padding (page 1 already did). RN 0.86+ edge-to-edge reports the full window,
+  so a fixed padding sat under the navigation bar.
+- 2026-10-05: fresh-install-check.ps1 checks `pm clear` output for "Success".
+  ColorOS throws SecurityException CLEAR_APP_USER_DATA and the gate used to
+  print OK, then validate a warm app as a first run.
+- 2026-10-05: OPPO cold start (am start -W TotalTime, speed-profile, two
+  interleaved rounds of 10): 0.81 median 582 / 590 ms, 0.87 624 / 622 ms - a
+  measured +35-40 ms first-frame regression, not explained yet. Startup
+  telemetry will show whether it is native or JS in the field.
+- 2026-10-05: Login keyboard on Android: with the keyboard open the form can
+  scroll only to its natural end, so the lower part stays under the keyboard
+  (`KeyboardAvoidingView` behavior is undefined on Android and adjustResize does
+  not resize under edge-to-edge). Identical on the 0.81 build on the same
+  device - pre-existing, not a regression; left as a follow-up.
 
 ## Open questions
 
