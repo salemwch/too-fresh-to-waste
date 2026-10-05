@@ -12,8 +12,8 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
-  type NativeSyntheticEvent,
-  type TextInputKeyPressEventData,
+  type TextInputInstance,
+  type TextInputKeyPressEvent,
 } from 'react-native';
 
 import { useTheme } from '@/design-system/providers';
@@ -34,7 +34,7 @@ export const OTPInput = memo<OTPInputProps>(
   ({ length = 6, value, onChange, error = false, disabled = false, autoFocus = false }) => {
     const { t } = useTranslation();
     const theme = useTheme();
-    const inputRefs = useRef<(TextInput | null)[]>([]);
+    const inputRefs = useRef<(TextInputInstance | null)[]>([]);
     const [focusedIndex, setFocusedIndex] = useState<number | null>(autoFocus ? 0 : null);
 
     // Shake animation for error
@@ -115,7 +115,7 @@ export const OTPInput = memo<OTPInputProps>(
     );
 
     const handleKeyPress = useCallback(
-      (e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
+      (e: TextInputKeyPressEvent, index: number) => {
         if (e.nativeEvent.key === 'Backspace' && !value[index] && index > 0) {
           inputRefs.current[index - 1]?.focus();
         }

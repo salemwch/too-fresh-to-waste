@@ -4,7 +4,7 @@
  */
 
 import React, { forwardRef } from 'react';
-import { Text as RNText } from 'react-native';
+import { Text as RNText, type TextInstance } from 'react-native';
 
 import { useTheme } from '../../../providers';
 
@@ -81,7 +81,7 @@ const resolveTextColor = (
   }
 };
 
-export const Text = forwardRef<RNText, TextProps>(
+export const Text = forwardRef<TextInstance, TextProps>(
   (
     {
       variant = 'body.medium',

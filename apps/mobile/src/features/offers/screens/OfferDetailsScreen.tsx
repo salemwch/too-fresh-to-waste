@@ -11,7 +11,6 @@ import {
   Linking,
   Alert,
   Easing,
-  InteractionManager,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
@@ -27,6 +26,7 @@ import { analytics } from '@/utils/analytics';
 
 import { styles, PRIMARY_COLOR, WHITE, INDIGO } from './OfferDetailsScreen.styles';
 import { Logger } from '@/utils/logger';
+import { runWhenIdle } from '@/utils/runWhenIdle';
 
 import { ReviewSummarySection } from '../components/ReviewSummarySection';
 import { SkeletonOfferDetails } from '../components/SkeletonOfferDetails';
@@ -298,10 +298,9 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
   // Fire once when offer data arrives — deferred until after navigation animation completes
   useEffect(() => {
     if (offer === undefined) return;
-    const task = InteractionManager.runAfterInteractions(() => {
+    return runWhenIdle(() => {
       analytics.trackOfferViewed(offerId, offer.title, offer.pricing.discountedPrice);
     });
-    return () => task.cancel();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offer?._id, offer?.id, offerId]);
 
@@ -442,6 +441,7 @@ export const OfferDetailsScreen: React.FC<OfferDetailsScreenProps> = ({ navigati
               cache: FastImage.cacheControl.immutable,
             }}
             style={styles.headerImage}
+            resizeMode={FastImage.resizeMode.cover}
             accessibilityIgnoresInvertColors
           />
           <LinearGradient

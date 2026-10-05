@@ -5,7 +5,7 @@
 
 import IoniconsIcon from '@react-native-vector-icons/ionicons';
 import React, { forwardRef } from 'react';
-import { View } from 'react-native';
+import { View, type ViewInstance } from 'react-native';
 
 import { isAppRTL } from '@/i18n/direction';
 
@@ -16,7 +16,7 @@ import { mirrorIconName } from './rtlMirror';
 
 import type { IconProps } from './Icon.types';
 
-export const Icon = forwardRef<View, IconProps>(
+export const Icon = forwardRef<ViewInstance, IconProps>(
   (
     {
       name,

@@ -40,7 +40,7 @@ import { loginAsync, clearError, selectAuthIsLoading, selectAuthError } from '..
 import { resolveAuthError } from '../utils/resolveAuthError';
 
 import type { LoginScreenNavigationProp } from '@/navigation/types';
-import type { TextInput } from 'react-native';
+import type { TextInputInstance } from 'react-native';
 import { spacingTokens } from '@/design-system/tokens/spacing';
 
 const { base: sp } = spacingTokens;
@@ -153,7 +153,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const email = watch('email');
 
   // Ref for password field — used to focus it when user submits email
-  const passwordRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInputInstance>(null);
 
   // Show password toggle
   const [showPassword, setShowPassword] = useState(false);

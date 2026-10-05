@@ -4,6 +4,7 @@
 
 import { render, fireEvent } from '@testing-library/react-native';
 import React from 'react';
+import type { ReactTestInstance } from 'react-test-renderer';
 import { StyleSheet } from 'react-native';
 
 import { ThemeProvider } from '../../../providers';
@@ -14,7 +15,9 @@ import { Badge } from './Badge';
 describe('Badge', () => {
   const renderWithTheme = (component: React.ReactElement) =>
     render(<ThemeProvider>{component}</ThemeProvider>);
-  const getFlattenedStyle = (element: { props: Record<string, unknown> }) =>
+  // The query result is a ReactTestInstance; typing it as such (rather than a
+  // hand-written { props: Record<string, unknown> }) lets flatten accept the style.
+  const getFlattenedStyle = (element: ReactTestInstance) =>
     StyleSheet.flatten(element.props['style']);
 
   it('renders correctly with default props', () => {

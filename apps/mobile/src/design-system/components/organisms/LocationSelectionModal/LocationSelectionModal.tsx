@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dimOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   modalContainer: {
     width: SCREEN_WIDTH * 0.9,

@@ -20,8 +20,13 @@ import type { AvatarProps } from './Avatar.types';
 const hasNonEmptyString = (value: string | undefined): value is string =>
   value !== undefined && value.trim() !== '';
 
+// `Array.isArray` narrows to `any[]`, which does not exclude the readonly array
+// RN 0.87 types an image source list as, so the list case needs its own guard.
+const isImageSourceList = <T,>(source: T | readonly T[]): source is readonly T[] =>
+  Array.isArray(source);
+
 const getUriFromImageSource = (source: AvatarProps['source']): string | undefined => {
-  if (source === undefined || typeof source === 'number' || Array.isArray(source)) {
+  if (source === undefined || typeof source === 'number' || isImageSourceList(source)) {
     return undefined;
   }
 

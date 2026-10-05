@@ -644,10 +644,10 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   mapLoadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: MAP_LOADING_OVERLAY,
     justifyContent: 'center',
     alignItems: 'center',
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   mapErrorContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,

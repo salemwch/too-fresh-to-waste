@@ -452,7 +452,7 @@ export const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG_CREAM },
   skeletonOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: BG_CREAM,
   },
   listContent: { paddingBottom: 80 },

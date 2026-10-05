@@ -807,19 +807,19 @@ const createStyles = (
       elevation: 3,
     },
     notStartedOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: COLORS.NOT_STARTED_OVERLAY,
       justifyContent: 'center',
       alignItems: 'center',
     },
     soldOutOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: COLORS.SOLD_OUT_OVERLAY,
       justifyContent: 'center',
       alignItems: 'center',
     },
     expiredOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: COLORS.SOLD_OUT_OVERLAY,
       justifyContent: 'center',
       alignItems: 'center',

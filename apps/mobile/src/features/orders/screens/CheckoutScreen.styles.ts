@@ -342,7 +342,7 @@ export const createCheckoutStyles = createThemedStyles((c: ThemePalette) => {
       position: 'relative',
     },
     mapPinOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: 'center',
       alignItems: 'center',
       // paddingBottom = icon size so the pin TIP (bottom of icon) sits at map center

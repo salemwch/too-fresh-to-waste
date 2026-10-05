@@ -146,7 +146,7 @@ FloatingVoteTab.displayName = 'FloatingVoteTab';
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 99,
   },
   overlay: {

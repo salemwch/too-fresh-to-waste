@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { Component, useEffect, useRef } from 'react';
 import { Config } from 'react-native-config';
-import { InteractionManager, StyleSheet, View, Text, Pressable } from 'react-native';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
 import i18n from '@/i18n';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -25,6 +25,7 @@ import { store, persistor } from '@/store';
 import { RehydrationGate } from '@/store/rehydrationOrchestrator';
 import { useAppVersionCheck } from '@/hooks/useAppVersionCheck';
 import { Logger } from '@/utils/logger';
+import { runWhenIdle } from '@/utils/runWhenIdle';
 import { analytics } from '@/utils/analytics';
 import { toastConfig } from '@/utils/toast';
 
@@ -191,7 +192,7 @@ function AppContent(): React.JSX.Element {
   // Neither is needed for the first frame — search screen isn't the landing page
   // and Google sign-in is only on the auth screens.
   useEffect(() => {
-    const handle = InteractionManager.runAfterInteractions(() => {
+    const cancelDeferredSetup = runWhenIdle(() => {
       const { localLocationService } =
         require('@/services/location/LocalLocationService') as typeof import('@/services/location/LocalLocationService');
       localLocationService.initialize().catch(error => {
@@ -205,7 +206,7 @@ function AppContent(): React.JSX.Element {
       });
     });
 
-    return () => handle.cancel();
+    return cancelDeferredSetup;
   }, []);
 
   // Track session expiry for retry logic
@@ -382,7 +383,7 @@ function App(): React.JSX.Element {
   // Defer all non-critical services to after the first frame renders.
   // This lets the provider tree + navigation mount and paint immediately.
   useEffect(() => {
-    const handle = InteractionManager.runAfterInteractions(() => {
+    const cancelDeferredServices = runWhenIdle(() => {
       // --- Sentry ---
       initSentryIfNeeded();
 
@@ -444,7 +445,7 @@ function App(): React.JSX.Element {
     });
 
     return () => {
-      handle.cancel();
+      cancelDeferredServices();
       deferredCleanups.current.forEach(fn => fn());
       deferredCleanups.current = [];
     };

@@ -14,7 +14,6 @@ import {
   ScrollView,
   Switch,
   ActivityIndicator,
-  InteractionManager,
   Pressable,
 } from 'react-native';
 import RNRestart from 'react-native-restart';
@@ -25,6 +24,7 @@ import { SUPPORTED_LANGUAGES, setStoredLanguage, getCurrentLanguage } from '@/i1
 import type { AppLanguage } from '@/i18n';
 import { DARK_MODE_ENABLED, useTheme } from '@/design-system/providers';
 import { Logger } from '@/utils/logger';
+import { runWhenIdle } from '@/utils/runWhenIdle';
 
 import { notificationPreferencesService } from '../services/notificationPreferencesService';
 
@@ -149,7 +149,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
 
   // ── Load preferences on mount — deferred until navigation animation completes ─
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
+    return runWhenIdle(() => {
       const load = async () => {
         try {
           const prefs = await notificationPreferencesService.getPreferences();
@@ -166,7 +166,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation: _nav
       };
       void load();
     });
-    return () => task.cancel();
   }, []);
 
   // ── Toggle handlers ─────────────────────────────────────────────────────────
