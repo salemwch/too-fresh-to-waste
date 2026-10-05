@@ -338,6 +338,37 @@ proven by build + Jest + emulator runtime.
   not resize under edge-to-edge). Identical on the 0.81 build on the same
   device - pre-existing, not a regression; left as a follow-up.
 
+- 2026-10-05: The cold-start regression above is explained (append, the entry
+  above stays as written). Method: same packaging for both builds (bundletool
+  split APKs, same signing, both `speed-profile`), atrace per launch, then
+  simpleperf on a profileable benchmarkRelease. The regression reproduced
+  (median 582 / 593 -> 610 / 655 ms) and sat almost entirely in
+  `ActivityOnCreate`: 82.7 -> 119.9 ms; every other phase within +-5 ms.
+  simpleperf: `ReactHostImpl.createSurface` -> `ReactSurfaceImpl.<init>` ->
+  `I18nUtil.isRTL` -> `Locale.getAvailableLocales()` -> `ICU.localesFromStrings`
+  on the main thread. Cause: react/react-native#53417 (in 0.82-0.87.1) replaced
+  `Locale.getDefault()` with `Locale.getAvailableLocales()[0]`. That builds
+  every ICU locale, and it also always answers `af`. Fixed upstream in 0.88
+  (#57635 + #58723), with no pick request for 0.87. We pay it because the i18n
+  bootstrap wrote `forceRTL`/`allowRTL` only when `I18nManager.isRTL` disagreed,
+  which leaves LTR users on the defaults - the one path that reaches it. Fix:
+  `persistNativeDirection` always writes both flags (documented: allowRTL false
+  -> isRTL false, so the check short-circuits). Rejected: patching `I18nUtil`
+  (ships in the prebuilt react-android AAR), RN 0.88 (rc only), and a native
+  pre-onCreate write (duplicates the JS language detection). Result on the OPPO:
+  the ICU signature appears in 24/24 traces before and 0/12 after. Paired
+  untraced rounds of 15: 641 -> 617 and 655 -> 625 ms; a traced round 684 -> 644
+  ms against 651 for 0.81. About 10 ms per phase versus 0.81 is still
+  unattributed and inside run-to-run noise (0.81 alone spanned 582-683). The
+  first launch after install still pays it (nothing has been written yet).
+- 2026-10-05: Unverified consequence of #53417 for Arabic users: on a fresh
+  install on an Arabic-language phone, native `isRTL` is false on 0.87.1 (it
+  read the system language on 0.81), so the first session lays out LTR while JS
+  publishes RTL. From the second launch `forceRTL(true)` is in place. Emulator
+  check impossible here (arm64-only build; SoLoader looks in lib/x86_64 under
+  translation - the 0.81 build fails the same way). Needs a real device switched
+  to Arabic.
+
 ## Open questions
 
 - Non-blocking: iOS `project.pbxproj` is empty; the template's pbxproj diff has
