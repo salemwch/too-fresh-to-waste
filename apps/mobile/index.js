@@ -27,6 +27,11 @@ import { AppRegistry } from 'react-native';
 import { enableFreeze, enableScreens } from 'react-native-screens';
 
 import App from './src/App';
+import { startupTelemetry } from './src/services/performance/startupTelemetry';
+
+// Every import above has been evaluated: the app's JS module graph is ready.
+// Also starts the startup long-task observer. See startupTelemetry.ts.
+startupTelemetry.markPhase('js_init');
 
 enableScreens(true);
 enableFreeze(true);

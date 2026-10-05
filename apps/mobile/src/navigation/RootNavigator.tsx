@@ -37,6 +37,7 @@ import { Logger } from '@/utils/logger';
 import type { Translate } from '@/i18n/translate';
 import { networkErrorBus } from '@/utils/networkErrorBus';
 import { runWhenIdle } from '@/utils/runWhenIdle';
+import { startupTelemetry } from '@/services/performance/startupTelemetry';
 
 import { UserRole } from '@foodwaste/shared';
 
@@ -229,6 +230,7 @@ export const RootNavigator: React.FC = () => {
           }
 
           Logger.info('[RootNavigator] Auth validated — session middleware will refresh');
+          startupTelemetry.markPhase('auth_ready');
 
           // Biometric check after auth is confirmed
           const { SecureStorage } = await import('@/services/SecureStorage');
@@ -374,6 +376,8 @@ export const RootNavigator: React.FC = () => {
    * - Screen view tracking
    */
   const handleNavigationReady = () => {
+    // First useful JS-driven render: the navigator and its first screen are mounted.
+    startupTelemetry.markPhase('first_render');
     routeNameRef.current = navigationRef.getCurrentRoute()?.name;
     Logger.info('[RootNavigator] Navigation ready', { initialRoute: routeNameRef.current });
 
