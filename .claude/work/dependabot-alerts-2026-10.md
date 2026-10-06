@@ -48,7 +48,8 @@ Clear the 45 open Dependabot security alerts on `master` (2 critical, 16 high,
 - [x] `pnpm audit` clean except accepted GHSAs
 - [x] Gate: type-check, backend check:ts, all three test suites, web build
 - [x] Ruby: constraints resolve and CocoaPods / fastlane load (Docker, Ruby 3.3)
-- [ ] PR; Dependabot alerts close after merge
+- [x] PR #103 merged (264b6e15); 50 alerts closed, production deploys healthy
+- [ ] Second wave (9 alerts raised by the post-merge scan) - this branch
 
 ## Decisions
 
@@ -87,6 +88,17 @@ Clear the 45 open Dependabot security alerts on `master` (2 critical, 16 high,
   Desktop's network: Bundler's 23 MB compact index never finished inside its
   timeout and it fell back to the full index. Seeding the index file from the
   host fixed that; it was never the Gemfile.
+
+- 2026-10-06: The scan triggered by merging #103 raised 9 alerts (#255-#263),
+  none caused by it (all 9 packages resolved identically before and after).
+  Fixed in-major: proxy-addr, shell-quote, compression, joi, sharp,
+  source-map-js, smol-toml. postcss-selector-parser crossed 6 -> 7 under
+  Tailwind 3.4, accepted only after the emitted CSS matched rule for rule (only
+  Google Fonts unicode-ranges differed, from a cleared next/font cache).
+  sprintf-js has no fix and is never loaded (only js-yaml's CLI requires
+  argparse); accepted. Gates: check:lockfile, type-check, backend check:ts,
+  backend 2,528 / web 1,414 / mobile 2,659 tests, lint, web build; pnpm audit 0
+  unaccepted. Details in .claude/rules/dependencies.md.
 
 ## Open questions
 

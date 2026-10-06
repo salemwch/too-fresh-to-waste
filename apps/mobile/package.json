@@ -151,7 +151,7 @@
     "prettier": "^3.9.6",
     "react-test-renderer": "19.2.3",
     "rimraf": "^5.0.5",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "subset-font": "2.7.0",
     "typescript": "^5.9.3",
     "yaml": "^2.8.3"
