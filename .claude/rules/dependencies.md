@@ -370,3 +370,31 @@ nodemailer jump to 10.0.1 came from exactly that shape.
 Every path expands glob patterns written in this repo, never attacker input.
 Recorded in `pnpm.auditConfig.ignoreGhsas`. Re-check when a fixed `braces`
 ships, or when Tailwind 4 / a React Native CLI release drops `micromatch 4`.
+
+## Nine more the day after, and a cross-major override proven by output (2026-10-06)
+
+The scan triggered by merging the 45-alert sweep raised 9 new alerts (2
+critical). None came from that change - all 9 packages resolved identically
+before and after it; six advisories were published on 2026-10-05/06 and three in
+September. Fixed inside their majors: `proxy-addr ^2.0.8` (critical, backend
+production through Express), `shell-quote ^1.11.0` (critical, mobile build-time
+via the RN CLI), `compression ^1.8.2`, `joi ^18.2.9`, `sharp ^0.35.5` (direct
+deps, manifests updated as well as overrides), `source-map-js ^1.2.2` (backend
+production through `sanitize-html > postcss`), `smol-toml ^1.9.0`.
+
+**`postcss-selector-parser` crossed a major, and was proven by output.** Its
+advisory (`<7.1.6`) has no fix on v6 (6.1.4 is the last), and the only copy is
+Tailwind 3.4's. The override `"postcss-selector-parser@^6": "^7.1.6"` was
+accepted only after building the web app before and after and comparing the
+emitted CSS: 3 of 4 files byte-identical, and every difference in the fourth was
+a Google Fonts `@font-face` `unicode-range` plus the source-map name - because
+the second build had its `.next` (and `next/font` cache) deleted and fetched
+fresh font CSS. Every Tailwind-generated rule was identical. When comparing
+build output, keep the `.next/cache` or diff rule by rule; a deleted font cache
+changes bytes that have nothing to do with the change under test.
+
+**`sprintf-js` GHSA-hp3w-g68c-fv3c: accepted, no patched release.** Only path:
+web, `gray-matter > js-yaml 3 > argparse 1 > sprintf-js`. In that js-yaml copy
+only `bin/js-yaml.js` (the CLI) requires `argparse`; `index.js` and `lib/` never
+do, so `sprintf-js` is never loaded by the app. Backend and mobile production:
+not present (`pnpm why -P`). Recorded in `ignoreGhsas`.
