@@ -19,7 +19,10 @@ import type { INestApplication } from '@nestjs/common';
 import type { Server, ServerOptions } from 'socket.io';
 
 export class RedisIoAdapter extends IoAdapter {
-  private readonly logger = new Logger(RedisIoAdapter.name);
+  // IoAdapter declares `protected readonly logger` (newer than
+  // @nestjs/platform-socket.io 11.2.5); overriding it keeps one logger, and
+  // the base adapter's own messages carry this adapter's name.
+  protected override readonly logger = new Logger(RedisIoAdapter.name);
   private adapterConstructor: ReturnType<typeof createAdapter> | null = null;
 
   constructor(app: INestApplication) {
