@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: in-review
 scope: cross-app
 gate:
   pnpm install && pnpm check:lockfile && pnpm audit && pnpm type-check && pnpm
@@ -43,11 +43,11 @@ Clear the 45 open Dependabot security alerts on `master` (2 critical, 16 high,
 
 ## Tasks & Acceptance
 
-- [ ] npm: manifests + overrides, lockfile regenerated, `check:lockfile` OK
-- [ ] Every resolved version in the lockfile is at or above its fix (grep)
-- [ ] `pnpm audit` clean except accepted GHSAs
-- [ ] Gate: type-check, backend check:ts, all three test suites, web build
-- [ ] Ruby: constraints resolve and CocoaPods / fastlane load (Docker, Ruby 3.3)
+- [x] npm: manifests + overrides, lockfile regenerated, `check:lockfile` OK
+- [x] Every resolved version in the lockfile is at or above its fix (grep)
+- [x] `pnpm audit` clean except accepted GHSAs
+- [x] Gate: type-check, backend check:ts, all three test suites, web build
+- [x] Ruby: constraints resolve and CocoaPods / fastlane load (Docker, Ruby 3.3)
 - [ ] PR; Dependabot alerts close after merge
 
 ## Decisions
@@ -62,6 +62,31 @@ Clear the 45 open Dependabot security alerts on `master` (2 critical, 16 high,
   `nodemailer: ">=9.1.1 <10.0.0"` goes with it.
 - 2026-10-06: Existing open-ended overrides (`>=x`) are rewritten as `^x` on the
   same major, so the fix cannot float across a major later.
+
+- 2026-10-06: Gates passed - type-check 7/7, backend check:ts, backend 159
+  suites / 2,528 tests, web 53 / 1,414, mobile 163 / 2,659, web production
+  build, lint, check:lockfile. `pnpm audit`: 0 unaccepted.
+- 2026-10-06: The Gemfile on master does not resolve. `f4abf86d` (the RN 0.87
+  upgrade, marked unverified) copied the template's `xcodeproj < 1.26.0` next to
+  the project's `cocoapods ~> 1.16`, and every CocoaPods 1.16+ requires
+  xcodeproj >= 1.26. Proven in Ruby 3.3: master fails
+  (`version solving has failed`), the pre-upgrade Gemfile resolves.
+  `android-release.yml` runs `bundle install` there (`bundler-cache`), so the
+  Android release job is broken on master; the Actions billing lock hid it. Fix:
+  drop the `xcodeproj` pin (a CocoaPods 1.15 hotfix, RN#47237) and replace the
+  `concurrent-ruby < 1.3.4` pin with a security floor (the pin guarded
+  ActiveSupport < 7.1 from 1.3.5's missing `logger` require, RN#48966;
+  activesupport >= 7.2.3.1 and the declared `logger` cover it). Rejected:
+  adopting the template's `cocoapods >= 1.13` (it pins CocoaPods to 1.15.2, a
+  downgrade, and keeps concurrent-ruby vulnerable).
+- 2026-10-06: Ruby verified in Docker (ruby:3.3): resolves (130 gems),
+  activesupport 7.2.4, concurrent-ruby 1.3.8, cocoapods 1.17.0, xcodeproj
+  1.28.1, fastlane 2.240.1; `ActiveSupport::Logger` instantiates with
+  concurrent-ruby loaded, `require "cocoapods"`, `pod --version` and
+  `fastlane --version` all succeed. The first attempts stalled on Docker
+  Desktop's network: Bundler's 23 MB compact index never finished inside its
+  timeout and it fell back to the full index. Seeding the index file from the
+  host fixed that; it was never the Gemfile.
 
 ## Open questions
 
