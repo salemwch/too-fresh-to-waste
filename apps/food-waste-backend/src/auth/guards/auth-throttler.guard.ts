@@ -21,7 +21,10 @@ import { Request } from 'express';
  */
 @Injectable()
 export class AuthThrottlerGuard extends ThrottlerGuard {
-  private readonly logger = new Logger(AuthThrottlerGuard.name);
+  // ThrottlerGuard declares `protected logger` (since @nestjs/throttler 6.7.1);
+  // overriding it keeps one logger, and the base class's own warnings carry
+  // this guard's name.
+  protected override readonly logger = new Logger(AuthThrottlerGuard.name);
 
   constructor(
     options: ThrottlerModuleOptions,

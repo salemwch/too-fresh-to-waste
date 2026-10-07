@@ -133,7 +133,7 @@
       "picomatch@^2": "^2.3.2",
       "picomatch@^4": "^4.0.4",
       "@nestjs/common>file-type": "^22.0.0",
-      "postcss": "^8.5.18",
+      "postcss": "^8.5.28",
       "react-email>next": "15.5.24",
       "react-email>glob": ">=10.5.0",
       "react-email>esbuild": ">=0.28.1",
