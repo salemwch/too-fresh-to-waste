@@ -156,6 +156,28 @@ describe('ProximitySearchService — aggregation pipeline shape', () => {
       expect(names.indexOf('$skip')).toBeLessThan(names.indexOf('$limit'));
     });
 
+    it('injects $or text query into $geoNear.query when a search term is given', async () => {
+      await service.searchEstablishments(
+        baseDto({ query: 'sousse' } as Partial<ProximitySearchDto>),
+      );
+
+      const query = capturedPipeline()[0]?.['$geoNear']?.['query'] as Record<string, unknown>;
+      const orClause = query['$or'] as Array<Record<string, { $regex: string; $options: string }>>;
+
+      expect(orClause).toBeDefined();
+      expect(orClause).toHaveLength(3);
+      expect(orClause[0]).toEqual({ name: { $regex: 'sousse', $options: 'i' } });
+      expect(orClause[1]).toEqual({ 'address.city': { $regex: 'sousse', $options: 'i' } });
+      expect(orClause[2]).toEqual({ 'address.street': { $regex: 'sousse', $options: 'i' } });
+    });
+
+    it('omits $or when no query is provided', async () => {
+      await service.searchEstablishments(baseDto());
+
+      const query = capturedPipeline()[0]?.['$geoNear']?.['query'] as Record<string, unknown>;
+      expect(query['$or']).toBeUndefined();
+    });
+
     it('keeps index order even when sortByDistance is false', async () => {
       // "Any order" is satisfied by the order the index already produced;
       // imposing a different one would reintroduce the blocking sort.

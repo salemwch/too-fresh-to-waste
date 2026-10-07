@@ -335,6 +335,60 @@ describe('RegexSecurityUtil', () => {
     });
   });
 
+  describe('Tunisian city name matching', () => {
+    it.each([
+      ['tunis', 'Tunis', true],
+      ['tunis', 'Grand Tunis', true],
+      ['TUNIS', 'Tunis', true],
+      ['sousse', 'Sousse', true],
+      ['sousse', 'Hammam Sousse', true],
+      ['sfax', 'Sfax Center', true],
+      ['monastir', 'Boulangerie Monastir', true],
+      ['la marsa', 'La Marsa', true],
+      ['hammam', 'Hammam Sousse', true],
+      ['nabeul', 'Nabeul', true],
+      ['nabeul', 'Hammamet', false],
+      ['msaken', 'Msaken', true],
+      ['msaken', "M'saken", false],
+    ])('query "%s" against value "%s" → %s', (query, value, expected) => {
+      const regexQuery = util.buildSafeRegexQuery(query);
+      expect(regexQuery).toBeTruthy();
+
+      const regex = new RegExp(regexQuery!.$regex, regexQuery!.$options);
+      expect(regex.test(value)).toBe(expected);
+    });
+
+    it('apostrophe in query matches city with apostrophe', () => {
+      const regexQuery = util.buildSafeRegexQuery("m'saken");
+      expect(regexQuery).toBeTruthy();
+
+      const regex = new RegExp(regexQuery!.$regex, regexQuery!.$options);
+      expect(regex.test("M'saken")).toBe(true);
+      expect(regex.test('Msaken')).toBe(false);
+    });
+
+    it('buildMultiFieldSearch produces $or for name, city, and street', () => {
+      const fields = util.buildMultiFieldSearch('sousse', [
+        'name',
+        'address.city',
+        'address.street',
+      ]);
+      expect(fields).toHaveLength(3);
+      expect(fields[0]).toEqual({ name: { $regex: 'sousse', $options: 'i' } });
+      expect(fields[1]).toEqual({ 'address.city': { $regex: 'sousse', $options: 'i' } });
+      expect(fields[2]).toEqual({ 'address.street': { $regex: 'sousse', $options: 'i' } });
+    });
+
+    it('Arabic city name is preserved as-is', () => {
+      const regexQuery = util.buildSafeRegexQuery('تونس');
+      expect(regexQuery).toBeTruthy();
+      expect(regexQuery!.$regex).toBe('تونس');
+
+      const regex = new RegExp(regexQuery!.$regex, regexQuery!.$options);
+      expect(regex.test('مدينة تونس')).toBe(true);
+    });
+  });
+
   describe('Production Edge Cases', () => {
     it('should handle Unicode characters', () => {
       const unicode = 'test café résumé';
