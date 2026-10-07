@@ -24,7 +24,15 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('../ManualLocationModal', () => ({
-  ManualLocationModal: () => null,
+  ManualLocationModal: (props: { visible: boolean; testID?: string }) => {
+    if (!props.visible) return null;
+    const { View, Text } = require('react-native');
+    return (
+      <View testID={props.testID}>
+        <Text>CitySearchOpen</Text>
+      </View>
+    );
+  },
 }));
 
 describe('LocationSelectionModal', () => {
@@ -83,6 +91,18 @@ describe('LocationSelectionModal', () => {
     // ManualLocationModal. Emitting here would set a location the user has not
     // chosen yet.
     expect(onLocationSelect).not.toHaveBeenCalled();
+  });
+
+  it('opens the city search window when the city option is tapped', () => {
+    const { cityOption, queryByTestId, queryByText } = setup();
+
+    expect(queryByTestId('city-search-modal')).toBeNull();
+    expect(queryByText('CitySearchOpen')).toBeNull();
+
+    fireEvent.press(cityOption);
+
+    expect(queryByTestId('city-search-modal')).toBeTruthy();
+    expect(queryByText('CitySearchOpen')).toBeTruthy();
   });
 
   it('shows a provided error without blocking a retry', () => {

@@ -15,6 +15,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,6 +58,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
 
     const handleSelectLocation = useCallback(
       (result: GeocodeResult) => {
+        Keyboard.dismiss();
         const location: ManualLocationResult = {
           coordinates: result.coordinates,
           name: result.displayName,
@@ -235,7 +237,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
               renderItem={renderSearchResult}
               ListEmptyComponent={renderEmptyState}
               contentContainerStyle={styles.listContent}
-              keyboardShouldPersistTaps='handled'
+              keyboardShouldPersistTaps='always'
               estimatedItemSize={56}
             />
 
