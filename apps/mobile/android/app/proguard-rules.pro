@@ -256,3 +256,18 @@
 -keep class * extends androidx.work.InputMerger { <init>(); }
 # Glide: manifest-declared GlideModules are created reflectively by ManifestParser.
 -keep public class * implements com.bumptech.glide.module.GlideModule { <init>(); }
+
+# ============================================================================
+# EDGE-TO-EDGE: KEEP THE androidx CALL SITE VISIBLE
+# ============================================================================
+# MainActivity calls androidx's enableEdgeToEdge() so Play Console's Android 15
+# check ("Edge-to-edge may not display for all users") can see it. Without this
+# rule R8 inlines the whole body into MainActivity.onCreate and no reference to
+# androidx.activity.EdgeToEdge.enable is left in the DEX (verified with dexdump
+# on bundleDevRelease, 2026-10-07). Pinning the two entry points (the Kotlin
+# default-args bridge and the real method) costs one small class. Behaviour is
+# unchanged; only the inlining is prevented.
+-keep class androidx.activity.EdgeToEdge {
+    public static void enable(androidx.activity.ComponentActivity, androidx.activity.SystemBarStyle, androidx.activity.SystemBarStyle);
+    public static void enable$default(androidx.activity.ComponentActivity, androidx.activity.SystemBarStyle, androidx.activity.SystemBarStyle, int, java.lang.Object);
+}
