@@ -60,7 +60,8 @@ separate merges, and handle each major on its own with its migration read.
 ## Tasks & Acceptance
 
 - [x] Step 1: close #82, #83, #84, #94 with the reason on each (35 -> 31 open)
-- [ ] Batch A PR: gate green, merged, Dependabot closes the covered PRs
+- [x] Batch A PR #108: gate green, merged (a6053c3f), deploys healthy; 35 -> 22
+      open
 - [ ] Batch B PR: gate green + Android release build + OPPO smoke, merged
 - [ ] Majors: one PR each, with the migration notes read and consumers tested
 - [ ] CI-action majors: recorded as deferred until Actions can run
@@ -94,6 +95,26 @@ separate merges, and handle each major on its own with its migration read.
   (not used); next-intl 4.13-4.14.9 bug fixes incl. Next 16.3 compatibility.
 - 2026-10-07: Mobile bundle +6 KiB (axios 1.20, from #103), no new copies. A
   6.19 MB reading was a gate command without NODE_ENV=production.
+
+- 2026-10-07: Batch B. React Navigation 7.5 / core 7.23 replaced query-string
+  with its own parser, so decode-uri-component left the tree and
+  GHSA-vcc3-ghjq-m6fr left ignoreGhsas. linking.test.ts (the named gate) passes
+  12/12 and gained a 13th case for the hang; decode-uri-component 0.2.2 took
+  56.7 s at 500 escapes and 340.8 s at 1,000 on that input class.
+- 2026-10-07: Mobile tanstack moved as one family (react-query, persist-client,
+  sync-storage-persister 5.103.1) - one query-core copy. Web/ui radix drift
+  fixed (dropdown-menu 2.1.24, separator 1.1.15 on both sides) - web had been
+  bundling two copies of each.
+- 2026-10-07: ionicons 12.5.0: icon test passed before regenerating and the
+  regenerated subset is byte-identical (50,528 B, 179/1,357 glyphs).
+- 2026-10-07: Play Services base 18.11.0 / location 21.4.0; basement already
+  18.11.0, so base and basement are back in step (the build.gradle warning).
+  Release build (AAB + APK) OK, check:r8-keep-rules OK.
+- 2026-10-07: Bundle 5,614 -> 5,630 KiB: react-hook-form +14, React Navigation
+  +10, query-string/decode-uri-component -6; 2 fewer modules.
+- 2026-10-07: Gates: check:lockfile, type-check, backend check:ts, mobile 2,660
+  / web 1,414 / backend 2,528 tests, lint, web build. Device check on the OPPO
+  pending (phone disconnected).
 
 ## Open questions
 

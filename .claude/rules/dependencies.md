@@ -398,3 +398,27 @@ web, `gray-matter > js-yaml 3 > argparse 1 > sprintf-js`. In that js-yaml copy
 only `bin/js-yaml.js` (the CLI) requires `argparse`; `index.js` and `lib/` never
 do, so `sprintf-js` is never loaded by the app. Backend and mobile production:
 not present (`pnpm why -P`). Recorded in `ignoreGhsas`.
+
+## `decode-uri-component` resolved by React Navigation itself (2026-10-07)
+
+The 2026-09-02 entry above accepted GHSA-vcc3-ghjq-m6fr and named the trigger to
+re-check: `@react-navigation/core` dropping `query-string`. That happened - core
+7.23.0 replaced it with its own `queryString.js` (react-navigation 370b51308),
+and the Dependabot "react-native-core" group moved the app to
+`@react-navigation/native` 7.5.0 / core 7.23.0. `query-string` and
+`decode-uri-component` are now absent from the lockfile, so the entry left
+`ignoreGhsas`.
+
+**The re-check was done the way the entry asked.** `linking.test.ts` is the
+gate, and all 12 existing cases pass on the new parser, which keeps the
+semantics they assert (`+` as space, repeated keys as arrays, a bare key as
+`null`, `decodeURIComponent` per value). It decodes malformed input with a
+bounded UTF-8 pattern instead of retrying, and a 13th case now pins the
+advisory's real failure mode, a hang rather than a throw: about 100 KB of
+truncated escapes must parse in under a second.
+
+**That case was checked against the old decoder, not assumed.**
+`decode-uri-component` 0.2.2 took 56.7 s for 500 malformed escapes and 340.8 s
+for 1,000 (super-linear). The test uses 16,000, which the new parser handles
+within its 1 s bound, so a regression to anything like the old behaviour fails
+it.
