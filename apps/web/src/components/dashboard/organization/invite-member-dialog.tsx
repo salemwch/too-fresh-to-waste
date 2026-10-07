@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, MapPin, Loader2 } from 'lucide-react';
+import { Mail, MapPin, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -90,7 +90,7 @@ export function InviteMemberDialog({ orgId, establishments, trigger }: InviteMem
           </div>
 
           <Button type='submit' className='w-full' disabled={invite.isPending}>
-            {invite.isPending && <Loader2 className='size-4 me-sm animate-spin' />}
+            {invite.isPending && <LoaderCircle className='size-4 me-sm animate-spin' />}
             Send Invitation
           </Button>
         </form>

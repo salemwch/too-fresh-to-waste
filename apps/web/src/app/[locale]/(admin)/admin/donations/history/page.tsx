@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import {
   HeartHandshake,
-  Loader2,
+  LoaderCircle,
   ArrowLeft,
   Trophy,
   ChevronDown,
@@ -52,7 +52,7 @@ export default function AdminDonationHistoryPage() {
   if (isLoading) {
     return (
       <div className='flex items-center justify-center py-6xl'>
-        <Loader2 className='size-6 animate-spin text-muted-foreground' />
+        <LoaderCircle className='size-6 animate-spin text-muted-foreground' />
       </div>
     );
   }

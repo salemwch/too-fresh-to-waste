@@ -14,11 +14,11 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Loader2,
+  LoaderCircle,
   TrendingUp,
   Store,
   Rocket,
-  AlertCircle,
+  CircleAlert,
 } from 'lucide-react';
 import { UserRole } from '@foodwaste/shared';
 import { parseLoginError } from '@/lib/login-error';
@@ -274,7 +274,7 @@ function LoginFormInner() {
             {/* Inline error */}
             {loginError && (
               <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
-                <AlertCircle className='h-4 w-4 shrink-0' />
+                <CircleAlert className='h-4 w-4 shrink-0' />
                 <span>{loginError}</span>
               </div>
             )}
@@ -285,7 +285,7 @@ function LoginFormInner() {
               className='h-11 w-full rounded-xl text-sm font-semibold sm:h-12'
               disabled={isSubmitting}
             >
-              {isSubmitting && <Loader2 className='me-sm h-4 w-4 animate-spin' />}
+              {isSubmitting && <LoaderCircle className='me-sm h-4 w-4 animate-spin' />}
               {t('loginButton')}
             </Button>
 

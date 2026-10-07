@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, MapPin, Loader2, X, AlertCircle } from 'lucide-react';
+import { Search, MapPin, LoaderCircle, X, CircleAlert } from 'lucide-react';
 import { Input } from '@foodwaste/ui';
 import { useTranslations } from 'next-intl';
 import axios from 'axios';
@@ -281,7 +281,7 @@ export function BusinessSearchAutocomplete({
         {/* Right icon: spinner when loading, X to clear when idle with text */}
         <div className='absolute right-3.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center'>
           {isLoading || isSelectingDetails ? (
-            <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+            <LoaderCircle className='h-4 w-4 animate-spin text-muted-foreground' />
           ) : query.length > 0 ? (
             <button
               type='button'
@@ -303,7 +303,7 @@ export function BusinessSearchAutocomplete({
       {/* Inline conflict error — shown when the selected place is already registered */}
       {placeConflict && (
         <div className='mt-sm flex items-start gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
-          <AlertCircle className='mt-xxs h-4 w-4 shrink-0' />
+          <CircleAlert className='mt-xxs h-4 w-4 shrink-0' />
           <span>{placeConflict}</span>
         </div>
       )}
@@ -313,12 +313,12 @@ export function BusinessSearchAutocomplete({
         <div className='absolute z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-border bg-background shadow-lg'>
           {isLoading ? (
             <div className='flex items-center gap-sm px-lg py-md text-sm text-muted-foreground'>
-              <Loader2 className='h-4 w-4 animate-spin' />
+              <LoaderCircle className='h-4 w-4 animate-spin' />
               {t('searchLoading')}
             </div>
           ) : hasError ? (
             <div className='flex items-center gap-sm px-lg py-md text-sm text-destructive'>
-              <AlertCircle className='h-4 w-4 shrink-0' />
+              <CircleAlert className='h-4 w-4 shrink-0' />
               {t('searchError')}
             </div>
           ) : suggestions.length === 0 ? (

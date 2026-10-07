@@ -14,9 +14,9 @@ import {
   Eye,
   EyeOff,
   MailCheck,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
+  LoaderCircle,
+  CircleAlert,
+  CircleCheck,
   Utensils,
   UtensilsCrossed,
   Coffee,
@@ -354,7 +354,7 @@ function MerchantSignupInner() {
         onClick={handleResend}
         disabled={isResending || cooldown > 0}
       >
-        {isResending && <Loader2 className='me-sm h-4 w-4 animate-spin' />}
+        {isResending && <LoaderCircle className='me-sm h-4 w-4 animate-spin' />}
         {cooldown > 0 ? t('resendCooldown', { seconds: cooldown }) : t('resendEmail')}
       </Button>
       {resendFeedback && (
@@ -366,9 +366,9 @@ function MerchantSignupInner() {
           }`}
         >
           {resendFeedback.type === 'success' ? (
-            <CheckCircle2 className='h-4 w-4 shrink-0' />
+            <CircleCheck className='h-4 w-4 shrink-0' />
           ) : (
-            <AlertCircle className='h-4 w-4 shrink-0' />
+            <CircleAlert className='h-4 w-4 shrink-0' />
           )}
           <span>{resendFeedback.text}</span>
         </div>
@@ -587,7 +587,7 @@ function MerchantSignupInner() {
               </div>
               {emailError && (
                 <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
-                  <AlertCircle className='h-4 w-4 shrink-0' />
+                  <CircleAlert className='h-4 w-4 shrink-0' />
                   <span>{emailError}</span>
                 </div>
               )}
@@ -654,7 +654,7 @@ function MerchantSignupInner() {
               </div>
               {phoneError && (
                 <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
-                  <AlertCircle className='h-4 w-4 shrink-0' />
+                  <CircleAlert className='h-4 w-4 shrink-0' />
                   <span>{phoneError}</span>
                 </div>
               )}
@@ -687,7 +687,7 @@ function MerchantSignupInner() {
 
             {submitError && (
               <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
-                <AlertCircle className='h-4 w-4 shrink-0' />
+                <CircleAlert className='h-4 w-4 shrink-0' />
                 <span>{submitError}</span>
               </div>
             )}
@@ -854,7 +854,7 @@ export default function MerchantSignupPage() {
     <Suspense
       fallback={
         <div className='flex h-[100dvh] items-center justify-center bg-background'>
-          <Loader2 className='h-10 w-10 animate-spin text-primary' />
+          <LoaderCircle className='h-10 w-10 animate-spin text-primary' />
         </div>
       }
     >

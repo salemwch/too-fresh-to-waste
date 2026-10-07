@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { MapPin, Plus, MoreHorizontal, Trash2, Building2 } from 'lucide-react';
+import { MapPin, Plus, Ellipsis, Trash2, Building2 } from 'lucide-react';
 import {
   Button,
   Badge,
@@ -206,7 +206,7 @@ function GeozoneCard({ zone }: { zone: GeozoneRow }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant='ghost' size='icon' className='size-7'>
-                  <MoreHorizontal className='size-3.5' />
+                  <Ellipsis className='size-3.5' />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end'>

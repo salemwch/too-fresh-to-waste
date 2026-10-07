@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BarChart3, FileText, Lock, Star } from 'lucide-react';
+import { ChartColumn, FileText, Lock, Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { SubscriptionModal } from './subscription-modal';
@@ -19,7 +19,7 @@ function PlaceholderSkeleton() {
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-lg'>
-        {[BarChart3, Star, FileText].map((Icon, i) => (
+        {[ChartColumn, Star, FileText].map((Icon, i) => (
           <div key={i} className='rounded-2xl border border-border bg-card p-2xl space-y-lg'>
             <div className='flex items-center gap-md'>
               <div className='h-10 w-10 rounded-xl bg-muted grid place-items-center'>

@@ -21,8 +21,8 @@ import {
   Fish,
   Store,
   ChevronDown,
-  Loader2,
-  AlertCircle,
+  LoaderCircle,
+  CircleAlert,
   MapPin,
 } from 'lucide-react';
 import {
@@ -362,7 +362,7 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
               {/* Error */}
               {error && (
                 <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
-                  <AlertCircle className='size-4 shrink-0' />
+                  <CircleAlert className='size-4 shrink-0' />
                   <span>{error}</span>
                 </div>
               )}
@@ -378,7 +378,7 @@ export function AddLocationDialog({ orgId, trigger }: Props) {
                   Back
                 </Button>
                 <Button className='flex-[2]' onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className='size-4 me-sm animate-spin' />}
+                  {isSubmitting && <LoaderCircle className='size-4 me-sm animate-spin' />}
                   {isSubmitting ? 'Creating...' : 'Create Location'}
                 </Button>
               </div>

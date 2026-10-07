@@ -9,6 +9,7 @@
 
 import * as argon2 from 'argon2';
 
+import { parseArgon2Hash } from '../argon2-hash.util';
 import { loginFailureReason } from '../login-failure';
 import {
   getDummyPasswordHash,
@@ -16,13 +17,18 @@ import {
   verifyUserPassword,
 } from '../password-hash';
 
-/** `$argon2id$v=19$m=65536,t=3,p=1$...` -> the parameters it was made with. */
+/**
+ * Encoded hash -> the parameters it was made with. Uses the shared parser,
+ * which reads m/t/p by key: argon2 0.45 writes them as `m=..,p=..,t=..`.
+ */
 const paramsOf = (encoded: string) => {
-  const match = /^\$(argon2(?:id|i|d))\$v=\d+\$m=(\d+),t=(\d+),p=(\d+)\$/.exec(encoded);
-  if (!match) {
-    throw new Error(`not an argon2 hash: ${encoded}`);
-  }
-  return { variant: match[1], m: Number(match[2]), t: Number(match[3]), p: Number(match[4]) };
+  const parsed = parseArgon2Hash(encoded);
+  return {
+    variant: parsed.variant,
+    m: parsed.memoryCost,
+    t: parsed.timeCost,
+    p: parsed.parallelism,
+  };
 };
 
 describe('getDummyPasswordHash', () => {
@@ -74,7 +80,7 @@ describe('getDummyPasswordHash after a failure', () => {
       const hash = jest
         .fn()
         .mockRejectedValueOnce(new Error('out of memory'))
-        .mockImplementation(async (plain: string, options: argon2.Options) => {
+        .mockImplementation(async (plain: string, options: argon2.HashOptions) => {
           const hashed = await real.hash(plain, options);
           return hashed;
         });

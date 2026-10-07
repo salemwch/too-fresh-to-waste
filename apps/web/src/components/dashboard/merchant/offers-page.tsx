@@ -7,7 +7,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  AlertTriangle,
+  TriangleAlert,
   Package,
   RefreshCw,
   Sparkles,
@@ -731,7 +731,7 @@ export function MerchantOffersView() {
         {/* ── Establishment approval banner ─────────────────────────────────── */}
         {!estabQuery.isLoading && !isEstablishmentApproved && (
           <div className='flex items-start gap-md rounded-xl bg-amber-50 border border-amber-200 px-lg py-md'>
-            <AlertTriangle className='h-4 w-4 text-amber-600 shrink-0 mt-xxs' />
+            <TriangleAlert className='h-4 w-4 text-amber-600 shrink-0 mt-xxs' />
             <div>
               <p className='text-sm font-semibold text-amber-800'>
                 {t('merchantOffers.approvalTitle')}

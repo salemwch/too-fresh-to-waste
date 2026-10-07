@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { AlertTriangle, CheckCircle2, Percent, Scale, Store, Wallet } from 'lucide-react';
+import { TriangleAlert, CircleCheck, Percent, Scale, Store, Wallet } from 'lucide-react';
 import { Badge, Button, Input, Label } from '@foodwaste/ui';
 
 import { AdminModuleHeader } from '@/components/dashboard/admin/admin-module-header';
@@ -335,7 +335,7 @@ export default function AdminCommissionPage() {
           role='alert'
           className='border-destructive/40 bg-destructive/5 flex items-start gap-sm rounded-lg border p-md'
         >
-          <AlertTriangle aria-hidden='true' className='text-destructive mt-0.5 size-5 shrink-0' />
+          <TriangleAlert aria-hidden='true' className='text-destructive mt-0.5 size-5 shrink-0' />
           <div className='min-w-0'>
             <p className='text-destructive font-semibold'>{t('reconcile.brokenTitle')}</p>
             <p className='text-muted-foreground mt-xxs text-sm'>
@@ -349,7 +349,7 @@ export default function AdminCommissionPage() {
 
       {summary?.reconciled && (
         <p className='text-muted-foreground flex items-center gap-xs text-xs'>
-          <CheckCircle2 aria-hidden='true' className='text-success size-4 shrink-0' />
+          <CircleCheck aria-hidden='true' className='text-success size-4 shrink-0' />
           {t('reconcile.ok')}
         </p>
       )}
@@ -358,7 +358,7 @@ export default function AdminCommissionPage() {
 
       {isError ? (
         <div className='border-border flex flex-col items-center justify-center gap-sm rounded-lg border py-4xl text-center'>
-          <AlertTriangle aria-hidden='true' className='text-muted-foreground size-12' />
+          <TriangleAlert aria-hidden='true' className='text-muted-foreground size-12' />
           <h3 className='text-md font-semibold'>{t('error.title')}</h3>
           <p className='text-muted-foreground max-w-xs text-sm'>{t('error.body')}</p>
           <Button type='button' variant='outline' onClick={() => void refetch()}>

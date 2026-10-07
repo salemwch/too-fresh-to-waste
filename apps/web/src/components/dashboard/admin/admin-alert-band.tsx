@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, ShieldAlert, Activity, Scale } from 'lucide-react';
+import { TriangleAlert, ShieldAlert, Activity, Scale } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -127,5 +127,5 @@ export const ALERT_ICONS = {
   reconciliation: Scale,
   health: Activity,
   anomaly: ShieldAlert,
-  disputes: AlertTriangle,
+  disputes: TriangleAlert,
 } as const;

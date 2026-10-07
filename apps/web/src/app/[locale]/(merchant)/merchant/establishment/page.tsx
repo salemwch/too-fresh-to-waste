@@ -17,9 +17,9 @@ import {
   MapPin,
   Clock,
   Camera,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
+  LoaderCircle,
+  CircleAlert,
+  CircleCheck,
   X,
   Star,
   ShoppingBag,
@@ -203,7 +203,7 @@ function DocRow({
         >
           {isUploaded ? (
             isVerified ? (
-              <CheckCircle2 className='h-3.5 w-3.5 text-green-600' />
+              <CircleCheck className='h-3.5 w-3.5 text-green-600' />
             ) : (
               <Clock3 className='h-3.5 w-3.5 text-amber-500' />
             )
@@ -247,7 +247,7 @@ function DocRow({
               className='flex items-center gap-1.5 rounded-full bg-primary px-lg py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50 transition-colors'
             >
               {uploading ? (
-                <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                <LoaderCircle className='h-3.5 w-3.5 animate-spin' />
               ) : (
                 <Upload className='h-3.5 w-3.5' />
               )}
@@ -608,7 +608,7 @@ export default function MerchantEstablishmentPage() {
   if (loadError || !establishment) {
     return (
       <div className='flex h-64 flex-col items-center justify-center gap-sm text-center'>
-        <AlertCircle className='h-8 w-8 text-red-400' />
+        <CircleAlert className='h-8 w-8 text-red-400' />
         <p className='font-medium text-slate-700'>{t('notFound')}</p>
         <p className='text-sm text-slate-500'>{t('notFoundDescription')}</p>
       </div>
@@ -636,13 +636,13 @@ export default function MerchantEstablishmentPage() {
       <div className='flex-1'>
         {saveError && (
           <div className='flex items-center gap-1.5 text-xs text-red-600'>
-            <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+            <CircleAlert className='h-3.5 w-3.5 shrink-0' />
             {saveError}
           </div>
         )}
         {saveSuccess && (
           <div className='flex items-center gap-1.5 text-xs text-green-600'>
-            <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+            <CircleCheck className='h-3.5 w-3.5 shrink-0' />
             {t('success')}
           </div>
         )}
@@ -650,7 +650,7 @@ export default function MerchantEstablishmentPage() {
       <Button type='submit' size='sm' className='text-xs px-md' disabled={isSaving}>
         {isSaving ? (
           <>
-            <Loader2 className='me-xs h-3 w-3 animate-spin' />
+            <LoaderCircle className='me-xs h-3 w-3 animate-spin' />
             {t('saving')}
           </>
         ) : (
@@ -712,9 +712,9 @@ export default function MerchantEstablishmentPage() {
               className='flex items-center gap-1.5 rounded-full bg-accent hover:bg-accent/90 disabled:opacity-50 px-md py-1.5 text-xs font-medium text-accent-foreground transition-colors'
             >
               {isSaving ? (
-                <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                <LoaderCircle className='h-3.5 w-3.5 animate-spin' />
               ) : (
-                <CheckCircle2 className='h-3.5 w-3.5' />
+                <CircleCheck className='h-3.5 w-3.5' />
               )}
               {isSaving ? t('saving') : t('saveChanges')}
             </button>
@@ -787,7 +787,7 @@ export default function MerchantEstablishmentPage() {
               Completion
             </p>
             <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-green-50 shrink-0'>
-              <CheckCircle2 className='h-3.5 w-3.5 text-green-600' />
+              <CircleCheck className='h-3.5 w-3.5 text-green-600' />
             </div>
           </div>
           <p className='text-2xl font-bold text-slate-800 leading-tight'>{profileCompletion}%</p>
@@ -800,7 +800,7 @@ export default function MerchantEstablishmentPage() {
       {/* ── Rejection reason (full-width alert) ──────────────────────────── */}
       {establishment.rejectionReason && (
         <div className='flex items-start gap-1.5 rounded-xl bg-red-50 border border-red-100 px-lg py-md text-xs text-red-700'>
-          <AlertCircle className='mt-xxs h-3.5 w-3.5 shrink-0' />
+          <CircleAlert className='mt-xxs h-3.5 w-3.5 shrink-0' />
           <span>
             <strong>{t('rejectionReason')}:</strong> {establishment.rejectionReason}
           </span>
@@ -867,7 +867,7 @@ export default function MerchantEstablishmentPage() {
               >
                 {isUploadingPhotos ? (
                   <>
-                    <Loader2 className='me-xs h-3 w-3 animate-spin' />
+                    <LoaderCircle className='me-xs h-3 w-3 animate-spin' />
                     {t('uploading')}
                   </>
                 ) : (
@@ -880,13 +880,13 @@ export default function MerchantEstablishmentPage() {
             </div>
             {photoError && (
               <div className='mb-md flex items-center gap-1.5 rounded-lg bg-red-50 px-md py-sm text-xs text-red-600'>
-                <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+                <CircleAlert className='h-3.5 w-3.5 shrink-0' />
                 {photoError}
               </div>
             )}
             {photoSuccess && (
               <div className='mb-md flex items-center gap-1.5 rounded-lg bg-green-50 px-md py-sm text-xs text-green-600'>
-                <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+                <CircleCheck className='h-3.5 w-3.5 shrink-0' />
                 {t('photosSuccess')}
               </div>
             )}
@@ -1292,9 +1292,9 @@ export default function MerchantEstablishmentPage() {
               }`}
             >
               {docFeedback.type === 'success' ? (
-                <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+                <CircleCheck className='h-3.5 w-3.5 shrink-0' />
               ) : (
-                <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+                <CircleAlert className='h-3.5 w-3.5 shrink-0' />
               )}
               {docFeedback.msg}
             </div>

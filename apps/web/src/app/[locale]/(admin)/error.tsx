@@ -2,7 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
-import { AlertCircle, RotateCcw } from 'lucide-react';
+import { CircleAlert, RotateCcw } from 'lucide-react';
 
 /**
  * Error boundary for the (admin) route group.
@@ -23,7 +23,7 @@ export default function AdminError({
   return (
     <div className='flex flex-1 flex-col items-center justify-center gap-lg p-4xl text-center'>
       <div className='flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10'>
-        <AlertCircle className='h-7 w-7 text-destructive' />
+        <CircleAlert className='h-7 w-7 text-destructive' />
       </div>
       <div className='space-y-xs'>
         <h2 className='text-lg font-semibold'>Something went wrong</h2>

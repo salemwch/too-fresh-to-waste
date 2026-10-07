@@ -49,7 +49,7 @@ import {
   Tag,
   TrendingUp,
   TrendingDown,
-  AlertTriangle,
+  TriangleAlert,
   Star,
   Trash2,
   Eye,
@@ -464,7 +464,7 @@ function PriceViolationsTab({ t }: { t: ReturnType<typeof useTranslations> }) {
               key={item._id}
               className='flex items-center gap-md rounded-lg border border-warning/30 bg-warning/5 px-md py-2.5'
             >
-              <AlertTriangle className='size-4 shrink-0 text-warning' />
+              <TriangleAlert className='size-4 shrink-0 text-warning' />
               <div className='flex-1 min-w-0'>
                 <p className='truncate text-sm font-medium'>{item.title}</p>
                 <p className='text-xs text-muted-foreground'>
@@ -1043,7 +1043,7 @@ export default function AdminOffersPage() {
           <StatCard
             label={t('stats.priceViolations')}
             value='—'
-            icon={AlertTriangle}
+            icon={TriangleAlert}
             iconBg='bg-orange-50'
             iconColor='text-orange-600'
           />
@@ -1067,7 +1067,7 @@ export default function AdminOffersPage() {
                   { value: 'all', label: t('tabs.all'), icon: null },
                   { value: 'expiring', label: t('tabs.expiring'), icon: Clock },
                   { value: 'lowPickup', label: t('tabs.lowPickup'), icon: TrendingDown },
-                  { value: 'violations', label: t('tabs.violations'), icon: AlertTriangle },
+                  { value: 'violations', label: t('tabs.violations'), icon: TriangleAlert },
                   { value: 'deleted', label: t('tabs.deleted'), icon: Trash2 },
                 ].map(tab => (
                   <TabsTrigger

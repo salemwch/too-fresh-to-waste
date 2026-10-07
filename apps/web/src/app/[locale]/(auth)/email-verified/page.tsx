@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { UserRole } from '@foodwaste/shared';
-import { XCircle } from 'lucide-react';
+import { CircleX } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { useAuthStore } from '@/lib/auth';
 import { authService } from '@/services/auth.service';
@@ -110,7 +110,7 @@ function EmailVerifiedInner() {
       <div className='fixed inset-0 z-50 flex items-center justify-center bg-background px-lg'>
         <div className='w-full max-w-md rounded-2xl border border-border bg-card p-4xl text-center shadow-lg'>
           <div className='mx-auto mb-lg flex h-16 w-16 items-center justify-center rounded-full bg-red-100'>
-            <XCircle className='h-8 w-8 text-red-600' />
+            <CircleX className='h-8 w-8 text-red-600' />
           </div>
           <h1 className='mb-sm text-2xl font-semibold text-foreground'>{t('verifyFailedTitle')}</h1>
           <p className='mb-2xl text-sm text-muted-foreground'>{t('verifyError')}</p>

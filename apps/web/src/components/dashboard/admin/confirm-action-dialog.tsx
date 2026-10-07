@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { TriangleAlert, LoaderCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -76,7 +76,7 @@ export function ConfirmActionDialog({
                     : 'bg-amber-100 text-amber-600',
                 )}
               >
-                <AlertTriangle className='size-4' />
+                <TriangleAlert className='size-4' />
               </div>
             )}
             <div>
@@ -119,7 +119,7 @@ export function ConfirmActionDialog({
           >
             {isLoading ? (
               <>
-                <Loader2 className='me-sm size-3.5 animate-spin' />
+                <LoaderCircle className='me-sm size-3.5 animate-spin' />
                 {t('loading')}
               </>
             ) : (

@@ -8,10 +8,10 @@ import Image from 'next/image';
 import {
   ChevronLeft,
   Mail,
-  Loader2,
-  AlertCircle,
+  LoaderCircle,
+  CircleAlert,
   ArrowLeft,
-  CheckCircle2,
+  CircleCheck,
   TrendingUp,
   Store,
   Rocket,
@@ -155,7 +155,7 @@ export function ForgotPasswordForm() {
             /* ── Success state ── */
             <div className='flex flex-col items-center gap-lg text-center py-2xl'>
               <div className='flex h-14 w-14 items-center justify-center rounded-full bg-primary/10'>
-                <CheckCircle2 className='h-7 w-7 text-primary' />
+                <CircleCheck className='h-7 w-7 text-primary' />
               </div>
               <div>
                 <h2
@@ -215,7 +215,7 @@ export function ForgotPasswordForm() {
                 {/* Error */}
                 {error && (
                   <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-2.5 text-sm text-destructive'>
-                    <AlertCircle className='h-4 w-4 shrink-0' />
+                    <CircleAlert className='h-4 w-4 shrink-0' />
                     <span>{error}</span>
                   </div>
                 )}
@@ -226,7 +226,7 @@ export function ForgotPasswordForm() {
                   className='h-11 w-full rounded-xl text-sm font-semibold sm:h-12'
                   disabled={isLoading}
                 >
-                  {isLoading && <Loader2 className='me-sm h-4 w-4 animate-spin' />}
+                  {isLoading && <LoaderCircle className='me-sm h-4 w-4 animate-spin' />}
                   {t('sendResetLink')}
                 </Button>
 

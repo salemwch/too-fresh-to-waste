@@ -144,6 +144,28 @@ separate merges, and handle each major on its own with its migration read.
   specs run class-validator directly), lint. Gap: no spec builds a real
   ValidationPipe, so the global pipe options are not exercised end to end.
 
+- 2026-10-07: class-validator 0.15.1 merged as #111 (7fbf6b24); #109 closed.
+- 2026-10-07: argon2 0.44 -> 0.45.1 (#78). Release notes: Node 18/20 dropped
+  (repo is 24), a Solaris fix, a TS return-type fix. Checked, not assumed:
+  hashes made by 0.44 verify on 0.45 and the reverse with the production options
+  (argon2id m=65536 t=3 p=1), wrong passwords are rejected both ways,
+  needsRehash is false for 0.44 hashes; the musl and win32 prebuilds remain
+  (only darwin-x64 left). Two things the notes did not say: 0.45 writes the PHC
+  parameters as m,p,t instead of m,t,p, and the Options type is now HashOptions.
+  parseArgon2Hash (unused, but correct-by-name now) and two specs matched the
+  fixed order; password-hash.spec and the invitation spec failed on 0.45 exactly
+  as predicted. Fixed to parse by key through one parser, with a new spec;
+  restoring the positional parser fails 7 of 29 cases.
+- 2026-10-07: lucide-react 0.468 -> 0.577 (#56) in web and ui together. All 113
+  imported icons exist in 0.577; 10 were already deprecated aliases in 0.468 and
+  were renamed to their canonical names (same components, no visual change)
+  across 68 files, 194 uses, no test mocks involved.
+- 2026-10-07: CI-action majors (#53, #55, #57, #60, #64) left open with a
+  comment on each: Actions cannot run (billing lock), so they cannot be tested.
+- 2026-10-07: Gates for argon2 + lucide: check:lockfile, audit, type-check,
+  backend check:ts, backend 2,538 / web 1,414 tests, lint, web check:design, web
+  build.
+
 ## Open questions
 
 - Non-blocking: should Dependabot's config ignore the Node major in Docker and

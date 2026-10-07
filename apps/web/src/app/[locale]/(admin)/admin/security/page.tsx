@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { ShieldAlert, Lock, Unlock, Users, CheckCircle, XCircle } from 'lucide-react';
+import { ShieldAlert, Lock, LockOpen, Users, CircleCheckBig, CircleX } from 'lucide-react';
 import { Button } from '@foodwaste/ui';
 import {
   Dialog,
@@ -183,7 +183,7 @@ export default function SecurityPage() {
     {
       label: t('stats.successRate'),
       value: stats?.summary?.successRate ? `${stats.summary.successRate}%` : '—',
-      icon: CheckCircle,
+      icon: CircleCheckBig,
       iconBg: 'bg-green-500/10',
       iconColor: 'text-green-600',
     },
@@ -198,7 +198,7 @@ export default function SecurityPage() {
     {
       label: t('stats.failedLogins'),
       value: fmt.count(stats?.failedLogins),
-      icon: XCircle,
+      icon: CircleX,
       iconBg: 'bg-orange-500/10',
       iconColor: 'text-orange-600',
     },
@@ -292,7 +292,7 @@ export default function SecurityPage() {
               size='sm'
               onClick={() => setUnlockTarget({ id: account._id, email: account.email })}
             >
-              <Unlock className='me-1.5 size-3.5' />
+              <LockOpen className='me-1.5 size-3.5' />
               {t('lockedAccounts.unlock')}
             </Button>
           </div>
@@ -349,13 +349,13 @@ export default function SecurityPage() {
           totalPages={totalPages}
           total={totalLocked}
           onPageChange={setPage}
-          emptyIcon={Unlock}
+          emptyIcon={LockOpen}
           emptyTitle={t('lockedAccounts.empty')}
           emptyDescription={t('lockedAccounts.emptyDesc')}
         />
       </div>
 
-      {/* Unlock Dialog */}
+      {/* LockOpen Dialog */}
       <UnlockDialog
         target={unlockTarget}
         reason={unlockReason}

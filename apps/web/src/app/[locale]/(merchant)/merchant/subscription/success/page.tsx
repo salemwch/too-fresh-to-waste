@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CircleCheckBig, LoaderCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 import { subscriptionService } from '@/services/subscription.service';
@@ -40,7 +40,7 @@ export default function SubscriptionSuccessPage() {
   if (status === 'verifying') {
     return (
       <div className='flex min-h-[60vh] flex-col items-center justify-center gap-lg'>
-        <Loader2 className='size-10 animate-spin text-primary' />
+        <LoaderCircle className='size-10 animate-spin text-primary' />
         <p className='text-muted-foreground'>Verifying your payment...</p>
       </div>
     );
@@ -48,7 +48,7 @@ export default function SubscriptionSuccessPage() {
 
   return (
     <div className='flex min-h-[60vh] flex-col items-center justify-center gap-lg text-center'>
-      <CheckCircle className='size-16 text-green-600' />
+      <CircleCheckBig className='size-16 text-green-600' />
       <h1 className='text-2xl font-bold'>Subscription Activated!</h1>
       <p className='max-w-md text-muted-foreground'>
         Your subscription has been activated successfully. You can now create and publish offers on

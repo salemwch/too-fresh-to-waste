@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import {
   ScrollText,
   Shield,
-  AlertTriangle,
+  TriangleAlert,
   Users,
   Eye,
   User,
@@ -258,7 +258,7 @@ function AuditLogContent() {
     {
       label: t('kpi.securityAlerts'),
       value: (stats?.targetsByType?.['system'] ?? 0).toString(),
-      icon: AlertTriangle,
+      icon: TriangleAlert,
       iconBg: 'bg-rose-50',
       iconColor: 'text-rose-600',
       highlight: (stats?.targetsByType?.['system'] ?? 0) > 0,

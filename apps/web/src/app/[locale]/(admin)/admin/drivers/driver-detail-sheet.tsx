@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   Ban,
-  CheckCircle2,
+  CircleCheck,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -390,7 +390,7 @@ function DriverDetailBody({ detail, locale }: { detail: DriverDetail; locale: st
         <SectionTitle>{t('detail.stats.title')}</SectionTitle>
         <div className='grid grid-cols-2 gap-sm sm:grid-cols-3'>
           <StatTile
-            icon={CheckCircle2}
+            icon={CircleCheck}
             label={t('detail.stats.delivered')}
             value={String(stats.totalDelivered)}
           />

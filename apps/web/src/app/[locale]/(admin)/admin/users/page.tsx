@@ -8,13 +8,13 @@ import {
   UserCheck,
   UserX,
   Clock,
-  MoreHorizontal,
+  Ellipsis,
   Eye,
   Trash2,
   Activity,
   ShieldAlert,
   LogIn,
-  AlertCircle,
+  CircleAlert,
   Copy,
   TrendingUp,
   TrendingDown,
@@ -24,8 +24,8 @@ import {
   Calendar,
   Hash,
   Shield,
-  CheckCircle2,
-  XCircle,
+  CircleCheck,
+  CircleX,
   ChevronRight,
 } from 'lucide-react';
 import {
@@ -140,9 +140,9 @@ function InfoRow({
 
 function VerifiedBadge({ ok }: { ok: boolean }) {
   return ok ? (
-    <CheckCircle2 className='size-3.5 shrink-0 text-success' />
+    <CircleCheck className='size-3.5 shrink-0 text-success' />
   ) : (
-    <XCircle className='size-3.5 shrink-0 text-muted-foreground/50' />
+    <CircleX className='size-3.5 shrink-0 text-muted-foreground/50' />
   );
 }
 
@@ -367,7 +367,7 @@ export default function AdminUsersPage() {
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' size='sm' className='h-9 w-9 p-0'>
-              <MoreHorizontal className='size-3.5' />
+              <Ellipsis className='size-3.5' />
               <span className='sr-only'>Actions</span>
             </Button>
           </DropdownMenuTrigger>
@@ -519,7 +519,7 @@ export default function AdminUsersPage() {
           ) : isUserDetailError || !selectedUser ? (
             /* ── Error / empty state ── */
             <div className='flex flex-col items-center justify-center gap-md py-5xl text-center'>
-              <AlertCircle className='size-10 text-muted-foreground/40' />
+              <CircleAlert className='size-10 text-muted-foreground/40' />
               <p className='text-sm font-medium'>Could not load user details</p>
               <p className='max-w-[220px] text-xs text-muted-foreground'>
                 The request may have failed or the user was not found.

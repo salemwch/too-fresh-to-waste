@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
+  CircleCheck,
+  CircleX,
+  CircleAlert,
   RefreshCw,
   Database,
   Layers,
@@ -43,9 +43,9 @@ const SERVICE_ICONS: Record<string, React.ElementType> = {
 };
 
 function StatusIcon({ status }: { status: HealthStatus }) {
-  if (status === 'up') return <CheckCircle2 className='size-5 text-success' />;
-  if (status === 'down') return <XCircle className='size-5 text-destructive' />;
-  return <AlertCircle className='size-5 text-warning' />;
+  if (status === 'up') return <CircleCheck className='size-5 text-success' />;
+  if (status === 'down') return <CircleX className='size-5 text-destructive' />;
+  return <CircleAlert className='size-5 text-warning' />;
 }
 
 function statusBg(status: HealthStatus) {
@@ -283,7 +283,7 @@ export default function AdminHealthPage() {
             <Card className='border-border/60'>
               <CardHeader className='pb-sm'>
                 <div className='flex items-center gap-sm'>
-                  <CheckCircle2 className='size-4 text-muted-foreground' />
+                  <CircleCheck className='size-4 text-muted-foreground' />
                   <CardTitle className='text-sm font-semibold'>Check Summary</CardTitle>
                 </div>
                 <CardDescription className='text-xs'>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, Loader2, CheckCircle2 } from 'lucide-react';
+import { Building2, LoaderCircle, CircleCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -74,7 +74,7 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
       <DialogContent className='sm:max-w-[425px]'>
         {success ? (
           <div className='flex flex-col items-center py-2xl gap-md text-center'>
-            <CheckCircle2 className='size-12 text-success' />
+            <CircleCheck className='size-12 text-success' />
             <h3 className='text-lg font-semibold'>Organization Created</h3>
             <p className='text-sm text-muted-foreground max-w-xs'>
               Your organization is pending admin approval. Once approved, you can add more locations
@@ -144,7 +144,7 @@ export function CreateOrgDialog({ trigger }: CreateOrgDialogProps) {
                 className='w-full'
                 disabled={createOrg.isPending || !establishmentId}
               >
-                {createOrg.isPending && <Loader2 className='size-4 me-sm animate-spin' />}
+                {createOrg.isPending && <LoaderCircle className='size-4 me-sm animate-spin' />}
                 Create Organization
               </Button>
             </form>

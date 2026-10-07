@@ -8,8 +8,8 @@ import {
   Minus,
   Plus,
   ChevronDown,
-  AlertCircle,
-  CheckCircle2,
+  CircleAlert,
+  CircleCheck,
   ImagePlus,
   Flame,
 } from 'lucide-react';
@@ -897,7 +897,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
                 return h * 60 + m <= now.getHours() * 60 + now.getMinutes();
               })() && (
                 <p className='flex items-center gap-1.5 text-[11px] text-amber-600'>
-                  <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+                  <CircleAlert className='h-3.5 w-3.5 shrink-0' />
                   {t(`startPassedWarning`)}
                 </p>
               )}
@@ -953,7 +953,7 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           )}
           {!estLoading && !establishment && (
             <div className='flex items-center gap-sm rounded-lg bg-amber-50 border border-amber-200 px-md py-sm'>
-              <AlertCircle className='h-4 w-4 text-amber-500 shrink-0' />
+              <CircleAlert className='h-4 w-4 text-amber-500 shrink-0' />
               <p className='text-xs text-amber-700'>{t(`noEstablishment`)}</p>
             </div>
           )}
@@ -961,13 +961,13 @@ export function SurpriseBagPanel({ open, onClose }: SurpriseBagPanelProps) {
           {/* Feedback */}
           {errorMsg && (
             <div className='flex items-start gap-sm rounded-lg bg-red-50 border border-red-200 px-md py-2.5'>
-              <AlertCircle className='h-4 w-4 text-red-500 mt-xxs shrink-0' />
+              <CircleAlert className='h-4 w-4 text-red-500 mt-xxs shrink-0' />
               <p className='text-xs text-red-700'>{errorMsg}</p>
             </div>
           )}
           {successMsg && (
             <div className='flex items-center gap-sm rounded-lg bg-emerald-50 border border-emerald-200 px-md py-2.5'>
-              <CheckCircle2 className='h-4 w-4 text-emerald-500 shrink-0' />
+              <CircleCheck className='h-4 w-4 text-emerald-500 shrink-0' />
               <p className='text-xs font-medium text-emerald-700'>{successMsg}</p>
             </div>
           )}

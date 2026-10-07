@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 import { Button } from '@foodwaste/ui';
 
 interface AdminErrorStateProps {
@@ -47,7 +47,7 @@ export function AdminErrorState({
           : 'border-border flex flex-col items-center gap-sm rounded-lg border border-dashed p-lg text-center'
       }
     >
-      <AlertTriangle aria-hidden='true' className='text-muted-foreground size-8' />
+      <TriangleAlert aria-hidden='true' className='text-muted-foreground size-8' />
       <p className='font-semibold'>{title}</p>
       <p className='text-muted-foreground max-w-xs text-sm'>{description}</p>
       <Button type='button' variant='outline' size='sm' className='mt-xs' onClick={onRetry}>

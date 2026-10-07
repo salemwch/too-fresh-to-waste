@@ -5,9 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import {
-  Loader2,
-  CheckCircle2,
-  XCircle,
+  LoaderCircle,
+  CircleCheck,
+  CircleX,
   ChevronLeft,
   TrendingUp,
   Store,
@@ -198,7 +198,7 @@ function VerifyEmailInner() {
           </Link>
           {state === 'loading' && (
             <div className='flex flex-col items-center gap-lg text-center'>
-              <Loader2 className='h-12 w-12 animate-spin text-primary' />
+              <LoaderCircle className='h-12 w-12 animate-spin text-primary' />
               <h2 className='text-2xl font-semibold'>{t('verifyEmailTitle')}</h2>
             </div>
           )}
@@ -206,7 +206,7 @@ function VerifyEmailInner() {
           {state === 'success-consumer' && (
             <div className='flex flex-col items-center gap-lg text-center'>
               <div className='flex h-20 w-20 items-center justify-center rounded-full bg-green-100'>
-                <CheckCircle2 className='h-10 w-10 text-green-600' />
+                <CircleCheck className='h-10 w-10 text-green-600' />
               </div>
               <h2 className='text-2xl font-semibold'>{t('verifyEmailSuccessTitle')}</h2>
               <p className='text-base leading-relaxed text-muted-foreground'>
@@ -224,7 +224,7 @@ function VerifyEmailInner() {
           {state === 'success-merchant' && (
             <div className='flex flex-col items-center gap-lg text-center'>
               <div className='flex h-20 w-20 items-center justify-center rounded-full bg-green-100'>
-                <CheckCircle2 className='h-10 w-10 text-green-600' />
+                <CircleCheck className='h-10 w-10 text-green-600' />
               </div>
               <h2 className='text-2xl font-semibold'>{t('verifyEmailSuccessTitle')}</h2>
               <p className='text-base leading-relaxed text-muted-foreground'>
@@ -242,7 +242,7 @@ function VerifyEmailInner() {
           {state === 'error' && (
             <div className='flex flex-col items-center gap-lg text-center'>
               <div className='flex h-20 w-20 items-center justify-center rounded-full bg-red-100'>
-                <XCircle className='h-10 w-10 text-red-600' />
+                <CircleX className='h-10 w-10 text-red-600' />
               </div>
               <h2 className='text-2xl font-semibold'>{t('verifyEmailFailedTitle')}</h2>
               <p className='text-base leading-relaxed text-muted-foreground'>
@@ -267,7 +267,7 @@ export default function VerifyEmailPage() {
     <Suspense
       fallback={
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-background'>
-          <Loader2 className='h-10 w-10 animate-spin text-primary' />
+          <LoaderCircle className='h-10 w-10 animate-spin text-primary' />
         </div>
       }
     >

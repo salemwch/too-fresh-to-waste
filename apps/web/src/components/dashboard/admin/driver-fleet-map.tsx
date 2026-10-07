@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { GoogleMap, useJsApiLoader, MarkerF, PolylineF, InfoWindowF } from '@react-google-maps/api';
-import { MapPinOff, AlertTriangle } from 'lucide-react';
+import { MapPinOff, TriangleAlert } from 'lucide-react';
 import { Skeleton } from '@foodwaste/ui';
 import type { DriverActivity, LiveDriver } from '@/types/admin';
 
@@ -151,20 +151,20 @@ export function DriverFleetMap({ drivers, isLoading, selectedId, onSelect }: Dri
     // A missing key renders Google's own grey "can't load" box with a console
     // error, which looks like the feature is broken. Say what is actually
     // wrong instead - this is an admin screen, the reader can act on it.
-    return <EmptyMapState icon={AlertTriangle} title={t('noKeyTitle')} body={t('noKeyBody')} />;
+    return <EmptyMapState icon={TriangleAlert} title={t('noKeyTitle')} body={t('noKeyBody')} />;
   }
 
   if (authFailed) {
     // Distinct copy from loadErrorBody on purpose: this one names the two
     // things that actually cause it, so the reader can go and fix it.
     return (
-      <EmptyMapState icon={AlertTriangle} title={t('authErrorTitle')} body={t('authErrorBody')} />
+      <EmptyMapState icon={TriangleAlert} title={t('authErrorTitle')} body={t('authErrorBody')} />
     );
   }
 
   if (loadError) {
     return (
-      <EmptyMapState icon={AlertTriangle} title={t('loadErrorTitle')} body={t('loadErrorBody')} />
+      <EmptyMapState icon={TriangleAlert} title={t('loadErrorTitle')} body={t('loadErrorBody')} />
     );
   }
 
