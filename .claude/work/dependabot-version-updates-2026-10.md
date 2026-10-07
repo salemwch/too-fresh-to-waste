@@ -116,6 +116,20 @@ separate merges, and handle each major on its own with its migration read.
   / web 1,414 / backend 2,528 tests, lint, web build. Device check on the OPPO
   pending (phone disconnected).
 
+- 2026-10-07: OPPO (fr-FR), release APK, fresh install: launch clean (0 FATAL /
+  ANR / JS errors); `foodwaste://reset-password?token=Ab%2Bc%2Fd%3D1-x_y` opened
+  ResetPassword with its form (new parser on device); Google sign-in ran
+  SignInHubActivity -> GMS SignInActivity and reached Home with the location
+  chooser - google-signin 16.1.5 + Play Services 18.11 work. The location error
+  shown is correct: device location was off (location_mode=0) with permission
+  granted. Which Google account signed in was not confirmed (the owner stopped
+  that step).
+- 2026-10-07: Pre-existing defects seen on the device, NOT from this batch, kept
+  out of it: hard-coded English in locationSlice.ts:250/943/988 and
+  offlineManager.ts:164-165/182-183; the Google button's label is baked into
+  GoogleButtonSvg (a11y label is translated); a first tap on a city-search
+  result is swallowed while the keyboard is open.
+
 ## Open questions
 
 - Non-blocking: should Dependabot's config ignore the Node major in Docker and
