@@ -804,6 +804,7 @@
   },
   "favorites": {
     "all": "Tous",
+    "filterHint": "Filtre vos favoris ci-dessous",
     "restaurant": "Restaurant",
     "bakery": "Boulangerie",
     "grocery": "Épicerie",

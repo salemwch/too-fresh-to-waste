@@ -5,10 +5,18 @@
 
 import { useFocusEffect } from '@react-navigation/native';
 import { readingGradient } from '@/utils/rtl';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePrefetchOffer } from '@/features/offers/hooks/useOffers';
-import { View, StyleSheet, ScrollView, RefreshControl, Pressable, Platform } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  Pressable,
+  Platform,
+  Image,
+} from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -16,8 +24,14 @@ import { Text, Button, Card, Icon } from '@/design-system/components/atoms';
 import { SkeletonOfferCard } from '@/design-system/components/molecules';
 import { useTheme } from '@/design-system/providers';
 import { colorTokens } from '@/design-system/tokens/colors';
+import { ESTABLISHMENT_CATEGORIES } from '@/features/offers/constants/establishmentCategories';
 import { CtaState, OfferStatus } from '@/features/offers/types';
 import { Logger } from '@/utils/logger';
+
+import type {
+  CategoryArtwork,
+  EstablishmentCategoryId,
+} from '@/features/offers/constants/establishmentCategories';
 
 import { FavoriteEstablishmentRow } from '../components';
 import { useFavoritesInfinite } from '../hooks';
@@ -36,66 +50,93 @@ interface FavoritesScreenProps {
   navigation: FavoritesScreenNavigationProp;
 }
 
-interface CategoryFilter {
-  id: string;
-  label: string;
-  icon: string;
-  iconFamily: 'Ionicons';
-  establishmentType?: string;
+// ============================================================================
+// Filter chip data — built once at module level, no per-render allocation
+// ============================================================================
+
+const CHIP_ART_SIZE = 22;
+
+type FavoriteFilterId = 'all' | EstablishmentCategoryId;
+
+interface FavoriteFilterDef {
+  readonly id: FavoriteFilterId;
+  readonly labelKey: string;
+  readonly artwork: CategoryArtwork | null;
+  /** The primary EstablishmentType sent to the backend. `undefined` = no filter. */
+  readonly primaryType: string | undefined;
 }
 
-const CATEGORY_FILTERS: CategoryFilter[] = [
-  { id: 'all', label: 'favorites.all', icon: 'apps-outline', iconFamily: 'Ionicons' },
-  {
-    id: 'restaurant',
-    label: 'favorites.restaurant',
-    icon: 'restaurant-outline',
-    iconFamily: 'Ionicons',
-    establishmentType: 'restaurant',
-  },
-  {
-    id: 'bakery',
-    label: 'favorites.bakery',
-    icon: 'cafe-outline',
-    iconFamily: 'Ionicons',
-    establishmentType: 'bakery',
-  },
-  {
-    id: 'grocery_store',
-    label: 'favorites.grocery',
-    icon: 'cart-outline',
-    iconFamily: 'Ionicons',
-    establishmentType: 'grocery_store',
-  },
-  {
-    id: 'cafe',
-    label: 'favorites.cafe',
-    icon: 'wine-outline',
-    iconFamily: 'Ionicons',
-    establishmentType: 'cafe',
-  },
-  {
-    id: 'fast_food',
-    label: 'favorites.fastFood',
-    icon: 'fast-food-outline',
-    iconFamily: 'Ionicons',
-    establishmentType: 'fast_food',
-  },
-  {
-    id: 'supermarket',
-    label: 'favorites.supermarket',
-    icon: 'storefront-outline',
-    iconFamily: 'Ionicons',
-    establishmentType: 'supermarket',
-  },
-  {
-    id: 'hotel',
-    label: 'favorites.hotel',
-    icon: 'bed-outline',
-    iconFamily: 'Ionicons',
-    establishmentType: 'hotel',
-  },
-];
+const FAVORITE_FILTERS: readonly FavoriteFilterDef[] = Object.freeze([
+  { id: 'all', labelKey: 'favorites.all', artwork: null, primaryType: undefined },
+  ...ESTABLISHMENT_CATEGORIES.map(c => ({
+    id: c.id as FavoriteFilterId,
+    labelKey: c.labelKey,
+    artwork: c.artwork,
+    primaryType: c.types[0] as string | undefined,
+  })),
+]);
+
+/** O(1) lookup by id, so handleFilterChange never scans the array. */
+const FILTER_BY_ID = new Map<FavoriteFilterId, FavoriteFilterDef>(
+  FAVORITE_FILTERS.map(f => [f.id, f]),
+);
+
+// ============================================================================
+// FilterChip — extracted and memoized (same pattern as HomeCategoryRail/CategoryTile)
+// ============================================================================
+
+interface FilterChipProps {
+  filter: FavoriteFilterDef;
+  isSelected: boolean;
+  onPress: (id: FavoriteFilterId) => void;
+}
+
+const FilterChipComponent: React.FC<FilterChipProps> = ({ filter, isSelected, onPress }) => {
+  const { t } = useTranslation();
+
+  const handlePress = useCallback(() => {
+    onPress(filter.id);
+  }, [onPress, filter.id]);
+
+  return (
+    <Pressable
+      accessibilityRole='button'
+      accessibilityState={{ selected: isSelected }}
+      accessibilityLabel={t(filter.labelKey)}
+      accessibilityHint={t('favorites.filterHint')}
+      style={[styles.filterChip, isSelected && styles.filterChipActive]}
+      onPress={handlePress}
+    >
+      {filter.artwork == null ? (
+        <Icon
+          name='apps-outline'
+          family='Ionicons'
+          size={18}
+          color={isSelected ? COLORS.textInverse : COLORS.textSecondary}
+        />
+      ) : filter.artwork.kind === 'vector' ? (
+        <filter.artwork.Icon width={CHIP_ART_SIZE} height={CHIP_ART_SIZE} />
+      ) : (
+        <Image
+          source={filter.artwork.source}
+          style={styles.chipArtwork}
+          resizeMode='contain'
+          accessibilityIgnoresInvertColors
+        />
+      )}
+      <Text style={[styles.filterChipText, isSelected && styles.filterChipTextActive]}>
+        {t(filter.labelKey)}
+      </Text>
+    </Pressable>
+  );
+};
+
+FilterChipComponent.displayName = 'FavoriteFilterChip';
+const FilterChip = memo(FilterChipComponent);
+
+// ============================================================================
+// Constants
+// ============================================================================
 
 const COLORS = {
   brand: colorTokens.base.primary[500],
@@ -208,7 +249,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error, refetch } =
     useFavoritesInfinite({
       isActive: true,
-      establishmentType,
+      ...(establishmentType !== undefined && { establishmentType }),
     });
 
   const favorites = useMemo(() => data?.pages.flatMap(page => page.favorites) ?? [], [data]);
@@ -313,10 +354,9 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
     void refetch();
   }, [refetch]);
 
-  const handleFilterChange = useCallback((filterId: string) => {
+  const handleFilterChange = useCallback((filterId: FavoriteFilterId) => {
     setSelectedFilter(filterId);
-    const filter = CATEGORY_FILTERS.find(item => item.id === filterId);
-    setEstablishmentType(filter?.establishmentType);
+    setEstablishmentType(FILTER_BY_ID.get(filterId)?.primaryType);
   }, []);
 
   const renderEstablishmentGroup = useCallback(
@@ -342,29 +382,6 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
 
   const hasFavorites = groupedFavorites.length > 0;
 
-  const renderFilterChip = (filter: CategoryFilter) => {
-    const isSelected = selectedFilter === filter.id;
-
-    return (
-      <Pressable
-        accessibilityRole='button'
-        key={filter.id}
-        style={[styles.filterChip, isSelected && styles.filterChipActive]}
-        onPress={() => handleFilterChange(filter.id)}
-      >
-        <Icon
-          name={filter.icon}
-          family={filter.iconFamily}
-          size={18}
-          color={isSelected ? COLORS.textInverse : COLORS.textSecondary}
-        />
-        <Text style={[styles.filterChipText, isSelected && styles.filterChipTextActive]}>
-          {t(filter.label)}
-        </Text>
-      </Pressable>
-    );
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
@@ -385,7 +402,14 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ navigation }) 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScroll}
           >
-            {CATEGORY_FILTERS.map(filter => renderFilterChip(filter))}
+            {FAVORITE_FILTERS.map(filter => (
+              <FilterChip
+                key={filter.id}
+                filter={filter}
+                isSelected={selectedFilter === filter.id}
+                onPress={handleFilterChange}
+              />
+            ))}
           </ScrollView>
         </View>
 
@@ -517,6 +541,10 @@ const styles = StyleSheet.create({
   },
   filterChipTextActive: {
     color: COLORS.textInverse,
+  },
+  chipArtwork: {
+    width: CHIP_ART_SIZE,
+    height: CHIP_ART_SIZE,
   },
   emptyState: {
     flex: 1,

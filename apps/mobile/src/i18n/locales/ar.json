@@ -816,6 +816,7 @@
   },
   "favorites": {
     "all": "الكل",
+    "filterHint": "يصفّي مفضلاتك أدناه",
     "restaurant": "مطعم",
     "bakery": "مخبز",
     "grocery": "بقالة",
