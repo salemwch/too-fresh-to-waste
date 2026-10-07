@@ -33,6 +33,18 @@
  * Driven through getStateFromPath rather than by calling decode-uri-component
  * directly, so it tests the seam the app actually uses. Mocking query-string
  * or the decoder here would assert nothing about deep links.
+ *
+ * UPDATE 2026-10-07
+ * -----------------
+ * @react-navigation/core 7.23 replaced query-string with its own
+ * `queryString.js` (react-navigation 370b51308), so decode-uri-component is no
+ * longer in the tree and GHSA-vcc3-ghjq-m6fr left `ignoreGhsas`. The new
+ * decoder keeps the semantics asserted below (`+` as space, repeated keys as
+ * arrays, decodeURIComponent per value) and decodes malformed input with a
+ * bounded UTF-8 pattern instead of retrying. The suite stays the gate: the
+ * decoder is still third-party code on the path of every reset link, and the
+ * advisory's input class - hostile percent-encoding - now has to be handled by
+ * that code, which the last case pins down.
  */
 import { getStateFromPath } from '@react-navigation/native';
 
@@ -152,5 +164,20 @@ describe('percent-decoding, the behaviour that blocks the 0.5.0 upgrade', () => 
 
   it('does not throw on a lone percent sign', () => {
     expect(() => parse('reset-password?token=100%')).not.toThrow();
+  });
+
+  it('parses a long hostile query in bounded time, the advisory failure mode', () => {
+    // GHSA-vcc3-ghjq-m6fr was a hang, not a throw: a link packed with
+    // malformed escapes pinned the JS thread while the decoder retried. A
+    // reset link is opened from email, so the app must stay responsive on one.
+    // ~100 KB of truncated three-byte escapes; a linear decoder handles it in a
+    // few milliseconds, so the 1 s bound only fails on a pathological one.
+    const hostile = `${'%E0%A4'.repeat(16_000)}%A`;
+    const start = performance.now();
+    const params = paramsFor(parse(`reset-password?token=${hostile}`), 'ResetPassword');
+    const elapsedMs = performance.now() - start;
+
+    expect(typeof params?.['token']).toBe('string');
+    expect(elapsedMs).toBeLessThan(1_000);
   });
 });
