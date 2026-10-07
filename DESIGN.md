@@ -2352,6 +2352,39 @@ The tile shape introduces **no new radius**: 56px at radius `lg` (12px) from
 Re-open if the icons are ever replaced with a monochrome set, at which point the
 tint/accent pairs should collapse onto the brand ramp and this entry retires.
 
+**E35. The Google sign-in button follows Google's branding, not this system.**
+`ACCEPTED 2026-10-07` Mobile `GoogleSignInButton` uses the light theme of
+[Google's Sign-In branding guidelines](https://developers.google.com/identity/branding-guidelines):
+fill `#FFFFFF`, 1px stroke `#747775`, label `#1F1F1F`, 20px "G" logo, 12px
+before the logo, 10px between logo and label, 12px after the label, label 14/20
+medium. These values are Google's terms of use for its mark, not design
+decisions, and live in `googleSignInButtonColors` in
+`design-system/tokens/colors.ts` so the raw-colour budget stays honest.
+
+**Why it changed.** The button used to be Google's prebuilt artwork
+(`android_light_rd_ctn.svg`), in which "Continue with Google" is an outlined
+path. It rendered in English in the French and Arabic apps and could not scale
+with the system font. The label is now the translated `auth.continueWithGoogle`;
+Google's guidelines permit and encourage localising it. The four logo paths are
+kept unmodified in `google_g_logo.svg`, as the guidelines require.
+
+**Deviations from Google's spec, all deliberate:**
+
+- **Font.** Google specifies Google Sans, which is not licensed for this app.
+  The label uses the platform face (`typography.fontFamily.primary` - Roboto on
+  Android), which is the face Google's own spec used before Google Sans.
+- **Height.** `sizing.button.xl` (56px) rather than Google's 40px, so it matches
+  the `MorphingButton` it sits under. It is a `minHeight`, so a scaled font
+  grows the button instead of clipping the label.
+- **Width.** Full width with logo and label centred together, like the primary
+  button above it. The guidelines allow the button to stretch.
+- **Theme.** Light variant only, in both app themes. Mobile production is
+  light-only (§19-E27); revisit with Google's dark variant (`#131314` /
+  `#8E918F` / `#E3E3E3`) when dark mode ships.
+
+**Scope.** These colours are for this button only - never a surface, a border or
+text anywhere else.
+
 ## 20. Governance Rule
 
 **When a new design decision is introduced and is likely to be reused, it does
@@ -2502,3 +2535,4 @@ deliberate decision from a drift.
 | 2026-09-01 | §19-E33 opened and D3 resolved. `/parcless-bag` was built on `bg-primary` / `text-primary`, which invert under `.dark` while its hardcoded colours do not: 25 of 44 text pairings failed in light and 40 in dark. Its palette is now pinned to ten page-scoped `--pb-*` tokens with **no `.dark` block**, so it renders identically in both themes; five values moved by the minimum lightness step on their own hue. 0 of 87 text nodes fail, gated by `tests/visual/contrast.spec.ts`.                                                                              |
 | 2026-09-01 | §19-E31 resolved. The destructive hover was an alpha (`/90`, `/80`) that composited the fill toward the page; re-measured at HEAD it was 4.25 / 3.64 in light, and a dark-mode Badge instance at ~4.4 had never been recorded. Both now use a solid `--destructive-hover` from the existing error ramp - `error-600` in light (5.38), `error-100` in dark (13.85), `error-600` in both `merchant-signup` scopes. Normal, hover, focus and disabled are gated in `contrast.spec.ts`. Corrects the E2/D1 claim that `error-600 #C62828` did not exist.                  |
 | 2026-09-01 | §19-E4 resolved (D2). `--input` split from `--border` and darkened to pass WCAG 1.4.11's 3:1 for control boundaries: `174 8% 50%` in globals light (3.65 on white), `180 10% 38%` in globals dark (3.25 on card), matching values in merchant-signup. `--border` stays unchanged for cards, dividers and separators. Follows the same pattern as mobile M17 (outline vs outlineVariant). Gated by `tests/visual/contrast.spec.ts` "input boundary meets 1.4.11".                                                                                                      |
+| 2026-10-07 | §19-E35 opened. Mobile `GoogleSignInButton` stopped rendering Google's prebuilt artwork, whose "Continue with Google" was an outlined English path in every locale. It now renders the unmodified "G" logo next to the translated `auth.continueWithGoogle` label, using Google's light-theme branding values (stored as `googleSignInButtonColors`), with four recorded deviations: platform font, 56px height, full width, light-only.                                                                                                                              |
