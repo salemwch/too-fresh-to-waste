@@ -29,6 +29,7 @@ import {
   type ScrollViewInstance,
 } from 'react-native';
 
+import { useLightStatusBar } from '@/design-system/components/atoms/ThemedStatusBar';
 import { colorTokens } from '@/design-system/tokens/colors';
 import { isAppRTL } from '@/i18n/direction';
 import { onboardingStorage } from '@/storage/onboardingStorage';
@@ -55,6 +56,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollViewInstance>(null);
   const [page, setPage] = useState(0);
+
+  // Brand-green ground in both themes: icons must be light.
+  useLightStatusBar();
 
   /*
    * Read once per render rather than per callback: the value cannot change

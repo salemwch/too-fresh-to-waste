@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatDelegate
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultReactActivityDelegate
@@ -54,6 +55,17 @@ class MainActivity : ReactActivity() {
     // WindowCompat.enableEdgeToEdge included). At targetSdk 35+ on Android 15+
     // they have no effect. Not removable from app code; do not "fix" by
     // stripping them, that gives opaque bars on Android 14 and below.
+    //
+    // Production is light-only (DARK_MODE_ENABLED = false in
+    // design-system/providers/themeRollout.ts), but RN's WindowUtil picks the
+    // navigation-bar scrim and button colour from the *system* night mode. With
+    // the phone in dark mode that drew a dark translucent scrim with light
+    // buttons over our light screens (OPPO rig, 3-button nav, Android 11).
+    // Pinning the app's night mode to NO makes every native reader - RN's
+    // WindowUtil, androidx's SystemBarStyle.auto, dialogs - agree with the JS
+    // theme. Set before super.onCreate so AppCompat applies it without a
+    // recreate. Switch to MODE_NIGHT_FOLLOW_SYSTEM when dark mode ships.
+    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
     enableEdgeToEdge(
         statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
     )

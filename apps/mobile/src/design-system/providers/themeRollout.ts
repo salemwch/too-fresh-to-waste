@@ -41,6 +41,9 @@
  * 3. Ship the D5 fix (a DayNight AppCompat parent plus `values-night`) in the
  *    same change - see §4b of the device report. Without it the cold-start
  *    window flashes the wrong ground.
+ * 4. Change `AppCompatDelegate.MODE_NIGHT_NO` in `MainActivity.kt` to
+ *    `MODE_NIGHT_FOLLOW_SYSTEM`. It pins native night mode so the Android
+ *    navigation-bar scrim and buttons match this light-only lock.
  *
  * The lock is applied by passing `lockToLight` to `ThemeProvider` in App.tsx,
  * not read inside the provider. That is deliberate: the visual matrix mounts
