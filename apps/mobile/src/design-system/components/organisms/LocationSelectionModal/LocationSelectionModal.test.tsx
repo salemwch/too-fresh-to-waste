@@ -23,17 +23,19 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('../ManualLocationModal', () => ({
-  ManualLocationModal: (props: { visible: boolean; testID?: string }) => {
-    if (!props.visible) return null;
-    const { View, Text } = require('react-native');
-    return (
-      <View testID={props.testID}>
-        <Text>CitySearchOpen</Text>
-      </View>
-    );
-  },
-}));
+jest.mock('../ManualLocationModal', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    ManualLocationModal: (props: { visible: boolean; testID?: string }) => {
+      if (!props.visible) return null;
+      return (
+        <View testID={props.testID}>
+          <Text>CitySearchOpen</Text>
+        </View>
+      );
+    },
+  };
+});
 
 describe('LocationSelectionModal', () => {
   const setup = (props: Partial<React.ComponentProps<typeof LocationSelectionModal>> = {}) => {

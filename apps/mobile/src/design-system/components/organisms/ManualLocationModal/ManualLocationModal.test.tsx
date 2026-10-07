@@ -27,13 +27,8 @@ jest.mock('@/features/offers/hooks', () => ({
 }));
 
 jest.mock('@shopify/flash-list', () => {
-  const { FlatList } = require('react-native');
-  return {
-    FlashList: (props: Record<string, unknown>) => {
-      const { estimatedItemSize: _e, ...rest } = props;
-      return <FlatList {...rest} />;
-    },
-  };
+  const { FlatList } = jest.requireActual('react-native');
+  return { FlashList: FlatList };
 });
 
 describe('ManualLocationModal', () => {
