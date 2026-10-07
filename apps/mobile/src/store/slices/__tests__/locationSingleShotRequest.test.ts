@@ -165,7 +165,7 @@ describe('requestLocationAsync issues a single position request', () => {
     expect(store.getState().location.source).toBe('gps');
   });
 
-  it('surfaces a human-readable message when the provider fails', async () => {
+  it('surfaces a translatable error code when the provider fails', async () => {
     arrangeFreshInstall();
     const cb = captureCallbacks();
     mockGetCurrentPosition.mockImplementation(() => undefined);
@@ -178,10 +178,43 @@ describe('requestLocationAsync issues a single position request', () => {
     cb.error()({ code: 3, message: 'GPS_UNAVAILABLE' } as Parameters<ErrorFn>[0]);
     await pending;
 
-    // The native message must never reach the UI.
+    // The native message must never reach the UI: state carries a code, and
+    // the screen renders t('location.errors.timeout') in the current language.
     const { error } = store.getState().location;
-    expect(error).toBe('GPS signal not found. Please try again or search for your city.');
+    expect(error).toBe('timeout');
     expect(error).not.toContain('GPS_UNAVAILABLE');
+  });
+
+  it.each([
+    [1, 'permissionDenied'],
+    [2, 'positionUnavailable'],
+    [3, 'timeout'],
+    [99, 'unknown'],
+  ] as const)('maps geolocation error code %i to the %s error code', async (code, expected) => {
+    arrangeFreshInstall();
+    const cb = captureCallbacks();
+    mockGetCurrentPosition.mockImplementation(() => undefined);
+    const store = makeStore();
+
+    const pending = store.dispatch(requestLocationAsync());
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    cb.error()({ code, message: 'native text' } as Parameters<ErrorFn>[0]);
+    await pending;
+
+    expect(store.getState().location.error).toBe(expected);
+  });
+
+  it('reports a refused permission prompt as permissionNotGranted', async () => {
+    arrangeFreshInstall();
+    mockRequest.mockResolvedValue('denied' as Awaited<ReturnType<typeof request>>);
+    const store = makeStore();
+
+    await store.dispatch(requestLocationAsync());
+
+    expect(store.getState().location.error).toBe('permissionNotGranted');
+    expect(store.getState().location.permissionStatus).toBe('denied');
   });
 
   it('ignores a second delivery for the same request', async () => {
@@ -245,8 +278,6 @@ describe('requestLocationAsync timeout', () => {
     // is the normal case, not an edge case.
     expect(requestLocationAsync.rejected.match(action)).toBe(true);
     expect(store.getState().location.isLoading).toBe(false);
-    expect(store.getState().location.error).toBe(
-      'GPS signal not found. Please try again or search for your city.',
-    );
+    expect(store.getState().location.error).toBe('timeout');
   });
 });

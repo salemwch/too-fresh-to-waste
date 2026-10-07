@@ -17,7 +17,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { userService } from '@/features/profile/services';
 import { useAppDispatch } from '@/hooks/redux';
-import { type LocationResult, reverseGeocodeAsync } from '@/store/slices/locationSlice';
+import {
+  type LocationErrorCode,
+  type LocationResult,
+  reverseGeocodeAsync,
+} from '@/store/slices/locationSlice';
 import { Logger } from '@/utils/logger';
 
 import { HOME_STORAGE_KEYS } from '../constants/homeConstants';
@@ -34,8 +38,8 @@ interface UseLocationSetupResult {
   showLocationSelectionModal: boolean;
   /** Whether to show manual location modal (GPS fallback) */
   showManualLocationModal: boolean;
-  /** Location error message */
-  locationError: string | null;
+  /** Why GPS failed, as a code; the screen renders t('location.errors.<code>') */
+  locationError: LocationErrorCode | null;
   /** Close location selection modal */
   closeLocationSelectionModal: () => void;
   /** Open manual location modal */
@@ -101,7 +105,7 @@ export function useLocationSetup(
   const dispatch = useAppDispatch();
   const [showLocationSelectionModal, setShowLocationSelectionModal] = useState(false);
   const [showManualLocationModal, setShowManualLocationModal] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<LocationErrorCode | null>(null);
 
   // Guards the GPS branch against re-entry, so one flow owns the modal and the
   // error state at a time. The permission request itself is deduplicated a
@@ -237,9 +241,7 @@ export function useLocationSetup(
           if (!result.success || !result.coordinates) {
             // Re-open modal with error so user can retry or pick manual
             setShowLocationSelectionModal(true);
-            setLocationError(
-              result.error ?? 'Failed to get your location. Please try another option.',
-            );
+            setLocationError(result.error ?? 'requestFailed');
             return;
           }
 
@@ -279,7 +281,7 @@ export function useLocationSetup(
         } catch (error) {
           Logger.error('[useLocationSetup] Failed to get GPS location:', {}, error as Error);
           setShowLocationSelectionModal(true);
-          setLocationError('Failed to get your location. Please try another option.');
+          setLocationError('requestFailed');
         } finally {
           // Released on every exit — including the early `return` above.
           // Leaking this flag would permanently dead-end the GPS option.

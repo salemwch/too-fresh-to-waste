@@ -251,6 +251,13 @@ changes to a screen this pass was not scoped to touch.
 ships localised variants; the fix is an asset swap per locale, governed by
 Google's branding rules. Not something to improvise in a verification pass.
 
+**Resolved 2026-10-07 (DESIGN.md §19-E35).** Not by an asset swap: the button
+now renders Google's unmodified "G" logo (`google_g_logo.svg`) next to the
+translated `auth.continueWithGoogle` label, styled to Google's light-theme
+branding values. Google's guidelines explicitly permit localising the label, and
+real text also scales with the system font, which per-locale artwork would not.
+`android_light_rd_ctn.svg` was deleted.
+
 ### DL-5 — the app does not re-flow when font scale changes while running · **P3, observation**
 
 Described in §6. `fontScale` is **not** in the manifest's `configChanges`, so

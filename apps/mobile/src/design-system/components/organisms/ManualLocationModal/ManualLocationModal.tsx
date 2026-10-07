@@ -29,6 +29,9 @@ import { spacingTokens } from '@/design-system/tokens/spacing';
 
 const { base: sp } = spacingTokens;
 
+// One stable empty array: `?? []` would hand FlashList new data every render.
+const NO_RESULTS: readonly GeocodeResult[] = Object.freeze([]);
+
 export const ManualLocationModal = memo<ManualLocationModalProps>(
   ({ visible, onClose, onLocationSelect, initialQuery = '', style, testID }) => {
     const { t } = useTranslation();
@@ -136,7 +139,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
               color={theme.colors.onSurfaceVariant}
             />
             <Text variant='body' size='md' color='secondary' style={styles.emptyText}>
-              No locations found for &ldquo;{debouncedQuery}&rdquo;
+              {t('location.noLocationsFor', { query: debouncedQuery })}
             </Text>
           </View>
         );
@@ -225,7 +228,7 @@ export const ManualLocationModal = memo<ManualLocationModalProps>(
 
             {/* Results List */}
             <FlashList
-              data={searchResults ?? []}
+              data={searchResults ?? NO_RESULTS}
               keyExtractor={(item, index) =>
                 `${item.coordinates.latitude}-${item.coordinates.longitude}-${index}`
               }

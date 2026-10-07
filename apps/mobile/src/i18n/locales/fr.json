@@ -52,7 +52,10 @@
     "a11yAppliesActionHint": "Applique cette action",
     "a11yRemoveFilter": "Retirer le filtre {{label}}",
     "a11yRemoveFilterHint": "Retire ce filtre",
-    "a11yOpenLinkHint": "Ouvre ce lien"
+    "a11yOpenLinkHint": "Ouvre ce lien",
+    "offlineFeaturesLimited": "Certaines fonctionnalités peuvent être limitées",
+    "backOnline": "De nouveau en ligne",
+    "connectionRestored": "Connexion rétablie"
   },
   "update": {
     "forceTitle": "Mise à jour requise",
@@ -1017,7 +1020,15 @@
     "bannerBody": "Activez la localisation pour découvrir les invendus des restaurants proches et économiser tout en réduisant le gaspillage.",
     "noLocationsFor": "Aucun lieu trouvé pour « {{query}} »",
     "a11yCurrentLocation": "Position actuelle : {{location}}",
-    "a11ySelectLocation": "Sélectionner {{location}}"
+    "a11ySelectLocation": "Sélectionner {{location}}",
+    "errors": {
+      "permissionNotGranted": "L'accès à la position n'a pas été autorisé. Vous pouvez l'activer dans les réglages ou rechercher votre ville.",
+      "permissionDenied": "Autorisation de localisation refusée. Activez l'accès à la position dans les réglages de votre appareil.",
+      "positionUnavailable": "Impossible de déterminer votre position. Vérifiez les réglages de votre appareil ou recherchez votre ville.",
+      "timeout": "Signal GPS introuvable. Réessayez ou recherchez votre ville.",
+      "unknown": "Une erreur de localisation inattendue s'est produite. Réessayez ou recherchez votre ville.",
+      "requestFailed": "Impossible d'obtenir votre position. Veuillez essayer une autre option."
+    }
   },
   "navigation": {
     "searchOffers": "Rechercher des offres",

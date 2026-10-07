@@ -518,3 +518,24 @@ export const establishmentCategoryChrome = {
   /** Label-pill hairline when the category is not selected. */
   pillBorder: '#ECECEC',
 } as const;
+
+// ============================================================================
+// Google sign-in button
+// ============================================================================
+
+/**
+ * Light-theme colours from Google's Sign-In branding guidelines
+ * (https://developers.google.com/identity/branding-guidelines).
+ *
+ * Google's terms for using its mark, not a design decision, so they are not on
+ * the brand ramp - DESIGN.md §19-E35. For `GoogleSignInButton` only: never a
+ * surface, border or text colour anywhere else.
+ */
+export const googleSignInButtonColors = {
+  /** Button fill. */
+  surface: '#FFFFFF',
+  /** 1px stroke. */
+  border: '#747775',
+  /** "Continue with Google" label. */
+  label: '#1F1F1F',
+} as const;

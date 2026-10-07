@@ -682,7 +682,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         visible={showLocationSelectionModal}
         onLocationSelect={handleLocationSelectionWrapper}
         isLoading={isLocationLoading}
-        error={locationError}
+        error={locationError ? t(`location.errors.${locationError}`) : null}
         testID='location-selection-modal'
       />
 

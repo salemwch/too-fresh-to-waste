@@ -132,6 +132,17 @@ separate merges, and handle each major on its own with its migration read.
   offlineManager.ts:164-165/182-183; the Google button's label is baked into
   GoogleButtonSvg (a11y label is translated); a first tap on a city-search
   result is swallowed while the keyboard is open.
+- 2026-10-07: Those defects, on branch fix/mobile-i18n-ui-bugs. Location state
+  now carries a LocationErrorCode, and the header selector returns data (unset /
+  currentLocation / named) that useLocation translates at render, since copy
+  built in a memoised selector keeps the language it was built in. The offline
+  toasts and the city-search no-results line use i18n keys. The Google button
+  renders the unmodified "G" logo beside the translated label (DESIGN.md
+  §19-E35). Each chain has a test that fails when it is broken
+  (mutation-checked). The swallowed first tap is NOT fixed: FlashList 1.8.3
+  already defaults keyboardShouldPersistTaps to 'handled' and forwards it to the
+  ScrollView, so the obvious cause is ruled out, and a single automated adb tap
+  was not enough to show the real one. It needs a manual repro first.
 
 - 2026-10-07: class-validator 0.14.4 -> 0.15.1 (#109). The compare is 10
   commits; the only breaking change is IsIBAN's options argument and the rest is

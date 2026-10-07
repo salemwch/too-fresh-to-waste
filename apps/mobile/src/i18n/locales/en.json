@@ -52,7 +52,10 @@
     "a11yAppliesActionHint": "Applies this action",
     "a11yRemoveFilter": "Remove {{label}} filter",
     "a11yRemoveFilterHint": "Removes this filter",
-    "a11yOpenLinkHint": "Opens this link"
+    "a11yOpenLinkHint": "Opens this link",
+    "offlineFeaturesLimited": "Some features may be limited",
+    "backOnline": "Back online",
+    "connectionRestored": "Connection restored"
   },
   "update": {
     "forceTitle": "Update Required",
@@ -1017,7 +1020,15 @@
     "bannerBody": "Enable location to discover surplus food from nearby restaurants and save money while reducing waste.",
     "noLocationsFor": "No locations found for \"{{query}}\"",
     "a11yCurrentLocation": "Current location: {{location}}",
-    "a11ySelectLocation": "Select {{location}}"
+    "a11ySelectLocation": "Select {{location}}",
+    "errors": {
+      "permissionNotGranted": "Location access was not allowed. You can turn it on in Settings or search for your city.",
+      "permissionDenied": "Location permission denied. Please enable location access in your device settings.",
+      "positionUnavailable": "Unable to determine location. Please check your device settings or search for your city.",
+      "timeout": "GPS signal not found. Please try again or search for your city.",
+      "unknown": "An unexpected location error occurred. Please try again or search for your city.",
+      "requestFailed": "Failed to get your location. Please try another option."
+    }
   },
   "navigation": {
     "searchOffers": "Search Offers",

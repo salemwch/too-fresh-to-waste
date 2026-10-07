@@ -29,6 +29,8 @@
 import { addEventListener } from '@react-native-community/netinfo';
 import Toast from 'react-native-toast-message';
 
+import i18n from '@/i18n';
+
 import { Logger } from './logger';
 import { SafeAnalytics } from './safeAnalytics';
 
@@ -161,8 +163,9 @@ const showOfflineToastIfNeeded = (): void => {
 
   Toast.show({
     type: 'warning',
-    text1: 'No internet connection',
-    text2: 'Some features may be limited',
+    // Translated at show time, so the toast follows the current language.
+    text1: i18n.t('common.noInternetConnection'),
+    text2: i18n.t('common.offlineFeaturesLimited'),
     position: 'bottom',
     visibilityTime: CONFIG.TOAST_DURATION_MS,
     onHide: () => {
@@ -179,8 +182,8 @@ const showOfflineToastIfNeeded = (): void => {
 const showOnlineToast = (): void => {
   Toast.show({
     type: 'success',
-    text1: 'Back online',
-    text2: 'Connection restored',
+    text1: i18n.t('common.backOnline'),
+    text2: i18n.t('common.connectionRestored'),
     position: 'bottom',
     visibilityTime: 2000,
   });
