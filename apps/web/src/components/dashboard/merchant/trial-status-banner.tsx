@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCircle, Clock, CreditCard } from 'lucide-react';
+import { CircleAlert, Clock, CreditCard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMyEstablishment } from '@/hooks/use-merchant-dashboard';
 import { useToday } from '@/hooks/useClock';
@@ -48,7 +48,7 @@ export function TrialStatusBanner() {
           role='alert'
           className='flex items-start gap-md rounded-lg border border-destructive/30 bg-destructive/10 px-lg py-md text-sm'
         >
-          <AlertCircle className='mt-xxs size-5 shrink-0 text-destructive' aria-hidden='true' />
+          <CircleAlert className='mt-xxs size-5 shrink-0 text-destructive' aria-hidden='true' />
           <div className='flex-1'>
             <p className='font-semibold text-destructive'>{t('expired')}</p>
             <p className='mt-xxs text-destructive/80'>{t('expiredDescription')}</p>

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { userService } from '@/services/user.service';
 import { meetsPasswordPolicy, PASSWORD_MIN_LENGTH } from '@/lib/password-policy';
 import { Input, Button, Label } from '@foodwaste/ui';
-import { Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, LoaderCircle, CircleAlert, CircleCheck } from 'lucide-react';
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator';
 
 export default function MerchantSecurityPage() {
@@ -148,19 +148,19 @@ export default function MerchantSecurityPage() {
         {/* Feedback */}
         {error && (
           <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-sm text-xs text-destructive'>
-            <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+            <CircleAlert className='h-3.5 w-3.5 shrink-0' />
             <span>{error}</span>
           </div>
         )}
         {success && (
           <div className='flex items-center gap-sm rounded-lg border border-green-200 bg-green-50 px-md py-sm text-xs text-green-700'>
-            <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+            <CircleCheck className='h-3.5 w-3.5 shrink-0' />
             <span>{t('success')}</span>
           </div>
         )}
 
         <Button type='submit' disabled={isLoading} className='mt-xs h-[36px] px-lg text-sm'>
-          {isLoading && <Loader2 className='me-1.5 h-3.5 w-3.5 animate-spin' />}
+          {isLoading && <LoaderCircle className='me-1.5 h-3.5 w-3.5 animate-spin' />}
           {isLoading ? t('updating') : t('updatePassword')}
         </Button>
       </form>

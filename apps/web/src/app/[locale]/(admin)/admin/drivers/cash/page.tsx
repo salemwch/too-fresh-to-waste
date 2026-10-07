@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
-  AlertTriangle,
+  TriangleAlert,
   ArrowLeft,
   Banknote,
   HandCoins,
@@ -261,7 +261,7 @@ export default function DriverCashPage() {
 
       <section aria-labelledby='pending-recoveries' className='space-y-sm'>
         <h2 id='pending-recoveries' className='flex items-center gap-xs text-md font-semibold'>
-          <AlertTriangle size={16} aria-hidden='true' className='text-warning' />
+          <TriangleAlert size={16} aria-hidden='true' className='text-warning' />
           {t('pendingTitle')}
         </h2>
         {pending.length === 0 ? (

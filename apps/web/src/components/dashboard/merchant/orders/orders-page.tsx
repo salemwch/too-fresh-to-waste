@@ -7,14 +7,14 @@ import {
   Search,
   Package,
   Clock,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
+  CircleCheck,
+  CircleX,
+  CircleAlert,
   ShoppingBag,
   User,
   Phone,
   Mail,
-  Loader2,
+  LoaderCircle,
   Ban,
   Wifi,
   Banknote,
@@ -113,19 +113,19 @@ const STATUS_KEY_MAP: Record<OrderStatus, StatusTranslationKey> = {
 const STATUS_STYLE: Record<OrderStatus, { bg: string; text: string; icon: React.ElementType }> = {
   pending: { bg: 'bg-amber-100', text: 'text-amber-700', icon: Clock },
   reserved: { bg: 'bg-amber-100', text: 'text-amber-700', icon: Clock },
-  confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', icon: CheckCircle2 },
+  confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', icon: CircleCheck },
   ready_for_pickup: { bg: 'bg-purple-100', text: 'text-purple-700', icon: Package },
-  picked_up: { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle2 },
+  picked_up: { bg: 'bg-green-100', text: 'text-green-700', icon: CircleCheck },
   // Delivery in progress reads as motion, not completion — blue like confirmed,
   // so a merchant does not mistake 'a driver has it' for 'the customer has it'.
   driver_assigned: { bg: 'bg-blue-100', text: 'text-blue-700', icon: Bike },
   out_for_delivery: { bg: 'bg-blue-100', text: 'text-blue-700', icon: Bike },
-  delivered: { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle2 },
-  completed: { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle2 },
+  delivered: { bg: 'bg-green-100', text: 'text-green-700', icon: CircleCheck },
+  completed: { bg: 'bg-green-100', text: 'text-green-700', icon: CircleCheck },
   pending_payment: { bg: 'bg-amber-100', text: 'text-amber-700', icon: Clock },
-  cancelled: { bg: 'bg-red-100', text: 'text-red-700', icon: XCircle },
-  expired: { bg: 'bg-zinc-100', text: 'text-zinc-500', icon: AlertCircle },
-  refunded: { bg: 'bg-orange-100', text: 'text-orange-700', icon: AlertCircle },
+  cancelled: { bg: 'bg-red-100', text: 'text-red-700', icon: CircleX },
+  expired: { bg: 'bg-zinc-100', text: 'text-zinc-500', icon: CircleAlert },
+  refunded: { bg: 'bg-orange-100', text: 'text-orange-700', icon: CircleAlert },
 };
 
 // ─── Status Badge ────────────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ function PaymentIndicator({ order, t }: { order: MerchantOrder; t: (key: string)
     if (paymentStatus === 'completed' || paymentStatus === 'paid') {
       return (
         <span className='inline-flex items-center gap-xs text-[10px] font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-sm py-xxs'>
-          <CheckCircle2 className='h-2.5 w-2.5' />
+          <CircleCheck className='h-2.5 w-2.5' />
           {t('paymentPaid')}
         </span>
       );
@@ -165,7 +165,7 @@ function PaymentIndicator({ order, t }: { order: MerchantOrder; t: (key: string)
     if (paymentStatus === 'failed') {
       return (
         <span className='inline-flex items-center gap-xs text-[10px] font-medium text-red-700 bg-red-50 border border-red-200 rounded-full px-sm py-xxs'>
-          <XCircle className='h-2.5 w-2.5' />
+          <CircleX className='h-2.5 w-2.5' />
           {t('paymentFailed')}
         </span>
       );
@@ -173,7 +173,7 @@ function PaymentIndicator({ order, t }: { order: MerchantOrder; t: (key: string)
     if (paymentStatus === 'refunded') {
       return (
         <span className='inline-flex items-center gap-xs text-[10px] font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded-full px-sm py-xxs'>
-          <AlertCircle className='h-2.5 w-2.5' />
+          <CircleAlert className='h-2.5 w-2.5' />
           {t('paymentRefunded')}
         </span>
       );
@@ -333,7 +333,7 @@ function OrderColumn({
       <div className='flex-1 overflow-y-auto p-md'>
         {isLoading ? (
           <div className='flex items-center justify-center h-32'>
-            <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
+            <LoaderCircle className='h-5 w-5 animate-spin text-muted-foreground' />
           </div>
         ) : isEmpty ? (
           <div className='flex flex-col items-center justify-center h-40 px-lg text-center'>
@@ -449,7 +449,7 @@ function PickupCodeBlock({
       <div className='mt-lg'>
         {status === 'picked_up' || status === 'completed' ? (
           <div className='flex items-center justify-center gap-sm rounded-lg bg-green-50 border border-green-200 py-2.5 px-lg'>
-            <CheckCircle2 className='h-4 w-4 text-green-600 shrink-0' />
+            <CircleCheck className='h-4 w-4 text-green-600 shrink-0' />
             <span className='text-xs font-semibold text-green-700'>{t('confirmedPickup')}</span>
           </div>
         ) : (
@@ -528,7 +528,7 @@ function CancelDialog({ orderId, orderNumber, onClose, onCancelled, t }: CancelD
             disabled={!reason.trim() || isPending}
             className='flex-1 h-8 rounded-lg bg-destructive text-destructive-foreground text-xs font-semibold hover:bg-destructive/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5'
           >
-            {isPending && <Loader2 className='h-3 w-3 animate-spin' />}
+            {isPending && <LoaderCircle className='h-3 w-3 animate-spin' />}
             {t('cancelConfirm')}
           </button>
         </div>
@@ -580,12 +580,12 @@ function OrderDrawer({ orderId, open, onClose, t }: OrderDrawerProps) {
           <div className='flex-1 overflow-y-auto'>
             {isLoading ? (
               <div className='flex items-center justify-center h-48'>
-                <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
+                <LoaderCircle className='h-6 w-6 animate-spin text-muted-foreground' />
               </div>
             ) : !order ? (
               <div className='flex items-center justify-center h-48 p-4xl text-center'>
                 <div>
-                  <AlertCircle className='h-8 w-8 text-muted-foreground mx-auto mb-sm' />
+                  <CircleAlert className='h-8 w-8 text-muted-foreground mx-auto mb-sm' />
                   <p className='text-sm text-muted-foreground'>Order not found</p>
                 </div>
               </div>
@@ -664,7 +664,7 @@ export function OrderDetailContent({
       {/* Picked-up confirmation banner */}
       {(order.status === 'picked_up' || order.status === 'completed') && (
         <div className='flex items-center gap-sm rounded-xl bg-green-50 border border-green-200 px-lg py-md'>
-          <CheckCircle2 className='h-4 w-4 text-green-600 shrink-0' />
+          <CircleCheck className='h-4 w-4 text-green-600 shrink-0' />
           <span className='text-xs font-semibold text-green-700'>{t('confirmedPickup')}</span>
         </div>
       )}
@@ -913,7 +913,7 @@ export function OrdersPage() {
           </span>
         </div>
         <div className='inline-flex items-center gap-1.5 rounded-lg bg-green-50 border border-green-200 px-md py-1.5'>
-          <CheckCircle2 className='h-3.5 w-3.5 text-green-600' />
+          <CircleCheck className='h-3.5 w-3.5 text-green-600' />
           <span className='text-xs font-semibold text-green-700'>
             {t('statsCompletedToday', { count: stats.completedToday })}
           </span>

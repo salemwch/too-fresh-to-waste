@@ -1,6 +1,6 @@
 'use client';
 
-import { XCircle } from 'lucide-react';
+import { CircleX } from 'lucide-react';
 import { useRouter } from '@/i18n/routing';
 
 export default function SubscriptionFailedPage() {
@@ -8,7 +8,7 @@ export default function SubscriptionFailedPage() {
 
   return (
     <div className='flex min-h-[60vh] flex-col items-center justify-center gap-lg text-center'>
-      <XCircle className='size-16 text-destructive' />
+      <CircleX className='size-16 text-destructive' />
       <h1 className='text-2xl font-bold'>Payment Failed</h1>
       <p className='max-w-md text-muted-foreground'>
         Your payment could not be processed. No charges were made. Please try again or use a

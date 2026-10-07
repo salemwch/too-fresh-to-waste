@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Ticket, AlertTriangle, Clock, CheckCircle2, MessageSquare, Send } from 'lucide-react';
+import { Ticket, TriangleAlert, Clock, CircleCheck, MessageSquare, Send } from 'lucide-react';
 import { Button, Badge, Sheet, SheetContent, SheetTitle, Separator } from '@foodwaste/ui';
 import { Input } from '@/components/ui/input';
 import {
@@ -163,9 +163,9 @@ export default function SupportTicketsPage() {
       {stats && (
         <div className='grid grid-cols-2 md:grid-cols-4 gap-lg'>
           <StatCard icon={Ticket} label={t('totalTickets')} value={stats.total} />
-          <StatCard icon={AlertTriangle} label={t('openTickets')} value={stats.open} />
+          <StatCard icon={TriangleAlert} label={t('openTickets')} value={stats.open} />
           <StatCard icon={Clock} label={t('urgentCount')} value={stats.byPriority['urgent'] ?? 0} />
-          <StatCard icon={CheckCircle2} label={t('resolvedTickets')} value={stats.resolved} />
+          <StatCard icon={CircleCheck} label={t('resolvedTickets')} value={stats.resolved} />
         </div>
       )}
 

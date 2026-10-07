@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { CheckCircle2, Receipt } from 'lucide-react';
+import { CircleCheck, Receipt } from 'lucide-react';
 
 import { useCommissionStatement } from '@/hooks/use-merchant-dashboard';
 import { formatMoney } from '@/lib/format';
@@ -113,7 +113,7 @@ export function CommissionCard() {
 
           {data.fullPriceOrders > 0 && (
             <p className='mt-md flex items-center gap-xs text-xs text-primary-500/65'>
-              <CheckCircle2 size={14} aria-hidden='true' className='shrink-0 text-primary-500/40' />
+              <CircleCheck size={14} aria-hidden='true' className='shrink-0 text-primary-500/40' />
               {t('fullPriceOrders', { count: data.fullPriceOrders })}
             </p>
           )}

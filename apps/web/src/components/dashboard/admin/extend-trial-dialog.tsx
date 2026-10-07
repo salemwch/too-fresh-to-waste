@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CalendarClock, Loader2 } from 'lucide-react';
+import { CalendarClock, LoaderCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -212,7 +212,7 @@ export function ExtendTrialDialog({
           >
             {isLoading ? (
               <>
-                <Loader2 className='me-sm size-3.5 animate-spin' />
+                <LoaderCircle className='me-sm size-3.5 animate-spin' />
                 Extending…
               </>
             ) : (

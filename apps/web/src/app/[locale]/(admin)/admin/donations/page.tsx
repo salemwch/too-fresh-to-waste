@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   HeartHandshake,
-  Loader2,
+  LoaderCircle,
   TrendingUp,
   Users,
   Utensils,
   Target,
   RefreshCw,
   Save,
-  AlertTriangle,
+  TriangleAlert,
   CalendarX,
   History,
   Sparkles,
@@ -236,7 +236,7 @@ export default function AdminDonationPoolPage() {
   if (isLoading) {
     return (
       <div className='flex items-center justify-center py-6xl'>
-        <Loader2 className='size-6 animate-spin text-muted-foreground' />
+        <LoaderCircle className='size-6 animate-spin text-muted-foreground' />
       </div>
     );
   }
@@ -503,7 +503,7 @@ export default function AdminDonationPoolPage() {
             >
               {updatePool.isPending ? (
                 <>
-                  <Loader2 className='me-1.5 size-3.5 animate-spin' />
+                  <LoaderCircle className='me-1.5 size-3.5 animate-spin' />
                   {t('settings.saving')}
                 </>
               ) : (
@@ -521,7 +521,7 @@ export default function AdminDonationPoolPage() {
       <Card className='border-destructive/40'>
         <CardHeader>
           <CardTitle className='flex items-center gap-sm text-sm text-destructive'>
-            <AlertTriangle className='size-4' />
+            <TriangleAlert className='size-4' />
             {t('reset.title')}
           </CardTitle>
           <CardDescription className='text-xs'>{t('reset.description')}</CardDescription>

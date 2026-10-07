@@ -7,7 +7,7 @@ import {
   Wallet,
   DollarSign,
   ShoppingBag,
-  AlertCircle,
+  CircleAlert,
   RotateCcw,
   ShieldAlert,
   Banknote,
@@ -78,7 +78,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
       <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
-        <AlertCircle className='size-12 text-muted-foreground' />
+        <CircleAlert className='size-12 text-muted-foreground' />
         <p className='text-sm text-muted-foreground'>{message}</p>
         {onRetry && (
           <Button variant='outline' size='sm' onClick={onRetry}>
@@ -102,7 +102,7 @@ function InlineErrorBanner({ message, onRetry }: { message: string; onRetry: () 
   return (
     <div className='flex flex-wrap items-center justify-between gap-sm rounded-lg border border-destructive/30 bg-destructive/10 px-md py-sm text-xs text-destructive'>
       <span className='flex items-center gap-xs'>
-        <AlertCircle className='size-4 shrink-0' />
+        <CircleAlert className='size-4 shrink-0' />
         {message}
       </span>
       <Button variant='outline' size='sm' onClick={onRetry}>
@@ -269,7 +269,7 @@ function EarningsRowsSection({ period, tab }: { period: SalesPeriod; tab: Earnin
     <div className='space-y-md'>
       {tab === 'verifying' && (
         <div className='flex items-center gap-sm rounded-lg border border-border/60 bg-muted/30 px-md py-sm text-xs text-muted-foreground'>
-          <AlertCircle className='size-4 shrink-0' />
+          <CircleAlert className='size-4 shrink-0' />
           <span>{t('verifyingNote')}</span>
         </div>
       )}

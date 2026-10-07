@@ -12,7 +12,7 @@ import {
   Share2,
   Flame,
   Target,
-  AlertCircle,
+  CircleAlert,
   Heart,
   Lock,
   Check,
@@ -71,7 +71,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
       <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
-        <AlertCircle className='size-12 text-muted-foreground' />
+        <CircleAlert className='size-12 text-muted-foreground' />
         <p className='text-sm text-muted-foreground'>{message}</p>
         {onRetry && (
           <Button variant='outline' size='sm' onClick={onRetry}>

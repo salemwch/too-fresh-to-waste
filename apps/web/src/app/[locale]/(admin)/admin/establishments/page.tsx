@@ -6,9 +6,9 @@ import {
   Building2,
   ChevronDown,
   ChevronUp,
-  CheckCircle,
-  XCircle,
-  MoreHorizontal,
+  CircleCheckBig,
+  CircleX,
+  Ellipsis,
   Eye,
   Star,
   CalendarClock,
@@ -259,7 +259,7 @@ export default function AdminEstablishmentsPage() {
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' size='sm' className='h-9 w-9 p-0'>
-              <MoreHorizontal className='size-3.5' />
+              <Ellipsis className='size-3.5' />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='w-36'>
@@ -273,14 +273,14 @@ export default function AdminEstablishmentsPage() {
                   className='text-emerald-600'
                   onClick={() => openAction(est, 'approve')}
                 >
-                  <CheckCircle className='me-sm size-3.5' />
+                  <CircleCheckBig className='me-sm size-3.5' />
                   {t('actions.approve')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className='text-rose-600'
                   onClick={() => openAction(est, 'reject')}
                 >
-                  <XCircle className='me-sm size-3.5' />
+                  <CircleX className='me-sm size-3.5' />
                   {t('actions.reject')}
                 </DropdownMenuItem>
               </>
@@ -399,7 +399,7 @@ export default function AdminEstablishmentsPage() {
                               className='flex-1 bg-emerald-600 text-xs hover:bg-emerald-700'
                               onClick={() => openAction(est, 'approve')}
                             >
-                              <CheckCircle className='me-1.5 size-3' />
+                              <CircleCheckBig className='me-1.5 size-3' />
                               {t('actions.approve')}
                             </Button>
                             <Button
@@ -408,7 +408,7 @@ export default function AdminEstablishmentsPage() {
                               className='flex-1 border-rose-300 text-xs text-rose-600 hover:bg-rose-50'
                               onClick={() => openAction(est, 'reject')}
                             >
-                              <XCircle className='me-1.5 size-3' />
+                              <CircleX className='me-1.5 size-3' />
                               {t('actions.reject')}
                             </Button>
                           </div>

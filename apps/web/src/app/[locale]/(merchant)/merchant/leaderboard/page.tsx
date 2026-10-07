@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Crown, Medal, MoreHorizontal, Eye, EyeOff } from 'lucide-react';
+import { Trophy, Crown, Medal, Ellipsis, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth';
 import {
   useLeaderboard,
@@ -159,7 +159,7 @@ function LeaderboardRow({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className='p-1.5 rounded-lg hover:bg-primary-500/[0.06] transition-colors shrink-0'>
-              <MoreHorizontal size={16} className='text-primary-500/40' />
+              <Ellipsis size={16} className='text-primary-500/40' />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>

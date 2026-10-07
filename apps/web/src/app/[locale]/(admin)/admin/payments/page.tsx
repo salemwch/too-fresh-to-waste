@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { DollarSign, Clock, Store, TrendingUp, AlertCircle } from 'lucide-react';
+import { DollarSign, Clock, Store, TrendingUp, CircleAlert } from 'lucide-react';
 import { Card, CardContent } from '@foodwaste/ui';
 import { AdminModuleHeader } from '@/components/dashboard/admin/admin-module-header';
 import { AdminTabNav, type AdminTab } from '@/components/dashboard/admin/admin-tab-nav';
@@ -116,7 +116,7 @@ function PaymentsContent() {
     {
       label: t('kpi.failedPayments'),
       value: fmt.count(stats?.failedPayments),
-      icon: AlertCircle,
+      icon: CircleAlert,
       iconBg: 'bg-rose-50',
       iconColor: 'text-rose-600',
       highlight: (stats?.failedPayments ?? 0) > 0,

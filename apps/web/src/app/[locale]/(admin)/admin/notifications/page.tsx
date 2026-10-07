@@ -7,13 +7,13 @@ import {
   Bell,
   Send,
   Clock,
-  CheckCircle2,
+  CircleCheck,
   Users,
   Store,
   Plus,
   Target,
   Megaphone,
-  AlertCircle,
+  CircleAlert,
 } from 'lucide-react';
 import {
   Card,
@@ -189,10 +189,10 @@ function ChannelBreakdownCard({
   const totalCount = channels.reduce((s, c) => s + c.count, 0);
 
   const channelLabels: Record<string, { label: string; icon: typeof Bell }> = {
-    order_updates: { label: t('channels.orderUpdates'), icon: CheckCircle2 },
+    order_updates: { label: t('channels.orderUpdates'), icon: CircleCheck },
     marketing: { label: t('channels.marketing'), icon: Megaphone },
     pickup_reminders: { label: t('channels.pickupReminders'), icon: Clock },
-    security: { label: t('channels.security'), icon: AlertCircle },
+    security: { label: t('channels.security'), icon: CircleAlert },
     offers: { label: t('channels.offers'), icon: Target },
     admin: { label: t('channels.admin'), icon: Users },
     leaderboard: { label: t('channels.leaderboard'), icon: Store },
@@ -263,7 +263,7 @@ function NotificationsContent() {
     {
       label: t('kpi.deliveryRate'),
       value: stats ? `${stats.deliveryRate}%` : '—',
-      icon: CheckCircle2,
+      icon: CircleCheck,
       iconBg: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
     },
@@ -278,7 +278,7 @@ function NotificationsContent() {
     {
       label: t('kpi.failed'),
       value: fmt.count(stats?.failedCount),
-      icon: AlertCircle,
+      icon: CircleAlert,
       iconBg: 'bg-rose-50',
       iconColor: 'text-rose-600',
       highlight: (stats?.failedCount ?? 0) > 0,

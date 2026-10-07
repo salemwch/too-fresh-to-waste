@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Megaphone, Plus, MoreHorizontal, Send, Archive, Trash2 } from 'lucide-react';
+import { Megaphone, Plus, Ellipsis, Send, Archive, Trash2 } from 'lucide-react';
 import {
   Button,
   Badge,
@@ -164,7 +164,7 @@ function AnnouncementCard({ item }: { item: AnnouncementRow }) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' size='icon' className='size-8 shrink-0'>
-              <MoreHorizontal className='size-4' />
+              <Ellipsis className='size-4' />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>

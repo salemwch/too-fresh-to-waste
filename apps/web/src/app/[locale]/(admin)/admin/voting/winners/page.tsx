@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { Trophy, Crown, Medal, CheckCircle2, Package, XCircle, Eye, ArrowLeft } from 'lucide-react';
+import { Trophy, Crown, Medal, CircleCheck, Package, CircleX, Eye, ArrowLeft } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import {
   Card,
@@ -332,7 +332,7 @@ function PrizeClaimsSection() {
                       })
                     }
                   >
-                    <CheckCircle2 className='me-xs size-3' /> {t('verify')}
+                    <CircleCheck className='me-xs size-3' /> {t('verify')}
                   </Button>
                   <Button
                     size='sm'
@@ -346,7 +346,7 @@ function PrizeClaimsSection() {
                       })
                     }
                   >
-                    <XCircle className='me-xs size-3' /> {t('reject')}
+                    <CircleX className='me-xs size-3' /> {t('reject')}
                   </Button>
                 </div>
               )}

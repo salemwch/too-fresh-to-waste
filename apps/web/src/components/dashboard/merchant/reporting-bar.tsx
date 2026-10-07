@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Download, Loader2 } from 'lucide-react';
+import { FileText, Download, LoaderCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { dashboardService } from '@/services/dashboard.service';
@@ -46,7 +46,7 @@ export function ReportingBar() {
         disabled={loading}
         className='inline-flex items-center gap-sm px-[20px] py-md rounded-full bg-primary-500 text-white text-sm font-medium hover:opacity-90 transition shadow-soft shrink-0 disabled:opacity-60'
       >
-        {loading ? <Loader2 size={16} className='animate-spin' /> : <Download size={16} />}
+        {loading ? <LoaderCircle size={16} className='animate-spin' /> : <Download size={16} />}
         {loading ? t('generating') : t('generateButton')}
       </button>
     </div>

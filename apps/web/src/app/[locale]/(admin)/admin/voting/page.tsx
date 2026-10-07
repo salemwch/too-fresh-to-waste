@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@foodwaste/ui';
 import { Button } from '@foodwaste/ui';
-import { Plus, RefreshCw, Vote, BarChart3, Trophy } from 'lucide-react';
+import { Plus, RefreshCw, Vote, ChartColumn, Trophy } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { votingAdminService } from '@/services/voting.service';
 import type { VotingCycleRow, CreateCyclePayload } from '@/types/voting';
@@ -144,7 +144,7 @@ export default function VotingAdminPage() {
       <div className='flex flex-wrap gap-sm'>
         <Link href='/admin/voting/dashboard'>
           <Button size='sm' variant='outline' className='px-md text-xs'>
-            <BarChart3 className='me-1.5 size-3.5' />
+            <ChartColumn className='me-1.5 size-3.5' />
             {t('liveDashboard')}
           </Button>
         </Link>

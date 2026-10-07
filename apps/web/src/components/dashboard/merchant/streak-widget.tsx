@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Snowflake, Trophy, AlertTriangle, Plus } from 'lucide-react';
+import { Snowflake, Trophy, TriangleAlert, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useStreakData } from '@/hooks/use-merchant-dashboard';
 
@@ -119,7 +119,7 @@ export function StreakWidget({ onListOffer, disabled }: StreakWidgetProps) {
             >
               {streakAtRisk ? (
                 <>
-                  <AlertTriangle size={13} />
+                  <TriangleAlert size={13} />
                   {t('listNow')}
                 </>
               ) : (

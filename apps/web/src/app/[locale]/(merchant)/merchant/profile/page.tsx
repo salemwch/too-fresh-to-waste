@@ -12,9 +12,9 @@ import {
   Mail,
   Phone,
   Camera,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
+  LoaderCircle,
+  CircleAlert,
+  CircleCheck,
   Trophy,
   Lock,
   Eye,
@@ -191,7 +191,7 @@ export default function MerchantProfilePage() {
           {/* Hover / uploading overlay */}
           <span className='absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 group-disabled:opacity-0'>
             {isUploading ? (
-              <Loader2 className='h-4 w-4 animate-spin text-white' />
+              <LoaderCircle className='h-4 w-4 animate-spin text-white' />
             ) : (
               <Camera className='h-4 w-4 text-white' />
             )}
@@ -226,13 +226,13 @@ export default function MerchantProfilePage() {
       {/* Avatar feedback */}
       {avatarError && (
         <div className='mb-md flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-sm text-xs text-destructive'>
-          <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+          <CircleAlert className='h-3.5 w-3.5 shrink-0' />
           <span>{avatarError}</span>
         </div>
       )}
       {avatarSuccess && (
         <div className='mb-md flex items-center gap-sm rounded-lg border border-green-200 bg-green-50 px-md py-sm text-xs text-green-700'>
-          <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+          <CircleCheck className='h-3.5 w-3.5 shrink-0' />
           <span>{t('avatarSuccess')}</span>
         </div>
       )}
@@ -315,19 +315,19 @@ export default function MerchantProfilePage() {
         {/* Form feedback */}
         {error && (
           <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-sm text-xs text-destructive'>
-            <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+            <CircleAlert className='h-3.5 w-3.5 shrink-0' />
             <span>{error}</span>
           </div>
         )}
         {success && (
           <div className='flex items-center gap-sm rounded-lg border border-green-200 bg-green-50 px-md py-sm text-xs text-green-700'>
-            <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+            <CircleCheck className='h-3.5 w-3.5 shrink-0' />
             <span>{t('success')}</span>
           </div>
         )}
 
         <Button type='submit' disabled={isLoading} className='mt-xs h-[36px] px-lg text-sm'>
-          {isLoading && <Loader2 className='me-1.5 h-3.5 w-3.5 animate-spin' />}
+          {isLoading && <LoaderCircle className='me-1.5 h-3.5 w-3.5 animate-spin' />}
           {isLoading ? t('saving') : t('saveChanges')}
         </Button>
       </form>
@@ -431,19 +431,19 @@ export default function MerchantProfilePage() {
           {/* Feedback */}
           {pwError && (
             <div className='flex items-center gap-sm rounded-lg border border-destructive/30 bg-destructive/5 px-md py-sm text-xs text-destructive'>
-              <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+              <CircleAlert className='h-3.5 w-3.5 shrink-0' />
               <span>{pwError}</span>
             </div>
           )}
           {pwSuccess && (
             <div className='flex items-center gap-sm rounded-lg border border-green-200 bg-green-50 px-md py-sm text-xs text-green-700'>
-              <CheckCircle2 className='h-3.5 w-3.5 shrink-0' />
+              <CircleCheck className='h-3.5 w-3.5 shrink-0' />
               <span>{t('passwordSuccess')}</span>
             </div>
           )}
 
           <Button type='submit' disabled={pwLoading} className='h-[36px] px-lg text-sm'>
-            {pwLoading && <Loader2 className='me-1.5 h-3.5 w-3.5 animate-spin' />}
+            {pwLoading && <LoaderCircle className='me-1.5 h-3.5 w-3.5 animate-spin' />}
             {pwLoading ? t('updatingPassword') : t('updatePassword')}
           </Button>
         </form>

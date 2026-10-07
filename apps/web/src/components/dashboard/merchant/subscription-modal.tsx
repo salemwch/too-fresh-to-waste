@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, CreditCard, Loader2, Star } from 'lucide-react';
+import { Check, CreditCard, LoaderCircle, Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { subscriptionService } from '@/services/subscription.service';
 import {
@@ -129,7 +129,7 @@ export function SubscriptionModal({
               className='w-full inline-flex items-center justify-center gap-sm rounded-lg border border-primary bg-transparent px-lg py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50'
             >
               {loading === `standard-${cycle}` ? (
-                <Loader2 className='size-4 animate-spin' />
+                <LoaderCircle className='size-4 animate-spin' />
               ) : (
                 <CreditCard className='size-4' />
               )}
@@ -171,7 +171,7 @@ export function SubscriptionModal({
               className='w-full inline-flex items-center justify-center gap-sm rounded-lg bg-primary px-lg py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50'
             >
               {loading === `pro-${cycle}` ? (
-                <Loader2 className='size-4 animate-spin' />
+                <LoaderCircle className='size-4 animate-spin' />
               ) : (
                 <CreditCard className='size-4' />
               )}

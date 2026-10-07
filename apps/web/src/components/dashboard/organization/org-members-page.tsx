@@ -1,6 +1,6 @@
 'use client';
 
-import { UserPlus, Mail, XCircle } from 'lucide-react';
+import { UserPlus, Mail, CircleX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -92,7 +92,7 @@ export function OrgMembersPage() {
                       onClick={() => revoke.mutate(inv._id)}
                       disabled={revoke.isPending}
                     >
-                      <XCircle className='size-4 text-destructive' />
+                      <CircleX className='size-4 text-destructive' />
                     </Button>
                   )}
                 </div>

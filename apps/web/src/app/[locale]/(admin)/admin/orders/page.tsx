@@ -6,15 +6,15 @@ import { useTranslations } from 'next-intl';
 import {
   ShoppingBag,
   Truck,
-  AlertTriangle,
+  TriangleAlert,
   RotateCcw,
   DollarSign,
   Eye,
   Ban,
-  MoreHorizontal,
+  Ellipsis,
   Clock,
-  CheckCircle2,
-  XCircle,
+  CircleCheck,
+  CircleX,
   MapPin,
   User,
   Store,
@@ -112,13 +112,13 @@ function getPaymentStatusIcon(status: string) {
   switch (status) {
     case 'paid':
     case 'held':
-      return <CheckCircle2 className='size-3.5 text-emerald-600' />;
+      return <CircleCheck className='size-3.5 text-emerald-600' />;
     case 'refunded':
     case 'refund_pending':
     case 'partially_refunded':
       return <RotateCcw className='size-3.5 text-sky-600' />;
     case 'failed':
-      return <XCircle className='size-3.5 text-rose-600' />;
+      return <CircleX className='size-3.5 text-rose-600' />;
     default:
       return <Clock className='size-3.5 text-amber-600' />;
   }
@@ -535,7 +535,7 @@ function OrdersContent() {
     {
       label: t('kpi.disputeRate'),
       value: stats ? `${(stats.disputeRate * 100).toFixed(1)}%` : '—',
-      icon: AlertTriangle,
+      icon: TriangleAlert,
       iconBg: 'bg-orange-50',
       iconColor: 'text-orange-600',
       highlight: (stats?.disputeRate ?? 0) > 0.05,
@@ -662,7 +662,7 @@ function OrdersContent() {
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' size='sm' className='h-9 w-9 p-0'>
-              <MoreHorizontal className='size-3.5' />
+              <Ellipsis className='size-3.5' />
               <span className='sr-only'>Actions</span>
             </Button>
           </DropdownMenuTrigger>

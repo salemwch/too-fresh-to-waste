@@ -6,15 +6,15 @@ import { useToday, MS_PER_DAY } from '@/hooks/useClock';
 import { motion } from 'framer-motion';
 import {
   Package,
-  AlertTriangle,
-  BarChart3,
+  TriangleAlert,
+  ChartColumn,
   Search,
-  AlertCircle,
+  CircleAlert,
   Clock,
   TrendingDown,
   Archive,
   ArrowUpDown,
-  XCircle,
+  CircleX,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -100,7 +100,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
   return (
     <div className='glass rounded-2xl p-[24px] shadow-soft'>
       <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
-        <AlertCircle className='size-12 text-muted-foreground' />
+        <CircleAlert className='size-12 text-muted-foreground' />
         <p className='text-sm text-muted-foreground'>{message}</p>
         {onRetry && (
           <Button variant='outline' size='sm' onClick={onRetry}>
@@ -431,10 +431,10 @@ function ItemsTab() {
 
 // ─── Alerts Tab ─────────────────────────────────────────────────────────────
 
-const ALERT_ICONS: Record<string, typeof AlertTriangle> = {
+const ALERT_ICONS: Record<string, typeof TriangleAlert> = {
   low_stock: TrendingDown,
   expiring: Clock,
-  expired: XCircle,
+  expired: CircleX,
   out_of_stock: Archive,
 };
 
@@ -468,7 +468,7 @@ function AlertsTab() {
         className='glass rounded-2xl p-[24px] shadow-soft'
       >
         <div className='flex flex-col items-center justify-center py-6xl gap-md text-center'>
-          <AlertTriangle className='size-12 text-muted-foreground' />
+          <TriangleAlert className='size-12 text-muted-foreground' />
           <h3 className='text-md font-semibold'>{t('noAlerts')}</h3>
         </div>
       </motion.div>
@@ -483,7 +483,7 @@ function AlertsTab() {
       className='space-y-md'
     >
       {alerts.map(alert => {
-        const Icon = ALERT_ICONS[alert.type] || AlertTriangle;
+        const Icon = ALERT_ICONS[alert.type] || TriangleAlert;
         return (
           <div
             key={alert.id}
@@ -537,7 +537,7 @@ function AnalyticsTab() {
     {
       label: t('totalValue'),
       value: `${(analytics.totalValue ?? 0).toFixed(2)} TND`,
-      icon: BarChart3,
+      icon: ChartColumn,
     },
     { label: t('expiringThisWeek'), value: analytics.expiringItems, icon: Clock },
     {
@@ -627,11 +627,11 @@ export function InventoryPage() {
             {t('tabs.items')}
           </TabsTrigger>
           <TabsTrigger value='alerts' className='gap-1.5 text-xs px-md h-7'>
-            <AlertTriangle className='size-3.5' />
+            <TriangleAlert className='size-3.5' />
             {t('tabs.alerts')}
           </TabsTrigger>
           <TabsTrigger value='analytics' className='gap-1.5 text-xs px-md h-7'>
-            <BarChart3 className='size-3.5' />
+            <ChartColumn className='size-3.5' />
             {t('tabs.analytics')}
           </TabsTrigger>
         </TabsList>

@@ -18,7 +18,7 @@ import {
   Vote,
   Star,
   Wallet,
-  BarChart3,
+  ChartColumn,
   ScrollText,
   Bell,
   Medal,
@@ -200,7 +200,7 @@ export const adminNavGroups: NavGroup[] = [
       {
         titleKey: 'analyticsReports',
         href: '/admin/analytics',
-        icon: BarChart3,
+        icon: ChartColumn,
         roles: [UserRole.ADMIN],
       },
     ],

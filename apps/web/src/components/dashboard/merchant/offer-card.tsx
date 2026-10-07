@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Edit3, Trash2, RotateCcw, Zap, Lock, AlertCircle } from 'lucide-react';
+import { PenLine, Trash2, RotateCcw, Zap, Lock, CircleAlert } from 'lucide-react';
 import { cn } from '@foodwaste/ui';
 import type { MerchantOffer } from '@/types/dashboard';
 
@@ -130,7 +130,7 @@ export function OfferCard({
             </button>
           )}
           <button type='button' onClick={onEdit} className={cn(btn, sec)}>
-            <Edit3 className='h-3 w-3' /> Edit
+            <PenLine className='h-3 w-3' /> Edit
           </button>
           <button
             type='button'
@@ -164,7 +164,7 @@ export function OfferCard({
             Stop Sales
           </button>
           <button type='button' onClick={onEdit} className={cn(btn, sec)}>
-            <Edit3 className='h-3 w-3' /> Edit
+            <PenLine className='h-3 w-3' /> Edit
           </button>
           <button
             type='button'
@@ -205,7 +205,7 @@ export function OfferCard({
       return (
         <>
           <span className='flex items-center gap-1.5 text-[11px] text-rose-600'>
-            <AlertCircle className='h-3.5 w-3.5 shrink-0' />
+            <CircleAlert className='h-3.5 w-3.5 shrink-0' />
             Suspended by admin · Contact support to resolve
           </span>
           <button
@@ -237,7 +237,7 @@ export function OfferCard({
       {/* ── Draft banner ── */}
       {isDraft && (
         <div className='flex items-center gap-1.5 px-lg py-1.5 bg-red-50 border-b border-dashed border-red-200'>
-          <AlertCircle className='h-3 w-3 text-red-500 shrink-0' />
+          <CircleAlert className='h-3 w-3 text-red-500 shrink-0' />
           <span className='text-[11px] font-semibold text-red-600'>
             Not published — invisible to customers
           </span>

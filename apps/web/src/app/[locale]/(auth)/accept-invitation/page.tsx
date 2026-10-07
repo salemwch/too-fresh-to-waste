@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
-import { Building2, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Building2, LoaderCircle, CircleCheck, CircleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { meetsPasswordPolicy, PASSWORD_MIN_LENGTH } from '@/lib/password-policy';
@@ -94,7 +94,7 @@ function AcceptInvitationInner() {
   if (state === 'loading') {
     return (
       <div className='flex justify-center py-4xl'>
-        <Loader2 className='size-8 animate-spin text-primary' />
+        <LoaderCircle className='size-8 animate-spin text-primary' />
       </div>
     );
   }
@@ -104,7 +104,7 @@ function AcceptInvitationInner() {
     return (
       <Card>
         <CardContent className='flex flex-col items-center py-6xl gap-md text-center'>
-          <AlertCircle className='size-12 text-destructive' />
+          <CircleAlert className='size-12 text-destructive' />
           <h3 className='text-lg font-semibold'>Invitation Error</h3>
           <p className='text-sm text-muted-foreground'>{error}</p>
           <Button variant='outline' onClick={() => router.push('/login')}>
@@ -120,7 +120,7 @@ function AcceptInvitationInner() {
     return (
       <Card>
         <CardContent className='flex flex-col items-center py-6xl gap-md text-center'>
-          <CheckCircle2 className='size-12 text-success' />
+          <CircleCheck className='size-12 text-success' />
           <h3 className='text-lg font-semibold'>Welcome aboard!</h3>
           <p className='text-sm text-muted-foreground'>
             Your account has been created. You can now log in to manage your location.
@@ -220,7 +220,7 @@ function AcceptInvitationInner() {
           </div>
 
           <Button type='submit' className='w-full' disabled={submitting}>
-            {submitting && <Loader2 className='size-4 me-sm animate-spin' />}
+            {submitting && <LoaderCircle className='size-4 me-sm animate-spin' />}
             Create Account &amp; Accept
           </Button>
         </form>
@@ -233,7 +233,7 @@ function AcceptInvitationInner() {
 function AcceptInvitationFallback() {
   return (
     <div className='flex justify-center py-4xl'>
-      <Loader2 className='size-8 animate-spin text-primary' />
+      <LoaderCircle className='size-8 animate-spin text-primary' />
     </div>
   );
 }

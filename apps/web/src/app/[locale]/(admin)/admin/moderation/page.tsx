@@ -9,9 +9,9 @@ import {
   ShoppingBag,
   Tag,
   Star,
-  MoreHorizontal,
+  Ellipsis,
   Eye,
-  AlertTriangle,
+  TriangleAlert,
 } from 'lucide-react';
 import {
   Sheet,
@@ -190,7 +190,7 @@ export default function AdminModerationPage() {
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' size='sm' className='h-9 w-9 p-0'>
-              <MoreHorizontal className='size-3.5' />
+              <Ellipsis className='size-3.5' />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='w-36'>
@@ -256,7 +256,7 @@ export default function AdminModerationPage() {
         <AdminStatCard
           label={t('stats.pending')}
           value={stats?.pendingReports ?? '—'}
-          icon={AlertTriangle}
+          icon={TriangleAlert}
           iconBg='bg-amber-50'
           iconColor='text-amber-600'
           highlight={(stats?.pendingReports ?? 0) > 0}

@@ -9,14 +9,14 @@ import {
   Minus,
   DollarSign,
   ShoppingBag,
-  BarChart3,
+  ChartColumn,
   Percent,
   Leaf,
   Droplets,
   Zap,
   Package,
   MapPin,
-  AlertCircle,
+  CircleAlert,
   Wind,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -136,7 +136,7 @@ function KpiCards({ data, t }: { data: BusinessMetrics; t: ReturnType<typeof use
       unit: 'TND',
       trend: data.averageFoodValue?.trend,
       changePercent: data.averageFoodValue?.changePercentage,
-      icon: BarChart3,
+      icon: ChartColumn,
     },
     {
       title: t('kpi.conversionRate'),
@@ -365,7 +365,7 @@ function ErrorState({ message }: { message: string }) {
       animate={{ opacity: 1, y: 0 }}
       className='flex items-center gap-md rounded-xl bg-destructive/10 border border-destructive/20 p-[16px]'
     >
-      <AlertCircle size={18} className='text-destructive shrink-0' />
+      <CircleAlert size={18} className='text-destructive shrink-0' />
       <p className='text-sm text-destructive'>{message}</p>
     </motion.div>
   );

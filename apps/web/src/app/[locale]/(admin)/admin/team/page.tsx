@@ -7,7 +7,7 @@ import {
   Shield,
   ShieldCheck,
   UserPlus,
-  MoreHorizontal,
+  Ellipsis,
   Trash2,
   Key,
   ArrowUpDown,
@@ -208,7 +208,7 @@ function MemberRow({ member }: { member: TeamMemberRow }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant='ghost' size='icon' className='size-8'>
-                <MoreHorizontal className='size-4' />
+                <Ellipsis className='size-4' />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>

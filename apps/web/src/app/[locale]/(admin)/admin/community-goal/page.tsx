@@ -5,13 +5,13 @@ import { useTranslations } from 'next-intl';
 import { useToday, daysUntil } from '@/hooks/useClock';
 import {
   Trophy,
-  Loader2,
+  LoaderCircle,
   Target,
   Users,
   Zap,
   RefreshCw,
   Save,
-  AlertTriangle,
+  TriangleAlert,
   CalendarX,
 } from 'lucide-react';
 import {
@@ -155,7 +155,7 @@ export default function AdminMonthlyBagGoalPage() {
   if (isLoading) {
     return (
       <div className='flex items-center justify-center py-6xl'>
-        <Loader2 className='size-6 animate-spin text-muted-foreground' />
+        <LoaderCircle className='size-6 animate-spin text-muted-foreground' />
       </div>
     );
   }
@@ -321,7 +321,7 @@ export default function AdminMonthlyBagGoalPage() {
             >
               {updateGoal.isPending ? (
                 <>
-                  <Loader2 className='me-1.5 size-3.5 animate-spin' />
+                  <LoaderCircle className='me-1.5 size-3.5 animate-spin' />
                   {t('settings.saving')}
                 </>
               ) : (
@@ -339,7 +339,7 @@ export default function AdminMonthlyBagGoalPage() {
       <Card className='border-destructive/40'>
         <CardHeader>
           <CardTitle className='flex items-center gap-sm text-sm text-destructive'>
-            <AlertTriangle className='size-4' />
+            <TriangleAlert className='size-4' />
             {t('reset.title')}
           </CardTitle>
           <CardDescription className='text-xs'>{t('reset.description')}</CardDescription>

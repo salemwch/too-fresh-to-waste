@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { Network, Building2, CheckCircle, Clock, Ban, Calendar, MapPin } from 'lucide-react';
+import { Network, Building2, CircleCheckBig, Clock, Ban, Calendar, MapPin } from 'lucide-react';
 import { Button, Badge, Sheet, SheetContent, SheetTitle, Separator } from '@foodwaste/ui';
 import {
   Select,
@@ -220,7 +220,7 @@ export default function OrganizationsPage() {
     {
       label: t('stats.active'),
       value: String(statusCounts.active),
-      icon: CheckCircle,
+      icon: CircleCheckBig,
       iconBg: 'bg-green-500/10',
       iconColor: 'text-green-600',
     },

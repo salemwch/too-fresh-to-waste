@@ -11,8 +11,8 @@ import {
   Package,
   Users,
   Download,
-  Loader2,
-  CheckCircle2,
+  LoaderCircle,
+  CircleCheck,
   Circle,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -101,7 +101,11 @@ function EsgContent() {
             disabled={downloading}
             className='inline-flex items-center gap-sm px-xl py-md rounded-full bg-primary-500 text-white text-sm font-medium hover:opacity-90 transition shadow-soft disabled:opacity-60 shrink-0'
           >
-            {downloading ? <Loader2 size={16} className='animate-spin' /> : <Download size={16} />}
+            {downloading ? (
+              <LoaderCircle size={16} className='animate-spin' />
+            ) : (
+              <Download size={16} />
+            )}
             {downloading ? t('downloading') : t('downloadPdf')}
           </button>
         </div>
@@ -141,7 +145,7 @@ function EsgContent() {
           {(tier?.allTiers ?? []).map(tierItem => (
             <div key={tierItem.name} className='flex items-center gap-md'>
               {tierItem.reached ? (
-                <CheckCircle2 size={18} className='text-brand-green shrink-0' />
+                <CircleCheck size={18} className='text-brand-green shrink-0' />
               ) : (
                 <Circle size={18} className='text-primary-500/25 shrink-0' />
               )}

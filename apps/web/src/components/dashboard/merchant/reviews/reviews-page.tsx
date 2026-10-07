@@ -7,11 +7,11 @@ import { toast } from 'sonner';
 import {
   Star,
   MessageSquare,
-  BarChart3,
+  ChartColumn,
   Flag,
-  MoreHorizontal,
-  CheckCircle2,
-  AlertCircle,
+  Ellipsis,
+  CircleCheck,
+  CircleAlert,
   ChevronLeft,
   ChevronRight,
   TrendingUp,
@@ -108,7 +108,7 @@ function StatsHeader({
     {
       label: t('stats.ratingDistribution'),
       value: null,
-      icon: BarChart3,
+      icon: ChartColumn,
       distribution: data.ratingDistribution,
     },
   ];
@@ -272,7 +272,7 @@ function ReviewCard({
               <StarRating rating={review.overallRating} />
               {review.isVerifiedPurchase && (
                 <span className='inline-flex items-center gap-xs text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-xxs rounded-full'>
-                  <CheckCircle2 size={10} />
+                  <CircleCheck size={10} />
                   {t('card.verifiedPurchase')}
                 </span>
               )}
@@ -285,7 +285,7 @@ function ReviewCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className='h-8 w-8 grid place-items-center rounded-lg hover:bg-primary-500/[0.06] transition-colors'>
-                <MoreHorizontal size={16} className='text-primary-500/50' />
+                <Ellipsis size={16} className='text-primary-500/50' />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>
@@ -509,7 +509,7 @@ function ErrorState({ message }: { message: string }) {
       animate={{ opacity: 1, y: 0 }}
       className='flex items-center gap-md rounded-xl bg-destructive/10 border border-destructive/20 p-[16px]'
     >
-      <AlertCircle size={18} className='text-destructive shrink-0' />
+      <CircleAlert size={18} className='text-destructive shrink-0' />
       <p className='text-sm text-destructive'>{message}</p>
     </motion.div>
   );

@@ -5,11 +5,11 @@ import { useTranslations } from 'next-intl';
 import {
   Settings,
   RotateCcw,
-  Loader2,
+  LoaderCircle,
   Download,
   Upload,
-  CheckCircle2,
-  XCircle,
+  CircleCheck,
+  CircleX,
 } from 'lucide-react';
 import {
   Card,
@@ -219,7 +219,7 @@ export default function AdminSettingsPage() {
   if (isLoading || !platform || !security || !notifications || !payment) {
     return (
       <div className='flex items-center justify-center py-6xl'>
-        <Loader2 className='size-6 animate-spin text-muted-foreground' />
+        <LoaderCircle className='size-6 animate-spin text-muted-foreground' />
       </div>
     );
   }
@@ -257,7 +257,7 @@ export default function AdminSettingsPage() {
           <Button size='sm' onClick={() => setSaveDialog(true)} disabled={updateConfig.isPending}>
             {updateConfig.isPending ? (
               <>
-                <Loader2 className='me-sm size-3.5 animate-spin' />
+                <LoaderCircle className='me-sm size-3.5 animate-spin' />
                 {t('saving')}
               </>
             ) : (
@@ -672,9 +672,9 @@ export default function AdminSettingsPage() {
                 }`}
               >
                 {importValidation.valid ? (
-                  <CheckCircle2 className='mt-xxs size-3.5 shrink-0' />
+                  <CircleCheck className='mt-xxs size-3.5 shrink-0' />
                 ) : (
-                  <XCircle className='mt-xxs size-3.5 shrink-0' />
+                  <CircleX className='mt-xxs size-3.5 shrink-0' />
                 )}
                 <div>
                   {importValidation.valid
@@ -702,7 +702,7 @@ export default function AdminSettingsPage() {
               onClick={handleValidateImport}
             >
               {validateImport.isPending ? (
-                <Loader2 className='me-1.5 size-3.5 animate-spin' />
+                <LoaderCircle className='me-1.5 size-3.5 animate-spin' />
               ) : null}
               Validate
             </Button>
@@ -711,7 +711,9 @@ export default function AdminSettingsPage() {
               disabled={!importValidation?.valid || importConfig.isPending}
               onClick={handleConfirmImport}
             >
-              {importConfig.isPending ? <Loader2 className='me-1.5 size-3.5 animate-spin' /> : null}
+              {importConfig.isPending ? (
+                <LoaderCircle className='me-1.5 size-3.5 animate-spin' />
+              ) : null}
               Apply Import
             </Button>
           </DialogFooter>
