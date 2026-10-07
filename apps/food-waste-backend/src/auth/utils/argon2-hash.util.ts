@@ -15,6 +15,9 @@ import * as argon2 from 'argon2';
  * Example:
  * $argon2id$v=19$m=65536,t=3,p=1$base64salt$base64hash
  *
+ * The order of m, t and p is not fixed: argon2 0.45+ writes
+ * `m=65536,p=1,t=3`. Parse them by key, never by position.
+ *
  * @see https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md
  * @see https://datatracker.ietf.org/doc/html/rfc9106
  * @see https://github.com/ranisalt/node-argon2
@@ -110,16 +113,27 @@ export function parseArgon2Hash(hashString: string): Argon2Parameters {
     }
     const version = parseInt(versionMatch[1] ?? '0', 10);
 
-    // Extract memory, time, and parallelism parameters
+    // Extract memory, time, and parallelism parameters. Read them by key, not
+    // by position: the PHC format does not fix their order, and argon2 0.45
+    // writes `m=..,p=..,t=..` where 0.44 wrote `m=..,t=..,p=..`. Exactly m, t
+    // and p, each once, each a whole number - anything else is not a hash
+    // this module understands.
     const paramsPart = parts[3] ?? '';
-    const paramsMatch = paramsPart.match(/^m=(\d+),t=(\d+),p=(\d+)$/);
-    if (!paramsMatch) {
+    const params = new Map<string, number>();
+    for (const pair of paramsPart.split(',')) {
+      const pairMatch = pair.match(/^([mtp])=(\d+)$/);
+      const key = pairMatch?.[1];
+      if (!key || params.has(key)) {
+        throw new Error(`Invalid parameters format: ${paramsPart}`);
+      }
+      params.set(key, parseInt(pairMatch[2] ?? '0', 10));
+    }
+    const memoryCost = params.get('m');
+    const timeCost = params.get('t');
+    const parallelism = params.get('p');
+    if (memoryCost === undefined || timeCost === undefined || parallelism === undefined) {
       throw new Error(`Invalid parameters format: ${paramsPart}`);
     }
-
-    const memoryCost = parseInt(paramsMatch[1] ?? '0', 10);
-    const timeCost = parseInt(paramsMatch[2] ?? '0', 10);
-    const parallelism = parseInt(paramsMatch[3] ?? '0', 10);
 
     return {
       variant,

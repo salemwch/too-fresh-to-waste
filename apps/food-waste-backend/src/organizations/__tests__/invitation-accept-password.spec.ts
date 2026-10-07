@@ -11,6 +11,8 @@ import { InvitationStatus } from '@foodwaste/shared';
 import { BadRequestException } from '@nestjs/common';
 import { Types } from 'mongoose';
 
+import { parseArgon2Hash } from '../../auth/utils/argon2-hash.util';
+import { USER_PASSWORD_HASH_OPTIONS } from '../../auth/utils/password-hash';
 import { OrganizationsInvitationService } from '../organizations-invitation.service';
 
 import type { PasswordPolicyService } from '../../auth/services/password-policy.service';
@@ -78,6 +80,15 @@ describe('OrganizationsInvitationService.accept', () => {
 
     const stored = (usersService.createLocationManager.mock.calls[0]?.[0] as { password: string })
       .password;
-    expect(stored).toMatch(/^\$argon2id\$v=19\$m=65536,t=3,p=1\$/);
+    // Read by key: argon2 0.45 writes the costs as m=..,p=..,t=.. .
+    expect(parseArgon2Hash(stored)).toEqual(
+      expect.objectContaining({
+        variant: 'argon2id',
+        version: 19,
+        memoryCost: USER_PASSWORD_HASH_OPTIONS.memoryCost,
+        timeCost: USER_PASSWORD_HASH_OPTIONS.timeCost,
+        parallelism: USER_PASSWORD_HASH_OPTIONS.parallelism,
+      }),
+    );
   });
 });
