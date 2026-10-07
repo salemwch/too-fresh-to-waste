@@ -30,6 +30,24 @@ const WHITE = '#FFFFFF';
  */
 const FOOD_MAX_SIZE = sw(265);
 
+/*
+ * The doodle's geometry as fractions of the bowl's box, from its designed size
+ * at FOOD_MAX_SIZE: 100x67, 20 down from the top, 28 past the end edge.
+ *
+ * It used to be those absolute numbers. That is right only while the bowl is
+ * full size - in English. In French the headline takes five lines, the bowl
+ * shrinks to about half, and a fixed-size doodle ended up at ~60% of the
+ * bowl's width with its strokes drawn into the food. As fractions it shrinks
+ * with the bowl and stays on the rim at every size.
+ */
+const pct = (fraction: number) => `${fraction * 100}%` as const;
+const DOODLE_BOX = {
+  width: pct(100 / 265),
+  height: pct(67 / 265),
+  top: pct(20 / 265),
+  right: pct(-28 / 265),
+};
+
 interface OnboardingPageOneProps {
   /** Advance to page 2. Owned by the pager, not by this page. */
   onNext: () => void;
@@ -67,11 +85,18 @@ export const OnboardingPageOne: React.FC<OnboardingPageOneProps> = ({
 
       {/* ── Headline + body ── */}
       <View style={styles.textBlock}>
-        <Text style={styles.headlineLine}>{t('welcome.headline.line1')}</Text>
-        <Text style={[styles.headlineLine, styles.headlineAccent]}>
-          {t('welcome.headline.line2')}
+        <Text
+          style={styles.headline}
+          numberOfLines={3}
+          adjustsFontSizeToFit
+          accessibilityRole='header'
+        >
+          {t('welcome.headline.line1')}
+          {'\n'}
+          <Text style={styles.headlineAccent}>{t('welcome.headline.line2')}</Text>
+          {'\n'}
+          {t('welcome.headline.line3')}
         </Text>
-        <Text style={styles.headlineLine}>{t('welcome.headline.line3')}</Text>
         <Text style={styles.bodyText}>{t('welcome.bodyText')}</Text>
       </View>
 
@@ -88,11 +113,9 @@ export const OnboardingPageOne: React.FC<OnboardingPageOneProps> = ({
               accessibilityIgnoresInvertColors
             />
           </View>
-          <ShapesIcon
-            width={sw(100)}
-            height={sw(67)}
-            style={[styles.shapesDecor, isAppRTL() && styles.shapesRTL]}
-          />
+          <View style={[styles.shapesDecor, isAppRTL() && styles.shapesRTL]}>
+            <ShapesIcon width='100%' height='100%' />
+          </View>
         </View>
       </View>
 
@@ -159,13 +182,21 @@ const styles = StyleSheet.create({
    * the headline becomes four, and the fourth line was drawn straight through
    * "Des aliments délicieux…" — measured on a 720x1280 device, a ~40px overlap.
    * Arabic and any larger system font size fail the same way.
+   *
+   * The headline is also held to three lines. Wrapped, French took five, and
+   * the two extra lines (~114dp on a 360x800dp phone) came straight out of the
+   * bowl, which shrank to half its English size. One Text with
+   * `adjustsFontSizeToFit` shrinks all three lines together, only as far as the
+   * longest needs: English fits at full size and is unchanged, and the fixed
+   * lineHeight keeps the block, and so the bowl, the same height in every
+   * locale.
    */
   textBlock: {
     paddingStart: sw(20),
     paddingEnd: sw(18),
     marginTop: sh(22),
   },
-  headlineLine: {
+  headline: {
     fontFamily: 'BebasNeue-Regular',
     fontSize: sw(56),
     fontWeight: '400',
@@ -226,8 +257,7 @@ const styles = StyleSheet.create({
   },
   shapesDecor: {
     position: 'absolute',
-    top: sw(20),
-    right: -sw(28),
+    ...DOODLE_BOX,
     transform: [{ rotate: '10deg' }],
   },
   shapesRTL: {
