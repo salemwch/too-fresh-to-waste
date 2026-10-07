@@ -62,7 +62,10 @@ separate merges, and handle each major on its own with its migration read.
 - [x] Step 1: close #82, #83, #84, #94 with the reason on each (35 -> 31 open)
 - [x] Batch A PR #108: gate green, merged (a6053c3f), deploys healthy; 35 -> 22
       open
-- [ ] Batch B PR: gate green + Android release build + OPPO smoke, merged
+- [x] Batch B PR #110: gate green + Android release build + OPPO check, merged
+      (81e52b7b)
+- [x] 14 covered PRs closed with a reference to #108 / #110 (22 -> 8 open, all
+      majors)
 - [ ] Majors: one PR each, with the migration notes read and consumers tested
 - [ ] CI-action majors: recorded as deferred until Actions can run
 
@@ -129,6 +132,17 @@ separate merges, and handle each major on its own with its migration read.
   offlineManager.ts:164-165/182-183; the Google button's label is baked into
   GoogleButtonSvg (a11y label is translated); a first tap on a city-search
   result is swallowed while the keyboard is open.
+
+- 2026-10-07: class-validator 0.14.4 -> 0.15.1 (#109). The compare is 10
+  commits; the only breaking change is IsIBAN's options argument and the rest is
+  additive (validateIf, UUID versions 1-8/nil/max, ISO 3166-1 numeric / ISO
+  639-1 validators). IsIBAN and IsUUID are used nowhere. 0.15.1 declares the
+  same validator ^13.15.22 / libphonenumber-js ^1.11.1 as 0.14.4, so the
+  resolved 13.15.26 / 1.13.14 did not move. Peers accept it:
+  @nestjs/mapped-types ^0.15.0, @nestjs/common >=0.13.2, @nestjs/swagger *.
+  Gates: check:lockfile, audit, type-check, backend check:ts, 2,528 tests (7
+  specs run class-validator directly), lint. Gap: no spec builds a real
+  ValidationPipe, so the global pipe options are not exercised end to end.
 
 ## Open questions
 
