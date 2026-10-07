@@ -36,10 +36,15 @@ type ToastArgs = { type: string; text1: string; text2: string; onHide?: () => vo
 
 const LOCALES = { en, fr, ar } as const;
 
-/** Emits a connectivity change through the listener offlineManager registered. */
+/**
+ * Emits a connectivity change through the listener offlineManager registered.
+ * The network type is only logged. It is ethernet, not wi-fi, because
+ * scripts/lib/iconScan.js counts every literal in src/ that names an Ionicons
+ * glyph, and the wi-fi type is one, so it would add an unused glyph to the font.
+ */
 const emit = (isConnected: boolean): void => {
   const listener = mockAddEventListener.mock.calls.at(-1)?.[0] as (s: NetInfoState) => void;
-  listener({ isConnected, isInternetReachable: isConnected, type: 'wifi' } as NetInfoState);
+  listener({ isConnected, isInternetReachable: isConnected, type: 'ethernet' } as NetInfoState);
 };
 
 const lastToast = (): ToastArgs => mockShow.mock.calls.at(-1)?.[0] as ToastArgs;
