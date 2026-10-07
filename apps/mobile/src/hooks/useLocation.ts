@@ -22,10 +22,12 @@
  * ```
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   type LocationCoordinates,
+  type LocationErrorCode,
   type LocationResult,
   type LocationSource,
   type PermissionStatus,
@@ -69,8 +71,8 @@ interface UseLocationReturn {
   /** Whether location request is in progress */
   isLoading: boolean;
 
-  /** Error message from last failed operation */
-  error: string | null;
+  /** Why the last request failed - a code; render it as t('location.errors.<code>') */
+  error: LocationErrorCode | null;
 
   /** User's preferred search radius in km */
   preferredRadiusKm: number;
@@ -174,7 +176,18 @@ export function useLocation(): UseLocationReturn {
   const hasValidLocation = useAppSelector(selectHasValidLocation);
   const shouldShowPrompt = useAppSelector(selectShouldShowPrompt);
   const locationSourceDisplay = useAppSelector(selectLocationSourceDisplay);
-  const formattedLocationDisplay = useAppSelector(selectFormattedLocationDisplay);
+  // The selector returns data; the copy is built here so it follows the
+  // current language (useTranslation re-renders on a language change).
+  const { t } = useTranslation();
+  const locationDisplay = useAppSelector(selectFormattedLocationDisplay);
+  const formattedLocationDisplay = useMemo(() => {
+    if (locationDisplay.kind === 'named') return locationDisplay.name;
+    return t(
+      locationDisplay.kind === 'currentLocation'
+        ? 'location.currentLocation'
+        : 'location.setLocation',
+    );
+  }, [locationDisplay, t]);
 
   const {
     coordinates,

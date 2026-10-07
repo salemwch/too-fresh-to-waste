@@ -34,6 +34,8 @@ import {
 import { Logger } from '@/utils/logger';
 import { CancelledError, TimeoutError, withTimeout } from '@/utils/withTimeout';
 
+import type { LocationErrorCode } from './locationErrors';
+
 Geolocation.setRNConfiguration({
   locationProvider: 'playServices',
   skipPermissionRequests: true,
@@ -76,6 +78,17 @@ const isAuthLogoutAction = (action: UnknownAction): boolean =>
 
 export type PermissionStatus = 'undetermined' | 'granted' | 'denied' | 'blocked';
 
+// Why a location request failed, as a code - see ./locationErrors.
+export { LOCATION_ERROR_CODES, type LocationErrorCode } from './locationErrors';
+
+/**
+ * What the location header should say. Data, not text: the selector is
+ * memoised on location state alone, so text built inside it would keep the
+ * old language after a language switch. `useLocation` turns this into copy.
+ */
+export type LocationDisplay =
+  { kind: 'unset' } | { kind: 'currentLocation' } | { kind: 'named'; name: string };
+
 export interface LocationState {
   /** Current coordinates (GPS or manual) */
   coordinates: LocationCoordinates | null;
@@ -103,8 +116,8 @@ export interface LocationState {
   promptDismissedAt: number | null;
   /** Loading state for async operations */
   isLoading: boolean;
-  /** Error message from last failed operation */
-  error: string | null;
+  /** Why the last location request failed, as a code - translated where it is rendered. */
+  error: LocationErrorCode | null;
   /** 🔒 User ID who owns this location data (for multi-account support) */
   userId: string | null;
 }
@@ -113,7 +126,7 @@ export interface LocationResult {
   success: boolean;
   coordinates?: LocationCoordinates;
   accuracy?: number;
-  error?: string;
+  error?: LocationErrorCode;
   errorCode?: number;
   /**
    * True when this request was dropped because an identical one was already
@@ -240,18 +253,21 @@ function mapPermissionResult(result: string): PermissionStatus {
 }
 
 /**
- * Get user-friendly error message from geolocation error code
+ * Maps a geolocation error code (W3C: 1 permission denied, 2 position
+ * unavailable, 3 timeout) to the app's LocationErrorCode. The user-facing
+ * sentence lives in the locale files under location.errors.<code> and is
+ * resolved where it is rendered, so it follows the current language.
  */
-function getErrorMessage(error: { code: number; message: string }): string {
-  switch (error.code) {
+function getErrorCode(code: number): LocationErrorCode {
+  switch (code) {
     case 1:
-      return 'Location permission denied. Please enable location access in your device settings.';
+      return 'permissionDenied';
     case 2:
-      return 'Unable to determine location. Please check your device settings or search for your city.';
+      return 'positionUnavailable';
     case 3:
-      return 'GPS signal not found. Please try again or search for your city.';
+      return 'timeout';
     default:
-      return 'An unexpected location error occurred. Please try again or search for your city.';
+      return 'unknown';
   }
 }
 
@@ -310,7 +326,7 @@ export const requestLocationAsync = createAsyncThunk<
       if (permStatus !== 'granted') {
         return rejectWithValue({
           success: false,
-          error: 'Location permission not granted',
+          error: 'permissionNotGranted',
           errorCode: 1,
         });
       }
@@ -369,13 +385,10 @@ export const requestLocationAsync = createAsyncThunk<
         // it as "position unavailable" (2) so the user still gets usable copy.
         const failure = fixError as Partial<PositionFixError> | null | undefined;
         const code = typeof failure?.code === 'number' ? failure.code : 2;
-        const message =
-          typeof failure?.message === 'string' ? failure.message : 'Location unavailable';
-
         Logger.warn('Location request failed', { code });
         return rejectWithValue({
           success: false,
-          error: getErrorMessage({ code, message }),
+          error: getErrorCode(code),
           errorCode: code,
         });
       }
@@ -383,7 +396,7 @@ export const requestLocationAsync = createAsyncThunk<
       Logger.error('Location request failed', {}, error as Error);
       return rejectWithValue({
         success: false,
-        error: 'Failed to get location',
+        error: 'requestFailed',
       });
     }
   },
@@ -713,7 +726,7 @@ const locationSlice = createSlice({
     builder.addCase(requestLocationAsync.rejected, (state, action) => {
       state.isLoading = false;
       if (action.payload) {
-        state.error = action.payload.error ?? 'Location request failed';
+        state.error = action.payload.error ?? 'requestFailed';
         // Update permission status if denied
         if (action.payload.errorCode === 1) {
           state.permissionStatus = 'denied';
@@ -905,28 +918,34 @@ export const selectLocationSourceDisplay = createSelector(
   },
 );
 
+/** Names longer than 20 characters are cut for the header. */
+const truncateLocationName = (name: string): string =>
+  name.length > 20 ? `${name.substring(0, 20)}...` : name;
+
 /**
  * Select formatted display location for header (memoized)
  *
  * ✅ PRODUCTION-GRADE SELECTOR
  * - Handles null/undefined safely with runtime type guards
  * - Truncates long names (> 20 chars) for UI consistency
- * - Returns presentation-ready string (never null/undefined)
+ * - Returns LocationDisplay data (never null/undefined); useLocation turns it
+ *   into translated copy, so the label follows the current language
  * - Memoized to prevent unnecessary component re-renders
  * - Includes validation logging for debugging rehydration issues
  *
- * **Why this approach?**
- * - Components should consume presentation-ready data from selectors
- * - Formatting logic centralized in one place (DRY principle)
+ * **Why data, not text?**
+ * - The memo only recomputes when location state changes, so a string built
+ *   here would keep the old language after a language switch
+ * - Formatting that does not depend on language (truncation) stays here
  * - Prevents race conditions during AsyncStorage rehydration
- * - Type-safe: always returns string, never crashes on undefined
+ * - Type-safe: always returns a LocationDisplay, never crashes on undefined
  *
  * **Rehydration safety:**
  * - During rehydration, coordinates may load before location names
  * - This selector defensively checks BOTH coordinates AND names
  * - Falls back to safe defaults instead of crashing
  *
- * @returns Formatted location string ready for display
+ * @returns What the header should show: unset, current location, or a name
  */
 export const selectFormattedLocationDisplay = createSelector(
   [
@@ -935,12 +954,12 @@ export const selectFormattedLocationDisplay = createSelector(
     (state: { location: LocationState }) => state.location.manualLocationName,
     (state: { location: LocationState }) => state.location.gpsLocationName,
   ],
-  (coordinates, source, manualLocationName, gpsLocationName): string => {
+  (coordinates, source, manualLocationName, gpsLocationName): LocationDisplay => {
     // ────────────────────────────────────────────────────────────────────────
     // 1. NO LOCATION - Return prompt
     // ────────────────────────────────────────────────────────────────────────
     if (!coordinates) {
-      return 'Set your location';
+      return { kind: 'unset' };
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -949,13 +968,11 @@ export const selectFormattedLocationDisplay = createSelector(
     if (source === 'gps') {
       // Runtime type guard - ensure gpsLocationName is a valid non-empty string
       if (typeof gpsLocationName === 'string' && gpsLocationName.trim().length > 0) {
-        const trimmed = gpsLocationName.trim();
-        // Truncate if > 20 characters
-        return trimmed.length > 20 ? `${trimmed.substring(0, 20)}...` : trimmed;
+        return { kind: 'named', name: truncateLocationName(gpsLocationName.trim()) };
       }
 
       // Fallback during reverse geocoding or if name is null/undefined
-      return 'Current Location';
+      return { kind: 'currentLocation' };
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -964,9 +981,7 @@ export const selectFormattedLocationDisplay = createSelector(
 
     // Runtime type guard - ensure manualLocationName is a valid non-empty string
     if (typeof manualLocationName === 'string' && manualLocationName.trim().length > 0) {
-      const trimmed = manualLocationName.trim();
-      // Truncate if > 20 characters
-      return trimmed.length > 20 ? `${trimmed.substring(0, 20)}...` : trimmed;
+      return { kind: 'named', name: truncateLocationName(manualLocationName.trim()) };
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -985,6 +1000,6 @@ export const selectFormattedLocationDisplay = createSelector(
       context: 'Coordinates exist but no valid location name - possible rehydration race',
     });
 
-    return 'Set your location';
+    return { kind: 'unset' };
   },
 );

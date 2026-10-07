@@ -52,7 +52,10 @@
     "a11yAppliesActionHint": "يطبّق هذا الإجراء",
     "a11yRemoveFilter": "إزالة عامل التصفية {{label}}",
     "a11yRemoveFilterHint": "يزيل هذا الفلتر",
-    "a11yOpenLinkHint": "يفتح هذا الرابط"
+    "a11yOpenLinkHint": "يفتح هذا الرابط",
+    "offlineFeaturesLimited": "قد تكون بعض الميزات محدودة",
+    "backOnline": "عاد الاتصال",
+    "connectionRestored": "تمت استعادة الاتصال"
   },
   "update": {
     "forceTitle": "تحديث مطلوب",
@@ -1061,7 +1064,15 @@
     "bannerBody": "فعّل الموقع لتكتشف فائض الطعام في المطاعم القريبة وتوفّر المال وتقلّل الهدر.",
     "noLocationsFor": "لم يتم العثور على أماكن لـ«{{query}}»",
     "a11yCurrentLocation": "الموقع الحالي: {{location}}",
-    "a11ySelectLocation": "اختيار {{location}}"
+    "a11ySelectLocation": "اختيار {{location}}",
+    "errors": {
+      "permissionNotGranted": "لم يتم السماح بالوصول إلى الموقع. يمكنك تفعيله من الإعدادات أو البحث عن مدينتك.",
+      "permissionDenied": "تم رفض إذن الوصول إلى الموقع. يرجى تفعيل الوصول إلى الموقع من إعدادات جهازك.",
+      "positionUnavailable": "تعذّر تحديد موقعك. يرجى التحقق من إعدادات جهازك أو البحث عن مدينتك.",
+      "timeout": "لم يتم العثور على إشارة GPS. يرجى المحاولة مرة أخرى أو البحث عن مدينتك.",
+      "unknown": "حدث خطأ غير متوقع في تحديد الموقع. يرجى المحاولة مرة أخرى أو البحث عن مدينتك.",
+      "requestFailed": "تعذّر الحصول على موقعك. يرجى تجربة خيار آخر."
+    }
   },
   "navigation": {
     "searchOffers": "البحث عن عروض",
