@@ -162,7 +162,11 @@ export const seoConfig = {
 
   // Verification codes (set via environment variables)
   verification: {
-    google: process.env['NEXT_PUBLIC_GOOGLE_VERIFICATION'],
+    // Search Console ownership token. Public by design (it is served in <head>),
+    // so it is versioned here; the env var can still override it.
+    google:
+      process.env['NEXT_PUBLIC_GOOGLE_VERIFICATION'] ??
+      '3L8o-eo2kNbjWwPapg2yBWoDdNSU9Gdiiec_mtsuzlM',
     bing: process.env['NEXT_PUBLIC_BING_VERIFICATION'],
     facebook: process.env['NEXT_PUBLIC_FACEBOOK_VERIFICATION'],
   },
