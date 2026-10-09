@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "title": "Too Fresh To Waste - Réduisez le Gaspillage Alimentaire",
+    "title": "Too Fresh To Waste - Anti-gaspillage alimentaire en Tunisie",
     "titleTemplate": "%s | Too Fresh To Waste Tunisie",
-    "description": "Connectez-vous aux restaurants locaux en Tunisie pour sauver la nourriture en surplus. Économisez jusqu'à 70% tout en luttant contre le gaspillage alimentaire.",
+    "description": "Luttez contre le gaspillage alimentaire en Tunisie : sauvez les invendus des restaurants, boulangeries et supermarchés près de chez vous, jusqu'à -70%.",
     "keywords": "gaspillage alimentaire tunisie, nourriture pas cher tunis, resto surplus, anti gaspillage, livraison nourriture tunisie, repas à petit prix"
   },
   "common": {
@@ -3596,12 +3596,12 @@
   },
   "foodWasteFacts": {
     "meta": {
-      "title": "Chiffres du gaspillage alimentaire - Ce que nous jetons vraiment",
-      "description": "Chaque année, 2,5 milliards de tonnes de nourriture n’arrivent jamais dans une assiette. Les données, le parcours et les principaux coupables du gaspillage alimentaire."
+      "title": "Gaspillage alimentaire en Tunisie : chiffres et solutions",
+      "description": "Gaspillage alimentaire en Tunisie : 172 kg par habitant et par an, le taux le plus élevé du Maghreb. Les chiffres, les causes et comment agir."
     },
     "breadcrumb": {
       "home": "Accueil",
-      "current": "Gaspillage alimentaire"
+      "current": "Gaspillage alimentaire en Tunisie"
     },
     "hero": {
       "eyebrow": "Un rapport sur ce que nous jetons",
