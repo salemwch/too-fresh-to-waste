@@ -388,6 +388,11 @@ export class GooglePlacesService {
 
   /** Handle and log errors from Google Places API */
   private handleError(error: unknown, context: string): void {
+    // Already translated by an inner call: rethrow so the outer catch does not
+    // swallow it into an empty 200 (which also kept it out of Sentry).
+    if (error instanceof HttpException) {
+      throw error;
+    }
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       const errorDetails = axiosError.response?.data ?? axiosError.message;
